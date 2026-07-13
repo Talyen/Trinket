@@ -5,9 +5,31 @@ import SwiftUI
 /// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
-    public enum Journey: Sendable {
-        public static let reduceMotionFade: TimeInterval = 0.18
+    public enum Reward: Sendable {
+        public static let chestBreathingDuration: TimeInterval = 1.4
 
+        public static var stateChange: Animation {
+            .spring(response: 0.38, dampingFraction: 1.0)
+        }
+
+        public static var reveal: Animation {
+            .spring(response: 0.45, dampingFraction: 0.88)
+        }
+
+        public static var chestBreathing: Animation {
+            .easeInOut(duration: chestBreathingDuration).repeatForever(autoreverses: true)
+        }
+    }
+
+    /// Fluid feedback for large navigation cards and other mode-level choices.
+    public enum Play: Sendable {
+        /// Immediate, critically damped response on touch-down.
+        public static var modeCardPress: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+    }
+
+    public enum Journey: Sendable {
         /// Immediate, critically damped feedback for the active stage row.
         public static var rowPress: Animation {
             .spring(response: 0.2, dampingFraction: 1.0)
@@ -17,15 +39,9 @@ public enum TrinketMotion: Sendable {
         public static var stageExpansion: Animation {
             .spring(response: 0.38, dampingFraction: 1.0)
         }
-
-        public static var reduceMotion: Animation {
-            .easeOut(duration: reduceMotionFade)
-        }
     }
 
     public enum Homestead: Sendable {
-        public static let reduceMotionFade: TimeInterval = 0.18
-
         /// Press feedback for dense navigation rows: fast, critically damped, and interruptible.
         public static var rowPress: Animation {
             .spring(response: 0.2, dampingFraction: 1.0)
@@ -38,16 +54,25 @@ public enum TrinketMotion: Sendable {
 
         /// Restrained squash-and-bounce cue for an affordable build or upgrade action.
         public static let purchaseCueSpeed: Double = 0.45
-
-        public static var reduceMotion: Animation {
-            .easeOut(duration: reduceMotionFade)
-        }
     }
 
     public enum Battle: Sendable {
         /// Immediate press response before a drag direction is established.
         public static var cardPress: Animation {
             .spring(response: 0.16, dampingFraction: 1.0)
+        }
+
+        /// Semantic pickup response for a card leaving the hand.
+        ///
+        /// Keep this separate from `cardPress` so card-play callers can describe
+        /// intent without coupling to the current drag implementation.
+        public static var pickup: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        /// Semantic readiness response when a card or pane becomes a valid target.
+        public static var readiness: Animation {
+            .spring(response: 0.24, dampingFraction: 0.94)
         }
 
         /// Restrained, interruptible motion for directly manipulated ability cards.
@@ -60,24 +85,79 @@ public enum TrinketMotion: Sendable {
             .spring(response: 0.28, dampingFraction: 0.92)
         }
 
+        /// Purposeful cast travel from the hand toward the battlefield.
+        public static var cast: Animation {
+            cardCommit
+        }
+
+        /// Tight, slightly bouncy landing response when a cast resolves.
+        public static var impact: Animation {
+            .spring(response: 0.18, dampingFraction: 0.82)
+        }
+
         /// Slight overshoot is reserved for returning an object after a drag.
         public static var cardReturn: Animation {
             .spring(response: 0.38, dampingFraction: 0.82)
         }
 
-        public static var cardReturnReducedMotion: Animation {
-            .spring(response: 0.22, dampingFraction: 1.0)
+        /// Name for a return animation when the caller is not modeling a card.
+        public static var returning: Animation {
+            cardReturn
         }
 
         /// Time reserved for the card's activation travel before the engine commit.
         public static let cardCommitDelay: TimeInterval = 0.11
 
+        /// Particle activation of a played card.
+        public static let cardActivationDuration: TimeInterval = 1.0
+
+        /// Breathing room after the last activation or feedback frame before an outcome replaces Battle.
+        public static let outcomePresentationPadding: TimeInterval = 0.1
+
         /// Stagger for a small deal without making the turn feel held up.
         public static let cardDrawStagger: TimeInterval = 0.045
+
+        /// Short, low-distraction delay between cards entering the hand.
+        public static let dealStagger: TimeInterval = cardDrawStagger
+
+        /// Spring used while a freshly dealt hand settles into its fan.
+        public static var deal: Animation {
+            .spring(response: 0.3, dampingFraction: 0.94)
+        }
 
         /// Spring used when the hand reflows around a draw or played card.
         public static var handReflow: Animation {
             .spring(response: 0.34, dampingFraction: 0.92)
+        }
+
+        /// Semantic alias for layout movement after a cast or deal.
+        public static var reflow: Animation {
+            handReflow
+        }
+
+        /// Explicit card-named alias for `pickup`.
+        public static var cardPickup: Animation {
+            pickup
+        }
+
+        /// Explicit card-named alias for `readiness`.
+        public static var cardReadiness: Animation {
+            readiness
+        }
+
+        /// Explicit card-named alias for `cast`.
+        public static var cardCast: Animation {
+            cast
+        }
+
+        /// Explicit card-named alias for `impact`.
+        public static var cardImpact: Animation {
+            impact
+        }
+
+        /// Explicit card-named alias for `deal`.
+        public static var cardDeal: Animation {
+            deal
         }
 
         public static let cardHeldScale = 1.035
@@ -103,7 +183,6 @@ public enum TrinketMotion: Sendable {
             skillCalloutIn + skillCalloutHold + skillCalloutOut
         }
 
-        public static let reduceMotionFade: TimeInterval = 0.18
         public static let scrimFade: TimeInterval = 0.2
         public static let ultimateCollapse: TimeInterval = 0.28
 
@@ -121,10 +200,6 @@ public enum TrinketMotion: Sendable {
             chip(for: .critical).lifetime + 0.05
         }
 
-        public static let reduceMotionChipFadeIn: TimeInterval = 0.12
-        public static let reduceMotionChipHold: TimeInterval = 0.4
-        public static let reduceMotionChipFadeOut: TimeInterval = 0.12
-
         /// Max concurrent keyword particle bursts per combatant pane.
         public static let maxKeywordBurstsPerPane = 2
 
@@ -138,10 +213,6 @@ public enum TrinketMotion: Sendable {
 
         public static var scrim: Animation {
             .easeOut(duration: scrimFade)
-        }
-
-        public static var reduceMotion: Animation {
-            .easeOut(duration: reduceMotionFade)
         }
 
         public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackMotionRecipe {
@@ -163,10 +234,6 @@ public enum TrinketMotion: Sendable {
 
         public static var modifierIn: Animation {
             .easeOut(duration: 0.22)
-        }
-
-        public static var reduceMotion: Animation {
-            .easeOut(duration: 0.15)
         }
     }
 }

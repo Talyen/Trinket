@@ -309,13 +309,13 @@ public enum LabyrinthGenerator {
         // Always end with a gate (combat depth transition).
         let fillCount = max(0, count - types.count - 1)
         var weighted: [LabyrinthNodeType] = [
-            .battle, .battle, .battle, .elite,
+            .battle, .battle, .battle, .battle,
             .shop, .rest, .mystery, .craft
         ]
-        // Threat modifiers bias elite finds; Heartwell / rest-leaning biomes bias shrines.
+        // Threat modifiers bias battle finds; Heartwell / rest-leaning biomes bias shrines.
         let threatPower = modifiers.reduce(0) { $0 + $1.enemyPowerPercent }
         if threatPower >= 15 {
-            weighted.append(contentsOf: [.elite, .elite])
+            weighted.append(contentsOf: [.battle, .battle])
         }
         if biome.id == .heartwellGrotto || modifiers.contains(where: { $0.guaranteedNodeType == .rest }) {
             weighted.append(contentsOf: [.rest, .rest])
@@ -325,7 +325,7 @@ public enum LabyrinthGenerator {
         }
 
         // Depth 1+: ensure at least one battle-like node before the gate.
-        if !types.contains(where: { $0 == .battle || $0 == .elite || $0 == .warden }) {
+        if !types.contains(where: { $0 == .battle || $0 == .warden }) {
             types.insert(.battle, at: 0)
         }
 
@@ -337,7 +337,7 @@ public enum LabyrinthGenerator {
             }
         }
         // Prefer a combat encounter as the cluster entry for a clear first action.
-        if let battleIndex = types.firstIndex(where: { $0 == .battle || $0 == .elite }), battleIndex != 0 {
+        if let battleIndex = types.firstIndex(where: { $0 == .battle }), battleIndex != 0 {
             types.swapAt(0, battleIndex)
         } else if !types.contains(where: { $0.isCombat && $0 != .gate }) {
             types.insert(.battle, at: 0)

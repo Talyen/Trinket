@@ -7,11 +7,11 @@ import TrinketCore
 struct MitigationIntegrationTests {
     @Test func shieldAbsorbsDamageBeforeHealth() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0)
@@ -27,11 +27,11 @@ struct MitigationIntegrationTests {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.judgment])
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
@@ -48,11 +48,11 @@ struct MitigationIntegrationTests {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.judgment])
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
@@ -68,18 +68,18 @@ struct MitigationIntegrationTests {
 
     @Test func sunderArmorHalvesEnemyArmor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.sunderArmor])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.sunderArmor])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 6)
             ]
         )
 
-        _ = try BattleTestFixtures.playCardNamed("Sunder Armor", owner: .pet, on: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Sunder Armor", owner: .companion, on: &battle)
 
         try #expect(battle.hasEnemyEffect { effect in
             if case .mitigation(.armor, 1) = effect {

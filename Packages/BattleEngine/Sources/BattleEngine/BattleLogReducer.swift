@@ -62,7 +62,7 @@ public enum BattleLogReducer {
     private static func milestoneLine(for event: ActionEvent, matchup: BattleMatchup) -> String? {
         switch event.milestone {
         case .battleStarted:
-            "\(matchup.hero.name) and \(matchup.pet.name) face \(matchup.enemy.name)."
+            "\(matchup.hero.name) and \(matchup.companion.name) face \(matchup.enemy.name)."
         case .enemyDefeated:
             "\(matchup.enemy.name) is defeated."
         case .partyDefeated:

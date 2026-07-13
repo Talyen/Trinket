@@ -6,8 +6,9 @@ import TrinketDesignSystem
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var persistFailureMessage: StageMapMessage?
+    @State private var cardPlayFeedbackToken = 0
+    @State private var castingCards: [CardActivationRequest] = []
     @Namespace private var cinematicNamespace
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let configuration: ActiveBattleConfiguration
 
@@ -27,7 +28,7 @@ struct BattleView: View {
 
         return outcomeContent(battleSession: battleSession, battleState: battleState)
             .trinketScreenBackground(.battle)
-            .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
+            .navigationTitle(battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
@@ -36,6 +37,11 @@ struct BattleView: View {
                     battleActionsMenu(canRetreat: !isShowingOutcome)
                 }
             }
+            .trinketSensoryFeedback(
+                .impact(weight: .medium),
+                trigger: cardPlayFeedbackToken,
+                enabled: appState.options.hapticsEnabled
+            )
             .alert(item: $persistFailureMessage) { message in
                 Alert(
                     title: Text(message.title),
@@ -69,7 +75,7 @@ struct BattleView: View {
             Image(systemName: "ellipsis")
                 .frame(minWidth: 44, minHeight: 44)
         }
-        .accessibilityLabel("Battle Actions")
+
         .accessibilityIdentifier(AccessibilityID.Battle.actionsMenu)
     }
 
@@ -93,8 +99,10 @@ struct BattleView: View {
                                 message: "Your victory was not saved. Stay on this screen and try Continue again."
                             )
                         }
+                        return didPersist
                     } else {
                         appState.restartActiveBattle()
+                        return true
                     }
                 }
             )
@@ -146,41 +154,64 @@ struct BattleView: View {
                         battleState: battleState,
                         battleSession: battleSession
                     ),
-                    petPane: combatantPane(
-                        for: battleState.pet,
-                        health: battleState.health(of: battleState.pet),
+                    companionPane: combatantPane(
+                        for: battleState.companion,
+                        health: battleState.health(of: battleState.companion),
                         battleState: battleState,
                         battleSession: battleSession
                     )
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                BattleHandView(
-                    cards: battleSession.hand,
-                    isPlayable: { battleSession.isCardPlayable($0) },
-                    onTap: { card in
-                        battleSession.presentAbilityDetail(card.ability)
-                    },
-                    onPlay: { card in
-                        playCard(cardID: card.id)
-                    },
-                    hapticsEnabled: appState.options.hapticsEnabled
+                battleHand(
+                    battleSession: battleSession,
+                    battleSize: geometry.size
                 )
-                .frame(height: BattleCardGridLayout.handReservedHeight)
-                .offset(y: -BattleHandLayout.bottomRise)
-                .zIndex(1)
-                .onAppear {
-                    wireAutoEndTurn(battleSession)
-                    battleSession.considerAutoEndTurn(
-                        journey: appState.journey,
-                        homestead: appState.homestead
-                    )
+
+                ForEach(castingCards) { request in
+                    CardCastOverlay(request: request) {
+                        castingCards.removeAll { $0.id == request.id }
+                    }
+                    .zIndex(3)
                 }
 
                 cinematicOverlay(for: battleSession)
+                    .zIndex(10)
             }
         }
         .ignoresSafeArea(.container, edges: .bottom)
+    }
+
+    private func battleHand(
+        battleSession: BattleSession,
+        battleSize: CGSize
+    ) -> some View {
+        BattleHandView(
+            cards: battleSession.hand,
+            isPlayable: { battleSession.isCardPlayable($0) },
+            onTap: { card in
+                battleSession.presentAbilityDetail(card.ability)
+            },
+            onPlay: { card, request in
+                let didPlay = playCard(cardID: card.id)
+                guard didPlay else { return false }
+                castingCards.append(request)
+                cardPlayFeedbackToken &+= 1
+                return true
+            },
+            hapticsEnabled: appState.options.hapticsEnabled,
+            battleFrame: CGRect(origin: .zero, size: battleSize)
+        )
+        .frame(height: BattleCardGridLayout.handReservedHeight)
+        .offset(y: -BattleHandLayout.bottomRise)
+        .zIndex(1)
+        .onAppear {
+            wireAutoEndTurn(battleSession)
+            battleSession.considerAutoEndTurn(
+                journey: appState.journey,
+                homestead: appState.homestead
+            )
+        }
     }
 
     @ViewBuilder
@@ -188,7 +219,6 @@ struct BattleView: View {
         if let cinematic = battleSession.activeCinematic {
             UltimateCinematicOverlay(
                 cinematic: cinematic,
-                reduceMotion: reduceMotion,
                 canSkip: appState.options.canSkipUltimateCinematic(),
                 effectsVolume: appState.options.effectsVolume,
                 namespace: cinematicNamespace,
@@ -243,7 +273,6 @@ struct BattleView: View {
             skillCallout: battleSession.activeSkillCallout?.actorID == combatant.id
                 ? battleSession.activeSkillCallout
                 : nil,
-            reduceMotion: reduceMotion,
             hapticsEnabled: appState.options.hapticsEnabled,
             cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }

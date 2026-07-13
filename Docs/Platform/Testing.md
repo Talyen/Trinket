@@ -39,7 +39,7 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 3. New catalog content → invariant test in the matching `*CatalogTests` (`TrinketContentTests`).
 4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
 5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
-6. New user flow → `AccessibilityID` (or existing id) + one smoke UI test.
+6. New user flow → stable `AccessibilityID` test selector (or existing id) + one smoke UI test. Keep assertions focused on visible UI state and interaction outcomes; do not test custom accessibility labels or values.
 7. Verify with the AGENTS Task→Command Router (toolchain permitting):
    - **Package-only** change → `./Scripts/test-package.sh <Package>`
    - **App orchestration** → `./Scripts/test.sh unit <Class>` (or full `./Scripts/test.sh unit` when cross-cutting)
@@ -49,6 +49,6 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 
 Local/agent default: `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`). Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
 
-Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
+Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix.
 
 Full layout, launch-arg catalog, speed rules, and mid-battle guidance: **`TrinketUITests/README.md`**.

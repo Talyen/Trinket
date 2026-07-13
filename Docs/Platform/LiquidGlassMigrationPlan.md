@@ -4,7 +4,7 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 **Status (July 2026):** Phases 0–3, 5–6 **complete**. Liquid Glass design-system migration is done. Toolbar background overrides on Battle / Play map / combatant detail are **retained intentionally** (art-forward chrome) and are not part of this plan. Remaining Apple-native follow-ups live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
-**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, navigation structure, or art-forward toolbar visibility overrides.
+**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, and Homestead chrome. Accessibility audit removal and the visual-first baseline are documented in PD-007; this plan does not reintroduce accessibility audits.
 
 **Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Options forms) via `TrinketDesignSystem` / `VisualFoundation`.
 
@@ -14,11 +14,11 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 | Goal | Success criteria |
 |------|------------------|
-| Unified glass primitives | All custom translucent chrome routes through shared helpers with Reduce Transparency fallbacks |
+| Unified glass primitives | All custom translucent chrome routes through shared helpers with one consistent material policy |
 | No raw glass in features | `check-ui-style.sh` passes; feature views call design-system modifiers only |
 | Primary CTAs match iOS 26 | `trinketPrimaryActionButton()` uses `.glassProminent` |
-| Clean UI test baseline | No `#available(iOS 17.0)` guards; accessibility audit runs on every smoke call site |
-| Visual QA sign-off | Battle, Play, Homestead, and Collection smoke tests pass; manual check with Reduce Transparency / Reduce Motion |
+| Clean UI test baseline | Stable UI-test selectors and visible-state assertions; no accessibility audit execution path |
+| Visual QA sign-off | Battle, Play, Homestead, and Collection smoke tests pass |
 
 ---
 
@@ -65,20 +65,9 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 These are product choices for full-bleed artwork, not outstanding Liquid Glass debt. Do not remove them as part of this migration. Optional iOS 26 scroll APIs (tab minimize, `backgroundExtensionEffect`, `scrollEdgeEffectStyle`) are tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D.
 
-### UI test guard
+### UI test baseline
 
-```154:161:TrinketUITests/Support/TrinketUITestCase.swift
-    func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
-        guard #available(iOS 17.0, *) else { return }
-        do {
-            try app.performAccessibilityAudit()
-        } catch {
-            fail("Accessibility audit failed: \(error)", file: file, line: line)
-        }
-    }
-```
-
-Called from `SmokePlayTests` and `SmokeCollectionTests`. Deployment target is iOS 26.0 — guard is dead code.
+UI tests retain stable `AccessibilityID` selectors and assert visible state or interaction outcomes. Accessibility audits are intentionally removed; comprehensive accessibility permutations are outside the product scope defined by PD-007.
 
 ---
 
@@ -113,7 +102,7 @@ struct TrinketGlassBackgroundModifier: ViewModifier {
 }
 ```
 
-**Why:** `GlassChipModifier`, `StatusBadgeModifier`, and `WalletPillModifier` today duplicate the same Reduce Transparency branch. One helper prevents drift.
+**Why:** `GlassChipModifier`, `StatusBadgeModifier`, and `WalletPillModifier` should share one material policy. One helper prevents visual drift.
 
 **Public API unchanged:** `.trinketGlassChip()`, `.trinketStatusBadge()`, `.trinketWalletPill()` keep their names; only internal implementation changes.
 
@@ -144,7 +133,7 @@ Apply in `HomesteadResourceViews` or parent layout — not on every single chip 
 2. Refactor `GlassChipModifier` to use the helper — behavior should be pixel-identical.
 3. Add unit tests in `VisualFoundationTests.swift`:
    - Helper resolves shapes for capsule and rounded-rectangle cases.
-   - Document that Reduce Transparency paths use solid fills (compile-time structure; runtime a11y env not easily unit-tested).
+   - Document the shared material policy and verify its visual role mapping.
 4. Update `Packages/TrinketDesignSystem/README.md` if it lists modifier behavior.
 
 **Verify:**
@@ -167,7 +156,7 @@ Apply in `HomesteadResourceViews` or parent layout — not on every single chip 
 **Manual QA:**
 
 - Homestead tab: wallet pill and project status badges over scrolling content.
-- Settings → Accessibility → **Increase Contrast** / **Reduce Transparency**: pills become solid, readable.
+- Visual QA: pills retain the intended role and readable contrast in the supported product presentation.
 
 **Verify:**
 
@@ -197,7 +186,7 @@ Apply in `HomesteadResourceViews` or parent layout — not on every single chip 
    - Homestead → project build CTA (`HomesteadProjectViews.swift`)
    - Battle outcome → “Battle Again” / continue (`BattleOutcomeComponents.swift`)
 
-**Accessibility:** Confirm button labels and contrast in Light, Dark, and Increase Contrast.
+**Accessibility baseline:** Confirm visible button labels and native SwiftUI control behavior; comprehensive contrast permutations are outside PD-007.
 
 **Verify:**
 
@@ -241,31 +230,16 @@ Define per-role behavior — not all roles should become glass:
 
 ---
 
-### Phase 5 — Remove stale UI test guard
+### Phase 5 — Accessibility scope alignment
 
 **Effort:** Trivial. **Risk:** Low.
 
-**Change** `TrinketUITests/Support/TrinketUITestCase.swift`:
-
-```swift
-func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
-    do {
-        try app.performAccessibilityAudit()
-    } catch {
-        fail("Accessibility audit failed: \(error)", file: file, line: line)
-    }
-}
-```
-
-**Why safe:** `performAccessibilityAudit()` is available on iOS 26; deployment target guarantees it.
-
-**If audits fail after removal:** fix real accessibility issues surfaced by the audit (preferred) or narrow audit scope with `performAccessibilityAudit(for:)` if Apple API supports filtering — do not reintroduce OS version guards.
+The former accessibility audit helper and nightly execution path were deleted. Keep native SwiftUI controls and stable UI-test identifiers, but do not add custom semantics or accessibility-setting branches without revisiting PD-007.
 
 **Verify:**
 
 ```sh
-./Scripts/test.sh ui SmokePlayTests
-./Scripts/test.sh ui SmokeCollectionTests
+./Scripts/test.sh smoke
 ```
 
 ---
@@ -284,8 +258,8 @@ func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
 | Phase | Automated | Manual |
 |-------|-----------|--------|
 | 0 | `test-package.sh TrinketDesignSystem`, `check-ui-style.sh` | — |
-| 1 | `test.sh smoke` | Homestead + Reduce Transparency |
-| 2 | `SmokePlayTests`, battle smoke | Light/Dark/Increase Contrast on CTAs |
+| 1 | `test.sh smoke` | Homestead visual flow |
+| 2 | `SmokePlayTests`, battle smoke | Visible CTA state and interaction |
 | 3 | `test.sh smoke`, `build.sh` | Homestead detail bottom bar, sheets |
 | 5 | `SmokePlayTests`, `SmokeCollectionTests` | — |
 | 6 | — | Doc review |
@@ -307,9 +281,9 @@ Ship as **stacked PRs** or **sequential commits on main** to keep review focused
 | 1 | 0 + 1 | `refactor(design): extract glass helper; migrate badge/wallet` |
 | 2 | 2 | `style(design): glassProminent primary action buttons` |
 | 3 | 3 | `style(design): MaterialRole glass role map` |
-| 4 | 5 | `test(ui): remove stale iOS 17 accessibility guard` |
+| 4 | 5 | `refactor(tests): remove accessibility audit path` |
 
-Phase 5 (UI test guard) can land **independently at any time** — recommend doing it in PR 1 or as a standalone chore before visual changes so smoke tests exercise audits throughout migration.
+Phase 5 is complete alongside the visual-first accessibility decision; smoke tests cover the gameplay/UI flows without running platform accessibility audits.
 
 ---
 

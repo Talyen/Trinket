@@ -8,7 +8,9 @@ struct ArtCatalogIntegrationTests {
         "avatar-of-justice"
     ]
 
-    @Test func everyCatalogAbilityHasArt() throws {
+    // This cross-catalog invariant intentionally owns all art-reference domains.
+    // swiftlint:disable function_body_length
+    @Test func catalogAndContentArtReferencesResolveAcrossAllDomains() throws {
         for ability in AbilityCatalog.all {
             if Self.abilitiesAllowedWithoutArt.contains(ability.id) {
                 continue
@@ -18,9 +20,7 @@ struct ArtCatalogIntegrationTests {
                 "Missing art for ability id \(ability.id)"
             )
         }
-    }
 
-    @Test func artCatalogOnlyReferencesKnownAbilities() throws {
         let catalogIDs = Set(AbilityCatalog.all.map(\.id))
         let artIDs = Set(ArtCatalog.abilityArtByID.keys)
         let unknownArtIDs = artIDs.subtracting(catalogIDs)
@@ -28,9 +28,7 @@ struct ArtCatalogIntegrationTests {
             unknownArtIDs.isEmpty,
             "Art catalog references unknown ability IDs: \(unknownArtIDs.sorted())"
         )
-    }
 
-    @Test func gameContentReferencesResolveInCatalog() throws {
         let referenced = referencedAbilityIDs()
         for id in referenced {
             _ = try #require(
@@ -38,9 +36,7 @@ struct ArtCatalogIntegrationTests {
                 "GameContent references unknown ability id \(id)"
             )
         }
-    }
 
-    @Test func eachHeroAndPetHasArtReference() throws {
         for hero in GameContent.heroes {
             _ = try #require(
                 ArtCatalog.combatantArtByID[hero.id],
@@ -48,24 +44,20 @@ struct ArtCatalogIntegrationTests {
             )
         }
 
-        for pet in GameContent.pets {
+        for companion in GameContent.companions {
             _ = try #require(
-                ArtCatalog.combatantArtByID[pet.id],
-                "\(pet.name) should have an art reference in the catalog"
+                ArtCatalog.combatantArtByID[companion.id],
+                "\(companion.name) should have an art reference in the catalog"
             )
         }
-    }
 
-    @Test func eachEnemyHasArtReference() throws {
         for enemy in GameContent.enemies {
             _ = try #require(
                 ArtCatalog.combatantArtByID[enemy.id],
                 "\(enemy.name) should have an art reference in the catalog"
             )
         }
-    }
 
-    @Test func encounterArtReferencesExistInCatalog() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 guard let artID = GameContent.encounterArtID(for: stage) else { continue }
@@ -75,18 +67,14 @@ struct ArtCatalogIntegrationTests {
                 )
             }
         }
-    }
 
-    @Test func sampleInventoryItemsHaveArtReference() throws {
         for item in GameContent.sampleInventoryItems {
             _ = try #require(
                 item.artReference,
                 "Missing art for inventory template \(item.templateID)"
             )
         }
-    }
 
-    @Test func rewardInstanceItemsKeepArtReference() throws {
         let template = try #require(GameContent.sampleInventoryItems.first)
         let rewarded = template.rewardInstance(for: "chapter-1-stage-1")
         #expect(rewarded.id != rewarded.templateID)
@@ -94,9 +82,7 @@ struct ArtCatalogIntegrationTests {
             rewarded.artReference,
             "Missing art after rewardInstance for \(rewarded.templateID)"
         )
-    }
 
-    @Test func eachHomesteadResourceHasArtReference() throws {
         for resource in HomesteadResource.allCases {
             _ = try #require(
                 ArtCatalog.resourceArtByID[resource.rawValue],
@@ -104,6 +90,8 @@ struct ArtCatalogIntegrationTests {
             )
         }
     }
+
+    // swiftlint:enable function_body_length
 
     @Test func backgroundFocalPointsAreNormalized() {
         for art in ArtCatalog.backgroundArtByID.values {
@@ -114,7 +102,7 @@ struct ArtCatalogIntegrationTests {
 
     private func referencedAbilityIDs() -> Set<String> {
         var ids = Set<String>()
-        let combatants = GameContent.heroes + GameContent.pets + GameContent.enemies.map(\.combatant)
+        let combatants = GameContent.heroes + GameContent.companions + GameContent.enemies.map(\.combatant)
         for combatant in combatants {
             for ability in combatant.abilityChoices.basics + combatant.abilityChoices.skills + combatant.abilityChoices.ultimates {
                 ids.insert(ability.id)

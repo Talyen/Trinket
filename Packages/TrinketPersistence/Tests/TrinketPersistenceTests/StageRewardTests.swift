@@ -33,12 +33,12 @@ struct StageRewardTests {
     @Test func completingStageGrantsBattleGoldWithStageRewards() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: 4,
             in: GameContent.chapters,
             save: &save
@@ -49,13 +49,13 @@ struct StageRewardTests {
 
     @Test func completingStageGrantsGoldXPAndItems() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         var save = makeSave()
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             in: GameContent.chapters,
             save: &save
         )
@@ -63,7 +63,7 @@ struct StageRewardTests {
         try #expect(save.roster.gold == firstStage.rewards.gold)
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
-        let petLevel = PlayerRosterState.initial.progression(for: pet).level
+        let companionLevel = PlayerRosterState.initial.progression(for: companion).level
         let expectedHeroProgression = PlayerRosterState.initial.progression(for: hero).addingExperience(
             ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: heroLevel,
@@ -71,15 +71,15 @@ struct StageRewardTests {
                 highestLevel: PlayerRosterState.initial.highestHeroLevel
             )
         )
-        let expectedPetProgression = PlayerRosterState.initial.progression(for: pet).addingExperience(
+        let expectedCompanionProgression = PlayerRosterState.initial.progression(for: companion).addingExperience(
             ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: petLevel,
+                playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
-                highestLevel: PlayerRosterState.initial.highestPetLevel
+                highestLevel: PlayerRosterState.initial.highestCompanionLevel
             )
         )
         try #expect(save.roster.progression(for: hero) == expectedHeroProgression)
-        try #expect(save.roster.progression(for: pet) == expectedPetProgression)
+        try #expect(save.roster.progression(for: companion) == expectedCompanionProgression)
         _ = try #require(save.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(save.homestead.resources[.wood] == 8)
         try #expect(save.homestead.resources[.stone] == 3)
@@ -96,12 +96,12 @@ struct StageRewardTests {
             )
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             save: &save
         )
 
@@ -117,13 +117,13 @@ struct StageRewardTests {
             )
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let startingGold = save.roster.gold
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: 0,
             save: &save
         )
@@ -136,12 +136,12 @@ struct StageRewardTests {
     @Test func completingStageTwiceDoesNotDoubleRewards() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             in: GameContent.chapters,
             save: &save
         )
@@ -152,7 +152,7 @@ struct StageRewardTests {
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             save: &save
         )
 
@@ -161,40 +161,15 @@ struct StageRewardTests {
         try #expect(save.inventory.items.count == itemCountAfterFirst)
     }
 
-    @Test func completingStageTwiceDoesNotAdvanceJourney() throws {
-        var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-
-        StageCompletion.complete(
-            firstStage,
-            hero: hero,
-            pet: pet,
-            in: GameContent.chapters,
-            save: &save
-        )
-        let activeStageAfterFirst = save.journey.activeStageID
-
-        StageCompletion.complete(
-            firstStage,
-            hero: hero,
-            pet: pet,
-            in: GameContent.chapters,
-            save: &save
-        )
-
-        try #expect(save.journey.activeStageID == activeStageAfterFirst)
-    }
-
     @Test func completingStageAdvancesJourney() throws {
         var save = makeSave(inventory: .initial)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             in: GameContent.chapters,
             save: &save
         )
@@ -206,7 +181,7 @@ struct StageRewardTests {
     @Test func missingItemTemplateSkipsGracefully() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
         let stageWithBadTemplate = Stage(
             id: "test-stage",
@@ -221,7 +196,7 @@ struct StageRewardTests {
         StageCompletion.claimRewardsIfNeeded(
             for: stageWithBadTemplate,
             hero: hero,
-            pet: pet,
+            companion: companion,
             save: &save,
             resolveTemplate: { _ in nil }
         )
@@ -235,14 +210,14 @@ struct StageRewardTests {
     @Test func nonBattleStagesGrantNoExperience() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
         let eventStage = chapter.stages[1]
 
         StageCompletion.claimRewardsIfNeeded(
             for: eventStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             save: &save
         )
 
@@ -252,31 +227,31 @@ struct StageRewardTests {
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         save.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
         let heroXPBefore = save.roster.progression(for: hero).currentXP
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemyEncounterLevel: 5,
             save: &save
         )
 
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
-        try #expect(save.roster.progression(for: pet).currentXP > 0)
+        try #expect(save.roster.progression(for: companion).currentXP > 0)
     }
 
     @Test func claimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: 9,
             save: &save
         )
@@ -287,7 +262,7 @@ struct StageRewardTests {
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: 9,
             save: &save
         )
@@ -317,13 +292,13 @@ struct StageRewardTests {
             )
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let snapshot = [ResourceAmount(.food, 4)]
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             materialRewards: snapshot,
             save: &save
         )

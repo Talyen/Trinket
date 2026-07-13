@@ -34,7 +34,7 @@ extension RosterModel {
     func toPlayerRosterState(inventory: PlayerInventoryState) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == "hero" }.map(\.combatantID))
-        let petIDs = Set(unlocked.filter { $0.role == "pet" }.map(\.combatantID))
+        let companionIDs = Set(unlocked.filter { $0.role == "companion" }.map(\.combatantID))
         let progressionValues = Dictionary(
             uniqueKeysWithValues: (progressions ?? []).map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
@@ -65,18 +65,18 @@ extension RosterModel {
             }
         )
         let inventoryItemIDs = Set(inventory.items.map(\.id))
-        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
+        let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
-            activePetID: activePetID,
+            activeCompanionID: activeCompanionID,
             unlockedHeroIDs: heroIDs,
-            unlockedPetIDs: petIDs
+            unlockedCompanionIDs: companionIDs
         )
 
         return PlayerRosterState(
             activeHeroID: resolvedHeroID,
-            activePetID: resolvedPetID,
+            activeCompanionID: resolvedCompanionID,
             unlockedHeroIDs: heroIDs,
-            unlockedPetIDs: petIDs,
+            unlockedCompanionIDs: companionIDs,
             abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: wireAbilityValues),
             progressions: progressionValues,
             equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(
@@ -91,11 +91,11 @@ extension RosterModel {
 
     func update(from roster: PlayerRosterState) {
         activeHeroID = roster.activeHeroID
-        activePetID = roster.activePetID
+        activeCompanionID = roster.activeCompanionID
         gold = roster.gold
 
         unlockedCombatants = roster.unlockedHeroIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "hero") }
-            + roster.unlockedPetIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "pet") }
+            + roster.unlockedCompanionIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "companion") }
         unlockedCombatants?.linkEach(to: self, parent: \.roster)
 
         progressions = roster.progressions

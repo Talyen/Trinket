@@ -11,11 +11,13 @@ enum AccessibilityID {
         static let modesEntry = "Modes Entry"
         static let modesScreen = "Modes Screen"
         static let aspectsHub = "Aspects Hub"
+        static let exploreHub = "Explore Hub"
         static let aspectsModeCard = "Aspects Mode Card"
         static let campaignModeCard = "Campaign Mode Card"
+        static let exploreModeCard = "Explore Mode Card"
         static let battlePartyInlinePicker = "Battle Party Inline Picker"
         static let battlePartyHeroControl = "Battle Party Hero Control"
-        static let battlePartyPetControl = "Battle Party Pet Control"
+        static let battlePartyCompanionControl = "Battle Party Companion Control"
         static let chapterPicker = "Campaign Chapter Picker"
         static let chapterAdvance = "Campaign Chapter Advance"
         static let stageRewards = "Campaign Stage Rewards"
@@ -159,7 +161,7 @@ enum AccessibilityID {
 
     enum Collection {
         static let heroesCategory = "Heroes collection category"
-        static let petsCategory = "Pets collection category"
+        static let companionsCategory = "Companions collection category"
         static let inventoryCategory = "Inventory collection category"
         static let inventoryEmptyState = "Inventory Empty State"
         static let inventoryNoResults = "Inventory No Results"
@@ -199,12 +201,18 @@ enum AccessibilityID {
         static let victory = "Victory"
         static let experience = "Experience"
         static let rewards = "Rewards"
+        static let rewardChest = "Victory Reward Chest"
+        static let openRewards = "Open Rewards Button"
         static let continueButton = "Continue Button"
         static let abilityDetail = "Battle Ability Detail"
         static let abilityDetailEffect = "Battle Ability Detail Effect"
 
         static func handCard(_ abilityID: String) -> String {
             "Battle Hand Card \(abilityID)"
+        }
+
+        static func rewardItem(_ itemID: String) -> String {
+            "Victory Reward Item \(itemID)"
         }
     }
 
@@ -217,5 +225,39 @@ enum AccessibilityID {
         static let findTrinketToUnlock = "Find a Trinket to Unlock"
         static let equipWeapon = "Equip Weapon"
         static let basicAbilitySlot = "Basic ability slot"
+    }
+
+    enum LoadoutPicker {
+        static func abilityGrid(_ tier: String) -> String {
+            "Loadout Ability Grid \(tier)"
+        }
+
+        static func abilityCandidate(_ abilityID: String) -> String {
+            "Loadout Ability Candidate \(abilityID)"
+        }
+
+        static func abilityDetail(_ abilityID: String) -> String {
+            "Loadout Ability Detail \(abilityID)"
+        }
+
+        static func selectAbility(_ abilityID: String) -> String {
+            "Select Loadout Ability \(abilityID)"
+        }
+
+        static func itemGrid(_ slot: String) -> String {
+            "Loadout Item Grid \(slot)"
+        }
+
+        static func itemCandidate(_ itemID: String) -> String {
+            "Loadout Item Candidate \(itemID)"
+        }
+
+        static func itemDetail(_ itemID: String) -> String {
+            "Loadout Item Detail \(itemID)"
+        }
+
+        static func equipItem(_ itemID: String) -> String {
+            "Equip Loadout Item \(itemID)"
+        }
     }
 }

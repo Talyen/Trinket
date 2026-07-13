@@ -5,17 +5,17 @@ import TrinketCore
 public enum BattlePartyFixtures {
     public struct QuickWinParty: Sendable {
         public let hero: Combatant
-        public let pet: Combatant
+        public let companion: Combatant
         public let enemy: Combatant
 
-        public init(hero: Combatant, pet: Combatant, enemy: Combatant) {
+        public init(hero: Combatant, companion: Combatant, enemy: Combatant) {
             self.hero = hero
-            self.pet = pet
+            self.companion = companion
             self.enemy = enemy
         }
     }
 
-    /// Hero with a fast basic attack, passive pet, and low-HP enemy for deterministic victory tests.
+    /// Hero with a fast basic attack, passive companion, and low-HP enemy for deterministic victory tests.
     public static func quickWinParty(
         heroAbilities: [Ability] = [.slash],
         enemyMaxHealth: Int = 1
@@ -27,9 +27,9 @@ public enum BattlePartyFixtures {
                 actionIntervalTicks: 1,
                 abilities: heroAbilities
             ),
-            pet: CombatantFixtures.combatant(
-                id: "pet",
-                role: .pet,
+            companion: CombatantFixtures.combatant(
+                id: "companion",
+                role: .companion,
                 actionIntervalTicks: 100,
                 abilities: []
             ),

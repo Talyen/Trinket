@@ -100,14 +100,16 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
         keywords.allSatisfy { $0.category != .damageType }
     }
 
-    /// `true` when this affix matches `bias` or is build-generic.
-    /// Damage-type affixes outside the bias (e.g. Poison on a Physical/Holy kit) are rejected.
+    /// `true` when every damage type in this affix is present in `bias`, or the
+    /// affix is build-generic. Hybrid damage affixes cannot introduce a
+    /// damage type outside the selected build.
     public func isAligned(withBuildKeywords bias: Set<Keyword>) -> Bool {
         if isBuildGeneric {
             return true
         }
         guard !bias.isEmpty else { return true }
-        return !keywords.isDisjoint(with: bias)
+        let damageKeywords = keywords.filter { $0.category == .damageType }
+        return damageKeywords.isSubset(of: bias)
     }
 
     public func resolved(for rarity: Rarity) -> ItemAffix {

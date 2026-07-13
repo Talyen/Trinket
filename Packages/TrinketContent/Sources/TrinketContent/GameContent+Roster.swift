@@ -3,7 +3,7 @@ import TrinketCore
 
 public extension GameContent {
     static let heroes = GameContentRoster.heroes
-    static let pets = GameContentRoster.pets
+    static let companions = GameContentRoster.companions
     static let enemies: [Enemy] = GameContentEnemies.enemies
 
     static func enemy(matching id: String) -> Enemy? {
@@ -16,8 +16,8 @@ public extension Combatant {
         GameContent.heroes
     }
 
-    static var pets: [Combatant] {
-        GameContent.pets
+    static var companions: [Combatant] {
+        GameContent.companions
     }
 
     static var enemies: [Enemy] {

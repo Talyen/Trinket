@@ -64,7 +64,7 @@ struct BattleScreen {
     /// Waits for mid-battle combatant chrome, or returns `true` if the battle already resolved.
     /// Skips Ultimate cinematics when present so matched-geometry expand does not hide cards.
     func waitForMidBattleOrVictory(
-        combatantName: String = "Knight",
+        combatantName: String = "Ranger",
         timeout: TimeInterval = 8
     ) -> Bool {
         let card = app.descendants(matching: .any)[AccessibilityID.CombatantDetail.battleCard(name: combatantName)]

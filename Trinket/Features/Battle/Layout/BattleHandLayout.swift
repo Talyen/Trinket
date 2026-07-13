@@ -21,6 +21,7 @@ enum BattleHandLayout {
     /// Drag-up distance required to play a card (1:1 with finger until release).
     static let playDragThreshold: CGFloat = 80
     static let dragMinimumDistance: CGFloat = 12
+    static let playArmReleaseRatio: CGFloat = 0.72
 
     struct Metrics: Equatable {
         let cardWidth: CGFloat
@@ -53,6 +54,29 @@ enum BattleHandLayout {
         metrics.startX + CGFloat(index) * metrics.overlap - containerWidth / 2 + metrics.cardWidth / 2
     }
 
+    static func restingCenter(
+        index: Int,
+        metrics: Metrics,
+        cardCount: Int,
+        containerFrame: CGRect,
+        bottomRise: CGFloat = BattleHandLayout.bottomRise
+    ) -> CGPoint {
+        let baseOffsetY = metrics.cardHeight * 0.25 + restingOffsetY(index: index, cardCount: cardCount)
+        return CGPoint(
+            x: containerFrame.midX + cardOffsetX(index: index, metrics: metrics, containerWidth: containerFrame.width),
+            y: containerFrame.maxY - bottomRise - metrics.cardHeight / 2 + baseOffsetY
+        )
+    }
+
+    /// Converts the card's direct-manipulation translation into the exact
+    /// battle-space point where a successful play effect begins.
+    static func releaseCenter(restingCenter: CGPoint, dragTranslation: CGSize) -> CGPoint {
+        CGPoint(
+            x: restingCenter.x + dragTranslation.width,
+            y: restingCenter.y + dragTranslation.height
+        )
+    }
+
     static func rotation(index: Int, cardCount: Int) -> CGFloat {
         guard cardCount > 1 else { return 0 }
         return (CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanAngleStep
@@ -77,6 +101,35 @@ enum BattleHandLayout {
             && upwardDistance > abs(release.width)
     }
 
+    /// Direct-manipulation arming uses the live translation only. Predicted
+    /// end translation is intentionally reserved for release intent/momentum,
+    /// so the readiness state does not flicker during a held drag.
+    static func isPlayArmed(
+        translation: CGSize,
+        isPlayable: Bool,
+        threshold: CGFloat = playDragThreshold
+    ) -> Bool {
+        guard isPlayable else { return false }
+        let upwardDistance = -translation.height
+        return upwardDistance >= threshold
+            && upwardDistance > abs(translation.width)
+    }
+
+    /// Hysteresis keeps the readiness ring stable around the threshold.
+    static func shouldRemainPlayArmed(
+        translation: CGSize,
+        isPlayable: Bool,
+        threshold: CGFloat = playDragThreshold,
+        currentlyArmed: Bool
+    ) -> Bool {
+        guard isPlayable else { return false }
+        let upwardDistance = -translation.height
+        let releaseThreshold = threshold * playArmReleaseRatio
+        let horizontalAllowance = currentlyArmed ? 0.72 : 1.0
+        return upwardDistance >= (currentlyArmed ? releaseThreshold : threshold)
+            && upwardDistance > abs(translation.width) * horizontalAllowance
+    }
+
     /// Keeps invalid upward drags responsive while progressively resisting the
     /// part of the gesture that would otherwise cross the play boundary.
     static func presentationTranslation(
@@ -97,13 +150,12 @@ enum BattleHandLayout {
 
     static func heldTilt(
         translation: CGSize,
-        predictedEndTranslation: CGSize,
+        predictedEndTranslation _: CGSize,
         cardWidth: CGFloat,
         maximumDegrees: Double
     ) -> Double {
         guard cardWidth > 0 else { return 0 }
-        let velocityLean = Double(predictedEndTranslation.width - translation.width) * 0.04
         let positionLean = Double(translation.width / cardWidth) * maximumDegrees
-        return min(max(positionLean + velocityLean, -maximumDegrees), maximumDegrees)
+        return min(max(positionLean, -maximumDegrees), maximumDegrees)
     }
 }

@@ -15,12 +15,12 @@ struct AppStateShopEncounterTests {
 
     @Test func shopStageOpensEncounterWithOffers() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
 
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeShopEncounter)
-        #expect(session.stage.id == "chapter-1-stage-4")
+        #expect(session.stage.id == "chapter-2-stage-4")
         #expect(session.offers.count == ShopOfferGenerator.offerCount)
         // Opening a shop does not advance journey progress.
         #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
@@ -28,7 +28,7 @@ struct AppStateShopEncounterTests {
 
     @Test func purchasingOfferSpendsGoldAndGrantsItem() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeShopEncounter)
@@ -49,7 +49,7 @@ struct AppStateShopEncounterTests {
 
     @Test func purchaseFailsWhenGoldIsInsufficient() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeShopEncounter)
@@ -69,7 +69,7 @@ struct AppStateShopEncounterTests {
 
     @Test func purchaseSucceedsWhenGoldEqualsPrice() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeShopEncounter)
@@ -85,7 +85,7 @@ struct AppStateShopEncounterTests {
 
     @Test func sameOfferCannotBePurchasedTwiceInOneVisit() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeShopEncounter)
@@ -105,7 +105,7 @@ struct AppStateShopEncounterTests {
 
     @Test func reopeningShopAfterPurchaseDoesNotBurnGoldOnSameOffer() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let firstSession = try #require(state.activeShopEncounter)
@@ -135,7 +135,7 @@ struct AppStateShopEncounterTests {
 
     @Test func finishShopEncounterCompletesStageWithoutFreeItemReward() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         #expect(stage.rewards.itemTemplateIDs.isEmpty)
 
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
@@ -147,15 +147,15 @@ struct AppStateShopEncounterTests {
         state.finishActiveShopEncounter()
 
         #expect(state.activeShopEncounter == nil)
-        #expect(state.journey.current.completedStageIDs.contains("chapter-1-stage-4"))
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-5")
+        #expect(state.journey.current.completedStageIDs.contains("chapter-2-stage-4"))
+        #expect(state.journey.current.activeStageID == "chapter-2-stage-5")
         #expect(state.roster.gold == stage.rewards.gold)
         #expect(state.inventory.items.count == itemsBefore)
     }
 
     @Test func dismissShopEncounterDoesNotCompleteStage() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
 
         _ = state.handleStagePrimaryAction(for: stage)
         #expect(state.activeShopEncounter != nil)
@@ -164,12 +164,12 @@ struct AppStateShopEncounterTests {
 
         #expect(state.activeShopEncounter == nil)
         #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
-        #expect(!state.journey.current.completedStageIDs.contains("chapter-1-stage-4"))
+        #expect(!state.journey.current.completedStageIDs.contains("chapter-2-stage-4"))
     }
 
     @Test func mysteryEncounterDoesNotOpenWhileShopIsActive() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        let shopStage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
         let mysteryStage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
         #expect(state.handleStagePrimaryAction(for: shopStage) == nil)

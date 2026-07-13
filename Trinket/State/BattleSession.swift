@@ -57,7 +57,7 @@ final class BattleSession {
     var softHoldUntil: Date?
     var deferredFeedbackEvents: [ActionEvent] = []
     var nextSpectacleID = 0
-    /// Actor IDs (Hero/Pet) that already presented a full-screen Ultimate this battle.
+    /// Actor IDs (Hero/Companion) that already presented a full-screen Ultimate this battle.
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []
     @ObservationIgnored
     var pendingAutoEndTask: Task<Void, Never>?
@@ -66,12 +66,30 @@ final class BattleSession {
     @ObservationIgnored
     var pendingFeedbackPresentationTasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored
+    var pendingVictoryPresentationTask: Task<Void, Never>?
+    @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
     var autoEndHomestead: PlayerHomesteadState?
 
+    /// Test seam for outcome timing. Production derives the delay from active spectacle.
+    @ObservationIgnored
+    var outcomePresentationDelayOverride: TimeInterval?
+
     /// Beat after the last playable card so feedback can show before the turn advances.
     static let autoEndTurnDelay: TimeInterval = 0.4
+
+    /// Injectable for deterministic tests; production uses the presentation delay above.
+    @ObservationIgnored
+    var autoEndTurnDelay: TimeInterval
+
+    init(
+        autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
+        outcomePresentationDelayOverride: TimeInterval? = nil
+    ) {
+        self.autoEndTurnDelay = autoEndTurnDelay
+        self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
+    }
 
     var outcome: BattleSimulationOutcome? {
         guard let state else { return nil }
@@ -146,6 +164,8 @@ final class BattleSession {
     }
 
     func clearOutcomePresentation() {
+        pendingVictoryPresentationTask?.cancel()
+        pendingVictoryPresentationTask = nil
         isShowingVictory = false
         isShowingDefeat = false
         victorySummary = nil
@@ -164,16 +184,21 @@ final class BattleSession {
     }
 
     func removeFeedbackEvent(_ id: Int) {
-        pendingFeedbackPresentationTasks[id]?.cancel()
-        pendingFeedbackPresentationTasks.removeValue(forKey: id)
-        if let item = activeFeedbackItems.first(where: { $0.id == id }) {
-            keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == id }
-            if hitReactionsByTargetID[item.targetID]?.id == id {
+        if let item = activeFeedbackItems.first(where: { $0.sourceEventIDs.contains(id) }) {
+            let sourceEventIDs = Set(item.sourceEventIDs)
+            keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == item.id }
+            if hitReactionsByTargetID[item.targetID]?.id == item.id {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
             }
+            activeFeedbackEvents.removeAll { sourceEventIDs.contains($0.id) }
+            activeFeedbackItems.removeAll { $0.id == item.id }
+            for sourceEventID in sourceEventIDs {
+                feedbackEventRecordedAt.removeValue(forKey: sourceEventID)
+                presentedFeedbackIDs.remove(sourceEventID)
+            }
+            return
         }
         activeFeedbackEvents.removeAll { $0.id == id }
-        activeFeedbackItems.removeAll { $0.id == id }
         feedbackEventRecordedAt.removeValue(forKey: id)
         presentedFeedbackIDs.remove(id)
     }

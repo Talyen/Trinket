@@ -7,14 +7,14 @@ import TrinketTestSupport
 struct TraitBattleTests {
     private func makeContext(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant,
         heroModifiers: CombatModifierProfile = .zero,
-        petModifiers: CombatModifierProfile = .zero
+        companionModifiers: CombatModifierProfile = .zero
     ) -> BattleEngineContext {
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero),
-            pet: CombatantRuntime(combatant: pet),
+            companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: enemy)
         )
         return BattleEngineContext(
@@ -26,7 +26,7 @@ struct TraitBattleTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
-            petModifiers: petModifiers,
+            companionModifiers: companionModifiers,
             enemyModifiers: .zero
         )
     }
@@ -57,9 +57,9 @@ struct TraitBattleTests {
         )
     }
 
-    @Test func packLeaderIncreasesPetDamage() throws {
+    @Test func packLeaderIncreasesCompanionDamage() throws {
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let rangerBuild = CombatBuildResolver.build(
             combatant: ranger,
@@ -69,7 +69,7 @@ struct TraitBattleTests {
 
         var context = makeContext(
             hero: rangerBuild.combatant,
-            pet: wolf,
+            companion: wolf,
             enemy: enemy,
             heroModifiers: rangerBuild.modifiers
         )
@@ -82,7 +82,7 @@ struct TraitBattleTests {
     }
 
     @Test func purifyingWisdomHealsAfterCleanse() throws {
-        let owl = try #require(GameContent.pets.first { $0.id == "library_owl" })
+        let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let owlBuild = CombatBuildResolver.build(
@@ -92,9 +92,9 @@ struct TraitBattleTests {
         )
         var context = makeContext(
             hero: hero,
-            pet: owlBuild.combatant,
+            companion: owlBuild.combatant,
             enemy: enemy,
-            petModifiers: owlBuild.modifiers
+            companionModifiers: owlBuild.modifiers
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
         context.roster.setActiveEffects(
@@ -115,7 +115,7 @@ struct TraitBattleTests {
     }
 
     @Test func faeFortuneHealsWhenGainingGold() throws {
-        let pixie = try #require(GameContent.pets.first { $0.id == "pixie" })
+        let pixie = try #require(GameContent.companions.first { $0.id == "pixie" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let pixieBuild = CombatBuildResolver.build(
@@ -125,9 +125,9 @@ struct TraitBattleTests {
         )
         var context = makeContext(
             hero: hero,
-            pet: pixieBuild.combatant,
+            companion: pixieBuild.combatant,
             enemy: enemy,
-            petModifiers: pixieBuild.modifiers
+            companionModifiers: pixieBuild.modifiers
         )
         context.roster.mutateRuntime(for: pixieBuild.combatant) {
             $0.currentHealth = pixieBuild.effectiveMaxHealth - 2
@@ -146,8 +146,8 @@ struct TraitBattleTests {
         )
     }
 
-    @Test func loyalComfortHealsHeroWhenPetRestoresHealth() throws {
-        let retriever = try #require(GameContent.pets.first { $0.id == "golden_retriever" })
+    @Test func loyalComfortHealsHeroWhenCompanionRestoresHealth() throws {
+        let retriever = try #require(GameContent.companions.first { $0.id == "golden_retriever" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let retrieverBuild = CombatBuildResolver.build(
@@ -157,9 +157,9 @@ struct TraitBattleTests {
         )
         var context = makeContext(
             hero: hero,
-            pet: retrieverBuild.combatant,
+            companion: retrieverBuild.combatant,
             enemy: enemy,
-            petModifiers: retrieverBuild.modifiers
+            companionModifiers: retrieverBuild.modifiers
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 12 }
         context.roster.mutateRuntime(for: retrieverBuild.combatant) { $0.currentHealth = retrieverBuild.effectiveMaxHealth - 1 }

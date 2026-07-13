@@ -14,7 +14,7 @@ struct BattleTurnEngineTests {
             role: .hero,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -22,7 +22,7 @@ struct BattleTurnEngineTests {
         )
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: pet, initialActiveEffects: []),
+            companion: CombatantRuntime(combatant: companion, initialActiveEffects: []),
             enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: actorEffects)
         )
         let context = BattleEngineContext(
@@ -34,10 +34,10 @@ struct BattleTurnEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        return (context, BattleMatchup(hero: hero, pet: pet, enemy: enemy))
+        return (context, BattleMatchup(hero: hero, companion: companion, enemy: enemy))
     }
 
     @Test func consumeActionSkipEmitsControlActionSkippedAndRemovesEffect() throws {
@@ -87,7 +87,7 @@ struct BattleTurnEngineTests {
             role: .hero,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var context = BattleEngineContext(
             roster: BattleRoster(
@@ -99,7 +99,7 @@ struct BattleTurnEngineTests {
                     ],
                     hasConsumedDeathsDoor: true
                 ),
-                pet: CombatantRuntime(combatant: pet),
+                companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
             rng: SeededRandomNumberGenerator(seed: 0),
@@ -109,7 +109,7 @@ struct BattleTurnEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: CombatModifierProfile(blockPerActionWhileDeathsDoor: 2),
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
 
@@ -159,7 +159,7 @@ struct BattleTurnEngineTests {
             role: .hero,
             abilities: [killAndMark]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -168,7 +168,7 @@ struct BattleTurnEngineTests {
         var context = BattleEngineContext(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
-                pet: CombatantRuntime(combatant: pet),
+                companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
             rng: SeededRandomNumberGenerator(seed: 0),
@@ -178,10 +178,10 @@ struct BattleTurnEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
 
         let events = BattleTurnEngine.performAbility(
             killAndMark,
@@ -214,7 +214,7 @@ struct BattleTurnEngineTests {
             role: .hero,
             abilities: [killAndGold]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -223,7 +223,7 @@ struct BattleTurnEngineTests {
         var context = BattleEngineContext(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
-                pet: CombatantRuntime(combatant: pet),
+                companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
             rng: SeededRandomNumberGenerator(seed: 0),
@@ -233,10 +233,10 @@ struct BattleTurnEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
 
         _ = BattleTurnEngine.performAbility(
             killAndGold,

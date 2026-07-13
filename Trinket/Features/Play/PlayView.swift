@@ -1,37 +1,46 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
+import TrinketDesignSystem
 import TrinketPersistence
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState
     @State private var stageMessage: StageMapMessage?
-    @State private var playDeepLink: PlayLaunchDestination?
+    @State private var navigationPath: [PlayLaunchDestination] = []
 
     var body: some View {
         @Bindable var battle = appState.battle
 
-        // Battle stays in-tab (not a fullScreenCover) so the tab bar remains usable mid-fight.
-        // Uses the Play tab NavigationStack for BattleView toolbars. Mode deep-link
-        // state is preserved on PlayView and reapplied when battle ends.
-        // Active battle always wins over Mode Hub / last-mode restore.
-        Group {
-            if let configuration = battle.activeBattle {
-                BattleView(configuration: configuration)
-                    .id(configuration.id)
-            } else {
-                PlayModeHubView(
-                    onOpenCampaign: { openMode(.campaign) },
-                    onOpenAspects: { openMode(.aspects) },
-                    onOpenLabyrinth: { openMode(.labyrinth) }
-                )
-                .navigationDestination(item: $playDeepLink) { destination in
-                    destinationView(for: destination)
+        // Keep the Play stack explicit so Explore's temporary sub-modes have a
+        // stable hierarchy and normal tab entry always returns to the chooser.
+        NavigationStack(path: $navigationPath) {
+            Group {
+                if let configuration = battle.activeBattle {
+                    // Battle stays in-tab, preserving its existing shell and
+                    // immediate return token while the mode stack is hidden.
+                    BattleView(configuration: configuration)
+                        .id(configuration.id)
+                } else {
+                    PlayModeHubView(
+                        onOpenCampaign: { openMode(.campaign) },
+                        onOpenExplore: { openMode(.explore) }
+                    )
                 }
+            }
+            .navigationDestination(for: PlayLaunchDestination.self) { destination in
+                destinationView(for: destination)
             }
         }
         .onAppear {
             restorePlayDestinationIfNeeded()
+        }
+        .onChange(of: appState.selectedTab) { previousTab, newTab in
+            guard newTab == .play, previousTab != .play else { return }
+            // A normal Play-tab visit is a fresh choice. Pending destinations
+            // are consumed only for battle/deep-link restoration below.
+            guard appState.battle.activeBattle == nil else { return }
+            restorePlayDestinationIfNeeded(resetForNormalEntry: true)
         }
         .onChange(of: battle.activeBattle?.id) { _, newID in
             if newID == nil {
@@ -65,10 +74,8 @@ struct PlayView: View {
                 }
             }
         )) {
-            BattleLogSheet(
-                entries: battle.state?.log ?? []
-            )
-            .presentationDetents([.medium])
+            BattleLogSheet(entries: battle.state?.log ?? [])
+                .presentationDetents([.medium])
         }
         .fullScreenCover(
             item: Binding(
@@ -87,7 +94,6 @@ struct PlayView: View {
             item: Binding(
                 get: { appState.activeShopEncounter },
                 set: { newValue in
-                    // Dismiss only through Leave Shop — interactive dismiss is disabled.
                     if newValue == nil, appState.activeShopEncounter != nil {
                         appState.dismissActiveShopEncounterWithoutCompleting()
                     }
@@ -138,6 +144,8 @@ struct PlayView: View {
                 onStageTap: handleStageTap,
                 onEnemyTap: showEnemyDetails(for:)
             )
+        case .explore:
+            ExploreHubView()
         case .aspectsHub:
             AspectsHubView(onBattleStart: refreshBattlePresentation)
         case .labyrinthMap:
@@ -147,42 +155,15 @@ struct PlayView: View {
         }
     }
 
-    private func openMode(_ mode: PlayerShellSessionPlayMode) {
-        guard canOpen(mode) else { return }
-        appState.rememberPlayMode(mode)
-        let destination: PlayLaunchDestination
-        switch mode {
-        case .campaign:
-            destination = .campaign
-        case .aspects:
-            destination = .aspectsHub
-        case .labyrinth:
-            destination = .labyrinthMap
-            _ = appState.enterLabyrinth()
-        }
+    private func openMode(_ destination: PlayLaunchDestination) {
+        guard appState.battle.activeBattle == nil else { return }
 
-        // A manual back navigation can leave the item binding holding the previous
-        // destination. Clear it first so reopening the same mode publishes a change.
-        playDeepLink = nil
-        Task { @MainActor in
-            playDeepLink = destination
-        }
+        navigationPath.append(destination)
     }
 
-    private func canOpen(_ mode: PlayerShellSessionPlayMode) -> Bool {
-        switch mode {
-        case .campaign:
-            true
-        case .aspects:
-            ModesUnlock.isUnlocked(journey: appState.journey.current)
-        case .labyrinth:
-            appState.isLabyrinthUnlocked
-        }
-    }
-
-    /// Prefer pending post-battle / launch destinations; otherwise resume last mode.
-    /// Skipped entirely while an active battle is showing.
-    private func restorePlayDestinationIfNeeded() {
+    /// Prefer pending post-battle / launch destinations. Otherwise leave the
+    /// explicit path empty so the mode chooser is the Play root.
+    private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
         guard appState.battle.activeBattle == nil else { return }
 
         if let destination = appState.consumePendingPlayDestination() {
@@ -190,31 +171,28 @@ struct PlayView: View {
             return
         }
 
-        if playDeepLink == nil {
-            let mode = appState.lastPlayMode
-            guard canOpen(mode) else { return }
-            apply(PlayLaunchDestination.restoring(lastMode: mode))
+        if resetForNormalEntry {
+            navigationPath.removeAll()
         }
     }
 
     private func apply(_ destination: PlayLaunchDestination) {
+        let path: [PlayLaunchDestination]
         switch destination {
         case .campaign:
-            appState.rememberPlayMode(.campaign)
-            playDeepLink = .campaign
+            path = [.campaign]
+        case .explore:
+            path = [.explore]
         case .aspectsHub:
-            appState.rememberPlayMode(.aspects)
-            playDeepLink = .aspectsHub
+            path = [.explore, .aspectsHub]
         case .labyrinthMap:
-            if appState.isLabyrinthUnlocked {
-                _ = appState.enterLabyrinth()
-                appState.rememberPlayMode(.labyrinth)
-                playDeepLink = .labyrinthMap
-            }
+            _ = appState.enterLabyrinth()
+            path = [.explore, .labyrinthMap]
         case let .aspectClimb(aspectID):
-            appState.rememberPlayMode(.aspects)
-            playDeepLink = .aspectClimb(aspectID)
+            path = [.explore, .aspectsHub, .aspectClimb(aspectID)]
         }
+
+        navigationPath = path
     }
 
     private func handleStageTap(_ stage: Stage) {
@@ -229,7 +207,9 @@ struct PlayView: View {
     }
 
     private func refreshBattlePresentation() {
-        playDeepLink = nil
+        // The active battle replaces the route. The persisted resume token is
+        // consumed when the battle ends, rebuilding the complete hierarchy.
+        navigationPath.removeAll()
     }
 
     private func showEnemyDetails(for stage: Stage) {

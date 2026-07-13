@@ -2,19 +2,26 @@
 
 Use for XcodeGen, build/test commands, CI workflows, simulator problems, or release tooling.
 
-Start with `./Scripts/changed-source-summary.sh` and preview the route with `./Scripts/verify-changed.sh --dry-run`. `verify-changed.sh` runs generation first, then uses `SKIP_GENERATE=1` for app wrapper tests so generation occurs once per verification run.
+The root workflow owns task-scoped routing: start with
+`./Scripts/agent-context.sh --paths <file...>` for a human briefing (`--json` is
+machine-readable and `--agent` is the concise handoff form), then preview the
+selected checks with `./Scripts/verify-changed.sh --dry-run --paths <same files>` and
+run them sequentially by omitting `--dry-run`. Without `--paths`, both commands inspect
+the entire working tree; use that mode only when the tree represents one task.
 
-The wrapper chooses the broadest affected source layer. For an intentionally narrow change, use the task-specific filtered test command instead of treating the wrapper as a substitute for judgment.
+This card adds the CI/project-generation exceptions:
 
-| Goal | Command |
-|---|---|
-| Format/lint/style | `./Scripts/test.sh style` |
-| One package | `./Scripts/test-package.sh <Package>` |
-| App orchestration | `./Scripts/test.sh unit <Class>` |
-| Local UI canary | `./Scripts/test.sh smoke` |
-| Pre-push | `./Scripts/ci-locally.sh` |
-| Pre-merge | `./Scripts/test-deploy.sh` |
+- `verify-changed.sh` runs required generation once, then sets `SKIP_GENERATE=1` for app
+  wrapper tests so a single verification run does not regenerate the project repeatedly.
+- Do not run wrapper tests in parallel: `test.sh` may invoke XcodeGen and concurrent
+  generation collides. Use a filtered command for intentionally narrow work; an affected
+  player flow needs `./Scripts/test.sh smoke <Class>`, while bare `smoke` is only the
+  local Homestead canary.
+- Use `--no-build` only after a matching successful build; the wrappers reject stale
+  inputs. Without Xcode 26/simulator, run the applicable generation, generated-output,
+  boundary, style, and CI-gate checks and report skipped build/test work.
 
-Do not run wrapper tests in parallel: `test.sh` can regenerate the project and concurrent XcodeGen work collides. Use `--no-build` only after a matching successful build; the scripts reject stale inputs. Quiet test output writes raw logs to `.DerivedData/TestResults/` and prints a concise failure summary.
-
-Read `Scripts/README.md` for gate composition and `Docs/Platform/Testing.md` for test ownership. Without Xcode 26/simulator, run generation, generated-output assertion, module-boundary, UI-style, and CI-gate checks that apply; state skipped build/test work.
+When a test or CI invocation fails, load
+[`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read
+`Scripts/README.md` for gate composition and `Docs/Platform/Testing.md` for test
+ownership.

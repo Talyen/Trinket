@@ -49,7 +49,7 @@ heic_from_source() {
   sips -d all "$dst" >/dev/null 2>&1 || true
 }
 
-while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
+while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
   if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" && "$kind" != "resource" ]]; then
@@ -57,7 +57,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
     exit 1
   fi
 
-  if [[ -z "$id" || -z "$asset_name" || -z "$source_path" || -z "$focal_x" || -z "$focal_y" || -z "$accessibility_label" ]]; then
+  if [[ -z "$id" || -z "$asset_name" || -z "$source_path" || -z "$focal_x" || -z "$focal_y" ]]; then
     echo "Manifest row is missing required fields for id '$id'." >&2
     exit 1
   fi
@@ -139,30 +139,25 @@ JSON
   escaped_id="$(escape_swift_string "$id")"
   escaped_asset="$(escape_swift_string "$asset_name")"
   escaped_thumb="$(escape_swift_string "$thumb_asset")"
-  escaped_label="$(escape_swift_string "$accessibility_label")"
-
   if [[ "$kind" == "combatant" ]]; then
     cat >> "$combatants_temp" <<SWIFT
         "$escaped_id": CombatantArtReference(
             imageName: "$escaped_asset",
             thumbnailImageName: "$escaped_thumb",
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y),
-            accessibilityLabel: "$escaped_label"
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         ),
 SWIFT
   elif [[ "$kind" == "ability" ]]; then
     cat >> "$abilities_temp" <<SWIFT
         "$escaped_id": AbilityArtReference(
-            imageName: "$escaped_thumb",
-            accessibilityLabel: "$escaped_label"
+            imageName: "$escaped_thumb"
         ),
 SWIFT
   elif [[ "$kind" == "item" ]]; then
     cat >> "$items_temp" <<SWIFT
         "$escaped_id": ItemArtReference(
             imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            accessibilityLabel: "$escaped_label"
+            thumbnailImageName: "$escaped_thumb"
         ),
 SWIFT
   elif [[ "$kind" == "slot_background" ]]; then
@@ -175,31 +170,27 @@ SWIFT
     esac
     cat >> "$slot_backgrounds_temp" <<SWIFT
         .$id: SlotBackgroundArtReference(
-            imageName: "$escaped_asset",
-            accessibilityLabel: "$escaped_label"
+            imageName: "$escaped_asset"
         ),
 SWIFT
   elif [[ "$kind" == "background" ]]; then
     cat >> "$backgrounds_temp" <<SWIFT
         "$escaped_id": BackgroundArtReference(
             imageName: "$escaped_asset",
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y),
-            accessibilityLabel: "$escaped_label"
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         ),
 SWIFT
   elif [[ "$kind" == "resource" ]]; then
     cat >> "$resources_temp" <<SWIFT
         "$escaped_id": ResourceArtReference(
-            imageName: "$escaped_asset",
-            accessibilityLabel: "$escaped_label"
+            imageName: "$escaped_asset"
         ),
 SWIFT
   elif [[ "$kind" == "encounter" ]]; then
     cat >> "$encounters_temp" <<SWIFT
         "$escaped_id": EncounterArtReference(
             imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            accessibilityLabel: "$escaped_label"
+            thumbnailImageName: "$escaped_thumb"
         ),
 SWIFT
   fi
@@ -232,40 +223,33 @@ public struct CombatantArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
     public let focalPoint: ArtFocalPoint
-    public let accessibilityLabel: String
 }
 
 public struct AbilityArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct ItemArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let accessibilityLabel: String
 }
 
 public struct SlotBackgroundArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
     public let focalPoint: ArtFocalPoint
-    public let accessibilityLabel: String
 }
 
 public struct ResourceArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct EncounterArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let accessibilityLabel: String
 }
 
 
@@ -339,7 +323,7 @@ SWIFT_EXTENSIONS
     name="${foldername%.imageset}"
     
     case "$name" in
-      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*|resource_*)
+      hero_*|companion_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*|resource_*)
         if ! grep -qx "$name" "$active_assets_temp"; then
           echo "Pruning orphaned asset: $foldername"
           rm -rf "$dir"

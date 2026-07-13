@@ -10,8 +10,8 @@ final class BattleFlowUITests: TrinketUITestCase {
             return
         }
 
-        // Knight is the card we open; Wolf may already be downed / off-layout mid-fight.
-        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
+        // Ranger is the card we open; Wolf may already be downed / off-layout mid-fight.
+        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Ranger"))
 
         // Turn-based chrome: hand should be present mid-battle.
         battle.assertActive()
@@ -25,7 +25,8 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.retreat)
         battle.combatLogAction.tap()
         assertExists(AccessibilityID.Battle.combatLog)
-        app.buttons["Close Combat Log"].tap()
+        XCTAssertFalse(app.buttons["Close Combat Log"].exists)
+        dismissSheet()
 
         if battle.victory.waitForExistence(timeout: 1) {
             return
@@ -33,8 +34,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         battle.assertPresented()
         battle.assertActive()
-        battle.openCombatantCard(named: "Knight")
-        combatantDetail.assertSeededHeroHeaderSummary(for: "Knight")
+        battle.openCombatantCard(named: "Ranger")
         assertCombatantDetailSections()
         dismissSheet()
     }
@@ -46,7 +46,16 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(battle.victory, timeout: Self.defaultTimeout)
 
         assertExists(AccessibilityID.Battle.experience)
+        assertButtonExists(AccessibilityID.Battle.rewardChest)
+        assertButtonExists(AccessibilityID.Battle.openRewards)
+        XCTAssertFalse(any(AccessibilityID.Battle.rewards).exists)
+
+        tapButton(AccessibilityID.Battle.openRewards)
+
         assertExists(AccessibilityID.Battle.rewards)
+        XCTAssertFalse(any(AccessibilityID.Battle.experience).exists)
+        assertExists(AccessibilityID.Battle.rewardItem("chapter-1-stage-1-shortsword-basic"))
+        assertExists(app.staticTexts["Shortsword"])
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
         XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden until victory is completed")
@@ -69,6 +78,6 @@ final class BattleFlowUITests: TrinketUITestCase {
             app.tabBars.buttons["Play"].waitForExistence(timeout: Self.defaultTimeout),
             "Tab bar should return after retreat"
         )
-        play.assertLoaded()
+        play.assertCampaignLoaded(number: 1)
     }
 }

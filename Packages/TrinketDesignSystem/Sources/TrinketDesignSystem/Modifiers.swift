@@ -18,8 +18,6 @@ struct LockedCardEffectModifier: ViewModifier {
     let text: String?
     let cornerRadius: CGFloat
 
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     @ScaledMetric(relativeTo: .body)
     private var lockIconSize: CGFloat = 25.5
 
@@ -47,13 +45,11 @@ struct LockedCardEffectModifier: ViewModifier {
                 .clipShape(clipShape)
                 .compositingGroup()
                 .blur(
-                    radius: reduceTransparency ? 0 : Self.lockedBlurRadius,
+                    radius: Self.lockedBlurRadius,
                     opaque: true
                 )
                 .clipShape(clipShape)
                 .disabled(true)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(text.map { "Locked. \($0)" } ?? "Locked")
                 .overlay {
                     lockBadgeOverlay
                 }
@@ -104,8 +100,6 @@ struct PrimaryActionButtonModifier: ViewModifier {
 /// Shared press treatment for navigation rows. Feature views provide only the
 /// row content; the design system owns the surface, feedback, and motion.
 public struct NavigationRowButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
@@ -115,10 +109,37 @@ public struct NavigationRowButtonStyle: ButtonStyle {
                 configuration.isPressed ? HomesteadPalette.pressedFill : .clear,
                 in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
             )
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
             .opacity(configuration.isPressed ? 0.94 : 1)
             .animation(
-                reduceMotion ? TrinketMotion.Homestead.reduceMotion : TrinketMotion.Homestead.rowPress,
+                TrinketMotion.Homestead.rowPress,
+                value: configuration.isPressed
+            )
+    }
+}
+
+/// Press treatment for full-bleed artwork navigation cards.
+///
+/// Feature screens own the artwork and copy; the design system owns the
+/// immediate touch-down response so mode cards feel consistent with other
+/// navigation controls.
+public struct ArtworkNavigationCardButtonStyle: ButtonStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
+
+        configuration.label
+            .contentShape(shape)
+            .overlay {
+                shape
+                    .fill(TrinketDesign.Colors.Overlay.ink.opacity(configuration.isPressed ? 0.12 : 0))
+                    .allowsHitTesting(false)
+            }
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .opacity(configuration.isPressed ? 0.96 : 1)
+            .animation(
+                TrinketMotion.Play.modeCardPress,
                 value: configuration.isPressed
             )
     }
@@ -155,6 +176,10 @@ public extension View {
 
     func trinketNavigationRowButtonStyle() -> some View {
         buttonStyle(NavigationRowButtonStyle())
+    }
+
+    func trinketArtworkNavigationCardButtonStyle() -> some View {
+        buttonStyle(ArtworkNavigationCardButtonStyle())
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.

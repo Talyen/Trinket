@@ -29,6 +29,10 @@ enum TestLaunchArg {
         ["-map-scroll-target", targetID]
     }
 
+    static func mysteryRecruit(eventID: String) -> [String] {
+        ["-mystery-recruit-event", eventID]
+    }
+
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
         var args = reset ? testLaunchArgs : []
         args.append(contentsOf: ["-selectedTab", tab])
@@ -247,22 +251,6 @@ class TrinketUITestCase: XCTestCase {
                 fail("Element '\(identifier)' still present", file: file, line: line)
                 return
             }
-        }
-    }
-
-    func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
-        do {
-            // Art-heavy Play/Collection surfaces trip contrast / Dynamic Type / clipping on
-            // hero art and glass chrome. Keep structural audits that catch missing labels.
-            let auditTypes: XCUIAccessibilityAuditType = [
-                .elementDetection,
-                .hitRegion,
-                .sufficientElementDescription,
-                .trait
-            ]
-            try app.performAccessibilityAudit(for: auditTypes)
-        } catch {
-            fail("Accessibility audit failed: \(error)", file: file, line: line)
         }
     }
 

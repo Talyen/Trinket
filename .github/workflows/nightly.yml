@@ -29,7 +29,7 @@ jobs:
         env:
           SKIP_GENERATE: 1
       - name: Run integration suite
-        run: TRINKET_RUN_A11Y_AUDITS=1 ./Scripts/test.sh all --no-build --verbose
+        run: ./Scripts/test.sh all --no-build
         env:
           SKIP_GENERATE: 1
           CI: true

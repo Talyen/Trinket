@@ -78,7 +78,7 @@ struct LabyrinthProgressTests {
         LabyrinthCompletion.complete(
             nodeID: nodeID,
             hero: save.roster.activeHero,
-            pet: save.roster.activePet,
+            companion: save.roster.activeCompanion,
             save: &save
         )
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
@@ -106,16 +106,16 @@ struct LabyrinthProgressTests {
         }
 
         let heroXPBefore = save.roster.progression(for: save.roster.activeHero)
-        let petXPBefore = save.roster.progression(for: save.roster.activePet)
+        let companionXPBefore = save.roster.progression(for: save.roster.activeCompanion)
         LabyrinthCompletion.complete(
             nodeID: restID,
             hero: save.roster.activeHero,
-            pet: save.roster.activePet,
+            companion: save.roster.activeCompanion,
             save: &save
         )
         #expect(save.labyrinth.nodes[restID]?.isCleared == true)
         #expect(save.roster.progression(for: save.roster.activeHero) == heroXPBefore)
-        #expect(save.roster.progression(for: save.roster.activePet) == petXPBefore)
+        #expect(save.roster.progression(for: save.roster.activeCompanion) == companionXPBefore)
     }
 
     @Test func combatCompletionGrantsBattleExperience() throws {
@@ -130,7 +130,7 @@ struct LabyrinthProgressTests {
         LabyrinthCompletion.complete(
             nodeID: combatID,
             hero: save.roster.activeHero,
-            pet: save.roster.activePet,
+            companion: save.roster.activeCompanion,
             save: &save
         )
         let heroXPAfter = save.roster.progression(for: save.roster.activeHero)
@@ -138,26 +138,6 @@ struct LabyrinthProgressTests {
             heroXPAfter.level > heroXPBefore.level
                 || heroXPAfter.currentXP > heroXPBefore.currentXP
         )
-    }
-
-    @Test func unlockRequiresChapterOneOrAspectFloorFive() {
-        var journey = JourneyProgressState.initial
-        let aspects = PlayerAspectsState.freshStart
-        #expect(!LabyrinthUnlock.isUnlocked(journey: journey, aspects: aspects))
-
-        if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
-            for stage in chapter.stages {
-                journey.completedStageIDs.insert(stage.id)
-            }
-        }
-        #expect(LabyrinthUnlock.isUnlocked(journey: journey, aspects: aspects))
-
-        var aspectProgress = PlayerAspectsState.freshStart
-        for floor in 1 ... 5 {
-            let advanced = aspectProgress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
-            #expect(advanced)
-        }
-        #expect(LabyrinthUnlock.isUnlocked(journey: .initial, aspects: aspectProgress))
     }
 
     @Test func recordDefeatIncrementsFailCountWithoutClearing() throws {
@@ -206,7 +186,7 @@ struct LabyrinthProgressTests {
             LabyrinthCompletion.complete(
                 nodeID: next,
                 hero: save.roster.activeHero,
-                pet: save.roster.activePet,
+                companion: save.roster.activeCompanion,
                 save: &save
             )
         }
@@ -216,7 +196,7 @@ struct LabyrinthProgressTests {
         let forged = LabyrinthCompletion.forgeAtAltar(
             nodeID: nodeID,
             hero: save.roster.activeHero,
-            pet: save.roster.activePet,
+            companion: save.roster.activeCompanion,
             save: &save
         )
         #expect(forged)

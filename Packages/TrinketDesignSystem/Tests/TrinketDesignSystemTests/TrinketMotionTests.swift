@@ -2,23 +2,17 @@ import Testing
 import TrinketDesignSystem
 
 struct TrinketMotionTests {
-    @Test func journeyReduceMotionFadeIsBrief() {
-        #expect(TrinketMotion.Journey.reduceMotionFade == 0.18)
-    }
-
-    @Test func battleSkillSoftHoldIsHalfSecond() {
+    @Test func battleMotionTimingTokensStayWithinContracts() {
         #expect(TrinketMotion.Battle.skillSoftHold == 0.5)
-    }
-
-    @Test func battleSkillCalloutTotalMatchesParts() {
         let total = TrinketMotion.Battle.skillCalloutIn
             + TrinketMotion.Battle.skillCalloutHold
             + TrinketMotion.Battle.skillCalloutOut
         #expect(TrinketMotion.Battle.skillCalloutTotal == total)
-    }
-
-    @Test func battleUltimateSkipLockoutIsPositive() {
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
+        #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
+        #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
+        #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
+        #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
     }
 
     @Test func everyCombatFeedbackClassHasPositiveLifetimeRecipe() {
@@ -32,22 +26,29 @@ struct TrinketMotionTests {
         }
     }
 
-    @Test func criticalChipIsHeavierThanDotChip() {
+    @Test func chipMotionRecipesStayWithinSemanticContracts() {
         let critical = TrinketMotion.Battle.chip(for: .critical)
         let dot = TrinketMotion.Battle.chip(for: .dot)
         #expect(critical.lifetime > dot.lifetime)
-        #expect(critical.textStyle == .title)
-        #expect(dot.textStyle == .footnote)
+        #expect(critical.textStyle == .largeTitle)
+        #expect(dot.textStyle == .title2)
         #expect(critical.showsSecondaryCaption)
-    }
-
-    @Test func chipLifetimesAreBrief() {
         for feedbackClass in CombatFeedbackClass.allCases {
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
-            #expect(recipe.lifetime <= 0.9)
-            #expect(recipe.lifetime >= 0.5)
+            #expect(recipe.lifetime <= 0.85)
+            #expect(recipe.lifetime >= 0.6)
+            #expect(recipe.initialOpacity == 0)
+            #expect(recipe.initialScale < 1)
+            #expect(recipe.initialOffsetY > 0)
+            #expect((recipe.offsetY.last?.value ?? 0) <= -40)
         }
         #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
+        #expect(CombatFeedbackLayout.presentationOffset(index: 0) == 0)
+        #expect(CombatFeedbackLayout.presentationOffset(index: 1) > 40)
+        #expect(
+            CombatFeedbackLayout.presentationOffset(index: 2)
+                > CombatFeedbackLayout.presentationOffset(index: 1)
+        )
     }
 
     @Test func cardReactionsCoverAllKinds() {
@@ -56,15 +57,5 @@ struct TrinketMotionTests {
             #expect(recipe.kind == kind)
             #expect(recipe.duration > 0)
         }
-    }
-
-    @Test func ultimateChipStaggerIsPositiveAndShort() {
-        #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
-        #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
-    }
-
-    @Test func labyrinthMotionTokensArePositive() {
-        #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
-        #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
     }
 }

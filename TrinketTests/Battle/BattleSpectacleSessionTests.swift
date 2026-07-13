@@ -18,7 +18,7 @@ struct BattleSpectacleSessionTests {
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
@@ -49,7 +49,7 @@ struct BattleSpectacleSessionTests {
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
@@ -112,7 +112,7 @@ struct BattleSpectacleSessionTests {
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
@@ -170,9 +170,9 @@ struct BattleSpectacleSessionTests {
                 maxHealth: 200,
                 abilities: []
             ),
-            pet: CombatantFixtures.combatant(
-                id: "pet",
-                role: .pet,
+            companion: CombatantFixtures.combatant(
+                id: "companion",
+                role: .companion,
                 maxHealth: 200,
                 abilities: []
             ),

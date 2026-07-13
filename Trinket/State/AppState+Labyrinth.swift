@@ -4,21 +4,8 @@ import TrinketCore
 import TrinketPersistence
 
 extension AppState {
-    var isLabyrinthUnlocked: Bool {
-        LabyrinthUnlock.isUnlocked(journey: journey.current, aspects: aspects.current)
-    }
-
     @discardableResult
     func enterLabyrinth() -> StageMapMessage? {
-        guard ModesUnlock.isUnlocked(journey: journey.current) else {
-            return StageMapMessage(title: "Modes Locked", message: ModesUnlock.unlockHint)
-        }
-        guard isLabyrinthUnlocked else {
-            return StageMapMessage(
-                title: "Labyrinth Locked",
-                message: LabyrinthUnlock.unlockHint(journey: journey.current, aspects: aspects.current)
-            )
-        }
         do {
             try playerSave.performBatchMutation { save in
                 save.labyrinth.ensureMap()
@@ -48,7 +35,7 @@ extension AppState {
         }
 
         switch node.type.canonical {
-        case .battle, .elite, .warden, .gate:
+        case .battle, .warden, .gate:
             return startLabyrinthBattle(nodeID: nodeID)
         case .shop:
             return beginShopEncounter(labyrinthNodeID: nodeID)
@@ -115,7 +102,7 @@ extension AppState {
                 forged = LabyrinthCompletion.forgeAtAltar(
                     nodeID: session.nodeID,
                     hero: save.roster.activeHero,
-                    pet: save.roster.activePet,
+                    companion: save.roster.activeCompanion,
                     save: &save
                 )
             }
@@ -162,7 +149,7 @@ extension AppState {
         activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
-            pet: roster.activePet,
+            companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: rewards
@@ -174,18 +161,18 @@ extension AppState {
     func completeLabyrinthNode(
         nodeID: String,
         hero: Combatant? = nil,
-        pet: Combatant? = nil,
+        companion: Combatant? = nil,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
     ) -> Bool {
         let resolvedHero = hero ?? roster.activeHero
-        let resolvedPet = pet ?? roster.activePet
+        let resolvedCompanion = companion ?? roster.activeCompanion
         do {
             try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
                     nodeID: nodeID,
                     hero: resolvedHero,
-                    pet: resolvedPet,
+                    companion: resolvedCompanion,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards,
                     save: &save

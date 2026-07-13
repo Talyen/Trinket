@@ -2,8 +2,8 @@ import XCTest
 
 /// Exhaustive mystery recruit journey via deep link (kept out of smoke-full).
 final class MysteryRecruitUITests: TrinketUITestCase {
-    func testRecruitMysteryUnlockFlow() {
-        // Fresh save (no seed) so Wolf is locked; stage 1 complete so leave unlocks stage 3.
+    func testCompanionRecruitRevealAndContinue() {
+        // Fresh save (no seed) so Bear is locked; stage 1 complete so leave unlocks stage 3.
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -13,19 +13,43 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             "1.0",
             "-launch-screen",
             "mystery"
-        ] + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
+        ]
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
+            + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))
 
         assertExists(AccessibilityID.Mystery.encounterTitle)
         assertExists(AccessibilityID.Mystery.welcomeButton)
         button(AccessibilityID.Mystery.welcomeButton).tap()
 
         assertExists(AccessibilityID.Mystery.unlockName)
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Wolf"))
-        // Do not open the combatant detail sheet here: detail hosts use
-        // `.presentationContentInteraction(.resizes)`, so swipe-down does not
-        // dismiss, and adding a Done control is a product decision.
+        XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW COMPANION")
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
+        assertExists(AccessibilityID.Mystery.unlockSubtitle)
         assertExists(AccessibilityID.Mystery.continueButton)
         tapButton(AccessibilityID.Mystery.continueButton)
-        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
+        play.openCampaign()
+        assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
+    }
+
+    func testHeroRecruitRevealOpensDetail() {
+        launchApp(arguments: [
+            TestLaunchArg.resetState,
+            TestLaunchArg.disableCloudSync,
+            "-disable-audio",
+            "-persist-save-immediately",
+            "-launch-screen",
+            "mystery"
+        ]
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
+            + TestLaunchArg.mysteryRecruit(eventID: "recruit-knight"))
+
+        assertExists(AccessibilityID.Mystery.encounterTitle)
+        tapButton(AccessibilityID.Mystery.welcomeButton)
+
+        XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW HERO")
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Knight"))
+        assertExists(AccessibilityID.Mystery.unlockSubtitle)
+        button(AccessibilityID.Mystery.unlockCard(name: "Knight")).tap()
+        combatantDetail.assertLoaded(for: "Knight")
     }
 }

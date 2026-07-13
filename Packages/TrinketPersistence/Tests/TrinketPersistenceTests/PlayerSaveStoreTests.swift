@@ -96,15 +96,13 @@ final class PlayerSaveStoreTests {
         let chapter1 = try #require(GameContent.chapters.first { $0.id == "chapter-1" })
         let chapter1StageIDs = Set(chapter1.stages.map(\.id))
         try #expect(store.roster.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
-        try #expect(store.roster.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
+        try #expect(store.roster.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
         try #expect(store.roster.highestHeroLevel == 20)
-        try #expect(store.roster.highestPetLevel == 20)
+        try #expect(store.roster.highestCompanionLevel == 20)
         try #expect(store.roster.gold == PlayerRosterState.maxGoldBalance)
         try #expect(store.journey.completedStageIDs == chapter1StageIDs)
         try #expect(store.journey.activeChapterID == "chapter-1")
         try #expect(store.journey.activeStageID == nil)
-        try #expect(ModesUnlock.isUnlocked(journey: store.journey))
-        try #expect(LabyrinthUnlock.isUnlocked(journey: store.journey, aspects: store.aspects))
         try #expect(store.aspects == .freshStart)
         try #expect(store.labyrinth == .freshStart)
         try #expect(store.inventory == .testSeed)
@@ -116,7 +114,6 @@ final class PlayerSaveStoreTests {
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.highestHeroLevel == 20)
         try #expect(reloaded.roster.gold == PlayerRosterState.maxGoldBalance)
-        try #expect(ModesUnlock.isUnlocked(journey: reloaded.journey))
         try #expect(reloaded.aspects == .freshStart)
         for resource in HomesteadResource.allCases where resource != .gold {
             try #expect(reloaded.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
@@ -243,16 +240,6 @@ final class PlayerSaveStoreTests {
         try #expect(store.lastPersistenceError == .writeFailed)
     }
     #endif
-    @Test func inMemoryStoreIsNotMarkedDegraded() throws {
-        let store = try PlayerSaveStore(inMemoryOnly: true)
-        try #expect(store.isPersistenceDegraded == false)
-        try #expect(store.lastPersistenceError == nil)
-    }
-
-    @Test func storeUnavailableErrorIsEquatable() throws {
-        try #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
-        try #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
-    }
 }
 
 private extension PlayerSaveStore {

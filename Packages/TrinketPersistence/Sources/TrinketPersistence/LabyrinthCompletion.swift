@@ -9,7 +9,7 @@ public enum LabyrinthCompletion {
         let base: Int = switch node.type {
         case .warden:
             max(1, node.depth + 3)
-        case .elite, .gate:
+        case .gate:
             max(1, node.depth + 1)
         default:
             max(1, node.depth)
@@ -27,7 +27,7 @@ public enum LabyrinthCompletion {
         let baseGold = switch type {
         case .warden:
             10 + node.depth * 3
-        case .elite, .gate:
+        case .gate:
             6 + node.depth * 2
         case .battle:
             4 + node.depth * 2
@@ -43,7 +43,7 @@ public enum LabyrinthCompletion {
             materials = [ResourceAmount(.wood, type == .warden ? 3 : 1)]
         }
 
-        // Item templates left empty; completion may roll a generated item for elites/wardens.
+        // Item templates left empty; completion may roll a generated item for wardens.
         return StageReward(gold: gold, itemTemplateIDs: [], materialRewards: materials)
     }
 
@@ -53,7 +53,7 @@ public enum LabyrinthCompletion {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Bool {
         switch node.type.canonical {
-        case .warden, .elite, .craft:
+        case .warden, .craft:
             true
         case .battle, .gate:
             Int.random(in: 0 ... 99, using: &randomNumberGenerator) < (8 + effects.itemDropBonusPercent)
@@ -70,7 +70,7 @@ public enum LabyrinthCompletion {
     public static func complete(
         nodeID: String,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         save: inout PlayerSave
@@ -86,7 +86,7 @@ public enum LabyrinthCompletion {
         // Battle XP is combat-only; rest/shop/mystery/craft grant gold/materials without XP.
         if node.type.isCombat {
             grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: hero, roster: &save.roster)
-            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: pet, roster: &save.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: companion, roster: &save.roster)
         }
 
         let resolvedMaterials = materialRewards
@@ -114,7 +114,7 @@ public enum LabyrinthCompletion {
     public static func forgeAtAltar(
         nodeID: String,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         save: inout PlayerSave
     ) -> Bool {
         save.labyrinth.ensureMap()
@@ -133,7 +133,7 @@ public enum LabyrinthCompletion {
         save.labyrinth.markCleared(nodeID: nodeID)
         claimMilestonesIfNeeded(save: &save)
         _ = hero
-        _ = pet
+        _ = companion
         return true
     }
 
@@ -190,7 +190,7 @@ public enum LabyrinthCompletion {
         let playerLevel = roster.progression(for: combatant).level
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
-            : roster.highestPetLevel
+            : roster.highestCompanionLevel
         var award = StageCompletion.battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
@@ -200,40 +200,5 @@ public enum LabyrinthCompletion {
             award = max(0, award + (award * effects.xpPercent) / 100)
         }
         roster.grantExperience(award, to: combatant)
-    }
-}
-
-public enum LabyrinthUnlock {
-    /// Chapter 1 complete OR any Aspect Floor 5 cleared.
-    public static func isUnlocked(
-        journey: JourneyProgressState,
-        aspects: PlayerAspectsState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        if isChapterOneComplete(journey: journey, chapters: chapters) {
-            return true
-        }
-        return aspects.highestClearedFloorByAspectID.values.contains { $0 >= 5 }
-    }
-
-    public static func unlockHint(
-        journey: JourneyProgressState,
-        aspects: PlayerAspectsState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> String {
-        if isUnlocked(journey: journey, aspects: aspects, chapters: chapters) {
-            return ""
-        }
-        return "Complete Chapter 1 or clear any Aspect Floor 5"
-    }
-
-    public static func isChapterOneComplete(
-        journey: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        guard let chapter = chapters.first(where: { $0.id == "chapter-1" }) else {
-            return false
-        }
-        return chapter.stages.allSatisfy { journey.completedStageIDs.contains($0.id) }
     }
 }

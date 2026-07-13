@@ -6,7 +6,6 @@ import TrinketPersistence
 
 struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let onBattleStart: () -> Void
 
@@ -17,7 +16,7 @@ struct AspectsHubView: View {
     var body: some View {
         List {
             Section {
-                Text("Attune a Hero and Pet. Climb one Aspect at a time.")
+                Text("Attune a Hero and Companion. Climb one Aspect at a time.")
                     .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
                     .listRowBackground(Color.clear)
@@ -95,7 +94,7 @@ struct AspectsHubView: View {
             isLocked: locked,
             text: lockText
         )
-        .animation(reduceMotion ? nil : .smooth, value: locked)
+        .animation(.smooth, value: locked)
     }
 
     private func floorLabel(cleared: Int, floorCount: Int) -> String {

@@ -39,7 +39,7 @@ Prefer `-launch-screen` / `-selectedTab` / `-completed-stages` / `-map-scroll-ta
 
 ## Domain rules
 
-UI tests run **serially** on a single simulator — do not assume parallel UI execution when “fixing” flakes. Prefer page objects (`PlayScreen`, `TabBar`, …) over raw identifier strings. Do **not** add `performAccessibilityAudit()` unless a screen is already known-stable in CI; product a11y gaps belong in UIInteractionFeedbackAudit.
+UI tests run **serially** on a single simulator — do not assume parallel UI execution when “fixing” flakes. Prefer page objects (`PlayScreen`, `TabBar`, …) over raw identifier strings. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
 
 **Allowed fixes:** shorten excessive waits after deep-link launch; move multi-step assertions from smoke → exhaustive; replace scroll hunts with launch args; use page objects / `assertExists` consistently.
 

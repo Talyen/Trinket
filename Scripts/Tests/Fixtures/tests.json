@@ -1,0 +1,25 @@
+{
+  "devices": [],
+  "testNodes": [
+    {
+      "name": "TrinketTests",
+      "nodeType": "Test Suite",
+      "result": "Failed",
+      "children": [
+        {
+          "name": "failedExpectation()",
+          "nodeType": "Test Case",
+          "nodeIdentifier": "BattleTests/failedExpectation()",
+          "nodeIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/failedExpectation()",
+          "result": "Failed",
+          "children": [
+            {
+              "name": "BattleTests.swift:42: Expectation failed: score == 2",
+              "nodeType": "Failure Message"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var grantedItems: [InventoryItem]
     /// Populated when a choice includes `.chooseItem`; caller presents options then grants one.
     public var chooseItemCandidates: [InventoryItem]
-    /// Combatant IDs newly unlocked by this apply (heroes and pets).
+    /// Combatant IDs newly unlocked by this apply (heroes and companions).
     public var unlockedCombatantIDs: [String]
 
     public init(
@@ -175,8 +175,8 @@ public enum MysteryEffectApplier {
     ) {
         let didUnlock: Bool = if GameContent.heroes.contains(where: { $0.id == combatantID }) {
             save.roster.unlockHero(id: combatantID)
-        } else if GameContent.pets.contains(where: { $0.id == combatantID }) {
-            save.roster.unlockPet(id: combatantID)
+        } else if GameContent.companions.contains(where: { $0.id == combatantID }) {
+            save.roster.unlockCompanion(id: combatantID)
         } else {
             false
         }

@@ -22,13 +22,15 @@ struct HomesteadProjectRow: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     private var isLocked: Bool {
         if case .prerequisiteLocked = status.rowState {
             return true
         }
         return false
+    }
+
+    private var showsInlineNavigationChevron: Bool {
+        status.statusSymbolName == "chevron.right"
     }
 
     var body: some View {
@@ -43,8 +45,7 @@ struct HomesteadProjectRow: View {
                 .trinketNavigationRowButtonStyle()
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(definition.title), \(status.statusTitle). \(effectLine)")
+
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
@@ -57,13 +58,21 @@ struct HomesteadProjectRow: View {
                 )
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
-                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(definition.title)
-                    .trinketTypography(.cardTitle)
-                    .foregroundStyle(isLocked ? .secondary : .primary)
-                    .lineLimit(2)
+                HStack(spacing: 4) {
+                    Text(definition.title)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(isLocked ? .secondary : .primary)
+                        .lineLimit(2)
+
+                    if showsInlineNavigationChevron {
+                        Image(systemName: "chevron.right")
+                            .font(statusAffordanceFont)
+                            .foregroundStyle(status.statusColor)
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
 
                 Text(effectLine)
                     .trinketTypography(.caption)
@@ -74,17 +83,18 @@ struct HomesteadProjectRow: View {
 
             Spacer(minLength: 0)
 
-            Image(systemName: status.statusSymbolName)
-                .font(statusAffordanceFont)
-                .foregroundStyle(status.statusColor)
-                .symbolRenderingMode(.hierarchical)
-                .symbolEffect(
-                    .bounce.up,
-                    options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
-                    isActive: status.canBuildOrUpgrade && !reduceMotion
-                )
-                .frame(width: statusAffordanceSize, height: statusAffordanceSize)
-                .accessibilityLabel(status.statusTitle)
+            if !showsInlineNavigationChevron {
+                Image(systemName: status.statusSymbolName)
+                    .font(statusAffordanceFont)
+                    .foregroundStyle(status.statusColor)
+                    .symbolRenderingMode(.hierarchical)
+                    .symbolEffect(
+                        .bounce.up,
+                        options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
+                        isActive: status.canBuildOrUpgrade
+                    )
+                    .frame(width: statusAffordanceSize, height: statusAffordanceSize)
+            }
         }
         .padding(.vertical, 6)
     }
@@ -115,7 +125,6 @@ struct HomesteadProjectSection: View {
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
 
             LazyVStack(spacing: 0) {

@@ -9,7 +9,7 @@ public enum MysteryEffect: Hashable, Sendable {
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
     case chooseItem
-    /// Unlocks a hero or pet on the player roster (idempotent at apply time).
+    /// Unlocks a hero or companion on the player roster (idempotent at apply time).
     case unlockCombatant(String)
 }
 

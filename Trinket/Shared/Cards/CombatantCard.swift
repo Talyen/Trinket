@@ -28,15 +28,6 @@ struct CombatantCard: View {
                     .trinketCardLabelSpace()
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: String {
-        if isLocked {
-            return "\(combatant.name), locked"
-        }
-        return "\(combatant.name) card"
     }
 }
 

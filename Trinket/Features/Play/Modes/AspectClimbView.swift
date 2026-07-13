@@ -6,7 +6,6 @@ import TrinketPersistence
 
 struct AspectClimbView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var floorMessage: StageMapMessage?
     @State private var scrollTarget: String?
 
@@ -71,7 +70,7 @@ struct AspectClimbView: View {
                     Label(aspect.epithet, systemImage: style.symbolName)
                         .trinketTypography(.badge)
                         .foregroundStyle(style.color)
-                    Text("Attune a Hero and Pet that match this Aspect.")
+                    Text("Attune a Hero and Companion that match this Aspect.")
                         .trinketTypography(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Affinity gear helps — not required.")
@@ -92,7 +91,7 @@ struct AspectClimbView: View {
             .scrollTargetLayout()
         }
         .scrollPosition(id: $scrollTarget, anchor: .center)
-        .animation(reduceMotion ? nil : .smooth, value: scrollTarget)
+        .animation(.smooth, value: scrollTarget)
     }
 
     @ViewBuilder
@@ -131,7 +130,6 @@ struct AspectClimbView: View {
                 if cleared {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(TrinketDesign.Colors.success)
-                        .accessibilityLabel("Cleared")
                 }
             }
 
@@ -147,7 +145,7 @@ struct AspectClimbView: View {
             cornerRadius: TrinketDesign.Corners.card
         )
         .accessibilityIdentifier(AccessibilityID.Play.aspectFloor(aspect.id.rawValue, floor: floor.floor))
-        .animation(reduceMotion ? nil : .smooth, value: startable)
+        .animation(.smooth, value: startable)
     }
 
     @ViewBuilder
@@ -177,7 +175,7 @@ struct AspectClimbView: View {
             appState.battle.activeBattle != nil
                 || !AspectAttunement.evaluate(
                     hero: appState.roster.activeHero,
-                    pet: appState.roster.activePet,
+                    companion: appState.roster.activeCompanion,
                     aspect: aspect
                 ).isReady
         )

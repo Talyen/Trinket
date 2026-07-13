@@ -25,9 +25,25 @@ private func recruit(
     )
 }
 
-/// One-choice mystery encounters that unlock heroes and pets.
+/// One-choice mystery encounters that unlock heroes and companions.
 public enum RecruitMysteryEventPool {
     public static let all: [MysteryEvent] = [
+        recruit(
+            id: "recruit-bear",
+            combatantID: "bear",
+            title: "A Guardian in the Brush",
+            narrative: "A broad shape steps from the brush, watching the trail with calm, patient eyes. The bear turns toward your camp and waits.",
+            choiceID: "welcome",
+            choiceLabel: "Stand with us."
+        ),
+        recruit(
+            id: "recruit-knight",
+            combatantID: "knight",
+            title: "A Shield in the Dark",
+            narrative: "A Knight emerges from the dungeon shadows, shield scarred and sword lowered. They offer a quiet nod toward the road ahead.",
+            choiceID: "welcome",
+            choiceLabel: "Hold the line."
+        ),
         recruit(
             id: "recruit-rogue",
             combatantID: "rogue",
@@ -59,14 +75,6 @@ public enum RecruitMysteryEventPool {
             narrative: "The forest parts around a druid as if it knows their name. Birds settle on their shoulders; the path behind them closes like a held breath.",
             choiceID: "welcome",
             choiceLabel: "Walk with the wild."
-        ),
-        recruit(
-            id: "recruit-ranger",
-            combatantID: "ranger",
-            title: "The Marked Trail",
-            narrative: "An arrow pins a notice to a tree: safe passage for the worthy. The ranger who fired it steps from cover, already packing a second shaft.",
-            choiceID: "welcome",
-            choiceLabel: "Hunt beside me."
         ),
         recruit(
             id: "recruit-warlock",
@@ -107,14 +115,6 @@ public enum RecruitMysteryEventPool {
             narrative: "Ash swirls upward and becomes wings. A phoenix lands on a charred stump, leaves a warm feather in the dirt, and watches to see if you'll pick it up.",
             choiceID: "welcome",
             choiceLabel: "Rise with us."
-        ),
-        recruit(
-            id: "recruit-wolf",
-            combatantID: "wolf",
-            title: "Howl at the Bend",
-            narrative: "A lone howl answers your footsteps. A wolf emerges, ears forward, and bumps your hand with a muzzle that smells like rain and pine.",
-            choiceID: "welcome",
-            choiceLabel: "Run with the pack."
         ),
         recruit(
             id: "recruit-golden-retriever",
@@ -177,11 +177,11 @@ public enum RecruitMysteryEventPool {
     /// Recruit events whose combatant is not yet unlocked.
     public static func eligible(
         unlockedHeroIDs: Set<String>,
-        unlockedPetIDs: Set<String>
+        unlockedCompanionIDs: Set<String>
     ) -> [MysteryEvent] {
         all.filter { event in
             guard let combatantID = event.unlockCombatantID else { return false }
-            return !unlockedHeroIDs.contains(combatantID) && !unlockedPetIDs.contains(combatantID)
+            return !unlockedHeroIDs.contains(combatantID) && !unlockedCompanionIDs.contains(combatantID)
         }
     }
 }

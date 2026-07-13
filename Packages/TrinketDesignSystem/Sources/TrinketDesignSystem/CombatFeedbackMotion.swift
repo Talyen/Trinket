@@ -24,6 +24,13 @@ public enum ChipChromeRole: String, CaseIterable, Sendable, Equatable {
     case utility
 }
 
+/// Visual hierarchy inside one synchronized combat-feedback action group.
+public enum CombatFeedbackPresentationRole: String, CaseIterable, Sendable, Equatable {
+    case headline
+    case secondary
+    case overflow
+}
+
 /// One keyframe sample for a combat-chip motion track.
 public struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     public let value: Double
@@ -40,6 +47,11 @@ public struct CombatFeedbackKeyframeSample: Sendable, Equatable {
 /// Motion + presentation recipe for a floating combat chip class.
 public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
     public let feedbackClass: CombatFeedbackClass
+    public let initialScale: Double
+    public let initialOpacity: Double
+    public let initialOffsetY: Double
+    public let initialOffsetX: Double
+    public let initialRotation: Double
     public let scale: [CombatFeedbackKeyframeSample]
     public let opacity: [CombatFeedbackKeyframeSample]
     public let offsetY: [CombatFeedbackKeyframeSample]
@@ -57,6 +69,11 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
 
     public init(
         feedbackClass: CombatFeedbackClass,
+        initialScale: Double = 0.76,
+        initialOpacity: Double = 0,
+        initialOffsetY: Double = 12,
+        initialOffsetX: Double = 0,
+        initialRotation: Double = 0,
         scale: [CombatFeedbackKeyframeSample],
         opacity: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
@@ -72,6 +89,11 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         showsSecondaryCaption: Bool
     ) {
         self.feedbackClass = feedbackClass
+        self.initialScale = initialScale
+        self.initialOpacity = initialOpacity
+        self.initialOffsetY = initialOffsetY
+        self.initialOffsetX = initialOffsetX
+        self.initialRotation = initialRotation
         self.scale = scale
         self.opacity = opacity
         self.offsetY = offsetY
@@ -87,10 +109,27 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         self.showsSecondaryCaption = showsSecondaryCaption
     }
 
-    public var font: Font {
-        .system(textStyle, design: .rounded)
-            .weight(fontWeight)
+    public func font(for role: CombatFeedbackPresentationRole) -> Font {
+        let style: Font.TextStyle
+        let weight: Font.Weight
+        switch role {
+        case .headline:
+            style = textStyle
+            weight = fontWeight
+        case .secondary:
+            style = .title2
+            weight = .bold
+        case .overflow:
+            style = .callout
+            weight = .semibold
+        }
+        return .system(style, design: .rounded)
+            .weight(weight)
             .monospacedDigit()
+    }
+
+    public var font: Font {
+        font(for: .headline)
     }
 }
 
@@ -144,6 +183,16 @@ public enum CombatFeedbackLayout: Sendable {
 
     public static func stackOffset(index: Int, spacing: CGFloat) -> CGFloat {
         CGFloat(index) * spacing
+    }
+
+    /// Stable vertical lanes prevent rows from jumping when siblings expire.
+    public static func presentationOffset(index: Int) -> CGFloat {
+        switch index {
+        case 0: 0
+        case 1: 48
+        case 2: 86
+        default: 116 + CGFloat(max(0, index - 3)) * 28
+        }
     }
 
     public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {

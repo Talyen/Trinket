@@ -6,6 +6,8 @@ import TrinketDesignSystem
 import TrinketPersistence
 
 struct CombatantDetailPane: View {
+    @Environment(AppState.self) private var appState
+
     let combatant: Combatant
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
@@ -21,6 +23,9 @@ struct CombatantDetailPane: View {
     /// is presenting this view. No nested UISheetPresentationControllers.
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
+    @State private var selectedItem: InventoryItem?
+    @State private var selectedAbility: Ability?
+    @State private var selectionFeedbackTrigger = 0
 
     private var combatBuild: CombatBuild {
         CombatBuildResolver.build(
@@ -30,7 +35,7 @@ struct CombatantDetailPane: View {
         )
     }
 
-    private var heroOrPetTrait: CombatantTraitDefinition? {
+    private var heroOrCompanionTrait: CombatantTraitDefinition? {
         GameContent.trait(forCombatantID: combatant.id)
     }
 
@@ -74,9 +79,9 @@ struct CombatantDetailPane: View {
                 statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
             }
 
-            if let heroOrPetTrait {
+            if let heroOrCompanionTrait {
                 traitSection(
-                    traits: [heroOrPetTrait],
+                    traits: [heroOrCompanionTrait],
                     sectionID: AccessibilityID.CombatantDetail.traitSection,
                     descriptionID: AccessibilityID.CombatantDetail.traitDescription
                 )
@@ -95,7 +100,6 @@ struct CombatantDetailPane: View {
                     ForEach(activeEffectSummaries) { summary in
                         KeywordDescriptionText(text: summary.text)
                             .trinketTypography(.secondaryBody)
-                            .accessibilityElement(children: .combine)
                     }
                 }
             }
@@ -127,17 +131,40 @@ struct CombatantDetailPane: View {
         .navigationDestination(item: $selectedItemSlot) { slot in
             ItemSlotPickerView(
                 slot: slot,
-                equipmentLoadout: $equipmentLoadout,
-                inventoryState: $inventoryState
+                equipmentLoadout: equipmentLoadout,
+                inventoryState: inventoryState,
+                onOpenDetail: { selectedItem = $0 }
             )
         }
         .navigationDestination(item: $selectedAbilityTier) { tier in
             AbilityTierPickerSheet(
                 combatant: combatant,
                 tier: tier,
-                loadout: $loadout
+                selectedAbilityID: loadout.ability(for: tier)?.id,
+                onOpenDetail: { selectedAbility = $0 }
             )
         }
+        .navigationDestination(item: $selectedItem) { item in
+            ItemDetailView(
+                item: item,
+                primaryActionTitle: "Equip \(selectedItemSlot?.displayName ?? item.baseType.slot.displayName)",
+                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
+                onPrimaryAction: { equip(item) }
+            )
+        }
+        .navigationDestination(item: $selectedAbility) { ability in
+            AbilityDetailView(
+                ability: ability,
+                primaryActionTitle: "Select Ability",
+                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.selectAbility(ability.id),
+                onPrimaryAction: { select(ability) }
+            )
+        }
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectionFeedbackTrigger,
+            enabled: appState.options.hapticsEnabled
+        )
     }
 
     private func traitSection(
@@ -153,21 +180,37 @@ struct CombatantDetailPane: View {
     }
 
     private func traitRow(_ trait: CombatantTraitDefinition, descriptionID: String) -> some View {
-        LabeledContent {
-            KeywordDescriptionText(text: trait.description)
-                .trinketTypography(.secondaryBody)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
-                .accessibilityIdentifier(descriptionID)
-        } label: {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(trait.name)
                 .trinketTypography(.body)
                 .foregroundStyle(.primary)
+
+            KeywordDescriptionText(text: trait.description)
+                .trinketTypography(.secondaryBody)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.leading)
+                .accessibilityIdentifier(descriptionID)
         }
     }
 
     private var currentHealth: Int {
         battleHealth ?? combatBuild.effectiveMaxHealth
+    }
+
+    private func select(_ ability: Ability) {
+        loadout = loadout.selecting(ability)
+        selectionFeedbackTrigger += 1
+        selectedAbility = nil
+        selectedAbilityTier = nil
+    }
+
+    private func equip(_ item: InventoryItem) {
+        guard let selectedItemSlot else { return }
+        equipmentLoadout.equip(item, in: selectedItemSlot)
+        appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
+        selectionFeedbackTrigger += 1
+        selectedItem = nil
+        self.selectedItemSlot = nil
     }
 
     private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {

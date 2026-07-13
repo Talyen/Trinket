@@ -11,6 +11,8 @@ struct AppEnvironment {
     let disableAudio: Bool
     let persistSaveImmediately: Bool
     let completedStageIDs: [String]
+    /// Test-only deterministic recruit event selected for the Mystery deep link.
+    let mysteryRecruitEventID: String?
     /// Scroll target ID for the Play map row id, used by UI tests.
     let mapScrollTarget: String?
     /// When set, overrides the default 1s battle tick interval in `BattleView`.
@@ -29,6 +31,7 @@ struct AppEnvironment {
         disableAudio: Bool,
         persistSaveImmediately: Bool,
         completedStageIDs: [String],
+        mysteryRecruitEventID: String?,
         mapScrollTarget: String?,
         battleTickInterval: TimeInterval?,
         storeName: String?
@@ -41,6 +44,7 @@ struct AppEnvironment {
         self.disableAudio = disableAudio
         self.persistSaveImmediately = persistSaveImmediately
         self.completedStageIDs = completedStageIDs
+        self.mysteryRecruitEventID = mysteryRecruitEventID
         self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
         self.storeName = storeName
@@ -71,6 +75,7 @@ struct AppEnvironment {
             disableAudio: arguments.contains("-disable-audio"),
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),
             completedStageIDs: completedStageIDs(from: arguments),
+            mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
             battleTickInterval: battleTickInterval(from: arguments),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
@@ -84,7 +89,7 @@ struct AppEnvironment {
               arguments.indices.contains(idx + 1)
         else { return nil }
         let val = arguments[idx + 1].lowercased()
-        if val == "heroes" || val == "pets" || val == "inventory" || val == "search" {
+        if val == "heroes" || val == "companions" || val == "inventory" || val == "search" {
             return .collection
         }
         return AppTab(rawValue: val)
@@ -100,7 +105,7 @@ struct AppEnvironment {
         let id = parts.count == 2 ? parts[1] : ""
         switch kind {
         case "hero" where !id.isEmpty: return .heroDetail(id)
-        case "pet" where !id.isEmpty: return .petDetail(id)
+        case "companion" where !id.isEmpty: return .companionDetail(id)
         case "item" where !id.isEmpty: return .itemDetail(id)
         case "options": return .options
         case "battle": return .battle
@@ -129,6 +134,14 @@ struct AppEnvironment {
         else { return nil }
         let target = arguments[idx + 1]
         return target.isEmpty ? nil : target
+    }
+
+    private static func argumentValue(after flag: String, in arguments: [String]) -> String? {
+        guard let index = arguments.firstIndex(of: flag),
+              arguments.indices.contains(index + 1)
+        else { return nil }
+        let value = arguments[index + 1]
+        return value.isEmpty ? nil : value
     }
 
     private static func battleTickInterval(from arguments: [String]) -> TimeInterval? {

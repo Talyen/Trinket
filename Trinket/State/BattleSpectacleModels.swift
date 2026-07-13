@@ -13,7 +13,7 @@ struct SkillCalloutPresentation: Equatable, Identifiable {
     let expiresAt: Date
 }
 
-/// Full-screen Ultimate cinematic for Hero/Pet casts.
+/// Full-screen Ultimate cinematic for Hero/Companion casts.
 struct BattleCinematicPresentation: Equatable, Identifiable {
     enum Phase: Equatable {
         case expanding
@@ -33,10 +33,10 @@ struct BattleCinematicPresentation: Equatable, Identifiable {
 }
 
 enum BattleSpectaclePolicy {
-    /// Hero/Pet Ultimates take the full-screen cinematic path.
-    static func shouldPresentUltimateCinematic(for event: ActionEvent, heroID: String, petID: String) -> Bool {
+    /// Hero/Companion Ultimates take the full-screen cinematic path.
+    static func shouldPresentUltimateCinematic(for event: ActionEvent, heroID: String, companionID: String) -> Bool {
         guard event.kind == .ability, event.abilityTier == .ultimate else { return false }
-        return event.actorID == heroID || event.actorID == petID
+        return event.actorID == heroID || event.actorID == companionID
     }
 
     static func shouldPresentSkillCallout(for event: ActionEvent) -> Bool {
@@ -44,8 +44,8 @@ enum BattleSpectaclePolicy {
     }
 
     /// Enemy Ultimates use the Skill callout treatment (no full-screen).
-    static func shouldPresentEnemyUltimateAsCallout(for event: ActionEvent, heroID: String, petID: String) -> Bool {
+    static func shouldPresentEnemyUltimateAsCallout(for event: ActionEvent, heroID: String, companionID: String) -> Bool {
         guard event.kind == .ability, event.abilityTier == .ultimate else { return false }
-        return event.actorID != heroID && event.actorID != petID
+        return event.actorID != heroID && event.actorID != companionID
     }
 }

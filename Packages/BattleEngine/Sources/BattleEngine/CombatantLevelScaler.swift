@@ -26,8 +26,7 @@ public enum CombatantLevelScaler {
             maxMana: scaled.maxMana,
             primaryStats: scaled.primaryStats,
             level: level,
-            isBoss: enemy.isBoss,
-            isElite: enemy.isElite
+            isBoss: enemy.isBoss
         )
         return Combatant(
             id: scaled.id,

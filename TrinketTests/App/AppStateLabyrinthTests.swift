@@ -12,27 +12,26 @@ struct AppStateLabyrinthTests {
         context = try AppTestContext()
     }
 
-    @Test func enterLabyrinthRequiresUnlock() throws {
+    @Test func enterLabyrinthIsAvailableFromFreshState() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        #expect(state.isLabyrinthUnlocked == false)
-        let message = state.enterLabyrinth()
-        #expect(message != nil)
-        #expect(state.labyrinth.hasMap == false)
-    }
-
-    @Test func enterLabyrinthCreatesMapWhenUnlocked() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
-        #expect(state.isLabyrinthUnlocked)
         let message = state.enterLabyrinth()
         #expect(message == nil)
         #expect(state.labyrinth.hasMap)
         #expect(!state.labyrinth.reachableNodeIDs().isEmpty)
     }
 
+    @Test func enterLabyrinthReusesExistingMap() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        #expect(state.enterLabyrinth() == nil)
+        let firstMap = state.labyrinth.current
+        let message = state.enterLabyrinth()
+        #expect(message == nil)
+        #expect(state.labyrinth.hasMap)
+        #expect(state.labyrinth.current == firstMap)
+    }
+
     @Test func startLabyrinthBattleSetsConfiguration() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
         let message = state.startLabyrinthBattle(nodeID: combatNodeID)
@@ -44,7 +43,6 @@ struct AppStateLabyrinthTests {
 
     @Test func completeLabyrinthNodeAdvancesMap() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let nodeID = try #require(state.labyrinth.reachableNodeIDs().first)
         state.completeLabyrinthNode(nodeID: nodeID)
@@ -53,7 +51,6 @@ struct AppStateLabyrinthTests {
 
     @Test func completeActiveBattleClearsLabyrinthNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
         _ = state.startLabyrinthBattle(nodeID: combatNodeID)
@@ -65,7 +62,6 @@ struct AppStateLabyrinthTests {
 
     @Test func labyrinthShopFinishClearsNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
 
@@ -82,7 +78,6 @@ struct AppStateLabyrinthTests {
 
     @Test func labyrinthShopDismissDoesNotClearNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
 
@@ -97,7 +92,6 @@ struct AppStateLabyrinthTests {
 
     @Test func labyrinthMysteryFinishClearsNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let mysteryNodeID = try #require(firstReachableNodeID(of: .mystery, in: state))
 
@@ -113,7 +107,6 @@ struct AppStateLabyrinthTests {
 
     @Test func startLabyrinthBattleSetsInMemoryOrigin() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
         _ = state.startLabyrinthBattle(nodeID: combatNodeID)
@@ -122,7 +115,6 @@ struct AppStateLabyrinthTests {
 
     @Test func labyrinthRestFinishClearsNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
 
@@ -138,7 +130,6 @@ struct AppStateLabyrinthTests {
 
     @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
 
@@ -155,7 +146,6 @@ struct AppStateLabyrinthTests {
 
     @Test func legacyEventNodeRoutesToMystery() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let reachableID = try #require(state.labyrinth.reachableNodeIDs().first)
         var labyrinth = state.labyrinth.current
@@ -179,16 +169,6 @@ struct AppStateLabyrinthTests {
 
         #expect(state.handleLabyrinthNodeAction(nodeID: reachableID) == nil)
         #expect(state.activeMysteryEncounter?.labyrinthNodeID == reachableID)
-    }
-
-    private func unlockLabyrinth(on appState: AppState) {
-        var journey = appState.journey.current
-        if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
-            for stage in chapter.stages {
-                journey.completedStageIDs.insert(stage.id)
-            }
-        }
-        appState.journey.current = journey
     }
 
     private func firstReachableCombatNodeID(in state: AppState) -> String? {

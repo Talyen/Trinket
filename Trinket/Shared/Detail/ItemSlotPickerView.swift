@@ -6,70 +6,26 @@ import TrinketPersistence
 
 struct ItemSlotPickerView: View {
     let slot: ItemSlot
-    @Binding var equipmentLoadout: EquipmentLoadout
-    @Binding var inventoryState: PlayerInventoryState
-    @Environment(AppState.self) private var appState
-    @Environment(\.dismiss) private var dismiss
+    let equipmentLoadout: EquipmentLoadout
+    let inventoryState: PlayerInventoryState
+    let onOpenDetail: (InventoryItem) -> Void
+
     @State private var itemOrder: [String] = []
-    @State private var selectedItemID: String?
 
     var body: some View {
-        List {
-            Section {
+        ScrollView {
+            LazyVGrid(
+                columns: TrinketDesign.Metrics.partyPickerGridItems,
+                spacing: TrinketDesign.Metrics.largeSpacing
+            ) {
                 ForEach(orderedItems) { item in
-                    Button {
-                        selectedItemID = item.id
-                        equipmentLoadout.equip(item, in: slot)
-                        appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
-                        dismiss()
-                    } label: {
-                        let isSelected = item.id == (selectedItemID ?? equipmentLoadout.itemID(for: slot))
-                        HStack(spacing: 14) {
-                            ItemCard(item: item, showsAffixCount: false, showsName: false)
-                                .frame(height: HeroHeaderLayout.pickerRowCardHeight)
-
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(item.displayName)
-                                    .trinketTypography(.cardTitle)
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.leading)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    ForEach(item.affixes.prefix(4)) { affix in
-                                        KeywordDescriptionText(text: affix.description)
-                                            .trinketTypography(.caption)
-                                            .foregroundStyle(.secondary)
-                                            .lineLimit(2)
-                                            .multilineTextAlignment(.leading)
-                                    }
-                                }
-                            }
-
-                            Spacer()
-
-                            if isSelected {
-                                Image(systemName: "checkmark")
-                                    .trinketTypography(.button)
-                                    .foregroundStyle(TrinketDesign.Colors.selection)
-                                    .accessibilityHidden(true)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("Equip \(item.displayName)")
-                    .accessibilityValue(equipmentLoadout.itemID(for: slot) == item.id ? "Equipped" : "Available")
+                    optionButton(item)
                 }
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .trinketSensoryFeedback(
-            .selection,
-            trigger: selectedItemID,
-            enabled: appState.options.hapticsEnabled
-        )
-        .trinketScreenBackground(.modal)
+        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -77,6 +33,59 @@ struct ItemSlotPickerView: View {
                 itemOrder = entrySortedItems.map(\.id)
             }
         }
+    }
+
+    private func optionButton(_ item: InventoryItem) -> some View {
+        let isSelected = item.id == equipmentLoadout.itemID(for: slot)
+
+        return Button {
+            onOpenDetail(item)
+        } label: {
+            ZStack(alignment: .bottomLeading) {
+                ItemCard(
+                    item: item,
+                    showsAffixCount: false,
+                    showsName: false
+                )
+
+                TrinketHeroScrim.gradient(for: .detailHeader)
+                    .clipShape(TrinketDesign.cardShape)
+
+                Text(item.displayName)
+                    .trinketTypography(.cardTitle)
+                    .trinketOnArtText(.title)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .padding(TrinketDesign.Metrics.mediumSpacing)
+
+                if isSelected {
+                    selectedCheckmark
+                }
+            }
+            .clipShape(TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape.strokeBorder(
+                    isSelected ? TrinketDesign.Colors.selection : .clear,
+                    lineWidth: isSelected ? 3 : 0
+                )
+            }
+        }
+        .buttonStyle(ArtworkNavigationCardButtonStyle())
+        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemCandidate(item.id))
+    }
+
+    private var selectedCheckmark: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Image(systemName: "checkmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(TrinketDesign.Colors.selection)
+                    .trinketGlassChip(.compact)
+            }
+            Spacer()
+        }
+        .padding(TrinketDesign.Metrics.smallSpacing)
     }
 
     private var orderedItems: [InventoryItem] {

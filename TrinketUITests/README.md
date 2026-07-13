@@ -1,6 +1,6 @@
 # TrinketUITests
 
-UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: `Docs/Platform/Testing.md`. Accessibility id constants: `Trinket/Shared/AccessibilityID.swift`.
+UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: `Docs/Platform/Testing.md`. UI test selector constants: `Trinket/Shared/AccessibilityID.swift`.
 
 ## Layout
 
@@ -21,8 +21,8 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 
 **Additional:**
 
-- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 1-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
-- `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`pets`/`inventory`/`search` → `.collection`)
+- `-launch-screen` (`hero:`, `companion:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 2-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
+- `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio` (see `AppEnvironment.parse`)
 
@@ -37,5 +37,5 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Mid-battle exhaustive tests: enter via Play map, not `-launch-screen battle` with very fast ticks.
 - Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
-- Accessibility audits (`assertAccessibilityAudit`) run on nightly integration only — not PR/main exhaustive shards.
+- Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors, visible text, and interaction outcomes.
 - UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.

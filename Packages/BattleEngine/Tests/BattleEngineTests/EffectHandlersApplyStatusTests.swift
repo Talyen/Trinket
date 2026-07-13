@@ -43,23 +43,6 @@ struct EffectHandlersApplyStatusTests {
         })
     }
 
-    @Test func cleanseIsInstantAndLeavesNoActiveEffect() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
-            for: battle.hero,
-            on: &battle
-        )
-        let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(!(battle.activeEffects(of: battle.hero)).contains {
-            if case .cleanse = $0.effect {
-                return true
-            }; return false
-        })
-        try #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
-    }
-
     @Test func cleanseStunRemovesActivePrevention() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(

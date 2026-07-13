@@ -16,7 +16,7 @@ struct ControlMeterEngineTests {
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
         return BattleEngineContext(
@@ -28,7 +28,7 @@ struct ControlMeterEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }

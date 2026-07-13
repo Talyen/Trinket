@@ -7,17 +7,17 @@ Rebalance the screen so the three-card hand is the primary interaction surface w
 ## Layout and Interaction
 
 - Render existing square enemy art in a full-width `4:3` landscape viewport using centered fill-cropping; do not create new enemy assets.
-- Keep Hero and Pet side-by-side beneath it using their existing `3:4` art.
-- Anchor enemy, hero, and pet health to the bottom edge of each combatant’s art.
+- Keep Hero and Companion side-by-side beneath it using their existing `3:4` art.
+- Anchor enemy, hero, and companion health to the bottom edge of each combatant’s art.
 - Show mana only when live `maxMana > 0`, as a thinner second bar directly below health. Knight and Bear show health only, with no empty mana track.
 - Preserve the existing battle tab bar and status safe area. Add no pause control, global crystals, resource strip, or other top chrome.
 
 ## Card Hand
 
-- Cap the visible hand at three cards; open with three randomly chosen hero/pet draws.
+- Cap the visible hand at three cards; open with three randomly chosen hero/companion draws.
 - When a draw would exceed the cap, the card still leaves the deck and waits in a hidden FIFO Hand Buffer (no UI, not playable).
 - After a played card’s effects resolve, promote buffered cards into free hand slots in draw order.
-- End-of-round auto-draw still attempts one hero and one pet card; owner-balance applies only while the hand has room, and overflow enters the buffer.
+- End-of-round auto-draw still attempts one hero and one companion card; owner-balance applies only while the hand has room, and overflow enters the buffer.
 - Use the existing card ratio exactly: `3:4` width-to-height with full-bleed ability art and no name, cost, description, owner badge, or other face text.
 - Size cards to approximately 43% of the available screen width—about `168×224` points on a 390-point-wide phone.
 - Fan the hand (up to three cards) with the center card highest and the outer cards slightly lower.

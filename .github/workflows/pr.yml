@@ -52,8 +52,8 @@ jobs:
           CI: true
         run: |
           status=0
-          ./Scripts/test.sh unit --no-build --verbose || status=1
-          ./Scripts/test.sh smoke-full --no-build --verbose || status=1
+          ./Scripts/test.sh unit --no-build || status=1
+          ./Scripts/test.sh smoke-full --no-build || status=1
           exit "$status"
       - name: Classify CI outcome and report timing
         if: always()

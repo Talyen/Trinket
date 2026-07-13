@@ -1,7 +1,7 @@
 import Foundation
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 10
+    public static let currentSchemaVersion = 11
 
     public var schemaVersion: Int
     public var modifiedAt: Date

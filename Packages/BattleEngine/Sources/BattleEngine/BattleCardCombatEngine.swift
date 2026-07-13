@@ -9,8 +9,8 @@ public enum BattleCardCombatEngine {
             from: context.hero.abilityLoadout,
             rng: &context.rng
         )
-        context.petDeck = CombatDeck.shuffled(
-            from: context.pet.abilityLoadout,
+        context.companionDeck = CombatDeck.shuffled(
+            from: context.companion.abilityLoadout,
             rng: &context.rng
         )
         context.hand = BattleHand()
@@ -100,7 +100,7 @@ public enum BattleCardCombatEngine {
         }
         context.tickCount += 1
         events.append(contentsOf: EffectTickEngine.tickAll(context: &context, matchup: matchup))
-        for combatant in [context.roster.hero.combatant, context.roster.pet.combatant, context.roster.enemy.combatant] {
+        for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
@@ -110,7 +110,7 @@ public enum BattleCardCombatEngine {
         }
 
         // Draw for next player turn
-        drawCardsBalanced(heroCount: 1, petCount: 1, context: &context)
+        drawCardsBalanced(heroCount: 1, companionCount: 1, context: &context)
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         context.phase = .playerTurn
@@ -171,7 +171,7 @@ public enum BattleCardCombatEngine {
 
     private static func skippingOwners(in context: BattleEngineContext) -> Set<BattleParticipant> {
         var skipping: Set<BattleParticipant> = []
-        for owner in [BattleParticipant.hero, .pet] {
+        for owner in [BattleParticipant.hero, .companion] {
             let combatant = context.roster[owner].combatant
             if context.roster[owner].isAlive, context.roster.hasPendingActionSkip(for: combatant) {
                 skipping.insert(owner)
@@ -183,7 +183,7 @@ public enum BattleCardCombatEngine {
     /// Draws `count` cards, each from a randomly chosen eligible owner (alive + non-empty deck).
     private static func drawOpeningHand(count: Int, context: inout BattleEngineContext) {
         for _ in 0 ..< count {
-            let eligible = [BattleParticipant.hero, .pet].filter { owner in
+            let eligible = [BattleParticipant.hero, .companion].filter { owner in
                 context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
             }
             guard let owner = eligible.randomElement(using: &context.rng) else { return }
@@ -197,14 +197,14 @@ public enum BattleCardCombatEngine {
     /// the hand buffer.
     private static func drawCardsBalanced(
         heroCount: Int,
-        petCount: Int,
+        companionCount: Int,
         context: inout BattleEngineContext
     ) {
-        var remaining: [BattleParticipant: Int] = [.hero: heroCount, .pet: petCount]
-        let tieWinner: BattleParticipant = context.tickCount.isMultiple(of: 2) ? .hero : .pet
+        var remaining: [BattleParticipant: Int] = [.hero: heroCount, .companion: companionCount]
+        let tieWinner: BattleParticipant = context.tickCount.isMultiple(of: 2) ? .hero : .companion
 
         while true {
-            let candidates = [BattleParticipant.hero, .pet].filter {
+            let candidates = [BattleParticipant.hero, .companion].filter {
                 remaining[$0, default: 0] > 0
             }
             guard !candidates.isEmpty else { return }
@@ -244,8 +244,8 @@ public enum BattleCardCombatEngine {
         let ability: Ability? = switch owner {
         case .hero:
             context.heroDeck.draw()
-        case .pet:
-            context.petDeck.draw()
+        case .companion:
+            context.companionDeck.draw()
         case .enemy:
             nil
         }
@@ -264,7 +264,7 @@ public enum BattleCardCombatEngine {
     private static func deck(for owner: BattleParticipant, in context: BattleEngineContext) -> CombatDeck {
         switch owner {
         case .hero: context.heroDeck
-        case .pet: context.petDeck
+        case .companion: context.companionDeck
         case .enemy: CombatDeck()
         }
     }
@@ -277,8 +277,8 @@ public enum BattleCardCombatEngine {
         switch owner {
         case .hero:
             context.heroDeck.putOnBottom(ability)
-        case .pet:
-            context.petDeck.putOnBottom(ability)
+        case .companion:
+            context.companionDeck.putOnBottom(ability)
         case .enemy:
             break
         }

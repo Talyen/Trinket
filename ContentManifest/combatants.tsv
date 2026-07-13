@@ -6,15 +6,15 @@ alchemist	Alchemist	hero	15	8	support	causticJab,block	acidPotion,healthPotion	p
 druid	Druid	hero	17	8	support	kindling,fangs	briarShield,graspingVines	bloodthorn,thornMail	3	4	8	4	11	thornskin
 ranger	Ranger	hero	14	0	assassin	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	10	4	2	6	pack_leader
 warlock	Warlock	hero	16	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7	soul_siphon
-bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	crystalBulwark,thornMail	9	3	10	2	4	thick_hide
-frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4	permafrost
-lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5	cold_blood
-panther	Panther	pet	15	0	bruiser	rendingSlash,fangs	serratedEdge,poisonDagger	packTactics,hemorrhage	8	9	5	3	3	razor_claws
-phoenix	Phoenix	pet	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	2	6	4	9	7	immortal_ember
-wolf	Wolf	pet	14	0	assassin	rendingSlash,fangs	graspingVines,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4	pack_ferocity
-golden_retriever	Golden Retriever	pet	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9	loyal_comfort
-library_owl	Library Owl	pet	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	2	6	5	7	10	purifying_wisdom
-risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	bloodOffering,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4	unliving_frame
-mana_moth	Mana Moth	pet	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	manaBulwark,combustion	3	7	4	9	7	arcane_reservoir
-pixie	Pixie	pet	14	7	support	pixieDust,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8	fae_fortune
-shield_scarab	Shield Scarab	pet	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	12	2	4	iron_carapace
+bear	Bear	companion	17	0	tank	bash,block	spikedShield,sunderArmor	crystalBulwark,thornMail	9	3	10	2	4	thick_hide
+frost_whelp	Frost Whelp	companion	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4	permafrost
+lizard_scout	Lizard Scout	companion	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5	cold_blood
+panther	Panther	companion	15	0	bruiser	rendingSlash,fangs	serratedEdge,poisonDagger	packTactics,hemorrhage	8	9	5	3	3	razor_claws
+phoenix	Phoenix	companion	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	2	6	4	9	7	immortal_ember
+wolf	Wolf	companion	14	0	assassin	rendingSlash,fangs	graspingVines,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4	pack_ferocity
+golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9	loyal_comfort
+library_owl	Library Owl	companion	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	2	6	5	7	10	purifying_wisdom
+risen_skeleton	Risen Skeleton	companion	15	0	bruiser	slash,blackjack	bloodOffering,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4	unliving_frame
+mana_moth	Mana Moth	companion	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	manaBulwark,combustion	3	7	4	9	7	arcane_reservoir
+pixie	Pixie	companion	14	7	support	pixieDust,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8	fae_fortune
+shield_scarab	Shield Scarab	companion	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	12	2	4	iron_carapace

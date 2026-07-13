@@ -74,7 +74,7 @@ struct OptionsView: View {
             } header: {
                 Text("Developer")
             } footer: {
-                Text("Unlocks all heroes and pets at level 20 and clears Chapter 1. Debug builds only.")
+                Text("Unlocks all heroes and companions at level 20 and clears Chapter 1. Debug builds only.")
             }
             #endif
         }

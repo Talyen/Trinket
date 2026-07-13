@@ -2,11 +2,11 @@ import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
     func testMerchantShopBrowseDetailAndLeave() {
-        // Deep-link opens stage 1-4 shop; prior stages completed so leave unlocks stage 5.
+        // Deep-link opens stage 2-4 shop; prior stages completed so leave unlocks stage 5.
         launchApp(arguments: TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
-            "chapter-1-stage-1",
-            "chapter-1-stage-2",
-            "chapter-1-stage-3"
+            "chapter-2-stage-1",
+            "chapter-2-stage-2",
+            "chapter-2-stage-3"
         ]))
 
         assertExists(AccessibilityID.Shop.encounterTitle)
@@ -30,7 +30,7 @@ final class SmokeShopTests: TrinketUITestCase {
         )
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
-        tapButton("Done")
+        dismissSheet()
         _ = button(AccessibilityID.Shop.leaveButton).waitForExistence(timeout: Self.defaultTimeout)
 
         let buyButtons = app.buttons.matching(
@@ -55,6 +55,7 @@ final class SmokeShopTests: TrinketUITestCase {
             app.swipeUp()
         }
         tapButton(AccessibilityID.Shop.leaveButton)
-        assertButtonExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 5))
+        play.openCampaign()
+        assertButtonExists(AccessibilityID.Play.stageAction(chapter: 2, stage: 5))
     }
 }

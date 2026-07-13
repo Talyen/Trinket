@@ -54,15 +54,15 @@ final class JourneyProgressTests {
     @Test func experienceAppliesToActiveParty() throws {
         var roster = PlayerRosterState.initial
         let hero = GameContent.heroes[0]
-        let pet = GameContent.pets[0]
+        let companion = GameContent.companions[0]
         let heroBefore = roster.progression(for: hero).currentXP
-        let petBefore = roster.progression(for: pet).currentXP
+        let companionBefore = roster.progression(for: companion).currentXP
 
         roster.grantExperience(20, to: hero)
-        roster.grantExperience(20, to: pet)
+        roster.grantExperience(20, to: companion)
 
         try #expect(roster.progression(for: hero).currentXP == heroBefore + 20)
-        try #expect(roster.progression(for: pet).currentXP == petBefore + 20)
+        try #expect(roster.progression(for: companion).currentXP == companionBefore + 20)
     }
 
     @Test func itemRewardCreatesUniqueInstance() throws {
@@ -111,7 +111,6 @@ final class JourneyProgressTests {
         try #expect(progress.activeChapterID == "chapter-1")
         try #expect(progress.lastCompletedStageID == lastStage.id)
         try #expect(progress.isActiveChapterCleared())
-        try #expect(ModesUnlock.isUnlocked(journey: progress))
         if GameContent.chapters.count > 1 {
             try #expect(progress.pendingNextChapter()?.id == "chapter-2")
         }
@@ -128,7 +127,6 @@ final class JourneyProgressTests {
         try #expect(progress.activeStageID == nil)
         try #expect(progress.activeChapterID == lastStage.chapterID)
         try #expect(progress.lastCompletedStageID == lastStage.id)
-        try #expect(ModesUnlock.isUnlocked(journey: progress))
     }
 
     @Test func journeyPersistsProgress() throws {

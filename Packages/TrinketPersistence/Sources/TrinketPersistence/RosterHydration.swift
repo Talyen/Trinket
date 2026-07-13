@@ -4,22 +4,22 @@ import TrinketCore
 
 enum RosterHydration {
     static let combatantsByID = Dictionary(
-        uniqueKeysWithValues: (GameContent.heroes + GameContent.pets).map { ($0.id, $0) }
+        uniqueKeysWithValues: (GameContent.heroes + GameContent.companions).map { ($0.id, $0) }
     )
 
     static func resolveActiveSelection(
         activeHeroID: String,
-        activePetID: String,
+        activeCompanionID: String,
         unlockedHeroIDs: Set<String>,
-        unlockedPetIDs: Set<String>
-    ) -> (activeHeroID: String, activePetID: String) {
+        unlockedCompanionIDs: Set<String>
+    ) -> (activeHeroID: String, activeCompanionID: String) {
         let resolvedHeroID = unlockedHeroIDs.contains(activeHeroID)
             ? activeHeroID
             : (unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID)
-        let resolvedPetID = unlockedPetIDs.contains(activePetID)
-            ? activePetID
-            : (unlockedPetIDs.first ?? PlayerRosterState.starterPetID)
-        return (resolvedHeroID, resolvedPetID)
+        let resolvedCompanionID = unlockedCompanionIDs.contains(activeCompanionID)
+            ? activeCompanionID
+            : (unlockedCompanionIDs.first ?? PlayerRosterState.starterCompanionID)
+        return (resolvedHeroID, resolvedCompanionID)
     }
 
     static func resolveAbilityLoadouts(

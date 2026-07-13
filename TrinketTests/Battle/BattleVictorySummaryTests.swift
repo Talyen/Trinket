@@ -10,7 +10,7 @@ import TrinketTestSupport
 struct BattleVictorySummaryTests {
     @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -19,12 +19,12 @@ struct BattleVictorySummaryTests {
         )
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
-        rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
             roster: rosterState,
@@ -42,21 +42,25 @@ struct BattleVictorySummaryTests {
             homestead: .freshStart
         )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
-        let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
+        let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
         #expect(summary.stageGold == 12)
         #expect(summary.experience == expectedHeroXP)
         #expect(summary.heroName == hero.name)
-        #expect(summary.petName == pet.name)
-        #expect(summary.itemNames == ["Shortsword"])
+        #expect(summary.companionName == companion.name)
+        #expect(summary.heroArtworkName == hero.artReference?.thumbnailImageName)
+        #expect(summary.companionArtworkName == companion.artReference?.thumbnailImageName)
+        #expect(summary.rewardItems.map(\.displayName) == ["Shortsword"])
+        #expect(summary.rewardItems.first?.id == "chapter-1-stage-1-shortsword-basic")
+        #expect(summary.rewardItems.first?.affixes.isEmpty == false)
         #expect(summary.heroProgressionBefore.level == 2)
         #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
-        #expect(summary.petProgressionAfter.currentXP == expectedPetXP)
+        #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
     }
 
     @Test func makeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -65,11 +69,11 @@ struct BattleVictorySummaryTests {
         )
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
-        rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 1,
             roster: rosterState,
@@ -86,12 +90,13 @@ struct BattleVictorySummaryTests {
             state: state,
             homestead: .freshStart
         )
-        let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
+        let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
         #expect(summary.experience == 0)
-        #expect(summary.petExperience == expectedPetXP)
+        #expect(summary.companionExperience == expectedCompanionXP)
         #expect(summary.hasExperienceAwards == true)
-        #expect(summary.petProgressionAfter.currentXP == expectedPetXP)
+        #expect(summary.rewardItems.isEmpty)
+        #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
     }
 
     @Test func makeVictorySummaryIncludesBattleGoldWhenRewardsGranted() throws {
@@ -100,7 +105,7 @@ struct BattleVictorySummaryTests {
             role: .hero,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, abilities: [])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -111,7 +116,7 @@ struct BattleVictorySummaryTests {
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             stageReward: StageReward(gold: 12, itemTemplateIDs: [])
         )
@@ -138,7 +143,7 @@ struct BattleVictorySummaryTests {
             role: .hero,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, abilities: [])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
@@ -148,7 +153,7 @@ struct BattleVictorySummaryTests {
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             stageReward: StageReward(
                 gold: 0,

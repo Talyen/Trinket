@@ -123,11 +123,11 @@ enum GameContentRosterGenerated {
         )
     ]
 
-    static let pets: [Combatant] = [
+    static let companions: [Combatant] = [
         Combatant(
             id: "bear",
             name: "Bear",
-            role: .pet,
+            role: .companion,
             maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block],
@@ -140,7 +140,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "frost_whelp",
             name: "Frost Whelp",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
@@ -154,7 +154,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "lizard_scout",
             name: "Lizard Scout",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack],
@@ -167,7 +167,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "panther",
             name: "Panther",
-            role: .pet,
+            role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
@@ -180,7 +180,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "phoenix",
             name: "Phoenix",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
@@ -194,7 +194,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "wolf",
             name: "Wolf",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
@@ -207,7 +207,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "golden_retriever",
             name: "Golden Retriever",
-            role: .pet,
+            role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.apple, .sniffOut],
@@ -220,7 +220,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "library_owl",
             name: "Library Owl",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
@@ -234,7 +234,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "risen_skeleton",
             name: "Risen Skeleton",
-            role: .pet,
+            role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .blackjack],
@@ -247,7 +247,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "mana_moth",
             name: "Mana Moth",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             maxMana: 11,
             abilityChoices: AbilityChoices(
@@ -261,7 +261,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "pixie",
             name: "Pixie",
-            role: .pet,
+            role: .companion,
             maxHealth: 14,
             maxMana: 7,
             abilityChoices: AbilityChoices(
@@ -275,7 +275,7 @@ enum GameContentRosterGenerated {
         Combatant(
             id: "shield_scarab",
             name: "Shield Scarab",
-            role: .pet,
+            role: .companion,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.block, .shieldBash],

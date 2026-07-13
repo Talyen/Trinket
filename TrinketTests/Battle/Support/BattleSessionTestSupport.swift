@@ -15,8 +15,9 @@ enum BattleSessionTestSupport {
     static func makeConfiguredSession(
         rngSeed: UInt64 = deterministicBattleSeed,
         hero: Combatant? = nil,
-        pet: Combatant? = nil,
-        enemy: Combatant? = nil
+        companion: Combatant? = nil,
+        enemy: Combatant? = nil,
+        autoEndTurnDelay: TimeInterval = 0.01
     ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
@@ -24,9 +25,9 @@ enum BattleSessionTestSupport {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let resolvedPet = pet ?? CombatantFixtures.combatant(
-            id: "pet",
-            role: .pet,
+        let resolvedCompanion = companion ?? CombatantFixtures.combatant(
+            id: "companion",
+            role: .companion,
             actionIntervalTicks: 100,
             abilities: []
         )
@@ -37,11 +38,14 @@ enum BattleSessionTestSupport {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let session = BattleSession()
+        let session = BattleSession(
+            autoEndTurnDelay: autoEndTurnDelay,
+            outcomePresentationDelayOverride: 0
+        )
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: rngSeed,
             hero: resolvedHero,
-            pet: resolvedPet,
+            companion: resolvedCompanion,
             enemy: resolvedEnemy
         )
         return session

@@ -7,10 +7,10 @@ public enum BalanceSweepRunner {
         config: BalanceSweepConfig,
         policy: some PlayerPolicy = GreedyHeuristicPolicy(),
         heroes: [Combatant] = GameContent.heroes,
-        pets: [Combatant] = GameContent.pets,
+        companions: [Combatant] = GameContent.companions,
         enemies: [Enemy] = GameContent.enemies
     ) -> BalanceSweepReport {
-        precondition(!heroes.isEmpty && !pets.isEmpty && !enemies.isEmpty)
+        precondition(!heroes.isEmpty && !companions.isEmpty && !enemies.isEmpty)
 
         let started = ContinuousClock.now
         let policyID = policy.id
@@ -27,7 +27,7 @@ public enum BalanceSweepRunner {
                 config: config,
                 policy: policy,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies
             )
         }
@@ -36,7 +36,7 @@ public enum BalanceSweepRunner {
                 config: config,
                 policy: policy,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies
             )
         }
@@ -45,7 +45,7 @@ public enum BalanceSweepRunner {
                 config: config,
                 policy: policy,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies
             )
         }
@@ -66,7 +66,7 @@ public enum BalanceSweepRunner {
         config: BalanceSweepConfig,
         policy: some PlayerPolicy,
         heroes: [Combatant],
-        pets: [Combatant],
+        companions: [Combatant],
         enemies: [Enemy]
     ) -> [BalanceBattleRecord] {
         let work: [(SimulationPowerTier, Int)] = config.tiers.flatMap { tier in
@@ -77,7 +77,7 @@ public enum BalanceSweepRunner {
                 config: config,
                 policy: policy,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies,
                 tier: entry.0,
                 battleIndex: entry.1
@@ -89,7 +89,7 @@ public enum BalanceSweepRunner {
         config: BalanceSweepConfig,
         policy: some PlayerPolicy,
         heroes: [Combatant],
-        pets: [Combatant],
+        companions: [Combatant],
         enemies: [Enemy],
         tier: SimulationPowerTier,
         battleIndex: Int
@@ -100,7 +100,7 @@ public enum BalanceSweepRunner {
         var rng = SeededRandomNumberGenerator(seed: battleSeed)
 
         let hero = heroes[battleIndex % heroes.count]
-        let pet = pets[(battleIndex / max(heroes.count, 1)) % pets.count]
+        let companion = companions[(battleIndex / max(heroes.count, 1)) % companions.count]
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: enemies,
             battleIndex: battleIndex,
@@ -112,19 +112,19 @@ public enum BalanceSweepRunner {
             level: tier.level,
             using: &rng
         )
-        let petLoadout = SimulationMatchupBuilder.sampleLoadout(
-            for: pet,
+        let companionLoadout = SimulationMatchupBuilder.sampleLoadout(
+            for: companion,
             level: tier.level,
             using: &rng
         )
 
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             tier: tier,
             heroLoadout: heroLoadout,
-            petLoadout: petLoadout,
+            companionLoadout: companionLoadout,
             seed: battleSeed,
             loadoutSampleIndex: battleIndex
         )
@@ -139,12 +139,12 @@ public enum BalanceSweepRunner {
         return BalanceBattleRecord(
             tier: tier,
             heroID: hero.id,
-            petID: pet.id,
+            companionID: companion.id,
             enemyID: enemy.id,
-            isBossOrElite: enemy.isBoss || enemy.isElite,
+            isBoss: enemy.isBoss,
             heroAbilityIDs: matchup.context.heroLoadout.abilities.map(\.id),
-            petAbilityIDs: matchup.context.petLoadout.abilities.map(\.id),
-            affixIDs: matchup.context.heroAffixIDs + matchup.context.petAffixIDs,
+            companionAbilityIDs: matchup.context.companionLoadout.abilities.map(\.id),
+            affixIDs: matchup.context.heroAffixIDs + matchup.context.companionAffixIDs,
             seed: battleSeed,
             result: result
         )
@@ -157,14 +157,12 @@ enum BalanceSampling {
         battleIndex: Int,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Enemy {
+        let normal = enemies.filter { !$0.isBoss }
         let bosses = enemies.filter(\.isBoss)
-        let elites = enemies.filter { $0.isElite && !$0.isBoss }
-        let fodder = enemies.filter { !$0.isBoss && !$0.isElite }
-        let bucket = battleIndex % 3
+        let bucket = battleIndex % 2
         let pool: [Enemy] = switch bucket {
-        case 0 where !fodder.isEmpty: fodder
-        case 1 where !elites.isEmpty: elites
-        case 2 where !bosses.isEmpty: bosses
+        case 0 where !normal.isEmpty: normal
+        case 1 where !bosses.isEmpty: bosses
         default: enemies
         }
         return pool.randomElement(using: &randomNumberGenerator) ?? enemies[battleIndex % enemies.count]

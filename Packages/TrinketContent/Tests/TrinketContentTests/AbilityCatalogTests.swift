@@ -135,34 +135,19 @@ struct AbilityCatalogTests {
         )
     }
 
-    @Test func hemorrhageFormatsBleedDamageWithLeechKeyword() throws {
+    @Test func representativeAbilitySummariesPreserveProductContracts() throws {
         try #expect(Ability.hemorrhage.summary == "Deal 6 Bleed damage. Leech.")
         try #expect(Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
-    }
-
-    @Test func serratedEdgeHasNoCriticalBonus() throws {
         try #expect(Ability.serratedEdge.summary == "Deal 3 Bleed damage.")
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
-    }
-
-    @Test func stabDealsTwoPhysicalDamage() throws {
         try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
         try #expect(Ability.stab.directDamage == 2)
-    }
-
-    @Test func bloodOfferingAndDarkPactSummaries() throws {
         try #expect(Ability.bloodOffering.summary == "Lose 2 Health. Deal 4 Bleed damage.")
         try #expect(Ability.darkPact.summary == "Lose 2 Health. Draw 2 cards.")
         try #expect(!Ability.bloodOffering.hasLeech)
         try #expect(!Ability.darkPact.hasLeech)
-    }
-
-    @Test func gravePactIsRemovedFromCatalog() throws {
         try #expect(AbilityCatalog.all.contains { $0.id == "grave-pact" } == false)
-    }
-
-    @Test func abilityHealHasNoDamage() throws {
         try #expect(Ability.heal.summary == "Costs 1 Mana, restore 3 Health.")
         try #expect(Ability.heal.directDamage == 0)
     }

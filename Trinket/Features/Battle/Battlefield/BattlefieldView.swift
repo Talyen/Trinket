@@ -6,7 +6,7 @@ struct BattlefieldView: View {
     let layout: BattleCardGridLayout.Metrics
     let enemyPane: BattleCombatantPane
     let heroPane: BattleCombatantPane
-    let petPane: BattleCombatantPane
+    let companionPane: BattleCombatantPane
 
     var body: some View {
         VStack(spacing: layout.cardSpacing) {
@@ -14,7 +14,7 @@ struct BattlefieldView: View {
 
             HStack(spacing: layout.cardSpacing) {
                 sizedPane(heroPane, size: layout.partySize)
-                sizedPane(petPane, size: layout.partySize)
+                sizedPane(companionPane, size: layout.partySize)
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)

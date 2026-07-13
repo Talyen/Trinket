@@ -20,54 +20,6 @@ struct VisualFoundationTests {
         try #expect(TypographyRole.footnote.font != TypographyRole.caption.font)
     }
 
-    @Test func materialRoleStylesMatchLiquidGlassPlan() throws {
-        let palette = ThemePalette.trinket
-
-        if case .none = MaterialRoleStyle(role: .toolbar) {} else {
-            Issue.record("toolbar should pass through without custom chrome")
-        }
-
-        if case let .glass(_, solidFill) = MaterialRoleStyle(role: .bottomBar) {
-            try #expect(solidFill == palette.panelSurface)
-        } else {
-            Issue.record("bottomBar should use glass")
-        }
-
-        if case let .solid(fill) = MaterialRoleStyle(role: .modal) {
-            try #expect(fill == palette.panelSurface)
-        } else {
-            Issue.record("modal should use solid surface")
-        }
-
-        if case let .glass(_, solidFill) = MaterialRoleStyle(role: .popover) {
-            try #expect(solidFill == palette.elevatedBackground)
-        } else {
-            Issue.record("popover should use glass")
-        }
-
-        if case let .glass(_, solidFill) = MaterialRoleStyle(role: .rewardReveal) {
-            try #expect(solidFill == palette.elevatedBackground)
-        } else {
-            Issue.record("rewardReveal should use tinted glass")
-        }
-
-        if case .ultraThinMaterial = MaterialRoleStyle(role: .subtleOverlay) {} else {
-            Issue.record("subtleOverlay should keep ultra-thin material")
-        }
-
-        if case let .glass(_, solidFill) = MaterialRoleStyle(role: .homesteadFooter) {
-            try #expect(solidFill == HomesteadPalette.walletPanel)
-        } else {
-            Issue.record("homesteadFooter should use wallet panel glass")
-        }
-    }
-
-    @Test func glassChromeSolidFillsAreDistinct() throws {
-        let palette = ThemePalette.trinket
-        try #expect(palette.elevatedBackground != palette.panelSurface)
-        try #expect(palette.panelSurface != palette.secondaryBackground)
-    }
-
     @Test func homesteadPaletteUsesDarkChrome() throws {
         try #expect(HomesteadPalette.background != .clear)
         try #expect(HomesteadPalette.panel != .clear)

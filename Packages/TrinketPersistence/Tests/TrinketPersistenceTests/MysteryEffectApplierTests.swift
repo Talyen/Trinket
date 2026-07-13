@@ -128,7 +128,7 @@ struct MysteryEffectApplierTests {
         try #expect(ring.affixes.contains { $0.id == "manabound" })
     }
 
-    @Test func unlockCombatantEffectUnlocksHeroOnce() throws {
+    @Test func unlockCombatantEffectsHandleHeroAndCompanionIdempotently() throws {
         var save = makeFreshSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
@@ -153,15 +153,9 @@ struct MysteryEffectApplierTests {
             using: &randomNumberGenerator
         )
         try #expect(second.unlockedCombatantIDs.isEmpty)
-    }
-
-    @Test func unlockCombatantEffectUnlocksPet() throws {
-        var save = makeFreshSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 2)
 
         let result = MysteryEffectApplier.apply(
-            [.unlockCombatant("wolf")],
+            [.unlockCombatant("bear")],
             stageID: "chapter-1-stage-2",
             choiceID: "welcome",
             hero: hero,
@@ -169,8 +163,8 @@ struct MysteryEffectApplierTests {
             using: &randomNumberGenerator
         )
 
-        try #expect(result.unlockedCombatantIDs == ["wolf"])
-        try #expect(save.roster.isPetUnlocked("wolf"))
+        try #expect(result.unlockedCombatantIDs == ["bear"])
+        try #expect(save.roster.isCompanionUnlocked("bear"))
     }
 
     private func makeFreshSave() -> PlayerSave {

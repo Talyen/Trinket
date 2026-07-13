@@ -1,6 +1,6 @@
 # Battle Balance Simulator
 
-Headless, non-user-facing battle simulator that runs bulk matchups through `BattleEngine` and surfaces win-rate / power anomalies across Heroes, Pets, Enemies, Abilities, and Item Affixes at Early / Mid / Late scopes.
+Headless, non-user-facing battle simulator that runs bulk matchups through `BattleEngine` and surfaces win-rate / power anomalies across Heroes, Companions, Enemies, Abilities, and Item Affixes at Early / Mid / Late scopes.
 
 **Status:** Implemented — identity sweeps, parallel jobs, paired ability/affix contrasts; CLI ready where Swift/Xcode is available  
 **Related:** Scaffolding in `SimulationTierProfile.swift` / `SimulationResults.swift`
@@ -48,9 +48,9 @@ Headless, non-user-facing battle simulator that runs bulk matchups through `Batt
 | `SimulationPowerTier` / `ConfiguredSimulationMatchup` | Scaffolding — builder + runner being added |
 | `CombatBuildResolver` / `CombatantLevelScaler` / `ThemedGearGenerator` | Ready; sim hardens keyword alignment |
 | Old `BattleSimulator` / `BalanceSweepCLI` | Deleted in card-combat migration — rebuild for turn/card combat |
-| Win-rate targets in `StatGrowth.enemyGearCompensation` | Fodder ~90–99% / 80–90% / 70–80%; bosses-elites ~70–80% across tiers |
+| Win-rate targets in `StatGrowth.enemyGearCompensation` | Normal enemies ~90–99% / 80–90% / 70–80%; bosses ~70–80% across tiers |
 
-Catalog scale (approx.): **7 heroes × 12 pets × 15 enemies**, ~86 abilities, ~89 affixes.
+Catalog scale (approx.): **7 heroes × 12 companions × 15 enemies**, ~86 abilities, ~89 affixes.
 
 ---
 
@@ -58,12 +58,12 @@ Catalog scale (approx.): **7 heroes × 12 pets × 15 enemies**, ~86 abilities, ~
 
 ### Sampling (not full factorial)
 
-Full hero×pet×enemy×loadout×gear grids are intractable. Use **stratified Monte Carlo**:
+Full hero×companion×enemy×loadout×gear grids are intractable. Use **stratified Monte Carlo**:
 
 ```
 tier ~ {early, middle, lateGame}   # equal battles-per-tier
-hero, pet, enemy ~ catalog (round-robin / stratified)
-heroLoadout, petLoadout ~ random picks from ability choice pools
+hero, companion, enemy ~ catalog (round-robin / stratified)
+heroLoadout, companionLoadout ~ random picks from ability choice pools
   (ultimates omitted when tier.level < ultimate unlock)
 gear ~ ThemedGearGenerator with strict build alignment when tier.includesGear
 seed ~ derived from sweep seed + battle index
@@ -71,7 +71,7 @@ policy = greedy-v1
 → outcome + secondary metrics
 ```
 
-**Stratification:** equal coverage across heroes, pets, and enemy class (fodder / elite / boss) within each tier.
+**Stratification:** equal coverage across heroes, companions, and enemy class (normal / boss) within each tier.
 
 ### Sample size
 
@@ -81,7 +81,7 @@ At 1k/tier, hero margins (~1k / 7 ≈ 140 battles each) give roughly ±8–10 pp
 
 ### Aggregation & anomalies
 
-1. Marginal win rates + Wilson 95% CI for Hero / Pet / Enemy / Ability / Affix per tier.
+1. Marginal win rates + Wilson 95% CI for Hero / Companion / Enemy / Ability / Affix per tier.
 2. Δ vs peer mean; flag large gaps (configurable, default ~10 pp when CI excludes 0).
 3. Enemy rates vs documented target bands.
 4. Secondary: rounds to outcome, party/enemy HP remaining, timeout rate.
@@ -161,7 +161,7 @@ public enum BattleSimulator {
 Markdown under `BalanceSweepReports/<timestamp>-seed<N>.md`:
 
 - Header: engine/policy/n/tiers/seed
-- Per-tier sections: Hero / Pet / Enemy margins with Wilson CIs and ⚠ flags
+- Per-tier sections: Hero / Companion / Enemy margins with Wilson CIs and ⚠ flags
 - Ability and Affix presence margins
 - Timeout / stall summary
 

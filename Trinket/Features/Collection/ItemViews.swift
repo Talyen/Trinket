@@ -80,7 +80,7 @@ struct InventoryGridView: View {
                         .font(.body.weight(selectedFilter != .all ? .semibold : .regular))
                         .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.cardArtAccent : .primary)
                 }
-                .accessibilityLabel("Filter")
+
                 .accessibilityIdentifier("Inventory filter")
             }
         }
@@ -128,8 +128,9 @@ struct ItemDetailView: View {
     /// When set, replaces the default Buy / Need Gold label (e.g. Sold Out).
     var purchaseButtonTitleOverride: String?
     var onPurchase: (() -> Void)?
-
-    @Environment(\.dismiss) private var dismiss
+    var primaryActionTitle: String?
+    var primaryActionAccessibilityID: String?
+    var onPrimaryAction: (() -> Void)?
 
     init(
         item: InventoryItem,
@@ -137,7 +138,10 @@ struct ItemDetailView: View {
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
         purchaseButtonTitleOverride: String? = nil,
-        onPurchase: (() -> Void)? = nil
+        onPurchase: (() -> Void)? = nil,
+        primaryActionTitle: String? = nil,
+        primaryActionAccessibilityID: String? = nil,
+        onPrimaryAction: (() -> Void)? = nil
     ) {
         self.item = item
         self.purchasePrice = purchasePrice
@@ -145,6 +149,9 @@ struct ItemDetailView: View {
         self.isPurchaseDisabled = isPurchaseDisabled
         self.purchaseButtonTitleOverride = purchaseButtonTitleOverride
         self.onPurchase = onPurchase
+        self.primaryActionTitle = primaryActionTitle
+        self.primaryActionAccessibilityID = primaryActionAccessibilityID
+        self.onPrimaryAction = onPrimaryAction
     }
 
     private var purchaseButtonTitle: String {
@@ -158,11 +165,9 @@ struct ItemDetailView: View {
     var body: some View {
         DetailHeroScrollShell(
             title: item.displayName,
-            showsDoneButton: true,
-            onDone: { dismiss() },
             header: {
                 ItemHeroHeader(item: item, baseHeight: $0, overscroll: $1)
-                    .accessibilityIdentifier("\(item.displayName) detail hero header")
+                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {
                 DetailSection("Affixes") {
@@ -171,14 +176,22 @@ struct ItemDetailView: View {
                             KeywordDescriptionText(text: affix.description)
                                 .trinketTypography(.secondaryBody)
                                 .foregroundStyle(.secondary)
-                                .accessibilityElement(children: .combine)
                         }
                     }
                 }
             }
         )
         .safeAreaInset(edge: .bottom) {
-            if let purchasePrice, let onPurchase {
+            if let primaryActionTitle, let onPrimaryAction {
+                Button(primaryActionTitle) {
+                    onPrimaryAction()
+                }
+                .frame(maxWidth: .infinity)
+                .trinketPrimaryActionButton()
+                .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+            } else if let purchasePrice, let onPurchase {
                 Button {
                     onPurchase()
                 } label: {

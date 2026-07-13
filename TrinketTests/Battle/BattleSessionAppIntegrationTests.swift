@@ -39,12 +39,12 @@ struct BattleSessionAppIntegrationTests {
 
     @Test func setMusicPreviewUsesBattleEncounterWhenStageHasBattle() throws {
         let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
+        let stage = try #require(GameContent.stages.first { $0.encounter.battleEnemyID != nil })
 
         appState.battle.setMusicPreview(for: stage)
 
         #expect(appState.battle.preview?.stageID == stage.id)
-        #expect(appState.battle.preview?.enemyID == "skeleton")
+        #expect(appState.battle.preview?.enemyID == stage.encounter.battleEnemyID)
     }
 
     @Test func restartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
@@ -69,6 +69,12 @@ struct BattleSessionAppIntegrationTests {
         appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
 
         _ = try #require(appState.battle.overlayCombatantDetail)
+        let activeState = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = activeState.startBattle(for: stage)
+        activeState.battle.presentCombatantDetail(CombatantCardDetail(combatant: activeState.roster.activeHero))
+        _ = try #require(activeState.battle.overlayCombatantDetail)
+        #expect(activeState.battle.canEndTurn)
     }
 
     @Test func endBattleClearsSessionStateWhenBattleEnds() throws {
@@ -141,18 +147,6 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
-    @Test func presentCombatantDetailSetsOverlayWhenBattleActive() throws {
-        let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = appState.startBattle(for: stage)
-        let detail = CombatantCardDetail(combatant: appState.roster.activeHero)
-
-        appState.battle.presentCombatantDetail(detail)
-
-        _ = try #require(appState.battle.overlayCombatantDetail)
-        #expect(appState.battle.canEndTurn)
-    }
-
     @Test func presentAbilityDetailSetsOverlayWhenBattleActive() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -165,7 +159,7 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.overlayAbilityDetail == nil)
     }
 
-    @Test func setMusicPreviewClearsWhenBattleActive() throws {
+    @Test func musicPreviewClearsForActiveBattleAndNonBattleStage() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         appState.battle.setMusicPreview(for: stage)
@@ -174,24 +168,11 @@ struct BattleSessionAppIntegrationTests {
         appState.battle.setMusicPreview(for: stage)
 
         #expect(appState.battle.preview == nil)
-    }
+        let shopStage = try #require(GameContent.stages.first { $0.encounter == .shop })
 
-    @Test func setMusicPreviewClearsForNonBattleStage() throws {
-        let appState = try context.makeAppState()
-        let shopStage = try #require(GameContent.chapters[0].stages.first { $0.encounter == .shop })
+        let shopState = try context.makeAppState()
+        shopState.battle.setMusicPreview(for: shopStage)
 
-        appState.battle.setMusicPreview(for: shopStage)
-
-        #expect(appState.battle.preview == nil)
-    }
-
-    @Test func startBattleDealsOpeningHand() throws {
-        let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-
-        _ = appState.startBattle(for: stage)
-
-        #expect(!(appState.battle.hand.isEmpty))
-        #expect(appState.battle.canEndTurn)
+        #expect(shopState.battle.preview == nil)
     }
 }

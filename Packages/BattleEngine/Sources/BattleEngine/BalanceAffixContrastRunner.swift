@@ -16,7 +16,7 @@ enum BalanceAffixContrastRunner {
         let gearTiers = context.config.tiers.filter(\.includesGear)
         guard !gearTiers.isEmpty else { return [] }
 
-        let foci = makeFoci(heroes: context.heroes, pets: context.pets)
+        let foci = makeFoci(heroes: context.heroes, companions: context.companions)
         guard !foci.isEmpty else { return [] }
 
         let work = BalanceContrastSupport.workItems(
@@ -44,8 +44,8 @@ enum BalanceAffixContrastRunner {
         )
     }
 
-    private static func makeFoci(heroes: [Combatant], pets: [Combatant]) -> [Focus] {
-        let owners = heroes + pets
+    private static func makeFoci(heroes: [Combatant], companions: [Combatant]) -> [Focus] {
+        let owners = heroes + companions
         return GameContent.itemAffixDefinitions.compactMap { definition in
             guard let baseType = GameContent.itemBaseTypes.first(where: {
                 $0.slot == definition.slot
@@ -107,7 +107,7 @@ enum BalanceAffixContrastRunner {
         pairSeed: UInt64,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        let partnerPool = focus.owner.role == .hero ? context.pets : context.heroes
+        let partnerPool = focus.owner.role == .hero ? context.companions : context.heroes
         let partner = partnerPool.randomElement(using: &randomNumberGenerator) ?? partnerPool[0]
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,

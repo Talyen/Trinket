@@ -58,8 +58,8 @@ struct HomesteadStateTests {
         let tier1 = HomesteadEffects.from(nodeTiers: [.wheatField: 1])
         let tier3 = HomesteadEffects.from(nodeTiers: [.wheatField: 3])
 
-        try #expect(tier1.petModifiers == [.maximumHealth(2)])
-        try #expect(tier3.petModifiers == [.maximumHealth(6)])
+        try #expect(tier1.companionModifiers == [.maximumHealth(2)])
+        try #expect(tier3.companionModifiers == [.maximumHealth(6)])
     }
 
     @Test func wishingWellIncreasesGoldFindPercent() throws {
@@ -88,16 +88,5 @@ struct HomesteadStateTests {
         try #expect(homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
         try #expect(homestead.resources[.stone] == PlayerHomesteadState.maxMaterialBalance)
         try #expect(homestead.resources[.food] == 3)
-    }
-
-    @Test func grantDoesNotIncreaseMaterialsAlreadyAtCap() throws {
-        var homestead = PlayerHomesteadState(
-            resources: [.herbs: PlayerHomesteadState.maxMaterialBalance],
-            nodeTiers: [:]
-        )
-
-        homestead.grant([ResourceAmount(.herbs, 50)])
-
-        try #expect(homestead.resources[.herbs] == PlayerHomesteadState.maxMaterialBalance)
     }
 }

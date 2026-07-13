@@ -12,13 +12,13 @@ struct EnemyTraitBattleTests {
 
     private func makeContext(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemyBuild: CombatBuild
     ) -> BattleEngineContext {
         BattleEngineContext(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
-                pet: CombatantRuntime(combatant: pet),
+                companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemyBuild.combatant)
             ),
             rng: SeededRandomNumberGenerator(seed: 1772),
@@ -28,7 +28,7 @@ struct EnemyTraitBattleTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: enemyBuild.modifiers
         )
     }
@@ -36,9 +36,9 @@ struct EnemyTraitBattleTests {
     @Test func skeletonTakesExtraHolyDamage() throws {
         let skeleton = try enemyBuild(id: "skeleton")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
-        var physicalContext = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
-        var holyContext = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        var physicalContext = makeContext(hero: hero, companion: companion, enemyBuild: skeleton)
+        var holyContext = makeContext(hero: hero, companion: companion, enemyBuild: skeleton)
 
         let physical = physicalContext.resolveDamage(
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .physical, sourceActorID: hero.id)
@@ -60,8 +60,8 @@ struct EnemyTraitBattleTests {
     @Test func mimicAmbushAddsFirstStrikeDamage() throws {
         let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 30)
-        var context = makeContext(hero: hero, pet: pet, enemyBuild: mimic)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 30)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: mimic)
 
         let first = context.resolveDamage(
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
@@ -82,14 +82,14 @@ struct EnemyTraitBattleTests {
     @Test func hemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
         let necromancer = try enemyBuild(id: "necromancer")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 100)
-        var context = makeContext(hero: hero, pet: pet, enemyBuild: necromancer)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 100)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: necromancer)
         var enemyRuntime = try #require(context.roster.runtime(for: necromancer.combatant))
         enemyRuntime.actionCount = 5
         context.roster.update(enemyRuntime)
 
         let heroHealthBefore = context.roster.health(for: hero)
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: necromancer.combatant)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: necromancer.combatant)
         let turnNumber = enemyRuntime.actionCount + 1
         let ability = try #require(
             BattleTurnEngine.selectedEnemyAbility(for: necromancer.combatant, turnNumber: turnNumber)

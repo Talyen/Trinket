@@ -23,7 +23,6 @@ struct BattleOutcomeShell<Content: View>: View {
                 Image(systemName: symbolName)
                     .font(.system(size: outcomeSymbolSize, weight: .semibold))
                     .foregroundStyle(symbolColor)
-                    .accessibilityHidden(true)
                     .symbolEffect(.bounce, value: symbolAnimationCount)
                     .onAppear {
                         symbolAnimationCount += 1

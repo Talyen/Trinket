@@ -5,7 +5,7 @@ import SwiftUI
 enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
     case always
     case never
-    /// Show each of Hero and Pet's Ultimate cinematic once per battle; later casts auto-skip.
+    /// Show each of Hero and Companion's Ultimate cinematic once per battle; later casts auto-skip.
     case oncePerBattle
     /// Legacy raw value from an earlier Options label; migrated to `oncePerBattle` on load.
     case afterFirstView
@@ -118,7 +118,7 @@ final class OptionsStore {
     }
 
     /// Whether a new Ultimate from this actor should skip the full-screen cinematic
-    /// under the once-per-battle policy (Hero and Pet each get one show per battle).
+    /// under the once-per-battle policy (Hero and Companion each get one show per battle).
     func shouldAutoSkipUltimateCinematic(
         actorID: String,
         actorsWhoPresentedThisBattle: Set<String>

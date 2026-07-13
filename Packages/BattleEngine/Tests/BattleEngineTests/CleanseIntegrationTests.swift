@@ -13,11 +13,11 @@ struct CleanseIntegrationTests {
             maxHealth: 10,
             abilities: [.cleanse]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
@@ -43,11 +43,11 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
             abilities: [cleansePoison]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
@@ -83,11 +83,11 @@ struct CleanseIntegrationTests {
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
             abilities: [cleanseAll]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
@@ -132,11 +132,11 @@ struct CleanseIntegrationTests {
             maxHealth: 50,
             abilities: [cleanseAbility]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)

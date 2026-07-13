@@ -17,24 +17,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 4)],
                     bonus: HomesteadBonus(
-                        title: "Pet Health",
-                        description: "Increases Pet Health by 2"
+                        title: "Companion Health",
+                        description: "Increases Companion Health by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 8), ResourceAmount(.gold, 14)],
                     bonus: HomesteadBonus(
-                        title: "Pet Health",
-                        description: "Increases Pet Health by 4"
+                        title: "Companion Health",
+                        description: "Increases Companion Health by 4"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 16), ResourceAmount(.food, 18), ResourceAmount(.gold, 28)],
                     bonus: HomesteadBonus(
-                        title: "Pet Health",
-                        description: "Increases Pet Health by 6"
+                        title: "Companion Health",
+                        description: "Increases Companion Health by 6"
                     )
                 )
             ]
@@ -122,24 +122,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 12), ResourceAmount(.food, 14), ResourceAmount(.gold, 18)],
                     bonus: HomesteadBonus(
-                        title: "Pet Toughness",
-                        description: "Increases Pet Toughness by 1"
+                        title: "Companion Toughness",
+                        description: "Increases Companion Toughness by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 18), ResourceAmount(.food, 24), ResourceAmount(.gold, 34)],
                     bonus: HomesteadBonus(
-                        title: "Pet Toughness",
-                        description: "Increases Pet Toughness by 2"
+                        title: "Companion Toughness",
+                        description: "Increases Companion Toughness by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.stone, 28), ResourceAmount(.food, 40), ResourceAmount(.iron, 6), ResourceAmount(.gold, 52)],
                     bonus: HomesteadBonus(
-                        title: "Pet Toughness",
-                        description: "Increases Pet Toughness by 3"
+                        title: "Companion Toughness",
+                        description: "Increases Companion Toughness by 3"
                     )
                 )
             ]
@@ -402,24 +402,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.stone, 18), ResourceAmount(.food, 16), ResourceAmount(.iron, 8), ResourceAmount(.gold, 36)],
                     bonus: HomesteadBonus(
-                        title: "Pet Damage",
-                        description: "Increases Pet damage dealt by 1"
+                        title: "Companion Damage",
+                        description: "Increases Companion damage dealt by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 26), ResourceAmount(.food, 24), ResourceAmount(.iron, 14), ResourceAmount(.gold, 54)],
                     bonus: HomesteadBonus(
-                        title: "Pet Damage",
-                        description: "Increases Pet damage dealt by 2"
+                        title: "Companion Damage",
+                        description: "Increases Companion damage dealt by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.stone, 40), ResourceAmount(.food, 32), ResourceAmount(.iron, 22), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 78)],
                     bonus: HomesteadBonus(
-                        title: "Pet Damage",
-                        description: "Increases Pet damage dealt by 3"
+                        title: "Companion Damage",
+                        description: "Increases Companion damage dealt by 3"
                     )
                 )
             ]
@@ -437,24 +437,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 26), ResourceAmount(.stone, 16), ResourceAmount(.food, 14), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
-                        title: "Pet Agility",
-                        description: "Increases Pet Agility by 1"
+                        title: "Companion Agility",
+                        description: "Increases Companion Agility by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 24), ResourceAmount(.food, 22), ResourceAmount(.iron, 10), ResourceAmount(.gold, 58)],
                     bonus: HomesteadBonus(
-                        title: "Pet Agility",
-                        description: "Increases Pet Agility by 2"
+                        title: "Companion Agility",
+                        description: "Increases Companion Agility by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.stone, 36), ResourceAmount(.food, 30), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 84)],
                     bonus: HomesteadBonus(
-                        title: "Pet Agility",
-                        description: "Increases Pet Agility by 3"
+                        title: "Companion Agility",
+                        description: "Increases Companion Agility by 3"
                     )
                 )
             ]

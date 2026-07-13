@@ -13,7 +13,7 @@ enum BalanceAbilityContrastRunner {
         context: BalanceContrastContext,
         policy: some PlayerPolicy
     ) -> [PairedContrastSummary] {
-        let foci = makeFoci(heroes: context.heroes, pets: context.pets)
+        let foci = makeFoci(heroes: context.heroes, companions: context.companions)
         guard !foci.isEmpty else { return [] }
 
         let work = BalanceContrastSupport.workItems(
@@ -42,8 +42,8 @@ enum BalanceAbilityContrastRunner {
         )
     }
 
-    private static func makeFoci(heroes: [Combatant], pets: [Combatant]) -> [Focus] {
-        (heroes + pets).flatMap { owner -> [Focus] in
+    private static func makeFoci(heroes: [Combatant], companions: [Combatant]) -> [Focus] {
+        (heroes + companions).flatMap { owner -> [Focus] in
             AbilityTier.allCases.flatMap { tier -> [Focus] in
                 let choices = owner.abilityChoices.abilities(for: tier)
                 guard choices.count >= 2 else { return [] }
@@ -99,7 +99,7 @@ enum BalanceAbilityContrastRunner {
         pairSeed: UInt64,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        let partnerPool = focus.owner.role == .hero ? context.pets : context.heroes
+        let partnerPool = focus.owner.role == .hero ? context.companions : context.heroes
         let partner = partnerPool.randomElement(using: &randomNumberGenerator) ?? partnerPool[0]
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,

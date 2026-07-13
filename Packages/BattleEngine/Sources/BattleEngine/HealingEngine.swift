@@ -37,7 +37,7 @@ package enum HealingEngine {
         if !request.suppressTraitReactions,
            request.target.id == context.roster.hero.id,
            restored > 0 {
-            events.append(contentsOf: CombatReactionEngine.shareHeroHealWithPet(
+            events.append(contentsOf: CombatReactionEngine.shareHeroHealWithCompanion(
                 restored: restored,
                 in: &context
             ))

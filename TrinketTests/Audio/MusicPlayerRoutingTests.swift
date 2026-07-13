@@ -54,7 +54,7 @@ struct MusicPlayerRoutingTests {
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: GameContent.heroes[0],
-            pet: GameContent.pets[0],
+            companion: GameContent.companions[0],
             enemy: GameContent.enemy(matching: "skeleton")?.combatant
         )
 
@@ -76,7 +76,7 @@ struct MusicPlayerRoutingTests {
             stageID: "chapter-1-stage-5",
             rngSeed: 0,
             hero: GameContent.heroes[0],
-            pet: GameContent.pets[0],
+            companion: GameContent.companions[0],
             enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant
         )
 

@@ -33,8 +33,6 @@ struct ItemCard: View {
                 .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
     }
 
     @ViewBuilder
@@ -43,15 +41,8 @@ struct ItemCard: View {
             .fill(TrinketDesign.Colors.surface)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
-                Group {
-                    if let imageName = item.artReference?.thumbnailImageName
-                        ?? item.artReference?.imageName {
-                        Image(imageName)
-                            .resizable()
-                            .scaledToFill()
-                    }
-                }
-                .clipShape(TrinketDesign.cardShape)
+                ItemArtwork(item: item, variant: .thumbnail)
+                    .clipShape(TrinketDesign.cardShape)
             }
 
         if appliesCardSurface {

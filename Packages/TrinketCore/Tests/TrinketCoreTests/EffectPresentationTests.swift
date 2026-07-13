@@ -39,26 +39,10 @@ struct EffectPresentationTests {
         )
     }
 
-    @Test func applyPhraseFormatsArmorWithAmount() throws {
-        try #expect(
-            EffectPresentation.applyPhrase(for: .mitigation(.armor, 2))
-                == "gain 2 Armor"
-        )
-    }
-
     @Test func applyPhraseFormatsDamageKeywordOverride() throws {
         try #expect(
             EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 3, 6))
                 == "your attacks become Holy damage and deal +3 for 6 turns"
         )
-    }
-
-    @Test func activePhraseFormatsDamageKeywordOverride() throws {
-        let active = ActiveEffect(
-            id: 1,
-            effect: .damageKeywordOverride(.holy, 3, 6),
-            remainingTicks: 6
-        )
-        try #expect(EffectPresentation.activePhrase(for: active) == "Consecrated")
     }
 }

@@ -7,8 +7,9 @@ struct BattleHandView: View {
     let cards: [BattleCard]
     let isPlayable: (BattleCard) -> Bool
     let onTap: (BattleCard) -> Void
-    let onPlay: (BattleCard) -> Bool
+    let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let hapticsEnabled: Bool
+    let battleFrame: CGRect
 
     var body: some View {
         GeometryReader { geometry in
@@ -27,9 +28,18 @@ struct BattleHandView: View {
                         restingRotation: BattleHandLayout.rotation(index: index, cardCount: cards.count),
                         restingOffsetY: BattleHandLayout.restingOffsetY(index: index, cardCount: cards.count),
                         playDragThreshold: BattleHandLayout.playDragThreshold,
+                        restingCenter: BattleHandLayout.restingCenter(
+                            index: index,
+                            metrics: layout,
+                            cardCount: cards.count,
+                            containerFrame: battleFrame
+                        ),
                         hapticsEnabled: hapticsEnabled,
                         onTap: { onTap(card) },
-                        onPlay: { onPlay(card) }
+                        onPlay: { command in onPlay(card, command) },
+                        onInteractionChanged: { isActive in
+                            activeCardID = isActive ? card.id : (activeCardID == card.id ? nil : activeCardID)
+                        }
                     )
                     .offset(
                         x: BattleHandLayout.cardOffsetX(
@@ -38,7 +48,7 @@ struct BattleHandView: View {
                             containerWidth: geometry.size.width
                         )
                     )
-                    .zIndex(Double(index))
+                    .zIndex(activeCardID == card.id ? 100 : Double(index))
                     .transition(
                         .asymmetric(
                             insertion: .offset(
@@ -51,7 +61,7 @@ struct BattleHandView: View {
                                 TrinketMotion.Battle.handReflow
                                     .delay(Double(index) * TrinketMotion.Battle.cardDrawStagger)
                             ),
-                            removal: .opacity
+                            removal: .identity
                         )
                     )
                 }
@@ -59,8 +69,26 @@ struct BattleHandView: View {
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .animation(TrinketMotion.Battle.handReflow, value: cards.map(\.id))
         }
-        .accessibilityElement(children: .contain)
+
         .accessibilityIdentifier(AccessibilityID.Battle.hand)
+    }
+
+    @State private var activeCardID: Int?
+
+    init(
+        cards: [BattleCard],
+        isPlayable: @escaping (BattleCard) -> Bool,
+        onTap: @escaping (BattleCard) -> Void,
+        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        hapticsEnabled: Bool,
+        battleFrame: CGRect
+    ) {
+        self.cards = cards
+        self.isPlayable = isPlayable
+        self.onTap = onTap
+        self.onPlay = onPlay
+        self.hapticsEnabled = hapticsEnabled
+        self.battleFrame = battleFrame
     }
 }
 
@@ -72,45 +100,28 @@ struct BattleAbilityCardView: View {
     let restingRotation: CGFloat
     let restingOffsetY: CGFloat
     let playDragThreshold: CGFloat
+    let restingCenter: CGPoint
     let hapticsEnabled: Bool
     let onTap: () -> Void
-    let onPlay: () -> Bool
+    let onPlay: (CardActivationRequest) -> Bool
+    let onInteractionChanged: (Bool) -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragTranslation: CGSize = .zero
     @State private var predictedEndTranslation: CGSize = .zero
     @State private var isDragging = false
     @State private var isPlayArmed = false
     @State private var playArmFeedbackToken = 0
-    @State private var playFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
-    @State private var isPlaying = false
-    @State private var playTranslation: CGSize = .zero
-    @State private var playTask: Task<Void, Never>?
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
-
     var body: some View {
-        let ownerLabel = card.owner == .hero ? "Hero" : "Pet"
-        artFace
+        BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
             .frame(width: width, height: height)
-            .clipShape(TrinketDesign.cardShape)
-            .trinketCardSurface()
-            .opacity(isPlaying ? 0.08 : isPlayable ? 1 : 0.45)
-            .overlay {
-                RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-                    .stroke(
-                        isPlayArmed
-                            ? card.ability.damageKeyword.visualStyle.color.opacity(0.82)
-                            : .clear,
-                        lineWidth: isPlayArmed ? 2 : 0
-                    )
-                    .allowsHitTesting(false)
-            }
-            .rotationEffect(.degrees(activeRotation), anchor: isDragging ? .center : .bottom)
+            .opacity(isPlayable ? 1 : 0.45)
+            .rotationEffect(.degrees(activeRotation), anchor: .bottom)
             .rotation3DEffect(
-                .degrees(isDragging && !reduceMotion ? verticalTilt : 0),
+                .degrees(isDragging ? verticalTilt : 0),
                 axis: (x: 1, y: 0, z: 0),
+                anchor: .bottom,
                 perspective: 0.35
             )
             .offset(activeOffset)
@@ -120,7 +131,6 @@ struct BattleAbilityCardView: View {
                 radius: isDragging ? TrinketMotion.Battle.cardHeldShadowRadius : 0,
                 y: isDragging ? TrinketMotion.Battle.cardHeldShadowY : 0
             )
-            .zIndex(isDragging ? 100 : 0)
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged(updateDrag)
@@ -136,41 +146,31 @@ struct BattleAbilityCardView: View {
                 trigger: denyFeedbackToken,
                 enabled: hapticsEnabled
             )
-            .trinketSensoryFeedback(
-                .impact(weight: .medium),
-                trigger: playFeedbackToken,
-                enabled: hapticsEnabled
-            )
             .onDisappear {
-                playTask?.cancel()
+                onInteractionChanged(false)
             }
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
-            .accessibilityLabel("\(card.ability.name), \(ownerLabel)")
-            .accessibilityHint(isPlayable ? "Tap for details. Drag up to play." : "Cannot play now")
-            .accessibilityAddTraits(isDragging ? [] : .isButton)
     }
 
     private var activeOffset: CGSize {
-        if isPlaying {
-            CGSize(
-                width: playTranslation.width * 0.6,
-                height: playTranslation.height - height * 0.95
-            )
-        } else if isDragging {
-            dragTranslation
-        } else {
-            CGSize(width: 0, height: height * 0.25 + restingOffsetY)
-        }
+        let resting = restingTranslation
+        return CGSize(
+            width: resting.width + (isDragging ? dragTranslation.width : 0),
+            height: resting.height + (isDragging ? dragTranslation.height : 0)
+        )
+    }
+
+    private var restingTranslation: CGSize {
+        CGSize(width: 0, height: height * 0.25 + restingOffsetY)
     }
 
     private var activeRotation: Double {
-        guard isDragging, !isPlaying else { return isPlaying ? 0 : restingRotation }
-        guard !reduceMotion else { return 0 }
-        return BattleHandLayout.heldTilt(
+        guard isDragging else { return restingRotation }
+        return restingRotation + BattleHandLayout.heldTilt(
             translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
             cardWidth: width,
-            maximumDegrees: TrinketMotion.Battle.cardMaximumTiltDegrees
+            maximumDegrees: TrinketMotion.Battle.cardMaximumTiltDegrees * 0.45
         )
     }
 
@@ -179,29 +179,21 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        guard isDragging, !reduceMotion else { return CGSize(width: 1, height: 1) }
+        guard isDragging else { return CGSize(width: 1, height: 1) }
         let base = TrinketMotion.Battle.cardHeldScale
-        let distance = hypot(dragTranslation.width, dragTranslation.height)
-        let stretch = min(distance / 400, 1) * TrinketMotion.Battle.cardMaximumStretch
-        if abs(dragTranslation.width) > abs(dragTranslation.height) {
-            return CGSize(width: base + stretch, height: base - stretch)
-        }
-        return CGSize(width: base - stretch, height: base + stretch)
+        return CGSize(width: base, height: base)
     }
 
     private var activeScale: CGSize {
-        if isPlaying {
-            return CGSize(width: 1.06, height: 1.06)
-        }
-        return heldScale
+        heldScale
     }
 
     private func updateDrag(_ value: DragGesture.Value) {
-        guard !isPlaying else { return }
         if !isDragging {
-            withAnimation(reduceMotion ? nil : TrinketMotion.Battle.cardPress) {
+            withAnimation(TrinketMotion.Battle.cardPress) {
                 isDragging = true
             }
+            onInteractionChanged(true)
         }
         dragTranslation = BattleHandLayout.presentationTranslation(
             value.translation,
@@ -210,17 +202,17 @@ struct BattleAbilityCardView: View {
         )
         predictedEndTranslation = value.predictedEndTranslation
 
-        let armed = isPlayable && BattleHandLayout.shouldPlay(
+        let armed = BattleHandLayout.shouldRemainPlayArmed(
             translation: value.translation,
-            predictedEndTranslation: value.predictedEndTranslation,
-            isPlayable: true,
-            threshold: playDragThreshold
+            isPlayable: isPlayable,
+            threshold: playDragThreshold,
+            currentlyArmed: isPlayArmed
         )
         if armed != isPlayArmed {
             if armed {
                 playArmFeedbackToken &+= 1
             }
-            withAnimation(reduceMotion ? nil : TrinketMotion.Battle.cardLift) {
+            withAnimation(TrinketMotion.Battle.cardLift) {
                 isPlayArmed = armed
             }
         }
@@ -241,7 +233,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
-        guard !isPlaying else { return }
         let isTap = abs(value.translation.width) < BattleHandLayout.dragMinimumDistance
             && abs(value.translation.height) < BattleHandLayout.dragMinimumDistance
         if isTap {
@@ -257,7 +248,7 @@ struct BattleAbilityCardView: View {
             threshold: playDragThreshold
         )
         if shouldPlay {
-            beginPlay(from: value.translation)
+            beginPlay()
             return
         }
         returnDrag()
@@ -265,58 +256,59 @@ struct BattleAbilityCardView: View {
 
     private func returnDrag() {
         withAnimation(
-            reduceMotion
-                ? TrinketMotion.Battle.cardReturnReducedMotion
-                : TrinketMotion.Battle.cardReturn
+            TrinketMotion.Battle.cardReturn
         ) {
             dragTranslation = .zero
             predictedEndTranslation = .zero
             isPlayArmed = false
             isDragging = false
         }
+        onInteractionChanged(false)
     }
 
-    private func beginPlay(from translation: CGSize) {
-        playTranslation = translation
-        playFeedbackToken &+= 1
-        isPlayArmed = false
-        isDragging = false
-        withAnimation(reduceMotion ? TrinketMotion.Battle.reduceMotion : TrinketMotion.Battle.cardCommit) {
-            isPlaying = true
-            dragTranslation = .zero
-            predictedEndTranslation = .zero
+    private func beginPlay() {
+        let request = CardActivationRequest(
+            artworkName: card.ability.artReference?.imageName,
+            center: BattleHandLayout.releaseCenter(
+                restingCenter: restingCenter,
+                dragTranslation: dragTranslation
+            ),
+            size: CGSize(width: width, height: height),
+            rotation: CGFloat(activeRotation * .pi / 180),
+            verticalTilt: CGFloat(verticalTilt),
+            scale: heldScale.width,
+            keywords: card.ability.keywords
+        )
+        let didPlay = onPlay(request)
+        if didPlay {
+            onInteractionChanged(false)
+            return
         }
+        returnDrag()
+    }
+}
 
-        playTask?.cancel()
-        playTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardCommitDelay))
-            guard !Task.isCancelled else { return }
-            let didPlay = onPlay()
-            if !didPlay {
-                withAnimation(TrinketMotion.Battle.cardReturnReducedMotion) {
-                    isPlaying = false
-                    playTranslation = .zero
-                    isDragging = false
+struct BattleAbilityCardFace: View {
+    let artworkName: String?
+
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+
+    var body: some View {
+        Group {
+            if let artworkName {
+                Image(artworkName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                ZStack {
+                    TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18)
+                    Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
+                        .font(.system(size: placeholderIconSize, weight: .semibold))
+                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                 }
             }
         }
-    }
-
-    @ViewBuilder
-    private var artFace: some View {
-        if let artRef = card.ability.artReference {
-            Image(artRef.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .accessibilityHidden(true)
-        } else {
-            ZStack {
-                TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18)
-                Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                    .accessibilityHidden(true)
-            }
-        }
+        .clipShape(TrinketDesign.cardShape)
+        .trinketCardSurface()
     }
 }

@@ -28,28 +28,28 @@ struct AspectCatalogTests {
     @Test func attunementRequiresMatchingAbilityKeywords() throws {
         let ironVein = try #require(GameContent.aspect(id: .ironVein))
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        let frostWhelp = try #require(GameContent.pets.first { $0.id == "frost_whelp" })
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        let frostWhelp = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
 
-        try #expect(AspectAttunement.evaluate(hero: rogue, pet: bear, aspect: ironVein) == .ready)
+        try #expect(AspectAttunement.evaluate(hero: rogue, companion: bear, aspect: ironVein) == .ready)
         try #expect(
-            AspectAttunement.evaluate(hero: rogue, pet: frostWhelp, aspect: ironVein)
-                == .missingPetAffinity
+            AspectAttunement.evaluate(hero: rogue, companion: frostWhelp, aspect: ironVein)
+                == .missingCompanionAffinity
         )
     }
 
-    @Test func everyAspectHasAttunableHeroAndPet() throws {
+    @Test func everyAspectHasAttunableHeroAndCompanion() throws {
         for aspect in GameContent.aspects {
             let heroes = GameContent.heroes.filter { $0.keywordProfile.contains(aspect.keyword) }
-            let pets = GameContent.pets.filter { $0.keywordProfile.contains(aspect.keyword) }
+            let companions = GameContent.companions.filter { $0.keywordProfile.contains(aspect.keyword) }
             try #expect(!heroes.isEmpty, "\(aspect.title) needs a Hero with \(aspect.keyword.rawValue)")
-            try #expect(!pets.isEmpty, "\(aspect.title) needs a Pet with \(aspect.keyword.rawValue)")
+            try #expect(!companions.isEmpty, "\(aspect.title) needs a Companion with \(aspect.keyword.rawValue)")
             let ready = heroes.contains { hero in
-                pets.contains { pet in
-                    AspectAttunement.evaluate(hero: hero, pet: pet, aspect: aspect) == .ready
+                companions.contains { companion in
+                    AspectAttunement.evaluate(hero: hero, companion: companion, aspect: aspect) == .ready
                 }
             }
-            try #expect(ready, "\(aspect.title) needs at least one ready Hero+Pet pair")
+            try #expect(ready, "\(aspect.title) needs at least one ready Hero+Companion pair")
         }
     }
 }

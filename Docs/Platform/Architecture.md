@@ -48,7 +48,7 @@ Manifests and pipelines live outside the app folder:
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, pets, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
+| Heroes, companions, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and card combat | `BattleEngine` | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store` |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
@@ -70,7 +70,7 @@ Code mapping:
 | UI label | `AppTab` | Feature folder |
 |----------|----------|----------------|
 | Play | `.play` | `Features/Play` |
-| Collection | `.collection` | `Features/Collection` — Heroes, Pets, and Inventory |
+| Collection | `.collection` | `Features/Collection` — Heroes, Companions, and Inventory |
 | Homestead | `.homestead` | `Features/Homestead` |
 | Options | `.options` | `Features/Options` |
 

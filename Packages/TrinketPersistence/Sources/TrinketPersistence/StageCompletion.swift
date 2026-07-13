@@ -41,7 +41,7 @@ public enum StageCompletion {
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         in chapters: [Chapter],
@@ -51,7 +51,7 @@ public enum StageCompletion {
         claimRewardsIfNeeded(
             for: stage,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
             enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
@@ -66,7 +66,7 @@ public enum StageCompletion {
     public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         enemyEncounterLevel: Int? = nil,
@@ -89,7 +89,7 @@ public enum StageCompletion {
         )
         if case .battle = stage.encounter {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
-            grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &save.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
         }
         let resolvedMaterialRewards = resolvedMaterialRewards(
             stageReward: stage.rewards,
@@ -112,7 +112,7 @@ public enum StageCompletion {
         baseline: PlayerSave,
         in save: PlayerSave,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         in chapters: [Chapter] = GameContent.chapters
     ) -> Bool {
         for templateID in stage.rewards.itemTemplateIDs {
@@ -154,15 +154,15 @@ public enum StageCompletion {
             return false
         }
 
-        let petAward = battleExperienceAward(
-            playerLevel: baseline.roster.progression(for: pet).level,
+        let companionAward = battleExperienceAward(
+            playerLevel: baseline.roster.progression(for: companion).level,
             enemyLevel: encounterLevel,
-            highestLevel: baseline.roster.highestPetLevel
+            highestLevel: baseline.roster.highestCompanionLevel
         )
         return experienceAwardReflected(
-            baseline: baseline.roster.progression(for: pet),
-            current: save.roster.progression(for: pet),
-            award: petAward
+            baseline: baseline.roster.progression(for: companion),
+            current: save.roster.progression(for: companion),
+            award: companionAward
         )
     }
 
@@ -191,7 +191,7 @@ public enum StageCompletion {
         let playerLevel = roster.progression(for: combatant).level
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
-            : roster.highestPetLevel
+            : roster.highestCompanionLevel
         let award = battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,

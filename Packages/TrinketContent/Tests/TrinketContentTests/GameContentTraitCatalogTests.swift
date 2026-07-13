@@ -2,9 +2,9 @@ import Testing
 @testable import TrinketContent
 
 struct GameContentTraitCatalogTests {
-    @Test func everyHeroAndPetReferencesKnownTrait() throws {
+    @Test func everyHeroAndCompanionReferencesKnownTrait() throws {
         let traitIDs = Set(GameContent.traits.map(\.id))
-        let combatantIDs = GameContent.heroes.map(\.id) + GameContent.pets.map(\.id)
+        let combatantIDs = GameContent.heroes.map(\.id) + GameContent.companions.map(\.id)
 
         for combatantID in combatantIDs {
             guard let traitID = GameContent.combatantTraitIDs[combatantID] else {
@@ -19,7 +19,7 @@ struct GameContentTraitCatalogTests {
     }
 
     @Test func everyCombatantHasExactlyOneTraitMapping() throws {
-        let combatantIDs = Set(GameContent.heroes.map(\.id) + GameContent.pets.map(\.id))
+        let combatantIDs = Set(GameContent.heroes.map(\.id) + GameContent.companions.map(\.id))
         try #expect(GameContent.combatantTraitIDs.count == combatantIDs.count)
         try #expect(Set(GameContent.combatantTraitIDs.keys) == combatantIDs)
     }

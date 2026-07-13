@@ -62,72 +62,44 @@ struct CombatantRuntimeTests {
 
     // MARK: - takeRawDamage
 
-    @Test func takeRawDamageSubtractsAndClampsAtZero() throws {
-        let combatant = makeCombatant(maxHealth: 10, toughness: 0)
-        var runtime = CombatantRuntime(combatant: combatant)
-        let lost = runtime.takeRawDamage(3)
-        try #expect(lost == 3)
-        try #expect(runtime.currentHealth == 7)
-    }
+    @Test func healthMutationRulesRespectBoundsAndBonuses() throws {
+        for (maxHealth, damage, expectedLoss, expectedHealth, alive) in [
+            (10, 3, 3, 7, true),
+            (5, 100, 5, 0, false)
+        ] {
+            var runtime = CombatantRuntime(combatant: makeCombatant(maxHealth: maxHealth))
+            let lost = runtime.takeRawDamage(damage)
+            try #expect(lost == expectedLoss)
+            try #expect(runtime.currentHealth == expectedHealth)
+            try #expect(runtime.isAlive == alive)
+        }
 
-    @Test func takeRawDamageOverkillReturnsActualAmount() throws {
-        let combatant = makeCombatant(maxHealth: 5, toughness: 0)
-        var runtime = CombatantRuntime(combatant: combatant)
-        let lost = runtime.takeRawDamage(100)
-        try #expect(lost == 5)
-        try #expect(runtime.currentHealth == 0)
-        try #expect(!(runtime.isAlive))
+        var cappedRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10))
+        _ = cappedRuntime.takeRawDamage(5)
+        try #expect(cappedRuntime.heal(100) == 5)
+        try #expect(cappedRuntime.currentHealth == 10)
+
+        var wisdomRuntime = CombatantRuntime(combatant: Combatant(
+            id: "wisdom",
+            name: "Wisdom",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [],
+            primaryStats: PrimaryStats(wisdom: 10)
+        ))
+        _ = wisdomRuntime.takeRawDamage(15)
+        try #expect(wisdomRuntime.heal(3) == 5)
+        try #expect(wisdomRuntime.currentHealth == 10)
+
+        var fullRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10))
+        try #expect(fullRuntime.heal(5) == 0)
     }
 
     // MARK: - heal
 
-    @Test func healRestoresUpToMax() throws {
-        let combatant = makeCombatant(maxHealth: 10, toughness: 0)
-        var runtime = CombatantRuntime(combatant: combatant)
-        _ = runtime.takeRawDamage(8)
-        let restored = runtime.heal(5)
-        try #expect(restored == 5)
-        try #expect(runtime.currentHealth == 7)
-    }
-
-    @Test func healCapsAtMaxHealth() throws {
-        let combatant = makeCombatant(maxHealth: 10, toughness: 0)
-        var runtime = CombatantRuntime(combatant: combatant)
-        _ = runtime.takeRawDamage(5)
-        let restored = runtime.heal(100)
-        try #expect(restored == 5)
-        try #expect(runtime.currentHealth == 10)
-    }
-
-    @Test func healIncludesWisdomBonus() throws {
-        let combatant = makeCombatant(maxHealth: 20, toughness: 0)
-        let wisCombatant = Combatant(
-            id: combatant.id,
-            name: combatant.name,
-            role: combatant.role,
-            maxHealth: combatant.maxHealth,
-            abilities: [],
-            primaryStats: PrimaryStats(wisdom: 10)
-        )
-        var runtime = CombatantRuntime(combatant: wisCombatant)
-        _ = runtime.takeRawDamage(15)
-        // Heal 3 + wisdom 10/5 = 2 → 5
-        let restored = runtime.heal(3)
-        try #expect(restored == 5)
-        try #expect(runtime.currentHealth == 10)
-    }
-
-    @Test func healAtFullHealthReturnsZero() throws {
-        let combatant = makeCombatant(maxHealth: 10, toughness: 0)
-        var runtime = CombatantRuntime(combatant: combatant)
-        let restored = runtime.heal(5)
-        try #expect(restored == 0)
-        try #expect(runtime.currentHealth == 10)
-    }
-
     // MARK: - mana
 
-    @Test func spendManaSubtractsAndClamps() throws {
+    @Test func manaMutationRulesRespectBounds() throws {
         let combatant = Combatant(
             id: "mage",
             name: "Mage",
@@ -143,22 +115,11 @@ struct CombatantRuntimeTests {
         let overspend = runtime.spendMana(100)
         try #expect(overspend == 6)
         try #expect(runtime.currentMana == 0)
-    }
 
-    @Test func restoreManaCapsAtMax() throws {
-        let combatant = Combatant(
-            id: "mage",
-            name: "Mage",
-            role: .hero,
-            maxHealth: 20,
-            maxMana: 10,
-            abilities: []
-        )
-        var runtime = CombatantRuntime(combatant: combatant)
-        _ = runtime.spendMana(5)
-        let restored = runtime.restoreMana(100)
-        try #expect(restored == 5)
-        try #expect(runtime.currentMana == 10)
+        var cappedRuntime = CombatantRuntime(combatant: combatant)
+        _ = cappedRuntime.spendMana(5)
+        try #expect(cappedRuntime.restoreMana(100) == 5)
+        try #expect(cappedRuntime.currentMana == 10)
     }
 
     // MARK: - markActed

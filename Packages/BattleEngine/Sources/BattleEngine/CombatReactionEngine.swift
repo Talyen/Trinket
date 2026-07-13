@@ -299,16 +299,16 @@ package extension CombatReactionEngine {
         )]
     }
 
-    static func afterPetActed(in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterCompanionActed(in context: inout BattleEngineContext) -> [ActionEvent] {
         let profile = context.heroModifiers
-        guard profile.petActLeechPercent > 0,
-              profile.petActLeechDurationTicks > 0,
+        guard profile.companionActLeechPercent > 0,
+              profile.companionActLeechDurationTicks > 0,
               context.roster.hero.isAlive
         else { return [] }
 
         let hero = context.roster.hero.combatant
         let adjusted = context.adjustedOutgoingEffect(
-            .leech(.leech, profile.petActLeechPercent, profile.petActLeechDurationTicks),
+            .leech(.leech, profile.companionActLeechPercent, profile.companionActLeechDurationTicks),
             sourceID: hero.id
         )
         guard case let .leech(keyword, percent, duration) = adjusted else { return [] }
@@ -331,20 +331,20 @@ package extension CombatReactionEngine {
         )]
     }
 
-    static func shareHeroHealWithPet(
+    static func shareHeroHealWithCompanion(
         restored: Int,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let percent = context.heroModifiers.petHealSharePercent
+        let percent = context.heroModifiers.companionHealSharePercent
         guard restored > 0,
               percent > 0,
-              context.roster.pet.isAlive
+              context.roster.companion.isAlive
         else { return [] }
         let share = max(1, Int(floor(Double(restored) * percent)))
         return HealingEngine.resolveHeal(
             HealRequest(
                 amount: share,
-                target: context.roster.pet.combatant,
+                target: context.roster.companion.combatant,
                 sourceActorID: context.roster.hero.id,
                 logAs: .instantHeal(
                     actorName: context.roster.hero.name,
@@ -405,7 +405,7 @@ package extension CombatReactionEngine {
         let amount = context.modifiers(for: actor.id).blockPerActionWhileDeathsDoor
         guard amount > 0,
               context.roster.isDeathsDoorActive(for: actor),
-              actor.role == .hero || actor.role == .pet
+              actor.role == .hero || actor.role == .companion
         else { return [] }
         return applyBlock(
             amount: amount,

@@ -160,6 +160,5 @@ public struct VerticalPathRail<Node: View>: View {
             .fill(progressed ? style.progressedColor : style.futureColor)
             .frame(width: progressed ? style.progressedWidth : style.futureWidth)
             .frame(maxWidth: .infinity)
-            .accessibilityHidden(true)
     }
 }

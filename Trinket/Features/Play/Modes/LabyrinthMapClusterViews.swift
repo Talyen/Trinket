@@ -97,7 +97,6 @@ enum LabyrinthMapPresentation {
 
 struct LabyrinthMapClusterSection: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let cluster: LabyrinthCluster
     let state: PlayerLabyrinthState
@@ -161,10 +160,7 @@ struct LabyrinthMapClusterSection: View {
             }
         }
         .trinketSurface(.base)
-        .animation(
-            reduceMotion ? nil : TrinketMotion.Labyrinth.clusterReveal,
-            value: cluster.id
-        )
+        .animation(TrinketMotion.Labyrinth.clusterReveal, value: cluster.id)
     }
 }
 
@@ -209,7 +205,7 @@ struct LabyrinthMapNodeCard: View {
                 if node.isCleared {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(TrinketDesign.Colors.success)
-                        .accessibilityLabel("Cleared")
+
                 } else if node.failCount > 0, reachable {
                     Text("Retry")
                         .trinketTypography(.badge)

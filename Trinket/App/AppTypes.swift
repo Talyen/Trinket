@@ -25,7 +25,7 @@ enum AppTab: String, CaseIterable {
 
 enum LaunchScreen: Equatable {
     case heroDetail(String)
-    case petDetail(String)
+    case companionDetail(String)
     case itemDetail(String)
     case options
     case battle

@@ -14,12 +14,6 @@ struct ShopEncounterView: View {
     @State private var purchaseFeedbackTrigger = 0
     @State private var purchaseErrorFeedbackTrigger = 0
 
-    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
-
-    private var reduceMotion: Bool {
-        accessibilityReduceMotion
-    }
-
     private let columns = TrinketDesign.Metrics.collectionGridItems
 
     var body: some View {
@@ -28,7 +22,7 @@ struct ShopEncounterView: View {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
                     merchantArtwork
                         .opacity(artAppeared ? 1 : 0)
-                        .scaleEffect(artAppeared ? 1 : (reduceMotion ? 1 : 0.94))
+                        .scaleEffect(artAppeared ? 1 : 0.94)
 
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                         Text(session.stage.encounterSubjectName)
@@ -58,11 +52,11 @@ struct ShopEncounterView: View {
                         }
                     }
                     .opacity(contentAppeared ? 1 : 0)
-                    .offset(y: contentAppeared || reduceMotion ? 0 : 8)
+                    .offset(y: contentAppeared ? 0 : 8)
 
                     offerGrid
                         .opacity(offersAppeared ? 1 : 0)
-                        .offset(y: offersAppeared || reduceMotion ? 0 : 10)
+                        .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
                         appState.finishActiveShopEncounter()
@@ -125,7 +119,6 @@ struct ShopEncounterView: View {
             .clipShape(TrinketDesign.cardShape)
             .trinketCardSurface()
             .frame(maxWidth: .infinity)
-            .accessibilityLabel(session.stage.encounterSubjectName)
             .accessibilityIdentifier(AccessibilityID.Shop.encounterArt)
     }
 
@@ -140,8 +133,6 @@ struct ShopEncounterView: View {
                 .contentTransition(.numericText())
         }
         .trinketWalletPill()
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Gold, \(appState.roster.gold)")
     }
 
     private var offerGrid: some View {
@@ -164,7 +155,6 @@ struct ShopEncounterView: View {
                     // UIStyleCheck: allow - Offer card opens item detail without button chrome.
                     .buttonStyle(.plain)
                     .accessibilityIdentifier(AccessibilityID.Shop.offerCard(offerID: offer.id))
-                    .accessibilityHint("Shows item details")
 
                     Button {
                         attemptPurchase(offerID: offer.id, dismissDetail: false)
@@ -175,11 +165,6 @@ struct ShopEncounterView: View {
                     .buttonStyle(.plain)
                     .disabled(!canBuy || session.isPurchasing)
                     .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
-                    .accessibilityLabel(
-                        soldOut
-                            ? "\(offer.item.displayName) sold out"
-                            : "Buy \(offer.item.displayName) for \(offer.price) gold"
-                    )
                 }
                 .opacity(soldOut ? 0.55 : (canAfford ? 1 : 0.72))
             }
@@ -214,12 +199,6 @@ struct ShopEncounterView: View {
     }
 
     private func presentEntrance() {
-        guard !reduceMotion else {
-            artAppeared = true
-            contentAppeared = true
-            offersAppeared = true
-            return
-        }
         withAnimation(.easeOut(duration: 0.35)) {
             artAppeared = true
         }

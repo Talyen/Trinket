@@ -51,37 +51,37 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
 public struct SimulationBuildContext: Equatable, Hashable, Sendable {
     public let tier: SimulationPowerTier
     public let heroLoadout: AbilityLoadout
-    public let petLoadout: AbilityLoadout
+    public let companionLoadout: AbilityLoadout
     public let loadoutSampleIndex: Int
     public let seed: UInt64
     public let heroAffixIDs: [String]
-    public let petAffixIDs: [String]
+    public let companionAffixIDs: [String]
 
     public init(
         tier: SimulationPowerTier,
         heroLoadout: AbilityLoadout,
-        petLoadout: AbilityLoadout,
+        companionLoadout: AbilityLoadout,
         loadoutSampleIndex: Int,
         seed: UInt64,
         heroAffixIDs: [String] = [],
-        petAffixIDs: [String] = []
+        companionAffixIDs: [String] = []
     ) {
         self.tier = tier
         self.heroLoadout = heroLoadout
-        self.petLoadout = petLoadout
+        self.companionLoadout = companionLoadout
         self.loadoutSampleIndex = loadoutSampleIndex
         self.seed = seed
         self.heroAffixIDs = heroAffixIDs
-        self.petAffixIDs = petAffixIDs
+        self.companionAffixIDs = companionAffixIDs
     }
 }
 
 public struct ConfiguredSimulationMatchup: Equatable, Sendable {
     public let hero: Combatant
-    public let pet: Combatant
+    public let companion: Combatant
     public let enemy: Combatant
     public let heroModifiers: CombatModifierProfile
-    public let petModifiers: CombatModifierProfile
+    public let companionModifiers: CombatModifierProfile
     public let enemyModifiers: CombatModifierProfile
     public let context: SimulationBuildContext
     public let enemyID: String
@@ -89,20 +89,20 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
 
     public init(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant,
         heroModifiers: CombatModifierProfile,
-        petModifiers: CombatModifierProfile,
+        companionModifiers: CombatModifierProfile,
         enemyModifiers: CombatModifierProfile = .zero,
         context: SimulationBuildContext,
         enemyID: String,
         isBoss: Bool
     ) {
         self.hero = hero
-        self.pet = pet
+        self.companion = companion
         self.enemy = enemy
         self.heroModifiers = heroModifiers
-        self.petModifiers = petModifiers
+        self.companionModifiers = companionModifiers
         self.enemyModifiers = enemyModifiers
         self.context = context
         self.enemyID = enemyID
@@ -110,6 +110,6 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
     }
 
     public var matchup: BattleMatchup {
-        BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        BattleMatchup(hero: hero, companion: companion, enemy: enemy)
     }
 }

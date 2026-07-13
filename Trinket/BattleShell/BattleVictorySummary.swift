@@ -8,22 +8,24 @@ struct BattleVictorySummary: Equatable {
     let stageGold: Int
     let battleGold: Int
     let experience: Int
-    let petExperience: Int
+    let companionExperience: Int
     let heroName: String
-    let petName: String
-    let itemNames: [String]
+    let companionName: String
+    let heroArtworkName: String?
+    let companionArtworkName: String?
+    let rewardItems: [InventoryItem]
     let materialRewards: [ResourceAmount]
     let heroProgressionBefore: CombatantProgression
     let heroProgressionAfter: CombatantProgression
-    let petProgressionBefore: CombatantProgression
-    let petProgressionAfter: CombatantProgression
+    let companionProgressionBefore: CombatantProgression
+    let companionProgressionAfter: CombatantProgression
 
     var totalGold: Int {
         stageGold + battleGold
     }
 
     var hasExperienceAwards: Bool {
-        experience > 0 || petExperience > 0
+        experience > 0 || companionExperience > 0
     }
 
     static func make(
@@ -38,13 +40,13 @@ struct BattleVictorySummary: Equatable {
             enemyLevel: enemyLevel,
             highestLevel: configuration.highestHeroLevel
         )
-        let petXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.pet.progression.level,
+        let companionXP = StageCompletion.battleExperienceAward(
+            playerLevel: configuration.companion.progression.level,
             enemyLevel: enemyLevel,
-            highestLevel: configuration.highestPetLevel
+            highestLevel: configuration.highestCompanionLevel
         )
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
-        let petAfter = configuration.pet.progression.addingExperience(petXP)
+        let companionAfter = configuration.companion.progression.addingExperience(companionXP)
         let materialRewards = StageCompletion.resolvedMaterialRewards(
             stageReward: stageReward,
             homestead: homestead
@@ -61,15 +63,17 @@ struct BattleVictorySummary: Equatable {
             stageGold: stageGold,
             battleGold: battleGold,
             experience: heroXP,
-            petExperience: petXP,
+            companionExperience: companionXP,
             heroName: state.hero.name,
-            petName: state.pet.name,
-            itemNames: configuration.rewardItemNames,
+            companionName: state.companion.name,
+            heroArtworkName: configuration.hero.combatant.artReference?.thumbnailImageName,
+            companionArtworkName: configuration.companion.combatant.artReference?.thumbnailImageName,
+            rewardItems: configuration.rewardItems,
             materialRewards: materialRewards,
             heroProgressionBefore: configuration.hero.progression,
             heroProgressionAfter: heroAfter,
-            petProgressionBefore: configuration.pet.progression,
-            petProgressionAfter: petAfter
+            companionProgressionBefore: configuration.companion.progression,
+            companionProgressionAfter: companionAfter
         )
     }
 }

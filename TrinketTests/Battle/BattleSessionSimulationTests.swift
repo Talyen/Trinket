@@ -11,11 +11,11 @@ import TrinketTestSupport
 struct BattleSessionSimulationTests {
     @Test func playCardShowsVictorySummaryWhenEnemyDefeated() throws {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession()
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
-            pet: party.pet,
+            companion: party.companion,
             enemy: party.enemy
         )
 
@@ -24,6 +24,25 @@ struct BattleSessionSimulationTests {
         #expect(session.isShowingVictory)
         _ = try #require(session.victorySummary)
         #expect(!(session.isShowingDefeat))
+    }
+
+    @Test func victoryPresentationWaitsForTheConfiguredSpectacleHold() async throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession(outcomePresentationDelayOverride: 0.05)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        BattleSessionTestSupport.driveUntilOutcome(session)
+
+        #expect(session.outcome == .victory)
+        #expect(session.victorySummary != nil)
+        #expect(!session.isShowingVictory)
+        try await Task.sleep(for: .milliseconds(80))
+        #expect(session.isShowingVictory)
     }
 
     @Test func playCardCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
@@ -36,7 +55,7 @@ struct BattleSessionSimulationTests {
             stageID: stage.id,
             rngSeed: 0,
             hero: party.hero,
-            pet: party.pet,
+            companion: party.companion,
             enemy: party.enemy
         )
 
@@ -49,9 +68,9 @@ struct BattleSessionSimulationTests {
 
     @Test func endTurnDoesNothingWhenBattleAlreadyOver() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
         #expect(session.canEndTurn == false)
 
         let result = session.endTurn(journey: .initial, homestead: .freshStart)
@@ -68,15 +87,17 @@ struct BattleSessionSimulationTests {
             stageGold: 1,
             battleGold: 2,
             experience: 3,
-            petExperience: 4,
+            companionExperience: 4,
             heroName: "Hero",
-            petName: "Pet",
-            itemNames: [],
+            companionName: "Companion",
+            heroArtworkName: nil,
+            companionArtworkName: nil,
+            rewardItems: [],
             materialRewards: [],
             heroProgressionBefore: .initial,
             heroProgressionAfter: .initial,
-            petProgressionBefore: .initial,
-            petProgressionAfter: .initial
+            companionProgressionBefore: .initial,
+            companionProgressionAfter: .initial
         )
 
         session.clearOutcomePresentation()
@@ -98,14 +119,14 @@ struct BattleSessionSimulationTests {
 
     @Test func endTurnExcludesMilestonesWhenBattleEnds() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
             abilities: [.slash]
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         while !(session.state?.isBattleOver ?? true) {
             _ = session.endTurn(journey: .initial, homestead: .freshStart)
@@ -119,7 +140,7 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: party.hero,
-            pet: party.pet,
+            companion: party.companion,
             enemy: party.enemy
         )
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
@@ -131,7 +152,7 @@ struct BattleSessionSimulationTests {
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,
-            pet: party.pet,
+            companion: party.companion,
             enemy: party.enemy
         )
 
@@ -150,6 +171,44 @@ struct BattleSessionSimulationTests {
         session.removeFeedbackEvent(eventID)
 
         #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+    }
+
+    @Test func removingConsolidatedFeedbackRemovesEverySourceEvent() {
+        let session = BattleSession()
+        let now = Date(timeIntervalSince1970: 100)
+        session.recordFeedbackEvents(
+            [
+                feedbackEvent(id: 1, amount: 1),
+                feedbackEvent(id: 2, amount: 2)
+            ],
+            at: now,
+            stagger: 0
+        )
+
+        #expect(session.activeFeedbackItems.count == 1)
+        #expect(session.activeFeedbackItems[0].sourceEventIDs == [1, 2])
+        session.removeFeedbackEvent(2)
+        #expect(session.activeFeedbackItems.isEmpty)
+        #expect(session.activeFeedbackEvents.isEmpty)
+        #expect(session.feedbackEventRecordedAt.isEmpty)
+    }
+
+    @Test func expiringConsolidatedFeedbackRemovesEverySourceEvent() throws {
+        let session = BattleSession()
+        let now = Date(timeIntervalSince1970: 100)
+        session.recordFeedbackEvents(
+            [
+                feedbackEvent(id: 1, amount: 1),
+                feedbackEvent(id: 2, amount: 2)
+            ],
+            at: now,
+            stagger: 0
+        )
+        let item = try #require(session.activeFeedbackItems.first)
+
+        session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.01))
+        #expect(session.activeFeedbackItems.isEmpty)
+        #expect(session.activeFeedbackEvents.isEmpty)
     }
 
     @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
@@ -187,21 +246,21 @@ struct BattleSessionSimulationTests {
 
     @Test func outcomeReportsDefeatWhenPartyDefeated() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
             abilities: [.slash]
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .defeat)
     }
 
-    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() throws {
+    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndCompanionSurvives() throws {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -209,10 +268,10 @@ struct BattleSessionSimulationTests {
             maxHealth: 3,
             abilities: [.faustianBargain]
         )
-        let pet = Combatant(
-            id: "pet",
-            name: "Pet",
-            role: .pet,
+        let companion = Combatant(
+            id: "companion",
+            name: "Companion",
+            role: .companion,
             maxHealth: 20,
             abilities: []
         )
@@ -223,7 +282,7 @@ struct BattleSessionSimulationTests {
             maxHealth: 6,
             abilities: []
         )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -234,9 +293,9 @@ struct BattleSessionSimulationTests {
 
     @Test func outcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         #expect(session.state?.isPartyDefeated ?? false)
         #expect(session.state?.isEnemyDefeated ?? false)
@@ -248,7 +307,7 @@ struct BattleSessionSimulationTests {
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant
         )
         let session = BattleSession()
@@ -257,7 +316,7 @@ struct BattleSessionSimulationTests {
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 1,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant
         )
 
@@ -293,7 +352,7 @@ struct BattleSessionSimulationTests {
         #expect(!session.hasPlayableCard)
         let tickBefore = try #require(session.state?.tickCount)
 
-        try await Task.sleep(for: .seconds(BattleSession.autoEndTurnDelay + 0.15))
+        try await waitForAutoEndTurn(session, after: tickBefore)
 
         #expect(session.state?.tickCount == tickBefore + 1)
     }
@@ -304,7 +363,7 @@ struct BattleSessionSimulationTests {
         let tickBefore = try #require(session.state?.tickCount)
 
         session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
-        try await Task.sleep(for: .seconds(BattleSession.autoEndTurnDelay + 0.15))
+        try await Task.sleep(for: .milliseconds(30))
 
         #expect(session.state?.tickCount == tickBefore)
         #expect(session.canEndTurn)
@@ -321,5 +380,30 @@ struct BattleSessionSimulationTests {
 
         #expect(session.state?.log.isEmpty ?? false)
         #expect(!(session.state?.events.isEmpty ?? true))
+    }
+
+    private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async throws {
+        for _ in 0 ..< 40 {
+            if session.state?.tickCount == tickBefore + 1 {
+                return
+            }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        Issue.record("Auto-end turn did not resolve within the test timeout")
+    }
+
+    private func feedbackEvent(id: Int, amount: Int) -> ActionEvent {
+        ActionEvent(
+            id: id,
+            kind: .status,
+            actorID: "hero",
+            actorName: "Hero",
+            abilityID: "bleed",
+            abilityName: "Bleed",
+            targetID: "enemy",
+            targetName: "Enemy",
+            amount: amount,
+            keyword: .bleed
+        )
     }
 }

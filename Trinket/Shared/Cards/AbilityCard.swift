@@ -24,7 +24,7 @@ struct AbilityChoiceCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .clipShape(TrinketDesign.cardShape)
-                            .accessibilityLabel(artRef.accessibilityLabel)
+
                     } else {
                         ZStack {
                             TrinketDesign.cardShape
@@ -32,7 +32,6 @@ struct AbilityChoiceCard: View {
                             Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
                                 .font(.system(size: placeholderIconSize, weight: .semibold))
                                 .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                                .accessibilityHidden(true)
                         }
                     }
                 }
@@ -49,14 +48,5 @@ struct AbilityChoiceCard: View {
                     .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: String {
-        if let lockLabel {
-            return "\(ability.name), \(lockLabel)"
-        }
-        return "\(ability.name) card"
     }
 }

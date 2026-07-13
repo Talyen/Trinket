@@ -27,15 +27,15 @@ struct ActiveBattleConfiguration: Identifiable {
     let labyrinthBattle: LabyrinthBattle?
     let rngSeed: UInt64
     let hero: PartyMember
-    let pet: PartyMember
+    let companion: PartyMember
     let enemy: Combatant?
     let enemyEncounterLevel: Int?
     let highestHeroLevel: Int
-    let highestPetLevel: Int
+    let highestCompanionLevel: Int
     let enemyModifiers: CombatModifierProfile
     let inventoryState: PlayerInventoryState
     let stageReward: StageReward?
-    let rewardItemNames: [String]
+    let rewardItems: [InventoryItem]
     let pendingRewardItem: InventoryItem?
 
     var hasProgressionRewards: Bool {
@@ -59,8 +59,8 @@ struct ActiveBattleConfiguration: Identifiable {
         if combatantID == hero.combatant.id {
             return hero
         }
-        if combatantID == pet.combatant.id {
-            return pet
+        if combatantID == companion.combatant.id {
+            return companion
         }
         return nil
     }
@@ -112,7 +112,7 @@ struct ActiveBattleConfiguration: Identifiable {
         labyrinthBattle: LabyrinthBattle? = nil,
         rngSeed: UInt64,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         homesteadState: PlayerHomesteadState = .freshStart,
@@ -123,10 +123,12 @@ struct ActiveBattleConfiguration: Identifiable {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var rng = SeededRandomNumberGenerator(seed: rngSeed)
         let pendingRewardItem = pendingAspectRewardItem(aspectBattle: aspectBattle, using: &rng)
-        let templateNames = rewardItemNames(for: stageReward)
-        let rewardNames = templateNames.isEmpty
-            ? pendingRewardItem.map { [$0.displayName] } ?? []
-            : templateNames
+        let rewardItems = resolvedRewardItems(
+            stageID: stageID,
+            aspectBattle: aspectBattle,
+            stageReward: stageReward,
+            pendingRewardItem: pendingRewardItem
+        )
         let homesteadEffects = homesteadState.effects
         return ActiveBattleConfiguration(
             stageID: stageID,
@@ -139,20 +141,20 @@ struct ActiveBattleConfiguration: Identifiable {
                 inventoryState: inventoryState,
                 additionalModifiers: homesteadEffects.heroModifiers
             ),
-            pet: partyMember(
-                combatant: pet,
+            companion: partyMember(
+                combatant: companion,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.petModifiers
+                additionalModifiers: homesteadEffects.companionModifiers
             ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
             highestHeroLevel: rosterState.highestHeroLevel,
-            highestPetLevel: rosterState.highestPetLevel,
+            highestCompanionLevel: rosterState.highestCompanionLevel,
             enemyModifiers: enemyBuild.modifiers,
             inventoryState: inventoryState,
             stageReward: stageReward,
-            rewardItemNames: rewardNames,
+            rewardItems: rewardItems,
             pendingRewardItem: pendingRewardItem
         )
     }
@@ -211,10 +213,19 @@ struct ActiveBattleConfiguration: Identifiable {
         return CombatBuild(combatant: enemy, modifiers: .zero)
     }
 
-    private static func rewardItemNames(for stageReward: StageReward?) -> [String] {
-        guard let stageReward else { return [] }
-        return stageReward.itemTemplateIDs.compactMap { templateID in
-            GameContent.itemTemplate(matching: templateID)?.displayName
+    private static func resolvedRewardItems(
+        stageID: String?,
+        aspectBattle: AspectBattle?,
+        stageReward: StageReward?,
+        pendingRewardItem: InventoryItem?
+    ) -> [InventoryItem] {
+        if aspectBattle != nil {
+            return pendingRewardItem.map { [$0] } ?? []
         }
+
+        guard let stageReward else { return [] }
+        let templates = stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
+        guard let stageID else { return templates }
+        return templates.map { $0.rewardInstance(for: stageID) }
     }
 }

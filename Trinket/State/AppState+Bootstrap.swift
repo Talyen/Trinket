@@ -81,8 +81,8 @@ extension AppState {
         case .shop:
             startLaunchShop()
         case .mystery:
-            startLaunchMystery()
-        case .heroDetail, .petDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:
+            startLaunchMystery(recruitEventID: environment.mysteryRecruitEventID)
+        case .heroDetail, .companionDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:
             break
         }
 
@@ -112,7 +112,7 @@ extension AppState {
         _ = persistStageCompletions(
             stages,
             hero: roster.activeHero,
-            pet: roster.activePet,
+            companion: roster.activeCompanion,
             resetJourney: resetState
         )
     }
@@ -142,13 +142,13 @@ extension AppState {
         _ = beginShopEncounter(for: stage)
     }
 
-    private func startLaunchMystery() {
+    private func startLaunchMystery(recruitEventID: String?) {
         guard let stage = GameContent.stage(id: Self.launchMysteryStageID) else { return }
-        _ = beginMysteryEncounter(for: stage)
+        _ = beginMysteryEncounter(for: stage, forcedEventID: recruitEventID)
     }
 
     private static let launchBattleStageID = "chapter-1-stage-1"
-    private static let launchShopStageID = "chapter-1-stage-4"
+    private static let launchShopStageID = "chapter-2-stage-4"
     private static let launchMysteryStageID = "chapter-1-stage-2"
 
     private static func selectedTab(environment: AppEnvironment) -> AppTab {
@@ -163,7 +163,7 @@ extension AppState {
 
     private static func tab(for launchScreen: LaunchScreen) -> AppTab {
         switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
+        case .heroDetail, .companionDetail, .itemDetail:
             .collection
         case .battle, .battleVictory, .shop, .mystery, .labyrinth, .labyrinthMap:
             .play
@@ -178,8 +178,8 @@ extension AppState {
         switch launchScreen {
         case let .heroDetail(id):
             .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id))
-        case let .petDetail(id):
-            .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
+        case let .companionDetail(id):
+            .collectionCombatant(CombatantDetailContext(kind: .companion, combatantID: id))
         case let .itemDetail(id):
             .collectionItem(id)
         case .battle, .battleVictory, .shop, .mystery, .options, .labyrinth, .labyrinthMap, .none:
@@ -193,7 +193,7 @@ extension AppState {
         switch launchScreen {
         case .labyrinth, .labyrinthMap:
             .labyrinthMap
-        case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .petDetail, .itemDetail, .none:
+        case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .companionDetail, .itemDetail, .none:
             nil
         }
     }

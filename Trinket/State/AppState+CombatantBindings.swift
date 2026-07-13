@@ -13,8 +13,8 @@ extension AppState {
         let catalog: [Combatant] = switch kind {
         case .hero:
             GameContent.heroes
-        case .pet:
-            GameContent.pets
+        case .companion:
+            GameContent.companions
         }
 
         if let combatant = roster.current
@@ -48,7 +48,7 @@ extension AppState {
             )
         } else {
             ContentUnavailableView(
-                kind == .hero ? "Hero Not Found" : "Pet Not Found",
+                kind == .hero ? "Hero Not Found" : "Companion Not Found",
                 systemImage: "questionmark.circle"
             )
             .accessibilityIdentifier("Combatant Not Found")

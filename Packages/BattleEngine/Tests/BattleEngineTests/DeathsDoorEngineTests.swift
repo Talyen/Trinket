@@ -7,16 +7,16 @@ import TrinketTestSupport
 struct DeathsDoorEngineTests {
     private func makeContext(
         heroHP: Int = 10,
-        petHP: Int = 10,
+        companionHP: Int = 10,
         enemyHP: Int = 50,
         heroModifiers: CombatModifierProfile = .zero
     ) -> BattleEngineContext {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 50)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyHP)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
-            pet: CombatantRuntime(combatant: pet, initialHealth: petHP),
+            companion: CombatantRuntime(combatant: companion, initialHealth: companionHP),
             enemy: CombatantRuntime(combatant: enemy)
         )
         return BattleEngineContext(
@@ -28,7 +28,7 @@ struct DeathsDoorEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }
@@ -142,18 +142,18 @@ struct DeathsDoorEngineTests {
         try #expect(!(context.roster.runtime(for: hero)?.hasTriggeredSecondWind ?? true))
     }
 
-    @Test func heroAndPetProcIndependently() throws {
-        var context = makeContext(heroHP: 3, petHP: 3)
+    @Test func heroAndCompanionProcIndependently() throws {
+        var context = makeContext(heroHP: 3, companionHP: 3)
         let hero = context.roster.hero.combatant
-        let pet = context.roster.pet.combatant
+        let companion = context.roster.companion.combatant
 
         _ = context.applyTestDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = context.applyTestDamage(3, to: pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(3, to: companion, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
-        try #expect(context.roster.hasConsumedDeathsDoor(for: pet))
+        try #expect(context.roster.hasConsumedDeathsDoor(for: companion))
         try #expect(context.roster.isDeathsDoorActive(for: hero))
-        try #expect(context.roster.isDeathsDoorActive(for: pet))
+        try #expect(context.roster.isDeathsDoorActive(for: companion))
     }
 
     @Test func effectInsertedAtFrontOfActiveEffects() throws {

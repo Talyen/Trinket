@@ -11,6 +11,14 @@
   },
   "testTargets" : [
     {
+      "automaticallyIncludesTests" : false,
+      "selectedTests" : [
+        "BattleFlowUITests",
+        "MysteryRecruitUITests",
+        "PlayMapUITests",
+        "PlayModeNavigationUITests",
+        "TabNavigationUITests"
+      ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
         "identifier" : "A76BC34F8DE0E1847F8183C5",

@@ -104,9 +104,9 @@ final class PlayerSaveSanitizerTests {
     @Test func sanitizeRosterFiltersInvalidUnlockIDs() throws {
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
-            activePetID: PlayerRosterState.starterPetID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID, "missing-hero"],
-            unlockedPetIDs: [PlayerRosterState.starterPetID, "missing-pet"],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "missing-companion"],
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [:],
@@ -116,7 +116,7 @@ final class PlayerSaveSanitizerTests {
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
         try #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
-        try #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
+        try #expect(sanitized.unlockedCompanionIDs == [PlayerRosterState.starterCompanionID])
     }
 
     @Test func sanitizeRosterClampsGoldBalance() throws {
@@ -131,9 +131,9 @@ final class PlayerSaveSanitizerTests {
     @Test func sanitizeRosterFallsBackToStartersWhenUnlocksEmpty() throws {
         let roster = PlayerRosterState(
             activeHeroID: "wizard",
-            activePetID: "wolf",
+            activeCompanionID: "wolf",
             unlockedHeroIDs: ["missing-hero"],
-            unlockedPetIDs: ["missing-pet"],
+            unlockedCompanionIDs: ["missing-companion"],
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [:],
@@ -143,9 +143,9 @@ final class PlayerSaveSanitizerTests {
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
         try #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
-        try #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
+        try #expect(sanitized.unlockedCompanionIDs == [PlayerRosterState.starterCompanionID])
         try #expect(sanitized.activeHeroID == PlayerRosterState.starterHeroID)
-        try #expect(sanitized.activePetID == PlayerRosterState.starterPetID)
+        try #expect(sanitized.activeCompanionID == PlayerRosterState.starterCompanionID)
     }
 
     @Test func sanitizeRosterStripsUnknownCombatantAbilityLoadouts() throws {
@@ -156,9 +156,9 @@ final class PlayerSaveSanitizerTests {
         }
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
-            activePetID: PlayerRosterState.starterPetID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
-            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
             abilityLoadouts: [
                 "knight": knight.abilityLoadout,
                 "missing-combatant": unknownLoadout
@@ -185,9 +185,9 @@ final class PlayerSaveSanitizerTests {
         invalidLoadout = invalidLoadout.selecting(missingAbility)
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
-            activePetID: PlayerRosterState.starterPetID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
-            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
             abilityLoadouts: ["knight": invalidLoadout],
             progressions: [:],
             equipmentLoadouts: [:],
@@ -214,9 +214,9 @@ final class PlayerSaveSanitizerTests {
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
-            activePetID: PlayerRosterState.starterPetID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
-            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [
@@ -234,8 +234,8 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.inventory.items.map(\.id) == ["weapon-id"])
     }
 
-    @Test func sanitizeRosterStripsWeaponSlotFromPets() throws {
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+    @Test func sanitizeRosterStripsWeaponSlotFromCompanions() throws {
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
         let weapon = InventoryItem(
@@ -256,9 +256,9 @@ final class PlayerSaveSanitizerTests {
         )
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
-            activePetID: PlayerRosterState.starterPetID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
-            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [

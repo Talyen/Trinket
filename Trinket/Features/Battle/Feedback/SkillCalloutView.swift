@@ -6,58 +6,32 @@ import TrinketDesignSystem
 /// Caster-anchored Skill (or enemy Ultimate) ability-art callout.
 struct SkillCalloutView: View {
     let callout: SkillCalloutPresentation
-    let reduceMotion: Bool
-
-    @State private var reduceMotionOpacity = 0.0
-
     var body: some View {
-        Group {
-            if reduceMotion {
-                calloutCard
-                    .opacity(reduceMotionOpacity)
-                    .task(id: callout.id) {
-                        withAnimation(TrinketMotion.Battle.reduceMotion) {
-                            reduceMotionOpacity = 1
-                        }
-                        let clock = SuspendingClock()
-                        try? await clock.sleep(
-                            for: .seconds(TrinketMotion.Battle.skillCalloutHold),
-                            tolerance: .milliseconds(20)
-                        )
-                        withAnimation(TrinketMotion.Battle.reduceMotion) {
-                            reduceMotionOpacity = 0
-                        }
-                    }
-            } else {
-                KeyframeAnimator(
-                    initialValue: SkillCalloutAnimationState(),
-                    trigger: callout.id
-                ) { state in
-                    calloutCard
-                        .scaleEffect(state.scale)
-                        .opacity(state.opacity)
-                        .offset(y: state.offsetY)
-                } keyframes: { _ in
-                    KeyframeTrack(\.scale) {
-                        SpringKeyframe(1.08, duration: TrinketMotion.Battle.skillCalloutIn)
-                        SpringKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutHold)
-                        SpringKeyframe(0.96, duration: TrinketMotion.Battle.skillCalloutOut)
-                    }
-                    KeyframeTrack(\.opacity) {
-                        CubicKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutIn)
-                        CubicKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutHold)
-                        CubicKeyframe(0.0, duration: TrinketMotion.Battle.skillCalloutOut)
-                    }
-                    KeyframeTrack(\.offsetY) {
-                        SpringKeyframe(-6, duration: TrinketMotion.Battle.skillCalloutIn)
-                        SpringKeyframe(-10, duration: TrinketMotion.Battle.skillCalloutHold)
-                        SpringKeyframe(-14, duration: TrinketMotion.Battle.skillCalloutOut)
-                    }
-                }
+        KeyframeAnimator(
+            initialValue: SkillCalloutAnimationState(),
+            trigger: callout.id
+        ) { state in
+            calloutCard
+                .scaleEffect(state.scale)
+                .opacity(state.opacity)
+                .offset(y: state.offsetY)
+        } keyframes: { _ in
+            KeyframeTrack(\.scale) {
+                SpringKeyframe(1.08, duration: TrinketMotion.Battle.skillCalloutIn)
+                SpringKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutHold)
+                SpringKeyframe(0.96, duration: TrinketMotion.Battle.skillCalloutOut)
+            }
+            KeyframeTrack(\.opacity) {
+                CubicKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutIn)
+                CubicKeyframe(1.0, duration: TrinketMotion.Battle.skillCalloutHold)
+                CubicKeyframe(0.0, duration: TrinketMotion.Battle.skillCalloutOut)
+            }
+            KeyframeTrack(\.offsetY) {
+                SpringKeyframe(-6, duration: TrinketMotion.Battle.skillCalloutIn)
+                SpringKeyframe(-10, duration: TrinketMotion.Battle.skillCalloutHold)
+                SpringKeyframe(-14, duration: TrinketMotion.Battle.skillCalloutOut)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(callout.abilityName) skill")
         .accessibilityIdentifier("Skill Callout \(callout.abilityName)")
     }
 

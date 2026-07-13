@@ -260,7 +260,7 @@ public final class PlayerSaveStore {
         try resetRoot(with: .testSeed)
     }
 
-    /// Unlocks all heroes/pets at level 20 and clears Chapter 1 (Modes unlock).
+    /// Unlocks all heroes/companions at level 20 and clears Chapter 1 (Modes unlock).
     public func unlockAllContent() throws {
         var unlocked = PlayerSave.unlockedAll
         unlocked.sessionGeneration = currentSave.sessionGeneration &+ 1

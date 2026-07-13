@@ -66,9 +66,9 @@ struct BattleLogReducerTests {
 
     @Test func entriesReduceMilestonesStatusAndAbilityEvents() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
 
         let events: [ActionEvent] = [
             ActionEvent(
@@ -117,7 +117,7 @@ struct BattleLogReducerTests {
 
         let entries = BattleLogReducer.entries(from: events, matchup: matchup)
         try #expect(entries.map(\.text) == [
-            "Hero and Pet face Enemy.",
+            "Hero and Companion face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
             "Enemy takes 2 Burn damage.",
             "Enemy is defeated."
@@ -126,9 +126,9 @@ struct BattleLogReducerTests {
 
     @Test func incrementalEntriesMatchFullRebuild() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
 
         let events: [ActionEvent] = [
             ActionEvent(
@@ -172,9 +172,9 @@ struct BattleLogReducerTests {
 
     @Test func logProjectionIncrementalSyncMatchesFullReduce() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20, abilities: [])
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         let events = [
             ActionEvent(
                 id: 1,
@@ -238,8 +238,8 @@ struct BattleLogReducerTests {
 
     private func sampleMatchup() -> BattleMatchup {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        return BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        return BattleMatchup(hero: hero, companion: companion, enemy: enemy)
     }
 }

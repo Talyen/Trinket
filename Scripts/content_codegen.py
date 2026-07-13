@@ -79,7 +79,7 @@ VALID_KEYWORDS = frozenset(
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
-VALID_ROLES = frozenset({"hero", "pet"})
+VALID_ROLES = frozenset({"hero", "companion"})
 VALID_GROWTH_ARCHETYPES = frozenset({"tank", "assassin", "mage", "support", "bruiser"})
 
 
@@ -174,7 +174,6 @@ class EnemyRow:
     max_health: str
     max_mana: str
     is_boss: str
-    is_elite: str
     growth_archetype: str
     abilities: str
     strength: str
@@ -347,7 +346,6 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "max_health",
         "max_mana",
         "is_boss",
-        "is_elite",
         "growth_archetype",
         "abilities",
         "strength",
@@ -447,8 +445,8 @@ def modifier_token_to_swift(token: str) -> str:
     if token.startswith("damage_taken_vulnerability:"):
         _, keyword, amount = token.split(":", 2)
         return f".damageTakenVulnerability(.{keyword}, {amount})"
-    if token.startswith("pet_damage_dealt:"):
-        return f".petDamageDealt({token.split(':', 1)[1]})"
+    if token.startswith("companion_damage_dealt:"):
+        return f".companionDamageDealt({token.split(':', 1)[1]})"
     if token.startswith("maximum_mana:"):
         return f".maximumMana({token.split(':', 1)[1]})"
     if token.startswith("leech_duration:"):
@@ -545,12 +543,12 @@ def triggers_swift(raw: str) -> str:
             values["enemyStunnedHasteDurationTicks"] = token.split(":", 1)[1]
         elif token.startswith("first_hit_apply_marked:"):
             values["firstHitApplyMarked"] = token.split(":", 1)[1]
-        elif token.startswith("on_pet_act_leech:"):
+        elif token.startswith("on_companion_act_leech:"):
             _, percent, duration = token.split(":", 2)
-            values["petActLeechPercent"] = percent
-            values["petActLeechDurationTicks"] = duration
-        elif token.startswith("pet_heal_share_percent:"):
-            values["petHealSharePercent"] = token.split(":", 1)[1]
+            values["companionActLeechPercent"] = percent
+            values["companionActLeechDurationTicks"] = duration
+        elif token.startswith("companion_heal_share_percent:"):
+            values["companionHealSharePercent"] = token.split(":", 1)[1]
         elif token.startswith("once_below_health_percent_heal:"):
             _, threshold, amount = token.split(":", 2)
             values["onceBelowHealthPercentThreshold"] = threshold
@@ -605,9 +603,9 @@ def triggers_swift(raw: str) -> str:
         "blockGainedCleanseIntervalTicks",
         "enemyStunnedHasteDurationTicks",
         "firstHitApplyMarked",
-        "petActLeechPercent",
-        "petActLeechDurationTicks",
-        "petHealSharePercent",
+        "companionActLeechPercent",
+        "companionActLeechDurationTicks",
+        "companionHealSharePercent",
         "onceBelowHealthPercentThreshold",
         "onceBelowHealthPercentHeal",
         "blockPerActionWhileDeathsDoor",
@@ -1018,17 +1016,13 @@ def validate_enemy_rows(
         if row.id in seen:
             raise ValueError(f"Duplicate enemy id: {row.id}")
         if row.id in combatant_ids:
-            raise ValueError(f"Enemy id '{row.id}' conflicts with a hero/pet combatant id")
+            raise ValueError(f"Enemy id '{row.id}' conflicts with a hero/companion combatant id")
         seen.add(row.id)
 
         _validate_snake_id("enemy id", row.id, row.id)
         _require_non_empty("enemy name", row.name, row.id)
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
-        if row.is_elite not in {"true", "false"}:
-            raise ValueError(f"is_elite for {row.id} must be true or false")
-        if row.is_boss == "true" and row.is_elite == "true":
-            raise ValueError(f"{row.id} cannot be both boss and elite")
         if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
             raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
@@ -1076,8 +1070,6 @@ def render_enemy(row: EnemyRow) -> str:
     flags: list[str] = []
     if row.is_boss == "true":
         flags.append("isBoss: true")
-    if row.is_elite == "true":
-        flags.append("isElite: true")
     flag_clause = ""
     if flags:
         flag_clause = ", " + ", ".join(flags)
@@ -1120,12 +1112,12 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
 
 def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     heroes = [row for row in rows if row.role == "hero"]
-    pets = [row for row in rows if row.role == "pet"]
+    companions = [row for row in rows if row.role == "companion"]
     trait_map_entries = ",\n".join(
         f'        "{swift_escape(row.id)}": "{swift_escape(row.trait_id)}"' for row in rows
     )
     hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
-    pet_blocks = ",\n".join(render_party_combatant(row) for row in pets)
+    companion_blocks = ",\n".join(render_party_combatant(row) for row in companions)
     body = (
         "enum GameContentRosterGenerated {\n"
         "    static let combatantTraitIDs: [String: String] = [\n"
@@ -1134,8 +1126,8 @@ def generate_roster_catalog(rows: list[CombatantRow]) -> None:
         "    static let heroes: [Combatant] = [\n"
         f"{hero_blocks}\n"
         "    ]\n\n"
-        "    static let pets: [Combatant] = [\n"
-        f"{pet_blocks}\n"
+        "    static let companions: [Combatant] = [\n"
+        f"{companion_blocks}\n"
         "    ]\n"
         "}\n"
     )

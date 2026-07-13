@@ -7,7 +7,7 @@ enum GameContentChaptersGenerated {
         Chapter(
             id: "chapter-1",
             number: 1,
-            title: "The Verdant Forest",
+            title: "The Forest",
             theme: .verdantForest,
             stages: [
                 Stage(
@@ -15,8 +15,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 1,
-                    flavorText: "The old forest road narrows beneath a bright green canopy.",
-                    encounter: .battle(enemyID: "skeleton"),
+                    flavorText: "A soft green shape quivers beside the forest road, waiting in the grass.",
+                    encounter: .battle(enemyID: "slime"),
                     rewards: StageReward(
                         gold: 12,
                         itemTemplateIDs: ["shortsword-basic"],
@@ -28,8 +28,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 2,
-                    flavorText: "A quiet howl answers from the bend ahead.",
-                    encounter: .mysteryEvent(eventID: "recruit-wolf"),
+                    flavorText: "A broad shape steps from the brush, watching the trail with calm, patient eyes.",
+                    encounter: .mysteryEvent(eventID: "recruit-bear"),
                     rewards: StageReward(
                         gold: 8,
                         itemTemplateIDs: [],
@@ -41,8 +41,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 3,
-                    flavorText: "The ground softens underfoot, and the glade begins to move.",
-                    encounter: .battle(enemyID: "mud_elemental"),
+                    flavorText: "A goblin scout darts between the roots, and the glade falls suddenly quiet.",
+                    encounter: .battle(enemyID: "goblin"),
                     rewards: StageReward(
                         gold: 18,
                         itemTemplateIDs: [],
@@ -54,8 +54,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    flavorText: "A covered cart waits beside the trail, its little lantern still warm.",
-                    encounter: .shop,
+                    flavorText: "A quick-footed Rogue waits in the shadows, offering a hand and a hidden blade.",
+                    encounter: .mysteryEvent(eventID: "recruit-rogue"),
                     rewards: StageReward(
                         gold: 5,
                         itemTemplateIDs: [],
@@ -80,7 +80,7 @@ enum GameContentChaptersGenerated {
         Chapter(
             id: "chapter-2",
             number: 2,
-            title: "The Whispering Glade",
+            title: "The Dungeon",
             theme: .verdantForest,
             stages: [
                 Stage(
@@ -88,8 +88,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 1,
-                    flavorText: "A goblin scout watches the road from beneath the whispering boughs.",
-                    encounter: .battle(enemyID: "goblin"),
+                    flavorText: "A skeleton guard rattles to life in the dungeon's first stone corridor.",
+                    encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
                         gold: 10,
                         itemTemplateIDs: [],
@@ -101,8 +101,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 2,
-                    flavorText: "Sparks linger between the trees like unfinished thoughts.",
-                    encounter: .mysteryEvent(eventID: "recruit-wizard"),
+                    flavorText: "A battered shield rests against the dungeon wall. A Knight steps from the torchlight and offers a solemn nod.",
+                    encounter: .mysteryEvent(eventID: "recruit-knight"),
                     rewards: StageReward(
                         gold: 10,
                         itemTemplateIDs: [],
@@ -114,8 +114,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 3,
-                    flavorText: "Heat ripples across the glade as living flame takes shape.",
-                    encounter: .battle(enemyID: "fire_elemental"),
+                    flavorText: "A battered chest sits in the torchlight, and its lid blinks.",
+                    encounter: .battle(enemyID: "mimic"),
                     rewards: StageReward(
                         gold: 10,
                         itemTemplateIDs: [],
@@ -127,7 +127,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 4,
-                    flavorText: "A covered cart waits where the whispering paths cross.",
+                    flavorText: "A covered cart waits where the dungeon paths cross.",
                     encounter: .shop,
                     rewards: StageReward(
                         gold: 10,
@@ -140,8 +140,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 5,
-                    flavorText: "A buried forge wakes, and an ancient golem steps from the sparks.",
-                    encounter: .battle(enemyID: "the_forge_golem"),
+                    flavorText: "The dungeon doors groan open as the Iron Bear emerges from the buried forge.",
+                    encounter: .battle(enemyID: "the_iron_bear"),
                     rewards: StageReward(
                         gold: 12,
                         itemTemplateIDs: [],
@@ -153,7 +153,7 @@ enum GameContentChaptersGenerated {
         Chapter(
             id: "chapter-3",
             number: 3,
-            title: "The Moonlit Archives",
+            title: "The Desert",
             theme: .verdantForest,
             stages: [
                 Stage(

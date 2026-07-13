@@ -6,6 +6,10 @@ import TrinketDesignSystem
 /// View-facing combat feedback item produced from one or more `ActionEvent`s.
 struct CombatFeedbackItem: Identifiable, Equatable {
     let id: Int
+    let sourceEventIDs: [Int]
+    let actionGroupID: Int
+    let presentationIndex: Int
+    let groupResultCount: Int
     let targetID: String
     let feedbackClass: CombatFeedbackClass
     let keyword: Keyword
@@ -46,16 +50,49 @@ enum CombatFeedbackPresenter {
         at date: Date,
         stagger: TimeInterval = 0
     ) -> [CombatFeedbackItem] {
-        let prepared = mergeCriticals(in: filterDisplayable(events))
-        return prepared.enumerated().map { index, preparedEvent in
-            let availableAt = date.addingTimeInterval(TimeInterval(index) * stagger)
-            return makeItem(from: preparedEvent, availableAt: availableAt)
+        let sources = consolidate(mergeCriticals(in: filterDisplayable(events)))
+        let prepared = sources.map(prepare)
+        var targetOrder: [String] = []
+        var grouped: [String: [PreparedEvent]] = [:]
+        for item in prepared {
+            if grouped[item.targetID] == nil {
+                targetOrder.append(item.targetID)
+            }
+            grouped[item.targetID, default: []].append(item)
+        }
+
+        return targetOrder.enumerated().flatMap { groupIndex, targetID -> [CombatFeedbackItem] in
+            let sorted = (grouped[targetID] ?? []).sorted { lhs, rhs in
+                let lhsPriority = displayPriority(for: lhs.feedbackClass)
+                let rhsPriority = displayPriority(for: rhs.feedbackClass)
+                if lhsPriority == rhsPriority {
+                    return lhs.originalOrder < rhs.originalOrder
+                }
+                return lhsPriority < rhsPriority
+            }
+            guard let actionGroupID = sorted.flatMap(\.sourceEventIDs).min() else { return [] }
+            let availableAt = date.addingTimeInterval(TimeInterval(groupIndex) * stagger)
+            let groupLifetime = sorted
+                .map { TrinketMotion.Battle.chip(for: $0.feedbackClass).lifetime }
+                .max() ?? 0
+            let expiresAt = availableAt.addingTimeInterval(groupLifetime)
+            return sorted.enumerated().map { presentationIndex, preparedEvent in
+                makeItem(
+                    from: preparedEvent,
+                    actionGroupID: actionGroupID,
+                    presentationIndex: presentationIndex,
+                    groupResultCount: sorted.count,
+                    availableAt: availableAt,
+                    expiresAt: expiresAt
+                )
+            }
         }
     }
 
     static func reaction(for items: [CombatFeedbackItem]) -> CombatantHitReaction? {
-        guard let item = items.first(where: { $0.reactionKind != .none })
-            ?? items.first else { return nil }
+        guard let item = items.first(where: {
+            $0.presentationIndex == 0 && $0.reactionKind != .none
+        }) else { return nil }
         guard item.reactionKind != .none else { return nil }
         return CombatantHitReaction(
             id: item.id,
@@ -66,6 +103,7 @@ enum CombatFeedbackPresenter {
 
     static func bursts(for items: [CombatFeedbackItem]) -> [KeywordBurstRequest] {
         items.compactMap { item in
+            guard item.presentationIndex < 3 else { return nil }
             let count = CombatFeedbackLayout.particleCount(for: item.feedbackClass)
             guard count > 0 else { return nil }
             return KeywordBurstRequest(
@@ -81,14 +119,35 @@ enum CombatFeedbackPresenter {
 
     // MARK: - Private
 
+    private struct PreparedSource: Equatable {
+        var event: ActionEvent
+        var forceCritical: Bool
+        var sourceEventIDs: [Int]
+        let originalOrder: Int
+    }
+
     private struct PreparedEvent: Equatable {
         let id: Int
+        let sourceEventIDs: [Int]
+        let originalOrder: Int
         let targetID: String
         let feedbackClass: CombatFeedbackClass
         let keyword: Keyword
         let text: String
         let secondaryText: String?
         let reactionKind: CombatantHitReactionKind
+    }
+
+    private struct AggregationKey: Equatable {
+        enum Family: Equatable {
+            case ability
+            case status
+            case effect(ActionEvent.EffectKind)
+        }
+
+        let targetID: String
+        let keyword: Keyword
+        let family: Family
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
@@ -101,38 +160,119 @@ enum CombatFeedbackPresenter {
         }
     }
 
-    private static func mergeCriticals(in events: [ActionEvent]) -> [PreparedEvent] {
-        var criticalTargets: Set<String> = []
-        for event in events where event.effectKind == .criticalApplied {
-            criticalTargets.insert(event.targetID)
-        }
+    private static func mergeCriticals(in events: [ActionEvent]) -> [PreparedSource] {
+        let criticalsByTarget = Dictionary(grouping: events.filter {
+            $0.effectKind == .criticalApplied
+        }, by: \.targetID)
+        var consumedCriticalIDs: Set<Int> = []
+        var result: [PreparedSource] = []
 
-        var consumedCriticalTargets: Set<String> = []
-        var result: [PreparedEvent] = []
-
-        for event in events {
+        for (originalOrder, event) in events.enumerated() {
             if event.effectKind == .criticalApplied {
                 // Prefer merging into the damage chip; drop orphan labels when a damage event exists.
-                if criticalTargets.contains(event.targetID),
-                   events.contains(where: { isDamageChipCandidate($0) && $0.targetID == event.targetID }) {
+                if events.contains(where: { isDamageChipCandidate($0) && $0.targetID == event.targetID }) {
                     continue
                 }
-                result.append(prepare(event, forceCritical: false))
+                result.append(PreparedSource(
+                    event: event,
+                    forceCritical: false,
+                    sourceEventIDs: [event.id],
+                    originalOrder: originalOrder
+                ))
                 continue
             }
 
+            var sourceEventIDs = [event.id]
+            var forceCritical = false
             if isDamageChipCandidate(event),
-               criticalTargets.contains(event.targetID),
-               !consumedCriticalTargets.contains(event.targetID) {
-                consumedCriticalTargets.insert(event.targetID)
-                result.append(prepare(event, forceCritical: true))
-                continue
+               let critical = criticalsByTarget[event.targetID]?.first(where: {
+                   !consumedCriticalIDs.contains($0.id)
+               }) {
+                consumedCriticalIDs.insert(critical.id)
+                sourceEventIDs.append(critical.id)
+                forceCritical = true
             }
-
-            result.append(prepare(event, forceCritical: false))
+            result.append(PreparedSource(
+                event: event,
+                forceCritical: forceCritical,
+                sourceEventIDs: sourceEventIDs,
+                originalOrder: originalOrder
+            ))
         }
 
         return result
+    }
+
+    private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {
+        var result: [PreparedSource] = []
+        for source in sources {
+            guard let key = aggregationKey(for: source.event) else {
+                result.append(source)
+                continue
+            }
+            if let index = result.firstIndex(where: {
+                aggregationKey(for: $0.event) == key
+            }) {
+                let existing = result[index]
+                result[index] = PreparedSource(
+                    event: replacingAmount(
+                        in: existing.event,
+                        with: existing.event.amount + source.event.amount
+                    ),
+                    forceCritical: existing.forceCritical || source.forceCritical,
+                    sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
+                    originalOrder: min(existing.originalOrder, source.originalOrder)
+                )
+            } else {
+                result.append(source)
+            }
+        }
+        return result
+    }
+
+    private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
+        let family: AggregationKey.Family
+        switch event.kind {
+        case .ability:
+            family = .ability
+        case .status:
+            family = .status
+        case .effect:
+            guard let effectKind = event.effectKind, isAdditive(effectKind) else { return nil }
+            family = .effect(effectKind)
+        case .milestone:
+            return nil
+        }
+        return AggregationKey(targetID: event.targetID, keyword: event.keyword, family: family)
+    }
+
+    private static func isAdditive(_ effectKind: ActionEvent.EffectKind) -> Bool {
+        switch effectKind {
+        case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldAbsorbed,
+             .thornsTriggered, .markedConsumed, .manaShieldTriggered:
+            true
+        default:
+            false
+        }
+    }
+
+    private static func replacingAmount(in event: ActionEvent, with amount: Int) -> ActionEvent {
+        ActionEvent(
+            id: event.id,
+            kind: event.kind,
+            effectKind: event.effectKind,
+            actorID: event.actorID,
+            actorName: event.actorName,
+            abilityID: event.abilityID,
+            abilityName: event.abilityName,
+            abilityTier: event.abilityTier,
+            targetID: event.targetID,
+            targetName: event.targetName,
+            amount: amount,
+            keyword: event.keyword,
+            appliedEffectSummaries: event.appliedEffectSummaries,
+            milestone: event.milestone
+        )
     }
 
     private static func isDamageChipCandidate(_ event: ActionEvent) -> Bool {
@@ -148,17 +288,20 @@ enum CombatFeedbackPresenter {
         }
     }
 
-    private static func prepare(_ event: ActionEvent, forceCritical: Bool) -> PreparedEvent {
+    private static func prepare(_ source: PreparedSource) -> PreparedEvent {
+        let event = source.event
         let display = ActionEventFormatter.display(for: event)
-        let feedbackClass = forceCritical ? .critical : classify(event, display: display)
+        let feedbackClass = source.forceCritical ? .critical : classify(event, display: display)
         let secondary: String? = {
-            if forceCritical || feedbackClass == .critical {
+            if source.forceCritical || feedbackClass == .critical {
                 return "CRIT"
             }
             return display.secondaryText
         }()
         return PreparedEvent(
             id: event.id,
+            sourceEventIDs: source.sourceEventIDs,
+            originalOrder: source.originalOrder,
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: display.keyword,
@@ -168,10 +311,21 @@ enum CombatFeedbackPresenter {
         )
     }
 
-    private static func makeItem(from prepared: PreparedEvent, availableAt: Date) -> CombatFeedbackItem {
+    private static func makeItem(
+        from prepared: PreparedEvent,
+        actionGroupID: Int,
+        presentationIndex: Int,
+        groupResultCount: Int,
+        availableAt: Date,
+        expiresAt: Date
+    ) -> CombatFeedbackItem {
         let recipe = TrinketMotion.Battle.chip(for: prepared.feedbackClass)
         return CombatFeedbackItem(
             id: prepared.id,
+            sourceEventIDs: prepared.sourceEventIDs,
+            actionGroupID: actionGroupID,
+            presentationIndex: presentationIndex,
+            groupResultCount: groupResultCount,
             targetID: prepared.targetID,
             feedbackClass: prepared.feedbackClass,
             keyword: prepared.keyword,
@@ -180,9 +334,21 @@ enum CombatFeedbackPresenter {
             spawnSeed: prepared.id,
             lifetime: recipe.lifetime,
             availableAt: availableAt,
-            expiresAt: availableAt.addingTimeInterval(recipe.lifetime),
+            expiresAt: expiresAt,
             reactionKind: prepared.reactionKind
         )
+    }
+
+    private static func displayPriority(for feedbackClass: CombatFeedbackClass) -> Int {
+        switch feedbackClass {
+        case .critical: 0
+        case .deathsDoor: 1
+        case .directDamage: 2
+        case .heal: 3
+        case .block, .dodge, .control: 4
+        case .dot: 5
+        case .buff, .resource: 6
+        }
     }
 
     private static func classify(

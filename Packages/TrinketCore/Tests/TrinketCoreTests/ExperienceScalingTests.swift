@@ -2,19 +2,13 @@ import Testing
 import TrinketCore
 
 struct ExperienceScalingTests {
-    @Test func equalLevelAwardsFullExperience() throws {
+    @Test func adjustedAwardCoversLevelBoundaries() throws {
         try #expect(
             ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50
         )
-    }
-
-    @Test func higherLevelEnemyAwardsFullExperience() throws {
         try #expect(
             ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50
         )
-    }
-
-    @Test func enemyTenOrMoreLevelsBelowAwardsNothing() throws {
         try #expect(
             ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0
         )
@@ -32,26 +26,18 @@ struct ExperienceScalingTests {
         try #expect(nearEqual > halfway)
     }
 
-    @Test func baseBattleAwardTargetsEarlyBattlesPerLevel() throws {
+    @Test func baseBattleAwardTargetsEarlyMidAndLateProgression() throws {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
         try #expect(award == 67)
         try #expect(abs((
             Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)
         ) - 1.5) < 0.05)
-    }
-
-    @Test func baseBattleAwardTargetsMidBattlesPerLevel() throws {
-        let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 25)
-        try #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 25)) / Double(award)
-        ) - 2.5) < 0.05)
-    }
-
-    @Test func baseBattleAwardTargetsLateBattlesPerLevel() throws {
-        let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 45)
-        try #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 45)) / Double(award)
-        ) - 3.5) < 0.05)
+        for (level, battlesPerLevel) in [(25, 2.5), (45, 3.5)] {
+            let award = ExperienceScaling.baseBattleAward(forPlayerLevel: level)
+            try #expect(abs((
+                Double(CombatantProgression.requiredXP(forLevel: level)) / Double(award)
+            ) - battlesPerLevel) < 0.05)
+        }
     }
 
     @Test func battleAwardAppliesLevelDeltaMultiplier() throws {
@@ -61,30 +47,21 @@ struct ExperienceScalingTests {
 
     // MARK: - Catch-up multiplier
 
-    @Test func catchUpMultiplierIsOneAtNoGap() throws {
+    @Test func catchUpMultiplierCoversBaselineGrowthAndCaps() throws {
         try #expect(abs(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10) - 1.0) < 0.001)
         try #expect(abs(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15) - 1.0) < 0.001)
-    }
-
-    @Test func catchUpMultiplierIncreasesWithGap() throws {
         let gap1 = ExperienceScaling.catchUpMultiplier(for: 9, highestLevel: 10)
         let gap5 = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
         let gap10 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 11)
         try #expect(gap1 > 1.0)
         try #expect(gap5 > gap1)
         try #expect(gap10 > gap5)
-    }
-
-    @Test func catchUpMultiplierApproachesMax() throws {
         let largeGap = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 100)
         try #expect(largeGap <= 2.5)
         try #expect(largeGap > 2.4)
-    }
-
-    @Test func catchUpMultiplierCustomMax() throws {
-        let gap5 = ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 15, maxMultiplier: 2.0)
-        try #expect(gap5 < 2.0)
-        try #expect(gap5 > 1.5)
+        let customGap5 = ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 15, maxMultiplier: 2.0)
+        try #expect(customGap5 < 2.0)
+        try #expect(customGap5 > 1.5)
 
         let gap50 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 51, maxMultiplier: 3.0)
         try #expect(gap50 < 3.0)

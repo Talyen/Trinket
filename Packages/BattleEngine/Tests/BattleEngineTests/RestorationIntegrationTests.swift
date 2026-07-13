@@ -15,11 +15,11 @@ struct RestorationIntegrationTests {
             effects: [.instantHeal(.health, 3)]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)
@@ -48,11 +48,11 @@ struct RestorationIntegrationTests {
             hasLeech: true
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0)
@@ -81,14 +81,14 @@ struct RestorationIntegrationTests {
             effects: [.instantHeal(.health, 5)]
         )
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = Combatant(
             id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20,
             abilities: [selfHeal]
         )
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)

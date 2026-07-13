@@ -13,14 +13,14 @@ struct CollectionCombatantGridView: View {
     private var title: String {
         switch kind {
         case .hero: "Heroes"
-        case .pet: "Pets"
+        case .companion: "Companions"
         }
     }
 
     private var combatants: [Combatant] {
         switch kind {
         case .hero: appState.roster.collectionHeroes
-        case .pet: appState.roster.collectionPets
+        case .companion: appState.roster.collectionCompanions
         }
     }
 
@@ -30,7 +30,7 @@ struct CollectionCombatantGridView: View {
                 ContentUnavailableView(
                     "Nothing to Collect",
                     systemImage: "person.3",
-                    description: Text("Unlock heroes and pets by progressing through the journey.")
+                    description: Text("Unlock heroes and companions by progressing through the journey.")
                 )
                 .padding(TrinketDesign.Metrics.contentMargin)
                 .accessibilityIdentifier("Collection combatants empty state")

@@ -17,6 +17,8 @@ struct AppStateTests {
 
         #expect(state.selectedTab == .play)
         #expect(state.roster.current == .freshStart)
+        #expect(state.roster.current.activeHeroID == "ranger")
+        #expect(state.roster.current.activeCompanionID == "wolf")
         #expect(state.inventory.current == .freshStart)
     }
 
@@ -28,7 +30,7 @@ struct AppStateTests {
         #expect(state.selectedTab == .homestead)
     }
 
-    @Test func heroDetailLaunchScreenDefaultsToCollectionTab() throws {
+    @Test func collectionDetailLaunchScreensMapToCollectionPresentations() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
         )
@@ -43,51 +45,40 @@ struct AppStateTests {
             kind: .hero,
             combatantID: "knight"
         )
-    }
 
-    @Test func petDetailLaunchScreenExposesCollectionCombatantDetail() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "pet:wolf"])
+        let companionState = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "companion:wolf"])
         )
 
-        #expect(state.selectedTab == .collection)
-        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+        #expect(companionState.selectedTab == .collection)
+        guard case let .collectionCombatant(detail) = companionState.pendingCollectionPresentation else {
             Issue.record("Expected pending collection combatant presentation")
             return
         }
         assertCollectionDetail(
             detail,
-            kind: .pet,
+            kind: .companion,
             combatantID: "wolf"
         )
-    }
 
-    @Test func itemDetailLaunchScreenExposesCollectionItemPresentation() throws {
-        let state = try context.makeAppState(
+        let itemState = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
         )
 
-        #expect(state.selectedTab == .collection)
-        guard case let .collectionItem(itemID) = state.pendingCollectionPresentation else {
+        #expect(itemState.selectedTab == .collection)
+        guard case let .collectionItem(itemID) = itemState.pendingCollectionPresentation else {
             Issue.record("Expected pending collection item presentation")
             return
         }
         #expect(itemID == "shortsword-basic")
     }
 
-    @Test func battleLaunchScreenDefaultsToPlayTab() throws {
+    @Test func battleLaunchScreensStartOnPlayWithExpectedState() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
         )
 
         #expect(state.selectedTab == .play)
-    }
-
-    @Test func battleLaunchScreenStartsStageOneOne() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
-        )
-
         let activeBattle = try #require(state.battle.activeBattle)
         #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
@@ -115,7 +106,7 @@ struct AppStateTests {
         )
 
         let session = try #require(state.activeShopEncounter)
-        #expect(session.stage.id == "chapter-1-stage-4")
+        #expect(session.stage.id == "chapter-2-stage-4")
         #expect(!(session.offers.isEmpty))
         #expect(state.selectedTab == .play)
     }
@@ -218,7 +209,7 @@ struct AppStateTests {
         let scrollTarget = state.completeStage(
             stage,
             hero: state.roster.activeHero,
-            pet: state.roster.activePet
+            companion: state.roster.activeCompanion
         )
 
         #expect(state.journey.current.activeStageID == "chapter-1-stage-2")

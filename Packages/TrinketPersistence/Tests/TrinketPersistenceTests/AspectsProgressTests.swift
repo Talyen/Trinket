@@ -53,13 +53,13 @@ struct AspectsProgressTests {
         var save = PlayerSave.fresh
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+        let companion = try #require(GameContent.companions.first { $0.id == "bear" })
         let goldBefore = save.roster.gold
 
         AspectCompletion.complete(
             floor: floor,
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: 3,
             save: &save
         )
@@ -74,7 +74,7 @@ struct AspectsProgressTests {
         var save = PlayerSave.fresh
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+        let companion = try #require(GameContent.companions.first { $0.id == "bear" })
 
         var rng = SeededRandomNumberGenerator(seed: 7)
         let item = try #require(AspectCompletion.makeAspectFloorItem(for: floor, using: &rng))
@@ -83,7 +83,7 @@ struct AspectsProgressTests {
         AspectCompletion.complete(
             floor: floor,
             hero: hero,
-            pet: pet,
+            companion: companion,
             rewardItem: item,
             save: &save
         )
@@ -93,7 +93,7 @@ struct AspectsProgressTests {
         AspectCompletion.complete(
             floor: floor,
             hero: hero,
-            pet: pet,
+            companion: companion,
             rewardItem: item,
             save: &save
         )
@@ -108,13 +108,13 @@ struct AspectsProgressTests {
         for floorIndex in 1 ... 9 {
             let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: floorIndex))
             let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-            let pet = try #require(GameContent.pets.first { $0.id == "bear" })
-            AspectCompletion.complete(floor: floor, hero: hero, pet: pet, save: &save)
+            let companion = try #require(GameContent.companions.first { $0.id == "bear" })
+            AspectCompletion.complete(floor: floor, hero: hero, companion: companion, save: &save)
         }
 
         let warden = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 10))
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+        let companion = try #require(GameContent.companions.first { $0.id == "bear" })
         let countBefore = save.inventory.items.count
 
         var rng = SeededRandomNumberGenerator(seed: 7)
@@ -122,7 +122,7 @@ struct AspectsProgressTests {
         AspectCompletion.complete(
             floor: warden,
             hero: hero,
-            pet: pet,
+            companion: companion,
             rewardItem: item,
             save: &save
         )
@@ -134,8 +134,10 @@ struct AspectsProgressTests {
 
     @Test func unlockGatesFollowIronVeinProgress() throws {
         var progress = PlayerAspectsState()
+        let ironVein = try #require(GameContent.aspect(id: .ironVein))
         let cinder = try #require(GameContent.aspect(id: .cinderSpire))
         let rime = try #require(GameContent.aspect(id: .rimeVault))
+        #expect(AspectUnlock.isUnlocked(ironVein, progress: progress))
         #expect(!AspectUnlock.isUnlocked(cinder, progress: progress))
         for floor in 1 ... 5 {
             _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
@@ -146,20 +148,6 @@ struct AspectsProgressTests {
             _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
         }
         #expect(AspectUnlock.isUnlocked(rime, progress: progress))
-    }
-
-    @Test func modesUnlockRequiresChapterOneComplete() throws {
-        #expect(!ModesUnlock.isUnlocked(journey: .initial))
-        let chapter1 = try #require(GameContent.chapters.first { $0.id == "chapter-1" })
-        let stageIDs = Set(chapter1.stages.map(\.id))
-        let unlockedJourney = JourneyProgressState(
-            activeChapterID: "chapter-2",
-            activeStageID: GameContent.chapters.first { $0.id == "chapter-2" }?.stages.first?.id,
-            completedStageIDs: stageIDs,
-            claimedRewardStageIDs: stageIDs,
-            lastCompletedStageID: chapter1.stages.last?.id
-        )
-        #expect(ModesUnlock.isUnlocked(journey: unlockedJourney))
     }
 
     @Test func unlockAllClearsEveryAspectClimb() {

@@ -7,27 +7,27 @@ import TrinketPersistence
 struct ActiveBattleConfigurationTests {
     @Test func makeWithoutEquipmentUsesTraitOnlyModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = try #require(GameContent.enemies.first?.combatant)
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
-            pet: wolf,
+            companion: wolf,
             enemy: enemy
         )
 
         #expect(configuration.hero.modifiers.blockGainedBonus == 1)
-        #expect(configuration.pet.modifiers.bleedDurationBonus == 1)
+        #expect(configuration.companion.modifiers.bleedDurationBonus == 1)
         #expect(configuration.hero.modifiers.damageDealtBonus(for: .physical) == 0)
-        #expect(configuration.pet.modifiers.damageDealtBonus(for: .physical) == 0)
+        #expect(configuration.companion.modifiers.damageDealtBonus(for: .physical) == 0)
         #expect(configuration.hero.combatant.id == knight.id)
-        #expect(configuration.pet.combatant.id == wolf.id)
+        #expect(configuration.companion.combatant.id == wolf.id)
     }
 
     @Test func makeResolvesEquippedItemModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
@@ -46,7 +46,7 @@ struct ActiveBattleConfigurationTests {
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
-            pet: wolf,
+            companion: wolf,
             enemy: enemy,
             roster: rosterState,
             inventory: PlayerInventoryState(items: [item])
@@ -58,13 +58,13 @@ struct ActiveBattleConfigurationTests {
 
     @Test func makeResolvesEnemyTraitModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
-            pet: wolf,
+            companion: wolf,
             enemy: skeleton.combatant
         )
 
@@ -74,27 +74,79 @@ struct ActiveBattleConfigurationTests {
 
     @Test func makePreservesStageMetadata() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battleEnemyID = try #require(stage.encounter.battleEnemyID)
         let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
         let itemTemplateID = try #require(stage.rewards.itemTemplateIDs.first)
-        let expectedItemName = try #require(
-            GameContent.itemTemplate(matching: itemTemplateID)?.displayName
-        )
+        let expectedItem = try #require(GameContent.itemTemplate(matching: itemTemplateID))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
             rngSeed: 0,
             hero: knight,
-            pet: wolf,
+            companion: wolf,
             enemy: enemy,
             stageReward: stage.rewards
         )
 
         #expect(configuration.stageID == stage.id)
         #expect(configuration.stageReward == stage.rewards)
-        #expect(configuration.rewardItemNames == [expectedItemName])
+        #expect(configuration.rewardItems.map(\.displayName) == [expectedItem.displayName])
+        #expect(configuration.rewardItems.first?.id == "\(stage.id)-\(itemTemplateID)")
+        #expect(configuration.rewardItems.first?.affixes == expectedItem.affixes)
+    }
+
+    @Test func rewardResolutionCoversNoItemAndMultipleJourneyItems() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+
+        let noItem = try ActiveBattleConfigurationTestSupport.make(
+            stageID: "test-stage",
+            rngSeed: 1,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            stageReward: StageReward(gold: 10, itemTemplateIDs: [])
+        )
+        #expect(noItem.rewardItems.isEmpty)
+
+        let multiple = try ActiveBattleConfigurationTestSupport.make(
+            stageID: "test-stage",
+            rngSeed: 1,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            stageReward: StageReward(
+                gold: 10,
+                itemTemplateIDs: ["shortsword-basic", "longsword-basic"]
+            )
+        )
+        #expect(multiple.rewardItems.map(\.id) == [
+            "test-stage-shortsword-basic",
+            "test-stage-longsword-basic"
+        ])
+    }
+
+    @Test func aspectRewardUsesTheExactGeneratedPersistenceItem() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let aspectBattle = ActiveBattleConfiguration.AspectBattle(aspectID: .ironVein, floor: 1)
+
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            aspectBattle: aspectBattle,
+            rngSeed: 42,
+            hero: hero,
+            companion: companion,
+            enemy: enemy
+        )
+        let pendingItem = try #require(configuration.pendingRewardItem)
+
+        #expect(configuration.rewardItems == [pendingItem])
+        #expect(configuration.rewardItems[0].rarity == pendingItem.rarity)
+        #expect(configuration.rewardItems[0].affixes == pendingItem.affixes)
     }
 
     @Test func resolvedEncounterScalesEnemyToJourneyLevel() throws {
@@ -120,14 +172,14 @@ struct ActiveBattleConfigurationTests {
         #expect(encounter.level > 1)
 
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let catalogEnemy = try #require(GameContent.enemy(matching: encounter.combatant.id))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
             rngSeed: 0,
             hero: knight,
-            pet: wolf,
+            companion: wolf,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level
         )

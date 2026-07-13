@@ -30,8 +30,6 @@ struct AbilityHeroHeader: View {
                     .frame(maxHeight: .infinity, alignment: .bottom)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(ability.name), \(ability.tier.rawValue)")
     }
 
     @ViewBuilder
@@ -42,10 +40,9 @@ struct AbilityHeroHeader: View {
                 .interpolation(.medium)
                 .aspectRatio(contentMode: .fill)
                 .clipped()
-                .accessibilityLabel(artReference.accessibilityLabel)
+
         } else {
             placeholderArt
-                .accessibilityLabel("\(ability.name) placeholder art")
         }
     }
 
@@ -58,7 +55,6 @@ struct AbilityHeroHeader: View {
                 .font(.system(size: placeholderIconSize, weight: .semibold))
                 .foregroundStyle(style.color)
                 .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
         }
     }
 
@@ -73,6 +69,57 @@ struct AbilityHeroHeader: View {
                 .trinketOnArtText(.title)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
+        }
+    }
+}
+
+struct AbilityDetailView: View {
+    let ability: Ability
+    var primaryActionTitle: String?
+    var primaryActionAccessibilityID: String?
+    var onPrimaryAction: (() -> Void)?
+
+    init(
+        ability: Ability,
+        primaryActionTitle: String? = nil,
+        primaryActionAccessibilityID: String? = nil,
+        onPrimaryAction: (() -> Void)? = nil
+    ) {
+        self.ability = ability
+        self.primaryActionTitle = primaryActionTitle
+        self.primaryActionAccessibilityID = primaryActionAccessibilityID
+        self.onPrimaryAction = onPrimaryAction
+    }
+
+    var body: some View {
+        DetailHeroScrollShell(title: ability.name) { baseHeight, overscroll in
+            AbilityHeroHeader(
+                ability: ability,
+                baseHeight: baseHeight,
+                overscroll: overscroll
+            )
+            .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityDetail(ability.id))
+        } bodyContent: {
+            DetailSection(
+                "Effect",
+                sectionID: AccessibilityID.Battle.abilityDetailEffect
+            ) {
+                KeywordDescriptionText(text: ability.summary)
+                    .trinketTypography(.secondaryBody)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let primaryActionTitle, let onPrimaryAction {
+                Button(primaryActionTitle) {
+                    onPrimaryAction()
+                }
+                .frame(maxWidth: .infinity)
+                .trinketPrimaryActionButton()
+                .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+            }
         }
     }
 }

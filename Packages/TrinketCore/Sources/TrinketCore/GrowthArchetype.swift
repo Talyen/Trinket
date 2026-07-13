@@ -173,13 +173,11 @@ public enum StatGrowth {
         return delta
     }
 
-    /// Smooth gear-compensation tuned for balance targets:
-    /// fodder 90–99% / 80–90% / 70–80% and bosses-elites ~70–80% across tiers.
+    /// Smooth gear-compensation tuned for normal enemies and bosses.
     static func enemyGearCompensation(
         level: Int,
         identityStats: PrimaryStats,
-        isBoss: Bool = false,
-        isElite: Bool = false
+        isBoss: Bool = false
     ) -> EnemyGearCompensation {
         let progress = smoothstep(min(max(Double(level) / 40.0, 0), 1))
         let midT = smoothstep(min(max((Double(level) - 5.0) / 20.0, 0), 1))
@@ -201,15 +199,8 @@ public enum StatGrowth {
                 + (0.46 * earlyT) + (0.20 * midPeakT)
             statScale = (0.50 * progress) + (0.32 * midT) + (0.48 * lateT) + (0.62 * earlyT) + (0.34 * midPeakT)
             extraToughness = Int((1.0 + (1.5 * lateT) + (2.5 * earlyT) + (1.5 * midPeakT)).rounded())
-        } else if isElite {
-            healthMultiplier = 1.0 + 0.10 + (0.14 * progress) + (0.14 * midT) + (0.18 * lateT)
-                + (1.46 * earlyT) + (0.28 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.12 * progress) + (0.18 * midT) + (0.20 * lateT)
-                + (0.50 * earlyT) + (0.18 * midPeakT)
-            statScale = (0.55 * progress) + (0.35 * midT) + (0.52 * lateT) + (0.74 * earlyT) + (0.34 * midPeakT)
-            extraToughness = Int((1.0 + (1.5 * lateT) + (4.3 * earlyT) + (1.5 * midPeakT)).rounded())
         } else {
-            // Fodder: extra compensation for 2v1 party advantage at matched level.
+            // Normal enemies: extra compensation for 2v1 party advantage at matched level.
             healthMultiplier = 1.0 + 0.08 + (0.14 * progress) + (0.64 * midT) + (0.46 * lateT)
                 + (0.26 * midPeakT)
             primaryStatMultiplier = 1.0 + (0.06 * progress) + (0.52 * midT) + (0.40 * lateT)
@@ -238,14 +229,12 @@ public enum StatGrowth {
         maxMana: Int,
         primaryStats: PrimaryStats,
         level: Int,
-        isBoss: Bool = false,
-        isElite: Bool = false
+        isBoss: Bool = false
     ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
         let compensation = enemyGearCompensation(
             level: level,
             identityStats: primaryStats,
-            isBoss: isBoss,
-            isElite: isElite
+            isBoss: isBoss
         )
         guard compensation != .none else {
             return (maxHealth, maxMana, primaryStats)

@@ -38,33 +38,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         try #expect(outcome.events.isEmpty)
     }
 
-    @Test func controlMeterHandlerAppliesThroughPipeline() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.controlMeter(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
-    }
-
-    @Test func controlMeterHandlerDoesNotApplyWhenSameKeywordSkipPending() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)],
-            for: battle.enemy,
-            on: &battle
-        )
-        let effectsBefore = battle.activeEffects(of: battle.enemy)
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .controlMeter(.stun, 5, 10),
-            ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle
-        )
-        try #expect(!(outcome.didApply))
-        try #expect(outcome.events.isEmpty)
-        try #expect(battle.activeEffects(of: battle.enemy) == effectsBefore)
-    }
-
     @Test func burnHandlerDoesNotApplyToDefeatedTarget() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy

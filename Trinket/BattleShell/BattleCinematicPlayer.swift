@@ -17,12 +17,12 @@ final class BattleCinematicPlayer {
 
     private init() {}
 
-    func warmLoadout(heroUltimateID: String?, petUltimateID: String?) {
+    func warmLoadout(heroUltimateID: String?, companionUltimateID: String?) {
         if let heroUltimateID {
             warm(abilityID: heroUltimateID)
         }
-        if let petUltimateID {
-            warm(abilityID: petUltimateID)
+        if let companionUltimateID {
+            warm(abilityID: companionUltimateID)
         }
     }
 

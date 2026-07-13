@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -83,6 +84,17 @@ struct LabyrinthCatalogTests {
         #expect(LabyrinthNodeType.event.canonical == .mystery)
         #expect(LabyrinthNodeType.event.title == "Mystery")
         #expect(LabyrinthNodeType.event.primaryActionTitle == "Approach")
+    }
+
+    @Test func legacyEliteNodeTypeDecodesAsBattle() throws {
+        let legacy = try JSONDecoder().decode(
+            LabyrinthNodeType.self,
+            from: Data(#""elite""#.utf8)
+        )
+        #expect(legacy == .battle)
+
+        let encoded = try JSONEncoder().encode(legacy)
+        #expect(String(data: encoded, encoding: .utf8) == #""battle""#)
     }
 
     @Test func threatModifiersAlwaysCarryBountyBump() {

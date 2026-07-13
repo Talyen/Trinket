@@ -14,7 +14,6 @@ struct BattleCombatantPane: View {
     let hitReaction: CombatantHitReaction?
     let keywordBursts: [KeywordBurstRequest]
     let skillCallout: SkillCalloutPresentation?
-    let reduceMotion: Bool
     let hapticsEnabled: Bool
     let cinematicNamespace: Namespace.ID
     let onCombatantTap: () -> Void
@@ -34,19 +33,16 @@ struct BattleCombatantPane: View {
                         .clipped()
 
                     ForEach(keywordBursts) { burst in
-                        KeywordBurstView(request: burst, reduceMotion: reduceMotion)
+                        KeywordBurstView(request: burst)
                     }
 
-                    CombatFeedbackOverlay(
-                        items: items,
-                        reduceMotion: reduceMotion
-                    )
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, resourceBarsReservedHeight + 8)
-                    .padding(.top, 8)
+                    CombatFeedbackOverlay(items: items)
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, resourceBarsReservedHeight + 8)
+                        .padding(.top, 8)
 
                     if let skillCallout {
-                        SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
+                        SkillCalloutView(callout: skillCallout)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                             .padding(10)
                             .allowsHitTesting(false)
@@ -69,10 +65,6 @@ struct BattleCombatantPane: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketCardSurface()
             .contentShape(TrinketDesign.cardShape)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(accessibilityLabel)
-            .accessibilityValue(healthText)
-            .accessibilityHint("Shows details")
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -111,44 +103,34 @@ struct BattleCombatantPane: View {
         let recipe = TrinketMotion.Battle.cardReaction(for: kind)
         let flashColor = hitReaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
 
-        if reduceMotion {
+        KeyframeAnimator(
+            initialValue: CardReactionAnimationState(),
+            trigger: reactionID
+        ) { state in
             artworkLayer
+                .scaleEffect(state.scale)
+                .offset(x: state.offsetX)
                 .overlay {
-                    if kind == .damage || kind == .critical || kind == .block || kind == .heal {
-                        flashColor.opacity(kind == .heal ? 0.18 : kind == .block ? 0.14 : 0.22)
-                            .allowsHitTesting(false)
-                    }
+                    flashColor
+                        .opacity(state.flashOpacity)
+                        .allowsHitTesting(false)
                 }
-        } else {
-            KeyframeAnimator(
-                initialValue: CardReactionAnimationState(),
-                trigger: reactionID
-            ) { state in
-                artworkLayer
-                    .scaleEffect(state.scale)
-                    .offset(x: state.offsetX)
-                    .overlay {
-                        flashColor
-                            .opacity(state.flashOpacity)
-                            .allowsHitTesting(false)
-                    }
-            } keyframes: { _ in
-                KeyframeTrack(\.scale) {
-                    SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
-                    SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
-                }
-                KeyframeTrack(\.offsetX) {
-                    SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
-                    SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
-                }
-                KeyframeTrack(\.flashOpacity) {
-                    CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
-                    CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
-                }
+        } keyframes: { _ in
+            KeyframeTrack(\.scale) {
+                SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
+                SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+            KeyframeTrack(\.offsetX) {
+                SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
+                SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
+            }
+            KeyframeTrack(\.flashOpacity) {
+                CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
+                CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
     }
 
     private var isDefeated: Bool {
@@ -158,21 +140,7 @@ struct BattleCombatantPane: View {
     private var artworkLayer: some View {
         CombatantArtwork(combatant: combatant, variant: .battle)
             .saturation(isDefeated ? 0 : 1)
-            .animation(
-                reduceMotion ? nil : .easeOut(duration: TrinketMotion.Battle.reduceMotionFade),
-                value: isDefeated
-            )
-    }
-
-    private var accessibilityLabel: String {
-        "\(combatant.name) card"
-    }
-
-    private var healthText: String {
-        if hasMana {
-            return "\(health)/\(maxHealth) HP \(mana)/\(maxMana) MP"
-        }
-        return "\(health)/\(maxHealth) HP"
+            .animation(.easeOut(duration: 0.18), value: isDefeated)
     }
 
     private var resourceBarsReservedHeight: CGFloat {
@@ -188,8 +156,7 @@ struct BattleCombatantPane: View {
                 maxHealth: maxHealth,
                 fillColor: combatant.healthBarColor,
                 style: .battleBorder,
-                height: TrinketDesign.Metrics.battleHealthBarHeight,
-                reduceMotion: reduceMotion
+                height: TrinketDesign.Metrics.battleHealthBarHeight
             )
 
             if hasMana {
@@ -198,7 +165,6 @@ struct BattleCombatantPane: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .accessibilityHidden(true)
     }
 }
 

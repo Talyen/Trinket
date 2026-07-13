@@ -12,7 +12,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 | Type | Role |
 |------|------|
 | `BattleState` | Mutable simulation state; `playCard` / `endTurn` drive combat |
-| `BattleCard` / `BattleHand` / `BattleHandBuffer` / `CombatDeck` | Player ability cards drawn from Hero/Pet loadout decks; overflow waits in a hidden FIFO buffer |
+| `BattleCard` / `BattleHand` / `BattleHandBuffer` / `CombatDeck` | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in a hidden FIFO buffer |
 | `BattleCardCombatEngine` | Opening draw, play resolution, enemy turn, end-of-round effect tick |
 | `BattleSimulator` | Headless autoplay loop for balance sweeps |
 | `BalanceSweepRunner` | Stratified Monte Carlo sweep + markdown reports |

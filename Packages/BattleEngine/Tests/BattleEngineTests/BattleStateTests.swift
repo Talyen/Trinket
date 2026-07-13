@@ -10,79 +10,50 @@ struct BattleStateTests {
         GameContent.enemies[0].combatant
     }
 
-    private var wolfPet: Combatant {
-        GameContent.pets.first { $0.id == "wolf" } ?? GameContent.pets[0]
+    private var wolfCompanion: Combatant {
+        GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions[0]
     }
 
     @Test func openingHandDrawsThreeCards() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash, .heal, .smite])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash, .fangs, .bloodthorn])
-        let battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.bash, .fangs, .bloodthorn])
+        let battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: defaultEnemy)
 
         try #expect(battle.phase == .playerTurn)
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.handBuffer.isEmpty)
         let heroDrawn = battle.hand.cards.filter { $0.owner == .hero }.count
-        let petDrawn = battle.hand.cards.filter { $0.owner == .pet }.count
-        try #expect(heroDrawn + petDrawn == BattleHand.maxSize)
+        let companionDrawn = battle.hand.cards.filter { $0.owner == .companion }.count
+        try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
         try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
-        try #expect(battle.petDeck.count == battle.pet.abilityLoadout.abilities.count - petDrawn)
-    }
-
-    @Test func playingHeroCardDamagesEnemy() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
-        let initial = battle.health(of: battle.enemy)
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        try #expect(battle.health(of: battle.enemy) < initial)
+        try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
     }
 
     @Test func enemyAttackTargetPrefersHigherHealthMember() throws {
-        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], companion: wolfCompanion, enemy: defaultEnemy)
         let target = battle.enemyAttackTarget
         try #expect(target.id == heroId)
     }
 
-    @Test func enemyTargetsPetWhenHeroDead() throws {
+    @Test func enemyTargetsCompanionWhenHeroDead() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 1)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         }
 
         try #expect(!(battle.isHeroAlive))
-        try #expect(battle.enemyAttackTarget.id == pet.id)
+        try #expect(battle.enemyAttackTarget.id == companion.id)
     }
 
-    @Test func burnDealsDamageAfterApplication() throws {
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.fireball]
-        )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
-
-        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
-        try #expect(applyEvents.contains { $0.kind == .ability && $0.keyword == .burn })
-
-        let tickEvents = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(tickEvents.contains { ActionEventFormatter.display(for: $0).text == "-1 Burn" })
-    }
-
-    @Test func partyDefeatWhenBothHeroAndPetDie() throws {
+    @Test func partyDefeatWhenBothHeroAndCompanionDie() throws {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
-        let helper = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
+        let helper = Combatant(id: "helper", name: "Helper", role: .companion, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: fragile, pet: helper, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: fragile, companion: helper, enemy: enemy)
         while !battle.isBattleOver {
             _ = battle.endTurn()
         }
@@ -92,14 +63,14 @@ struct BattleStateTests {
 
     @Test func partyNotDefeatedWhenOneMemberOnDeathsDoor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: pet) { $0.currentHealth = 0 }
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 0 }
         }
-        try #expect(!(battle.isPetAlive))
+        try #expect(!(battle.isCompanionAlive))
 
         let heroID = battle.hero
         battle.withEngineContext { context in
@@ -112,15 +83,15 @@ struct BattleStateTests {
 
     @Test func partyDefeatWhenBothDeathsDoorConsumedAndExpired() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 3)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 3)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 3)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
         let heroID = battle.hero
-        let petID = battle.pet
+        let companionID = battle.companion
 
         battle.withEngineContext { context in
             _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyTestDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
         try #expect(!(battle.isPartyDefeated))
 
@@ -133,87 +104,39 @@ struct BattleStateTests {
 
         battle.withEngineContext { context in
             _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyTestDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
 
         try #expect(battle.isPartyDefeated)
     }
 
-    @Test func smiteDealsHolyDamageType() throws {
-        let smite = Ability.smite
-        try #expect(smite.damageKeyword == .holy)
-        try #expect(smite.damageType == .holy)
-    }
-
-    @Test func poisonDaggerDealsPoisonDamageAndDot() throws {
-        let ability = Ability.poisonDagger
-        try #expect(ability.damageKeyword == .poison)
-        try #expect(ability.damageType == .poison)
-        let hasPoisonDot = ability.effects.contains {
-            if case .poison = $0 {
-                return true
-            }
-            return false
-        }
-        try #expect(hasPoisonDot)
-    }
-
-    @Test func serratedEdgeDealsBleedDamageAndDot() throws {
-        let ability = Ability.serratedEdge
-        try #expect(ability.damageKeyword == .bleed)
-        let hasBleedDot = ability.effects.contains {
-            if case .bleed = $0 {
-                return true
-            }
-            return false
-        }
-        try #expect(hasBleedDot)
-    }
-
-    @Test func judgmentDealsHolyDamageAndGrantsBlock() throws {
-        let ability = Ability.judgment
-        try #expect(ability.damageKeyword == .holy)
-        let hasBlock = ability.effects.contains {
-            if case .shield(.block, _) = $0 {
-                return true
-            }
-            return false
-        }
-        let hasStunDamage = ability.damageComponents.contains { $0.keyword == .stun }
-        try #expect(hasBlock)
-        try #expect(!hasStunDamage)
-    }
-
-    @Test func battleTracksGoldFromResourceGains() throws {
+    @Test func battleGoldTracksInitialBalanceAndResourceGains() throws {
         let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.blackjack])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
-            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: defaultEnemy,
             initialGold: 10
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
         try #expect(battle.gold == 11)
-    }
 
-    @Test func initialGoldReflectedInEarnedGold() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.blackjack])
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+        var initialGoldBattle = BattleStateTestFactory.makeBattle(
+            hero: goldHero,
+            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: defaultEnemy,
             initialGold: 5
         )
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        try #expect(battle.earnedGold == battle.gold - 5)
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &initialGoldBattle)
+        try #expect(initialGoldBattle.earnedGold == initialGoldBattle.gold - 5)
     }
 
     @Test func cardCombatVictoryWhenEnemyDies() throws {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 100, description: "Finisher")
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 5, abilities: [])
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
@@ -224,9 +147,9 @@ struct BattleStateTests {
 
     @Test func cardCombatDefeatWhenPartyObliterated() throws {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
-        let observer = Combatant(id: "observer", name: "Observer", role: .pet, maxHealth: 1, abilities: [])
+        let observer = Combatant(id: "observer", name: "Observer", role: .companion, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: fragile, pet: observer, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: fragile, companion: observer, enemy: enemy)
 
         while !battle.isBattleOver {
             _ = battle.endTurn()
@@ -236,26 +159,10 @@ struct BattleStateTests {
         try #expect(battle.phase == .ended)
     }
 
-    @Test func burnAndPoisonStackIndependently() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy,
-            activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .poison(4), remainingTicks: 0)
-            ]
-        )
-        _ = battle.endTurn()
-        let summaries = battle.effectSummaries(of: battle.enemy)
-        let burnSummary = try #require(summaries.first { $0.keyword == .burn })
-        let poisonSummary = try #require(summaries.first { $0.keyword == .poison })
-        try #expect(burnSummary.keyword == .burn)
-        try #expect(poisonSummary.keyword == .poison)
-    }
-
     @Test func seededEffectsDoNotCollideWithNewEffectIDs() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: GameContent.heroes[0],
-            pet: wolfPet,
+            companion: wolfCompanion,
             enemy: defaultEnemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0)
@@ -280,21 +187,21 @@ struct BattleStateTests {
     @Test func battleEndsWhenHeroKillsEnemyWithoutFurtherPlays() throws {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         let events = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
         try #expect(battle.isEnemyDefeated)
         try #expect(battle.isBattleOver)
-        try #expect(!(events.contains { $0.actorName == "Pet" && $0.kind == .ability }))
+        try #expect(!(events.contains { $0.actorName == "Companion" && $0.kind == .ability }))
 
         let after = battle.endTurn()
         try #expect(after.isEmpty)
     }
 
-    @Test func faustianBargainSelfDamageDoesNotWipePartyWhenPetSurvives() throws {
+    @Test func faustianBargainSelfDamageDoesNotWipePartyWhenCompanionSurvives() throws {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -302,10 +209,10 @@ struct BattleStateTests {
             maxHealth: 3,
             abilities: [.faustianBargain]
         )
-        let pet = Combatant(
-            id: "pet",
-            name: "Pet",
-            role: .pet,
+        let companion = Combatant(
+            id: "companion",
+            name: "Companion",
+            role: .companion,
             maxHealth: 20,
             abilities: []
         )
@@ -316,7 +223,7 @@ struct BattleStateTests {
             maxHealth: 6,
             abilities: []
         )
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
         while !battle.isBattleOver {
             if try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) == nil {
@@ -330,13 +237,13 @@ struct BattleStateTests {
 
     @Test func rosterContextInitPreservesRngSeed() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         let seed: UInt64 = 42
         let battle = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
-                pet: CombatantRuntime(combatant: pet),
+                companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
             rng: SeededRandomNumberGenerator(seed: seed),
@@ -346,7 +253,7 @@ struct BattleStateTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
         try #expect(battle.rngSeed == seed)

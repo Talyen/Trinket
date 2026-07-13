@@ -134,32 +134,32 @@ public enum PlayerSaveSanitizer {
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
-        petIDs: Set<String> = Set(GameContent.pets.map(\.id))
+        companionIDs: Set<String> = Set(GameContent.companions.map(\.id))
     ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = heroIDs
-        let validPetIDs = petIDs
+        let validCompanionIDs = companionIDs
 
         var sanitized = roster
         sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)
         sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filter { validHeroIDs.contains($0) }
-        sanitized.unlockedPetIDs = roster.unlockedPetIDs.filter { validPetIDs.contains($0) }
+        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.filter { validCompanionIDs.contains($0) }
 
         if sanitized.unlockedHeroIDs.isEmpty {
             sanitized.unlockedHeroIDs = [PlayerRosterState.starterHeroID]
         }
-        if sanitized.unlockedPetIDs.isEmpty {
-            sanitized.unlockedPetIDs = [PlayerRosterState.starterPetID]
+        if sanitized.unlockedCompanionIDs.isEmpty {
+            sanitized.unlockedCompanionIDs = [PlayerRosterState.starterCompanionID]
         }
 
-        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
+        let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: sanitized.activeHeroID,
-            activePetID: sanitized.activePetID,
+            activeCompanionID: sanitized.activeCompanionID,
             unlockedHeroIDs: sanitized.unlockedHeroIDs,
-            unlockedPetIDs: sanitized.unlockedPetIDs
+            unlockedCompanionIDs: sanitized.unlockedCompanionIDs
         )
         sanitized.activeHeroID = resolvedHeroID
-        sanitized.activePetID = resolvedPetID
+        sanitized.activeCompanionID = resolvedCompanionID
 
         let wireEquipment = roster.equipmentLoadouts.mapValues(WireEquipmentLoadout.init)
         sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(

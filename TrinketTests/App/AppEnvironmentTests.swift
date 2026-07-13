@@ -10,7 +10,7 @@ struct AppEnvironmentTests {
         #expect(env.launchTab == tab)
     }
 
-    @Test(arguments: ["heroes", "pets", "inventory", "search", "Heroes", "PETS", "SEARCH"])
+    @Test(arguments: ["heroes", "companions", "inventory", "search", "Heroes", "COMPANIONS", "SEARCH"])
     func collectionTabAliasesMapToCollection(alias: String) {
         let env = Self.parse(arguments: ["-selectedTab", alias])
         #expect(env.launchTab == .collection, "Expected alias '\(alias)' to map to collection")
@@ -21,20 +21,17 @@ struct AppEnvironmentTests {
         #expect(env.launchTab == nil)
     }
 
-    @Test func launchScreenParsesHeroPetAndItemDetails() {
+    @Test func launchScreenParsingCoversDetailsModesAndBoundaries() {
         #expect(
             Self.parse(arguments: ["-launch-screen", "hero:knight"]).launchScreen == .heroDetail("knight")
         )
         #expect(
-            Self.parse(arguments: ["-launch-screen", "pet:bear"]).launchScreen == .petDetail("bear")
+            Self.parse(arguments: ["-launch-screen", "companion:bear"]).launchScreen == .companionDetail("bear")
         )
         #expect(
             Self.parse(arguments: ["-launch-screen", "item:longsword-basic"]).launchScreen
                 == .itemDetail("longsword-basic")
         )
-    }
-
-    @Test func launchScreenParsesOptionsAndBattle() {
         #expect(Self.parse(arguments: ["-launch-screen", "options"]).launchScreen == .options)
         #expect(Self.parse(arguments: ["-launch-screen", "battle"]).launchScreen == .battle)
         #expect(
@@ -42,80 +39,36 @@ struct AppEnvironmentTests {
         )
         #expect(Self.parse(arguments: ["-launch-screen", "shop"]).launchScreen == .shop)
         #expect(Self.parse(arguments: ["-launch-screen", "mystery"]).launchScreen == .mystery)
-    }
 
-    @Test func launchScreenRejectsEmptyIDsAndUnknownKinds() {
         #expect(Self.parse(arguments: ["-launch-screen", "hero:"]).launchScreen == nil)
         #expect(Self.parse(arguments: ["-launch-screen", "unknown:foo"]).launchScreen == nil)
-    }
-
-    @Test func launchScreenIgnoresTrailingIDForOptions() {
         #expect(Self.parse(arguments: ["-launch-screen", "options:extra"]).launchScreen == .options)
     }
 
-    @Test func resetStateFlag() {
-        #expect(Self.parse(arguments: ["-reset-state"]).resetState)
-        #expect(!Self.parse(arguments: []).resetState)
-    }
-
-    @Test func seedTestProgressFlag() {
-        #expect(Self.parse(arguments: ["-seed-test-progress"]).seedTestProgress)
-        #expect(!Self.parse(arguments: []).seedTestProgress)
-    }
-
-    @Test func disableCloudSyncFlag() {
-        #expect(Self.parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
-        // F1 ship posture: CloudKit off unless -enable-cloud-sync is passed.
-        #expect(Self.parse(arguments: []).disableCloudSync)
-    }
-
-    @Test func disableAudioFlag() {
-        #expect(Self.parse(arguments: ["-disable-audio"]).disableAudio)
-        #expect(!Self.parse(arguments: []).disableAudio)
-    }
-
-    @Test func resetStateImplicitlyDisablesCloudSync() {
-        #expect(Self.parse(arguments: ["-reset-state"]).disableCloudSync)
-    }
-
-    @Test func persistSaveImmediatelyFlag() {
-        #expect(Self.parse(arguments: ["-persist-save-immediately"]).persistSaveImmediately)
-        #expect(!Self.parse(arguments: []).persistSaveImmediately)
-    }
-
-    @Test func battleTickIntervalParsesExplicitValue() {
-        let env = Self.parse(arguments: ["-battle-tick-interval", "0.25"])
-        #expect(env.battleTickInterval == 0.25)
-    }
-
-    @Test func battleTickIntervalExplicitValueIsHonored() {
-        let env = Self.parse(arguments: ["-battle-tick-interval", "0.4"])
+    @Test func commandLineFlagsParseAsSemanticGroups() {
+        let env = Self.parse(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-disable-audio",
+            "-persist-save-immediately",
+            "-battle-tick-interval", "0.4",
+            "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
+            "-map-scroll-target", "chapter-gate-placeholder-2",
+            "-mystery-recruit-event", "recruit-knight"
+        ])
+        #expect(env.resetState)
+        #expect(env.seedTestProgress)
+        #expect(env.disableCloudSync)
+        #expect(env.disableAudio)
+        #expect(env.persistSaveImmediately)
         #expect(env.battleTickInterval == 0.4)
-    }
-
-    @Test func invalidBattleTickIntervalIgnored() {
-        let env = Self.parse(arguments: ["-battle-tick-interval", "not-a-number"])
-        #expect(env.battleTickInterval == nil)
-    }
-
-    @Test func completedStagesParsesCommaSeparatedIDs() {
-        let env = Self.parse(arguments: ["-completed-stages", "chapter-1-stage-1,chapter-1-stage-2"])
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
-    }
-
-    @Test func completedStagesFiltersEmptySegments() {
-        let env = Self.parse(arguments: ["-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,"])
-        #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
-    }
-
-    @Test func mapScrollTargetParsesTargetID() {
-        let env = Self.parse(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
-    }
+        #expect(env.mysteryRecruitEventID == "recruit-knight")
 
-    @Test func mapScrollTargetRejectsEmptyValue() {
-        let env = Self.parse(arguments: ["-map-scroll-target", ""])
-        #expect(env.mapScrollTarget == nil)
+        #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
+        #expect(Self.parse(arguments: ["-map-scroll-target", ""]).mapScrollTarget == nil)
+        #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
     }
 
     @Test func noFlagsYieldsDefaultEnvironment() {
@@ -129,21 +82,10 @@ struct AppEnvironmentTests {
         #expect(!env.disableAudio)
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mapScrollTarget == nil)
+        #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
         #expect(!env.persistSaveImmediately)
     }
-
-    @Test func enableCloudSyncFlag() {
-        let env = Self.parse(arguments: ["-enable-cloud-sync"])
-        #expect(!env.disableCloudSync)
-    }
-
-    #if targetEnvironment(simulator)
-    @Test func enableCloudSyncFlagOnSimulator() {
-        let env = Self.parse(arguments: ["-enable-cloud-sync"])
-        #expect(!env.disableCloudSync)
-    }
-    #endif
 
     private static func parse(
         arguments: [String],

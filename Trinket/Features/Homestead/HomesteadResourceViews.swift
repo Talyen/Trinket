@@ -8,13 +8,10 @@ struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
 
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
     private var columns: [GridItem] {
-        let count = dynamicTypeSize.isAccessibilitySize ? 3 : 4
-        return Array(
+        Array(
             repeating: GridItem(.flexible(minimum: 0), spacing: TrinketDesign.Metrics.smallSpacing),
-            count: count
+            count: 4
         )
     }
 
@@ -29,17 +26,13 @@ struct HomesteadResourceWallet: View {
         }
         .padding(6)
         .trinketMaterial(.homesteadFooter)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
-        .accessibilityLabel("Homestead resources")
     }
 }
 
 struct HomesteadResourcePill: View {
     let resource: HomesteadResource
     let balance: Int
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 8) {
@@ -59,12 +52,7 @@ struct HomesteadResourcePill: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
-        .animation(
-            reduceMotion ? TrinketMotion.Homestead.reduceMotion : TrinketMotion.Homestead.tierCompletion,
-            value: balance
-        )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(resource.displayName), \(balance) available")
+        .animation(TrinketMotion.Homestead.tierCompletion, value: balance)
     }
 }
 
@@ -76,13 +64,12 @@ struct HomesteadResourceArtwork: View {
             Image(art.imageName)
                 .resizable()
                 .scaledToFit()
-                .accessibilityHidden(true)
+
         } else {
             Image(systemName: resource.symbolName)
                 .font(.body.weight(.semibold))
                 .foregroundStyle(resource.tint)
                 .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
         }
     }
 }

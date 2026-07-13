@@ -93,13 +93,27 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 | Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
 | Integration | `test.sh all` | Nightly / manual |
 
-For agent or local task handoffs, `./Scripts/changed-source-summary.sh` lists only
-authored changes and suggests the smallest context cards and verification route.
-Run `./Scripts/verify-changed.sh --dry-run` to inspect the exact sequential plan;
-without `--dry-run`, it generates inputs once and runs the selected focused checks.
+For agent or local task handoffs, `./Scripts/agent-context.sh --paths <file...>`
+prints a compact briefing with applicable nested `AGENTS.md` guides, context
+cards/skills, generated-output and boundary warnings, and the verification route.
+Use `--json` for machine-readable output or `--agent` for a concise handoff.
+Without `--paths`, it reports the entire working tree, which is useful only when the
+tree represents one task. `./Scripts/verify-changed.sh --dry-run --paths <file...>`
+is the authoritative sequential-plan preview; without `--dry-run`, it generates
+inputs once and runs the selected focused checks.
 It intentionally does not replace the pre-push or pre-merge gates.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`). XcodeGen uses its cache so unchanged project inputs do not rewrite the project, and the app/test source roots are Xcode synchronized folders so ordinary source-file additions and deletions do not require regeneration. CI reports timing regressions from per-run artifacts, but does not fail a passing suite solely because hosted-runner session overhead exceeds a wall-clock budget. Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`.
+
+For failure report schemas and triage order, read
+`Docs/AgentContext/ci-diagnostics.md`. Operators can aggregate current reports with
+`./Scripts/ci-diagnostics.sh .DerivedData/TestResults` or clear cached status and
+diagnostic artifacts with `./Scripts/ci-diagnostics.sh --reset
+.DerivedData/TestResults`. Consume the structured aggregate and per-invocation reports
+before raw xcodebuild logs; an `unknown` category is the explicit escalation path.
+CI keeps the existing `test.sh`/`test-package.sh` scopes and omits `--verbose` so
+structured reports remain the primary actionable output while raw logs stay available
+as artifacts.
 
 ### Toolchain ladder (cloud / no Xcode 26)
 
@@ -122,8 +136,10 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/release-notes-user.sh` | Generate App Store notes + `.prompt.md` |
 | `./Scripts/release.sh` | Full release orchestration |
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
-| `./Scripts/changed-source-summary.sh` | Summarize authored changes and focused agent route |
-| `./Scripts/verify-changed.sh [--dry-run]` | Run the minimum sequential verification selected from changes |
+| `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
+| `./Scripts/changed-source-summary.sh [--paths <file...>]` | Summarize task-scoped or working-tree changes and focused agent route |
+| `./Scripts/verify-changed.sh [--dry-run] [--paths <file...>]` | Run the minimum sequential verification selected from task-scoped or working-tree changes |
+| `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
 
 ### Typical release flow
@@ -150,7 +166,7 @@ Release and uploads App Store note artifacts.
 
 ## Style & lint ownership
 
-`./Scripts/test.sh style` runs three complementary checks. Do not blur their roles:
+`./Scripts/test.sh style` runs four complementary checks. Do not blur their roles:
 
 | Tool | Config | Owns |
 |------|--------|------|

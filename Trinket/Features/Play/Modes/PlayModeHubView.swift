@@ -1,146 +1,213 @@
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
-import TrinketPersistence
 
-/// Peer mode picker for the Play tab — Campaign, Aspects, and Labyrinth are equals.
+/// The Play tab's root: two broad choices with a clear visual promise.
+///
+/// Campaign remains the existing linear Chapter/Stage journey. Explore is the
+/// home for the currently available open-ended sub-modes while the future
+/// world map is being designed.
 struct PlayModeHubView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let onOpenCampaign: () -> Void
-    let onOpenAspects: () -> Void
-    let onOpenLabyrinth: () -> Void
+    let onOpenExplore: () -> Void
 
-    private var modesUnlocked: Bool {
-        ModesUnlock.isUnlocked(journey: appState.journey.current)
+    @State private var committedSelection: Mode?
+
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            return [
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
+            ]
+        }
+        return [GridItem(.flexible())]
     }
 
     var body: some View {
-        List {
-            Section {
-                Button(action: onOpenCampaign) {
-                    modeRow(
-                        title: "Campaign",
-                        subtitle: campaignSubtitle,
-                        systemImage: "map.fill"
-                    )
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(AccessibilityID.Play.campaignModeCard)
-
-                aspectsRow
-                labyrinthRow
-
-                lockedModeRow(
-                    title: "Reliquary Gauntlet",
-                    systemImage: "shield.lefthalf.filled"
-                )
-                .disabled(true)
-                lockedModeRow(
-                    title: "Astral Hunt",
-                    systemImage: "scope"
-                )
-                .disabled(true)
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
+                modeCard(.campaign)
+                modeCard(.explore)
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.denseList)
         .accessibilityIdentifier(AccessibilityID.Play.modesScreen)
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: committedSelection,
+            enabled: appState.options.hapticsEnabled
+        )
     }
 
-    private var campaignSubtitle: String {
-        let chapter = appState.playChapter
-        if let stageID = appState.journey.current.activeStageID,
-           let stage = GameContent.stage(id: stageID) {
-            return "Chapter \(chapter.number) · \(stage.mapLabel)"
-        }
-        return "Chapter \(chapter.number) · Complete"
-    }
-
-    @ViewBuilder
-    private var aspectsRow: some View {
-        if modesUnlocked {
-            Button(action: onOpenAspects) {
-                modeRow(
-                    title: "Aspects",
-                    systemImage: "sparkles"
-                )
+    private func modeCard(_ mode: Mode) -> some View {
+        Button {
+            committedSelection = mode
+            switch mode {
+            case .campaign:
+                onOpenCampaign()
+            case .explore:
+                onOpenExplore()
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
-        } else {
-            lockedModeRow(
-                title: "Aspects",
-                systemImage: "sparkles",
-                accessibilityHint: ModesUnlock.unlockHint
+        } label: {
+            PlayModeArtworkCard(
+                mode: mode,
+                subtitle: subtitle(for: mode)
             )
-            .disabled(true)
-            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
         }
+        .trinketArtworkNavigationCardButtonStyle()
+        .accessibilityIdentifier(mode.accessibilityIdentifier)
     }
 
-    @ViewBuilder
-    private var labyrinthRow: some View {
-        if appState.isLabyrinthUnlocked {
-            Button(action: onOpenLabyrinth) {
-                modeRow(
-                    title: "The Labyrinth",
-                    systemImage: "point.topleft.down.to.point.bottomright.curvepath"
-                )
+    private func subtitle(for mode: Mode) -> String? {
+        switch mode {
+        case .campaign:
+            let chapter = appState.playChapter
+            if let stageID = appState.journey.current.activeStageID,
+               let stage = GameContent.stage(id: stageID) {
+                return "Chapter \(chapter.number) · \(stage.mapLabel)"
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
-        } else {
-            lockedModeRow(
-                title: "The Labyrinth",
-                systemImage: "point.topleft.down.to.point.bottomright.curvepath",
-                accessibilityHint: LabyrinthUnlock.unlockHint(
-                    journey: appState.journey.current,
-                    aspects: appState.aspects.current
-                )
-            )
-            .disabled(true)
-            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
+            return "Chapter \(chapter.number) · Complete"
+        case .explore:
+            return nil
         }
     }
 
-    private func modeRow(
-        title: String,
-        subtitle: String? = nil,
-        systemImage: String,
-        isLocked: Bool = false
-    ) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(title)
-                        .trinketTypography(.button)
+    fileprivate enum Mode: CaseIterable, Hashable {
+        case campaign
+        case explore
 
-                    if isLocked {
-                        Image(systemName: "lock.fill")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                    }
-                }
+        var title: String {
+            switch self {
+            case .campaign: "Campaign"
+            case .explore: "Explore"
+            }
+        }
+
+        var symbolName: String? {
+            switch self {
+            case .campaign: "map.fill"
+            case .explore: nil
+            }
+        }
+
+        var accessibilityIdentifier: String {
+            switch self {
+            case .campaign: AccessibilityID.Play.campaignModeCard
+            case .explore: AccessibilityID.Play.exploreModeCard
+            }
+        }
+
+        var artID: String {
+            switch self {
+            case .campaign: "gameModeCampaign"
+            case .explore: "gameModeExplore"
+            }
+        }
+
+        var fallbackArtID: String {
+            switch self {
+            case .campaign: "chapter-1"
+            case .explore: "homestead"
+            }
+        }
+    }
+}
+
+private struct PlayModeArtworkCard: View {
+    let mode: PlayModeHubView.Mode
+    let subtitle: String?
+
+    private var art: BackgroundArtReference? {
+        ArtCatalog.backgroundArtByID[mode.artID]
+            ?? ArtCatalog.backgroundArtByID[mode.fallbackArtID]
+    }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            if let art {
+                FocalArtwork(art: art)
+
+            } else {
+                TrinketDesign.Colors.surface
+            }
+
+            TrinketHeroScrim.gradient(
+                for: .chapter,
+                startPoint: .init(x: 0.5, y: 0.28),
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
+
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                Text(mode.title)
+                    .trinketTypography(.screenDisplay)
+                    .trinketOnArtText(.title)
+                    .lineLimit(1)
+
                 if let subtitle {
-                    Text(subtitle)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
+                    HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
+                        if let symbolName = mode.symbolName {
+                            Image(systemName: symbolName)
+                                .font(.caption.weight(.bold))
+                        }
+
+                        Text(subtitle)
+                            .trinketTypography(.secondaryBody)
+                            .lineLimit(2)
+                    }
+                    .trinketOnArtText(.eyebrow)
                 }
             }
-        } icon: {
-            Image(systemName: systemImage)
+            .padding(TrinketDesign.Metrics.largeSpacing)
         }
+        .aspectRatio(1.35, contentMode: .fit)
+        .clipShape(TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(TrinketDesign.Colors.Overlay.paper.opacity(0.18), lineWidth: 1)
+        }
+        .shadow(
+            color: TrinketDesign.Colors.Overlay.ink.opacity(0.42),
+            radius: 12,
+            y: 6
+        )
     }
+}
 
-    private func lockedModeRow(
-        title: String,
-        systemImage: String,
-        accessibilityHint: String? = nil
-    ) -> some View {
-        modeRow(title: title, systemImage: systemImage, isLocked: true)
-            .accessibilityHint(accessibilityHint ?? "Locked")
+private struct FocalArtwork: View {
+    let art: BackgroundArtReference
+
+    /// Generated mode art uses the same 4:3 source crop as chapter and
+    /// homestead backgrounds. Applying the catalog focal point keeps subjects
+    /// stable when cards switch between portrait and regular-width layouts.
+    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
+
+    var body: some View {
+        GeometryReader { geometry in
+            let container = geometry.size
+            let scale = max(container.width / sourceAspectRatio, container.height)
+            let renderedWidth = sourceAspectRatio * scale
+            let renderedHeight = scale
+            let overflowX = max(renderedWidth - container.width, 0)
+            let overflowY = max(renderedHeight - container.height, 0)
+            let offsetX = (0.5 - art.focalPoint.x) * overflowX
+            let offsetY = (0.5 - art.focalPoint.y) * overflowY
+
+            Image(art.imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(width: container.width, height: container.height)
+                .offset(x: offsetX, y: offsetY)
+        }
+        .clipped()
     }
 }

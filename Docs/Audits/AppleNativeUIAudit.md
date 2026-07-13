@@ -32,7 +32,7 @@ Inventory custom vs tokenized vs justified-custom, then fix **one** cluster — 
 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll via `onScrollGeometryChange`; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
 
-**Tie-breakers:** (1) adopt existing tokens over new APIs, (2) Dynamic Type / a11y gaps over cosmetic spacing, (3) duplicated constants over one-off sizes, (4) extract/document justified custom over rewriting it.
+**Tie-breakers:** (1) adopt existing tokens over new APIs, (2) visible UI clarity and native control behavior over cosmetic spacing, (3) duplicated constants over one-off sizes, (4) extract/document justified custom over rewriting it. Comprehensive accessibility work follows PD-007 rather than this audit.
 
 ## Domain rules
 
@@ -44,4 +44,4 @@ Hardcoded stack spacing / padding; point-sized fonts; `GeometryReader` / `Prefer
 
 ## Verify
 
-`check-ui-style.sh` + lint; `test-package.sh TrinketDesignSystem` for chrome/motion/typography; focused unit/smoke when app layout or identifiers change. When Simulator is available, spot-check Dynamic Type on the chosen screen.
+`check-ui-style.sh` + lint; `test-package.sh TrinketDesignSystem` for chrome/motion/typography; focused unit/smoke when app layout or identifiers change. When Simulator is available, spot-check the supported visual layout on the chosen screen.

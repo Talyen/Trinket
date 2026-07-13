@@ -24,7 +24,7 @@ struct OptionsUltimateSkipPolicyTests {
         )
         #expect(
             options.shouldAutoSkipUltimateCinematic(
-                actorID: "pet",
+                actorID: "companion",
                 actorsWhoPresentedThisBattle: ["hero"]
             ) == false
         )

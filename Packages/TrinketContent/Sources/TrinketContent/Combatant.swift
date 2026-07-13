@@ -4,7 +4,7 @@ import TrinketCore
 public struct Combatant: Identifiable, Hashable, Sendable {
     public enum Role: String, Sendable {
         case hero = "Hero"
-        case pet = "Pet"
+        case companion = "Companion"
         case enemy = "Enemy"
     }
 
@@ -124,7 +124,7 @@ public extension Combatant.Role {
         switch self {
         case .hero:
             "person.fill"
-        case .pet:
+        case .companion:
             "pawprint.fill"
         case .enemy:
             "flame.fill"

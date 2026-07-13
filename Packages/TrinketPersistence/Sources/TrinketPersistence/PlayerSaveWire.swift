@@ -149,9 +149,9 @@ struct WireInventoryItem: Codable, Equatable {
 
 struct WireRosterState: Codable, Equatable {
     var activeHeroID: String
-    var activePetID: String
+    var activeCompanionID: String
     var unlockedHeroIDs: [String]
-    var unlockedPetIDs: [String]
+    var unlockedCompanionIDs: [String]
     var abilityLoadouts: [String: WireAbilityLoadout]
     var progressions: [String: CombatantProgression]
     var equipmentLoadouts: [String: WireEquipmentLoadout]
@@ -160,9 +160,9 @@ struct WireRosterState: Codable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case activeHeroID
-        case activePetID
+        case activeCompanionID
         case unlockedHeroIDs
-        case unlockedPetIDs
+        case unlockedCompanionIDs
         case abilityLoadouts
         case progressions
         case equipmentLoadouts
@@ -172,9 +172,9 @@ struct WireRosterState: Codable, Equatable {
 
     init(_ roster: PlayerRosterState) {
         activeHeroID = roster.activeHeroID
-        activePetID = roster.activePetID
+        activeCompanionID = roster.activeCompanionID
         unlockedHeroIDs = roster.unlockedHeroIDs.sorted()
-        unlockedPetIDs = roster.unlockedPetIDs.sorted()
+        unlockedCompanionIDs = roster.unlockedCompanionIDs.sorted()
         abilityLoadouts = roster.abilityLoadouts.mapValues(WireAbilityLoadout.init)
         progressions = roster.progressions
         equipmentLoadouts = roster.equipmentLoadouts.mapValues(WireEquipmentLoadout.init)
@@ -185,9 +185,9 @@ struct WireRosterState: Codable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         activeHeroID = try container.decode(String.self, forKey: .activeHeroID)
-        activePetID = try container.decode(String.self, forKey: .activePetID)
+        activeCompanionID = try container.decode(String.self, forKey: .activeCompanionID)
         unlockedHeroIDs = try container.decodeIfPresent([String].self, forKey: .unlockedHeroIDs) ?? []
-        unlockedPetIDs = try container.decodeIfPresent([String].self, forKey: .unlockedPetIDs) ?? []
+        unlockedCompanionIDs = try container.decodeIfPresent([String].self, forKey: .unlockedCompanionIDs) ?? []
         abilityLoadouts = try container.decode([String: WireAbilityLoadout].self, forKey: .abilityLoadouts)
         progressions = try container.decode([String: CombatantProgression].self, forKey: .progressions)
         equipmentLoadouts = try container.decode([String: WireEquipmentLoadout].self, forKey: .equipmentLoadouts)
@@ -198,19 +198,19 @@ struct WireRosterState: Codable, Equatable {
     func roster(inventory: PlayerInventoryState) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let unlockedHeroIDSet = Set(unlockedHeroIDs)
-        let unlockedPetIDSet = Set(unlockedPetIDs)
-        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
+        let unlockedCompanionIDSet = Set(unlockedCompanionIDs)
+        let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
-            activePetID: activePetID,
+            activeCompanionID: activeCompanionID,
             unlockedHeroIDs: unlockedHeroIDSet,
-            unlockedPetIDs: unlockedPetIDSet
+            unlockedCompanionIDs: unlockedCompanionIDSet
         )
 
         return PlayerRosterState(
             activeHeroID: resolvedHeroID,
-            activePetID: resolvedPetID,
+            activeCompanionID: resolvedCompanionID,
             unlockedHeroIDs: unlockedHeroIDSet,
-            unlockedPetIDs: unlockedPetIDSet,
+            unlockedCompanionIDs: unlockedCompanionIDSet,
             abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: abilityLoadouts),
             progressions: progressions,
             equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(

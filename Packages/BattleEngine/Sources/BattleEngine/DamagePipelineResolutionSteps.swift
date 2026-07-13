@@ -52,8 +52,8 @@ package extension DamagePipeline {
         in context: BattleEngineContext
     ) -> Int {
         var bonus = context.modifiers(for: sourceActorID).damageDealtBonus(for: keyword)
-        if sourceActorID == context.roster.pet.id {
-            bonus += context.heroModifiers.petDamageDealtBonus
+        if sourceActorID == context.roster.companion.id {
+            bonus += context.heroModifiers.companionDamageDealtBonus
         }
         return bonus
     }

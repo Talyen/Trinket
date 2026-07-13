@@ -26,18 +26,18 @@ public extension GameContent {
 
     static func pickEligibleMysteryEvent(
         unlockedHeroIDs: Set<String>,
-        unlockedPetIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         MysteryEventPool.pickEligibleMysteryEvent(
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedPetIDs: unlockedPetIDs,
+            unlockedCompanionIDs: unlockedCompanionIDs,
             using: &randomNumberGenerator
         )
     }
 
     static func combatant(forMysteryEvent event: MysteryEvent) -> Combatant? {
         guard let combatantID = event.unlockCombatantID else { return nil }
-        return heroes.first { $0.id == combatantID } ?? pets.first { $0.id == combatantID }
+        return heroes.first { $0.id == combatantID } ?? companions.first { $0.id == combatantID }
     }
 }

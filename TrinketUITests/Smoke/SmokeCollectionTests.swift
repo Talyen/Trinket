@@ -1,13 +1,6 @@
 import XCTest
 
 final class SmokeCollectionTests: TrinketUITestCase {
-    func testCollectionScreenLoads() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.assertLoaded()
-        assertExists(AccessibilityID.Collection.petsCategory)
-        assertExists(AccessibilityID.Collection.inventoryCategory)
-    }
-
     func testFreshStartCollectionHidesInventorySection() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
@@ -15,8 +8,9 @@ final class SmokeCollectionTests: TrinketUITestCase {
             "-selectedTab",
             "collection"
         ])
+        collection.assertLoaded()
         assertExists(AccessibilityID.Collection.heroesCategory)
-        assertExists(AccessibilityID.Collection.petsCategory)
+        assertExists(AccessibilityID.Collection.companionsCategory)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryEmptyState].exists)
     }

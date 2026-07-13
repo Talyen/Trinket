@@ -144,7 +144,6 @@ public struct ScreenBackgroundModifier: ViewModifier {
 public struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public func body(content: Content) -> some View {
         let style = SurfaceStyle(role: role, palette: ThemePalette.trinket)
@@ -158,7 +157,7 @@ public struct SurfaceModifier: ViewModifier {
             }
             .shadow(color: style.shadow.color, radius: style.shadow.radius, y: style.shadow.y)
             .opacity(role == .disabled ? 0.72 : 1)
-            .scaleEffect(isPressed && !reduceMotion ? 0.98 : 1)
+            .scaleEffect(isPressed ? 0.98 : 1)
     }
 }
 
@@ -266,8 +265,6 @@ private struct SurfaceStyle {
 }
 
 public struct MaterialRoleModifier: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     let role: MaterialRole
     let shape: RoundedRectangle
 
@@ -288,19 +285,11 @@ public struct MaterialRoleModifier: ViewModifier {
                     shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
                 }
         case .ultraThinMaterial:
-            if reduceTransparency {
-                content
-                    .background(ThemePalette.trinket.panelSurface, in: shape)
-                    .overlay {
-                        shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
-                    }
-            } else {
-                content
-                    .background(.ultraThinMaterial, in: shape)
-                    .overlay {
-                        shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
-                    }
-            }
+            content
+                .background(.ultraThinMaterial, in: shape)
+                .overlay {
+                    shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
+                }
         }
     }
 }
@@ -336,23 +325,13 @@ enum MaterialRoleStyle {
 }
 
 struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     let glass: Glass
     let shape: S
     let solidFill: Color
 
     func body(content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(solidFill, in: shape)
-                .overlay {
-                    shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
-                }
-        } else {
-            content
-                .glassEffect(glass, in: shape)
-        }
+        content
+            .glassEffect(glass, in: shape)
     }
 }
 

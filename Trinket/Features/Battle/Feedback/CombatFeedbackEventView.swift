@@ -4,51 +4,44 @@ import TrinketDesignSystem
 
 struct CombatFeedbackEventView: View {
     let item: CombatFeedbackItem
-    let stackIndex: Int
-    let reduceMotion: Bool
+    let role: CombatFeedbackPresentationRole
+    let laneIndex: Int
+    let textOverride: String?
 
-    @State private var rmOpacity = 0.0
+    @State private var symbolTrigger = false
+
+    init(
+        item: CombatFeedbackItem,
+        role: CombatFeedbackPresentationRole? = nil,
+        laneIndex: Int? = nil,
+        textOverride: String? = nil
+    ) {
+        self.item = item
+        self.role = role ?? (item.presentationIndex == 0 ? .headline : .secondary)
+        self.laneIndex = laneIndex ?? item.presentationIndex
+        self.textOverride = textOverride
+    }
 
     private var recipe: CombatFeedbackMotionRecipe {
         item.recipe
     }
 
     private var jitterX: CGFloat {
-        guard !reduceMotion else { return 0 }
-        return CombatFeedbackLayout.horizontalOffset(
-            seed: item.spawnSeed,
+        CombatFeedbackLayout.horizontalOffset(
+            seed: item.spawnSeed &+ laneIndex &* 31,
             jitter: recipe.horizontalJitter
         )
     }
 
     private var stackY: CGFloat {
-        CombatFeedbackLayout.stackOffset(index: stackIndex, spacing: recipe.stackSpacing)
+        CombatFeedbackLayout.presentationOffset(index: laneIndex)
     }
 
     var body: some View {
-        if reduceMotion {
-            feedbackLabel
-                .opacity(rmOpacity)
-                .offset(y: stackY)
-                .task(id: item.id) {
-                    let clock = SuspendingClock()
-                    withAnimation(.easeOut(duration: TrinketMotion.Battle.reduceMotionChipFadeIn)) {
-                        rmOpacity = 1.0
-                    }
-                    let hold = max(
-                        0.05,
-                        item.lifetime
-                            - TrinketMotion.Battle.reduceMotionChipFadeIn
-                            - TrinketMotion.Battle.reduceMotionChipFadeOut
-                    )
-                    try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(25))
-                    withAnimation(.easeOut(duration: TrinketMotion.Battle.reduceMotionChipFadeOut)) {
-                        rmOpacity = 0.0
-                    }
-                }
-        } else {
-            animatedChip
-        }
+        animatedChip
+            .task(id: item.id) {
+                symbolTrigger.toggle()
+            }
     }
 
     private var animatedChip: some View {
@@ -59,7 +52,13 @@ struct CombatFeedbackEventView: View {
         let rotation = recipe.rotation
 
         return KeyframeAnimator(
-            initialValue: CombatFeedbackAnimationState(),
+            initialValue: CombatFeedbackAnimationState(
+                opacity: recipe.initialOpacity,
+                scale: recipe.initialScale,
+                verticalOffset: recipe.initialOffsetY,
+                horizontalOffset: recipe.initialOffsetX,
+                rotation: recipe.initialRotation
+            ),
             trigger: item.id
         ) { state in
             feedbackLabel
@@ -99,30 +98,52 @@ struct CombatFeedbackEventView: View {
         }
     }
 
+    @ViewBuilder
     private var feedbackLabel: some View {
-        let style = item.feedbackVisualStyle
-        return HStack(spacing: 5) {
-            Image(systemName: style.symbolName)
-                .font(.caption.weight(.bold))
-                .modifier(SymbolBounceModifier(
-                    enabled: recipe.bouncesSymbol && !reduceMotion,
-                    trigger: item.id
-                ))
+        if role == .overflow {
+            HStack(spacing: 5) {
+                Image(systemName: "ellipsis")
+                    .font(.callout.weight(.bold))
+                Text(textOverride ?? item.text)
+                    .font(recipe.font(for: .overflow))
+            }
+            .foregroundStyle(.secondary)
+            .trinketCombatFloatText()
+        } else {
+            let style = item.feedbackVisualStyle
+            HStack(spacing: 6) {
+                Image(systemName: style.symbolName)
+                    .font(symbolFont)
+                    .modifier(SymbolBounceModifier(
+                        enabled: recipe.bouncesSymbol,
+                        trigger: symbolTrigger
+                    ))
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text(item.text)
-                    .font(recipe.font)
-                    .contentTransition(.numericText())
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(textOverride ?? item.text)
+                        .font(recipe.font(for: role))
+                        .contentTransition(.numericText())
 
-                if recipe.showsSecondaryCaption, let secondary = item.secondaryText {
-                    Text(secondary)
-                        .font(.system(.footnote, design: .rounded).weight(.bold))
-                        .opacity(0.92)
+                    if role == .headline,
+                       recipe.showsSecondaryCaption,
+                       let secondary = item.secondaryText {
+                        Text(secondary)
+                            .font(.system(.footnote, design: .rounded).weight(.bold))
+                            .opacity(0.92)
+                    }
                 }
             }
+            .foregroundStyle(style.color)
+            .trinketCombatFloatText()
         }
-        .foregroundStyle(style.color)
-        .trinketCombatFloatText()
+    }
+
+    private var symbolFont: Font {
+        switch role {
+        case .headline: .title2.weight(.heavy)
+        case .secondary: .headline.weight(.bold)
+        case .overflow: .callout.weight(.bold)
+        }
     }
 }
 
@@ -136,7 +157,7 @@ struct CombatFeedbackAnimationState {
 
 private struct SymbolBounceModifier: ViewModifier {
     let enabled: Bool
-    let trigger: Int
+    let trigger: Bool
 
     func body(content: Content) -> some View {
         if enabled {

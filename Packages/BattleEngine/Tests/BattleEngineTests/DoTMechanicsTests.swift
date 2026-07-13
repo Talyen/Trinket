@@ -17,7 +17,7 @@ struct DoTMechanicsTests {
                 maxHealth: 20,
                 abilities: heroAbilities
             ),
-            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects
@@ -157,7 +157,7 @@ struct DoTMechanicsTests {
                 maxHealth: 20,
                 abilities: [burnAbility(potency: 4)]
             ),
-            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 5),

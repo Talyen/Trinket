@@ -6,13 +6,13 @@ import TrinketTestSupport
 enum EffectHandlersTestSupport {
     static func makeBattle(
         hero: Combatant? = nil,
-        pet: Combatant? = nil,
+        companion: Combatant? = nil,
         enemy: Combatant? = nil,
         initialGold: Int = 0
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero ?? CombatantFixtures.combatant(id: "hero", role: .hero),
-            pet: pet ?? CombatantFixtures.combatant(id: "pet", role: .pet),
+            companion: companion ?? CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy ?? CombatantFixtures.combatant(id: "enemy", role: .enemy),
             initialGold: initialGold
         )

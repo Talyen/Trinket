@@ -190,7 +190,7 @@ final class AppState {
     }
 
     #if DEBUG
-    /// Dev-only: unlocks all content/heroes/pets at level 20 for Simulator testing.
+    /// Dev-only: unlocks all content/heroes/companions at level 20 for Simulator testing.
     @discardableResult
     func unlockAllContent() -> Bool {
         do {

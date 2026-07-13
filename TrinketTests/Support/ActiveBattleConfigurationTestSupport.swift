@@ -7,9 +7,10 @@ import TrinketPersistence
 enum ActiveBattleConfigurationTestSupport {
     static func make(
         stageID: String? = nil,
+        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil,
         rngSeed: UInt64 = 0,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         roster: PlayerRosterState = .initial,
@@ -18,9 +19,10 @@ enum ActiveBattleConfigurationTestSupport {
     ) throws -> ActiveBattleConfiguration {
         ActiveBattleConfiguration.make(
             stageID: stageID,
+            aspectBattle: aspectBattle,
             rngSeed: rngSeed,
             hero: hero,
-            pet: pet,
+            companion: companion,
             rosterState: roster,
             inventoryState: inventory,
             enemy: enemy,

@@ -32,10 +32,6 @@ struct CombatantHeroHeader: View {
                 .frame(maxHeight: .infinity, alignment: .bottom)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "\(combatant.name), \(combatant.role.rawValue), level \(progression.level), \(progression.currentXP) of \(progression.requiredXP) experience"
-        )
     }
 
     private var titleBlock: some View {

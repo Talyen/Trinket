@@ -7,22 +7,20 @@ struct CombatantProgressionTests {
         try #expect(CombatantProgression.requiredXP(forLevel: 2) == 155)
         try #expect(CombatantProgression.requiredXP(forLevel: 3) == 220)
         try #expect(CombatantProgression.requiredXP(forLevel: 6) == 475)
+        try #expect(CombatantProgression.requiredXP(forLevel: 0) == 100)
+        try #expect(CombatantProgression.initial.requiredXP == 100)
     }
 
-    @Test func addingExperienceLevelsUpWhenThresholdReached() throws {
+    @Test func addingExperienceHandlesSingleAndMultipleLevelUps() throws {
         let progression = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
         let leveled = progression.addingExperience(10)
         try #expect(leveled.level == 2)
         try #expect(leveled.currentXP == 5)
         try #expect(leveled.requiredXP == 155)
-    }
-
-    @Test func addingExperienceCanLevelMultipleTimes() throws {
-        let progression = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
-        let leveled = progression.addingExperience(200)
-        try #expect(leveled.level == 3)
-        try #expect(leveled.currentXP == 40)
-        try #expect(leveled.requiredXP == 220)
+        let leveledMultiple = progression.addingExperience(200)
+        try #expect(leveledMultiple.level == 3)
+        try #expect(leveledMultiple.currentXP == 40)
+        try #expect(leveledMultiple.requiredXP == 220)
     }
 
     @Test func addingNonPositiveExperienceIsNoOp() throws {
@@ -53,17 +51,6 @@ struct CombatantProgressionTests {
 
         let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
         try #expect(late.unlocks(.ultimate))
-    }
-
-    @Test func initialProgressionUsesLevelOneRequiredXP() throws {
-        try #expect(CombatantProgression.initial.level == 1)
-        try #expect(CombatantProgression.initial.currentXP == 0)
-        try #expect(CombatantProgression.initial.requiredXP == 100)
-    }
-
-    @Test func requiredXPForLevelZeroMatchesLevelOne() throws {
-        try #expect(CombatantProgression.requiredXP(forLevel: 0) == 100)
-        try #expect(CombatantProgression.requiredXP(forLevel: 1) == 100)
     }
 
     @Test func atLevelBuildsEmptyProgressTowardNextLevel() throws {

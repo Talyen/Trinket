@@ -16,8 +16,8 @@ struct CollectionScreen {
         app.buttons[AccessibilityID.Collection.heroesCategory].tap()
     }
 
-    func openPetsCategory() {
-        app.buttons[AccessibilityID.Collection.petsCategory].tap()
+    func openCompanionsCategory() {
+        app.buttons[AccessibilityID.Collection.companionsCategory].tap()
     }
 
     func openInventoryCategory() {

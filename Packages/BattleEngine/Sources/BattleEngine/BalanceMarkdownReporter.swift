@@ -94,7 +94,7 @@ public enum BalanceMarkdownReporter {
         ))
         lines.append("")
         appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
-        appendSection(title: "Pets", summaries: tierStats.pets, into: &lines)
+        appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
         appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
         appendSection(title: "Abilities", summaries: tierStats.abilities, into: &lines, limit: 25)
         if tierStats.tier.includesGear {

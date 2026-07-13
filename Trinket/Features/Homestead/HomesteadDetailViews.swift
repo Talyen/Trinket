@@ -98,10 +98,6 @@ struct HomesteadDetailHero: View {
                     .padding(.bottom, 14)
             }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "\(definition.title), tier \(status.currentTier) of \(definition.maxTier), \(status.statusTitle)"
-        )
     }
 }
 
@@ -139,8 +135,6 @@ struct HomesteadTierNode: View {
     let connectors: (before: PathConnectorState?, after: PathConnectorState?)
     var isBuilding = false
     var onBuild: (() -> Void)?
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isActionable: Bool {
         if case .next(affordable: true) = state {
@@ -185,12 +179,9 @@ struct HomesteadTierNode: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isBuilding)
-                .accessibilityLabel(accessibilityLabelText)
-                .accessibilityHint("Double-tap to \(actionTitle.lowercased()) this project.")
+
             } else {
                 rowContent
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(accessibilityLabelText)
             }
         }
         .accessibilityIdentifier(tierNodeAccessibilityID)
@@ -254,7 +245,7 @@ struct HomesteadTierNode: View {
                 .symbolEffect(
                     .bounce.up,
                     options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
-                    isActive: isActionable && !reduceMotion
+                    isActive: isActionable
                 )
         case .completed:
             Image(systemName: "checkmark")
@@ -313,33 +304,6 @@ struct HomesteadTierNode: View {
         case .future, .locked: Color.secondary.opacity(0.2)
         }
     }
-
-    private var accessibilityLabelText: String {
-        var parts = [
-            tierTitle,
-            tier.bonus.description,
-            accessibilityState
-        ]
-        if showsCost {
-            let costs = tier.cost.map { "\($0.quantity) \($0.resource.displayName)" }
-                .joined(separator: ", ")
-            parts.append("Costs \(costs)")
-        }
-        if isActionable {
-            parts.append("Double-tap to \(actionTitle.lowercased())")
-        }
-        return parts.joined(separator: ", ")
-    }
-
-    private var accessibilityState: String {
-        switch state {
-        case .completed: "Completed"
-        case let .next(affordable):
-            affordable ? "Ready to \(actionTitle.lowercased())" : "Next tier, resources needed"
-        case .future: "Locked until earlier tiers are complete"
-        case .locked: "Locked by prerequisites"
-        }
-    }
 }
 
 struct HomesteadTierCostLabel: View {
@@ -363,6 +327,5 @@ struct HomesteadTierCostLabel: View {
                 }
             }
         }
-        .accessibilityHidden(true)
     }
 }

@@ -1,6 +1,6 @@
 # TrinketContent
 
-Game content catalogs — heroes, pets, enemies, abilities, items, stages, homestead nodes, and art/music/SFX references. Most content is manifest-driven (TSV → generated Swift).
+Game content catalogs — heroes, companions, enemies, abilities, items, stages, homestead nodes, and art/music/SFX references. Most content is manifest-driven (TSV → generated Swift).
 
 ## Structure
 
@@ -38,7 +38,7 @@ See `ContentManifest/README.md` for TSV format details. Generated files are comm
 |------|------|
 | `GameContent` | Central registry for all game content |
 | `Ability` / `TargetedEffect` | Ability model with effect declarations |
-| `Combatant` | Hero/Pet model (stats, ability loadout) |
+| `Combatant` | Hero/Companion model (stats, ability loadout) |
 | `Enemy` | Enemy model |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |

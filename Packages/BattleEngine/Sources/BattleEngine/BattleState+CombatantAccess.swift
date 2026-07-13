@@ -14,8 +14,8 @@ public extension BattleState {
         roster.hero.isAlive
     }
 
-    var isPetAlive: Bool {
-        roster.pet.isAlive
+    var isCompanionAlive: Bool {
+        roster.companion.isAlive
     }
 
     var isPartyDefeated: Bool {
@@ -66,8 +66,8 @@ public extension BattleState {
         if combatantID == roster.hero.id {
             return heroModifiers
         }
-        if combatantID == roster.pet.id {
-            return petModifiers
+        if combatantID == roster.companion.id {
+            return companionModifiers
         }
         if combatantID == roster.enemy.id {
             return enemyModifiers

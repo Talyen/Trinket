@@ -11,7 +11,7 @@ public enum AspectCompletion {
     public static func complete(
         floor: AspectFloor,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
@@ -37,7 +37,7 @@ public enum AspectCompletion {
             save.homestead.effects.adjustedGold(floor.rewards.gold + battleEarnedGold)
         )
         grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
-        grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &save.roster)
+        grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
 
         let resolvedMaterials = materialRewards
             ?? floor.rewards.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
@@ -97,7 +97,7 @@ public enum AspectCompletion {
         let playerLevel = roster.progression(for: combatant).level
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
-            : roster.highestPetLevel
+            : roster.highestCompanionLevel
         let award = StageCompletion.battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
@@ -107,23 +107,8 @@ public enum AspectCompletion {
     }
 }
 
-public enum ModesUnlock {
-    /// Modes open after Chapter 1 is fully cleared.
-    public static func isUnlocked(
-        journey: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        guard let chapter1 = chapters.first(where: { $0.id == "chapter-1" }) else {
-            return false
-        }
-        return chapter1.stages.allSatisfy { journey.completedStageIDs.contains($0.id) }
-    }
-
-    public static let unlockHint = "Clear Chapter 1"
-}
-
 public enum AspectUnlock {
-    /// Iron Vein is available once Modes is unlocked. Other Aspects unlock from Iron Vein progress.
+    /// Iron Vein is available from the Explore hub. Other Aspects unlock from Iron Vein progress.
     public static func isUnlocked(
         _ aspect: AspectDefinition,
         progress: PlayerAspectsState

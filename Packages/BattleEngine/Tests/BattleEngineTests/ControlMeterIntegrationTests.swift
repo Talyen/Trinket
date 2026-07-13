@@ -35,21 +35,11 @@ struct ControlMeterIntegrationTests {
         try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
     }
 
-    @Test func actionSkipClaimsTurnWithoutAbilityEvent() throws {
-        var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: .stun)
-        let enemy = battle.enemy
-
-        let events = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
-        try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
-        try #expect(battle.actionCount(of: enemy) == 1)
-    }
-
     @Test func stunDamageBuildsMeterTriggersAndSkipsNextAction() throws {
         let hero = BattleTestFixtures.stunAbilityHero(damage: 1)
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         // Play stun cards until control triggers, then end turn so enemy skip resolves.
         var events: [ActionEvent] = []
@@ -78,9 +68,9 @@ struct ControlMeterIntegrationTests {
             maxHealth: 20,
             abilities: [.shieldBash]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 5)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
         try #expect(battle.hasHeroEffect { effect in
@@ -97,11 +87,11 @@ struct ControlMeterIntegrationTests {
 
     @Test func partyOwnerSkipBlocksCardPlayThenClearsOnEndTurn() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.slash])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)

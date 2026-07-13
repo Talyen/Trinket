@@ -4,19 +4,19 @@ import TrinketCore
 
 public struct BattleMatchup: Equatable, Hashable {
     public let hero: Combatant
-    public let pet: Combatant
+    public let companion: Combatant
     public let enemy: Combatant
 
-    public init(hero: Combatant, pet: Combatant, enemy: Combatant? = nil) {
+    public init(hero: Combatant, companion: Combatant, enemy: Combatant? = nil) {
         self.hero = hero
-        self.pet = pet
+        self.companion = companion
         self.enemy = enemy ?? Enemy.fallbackCombatant
     }
 
     public func combatant(for participant: BattleParticipant) -> Combatant {
         switch participant {
         case .hero: hero
-        case .pet: pet
+        case .companion: companion
         case .enemy: enemy
         }
     }

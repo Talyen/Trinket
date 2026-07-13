@@ -52,10 +52,10 @@ struct CollectionView: View {
                 )
 
                 combatantCategorySection(
-                    title: "Pets",
-                    accessibilityIdentifier: AccessibilityID.Collection.petsCategory,
-                    kind: .pet,
-                    combatants: appState.roster.collectionPets
+                    title: "Companions",
+                    accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
+                    kind: .companion,
+                    combatants: appState.roster.collectionCompanions
                 )
 
                 if !inventoryState.items.isEmpty {
@@ -141,9 +141,7 @@ struct CollectionView: View {
                 collectionCategoryHeader(title: title)
             }
             .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
             .accessibilityIdentifier(accessibilityIdentifier)
-            .accessibilityLabel(title)
 
             horizontalShelf(content: shelf)
         }

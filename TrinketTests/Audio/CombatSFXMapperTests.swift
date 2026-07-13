@@ -6,14 +6,13 @@ import TrinketDesignSystem
 
 @MainActor
 struct CombatSFXMapperTests {
-    @Test func physicalAndFallbackKeywordsMapToHit() {
+    // This matrix intentionally keeps all semantic mapper branches in one fast test.
+    // swiftlint:disable function_body_length
+    @Test func semanticFeedbackMappingsCoverTypedFallbackAndSilentCases() {
         for keyword: Keyword in [.physical, .nature, .holy, .poison, .bleed, .leech] {
             let item = feedbackItem(feedbackClass: .directDamage, keyword: keyword, text: "-10")
             #expect(CombatSFXMapper.clipID(for: item) == SFXID.hit)
         }
-    }
-
-    @Test func criticalUsesSameHitClip() {
         let item = feedbackItem(
             feedbackClass: .critical,
             keyword: .physical,
@@ -21,9 +20,6 @@ struct CombatSFXMapperTests {
             secondary: "CRIT"
         )
         #expect(CombatSFXMapper.clipID(for: item) == SFXID.hit)
-    }
-
-    @Test func burnAndFreezeHitsMapToTypedClips() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .directDamage, keyword: .burn, text: "-8")
@@ -34,9 +30,6 @@ struct CombatSFXMapperTests {
                 for: feedbackItem(feedbackClass: .directDamage, keyword: .freeze, text: "-8")
             ) == SFXID.hitFreeze
         )
-    }
-
-    @Test func healAndCleanseMapToHeal() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .heal, keyword: .health, text: "+12")
@@ -51,17 +44,11 @@ struct CombatSFXMapperTests {
                 )
             ) == SFXID.heal
         )
-    }
-
-    @Test func purgeMapsToPurge() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .buff, keyword: .block, text: "Purge Block")
             ) == SFXID.purge
         )
-    }
-
-    @Test func blockAndArmorBuffsMapToBlock() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .buff, keyword: .block, text: "+20 Block")
@@ -72,9 +59,6 @@ struct CombatSFXMapperTests {
                 for: feedbackItem(feedbackClass: .buff, keyword: .armor, text: "+10% Armor")
             ) == SFXID.block
         )
-    }
-
-    @Test func controlUsesFreezeOrStun() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .control, keyword: .freeze, text: "Frozen!")
@@ -85,9 +69,6 @@ struct CombatSFXMapperTests {
                 for: feedbackItem(feedbackClass: .control, keyword: .stun, text: "Stunned!")
             ) == SFXID.controlStun
         )
-    }
-
-    @Test func dodgeAndBlockAbsorbHaveNoSFX() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .dodge, keyword: .dodge, text: "Dodge")
@@ -98,9 +79,6 @@ struct CombatSFXMapperTests {
                 for: feedbackItem(feedbackClass: .block, keyword: .block, text: "-5")
             ) == nil
         )
-    }
-
-    @Test func deathsDoorMaps() {
         #expect(
             CombatSFXMapper.clipID(
                 for: feedbackItem(
@@ -111,6 +89,8 @@ struct CombatSFXMapperTests {
             ) == SFXID.deathsDoor
         )
     }
+
+    // swiftlint:enable function_body_length
 
     @Test func catalogContainsExpectedIDs() {
         let expected = [
@@ -162,7 +142,7 @@ struct CombatSFXMapperTests {
         let items = [
             feedbackItem(id: 1, targetID: "enemy", feedbackClass: .dot, keyword: .burn, text: "-2"),
             feedbackItem(id: 2, targetID: "hero", feedbackClass: .dot, keyword: .burn, text: "-2"),
-            feedbackItem(id: 3, targetID: "pet", feedbackClass: .dot, keyword: .burn, text: "-1"),
+            feedbackItem(id: 3, targetID: "companion", feedbackClass: .dot, keyword: .burn, text: "-1"),
             feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3")
         ]
         #expect(
@@ -180,6 +160,10 @@ struct CombatSFXMapperTests {
     ) -> CombatFeedbackItem {
         CombatFeedbackItem(
             id: id,
+            sourceEventIDs: [id],
+            actionGroupID: id,
+            presentationIndex: 0,
+            groupResultCount: 1,
             targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,

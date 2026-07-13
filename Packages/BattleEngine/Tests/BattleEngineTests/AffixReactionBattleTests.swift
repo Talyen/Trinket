@@ -17,8 +17,8 @@ struct AffixReactionBattleTests {
         )
     }
 
-    private func passivePet(maxHealth: Int = 20) -> Combatant {
-        BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: maxHealth)
+    private func passiveCompanion(maxHealth: Int = 20) -> Combatant {
+        BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: maxHealth)
     }
 
     private func passiveEnemy(maxHealth: Int = 100) -> Combatant {
@@ -50,7 +50,7 @@ struct AffixReactionBattleTests {
     @Test func infectedAppliesPoisonWhenBleedIsApplied() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [bleedAbility(potency: 1)]),
-            pet: passivePet(),
+            companion: passiveCompanion(),
             enemy: passiveEnemy(),
             heroModifiers: CombatModifierProfile(onBleedApplyPoison: 1)
         )
@@ -64,7 +64,7 @@ struct AffixReactionBattleTests {
     @Test func relentlessRefreshesBleedInsteadOfAddingAStack() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [bleedAbility(potency: 2)]),
-            pet: passivePet(),
+            companion: passiveCompanion(),
             enemy: passiveEnemy(),
             heroModifiers: CombatModifierProfile(refreshBleedOnReapply: true)
         )
@@ -83,7 +83,7 @@ struct AffixReactionBattleTests {
     @Test func frostburnDealsFreezeDamageEveryThirdBurnTick() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: []),
-            pet: passivePet(),
+            companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(8), remainingTicks: 0, sourceActorID: "hero")
@@ -114,7 +114,7 @@ struct AffixReactionBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: []),
-            pet: passivePet(maxHealth: 1),
+            companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 6)
@@ -133,7 +133,7 @@ struct AffixReactionBattleTests {
         try #expect(armor != nil)
     }
 
-    @Test func symbiosisSharesHeroHealingWithPet() throws {
+    @Test func symbiosisSharesHeroHealingWithCompanion() throws {
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
@@ -145,20 +145,20 @@ struct AffixReactionBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [healAbility(amount: 10)]),
-            pet: passivePet(maxHealth: 20),
+            companion: passiveCompanion(maxHealth: 20),
             enemy: enemy,
-            activePetEffects: [
+            activeCompanionEffects: [
                 ActiveEffect(id: 1, effect: .bleed(4), remainingTicks: 1, sourceActorID: "enemy")
             ],
-            heroModifiers: CombatModifierProfile(petHealSharePercent: 0.50)
+            heroModifiers: CombatModifierProfile(companionHealSharePercent: 0.50)
         )
 
-        // Enemy strike + bleed tick damage the pet during endTurn.
+        // Enemy strike + bleed tick damage the companion during endTurn.
         _ = BattleTestFixtures.endTurn(on: &battle)
-        let damagedPetHealth = battle.health(of: battle.pet)
+        let damagedCompanionHealth = battle.health(of: battle.companion)
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
-        try #expect(battle.health(of: battle.pet) > damagedPetHealth)
+        try #expect(battle.health(of: battle.companion) > damagedCompanionHealth)
     }
 
     @Test func secondWindHealsOnlyOnceWhenHealthFallsLow() throws {
@@ -174,7 +174,7 @@ struct AffixReactionBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [], maxHealth: 20),
-            pet: passivePet(maxHealth: 1),
+            companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
             heroModifiers: CombatModifierProfile(
                 onceBelowHealthPercentThreshold: 0.25,
@@ -204,7 +204,7 @@ struct AffixReactionBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [], maxHealth: 20),
-            pet: passivePet(maxHealth: 1),
+            companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
             heroModifiers: CombatModifierProfile(
                 onceBelowHealthPercentThreshold: 0.25,
@@ -224,7 +224,7 @@ struct AffixReactionBattleTests {
             hero: hero(abilities: [
                 Ability(id: "frost", name: "Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze)
             ]),
-            pet: passivePet(),
+            companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTicks: 0)

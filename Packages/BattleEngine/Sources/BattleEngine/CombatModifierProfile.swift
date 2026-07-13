@@ -18,7 +18,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenReduction: [Keyword: Double]
     public var damageTakenFlat: [Keyword: Int]
     public var damageTakenVulnerability: [Keyword: Double]
-    public var petDamageDealtBonus: Int
+    public var companionDamageDealtBonus: Int
     public var manaCostReductionPercent: Double
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
@@ -61,9 +61,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var blockGainedCleanseIntervalTicks: Int
     public var enemyStunnedHasteDurationTicks: Int
     public var firstHitApplyMarked: Bool
-    public var petActLeechPercent: Double
-    public var petActLeechDurationTicks: Int
-    public var petHealSharePercent: Double
+    public var companionActLeechPercent: Double
+    public var companionActLeechDurationTicks: Int
+    public var companionHealSharePercent: Double
     public var onceBelowHealthPercentThreshold: Double
     public var onceBelowHealthPercentHeal: Int
     public var blockPerActionWhileDeathsDoor: Int
@@ -91,7 +91,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageTakenReduction: [Keyword: Double] = [:],
         damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
-        petDamageDealtBonus: Int = 0,
+        companionDamageDealtBonus: Int = 0,
         manaCostReductionPercent: Double = 0,
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
@@ -134,9 +134,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         blockGainedCleanseIntervalTicks: Int = 0,
         enemyStunnedHasteDurationTicks: Int = 0,
         firstHitApplyMarked: Bool = false,
-        petActLeechPercent: Double = 0,
-        petActLeechDurationTicks: Int = 0,
-        petHealSharePercent: Double = 0,
+        companionActLeechPercent: Double = 0,
+        companionActLeechDurationTicks: Int = 0,
+        companionHealSharePercent: Double = 0,
         onceBelowHealthPercentThreshold: Double = 0,
         onceBelowHealthPercentHeal: Int = 0,
         blockPerActionWhileDeathsDoor: Int = 0,
@@ -159,7 +159,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageTakenReduction = damageTakenReduction
         self.damageTakenFlat = damageTakenFlat
         self.damageTakenVulnerability = damageTakenVulnerability
-        self.petDamageDealtBonus = petDamageDealtBonus
+        self.companionDamageDealtBonus = companionDamageDealtBonus
         self.manaCostReductionPercent = manaCostReductionPercent
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
@@ -202,9 +202,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
         self.enemyStunnedHasteDurationTicks = enemyStunnedHasteDurationTicks
         self.firstHitApplyMarked = firstHitApplyMarked
-        self.petActLeechPercent = petActLeechPercent
-        self.petActLeechDurationTicks = petActLeechDurationTicks
-        self.petHealSharePercent = petHealSharePercent
+        self.companionActLeechPercent = companionActLeechPercent
+        self.companionActLeechDurationTicks = companionActLeechDurationTicks
+        self.companionHealSharePercent = companionHealSharePercent
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
@@ -250,7 +250,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         for (keyword, amount) in other.damageTakenVulnerability {
             damageTakenVulnerability[keyword, default: 0] += amount
         }
-        petDamageDealtBonus += other.petDamageDealtBonus
+        companionDamageDealtBonus += other.companionDamageDealtBonus
         manaCostReductionPercent += other.manaCostReductionPercent
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
@@ -299,9 +299,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)
         enemyStunnedHasteDurationTicks = max(enemyStunnedHasteDurationTicks, other.enemyStunnedHasteDurationTicks)
         firstHitApplyMarked = firstHitApplyMarked || other.firstHitApplyMarked
-        petActLeechPercent += other.petActLeechPercent
-        petActLeechDurationTicks = max(petActLeechDurationTicks, other.petActLeechDurationTicks)
-        petHealSharePercent += other.petHealSharePercent
+        companionActLeechPercent += other.companionActLeechPercent
+        companionActLeechDurationTicks = max(companionActLeechDurationTicks, other.companionActLeechDurationTicks)
+        companionHealSharePercent += other.companionHealSharePercent
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
         blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor

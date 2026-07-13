@@ -3,133 +3,74 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ $# -gt 0 ]]; then
+# Keep source routing aligned with verify-changed.sh and agent-context.sh.
+# shellcheck source=Scripts/change-classification.sh
+source Scripts/change-classification.sh
+
+PATH_MODE="working-tree"
+declare -a requested_paths=()
+while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/changed-source-summary.sh
+Usage: ./Scripts/changed-source-summary.sh [--paths <file> ...]
 
-Lists authored working-tree changes, omits generated/processed output detail, and
-prints the focused context cards and likely verification commands.
+Lists task-scoped changes (when --paths is supplied) or working-tree changes,
+omits generated/processed output detail, and prints focused context cards and
+likely verification commands. Paths are repository-relative; --paths consumes
+all remaining arguments.
 USAGE
       exit 0
+      ;;
+    --paths)
+      PATH_MODE="explicit"
+      shift
+      if [[ $# -eq 0 ]]; then
+        echo "--paths requires at least one repository-relative path" >&2
+        exit 1
+      fi
+      requested_paths=("$@")
+      break
       ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
       ;;
   esac
-fi
+  shift
+done
 
-declare -a changed=()
-while IFS= read -r path; do
-  [[ -n "$path" ]] && changed+=("$path")
-done < <(
-  {
-    git diff --name-only --diff-filter=ACMRD HEAD
-    git ls-files --others --exclude-standard
-  } | sort -u
-)
+trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 
-if [[ ${#changed[@]} -eq 0 ]]; then
+if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
   echo "No working-tree changes."
   exit 0
 fi
 
-has_content=false
-has_assets=false
-has_project=false
-has_swift=false
-has_app_state=false
-has_feature=false
-has_audio=false
-has_docs_or_tools=false
-declare -a authored=()
-declare -a omitted=()
-declare -a packages=()
+trinket_classify_paths
+authored=()
+omitted=()
+packages=()
+if (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then authored=("${TRINKET_AUTHORED_PATHS[@]}"); fi
+if (( ${#TRINKET_GENERATED_PATHS[@]} > 0 )); then omitted=("${TRINKET_GENERATED_PATHS[@]}"); fi
+if (( ${#TRINKET_PACKAGES[@]} > 0 )); then packages=("${TRINKET_PACKAGES[@]}"); fi
+has_content="$TRINKET_HAS_CONTENT"
+has_assets="$TRINKET_HAS_ASSETS"
+has_project="$TRINKET_HAS_PROJECT"
+has_swift="$TRINKET_HAS_SWIFT"
+has_app_state="$TRINKET_HAS_APP_STATE"
+has_feature="$TRINKET_HAS_FEATURE"
+has_audio="$TRINKET_HAS_AUDIO"
+has_docs_or_tools="$TRINKET_HAS_DOCS_OR_TOOLS"
 
-add_package() {
-  local candidate="$1"
-  local package
-  for package in "${packages[@]:-}"; do
-    [[ "$package" == "$candidate" ]] && return
-  done
-  packages+=("$candidate")
-}
-
-for path in "${changed[@]}"; do
-  case "$path" in
-    Packages/*/Generated/*|Trinket/Assets.xcassets/*|Trinket/Resources/Music/*|Trinket/Resources/SFX/*|Trinket/Resources/Cinematics/*)
-      omitted+=("$path")
-      ;;
-    ContentManifest/*|Packages/TrinketContent/Sources/TrinketContent/Content/*)
-      has_content=true
-      authored+=("$path")
-      ;;
-    ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*)
-      has_assets=true
-      authored+=("$path")
-      ;;
-    project.yml)
-      has_project=true
-      authored+=("$path")
-      ;;
-    Packages/BattleEngine/*.swift|Packages/BattleEngine/**/*.swift)
-      has_swift=true
-      add_package BattleEngine
-      authored+=("$path")
-      ;;
-    Packages/TrinketContent/*.swift|Packages/TrinketContent/**/*.swift)
-      has_swift=true
-      add_package TrinketContent
-      authored+=("$path")
-      ;;
-    Packages/TrinketPersistence/*.swift|Packages/TrinketPersistence/**/*.swift)
-      has_swift=true
-      add_package TrinketPersistence
-      authored+=("$path")
-      ;;
-    Packages/TrinketCore/*.swift|Packages/TrinketCore/**/*.swift)
-      has_swift=true
-      add_package TrinketCore
-      authored+=("$path")
-      ;;
-    Packages/TrinketDesignSystem/*.swift|Packages/TrinketDesignSystem/**/*.swift)
-      has_swift=true
-      add_package TrinketDesignSystem
-      authored+=("$path")
-      ;;
-    Trinket/State/*|Trinket/App/*|Trinket/BattleShell/*)
-      has_swift=true
-      has_app_state=true
-      authored+=("$path")
-      ;;
-    Trinket/Features/*|Trinket/Shared/*|Trinket/Models/*|TrinketUITests/*)
-      has_swift=true
-      has_feature=true
-      authored+=("$path")
-      ;;
-    Trinket/Audio/*)
-      has_swift=true
-      has_audio=true
-      authored+=("$path")
-      ;;
-    *.swift)
-      has_swift=true
-      authored+=("$path")
-      ;;
-    Docs/*|*.md|Scripts/*|.github/*)
-      has_docs_or_tools=true
-      authored+=("$path")
-      ;;
-    *)
-      authored+=("$path")
-      ;;
-  esac
-done
-
-echo "Authored changes (${#authored[@]}):"
-printf '  %s\n' "${authored[@]}"
+if [[ "$PATH_MODE" == "explicit" ]]; then
+  echo "Task-scoped authored changes (${#authored[@]}):"
+else
+  echo "Working-tree authored changes (${#authored[@]}):"
+fi
+if (( ${#authored[@]} > 0 )); then
+  printf '  %s\n' "${authored[@]}"
+fi
 if [[ ${#omitted[@]} -gt 0 ]]; then
   echo "Generated or processed outputs omitted (${#omitted[@]})."
 fi
@@ -137,18 +78,24 @@ fi
 echo ""
 echo "Context cards:"
 if [[ "$has_content" == true || "$has_assets" == true ]]; then echo "  Docs/AgentContext/content-and-manifests.md"; fi
-if [[ " ${packages[*]} " == *" BattleEngine "* ]]; then echo "  Docs/AgentContext/battle.md"; fi
-if [[ " ${packages[*]} " == *" TrinketPersistence "* ]]; then echo "  Docs/AgentContext/persistence.md"; fi
+if [[ " ${packages[*]-} " == *" BattleEngine "* ]]; then echo "  Docs/AgentContext/battle.md"; fi
+if [[ " ${packages[*]-} " == *" TrinketPersistence "* ]]; then echo "  Docs/AgentContext/persistence.md"; fi
 if [[ "$has_feature" == true ]]; then echo "  Docs/AgentContext/swiftui-features.md"; fi
 if [[ "$has_audio" == true ]]; then echo "  Docs/AgentContext/audio.md"; fi
 if [[ "$has_project" == true || "$has_docs_or_tools" == true ]]; then echo "  Docs/AgentContext/ci-and-project-generation.md"; fi
 
 echo ""
-echo "Suggested verification (preview with ./Scripts/verify-changed.sh --dry-run):"
+if [[ "$PATH_MODE" == "explicit" ]]; then
+  echo "Suggested verification (preview with ./Scripts/verify-changed.sh --dry-run --paths <same files>)"
+else
+  echo "Suggested verification (preview with ./Scripts/verify-changed.sh --dry-run)"
+fi
 if [[ "$has_content" == true ]]; then echo "  ./Scripts/generate.sh"; fi
 if [[ "$has_assets" == true ]]; then echo "  ./Scripts/generate.sh --assets"; fi
 if [[ "$has_project" == true ]]; then echo "  ./Scripts/generate.sh"; fi
 if [[ "$has_swift" == true ]]; then echo "  ./Scripts/test.sh style"; fi
-for package in "${packages[@]}"; do echo "  ./Scripts/test-package.sh $package"; done
+if (( ${#packages[@]} > 0 )); then
+  for package in "${packages[@]}"; do echo "  ./Scripts/test-package.sh $package"; done
+fi
 if [[ "$has_app_state" == true || "$has_audio" == true ]]; then echo "  ./Scripts/test.sh unit"; fi
-if [[ "$has_feature" == true ]]; then echo "  ./Scripts/test.sh smoke"; fi
+if [[ "$has_feature" == true ]]; then echo "  ./Scripts/test.sh smoke <Class> (bare smoke is only the Homestead canary)"; fi

@@ -19,40 +19,33 @@ public struct CombatantArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
     public let focalPoint: ArtFocalPoint
-    public let accessibilityLabel: String
 }
 
 public struct AbilityArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct ItemArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let accessibilityLabel: String
 }
 
 public struct SlotBackgroundArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
     public let focalPoint: ArtFocalPoint
-    public let accessibilityLabel: String
 }
 
 public struct ResourceArtReference: Hashable, Sendable {
     public let imageName: String
-    public let accessibilityLabel: String
 }
 
 public struct EncounterArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let accessibilityLabel: String
 }
 
 
@@ -61,1059 +54,855 @@ public enum ArtCatalog {
         "alchemist": CombatantArtReference(
             imageName: "hero_alchemist_card",
             thumbnailImageName: "hero_alchemist_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Alchemist hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "druid": CombatantArtReference(
             imageName: "hero_druid_card",
             thumbnailImageName: "hero_druid_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Druid hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "knight": CombatantArtReference(
             imageName: "hero_knight_card",
             thumbnailImageName: "hero_knight_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Knight hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "ranger": CombatantArtReference(
             imageName: "hero_ranger_card",
             thumbnailImageName: "hero_ranger_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Ranger hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "rogue": CombatantArtReference(
             imageName: "hero_rogue_card",
             thumbnailImageName: "hero_rogue_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34),
-            accessibilityLabel: "Full art of the Rogue hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
         ),
         "warlock": CombatantArtReference(
             imageName: "hero_warlock_card",
             thumbnailImageName: "hero_warlock_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Warlock hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "wizard": CombatantArtReference(
             imageName: "hero_wizard_card",
             thumbnailImageName: "hero_wizard_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Wizard hero"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "wolf": CombatantArtReference(
-            imageName: "pet_wolf_card",
-            thumbnailImageName: "pet_wolf_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.36),
-            accessibilityLabel: "Full art of the Wolf pet"
+            imageName: "companion_wolf_card",
+            thumbnailImageName: "companion_wolf_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.36)
         ),
         "bear": CombatantArtReference(
-            imageName: "pet_bear_card",
-            thumbnailImageName: "pet_bear_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Bear pet"
+            imageName: "companion_bear_card",
+            thumbnailImageName: "companion_bear_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "frost_whelp": CombatantArtReference(
-            imageName: "pet_frost_whelp_card",
-            thumbnailImageName: "pet_frost_whelp_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Frost Whelp pet"
+            imageName: "companion_frost_whelp_card",
+            thumbnailImageName: "companion_frost_whelp_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "lizard_scout": CombatantArtReference(
-            imageName: "pet_lizard_scout_card",
-            thumbnailImageName: "pet_lizard_scout_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Lizard Scout pet"
+            imageName: "companion_lizard_scout_card",
+            thumbnailImageName: "companion_lizard_scout_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "panther": CombatantArtReference(
-            imageName: "pet_panther_card",
-            thumbnailImageName: "pet_panther_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Panther pet"
+            imageName: "companion_panther_card",
+            thumbnailImageName: "companion_panther_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "phoenix": CombatantArtReference(
-            imageName: "pet_phoenix_card",
-            thumbnailImageName: "pet_phoenix_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Phoenix pet"
+            imageName: "companion_phoenix_card",
+            thumbnailImageName: "companion_phoenix_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "golden_retriever": CombatantArtReference(
-            imageName: "pet_golden_retriever_card",
-            thumbnailImageName: "pet_golden_retriever_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Golden Retriever pet"
+            imageName: "companion_golden_retriever_card",
+            thumbnailImageName: "companion_golden_retriever_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "library_owl": CombatantArtReference(
-            imageName: "pet_library_owl_card",
-            thumbnailImageName: "pet_library_owl_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Library Owl pet"
+            imageName: "companion_library_owl_card",
+            thumbnailImageName: "companion_library_owl_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "risen_skeleton": CombatantArtReference(
-            imageName: "pet_risen_skeleton_card",
-            thumbnailImageName: "pet_risen_skeleton_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Risen Skeleton pet"
+            imageName: "companion_risen_skeleton_card",
+            thumbnailImageName: "companion_risen_skeleton_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "mana_moth": CombatantArtReference(
-            imageName: "pet_mana_moth_card",
-            thumbnailImageName: "pet_mana_moth_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Mana Moth pet"
+            imageName: "companion_mana_moth_card",
+            thumbnailImageName: "companion_mana_moth_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "living_armor": CombatantArtReference(
             imageName: "enemy_living_armor_card",
             thumbnailImageName: "enemy_living_armor_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Living Armor enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "mimic": CombatantArtReference(
             imageName: "enemy_mimic_card",
             thumbnailImageName: "enemy_mimic_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Mimic enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "mud_elemental": CombatantArtReference(
             imageName: "enemy_mud_elemental_card",
             thumbnailImageName: "enemy_mud_elemental_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Mud Elemental enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "necromancer": CombatantArtReference(
             imageName: "enemy_necromancer_card",
             thumbnailImageName: "enemy_necromancer_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Necromancer enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "plague_doctor": CombatantArtReference(
             imageName: "enemy_plague_doctor_card",
             thumbnailImageName: "enemy_plague_doctor_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Plague Doctor enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "skeleton": CombatantArtReference(
             imageName: "enemy_skeleton_card",
             thumbnailImageName: "enemy_skeleton_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Skeleton enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "the_blight_treant": CombatantArtReference(
             imageName: "enemy_the_blight_treant_card",
             thumbnailImageName: "enemy_the_blight_treant_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Blight Treant enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "the_forge_golem": CombatantArtReference(
             imageName: "enemy_the_forge_golem_card",
             thumbnailImageName: "enemy_the_forge_golem_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Forge Golem enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "the_frostwarden": CombatantArtReference(
             imageName: "enemy_the_frostwarden_card",
             thumbnailImageName: "enemy_the_frostwarden_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Frostwarden enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "the_iron_bear": CombatantArtReference(
             imageName: "enemy_the_iron_bear_card",
             thumbnailImageName: "enemy_the_iron_bear_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Iron Bear enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "fire_elemental": CombatantArtReference(
             imageName: "enemy_fire_elemental_card",
             thumbnailImageName: "enemy_fire_elemental_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Fire Elemental enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "frost_elemental": CombatantArtReference(
             imageName: "enemy_frost_elemental_card",
             thumbnailImageName: "enemy_frost_elemental_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Frost Elemental enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "goblin": CombatantArtReference(
             imageName: "enemy_goblin_card",
             thumbnailImageName: "enemy_goblin_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Goblin enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "slime": CombatantArtReference(
             imageName: "enemy_slime_card",
             thumbnailImageName: "enemy_slime_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Slime enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "will_o_wisp": CombatantArtReference(
             imageName: "enemy_will_o_wisp_card",
             thumbnailImageName: "enemy_will_o_wisp_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Will-o-Wisp enemy"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "pixie": CombatantArtReference(
-            imageName: "pet_pixie_card",
-            thumbnailImageName: "pet_pixie_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Pixie pet"
+            imageName: "companion_pixie_card",
+            thumbnailImageName: "companion_pixie_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "shield_scarab": CombatantArtReference(
-            imageName: "pet_shield_scarab_card",
-            thumbnailImageName: "pet_shield_scarab_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Shield Scarab pet"
+            imageName: "companion_shield_scarab_card",
+            thumbnailImageName: "companion_shield_scarab_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
     ]
 
     static let abilityArtByID: [String: AbilityArtReference] = [
         "acid-potion": AbilityArtReference(
-            imageName: "ability_acid_potion_thumb",
-            accessibilityLabel: "Ability art for Acid Potion"
+            imageName: "ability_acid_potion_thumb"
         ),
         "antivenom-potion": AbilityArtReference(
-            imageName: "ability_antivenom_potion_thumb",
-            accessibilityLabel: "Ability art for Antivenom Potion"
+            imageName: "ability_antivenom_potion_thumb"
         ),
         "anvil": AbilityArtReference(
-            imageName: "ability_anvil_thumb",
-            accessibilityLabel: "Ability art for Anvil"
+            imageName: "ability_anvil_thumb"
         ),
         "apple": AbilityArtReference(
-            imageName: "ability_apple_thumb",
-            accessibilityLabel: "Ability art for Apple"
+            imageName: "ability_apple_thumb"
         ),
         "bash": AbilityArtReference(
-            imageName: "ability_bash_thumb",
-            accessibilityLabel: "Ability art for Bash"
+            imageName: "ability_bash_thumb"
         ),
         "blackjack": AbilityArtReference(
-            imageName: "ability_blackjack_thumb",
-            accessibilityLabel: "Ability art for Blackjack"
+            imageName: "ability_blackjack_thumb"
         ),
         "blessed-aegis": AbilityArtReference(
-            imageName: "ability_blessed_aegis_thumb",
-            accessibilityLabel: "Ability art for Blessed Aegis"
+            imageName: "ability_blessed_aegis_thumb"
         ),
         "blizzard": AbilityArtReference(
-            imageName: "ability_blizzard_thumb",
-            accessibilityLabel: "Ability art for Blizzard"
+            imageName: "ability_blizzard_thumb"
         ),
         "block": AbilityArtReference(
-            imageName: "ability_block_thumb",
-            accessibilityLabel: "Ability art for Block"
+            imageName: "ability_block_thumb"
         ),
         "blood-offering": AbilityArtReference(
-            imageName: "ability_blood_offering_thumb",
-            accessibilityLabel: "Ability art for Blood Offering"
+            imageName: "ability_blood_offering_thumb"
         ),
         "bloodthorn": AbilityArtReference(
-            imageName: "ability_bloodthorn_thumb",
-            accessibilityLabel: "Ability art for Bloodthorn"
+            imageName: "ability_bloodthorn_thumb"
         ),
         "bounty-shot": AbilityArtReference(
-            imageName: "ability_bounty_shot_thumb",
-            accessibilityLabel: "Ability art for Bounty Shot"
+            imageName: "ability_bounty_shot_thumb"
         ),
         "bread": AbilityArtReference(
-            imageName: "ability_bread_thumb",
-            accessibilityLabel: "Ability art for Bread"
+            imageName: "ability_bread_thumb"
         ),
         "briar-shield": AbilityArtReference(
-            imageName: "ability_briar_shield_thumb",
-            accessibilityLabel: "Ability art for Briar Shield"
+            imageName: "ability_briar_shield_thumb"
         ),
         "burning-blade": AbilityArtReference(
-            imageName: "ability_burning_blade_thumb",
-            accessibilityLabel: "Ability art for Burning Blade"
+            imageName: "ability_burning_blade_thumb"
         ),
         "cauterize": AbilityArtReference(
-            imageName: "ability_cauterize_thumb",
-            accessibilityLabel: "Ability art for Cauterize"
+            imageName: "ability_cauterize_thumb"
         ),
         "caustic-jab": AbilityArtReference(
-            imageName: "ability_caustic_jab_thumb",
-            accessibilityLabel: "Ability art for Caustic Jab"
+            imageName: "ability_caustic_jab_thumb"
         ),
         "cinderbloom": AbilityArtReference(
-            imageName: "ability_cinderbloom_thumb",
-            accessibilityLabel: "Ability art for Cinderbloom"
+            imageName: "ability_cinderbloom_thumb"
         ),
         "cleanse": AbilityArtReference(
-            imageName: "ability_cleanse_thumb",
-            accessibilityLabel: "Ability art for Cleanse"
+            imageName: "ability_cleanse_thumb"
         ),
         "cold-snap": AbilityArtReference(
-            imageName: "ability_cold_snap_thumb",
-            accessibilityLabel: "Ability art for Cold Snap"
+            imageName: "ability_cold_snap_thumb"
         ),
         "combustion": AbilityArtReference(
-            imageName: "ability_combustion_thumb",
-            accessibilityLabel: "Ability art for Combustion"
+            imageName: "ability_combustion_thumb"
         ),
         "concussive-shot": AbilityArtReference(
-            imageName: "ability_concussive_shot_thumb",
-            accessibilityLabel: "Ability art for Concussive Shot"
+            imageName: "ability_concussive_shot_thumb"
         ),
         "crystal-bulwark": AbilityArtReference(
-            imageName: "ability_crystal_bulwark_thumb",
-            accessibilityLabel: "Ability art for Crystal Bulwark"
+            imageName: "ability_crystal_bulwark_thumb"
         ),
         "dark-pact": AbilityArtReference(
-            imageName: "ability_dark_pact_thumb",
-            accessibilityLabel: "Ability art for Dark Pact"
+            imageName: "ability_dark_pact_thumb"
         ),
         "exorcism": AbilityArtReference(
-            imageName: "ability_exorcism_thumb",
-            accessibilityLabel: "Ability art for Exorcism"
+            imageName: "ability_exorcism_thumb"
         ),
         "fangs": AbilityArtReference(
-            imageName: "ability_fangs_thumb",
-            accessibilityLabel: "Ability art for Fangs"
+            imageName: "ability_fangs_thumb"
         ),
         "faustian-bargain": AbilityArtReference(
-            imageName: "ability_faustian_bargain_thumb",
-            accessibilityLabel: "Ability art for Faustian Bargain"
+            imageName: "ability_faustian_bargain_thumb"
         ),
         "fire-arrow": AbilityArtReference(
-            imageName: "ability_fire_arrow_thumb",
-            accessibilityLabel: "Ability art for Fire Arrow"
+            imageName: "ability_fire_arrow_thumb"
         ),
         "fireball": AbilityArtReference(
-            imageName: "ability_fireball_thumb",
-            accessibilityLabel: "Ability art for Fireball"
+            imageName: "ability_fireball_thumb"
         ),
         "frostbolt": AbilityArtReference(
-            imageName: "ability_frostbolt_thumb",
-            accessibilityLabel: "Ability art for Frostbolt"
+            imageName: "ability_frostbolt_thumb"
         ),
         "gamblers-shot": AbilityArtReference(
-            imageName: "ability_gamblers_shot_thumb",
-            accessibilityLabel: "Ability art for Gambler's Shot"
+            imageName: "ability_gamblers_shot_thumb"
         ),
         "glacial-ward": AbilityArtReference(
-            imageName: "ability_glacial_ward_thumb",
-            accessibilityLabel: "Ability art for Glacial Ward"
+            imageName: "ability_glacial_ward_thumb"
         ),
         "golden-plate": AbilityArtReference(
-            imageName: "ability_golden_plate_thumb",
-            accessibilityLabel: "Ability art for Golden Plate"
+            imageName: "ability_golden_plate_thumb"
         ),
         "grasping-vines": AbilityArtReference(
-            imageName: "ability_grasping_vines_thumb",
-            accessibilityLabel: "Ability art for Grasping Vines"
+            imageName: "ability_grasping_vines_thumb"
         ),
         "haste": AbilityArtReference(
-            imageName: "ability_haste_thumb",
-            accessibilityLabel: "Ability art for Haste"
+            imageName: "ability_haste_thumb"
         ),
         "heal": AbilityArtReference(
-            imageName: "ability_heal_thumb",
-            accessibilityLabel: "Ability art for Heal"
+            imageName: "ability_heal_thumb"
         ),
         "health-potion": AbilityArtReference(
-            imageName: "ability_health_potion_thumb",
-            accessibilityLabel: "Ability art for Health Potion"
+            imageName: "ability_health_potion_thumb"
         ),
         "hemorrhage": AbilityArtReference(
-            imageName: "ability_hemorrhage_thumb",
-            accessibilityLabel: "Ability art for Hemorrhage"
+            imageName: "ability_hemorrhage_thumb"
         ),
         "holy-radiance": AbilityArtReference(
-            imageName: "ability_holy_radiance_thumb",
-            accessibilityLabel: "Ability art for Holy Radiance"
+            imageName: "ability_holy_radiance_thumb"
         ),
         "ice-shot": AbilityArtReference(
-            imageName: "ability_ice_shot_thumb",
-            accessibilityLabel: "Ability art for Ice Shot"
+            imageName: "ability_ice_shot_thumb"
         ),
         "judgment": AbilityArtReference(
-            imageName: "ability_judgment_thumb",
-            accessibilityLabel: "Ability art for Judgment"
+            imageName: "ability_judgment_thumb"
         ),
         "kindling": AbilityArtReference(
-            imageName: "ability_kindling_thumb",
-            accessibilityLabel: "Ability art for Kindling"
+            imageName: "ability_kindling_thumb"
         ),
         "lightning-arrow": AbilityArtReference(
-            imageName: "ability_lightning_arrow_thumb",
-            accessibilityLabel: "Ability art for Lightning Arrow"
+            imageName: "ability_lightning_arrow_thumb"
         ),
         "lightning-bolt": AbilityArtReference(
-            imageName: "ability_lightning_bolt_thumb",
-            accessibilityLabel: "Ability art for Lightning Bolt"
+            imageName: "ability_lightning_bolt_thumb"
         ),
         "luck-potion": AbilityArtReference(
-            imageName: "ability_luck_potion_thumb",
-            accessibilityLabel: "Ability art for Luck Potion"
+            imageName: "ability_luck_potion_thumb"
         ),
         "mana-bulwark": AbilityArtReference(
-            imageName: "ability_mana_bulwark_thumb",
-            accessibilityLabel: "Ability art for Mana Bulwark"
+            imageName: "ability_mana_bulwark_thumb"
         ),
         "mana-berries": AbilityArtReference(
-            imageName: "ability_mana_berries_thumb",
-            accessibilityLabel: "Ability art for Mana Berries"
+            imageName: "ability_mana_berries_thumb"
         ),
         "mana-crystals": AbilityArtReference(
-            imageName: "ability_mana_crystals_thumb",
-            accessibilityLabel: "Ability art for Mana Crystals"
+            imageName: "ability_mana_crystals_thumb"
         ),
         "mana-potion": AbilityArtReference(
-            imageName: "ability_mana_potion_thumb",
-            accessibilityLabel: "Ability art for Mana Potion"
+            imageName: "ability_mana_potion_thumb"
         ),
         "mana-shield": AbilityArtReference(
-            imageName: "ability_mana_shield_thumb",
-            accessibilityLabel: "Ability art for Mana Shield"
+            imageName: "ability_mana_shield_thumb"
         ),
         "meteor": AbilityArtReference(
-            imageName: "ability_meteor_thumb",
-            accessibilityLabel: "Ability art for Meteor"
+            imageName: "ability_meteor_thumb"
         ),
         "molten-bulwark": AbilityArtReference(
-            imageName: "ability_molten_bulwark_thumb",
-            accessibilityLabel: "Ability art for Molten Bulwark"
+            imageName: "ability_molten_bulwark_thumb"
         ),
         "pack-tactics": AbilityArtReference(
-            imageName: "ability_pack_tactics_thumb",
-            accessibilityLabel: "Ability art for Pack Tactics"
+            imageName: "ability_pack_tactics_thumb"
         ),
         "panacea-potion": AbilityArtReference(
-            imageName: "ability_panacea_potion_thumb",
-            accessibilityLabel: "Ability art for Panacea Potion"
+            imageName: "ability_panacea_potion_thumb"
         ),
         "phoenix-feather": AbilityArtReference(
-            imageName: "ability_phoenix_feather_thumb",
-            accessibilityLabel: "Ability art for Phoenix Feather"
+            imageName: "ability_phoenix_feather_thumb"
         ),
         "pixie-dust": AbilityArtReference(
-            imageName: "ability_pixie_dust_thumb",
-            accessibilityLabel: "Ability art for Pixie Dust"
+            imageName: "ability_pixie_dust_thumb"
         ),
         "plate-mail": AbilityArtReference(
-            imageName: "ability_plate_mail_thumb",
-            accessibilityLabel: "Ability art for Plate Mail"
+            imageName: "ability_plate_mail_thumb"
         ),
         "poison-dagger": AbilityArtReference(
-            imageName: "ability_poison_dagger_thumb",
-            accessibilityLabel: "Ability art for Poison Dagger"
+            imageName: "ability_poison_dagger_thumb"
         ),
         "prayer": AbilityArtReference(
-            imageName: "ability_prayer_thumb",
-            accessibilityLabel: "Ability art for Prayer"
+            imageName: "ability_prayer_thumb"
         ),
         "predators-haste": AbilityArtReference(
-            imageName: "ability_predators_haste_thumb",
-            accessibilityLabel: "Ability art for Predator's Haste"
+            imageName: "ability_predators_haste_thumb"
         ),
         "ray-of-frost": AbilityArtReference(
-            imageName: "ability_ray_of_frost_thumb",
-            accessibilityLabel: "Ability art for Ray of Frost"
+            imageName: "ability_ray_of_frost_thumb"
         ),
         "rending-slash": AbilityArtReference(
-            imageName: "ability_rending_slash_thumb",
-            accessibilityLabel: "Ability art for Rending Slash"
+            imageName: "ability_rending_slash_thumb"
         ),
         "roulette": AbilityArtReference(
-            imageName: "ability_roulette_thumb",
-            accessibilityLabel: "Ability art for Roulette"
+            imageName: "ability_roulette_thumb"
         ),
         "sage-heal": AbilityArtReference(
-            imageName: "ability_sage_heal_thumb",
-            accessibilityLabel: "Ability art for Sage Heal"
+            imageName: "ability_sage_heal_thumb"
         ),
         "sanctified-plate": AbilityArtReference(
-            imageName: "ability_sanctified_plate_thumb",
-            accessibilityLabel: "Ability art for Sanctified Plate"
+            imageName: "ability_sanctified_plate_thumb"
         ),
         "sap-arrow": AbilityArtReference(
-            imageName: "ability_sap_arrow_thumb",
-            accessibilityLabel: "Ability art for Sap Arrow"
+            imageName: "ability_sap_arrow_thumb"
         ),
         "serrated-arrowhead": AbilityArtReference(
-            imageName: "ability_serrated_arrowhead_thumb",
-            accessibilityLabel: "Ability art for Serrated Arrowhead"
+            imageName: "ability_serrated_arrowhead_thumb"
         ),
         "serrated-edge": AbilityArtReference(
-            imageName: "ability_serrated_edge_thumb",
-            accessibilityLabel: "Ability art for Serrated Edge"
+            imageName: "ability_serrated_edge_thumb"
         ),
         "shield-bash": AbilityArtReference(
-            imageName: "ability_shield_bash_thumb",
-            accessibilityLabel: "Ability art for Shield Bash"
+            imageName: "ability_shield_bash_thumb"
         ),
         "slash": AbilityArtReference(
-            imageName: "ability_slash_thumb",
-            accessibilityLabel: "Ability art for Slash"
+            imageName: "ability_slash_thumb"
         ),
         "smelling-salts": AbilityArtReference(
-            imageName: "ability_smelling_salts_thumb",
-            accessibilityLabel: "Ability art for Smelling Salts"
+            imageName: "ability_smelling_salts_thumb"
         ),
         "smite": AbilityArtReference(
-            imageName: "ability_smite_thumb",
-            accessibilityLabel: "Ability art for Smite"
+            imageName: "ability_smite_thumb"
         ),
         "sniff-out": AbilityArtReference(
-            imageName: "ability_sniff_out_thumb",
-            accessibilityLabel: "Ability art for Sniff Out"
+            imageName: "ability_sniff_out_thumb"
         ),
         "spiked-shield": AbilityArtReference(
-            imageName: "ability_spiked_shield_thumb",
-            accessibilityLabel: "Ability art for Spiked Shield"
+            imageName: "ability_spiked_shield_thumb"
         ),
         "stab": AbilityArtReference(
-            imageName: "ability_stab_thumb",
-            accessibilityLabel: "Ability art for Stab"
+            imageName: "ability_stab_thumb"
         ),
         "stargaze": AbilityArtReference(
-            imageName: "ability_stargaze_thumb",
-            accessibilityLabel: "Ability art for Stargaze"
+            imageName: "ability_stargaze_thumb"
         ),
         "steal": AbilityArtReference(
-            imageName: "ability_steal_thumb",
-            accessibilityLabel: "Ability art for Steal"
+            imageName: "ability_steal_thumb"
         ),
         "stoneskin-potion": AbilityArtReference(
-            imageName: "ability_stoneskin_potion_thumb",
-            accessibilityLabel: "Ability art for Stoneskin Potion"
+            imageName: "ability_stoneskin_potion_thumb"
         ),
         "sunburst": AbilityArtReference(
-            imageName: "ability_sunburst_thumb",
-            accessibilityLabel: "Ability art for Sunburst"
+            imageName: "ability_sunburst_thumb"
         ),
         "sunder-armor": AbilityArtReference(
-            imageName: "ability_sunder_armor_thumb",
-            accessibilityLabel: "Ability art for Sunder Armor"
+            imageName: "ability_sunder_armor_thumb"
         ),
         "thorn-mail": AbilityArtReference(
-            imageName: "ability_thorn_mail_thumb",
-            accessibilityLabel: "Ability art for Thorn Mail"
+            imageName: "ability_thorn_mail_thumb"
         ),
         "tithe": AbilityArtReference(
-            imageName: "ability_tithe_thumb",
-            accessibilityLabel: "Ability art for Tithe"
+            imageName: "ability_tithe_thumb"
         ),
         "venom-arrow": AbilityArtReference(
-            imageName: "ability_venom_arrow_thumb",
-            accessibilityLabel: "Ability art for Venom Arrow"
+            imageName: "ability_venom_arrow_thumb"
         ),
         "venom-fangs": AbilityArtReference(
-            imageName: "ability_venom_fangs_thumb",
-            accessibilityLabel: "Ability art for Venom Fangs"
+            imageName: "ability_venom_fangs_thumb"
         ),
         "wise-frost": AbilityArtReference(
-            imageName: "ability_wise_frost_thumb",
-            accessibilityLabel: "Ability art for Wise Frost"
+            imageName: "ability_wise_frost_thumb"
         ),
     ]
 
     static let itemArtByID: [String: ItemArtReference] = [
         "crossbow-astral": ItemArtReference(
             imageName: "item_crossbow_astral",
-            thumbnailImageName: "item_crossbow_astral_thumb",
-            accessibilityLabel: "Item art for Crossbow (Astral)"
+            thumbnailImageName: "item_crossbow_astral_thumb"
         ),
         "crossbow-basic": ItemArtReference(
             imageName: "item_crossbow_basic",
-            thumbnailImageName: "item_crossbow_basic_thumb",
-            accessibilityLabel: "Item art for Crossbow (Basic)"
+            thumbnailImageName: "item_crossbow_basic_thumb"
         ),
         "dagger-astral": ItemArtReference(
             imageName: "item_dagger_astral",
-            thumbnailImageName: "item_dagger_astral_thumb",
-            accessibilityLabel: "Item art for Dagger (Astral)"
+            thumbnailImageName: "item_dagger_astral_thumb"
         ),
         "dagger-basic": ItemArtReference(
             imageName: "item_dagger_basic",
-            thumbnailImageName: "item_dagger_basic_thumb",
-            accessibilityLabel: "Item art for Dagger (Basic)"
+            thumbnailImageName: "item_dagger_basic_thumb"
         ),
         "double_axe-astral": ItemArtReference(
             imageName: "item_double_axe_astral",
-            thumbnailImageName: "item_double_axe_astral_thumb",
-            accessibilityLabel: "Item art for Double Axe (Astral)"
+            thumbnailImageName: "item_double_axe_astral_thumb"
         ),
         "double_axe-basic": ItemArtReference(
             imageName: "item_double_axe_basic",
-            thumbnailImageName: "item_double_axe_basic_thumb",
-            accessibilityLabel: "Item art for Double Axe (Basic)"
+            thumbnailImageName: "item_double_axe_basic_thumb"
         ),
         "emerald_amulet-astral": ItemArtReference(
             imageName: "item_emerald_amulet_astral",
-            thumbnailImageName: "item_emerald_amulet_astral_thumb",
-            accessibilityLabel: "Item art for Emerald Amulet (Astral)"
+            thumbnailImageName: "item_emerald_amulet_astral_thumb"
         ),
         "emerald_amulet-basic": ItemArtReference(
             imageName: "item_emerald_amulet_basic",
-            thumbnailImageName: "item_emerald_amulet_basic_thumb",
-            accessibilityLabel: "Item art for Emerald Amulet (Basic)"
+            thumbnailImageName: "item_emerald_amulet_basic_thumb"
         ),
         "emerald_ring-astral": ItemArtReference(
             imageName: "item_emerald_ring_astral",
-            thumbnailImageName: "item_emerald_ring_astral_thumb",
-            accessibilityLabel: "Item art for Emerald Ring (Astral)"
+            thumbnailImageName: "item_emerald_ring_astral_thumb"
         ),
         "emerald_ring-basic": ItemArtReference(
             imageName: "item_emerald_ring_basic",
-            thumbnailImageName: "item_emerald_ring_basic_thumb",
-            accessibilityLabel: "Item art for Emerald Ring (Basic)"
+            thumbnailImageName: "item_emerald_ring_basic_thumb"
         ),
         "flail-astral": ItemArtReference(
             imageName: "item_flail_astral",
-            thumbnailImageName: "item_flail_astral_thumb",
-            accessibilityLabel: "Item art for Flail (Astral)"
+            thumbnailImageName: "item_flail_astral_thumb"
         ),
         "flail-basic": ItemArtReference(
             imageName: "item_flail_basic",
-            thumbnailImageName: "item_flail_basic_thumb",
-            accessibilityLabel: "Item art for Flail (Basic)"
+            thumbnailImageName: "item_flail_basic_thumb"
         ),
         "greatsword-astral": ItemArtReference(
             imageName: "item_greatsword_astral",
-            thumbnailImageName: "item_greatsword_astral_thumb",
-            accessibilityLabel: "Item art for Greatsword (Astral)"
+            thumbnailImageName: "item_greatsword_astral_thumb"
         ),
         "greatsword-basic": ItemArtReference(
             imageName: "item_greatsword_basic",
-            thumbnailImageName: "item_greatsword_basic_thumb",
-            accessibilityLabel: "Item art for Greatsword (Basic)"
+            thumbnailImageName: "item_greatsword_basic_thumb"
         ),
         "hatchet-astral": ItemArtReference(
             imageName: "item_hatchet_astral",
-            thumbnailImageName: "item_hatchet_astral_thumb",
-            accessibilityLabel: "Item art for Hatchet (Astral)"
+            thumbnailImageName: "item_hatchet_astral_thumb"
         ),
         "hatchet-basic": ItemArtReference(
             imageName: "item_hatchet_basic",
-            thumbnailImageName: "item_hatchet_basic_thumb",
-            accessibilityLabel: "Item art for Hatchet (Basic)"
+            thumbnailImageName: "item_hatchet_basic_thumb"
         ),
         "kite_shield-astral": ItemArtReference(
             imageName: "item_kite_shield_astral",
-            thumbnailImageName: "item_kite_shield_astral_thumb",
-            accessibilityLabel: "Item art for Kite Shield (Astral)"
+            thumbnailImageName: "item_kite_shield_astral_thumb"
         ),
         "kite_shield-basic": ItemArtReference(
             imageName: "item_kite_shield_basic",
-            thumbnailImageName: "item_kite_shield_basic_thumb",
-            accessibilityLabel: "Item art for Kite Shield (Basic)"
+            thumbnailImageName: "item_kite_shield_basic_thumb"
         ),
         "leather_armor-astral": ItemArtReference(
             imageName: "item_leather_armor_astral",
-            thumbnailImageName: "item_leather_armor_astral_thumb",
-            accessibilityLabel: "Item art for Leather Armor (Astral)"
+            thumbnailImageName: "item_leather_armor_astral_thumb"
         ),
         "leather_armor-basic": ItemArtReference(
             imageName: "item_leather_armor_basic",
-            thumbnailImageName: "item_leather_armor_basic_thumb",
-            accessibilityLabel: "Item art for Leather Armor (Basic)"
+            thumbnailImageName: "item_leather_armor_basic_thumb"
         ),
         "longbow-astral": ItemArtReference(
             imageName: "item_longbow_astral",
-            thumbnailImageName: "item_longbow_astral_thumb",
-            accessibilityLabel: "Item art for Longbow (Astral)"
+            thumbnailImageName: "item_longbow_astral_thumb"
         ),
         "longbow-basic": ItemArtReference(
             imageName: "item_longbow_basic",
-            thumbnailImageName: "item_longbow_basic_thumb",
-            accessibilityLabel: "Item art for Longbow (Basic)"
+            thumbnailImageName: "item_longbow_basic_thumb"
         ),
         "longsword-astral": ItemArtReference(
             imageName: "item_longsword_astral",
-            thumbnailImageName: "item_longsword_astral_thumb",
-            accessibilityLabel: "Item art for Longsword (Astral)"
+            thumbnailImageName: "item_longsword_astral_thumb"
         ),
         "longsword-basic": ItemArtReference(
             imageName: "item_longsword_basic",
-            thumbnailImageName: "item_longsword_basic_thumb",
-            accessibilityLabel: "Item art for Longsword (Basic)"
+            thumbnailImageName: "item_longsword_basic_thumb"
         ),
         "mace-astral": ItemArtReference(
             imageName: "item_mace_astral",
-            thumbnailImageName: "item_mace_astral_thumb",
-            accessibilityLabel: "Item art for Mace (Astral)"
+            thumbnailImageName: "item_mace_astral_thumb"
         ),
         "mace-basic": ItemArtReference(
             imageName: "item_mace_basic",
-            thumbnailImageName: "item_mace_basic_thumb",
-            accessibilityLabel: "Item art for Mace (Basic)"
+            thumbnailImageName: "item_mace_basic_thumb"
         ),
         "maul-astral": ItemArtReference(
             imageName: "item_maul_astral",
-            thumbnailImageName: "item_maul_astral_thumb",
-            accessibilityLabel: "Item art for Maul (Astral)"
+            thumbnailImageName: "item_maul_astral_thumb"
         ),
         "maul-basic": ItemArtReference(
             imageName: "item_maul_basic",
-            thumbnailImageName: "item_maul_basic_thumb",
-            accessibilityLabel: "Item art for Maul (Basic)"
+            thumbnailImageName: "item_maul_basic_thumb"
         ),
         "plate_armor-astral": ItemArtReference(
             imageName: "item_plate_armor_astral",
-            thumbnailImageName: "item_plate_armor_astral_thumb",
-            accessibilityLabel: "Item art for Plate Armor (Astral)"
+            thumbnailImageName: "item_plate_armor_astral_thumb"
         ),
         "plate_armor-basic": ItemArtReference(
             imageName: "item_plate_armor_basic",
-            thumbnailImageName: "item_plate_armor_basic_thumb",
-            accessibilityLabel: "Item art for Plate Armor (Basic)"
+            thumbnailImageName: "item_plate_armor_basic_thumb"
         ),
         "recurve_bow-astral": ItemArtReference(
             imageName: "item_recurve_bow_astral",
-            thumbnailImageName: "item_recurve_bow_astral_thumb",
-            accessibilityLabel: "Item art for Recurve Bow (Astral)"
+            thumbnailImageName: "item_recurve_bow_astral_thumb"
         ),
         "recurve_bow-basic": ItemArtReference(
             imageName: "item_recurve_bow_basic",
-            thumbnailImageName: "item_recurve_bow_basic_thumb",
-            accessibilityLabel: "Item art for Recurve Bow (Basic)"
+            thumbnailImageName: "item_recurve_bow_basic_thumb"
         ),
         "ruby_amulet-astral": ItemArtReference(
             imageName: "item_ruby_amulet_astral",
-            thumbnailImageName: "item_ruby_amulet_astral_thumb",
-            accessibilityLabel: "Item art for Ruby Amulet (Astral)"
+            thumbnailImageName: "item_ruby_amulet_astral_thumb"
         ),
         "ruby_amulet-basic": ItemArtReference(
             imageName: "item_ruby_amulet_basic",
-            thumbnailImageName: "item_ruby_amulet_basic_thumb",
-            accessibilityLabel: "Item art for Ruby Amulet (Basic)"
+            thumbnailImageName: "item_ruby_amulet_basic_thumb"
         ),
         "ruby_ring-astral": ItemArtReference(
             imageName: "item_ruby_ring_astral",
-            thumbnailImageName: "item_ruby_ring_astral_thumb",
-            accessibilityLabel: "Item art for Ruby Ring (Astral)"
+            thumbnailImageName: "item_ruby_ring_astral_thumb"
         ),
         "ruby_ring-basic": ItemArtReference(
             imageName: "item_ruby_ring_basic",
-            thumbnailImageName: "item_ruby_ring_basic_thumb",
-            accessibilityLabel: "Item art for Ruby Ring (Basic)"
+            thumbnailImageName: "item_ruby_ring_basic_thumb"
         ),
         "sapphire_amulet-astral": ItemArtReference(
             imageName: "item_sapphire_amulet_astral",
-            thumbnailImageName: "item_sapphire_amulet_astral_thumb",
-            accessibilityLabel: "Item art for Sapphire Amulet (Astral)"
+            thumbnailImageName: "item_sapphire_amulet_astral_thumb"
         ),
         "sapphire_amulet-basic": ItemArtReference(
             imageName: "item_sapphire_amulet_basic",
-            thumbnailImageName: "item_sapphire_amulet_basic_thumb",
-            accessibilityLabel: "Item art for Sapphire Amulet (Basic)"
+            thumbnailImageName: "item_sapphire_amulet_basic_thumb"
         ),
         "sapphire_ring-astral": ItemArtReference(
             imageName: "item_sapphire_ring_astral",
-            thumbnailImageName: "item_sapphire_ring_astral_thumb",
-            accessibilityLabel: "Item art for Sapphire Ring (Astral)"
+            thumbnailImageName: "item_sapphire_ring_astral_thumb"
         ),
         "sapphire_ring-basic": ItemArtReference(
             imageName: "item_sapphire_ring_basic",
-            thumbnailImageName: "item_sapphire_ring_basic_thumb",
-            accessibilityLabel: "Item art for Sapphire Ring (Basic)"
+            thumbnailImageName: "item_sapphire_ring_basic_thumb"
         ),
         "shortbow-astral": ItemArtReference(
             imageName: "item_shortbow_astral",
-            thumbnailImageName: "item_shortbow_astral_thumb",
-            accessibilityLabel: "Item art for Shortbow (Astral)"
+            thumbnailImageName: "item_shortbow_astral_thumb"
         ),
         "shortbow-basic": ItemArtReference(
             imageName: "item_shortbow_basic",
-            thumbnailImageName: "item_shortbow_basic_thumb",
-            accessibilityLabel: "Item art for Shortbow (Basic)"
+            thumbnailImageName: "item_shortbow_basic_thumb"
         ),
         "shortsword-astral": ItemArtReference(
             imageName: "item_shortsword_astral",
-            thumbnailImageName: "item_shortsword_astral_thumb",
-            accessibilityLabel: "Item art for Shortsword (Astral)"
+            thumbnailImageName: "item_shortsword_astral_thumb"
         ),
         "shortsword-basic": ItemArtReference(
             imageName: "item_shortsword_basic",
-            thumbnailImageName: "item_shortsword_basic_thumb",
-            accessibilityLabel: "Item art for Shortsword (Basic)"
+            thumbnailImageName: "item_shortsword_basic_thumb"
         ),
         "spellbook-astral": ItemArtReference(
             imageName: "item_spellbook_astral",
-            thumbnailImageName: "item_spellbook_astral_thumb",
-            accessibilityLabel: "Item art for Spellbook (Astral)"
+            thumbnailImageName: "item_spellbook_astral_thumb"
         ),
         "spellbook-basic": ItemArtReference(
             imageName: "item_spellbook_basic",
-            thumbnailImageName: "item_spellbook_basic_thumb",
-            accessibilityLabel: "Item art for Spellbook (Basic)"
+            thumbnailImageName: "item_spellbook_basic_thumb"
         ),
         "staff-astral": ItemArtReference(
             imageName: "item_staff_astral",
-            thumbnailImageName: "item_staff_astral_thumb",
-            accessibilityLabel: "Item art for Staff (Astral)"
+            thumbnailImageName: "item_staff_astral_thumb"
         ),
         "staff-basic": ItemArtReference(
             imageName: "item_staff_basic",
-            thumbnailImageName: "item_staff_basic_thumb",
-            accessibilityLabel: "Item art for Staff (Basic)"
+            thumbnailImageName: "item_staff_basic_thumb"
         ),
         "topaz_amulet-astral": ItemArtReference(
             imageName: "item_topaz_amulet_astral",
-            thumbnailImageName: "item_topaz_amulet_astral_thumb",
-            accessibilityLabel: "Item art for Topaz Amulet (Astral)"
+            thumbnailImageName: "item_topaz_amulet_astral_thumb"
         ),
         "topaz_amulet-basic": ItemArtReference(
             imageName: "item_topaz_amulet_basic",
-            thumbnailImageName: "item_topaz_amulet_basic_thumb",
-            accessibilityLabel: "Item art for Topaz Amulet (Basic)"
+            thumbnailImageName: "item_topaz_amulet_basic_thumb"
         ),
         "topaz_ring-astral": ItemArtReference(
             imageName: "item_topaz_ring_astral",
-            thumbnailImageName: "item_topaz_ring_astral_thumb",
-            accessibilityLabel: "Item art for Topaz Ring (Astral)"
+            thumbnailImageName: "item_topaz_ring_astral_thumb"
         ),
         "topaz_ring-basic": ItemArtReference(
             imageName: "item_topaz_ring_basic",
-            thumbnailImageName: "item_topaz_ring_basic_thumb",
-            accessibilityLabel: "Item art for Topaz Ring (Basic)"
+            thumbnailImageName: "item_topaz_ring_basic_thumb"
         ),
         "wand-astral": ItemArtReference(
             imageName: "item_wand_astral",
-            thumbnailImageName: "item_wand_astral_thumb",
-            accessibilityLabel: "Item art for Wand (Astral)"
+            thumbnailImageName: "item_wand_astral_thumb"
         ),
         "wand-basic": ItemArtReference(
             imageName: "item_wand_basic",
-            thumbnailImageName: "item_wand_basic_thumb",
-            accessibilityLabel: "Item art for Wand (Basic)"
+            thumbnailImageName: "item_wand_basic_thumb"
         ),
     ]
 
     public static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
         .armor: SlotBackgroundArtReference(
-            imageName: "slot_armor",
-            accessibilityLabel: "Empty armor slot frame"
+            imageName: "slot_armor"
         ),
         .trinket: SlotBackgroundArtReference(
-            imageName: "slot_trinket",
-            accessibilityLabel: "Empty trinket slot frame"
+            imageName: "slot_trinket"
         ),
         .weapon: SlotBackgroundArtReference(
-            imageName: "slot_weapon",
-            accessibilityLabel: "Empty weapon slot frame"
+            imageName: "slot_weapon"
         ),
     ]
 
     public static let backgroundArtByID: [String: BackgroundArtReference] = [
         "chapter-1": BackgroundArtReference(
             imageName: "bg_verdant_forest",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Lush green canopy and winding forest path of the Verdant Forest"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "homestead": BackgroundArtReference(
             imageName: "bg_homestead",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "A prosperous mountain Homestead glowing beneath a dramatic golden sunset"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "wheatField": BackgroundArtReference(
             imageName: "bg_homestead_wheat_field",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Golden wheat field and mountain path at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "herbGarden": BackgroundArtReference(
             imageName: "bg_homestead_herb_garden",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Medicinal herb beds beside a timber cottage at sunset"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "chickenCoop": BackgroundArtReference(
             imageName: "bg_homestead_chicken_coop",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Rustic timber chicken coop in a mountain yard"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "pasture": BackgroundArtReference(
             imageName: "bg_homestead_pasture",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Fenced mountain pasture and sturdy field shelter at sunset"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "culinaryArts": BackgroundArtReference(
             imageName: "bg_homestead_culinary_arts",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Warm homestead kitchen preparing harvest meals"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "blacksmithForge": BackgroundArtReference(
             imageName: "bg_homestead_blacksmith_forge",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Glowing medieval blacksmith forge with anvil and bellows"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "woolTailoring": BackgroundArtReference(
             imageName: "bg_homestead_wool_tailoring",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Wool loom and padded wraps in a mountain tailor shop"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "alchemyLab": BackgroundArtReference(
             imageName: "bg_homestead_alchemy_lab",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Copper stills, glass flasks, and herbs in a medieval alchemy lab"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "botanicalDistillation": BackgroundArtReference(
             imageName: "bg_homestead_botanical_distillation",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Botanical stills concentrating garden greens into reagents"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "crystalGarden": BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Cultivated amethyst and blue crystal beds at mountain dusk"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "runesmithWorkshop": BackgroundArtReference(
             imageName: "bg_homestead_runesmith_workshop",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Arcane runesmith worktable with engraved iron and crystal tools"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "hunterLodge": BackgroundArtReference(
             imageName: "bg_homestead_hunter_lodge",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Timber hunter lodge for companion drills and field craft"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "agilityTraining": BackgroundArtReference(
             imageName: "bg_homestead_agility_training",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Practice yard sharpening companion footwork and reflexes"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "detectMagic": BackgroundArtReference(
             imageName: "bg_homestead_detect_magic",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Quiet sanctum for sensing rare finds and unnatural threats"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "wishingWell": BackgroundArtReference(
             imageName: "bg_homestead_wishing_well",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Ancient mossy wishing well beneath old trees in golden light"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "gameModeCampaign": BackgroundArtReference(
+            imageName: "bg_game_mode_campaign",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.76)
+        ),
+        "gameModeExplore": BackgroundArtReference(
+            imageName: "bg_game_mode_explore",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.78)
+        ),
+        "rewardChestClosed": BackgroundArtReference(
+            imageName: "reward_chest_closed",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "rewardChestOpen": BackgroundArtReference(
+            imageName: "reward_chest_open",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
     ]
 
     public static let encounterArtByID: [String: EncounterArtReference] = [
         "mystery-amethyst-geode": EncounterArtReference(
             imageName: "encounter_mystery_amethyst_geode",
-            thumbnailImageName: "encounter_mystery_amethyst_geode_thumb",
-            accessibilityLabel: "Mystery event art showing a glowing amethyst geode"
+            thumbnailImageName: "encounter_mystery_amethyst_geode_thumb"
         ),
         "mystery-bioluminescent-mushrooms": EncounterArtReference(
             imageName: "encounter_mystery_bioluminescent_mushrooms",
-            thumbnailImageName: "encounter_mystery_bioluminescent_mushrooms_thumb",
-            accessibilityLabel: "Mystery event art showing bioluminescent mushrooms"
+            thumbnailImageName: "encounter_mystery_bioluminescent_mushrooms_thumb"
         ),
         "mystery-circle-of-glowing-mushrooms": EncounterArtReference(
             imageName: "encounter_mystery_circle_of_glowing_mushrooms",
-            thumbnailImageName: "encounter_mystery_circle_of_glowing_mushrooms_thumb",
-            accessibilityLabel: "Mystery event art showing a circle of glowing mushrooms"
+            thumbnailImageName: "encounter_mystery_circle_of_glowing_mushrooms_thumb"
         ),
         "mystery-dusty-shelves-in-tower": EncounterArtReference(
             imageName: "encounter_mystery_dusty_shelves_in_tower",
-            thumbnailImageName: "encounter_mystery_dusty_shelves_in_tower_thumb",
-            accessibilityLabel: "Mystery event art showing dusty shelves in a tower"
+            thumbnailImageName: "encounter_mystery_dusty_shelves_in_tower_thumb"
         ),
         "mystery-field-of-glowing-mana-berries": EncounterArtReference(
             imageName: "encounter_mystery_field_of_glowing_mana_berries",
-            thumbnailImageName: "encounter_mystery_field_of_glowing_mana_berries_thumb",
-            accessibilityLabel: "Mystery event art showing glowing mana berries"
+            thumbnailImageName: "encounter_mystery_field_of_glowing_mana_berries_thumb"
         ),
         "mystery-gold-coins-among-bones": EncounterArtReference(
             imageName: "encounter_mystery_gold_coins_among_bones",
-            thumbnailImageName: "encounter_mystery_gold_coins_among_bones_thumb",
-            accessibilityLabel: "Mystery event art showing gold coins among bones"
+            thumbnailImageName: "encounter_mystery_gold_coins_among_bones_thumb"
         ),
         "mystery-leather-book-floats": EncounterArtReference(
             imageName: "encounter_mystery_leather_book_floats",
-            thumbnailImageName: "encounter_mystery_leather_book_floats_thumb",
-            accessibilityLabel: "Mystery event art showing a floating leather book"
+            thumbnailImageName: "encounter_mystery_leather_book_floats_thumb"
         ),
         "mystery-leather-bundle-between-roots": EncounterArtReference(
             imageName: "encounter_mystery_leather_bundle_between_roots",
-            thumbnailImageName: "encounter_mystery_leather_bundle_between_roots_thumb",
-            accessibilityLabel: "Mystery event art showing a leather bundle between roots"
+            thumbnailImageName: "encounter_mystery_leather_bundle_between_roots_thumb"
         ),
         "mystery-narrow-pass-through-peaks": EncounterArtReference(
             imageName: "encounter_mystery_narrow_pass_through_peaks",
-            thumbnailImageName: "encounter_mystery_narrow_pass_through_peaks_thumb",
-            accessibilityLabel: "Mystery event art showing a narrow pass through peaks"
+            thumbnailImageName: "encounter_mystery_narrow_pass_through_peaks_thumb"
         ),
         "mystery-oak-tree-with-face": EncounterArtReference(
             imageName: "encounter_mystery_oak_tree_with_face",
-            thumbnailImageName: "encounter_mystery_oak_tree_with_face_thumb",
-            accessibilityLabel: "Mystery event art showing an oak tree with a face"
+            thumbnailImageName: "encounter_mystery_oak_tree_with_face_thumb"
         ),
         "mystery-pond-reflects-gnarled-trees": EncounterArtReference(
             imageName: "encounter_mystery_pond_reflects_gnarled_trees",
-            thumbnailImageName: "encounter_mystery_pond_reflects_gnarled_trees_thumb",
-            accessibilityLabel: "Mystery event art showing a pond reflecting gnarled trees"
+            thumbnailImageName: "encounter_mystery_pond_reflects_gnarled_trees_thumb"
         ),
         "mystery-pool-of-water-steams": EncounterArtReference(
             imageName: "encounter_mystery_pool_of_water_steams",
-            thumbnailImageName: "encounter_mystery_pool_of_water_steams_thumb",
-            accessibilityLabel: "Mystery event art showing a steaming pool of water"
+            thumbnailImageName: "encounter_mystery_pool_of_water_steams_thumb"
         ),
         "mystery-smoldering-crater": EncounterArtReference(
             imageName: "encounter_mystery_smoldering_crater",
-            thumbnailImageName: "encounter_mystery_smoldering_crater_thumb",
-            accessibilityLabel: "Mystery event art showing a smoldering crater"
+            thumbnailImageName: "encounter_mystery_smoldering_crater_thumb"
         ),
         "mystery-sunlight-breaks-canopy": EncounterArtReference(
             imageName: "encounter_mystery_sunlight_breaks_canopy",
-            thumbnailImageName: "encounter_mystery_sunlight_breaks_canopy_thumb",
-            accessibilityLabel: "Mystery event art showing sunlight breaking through a canopy"
+            thumbnailImageName: "encounter_mystery_sunlight_breaks_canopy_thumb"
         ),
         "mystery-vines-carpet-mosaic-floors": EncounterArtReference(
             imageName: "encounter_mystery_vines_carpet_mosaic_floors",
-            thumbnailImageName: "encounter_mystery_vines_carpet_mosaic_floors_thumb",
-            accessibilityLabel: "Mystery event art showing vines over mosaic floors"
+            thumbnailImageName: "encounter_mystery_vines_carpet_mosaic_floors_thumb"
         ),
         "mystery-weathered-stone-altar": EncounterArtReference(
             imageName: "encounter_mystery_weathered_stone_altar",
-            thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb",
-            accessibilityLabel: "Mystery event art showing a weathered stone altar"
+            thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb"
         ),
         "destination-merchant-shop": EncounterArtReference(
             imageName: "encounter_destination_merchant_shop",
-            thumbnailImageName: "encounter_destination_merchant_shop_thumb",
-            accessibilityLabel: "Destination art showing a merchant shop"
+            thumbnailImageName: "encounter_destination_merchant_shop_thumb"
         ),
         "destination-alchemist-shop": EncounterArtReference(
             imageName: "encounter_destination_alchemist_shop",
-            thumbnailImageName: "encounter_destination_alchemist_shop_thumb",
-            accessibilityLabel: "Destination art showing an alchemist shop"
+            thumbnailImageName: "encounter_destination_alchemist_shop_thumb"
         ),
         "destination-campfire": EncounterArtReference(
             imageName: "encounter_destination_campfire",
-            thumbnailImageName: "encounter_destination_campfire_thumb",
-            accessibilityLabel: "Destination art showing a campfire"
+            thumbnailImageName: "encounter_destination_campfire_thumb"
         ),
         "destination-corruption-altar": EncounterArtReference(
             imageName: "encounter_destination_corruption_altar",
-            thumbnailImageName: "encounter_destination_corruption_altar_thumb",
-            accessibilityLabel: "Destination art showing a corruption altar"
+            thumbnailImageName: "encounter_destination_corruption_altar_thumb"
         ),
     ]
 
     public static let resourceArtByID: [String: ResourceArtReference] = [
         "wood": ResourceArtReference(
-            imageName: "resource_homestead_wood",
-            accessibilityLabel: "Bundle of cut wood logs"
+            imageName: "resource_homestead_wood"
         ),
         "stone": ResourceArtReference(
-            imageName: "resource_homestead_stone",
-            accessibilityLabel: "Cluster of rugged building stones"
+            imageName: "resource_homestead_stone"
         ),
         "iron": ResourceArtReference(
-            imageName: "resource_homestead_iron",
-            accessibilityLabel: "Stacked dark iron ingots"
+            imageName: "resource_homestead_iron"
         ),
         "food": ResourceArtReference(
-            imageName: "resource_homestead_food",
-            accessibilityLabel: "Golden sheaf of wheat"
+            imageName: "resource_homestead_food"
         ),
         "herbs": ResourceArtReference(
-            imageName: "resource_homestead_herbs",
-            accessibilityLabel: "Bundle of medicinal herbs"
+            imageName: "resource_homestead_herbs"
         ),
         "crystal": ResourceArtReference(
-            imageName: "resource_homestead_crystal",
-            accessibilityLabel: "Amethyst crystal cluster"
+            imageName: "resource_homestead_crystal"
         ),
         "gold": ResourceArtReference(
-            imageName: "resource_homestead_gold",
-            accessibilityLabel: "Antique gold sun coin"
+            imageName: "resource_homestead_gold"
         ),
     ]
 

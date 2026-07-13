@@ -40,8 +40,8 @@ enum CombatFeedbackChipRecipes {
         horizontalJitter: -12 ... 12,
         stackSpacing: 28,
         chrome: .standard,
-        fontWeight: .bold,
-        textStyle: .title2,
+        fontWeight: .heavy,
+        textStyle: .largeTitle,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -49,6 +49,9 @@ enum CombatFeedbackChipRecipes {
     /// Pop & rise with punchier overshoot and slight rotation.
     static let criticalChip = CombatFeedbackMotionRecipe(
         feedbackClass: .critical,
+        initialScale: 0.68,
+        initialOffsetY: 14,
+        initialRotation: -5,
         scale: [
             .init(value: 1.48, duration: 0.09),
             .init(value: 1.12, duration: 0.14),
@@ -69,12 +72,12 @@ enum CombatFeedbackChipRecipes {
             .init(value: 4, duration: 0.1),
             .init(value: 0, duration: 0.16)
         ],
-        lifetime: 0.9,
+        lifetime: 0.85,
         horizontalJitter: -6 ... 6,
         stackSpacing: 32,
         chrome: .emphasis,
-        fontWeight: .heavy,
-        textStyle: .title,
+        fontWeight: .black,
+        textStyle: .largeTitle,
         bouncesSymbol: true,
         showsSecondaryCaption: true
     )
@@ -82,6 +85,7 @@ enum CombatFeedbackChipRecipes {
     /// Compact pop & rise for DoT ticks.
     static let dotChip = CombatFeedbackMotionRecipe(
         feedbackClass: .dot,
+        initialScale: 0.82,
         scale: [
             .init(value: 1.16, duration: 0.08),
             .init(value: 1.0, duration: 0.12),
@@ -95,14 +99,14 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -8, duration: 0.08),
             .init(value: -28, duration: 0.26),
-            .init(value: -40, duration: 0.18)
+            .init(value: -52, duration: 0.24)
         ],
-        lifetime: 0.55,
+        lifetime: 0.62,
         horizontalJitter: -8 ... 8,
         stackSpacing: 22,
         chrome: .compact,
-        fontWeight: .semibold,
-        textStyle: .footnote,
+        fontWeight: .bold,
+        textStyle: .title2,
         bouncesSymbol: false,
         showsSecondaryCaption: false
     )
@@ -110,6 +114,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft float — gentler scale, smoother rise.
     static let healChip = CombatFeedbackMotionRecipe(
         feedbackClass: .heal,
+        initialScale: 0.8,
         scale: [
             .init(value: 1.14, duration: 0.12),
             .init(value: 1.02, duration: 0.18),
@@ -130,7 +135,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 26,
         chrome: .standard,
         fontWeight: .bold,
-        textStyle: .title3,
+        textStyle: .title,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -138,6 +143,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft settle — smaller travel.
     static let blockChip = CombatFeedbackMotionRecipe(
         feedbackClass: .block,
+        initialScale: 0.84,
         scale: [
             .init(value: 1.1, duration: 0.1),
             .init(value: 1.0, duration: 0.14),
@@ -151,14 +157,14 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -4, duration: 0.1),
             .init(value: -18, duration: 0.3),
-            .init(value: -28, duration: 0.2)
+            .init(value: -48, duration: 0.22)
         ],
-        lifetime: 0.6,
+        lifetime: 0.62,
         horizontalJitter: -5 ... 5,
         stackSpacing: 22,
         chrome: .compact,
         fontWeight: .bold,
-        textStyle: .callout,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -166,6 +172,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft settle with lateral drift.
     static let dodgeChip = CombatFeedbackMotionRecipe(
         feedbackClass: .dodge,
+        initialScale: 0.84,
         scale: [
             .init(value: 1.08, duration: 0.1),
             .init(value: 1.0, duration: 0.14),
@@ -179,7 +186,7 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -4, duration: 0.1),
             .init(value: -16, duration: 0.3),
-            .init(value: -24, duration: 0.22)
+            .init(value: -46, duration: 0.22)
         ],
         offsetX: [
             .init(value: 12, duration: 0.12),
@@ -191,7 +198,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .utility,
         fontWeight: .bold,
-        textStyle: .callout,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -199,6 +206,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft settle.
     static let controlChip = CombatFeedbackMotionRecipe(
         feedbackClass: .control,
+        initialScale: 0.82,
         scale: [
             .init(value: 1.1, duration: 0.1),
             .init(value: 1.0, duration: 0.14),
@@ -212,14 +220,14 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -6, duration: 0.1),
             .init(value: -20, duration: 0.32),
-            .init(value: -30, duration: 0.22)
+            .init(value: -50, duration: 0.22)
         ],
-        lifetime: 0.65,
+        lifetime: 0.68,
         horizontalJitter: -6 ... 6,
         stackSpacing: 22,
         chrome: .utility,
         fontWeight: .bold,
-        textStyle: .callout,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -227,6 +235,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft float.
     static let buffChip = CombatFeedbackMotionRecipe(
         feedbackClass: .buff,
+        initialScale: 0.84,
         scale: [
             .init(value: 1.1, duration: 0.11),
             .init(value: 1.02, duration: 0.16),
@@ -240,14 +249,14 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -8, duration: 0.11),
             .init(value: -28, duration: 0.32),
-            .init(value: -40, duration: 0.22)
+            .init(value: -50, duration: 0.22)
         ],
-        lifetime: 0.65,
+        lifetime: 0.68,
         horizontalJitter: -7 ... 7,
         stackSpacing: 22,
         chrome: .standard,
         fontWeight: .semibold,
-        textStyle: .callout,
+        textStyle: .title3,
         bouncesSymbol: false,
         showsSecondaryCaption: false
     )
@@ -255,6 +264,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft float.
     static let resourceChip = CombatFeedbackMotionRecipe(
         feedbackClass: .resource,
+        initialScale: 0.84,
         scale: [
             .init(value: 1.1, duration: 0.11),
             .init(value: 1.02, duration: 0.16),
@@ -268,14 +278,14 @@ enum CombatFeedbackChipRecipes {
         offsetY: [
             .init(value: -8, duration: 0.11),
             .init(value: -28, duration: 0.32),
-            .init(value: -40, duration: 0.22)
+            .init(value: -50, duration: 0.22)
         ],
-        lifetime: 0.65,
+        lifetime: 0.68,
         horizontalJitter: -7 ... 7,
         stackSpacing: 22,
         chrome: .standard,
         fontWeight: .bold,
-        textStyle: .callout,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -283,6 +293,7 @@ enum CombatFeedbackChipRecipes {
     /// Soft float with a bit more presence.
     static let deathsDoorChip = CombatFeedbackMotionRecipe(
         feedbackClass: .deathsDoor,
+        initialScale: 0.74,
         scale: [
             .init(value: 1.18, duration: 0.11),
             .init(value: 1.04, duration: 0.16),
@@ -303,7 +314,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 26,
         chrome: .emphasis,
         fontWeight: .heavy,
-        textStyle: .title3,
+        textStyle: .title,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )

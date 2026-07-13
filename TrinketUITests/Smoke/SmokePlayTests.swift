@@ -1,60 +1,46 @@
 import XCTest
 
 final class SmokePlayTests: TrinketUITestCase {
-    private var chapterOneCompleteArgs: [String] {
-        TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages([
-            "chapter-1-stage-1",
-            "chapter-1-stage-2",
-            "chapter-1-stage-3",
-            "chapter-1-stage-4",
-            "chapter-1-stage-5"
-        ])
+    private var freshPlayArgs: [String] {
+        [
+            TestLaunchArg.resetState,
+            TestLaunchArg.disableCloudSync,
+            "-disable-audio",
+            "-persist-save-immediately",
+            "-battle-tick-interval",
+            "1.0"
+        ]
     }
 
-    func testPlayScreenLoadsWithFirstStage() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testPlayScreenLoadsWithCampaignAndExploreChoices() {
+        launchApp(arguments: freshPlayArgs)
 
         play.assertLoaded()
-        play.assertChapterHeader(number: 1)
-        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
-        for stage in 1 ... 5 {
-            assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
-        }
-        assertDoesNotExist(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
+        assertExists(AccessibilityID.Play.campaignModeCard)
+        assertExists(AccessibilityID.Play.exploreModeCard)
+        XCTAssertEqual(app.buttons.matching(identifier: AccessibilityID.Play.campaignModeCard).count, 1)
+        XCTAssertEqual(app.buttons.matching(identifier: AccessibilityID.Play.exploreModeCard).count, 1)
+
+        // Unimplemented placeholders and Explore's sub-modes do not leak into
+        // the top-level chooser.
+        assertDoesNotExist(AccessibilityID.Play.aspectsModeCard)
+        assertDoesNotExist(AccessibilityID.Play.labyrinthModeCard)
+        assertNoVisibleText("Reliquary Gauntlet")
+        assertNoVisibleText("Astral Hunt")
+        assertNoVisibleText("THE LINEAR JOURNEY")
+        assertNoVisibleText("ADVENTURES AWAIT")
+        assertNoVisibleText("Aspects · The Labyrinth")
+        assertDoesNotExist(AccessibilityID.Play.chapterHeader(number: 1))
     }
 
-    /// One launch covers Mode Hub, Aspects hub/climb, and Labyrinth unlock.
-    func testModesAspectsAndLabyrinthWhenChapterOneComplete() {
-        launchApp(arguments: chapterOneCompleteArgs)
-
-        play.assertLoaded()
-        play.openModeHub()
-        play.assertModeHub()
-
-        app.buttons[AccessibilityID.Play.campaignModeCard].tap()
-        play.assertChapterHeader(number: 1)
-        assertExists(AccessibilityID.Play.chapterAdvance)
-        button(AccessibilityID.Play.chapterAdvance).tap()
-        play.assertChapterHeader(number: 2)
-        goBack()
-
-        play.assertModeHub()
-        app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
-        assertExists(AccessibilityID.Play.aspectsHub)
-        assertExists(AccessibilityID.Play.aspectRow("ironVein"))
-
-        app.buttons[AccessibilityID.Play.aspectRow("ironVein")].tap()
-        assertExists(AccessibilityID.Play.aspectClimb("ironVein"))
-        assertExists(AccessibilityID.Play.aspectFloor("ironVein", floor: 1))
-        goBack()
-        goBack()
-
-        play.assertModeHub()
-        app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
-        assertExists(AccessibilityID.Play.labyrinthMap)
-
-        let nodePredicate = NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Node ")
-        let node = app.descendants(matching: .any).matching(nodePredicate).firstMatch
-        assertExists(node)
+    private func assertNoVisibleText(
+        _ text: String,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let matches = app.descendants(matching: .any).matching(
+            NSPredicate(format: "label == %@", text)
+        )
+        XCTAssertEqual(matches.count, 0, "Unexpected visible text '\(text)'", file: file, line: line)
     }
 }

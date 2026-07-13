@@ -6,16 +6,16 @@ import TrinketCore
 struct BattleSimulatorTests {
     @Test func greedyPolicyReachesOutcomeDeterministically() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first)
+        let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first)
 
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             tier: .early,
             heroLoadout: hero.abilityLoadout,
-            petLoadout: pet.abilityLoadout,
+            companionLoadout: companion.abilityLoadout,
             seed: 42
         )
 
@@ -28,11 +28,11 @@ struct BattleSimulatorTests {
 
     @Test func tracksEventsFalseKeepsEventLogEmpty() throws {
         let hero = try #require(GameContent.heroes.first)
-        let pet = try #require(GameContent.pets.first)
+        let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
         var battle = BattleState(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy.combatant,
             rngSeed: 7,
             tracksLog: false,
@@ -51,15 +51,15 @@ struct BattleSimulatorTests {
 
     @Test func midTierGearUsesBuildAlignedAffixesOnly() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try #require(GameContent.pets.first)
+        let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first)
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             tier: .middle,
             heroLoadout: hero.abilityLoadout,
-            petLoadout: pet.abilityLoadout,
+            companionLoadout: companion.abilityLoadout,
             seed: 99
         )
 

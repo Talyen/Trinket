@@ -1,5 +1,5 @@
 name: Test job
-description: Restore CI build cache, run tests, summarize failures, upload artifacts
+description: Restore CI build cache, run tests, aggregate diagnostics, upload artifacts
 
 inputs:
   command:
@@ -40,6 +40,10 @@ runs:
         echo "Build cache miss for key ${{ inputs.cache-key }}; rebuilding with build-for-testing.sh"
         ./Scripts/build-for-testing.sh
 
+    - name: Clear cached test diagnostics after cache restore
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+
     - name: Run tests
       shell: bash
       env:
@@ -62,15 +66,6 @@ runs:
         if [ "$status" -ne 0 ]; then
           echo "::warning title=CI timing budget exceeded::$output"
         fi
-
-    - name: Summarize test failures
-      if: failure()
-      shell: bash
-      run: |
-        shopt -s nullglob
-        for xcresult in .DerivedData/TestResults/*.xcresult; do
-          ./Scripts/summarize-failures.py "$xcresult" || true
-        done
 
     - name: Classify CI outcome and report timing
       if: always()

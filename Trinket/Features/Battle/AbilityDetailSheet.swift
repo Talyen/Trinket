@@ -15,23 +15,8 @@ struct AbilityDetailSheet: View {
 
     var body: some View {
         NavigationStack {
-            DetailHeroScrollShell(title: ability.name) { baseHeight, overscroll in
-                AbilityHeroHeader(
-                    ability: ability,
-                    baseHeight: baseHeight,
-                    overscroll: overscroll
-                )
+            AbilityDetailView(ability: ability)
                 .accessibilityIdentifier(AccessibilityID.Battle.abilityDetail)
-            } bodyContent: {
-                DetailSection(
-                    "Effect",
-                    sectionID: AccessibilityID.Battle.abilityDetailEffect
-                ) {
-                    KeywordDescriptionText(text: ability.summary)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
-                }
-            }
         }
     }
 }

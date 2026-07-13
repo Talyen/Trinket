@@ -47,7 +47,7 @@ From [Adopting Liquid Glass](https://developer.apple.com/documentation/technolog
 
 1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle, Play map, and combatant detail by product choice.
 2. **Use glass sparingly on custom controls** — limit `.glassEffect` to high-value functional elements (combat feedback chips, wallet pills), not every card surface.
-3. **Respect accessibility** — Liquid Glass adapts to Reduce Transparency and Reduce Motion; keep solid fallbacks (already patterned in `GlassChipModifier`).
+3. **Follow the product accessibility baseline** — native SwiftUI controls remain available, while custom accessibility-setting branches and comprehensive accessibility permutations are out of scope per PD-007.
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
 Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem` / `VisualFoundation`); glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).

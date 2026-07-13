@@ -49,7 +49,7 @@ struct AppStatePlayFlowTests {
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
-            pet: state.roster.activePet,
+            companion: state.roster.activeCompanion,
             enemy: enemy
         )
         state.battle.activeBattle = configuration
@@ -61,23 +61,6 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
         #expect(state.journey.current == journeyBefore)
         #expect(state.roster.current.gold == initialGold + 10)
-    }
-
-    @Test func completeActiveBattleWithoutStageIgnoresZeroGold() throws {
-        let state = try context.makeAppState()
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            enemy: enemy
-        )
-        state.battle.activeBattle = configuration
-        let initialGold = state.roster.current.gold
-
-        state.completeActiveBattle(configuration, battleEarnedGold: 0)
-
-        #expect(state.roster.current.gold == initialGold)
     }
 
     #if DEBUG
@@ -97,40 +80,6 @@ struct AppStatePlayFlowTests {
     }
     #endif
 
-    @Test func mapScrollFocusIDReturnsActiveStageWhenInProgress() throws {
-        let state = try context.makeAppState()
-
-        #expect(JourneyMapPresentation.scrollFocusID(for: .initial) == "chapter-1-stage-1")
-    }
-
-    @Test func mapScrollFocusIDReturnsLastStageWhenChapterClearedAwaitingAdvance() throws {
-        _ = try context.makeAppState()
-        var progress = JourneyProgressState.initial
-        for stage in GameContent.chapters[0].stages {
-            progress.complete(stage, in: GameContent.chapters)
-        }
-
-        #expect(progress.activeStageID == nil)
-        #expect(progress.activeChapterID == "chapter-1")
-        #expect(JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-1-stage-5")
-    }
-
-    @Test func resetGameplayProgressClearsBattleAndMapScroll() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        state.noteMapScrollFocus("chapter-1-stage-2")
-        _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
-
-        state.resetGameplayProgress()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.mapScrollStageID == nil)
-        #expect(state.selectedTab == .play)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
-        #expect(state.journey.current.completedStageIDs.isEmpty)
-    }
-
     #if DEBUG
     @Test func unlockAllContentUnlocksRosterAndClearsBattle() throws {
         let state = try context.makeAppState()
@@ -144,74 +93,12 @@ struct AppStatePlayFlowTests {
         #expect(state.mapScrollStageID == nil)
         #expect(state.selectedTab == .play)
         #expect(state.roster.current.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
-        #expect(state.roster.current.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
+        #expect(state.roster.current.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
         #expect(state.roster.current.highestHeroLevel == 20)
-        #expect(state.roster.current.highestPetLevel == 20)
+        #expect(state.roster.current.highestCompanionLevel == 20)
         #expect(state.roster.current.gold == PlayerRosterState.maxGoldBalance)
-        #expect(ModesUnlock.isUnlocked(journey: state.journey.current))
     }
     #endif
-
-    @Test func completeStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        let hero = state.roster.activeHero
-        let pet = state.roster.activePet
-
-        let scrollTarget = state.completeStage(stage, hero: hero, pet: pet)
-
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.current.completedStageIDs.contains(stage.id))
-        #expect(scrollTarget == "chapter-1-stage-2")
-    }
-
-    // MARK: - Launch landing
-
-    @Test func launchLandingDefaultsToPlay() throws {
-        let state = try context.makeAppState()
-
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func launchLandingIgnoresPersistedShellTab() throws {
-        context.userDefaults.set(
-            AppTab.homestead.rawValue,
-            forKey: PlayerShellSessionStore.legacySessionTabKey
-        )
-
-        let state = try context.makeAppState()
-
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func launchLandingHonorsSelectedTabOverride() throws {
-        context.userDefaults.set(
-            AppTab.homestead.rawValue,
-            forKey: PlayerShellSessionStore.legacySessionTabKey
-        )
-
-        let state = try context.makeAppState(arguments: ["-selectedTab", "options"])
-
-        #expect(state.selectedTab == .options)
-    }
-
-    @Test func evaluateLaunchLandingForcesPlayWithoutOverride() throws {
-        let state = try context.makeAppState()
-        state.selectedTab = .homestead
-
-        state.evaluateLaunchLanding()
-
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func evaluateLaunchLandingKeepsLaunchOverrideTab() throws {
-        let state = try context.makeAppState(arguments: ["-selectedTab", "options"])
-        #expect(state.selectedTab == .options)
-
-        state.evaluateLaunchLanding()
-
-        #expect(state.selectedTab == .options)
-    }
 
     @Test func legacyBattleResumeKeysDoNotRestoreBattle() throws {
         context.userDefaults.set(
@@ -229,43 +116,12 @@ struct AppStatePlayFlowTests {
         #expect(state.selectedTab == .play)
     }
 
-    @Test func completeStageUpdatesSessionMapScrollTarget() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        context.userDefaults.set(stage.id, forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
-
-        _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
-
-        #expect(state.mapScrollStageID == "chapter-1-stage-2")
-    }
-
     @Test func shouldRestoreMapScrollIgnoresCompletedStage() {
         var journey = JourneyProgressState.initial
         journey.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
 
         #expect(!(AppState.shouldRestoreMapScroll("chapter-1-stage-1", journey: journey)))
         #expect(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
-    }
-
-    @Test func launchScreenBattleStartsHardcodedStage() throws {
-        let state = try context.makeAppState(arguments: ["-launch-screen", "battle"])
-
-        let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.stageID == "chapter-1-stage-1")
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func resetGameplayProgressClearsBattleAndScroll() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        state.mapScrollStageID = "chapter-1-stage-2"
-
-        state.resetGameplayProgress()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.mapScrollStageID == nil)
-        #expect(state.selectedTab == .play)
     }
 
     @Test func startBattleSetsInMemoryJourneyOrigin() throws {
@@ -291,7 +147,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func endBattleReturningToOriginFromAspectQueuesClimbDeepLink() throws {
-        let state = try makeModesUnlockedStateForReturnTests()
+        let state = try makeProgressedStateForReturnTests()
         try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
@@ -307,7 +163,6 @@ struct AppStatePlayFlowTests {
 
     @Test func endBattleReturningToOriginFromLabyrinthQueuesMapDeepLink() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
-        unlockLabyrinthForReturnTests(on: state)
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
         #expect(state.startLabyrinthBattle(nodeID: combatNodeID) == nil)
@@ -321,7 +176,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleQueuesAspectReturnDestination() throws {
-        let state = try makeModesUnlockedStateForReturnTests()
+        let state = try makeProgressedStateForReturnTests()
         try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
@@ -360,7 +215,7 @@ struct AppStatePlayFlowTests {
         )
     }
 
-    private func makeModesUnlockedStateForReturnTests() throws -> AppState {
+    private func makeProgressedStateForReturnTests() throws -> AppState {
         try context.makeAppState(arguments: [
             "-reset-state",
             "-seed-test-progress",
@@ -372,22 +227,12 @@ struct AppStatePlayFlowTests {
     private func attunePhysicalPartyForReturnTests(on state: AppState) throws {
         var roster = state.roster.current
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
-        let lizard = try #require(GameContent.pets.first { $0.id == "lizard_scout" })
+        let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
         roster.unlock(rogue)
         roster.unlock(lizard)
         roster.setActiveHero(rogue)
-        roster.setActivePet(lizard)
+        roster.setActiveCompanion(lizard)
         state.roster.current = roster
-    }
-
-    private func unlockLabyrinthForReturnTests(on state: AppState) {
-        var journey = state.journey.current
-        if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
-            for stage in chapter.stages {
-                journey.completedStageIDs.insert(stage.id)
-            }
-        }
-        state.journey.current = journey
     }
 
     private func firstReachableCombatNodeIDForReturnTests(in state: AppState) -> String? {

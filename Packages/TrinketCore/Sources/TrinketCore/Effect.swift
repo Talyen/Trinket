@@ -5,7 +5,7 @@ public enum EffectTarget: Hashable, Sendable {
     case actor
     case enemy
     case hero
-    case pet
+    case companion
     case lowestHealthAlly
 }
 
@@ -55,7 +55,7 @@ public enum Effect: Hashable, Sendable {
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
-    /// Draw `Int` cards for the actor's deck (hero or pet). No-op for enemies.
+    /// Draw `Int` cards for the actor's deck (hero or companion). No-op for enemies.
     case drawCards(Int)
     case cleanse(Keyword?)
     case cleanseRandom

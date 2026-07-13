@@ -1,0 +1,21 @@
+{
+  "testIdentifier": "BattleTests/failedExpectation()",
+  "testIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/failedExpectation()",
+  "testName": "failedExpectation()",
+  "testResult": "Failed",
+  "testRuns": [
+    {
+      "children": [
+        {
+          "name": "Expectation failed: score == 2",
+          "nodeType": "Test Case Run",
+          "result": "Failed"
+        },
+        {
+          "name": "failedExpectation()",
+          "nodeType": "Source Code Reference"
+        }
+      ]
+    }
+  ]
+}

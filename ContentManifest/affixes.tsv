@@ -61,7 +61,7 @@ gilded	Gilded	trinket	gold,stun	8	Increases Gold gained by 1 and Stun damage dea
 heartward	Heartward	trinket	health	8	Increases Health restored by 1 and Maximum Health by 2	Increases Health restored by 3 and Maximum Health by 6	health_restored:1|maximum_health:2	health_restored:3|maximum_health:6		
 siphoning	Siphoning	trinket	leech	8	Increases Leech duration by 1	Increases Leech duration by 2	leech_duration:1	leech_duration:2		
 manabound	Manabound	trinket	mana,burn,freeze	8	Increases Maximum Mana by 2	Increases Maximum Mana by 6	maximum_mana:2	maximum_mana:6		
-beastbond	Beastbond	trinket	health	8	Increases Pet damage dealt by 1	Increases Pet damage dealt by 3	pet_damage_dealt:1	pet_damage_dealt:3		
+beastbond	Beastbond	trinket	health	8	Increases Companion damage dealt by 1	Increases Companion damage dealt by 3	companion_damage_dealt:1	companion_damage_dealt:3		
 biting	Biting	trinket	bleed,leech	8	Increases Bleed duration by 1	Increases Bleed duration by 2	bleed_duration:1	bleed_duration:2		
 noxious	Noxious	trinket	poison	8	Increases Poison damage dealt by 1 and Gold gained by 1	Increases Poison damage dealt by 2 and Gold gained by 2	damage_dealt:poison:1|gold_gained:1	damage_dealt:poison:2|gold_gained:2		
 hallowed	Hallowed	trinket	holy,health	8	Increases Holy damage dealt by 1 and Health restored by 1	Increases Holy damage dealt by 3 and Health restored by 3	damage_dealt:holy:1|health_restored:1	damage_dealt:holy:3|health_restored:3		
@@ -83,8 +83,8 @@ undergird	Undergird	armor	armor,block	8	Gains 1 Block when Armor is gained	Gains
 ablution	Ablution	armor	block,health	8	Cleanses 1 debuff from you when you gain Block, at most once every 6 seconds	Cleanses 1 debuff from you when you gain Block, at most once every 6 seconds			on_block_gained_cleanse:1:6	on_block_gained_cleanse:1:6
 aftershock	Aftershock	trinket	stun	8	Gains Haste for 1 second after the enemy is Stunned	Gains Haste for 2 seconds after the enemy is Stunned			on_enemy_stunned_haste:1	on_enemy_stunned_haste:2
 hexmark	Hexmark	weapon	physical	8	Applies Marked on the first hit each battle	Applies Marked on the first hit each battle			first_hit_apply_marked:true	first_hit_apply_marked:true
-packbond	Packbond	trinket	leech	8	Gains 5% Leech for 2 seconds when the Pet acts	Gains 10% Leech for 2 seconds when the Pet acts			on_pet_act_leech:0.05:2	on_pet_act_leech:0.10:2
-symbiosis	Symbiosis	trinket	health	8	Pets receive 10% of your Health restored	Pets receive 20% of your Health restored			pet_heal_share_percent:0.10	pet_heal_share_percent:0.20
+packbond	Packbond	trinket	leech	8	Gains 5% Leech for 2 seconds when the Companion acts	Gains 10% Leech for 2 seconds when the Companion acts			on_companion_act_leech:0.05:2	on_companion_act_leech:0.10:2
+symbiosis	Symbiosis	trinket	health	8	Companions receive 10% of your Health restored	Companions receive 20% of your Health restored			companion_heal_share_percent:0.10	companion_heal_share_percent:0.20
 second_wind	Second Wind	armor	health	8	Restores 3 Health the first time your Health falls below 25%	Restores 6 Health the first time your Health falls below 25%			once_below_health_percent_heal:0.25:3	once_below_health_percent_heal:0.25:6
 deathgrip	Deathgrip	trinket	block,health	8	Gains 1 Block each action while Death's Door is active	Gains 2 Block each action while Death's Door is active			block_per_action_while_deaths_door:1	block_per_action_while_deaths_door:2
 frostburn	Frostburn	trinket	burn,freeze	8	Deals 1 Freeze damage every third Burn	Deals 2 Freeze damage every third Burn			every_nth_burn_tick_freeze_damage:3:1	every_nth_burn_tick_freeze_damage:3:2

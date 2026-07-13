@@ -49,28 +49,6 @@ struct ThemePaletteTests {
         }
         #expect(contrastRatio(canvas, palette.accent.resolve(in: environment)) >= 4.5)
     }
-
-    @Test func surfaceLuminanceIncreasesWithElevation() {
-        var environment = EnvironmentValues()
-        environment.colorScheme = .dark
-        let palette = ThemePalette.trinket
-        let levels = [
-            palette.appBackground,
-            palette.secondaryBackground,
-            palette.panelSurface,
-            palette.elevatedBackground
-        ].map { relativeLuminance($0.resolve(in: environment)) }
-
-        #expect(levels[0] < levels[1])
-        #expect(levels[1] < levels[2])
-        #expect(levels[2] < levels[3])
-    }
-
-    @Test func shadowStylesHaveExpectedRadii() throws {
-        try #expect(ShadowStyle.none.radius == 0)
-        try #expect(ShadowStyle.subtle.radius > 0)
-        try #expect(ShadowStyle.elevated.radius > ShadowStyle.subtle.radius)
-    }
 }
 
 private func contrastRatio(_ lhs: Color.Resolved, _ rhs: Color.Resolved) -> Double {

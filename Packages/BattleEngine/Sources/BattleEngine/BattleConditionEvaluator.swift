@@ -8,7 +8,7 @@ public enum BattleConditionEvaluator {
         actor: Combatant,
         enemy: Combatant,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         context: BattleEngineContext
     ) -> Bool {
         switch condition {
@@ -31,10 +31,10 @@ public enum BattleConditionEvaluator {
             return context.roster.health(for: enemy) < context.roster.health(for: actor)
         case .allyBelowHalfHealth:
             let heroHealth = context.roster.health(for: hero)
-            let petHealth = context.roster.health(for: pet)
+            let companionHealth = context.roster.health(for: companion)
             let heroMax = context.roster.runtime(for: hero)?.maxHealth ?? hero.maxHealth
-            let petMax = context.roster.runtime(for: pet)?.maxHealth ?? pet.maxHealth
-            return heroHealth * 2 < heroMax || petHealth * 2 < petMax
+            let companionMax = context.roster.runtime(for: companion)?.maxHealth ?? companion.maxHealth
+            return heroHealth * 2 < heroMax || companionHealth * 2 < companionMax
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         }
@@ -42,20 +42,20 @@ public enum BattleConditionEvaluator {
 
     public static func lowestHealthAlly(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         context: BattleEngineContext
     ) -> Combatant {
         let heroHealth = context.roster.health(for: hero)
-        let petHealth = context.roster.health(for: pet)
+        let companionHealth = context.roster.health(for: companion)
         let heroAlive = heroHealth > 0
-        let petAlive = petHealth > 0
-        switch (heroAlive, petAlive) {
+        let companionAlive = companionHealth > 0
+        switch (heroAlive, companionAlive) {
         case (true, true):
-            return heroHealth <= petHealth ? hero : pet
+            return heroHealth <= companionHealth ? hero : companion
         case (true, false):
             return hero
         case (false, true):
-            return pet
+            return companion
         case (false, false):
             return hero
         }

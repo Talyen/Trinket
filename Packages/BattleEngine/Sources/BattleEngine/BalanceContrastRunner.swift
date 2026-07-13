@@ -7,14 +7,14 @@ public enum BalanceContrastRunner {
         config: BalanceSweepConfig,
         policy: some PlayerPolicy,
         heroes: [Combatant],
-        pets: [Combatant],
+        companions: [Combatant],
         enemies: [Enemy]
     ) -> [PairedContrastSummary] {
         BalanceAbilityContrastRunner.run(
             context: BalanceContrastContext(
                 config: config,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies
             ),
             policy: policy
@@ -25,14 +25,14 @@ public enum BalanceContrastRunner {
         config: BalanceSweepConfig,
         policy: some PlayerPolicy,
         heroes: [Combatant],
-        pets: [Combatant],
+        companions: [Combatant],
         enemies: [Enemy]
     ) -> [PairedContrastSummary] {
         BalanceAffixContrastRunner.run(
             context: BalanceContrastContext(
                 config: config,
                 heroes: heroes,
-                pets: pets,
+                companions: companions,
                 enemies: enemies
             ),
             policy: policy

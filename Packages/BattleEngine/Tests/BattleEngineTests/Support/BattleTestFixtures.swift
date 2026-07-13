@@ -27,10 +27,10 @@ enum BattleTestFixtures {
             id: "source", role: .hero, maxHealth: 50,
             primaryStats: sourcePrimaryStats
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: pet),
+            companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
         return BattleEngineContext(
@@ -42,7 +42,7 @@ enum BattleTestFixtures {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }
@@ -130,20 +130,20 @@ enum BattleTestFixtures {
 
     static func standardParty(
         hero: Combatant,
-        pet: Combatant? = nil,
+        companion: Combatant? = nil,
         enemy: Combatant? = nil,
         activeHeroEffects: [ActiveEffect] = [],
         activeEnemyEffects: [ActiveEffect] = [],
-        activePetEffects: [ActiveEffect] = [],
+        activeCompanionEffects: [ActiveEffect] = [],
         initialGold: Int = 0
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: hero,
-            pet: pet ?? passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            companion: companion ?? passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: enemy,
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
-            activePetEffects: activePetEffects,
+            activeCompanionEffects: activeCompanionEffects,
             initialGold: initialGold
         )
     }
@@ -153,15 +153,15 @@ enum BattleTestFixtures {
     static func partyWithPendingActionSkip(
         keyword: Keyword,
         hero: Combatant? = nil,
-        pet: Combatant? = nil,
+        companion: Combatant? = nil,
         enemy: Combatant? = nil
     ) -> BattleState {
         let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero)
-        let resolvedPet = pet ?? passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let resolvedCompanion = companion ?? passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
         return standardParty(
             hero: resolvedHero,
-            pet: resolvedPet,
+            companion: resolvedCompanion,
             enemy: resolvedEnemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTicks: 0)
@@ -295,7 +295,7 @@ enum BattleTestFixtures {
     ) -> BattleState {
         standardParty(
             hero: hero,
-            pet: passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            companion: passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: enemy ?? passiveCombatant(
                 id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100
             )

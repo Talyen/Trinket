@@ -7,7 +7,7 @@ import TrinketTestSupport
 struct BattleMechanicsTests {
     private func makeContext(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant,
         heroMana: Int? = nil,
         enemyEffects: [ActiveEffect] = []
@@ -22,7 +22,7 @@ struct BattleMechanicsTests {
         )
         let roster = BattleRoster(
             hero: heroRuntime,
-            pet: CombatantRuntime(combatant: pet),
+            companion: CombatantRuntime(combatant: companion),
             enemy: enemyRuntime
         )
         return BattleEngineContext(
@@ -34,18 +34,18 @@ struct BattleMechanicsTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }
 
     @Test func markedBonusAddsDamageAndConsumesMark() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTicks: 6, sourceActorID: hero.id)]
         )
@@ -87,7 +87,7 @@ struct BattleMechanicsTests {
     @Test func predatorsHasteIsNoOp() throws {
         // Wolf lists Predator's Haste in skill choices; withAbilityLoadout resolves
         // selections against choices, so panther cannot select this skill.
-        let baseWolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let baseWolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let wolf = baseWolf.withAbilityLoadout(
             AbilityLoadout(
                 basic: baseWolf.abilityLoadout.basic,
@@ -97,8 +97,8 @@ struct BattleMechanicsTests {
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = makeContext(hero: hero, pet: wolf, enemy: enemy)
-        let matchup = BattleMatchup(hero: hero, pet: wolf, enemy: enemy)
+        var context = makeContext(hero: hero, companion: wolf, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: wolf, enemy: enemy)
         let ability = try #require(wolf.abilityLoadout.skill)
 
         _ = BattleTurnEngine.performAbility(

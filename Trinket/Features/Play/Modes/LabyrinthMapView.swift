@@ -6,7 +6,6 @@ import TrinketPersistence
 
 struct LabyrinthMapView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
     @State private var nodeMessage: StageMapMessage?
     @State private var selectedModifier: LabyrinthModifierDefinition?
@@ -50,7 +49,7 @@ struct LabyrinthMapView: View {
             }
         }
         .onAppear {
-            if appState.isLabyrinthUnlocked, !state.hasMap {
+            if !state.hasMap {
                 _ = appState.enterLabyrinth()
             }
         }
@@ -161,11 +160,9 @@ struct LabyrinthMapView: View {
                             .trinketGlassChip()
                             .foregroundStyle(style?.color ?? .primary)
                             .animation(
-                                reduceMotion
-                                    ? nil
-                                    : TrinketMotion.Labyrinth.modifierIn.delay(
-                                        Double(index) * TrinketMotion.Labyrinth.modifierStagger
-                                    ),
+                                TrinketMotion.Labyrinth.modifierIn.delay(
+                                    Double(index) * TrinketMotion.Labyrinth.modifierStagger
+                                ),
                                 value: focus?.id
                             )
                             .accessibilityIdentifier(

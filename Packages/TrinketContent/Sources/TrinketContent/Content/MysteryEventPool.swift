@@ -306,12 +306,12 @@ public enum MysteryEventPool {
     /// Prefer an eligible recruit unlock; otherwise fall back to a branching mystery.
     public static func pickEligibleMysteryEvent(
         unlockedHeroIDs: Set<String>,
-        unlockedPetIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         let recruits = RecruitMysteryEventPool.eligible(
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedPetIDs: unlockedPetIDs
+            unlockedCompanionIDs: unlockedCompanionIDs
         )
         if let recruit = recruits.randomElement(using: &randomNumberGenerator) {
             return recruit

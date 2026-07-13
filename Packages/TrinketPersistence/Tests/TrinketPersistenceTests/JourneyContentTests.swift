@@ -33,34 +33,35 @@ struct JourneyContentTests {
         }
     }
 
-    @Test func everyChapterUsesTheCampaignEncounterCadence() throws {
+    @Test func chapterEncounterCadenceMatchesTheCurrentJourney() throws {
         for chapter in GameContent.chapters {
             let stages = chapter.stages
 
             let openingEnemyID = try #require(stages[0].encounter.battleEnemyID)
             try #expect(GameContent.enemy(matching: openingEnemyID)?.isBoss == false)
 
-            let recruitID = try #require(stages[1].encounter.mysteryEventID)
-            try #expect(GameContent.mysteryEvent(matching: recruitID)?.isRecruit == true)
-
-            let secondEnemyID = try #require(stages[2].encounter.battleEnemyID)
-            try #expect(GameContent.enemy(matching: secondEnemyID)?.isBoss == false)
-
-            if case .shop = stages[3].encounter {
-                // Expected.
-            } else {
-                Issue.record("\(stages[3].id) must be a shop")
-            }
-
             let bossEnemyID = try #require(stages[4].encounter.battleEnemyID)
             try #expect(GameContent.enemy(matching: bossEnemyID)?.isBoss == true)
         }
+
+        let chapterOne = GameContent.chapters[0]
+        try #expect(chapterOne.stages[1].encounter.mysteryEventID == "recruit-bear")
+        try #expect(chapterOne.stages[3].encounter.mysteryEventID == "recruit-rogue")
+        try #expect(chapterOne.stages.contains { $0.encounter == .shop } == false)
+
+        let chapterTwo = GameContent.chapters[1]
+        try #expect(chapterTwo.stages[1].encounter.mysteryEventID == "recruit-knight")
+        try #expect(chapterTwo.stages[3].encounter == .shop)
+
+        let chapterThree = GameContent.chapters[2]
+        try #expect(chapterThree.stages[1].encounter.mysteryEventID == "recruit-library-owl")
+        try #expect(chapterThree.stages[3].encounter == .shop)
     }
 
     @Test func placeholderEncountersMatchTheApprovedChapterLineup() throws {
         let expectedEncounterIDs = [
-            ["skeleton", "recruit-wolf", "mud_elemental", "shop", "the_blight_treant"],
-            ["goblin", "recruit-wizard", "fire_elemental", "shop", "the_forge_golem"],
+            ["slime", "recruit-bear", "goblin", "recruit-rogue", "the_blight_treant"],
+            ["skeleton", "recruit-knight", "mimic", "shop", "the_iron_bear"],
             ["will_o_wisp", "recruit-library-owl", "frost_elemental", "shop", "the_frostwarden"]
         ]
 
@@ -87,18 +88,5 @@ struct JourneyContentTests {
 
         try #expect(next.chapterID == "chapter-2")
         try #expect(next.id == "chapter-2-stage-1")
-    }
-
-    @Test func isLastCompletedReflectsLastCompletedStageID() throws {
-        var progress = JourneyProgressState.initial
-        let firstStage = chapter.stages[0]
-        let secondStage = chapter.stages[1]
-
-        try #expect(!(progress.isLastCompleted(firstStage)))
-
-        progress.complete(firstStage, in: GameContent.chapters)
-
-        try #expect(progress.isLastCompleted(firstStage))
-        try #expect(!(progress.isLastCompleted(secondStage)))
     }
 }

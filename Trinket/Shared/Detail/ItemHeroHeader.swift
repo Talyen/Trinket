@@ -7,8 +7,6 @@ struct ItemHeroHeader: View {
     let baseHeight: CGFloat
     let overscroll: CGFloat
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
-
     var body: some View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
@@ -30,36 +28,10 @@ struct ItemHeroHeader: View {
                     .frame(maxHeight: .infinity, alignment: .bottom)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(item.displayName), \(item.rarity.label)")
     }
 
-    @ViewBuilder
     private var itemArtwork: some View {
-        if let artReference = item.artReference {
-            Image(artReference.imageName)
-                .resizable()
-                .interpolation(.medium)
-                .aspectRatio(contentMode: .fill)
-                .clipped()
-                .accessibilityLabel(artReference.accessibilityLabel)
-        } else {
-            placeholderArt
-                .accessibilityLabel("\(item.displayName) placeholder art")
-        }
-    }
-
-    private var placeholderArt: some View {
-        let style = TrinketDesign.CardPlaceholderStyle.item
-        return ZStack {
-            style.color.opacity(0.18)
-
-            Image(systemName: style.symbolName)
-                .font(.system(size: placeholderIconSize, weight: .semibold))
-                .foregroundStyle(style.color)
-                .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
-        }
+        ItemArtwork(item: item)
     }
 
     private var titleBlock: some View {

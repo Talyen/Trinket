@@ -13,9 +13,9 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.blackjack]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy, initialGold: 0)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy, initialGold: 0)
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
@@ -32,9 +32,9 @@ struct AbilityEffectIntegrationTests {
             targetedEffects: [TargetedEffect(.poison(2))]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [poisonAbility])
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
@@ -49,9 +49,9 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.bloodthorn]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
         }
@@ -90,11 +90,11 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 10,
             abilities: [.prayer]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0),
@@ -130,11 +130,11 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [strike]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTicks: 6)
@@ -159,9 +159,9 @@ struct AbilityEffectIntegrationTests {
             maxHealth: 20,
             abilities: [.avatarOfJustice]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         let events = try #require(
             try BattleTestFixtures.playUntilAbility("Avatar of Justice", on: &battle),

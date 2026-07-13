@@ -4,7 +4,7 @@ import TrinketContent
 
 struct GameContentEncounterArtTests {
     @Test func mappedEventStagesResolveEncounterArt() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-4" })
+        let stage = try #require(GameContent.chapters[1].stages.first { $0.id == "chapter-2-stage-4" })
 
         #expect(GameContent.encounterArtID(for: stage) == "destination-merchant-shop")
         #expect(GameContent.encounterArtTitle(for: stage) == "Merchant's Shop")
@@ -15,12 +15,12 @@ struct GameContentEncounterArtTests {
     @Test func recruitMysteryStageUsesCombatantPortraitArt() throws {
         let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-2" })
 
-        #expect(stage.encounter == .mysteryEvent(eventID: "recruit-wolf"))
+        #expect(stage.encounter == .mysteryEvent(eventID: "recruit-bear"))
         #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference == nil)
         let art = try #require(stage.encounterCombatantArtReference)
-        #expect(art == ArtCatalog.combatantArtByID["wolf"])
-        #expect(stage.encounterSubjectName == "Wolf")
+        #expect(art == ArtCatalog.combatantArtByID["bear"])
+        #expect(stage.encounterSubjectName == "Bear")
         #expect(abs(stage.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
     }
 
@@ -30,7 +30,7 @@ struct GameContentEncounterArtTests {
         #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference == nil)
         _ = try #require(stage.encounterCombatantArtReference)
-        #expect(stage.encounterSubjectName == "Skeleton")
+        #expect(stage.encounterSubjectName == "Slime")
     }
 
     @Test func shopStageUsesMerchantFallbackTitle() {

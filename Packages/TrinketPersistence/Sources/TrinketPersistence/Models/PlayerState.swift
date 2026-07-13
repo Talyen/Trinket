@@ -40,13 +40,13 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
 }
 
 public struct PlayerRosterState: Equatable, Sendable {
-    public static let starterHeroID = "knight"
-    public static let starterPetID = "bear"
+    public static let starterHeroID = "ranger"
+    public static let starterCompanionID = "wolf"
 
     public var activeHeroID: String
-    public var activePetID: String
+    public var activeCompanionID: String
     public var unlockedHeroIDs: Set<String>
-    public var unlockedPetIDs: Set<String>
+    public var unlockedCompanionIDs: Set<String>
     public var abilityLoadouts: [String: AbilityLoadout]
     public var progressions: [String: CombatantProgression]
     public var equipmentLoadouts: [String: EquipmentLoadout]
@@ -56,9 +56,9 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedHeroIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
-    /// The highest level among unlocked pets. Returns 1 if no progression data exists.
-    public var highestPetLevel: Int {
-        unlockedPetIDs.compactMap { progressions[$0]?.level }.max() ?? 1
+    /// The highest level among unlocked companions. Returns 1 if no progression data exists.
+    public var highestCompanionLevel: Int {
+        unlockedCompanionIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
     public static let maxGoldBalance = 999
@@ -73,9 +73,9 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     public init(
         activeHeroID: String,
-        activePetID: String,
+        activeCompanionID: String,
         unlockedHeroIDs: Set<String>,
-        unlockedPetIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>,
         abilityLoadouts: [String: AbilityLoadout],
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: EquipmentLoadout],
@@ -83,9 +83,9 @@ public struct PlayerRosterState: Equatable, Sendable {
         primaryStatOverrides: [String: PrimaryStats] = [:]
     ) {
         self.activeHeroID = activeHeroID
-        self.activePetID = activePetID
+        self.activeCompanionID = activeCompanionID
         self.unlockedHeroIDs = unlockedHeroIDs
-        self.unlockedPetIDs = unlockedPetIDs
+        self.unlockedCompanionIDs = unlockedCompanionIDs
         self.abilityLoadouts = abilityLoadouts
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
@@ -96,13 +96,13 @@ public struct PlayerRosterState: Equatable, Sendable {
     public static var freshStart: PlayerRosterState {
         PlayerRosterState(
             activeHeroID: starterHeroID,
-            activePetID: starterPetID,
+            activeCompanionID: starterCompanionID,
             unlockedHeroIDs: [starterHeroID],
-            unlockedPetIDs: [starterPetID],
+            unlockedCompanionIDs: [starterCompanionID],
             abilityLoadouts: [:],
             progressions: [
                 starterHeroID: .initial,
-                starterPetID: .initial
+                starterCompanionID: .initial
             ],
             equipmentLoadouts: [:]
         )
@@ -111,9 +111,9 @@ public struct PlayerRosterState: Equatable, Sendable {
     public static var testSeed: PlayerRosterState {
         PlayerRosterState(
             activeHeroID: starterHeroID,
-            activePetID: "wolf",
+            activeCompanionID: "wolf",
             unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
-            unlockedPetIDs: Set(GameContent.pets.map(\.id)),
+            unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
             abilityLoadouts: [:],
             progressions: [
                 "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 155),
@@ -154,8 +154,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         switch combatant.role {
         case .hero:
             unlockedHeroIDs.contains(combatant.id)
-        case .pet:
-            unlockedPetIDs.contains(combatant.id)
+        case .companion:
+            unlockedCompanionIDs.contains(combatant.id)
         case .enemy:
             false
         }
@@ -165,8 +165,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedHeroIDs.contains(heroID)
     }
 
-    public func isPetUnlocked(_ petID: String) -> Bool {
-        unlockedPetIDs.contains(petID)
+    public func isCompanionUnlocked(_ companionID: String) -> Bool {
+        unlockedCompanionIDs.contains(companionID)
     }
 
     public func loadout(for combatant: Combatant) -> AbilityLoadout {
@@ -226,20 +226,20 @@ public struct PlayerRosterState: Equatable, Sendable {
         activeHeroID = hero.id
     }
 
-    public mutating func setActivePet(_ pet: Combatant) {
-        guard isUnlocked(pet) else { return }
-        activePetID = pet.id
+    public mutating func setActiveCompanion(_ companion: Combatant) {
+        guard isUnlocked(companion) else { return }
+        activeCompanionID = companion.id
     }
 
-    /// Unlocks a hero or pet and seeds baseline progression when missing.
+    /// Unlocks a hero or companion and seeds baseline progression when missing.
     /// Returns `true` when the combatant was newly unlocked.
     @discardableResult
     public mutating func unlock(_ combatant: Combatant) -> Bool {
         switch combatant.role {
         case .hero:
             unlockHero(id: combatant.id)
-        case .pet:
-            unlockPet(id: combatant.id)
+        case .companion:
+            unlockCompanion(id: combatant.id)
         case .enemy:
             false
         }
@@ -256,32 +256,32 @@ public struct PlayerRosterState: Equatable, Sendable {
         return inserted
     }
 
-    /// Unlocks a pet by catalog id. Returns `true` when newly unlocked.
+    /// Unlocks a companion by catalog id. Returns `true` when newly unlocked.
     @discardableResult
-    public mutating func unlockPet(id petID: String) -> Bool {
-        guard GameContent.pets.contains(where: { $0.id == petID }) else { return false }
-        let inserted = unlockedPetIDs.insert(petID).inserted
-        if progressions[petID] == nil {
-            progressions[petID] = .initial
+    public mutating func unlockCompanion(id companionID: String) -> Bool {
+        guard GameContent.companions.contains(where: { $0.id == companionID }) else { return false }
+        let inserted = unlockedCompanionIDs.insert(companionID).inserted
+        if progressions[companionID] == nil {
+            progressions[companionID] = .initial
         }
         return inserted
     }
 
-    /// Unlocks every catalog hero and pet, setting each progression to `level`.
+    /// Unlocks every catalog hero and companion, setting each progression to `level`.
     public mutating func unlockAllCombatants(atLevel level: Int = 20) {
         let progression = CombatantProgression.at(level: level)
         unlockedHeroIDs = Set(GameContent.heroes.map(\.id))
-        unlockedPetIDs = Set(GameContent.pets.map(\.id))
+        unlockedCompanionIDs = Set(GameContent.companions.map(\.id))
         for heroID in unlockedHeroIDs {
             progressions[heroID] = progression
         }
-        for petID in unlockedPetIDs {
-            progressions[petID] = progression
+        for companionID in unlockedCompanionIDs {
+            progressions[companionID] = progression
         }
     }
 
     public func isCombatantUnlocked(id combatantID: String) -> Bool {
-        unlockedHeroIDs.contains(combatantID) || unlockedPetIDs.contains(combatantID)
+        unlockedHeroIDs.contains(combatantID) || unlockedCompanionIDs.contains(combatantID)
     }
 
     public mutating func grantExperience(_ amount: Int, to combatant: Combatant) {
@@ -321,18 +321,18 @@ public struct PlayerRosterState: Equatable, Sendable {
         )
     }
 
-    public var pets: [Combatant] {
+    public var companions: [Combatant] {
         battleConfiguredCombatants(
-            GameContent.pets.filter { isUnlocked($0) }
+            GameContent.companions.filter { isUnlocked($0) }
         )
     }
 
     public var collectionHeroes: [Combatant] {
-        configuredCombatants(GameContent.heroes)
+        orderedCollectionCombatants(GameContent.heroes)
     }
 
-    public var collectionPets: [Combatant] {
-        configuredCombatants(GameContent.pets)
+    public var collectionCompanions: [Combatant] {
+        orderedCollectionCombatants(GameContent.companions)
     }
 
     public var activeHero: Combatant {
@@ -342,11 +342,36 @@ public struct PlayerRosterState: Equatable, Sendable {
             collectionHeroes[0]
     }
 
-    public var activePet: Combatant {
-        pets.first { $0.id == activePetID } ??
-            pets.first ??
-            GameContent.pets.first { $0.id == PlayerRosterState.starterPetID } ??
-            collectionPets[0]
+    public var activeCompanion: Combatant {
+        companions.first { $0.id == activeCompanionID } ??
+            companions.first ??
+            GameContent.companions.first { $0.id == PlayerRosterState.starterCompanionID } ??
+            collectionCompanions[0]
+    }
+
+    private func orderedCollectionCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        configuredCombatants(combatants)
+            .enumerated()
+            .sorted { left, right in
+                let leftUnlocked = isUnlocked(left.element)
+                let rightUnlocked = isUnlocked(right.element)
+
+                if leftUnlocked != rightUnlocked {
+                    return leftUnlocked
+                }
+
+                if leftUnlocked {
+                    let leftLevel = progression(for: left.element).level
+                    let rightLevel = progression(for: right.element).level
+                    if leftLevel != rightLevel {
+                        return leftLevel > rightLevel
+                    }
+                }
+
+                // Preserve authored catalog order for equal-level and locked entries.
+                return left.offset < right.offset
+            }
+            .map(\.element)
     }
 }
 

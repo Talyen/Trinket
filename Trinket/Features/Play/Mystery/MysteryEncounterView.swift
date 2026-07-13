@@ -14,12 +14,6 @@ struct MysteryEncounterView: View {
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
 
-    private var reduceMotion: Bool {
-        accessibilityReduceMotion
-    }
-
-    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
-
     var body: some View {
         Group {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
@@ -55,7 +49,7 @@ struct MysteryEncounterView: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
                 recruitArtwork
                     .opacity(artAppeared ? 1 : 0)
-                    .scaleEffect(artAppeared ? 1 : (reduceMotion ? 1 : 0.94))
+                    .scaleEffect(artAppeared ? 1 : 0.94)
 
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     Text(session.event.title)
@@ -69,7 +63,7 @@ struct MysteryEncounterView: View {
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
                 }
                 .opacity(narrativeAppeared ? 1 : 0)
-                .offset(y: narrativeAppeared || reduceMotion ? 0 : 8)
+                .offset(y: narrativeAppeared ? 0 : 8)
 
                 if let choice = session.event.choices.first {
                     Button {
@@ -103,7 +97,7 @@ struct MysteryEncounterView: View {
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(combatant.name)
+
         } else {
             TrinketDesign.cardShape
                 .fill(TrinketDesign.Colors.encounterEvent.opacity(0.14))
@@ -120,58 +114,24 @@ struct MysteryEncounterView: View {
     @ViewBuilder
     private func unlockReveal(unlockedID: String) -> some View {
         let combatant = revealCombatant(id: unlockedID)
-        ScrollView {
-            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                Text(combatant.map { $0.role == .pet ? "New Pet" : "New Hero" } ?? "Unlocked")
-                    .trinketTypography(.eyebrow)
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockEyebrow)
-
+        RewardRevealShell(
+            eyebrow: combatant.map { $0.role == .companion ? "New Companion" : "New Hero" } ?? "Unlocked",
+            eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
+            title: combatant?.name ?? "New Ally",
+            subtitle: combatant.map {
+                "\($0.role.rawValue) · \($0.growthArchetype.displayName)"
+            },
+            titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
+            content: {
                 if let combatant {
-                    Button {
-                        selectedDetail = CombatantDetailContext(
-                            kind: combatant.role == .pet ? .pet : .hero,
-                            combatantID: combatant.id
-                        )
-                    } label: {
-                        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                            CombatantCard(combatant: combatant, showsName: false)
-                                .frame(maxWidth: 220)
-                                .scaleEffect(revealCardScale)
-                                .opacity(revealCardOpacity)
-
-                            Text(combatant.name)
-                                .trinketTypography(.screenTitle)
-                                .accessibilityIdentifier(AccessibilityID.Mystery.unlockName)
-
-                            Text("\(combatant.growthArchetype.displayName) · Tap to inspect")
-                                .trinketTypography(.cardTitle)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
-                        }
-                    }
-                    // UIStyleCheck: allow - Unlock card opens detail without button chrome.
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
-                    .accessibilityHint("Shows combatant details")
+                    recruitRevealContent(combatant)
                 }
-
-                Button {
-                    appState.finishActiveMysteryEncounter()
-                } label: {
-                    Text("Continue")
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-                .accessibilityIdentifier(AccessibilityID.Mystery.continueButton)
-                .padding(.top, TrinketDesign.Metrics.smallSpacing)
-            }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
-            .frame(maxWidth: .infinity)
-            .trinketSurface(.reward)
-        }
+            },
+            primaryActionTitle: "Continue",
+            primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
+            isPrimaryActionDisabled: false,
+            onPrimaryAction: appState.finishActiveMysteryEncounter
+        )
         .onAppear {
             unlockFeedbackTrigger += 1
         }
@@ -182,21 +142,74 @@ struct MysteryEncounterView: View {
         )
     }
 
+    private func recruitRevealContent(_ combatant: Combatant) -> some View {
+        VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+            Button {
+                selectedDetail = CombatantDetailContext(
+                    kind: combatant.role == .companion ? .companion : .hero,
+                    combatantID: combatant.id
+                )
+            } label: {
+                ZStack(alignment: .bottom) {
+                    CombatantArtwork(combatant: combatant, variant: .hero)
+                        .aspectRatio(3.0 / 4.0, contentMode: .fit)
+
+                    TrinketHeroScrim.gradient(for: .detailHeader)
+                        .frame(height: HeroHeaderLayout.scrimHeight)
+                        .frame(maxWidth: .infinity, alignment: .bottom)
+                        .allowsHitTesting(false)
+
+                    Label("View Details", systemImage: "info.circle")
+                        .trinketTypography(.button)
+                        .trinketGlassChip(.emphasis)
+                        .padding(TrinketDesign.Metrics.largeSpacing)
+                }
+                .clipShape(TrinketDesign.cardShape)
+                .trinketCardSurface()
+                .frame(maxWidth: 430)
+                .scaleEffect(revealCardScale)
+                .opacity(revealCardOpacity)
+            }
+            // UIStyleCheck: allow - Unlock art opens detail without button chrome.
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
+
+            Text("\(combatant.growthArchetype.displayName) · Tap to inspect")
+                .trinketTypography(.cardTitle)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
+
+            if let trait = GameContent.trait(forCombatantID: combatant.id) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    Text("Trait")
+                        .trinketTypography(.eyebrow)
+                        .foregroundStyle(TrinketDesign.Colors.accent)
+                        .textCase(.uppercase)
+
+                    Text(trait.name)
+                        .trinketTypography(.cardTitle)
+
+                    KeywordDescriptionText(text: trait.description)
+                        .trinketTypography(.secondaryBody)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .trinketSurface(.reward)
+            }
+        }
+    }
+
     private func revealCombatant(id: String) -> Combatant? {
         if let sessionCombatant = session.combatant, sessionCombatant.id == id {
             return appState.roster.current.configuredCombatant(sessionCombatant)
         }
-        let catalog = GameContent.heroes + GameContent.pets
+        let catalog = GameContent.heroes + GameContent.companions
         guard let combatant = catalog.first(where: { $0.id == id }) else { return nil }
         return appState.roster.current.configuredCombatant(combatant)
     }
 
     private func presentReadingEntrance() {
-        guard !reduceMotion else {
-            artAppeared = true
-            narrativeAppeared = true
-            return
-        }
         withAnimation(.easeOut(duration: 0.35)) {
             artAppeared = true
         }
@@ -206,11 +219,6 @@ struct MysteryEncounterView: View {
     }
 
     private func presentRevealEntrance() {
-        guard !reduceMotion else {
-            revealCardScale = 1
-            revealCardOpacity = 1
-            return
-        }
         revealCardScale = 0.86
         revealCardOpacity = 0
         withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {

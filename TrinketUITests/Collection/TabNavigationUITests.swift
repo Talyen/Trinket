@@ -4,7 +4,6 @@ final class TabNavigationUITests: TrinketUITestCase {
     func testHeroDetailEquipmentAndAbilities() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight")
-        combatantDetail.assertSeededHeroHeaderSummary(for: "Knight")
         assertCombatantDetailSections()
 
         // 1. Abilities section (higher on screen)
@@ -15,16 +14,15 @@ final class TabNavigationUITests: TrinketUITestCase {
             app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
             "Basic ability picker not found"
         )
-        button("Basic Bash ability card").tap()
-        assertExists("Bash")
+        assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
+        button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
+        assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
+        button(AccessibilityID.LoadoutPicker.selectAbility("block")).tap()
+        assertExists("Block")
 
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
-        XCTAssertTrue(
-            app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
-            "Basic ability picker not found"
-        )
-        button("Basic Block ability card").tap()
-        assertExists("Block")
+        assertExists(AccessibilityID.LoadoutPicker.abilityCandidate("block"))
+        goBack()
 
         // 2. Items section (lower on screen)
         scrollUntilVisible(button(AccessibilityID.Equipment.weaponSlot), swipingUp: true)
@@ -34,7 +32,14 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         button(AccessibilityID.Equipment.weaponSlot).tap()
         assertExists(AccessibilityID.Equipment.equipWeapon)
-        XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 2))
+        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
+        button(AccessibilityID.LoadoutPicker.itemCandidate("crossbow-basic")).tap()
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
+        button(AccessibilityID.LoadoutPicker.equipItem("crossbow-basic")).tap()
+
+        button(AccessibilityID.Equipment.weaponSlot).tap()
+        assertExists(AccessibilityID.LoadoutPicker.itemCandidate("crossbow-basic"))
+        goBack()
         dismissSheet()
 
         assertButtonExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
@@ -47,17 +52,16 @@ final class TabNavigationUITests: TrinketUITestCase {
             TestLaunchArg.disableCloudSync
         ] + TestLaunchArg.screen("hero:knight"))
 
-        let weaponSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.weaponSlot]
+        let weaponSlot = app.staticTexts[AccessibilityID.Equipment.weaponSlot]
         let armorSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.armorSlot]
         let trinketSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.trinketSlot]
         scrollUntilVisible(weaponSlot, swipingUp: true)
 
-        // Locked slots combine into a single element; the unlock instructions now live
-        // in that element's accessibility label rather than as a standalone element.
+        // Locked slots remain visible and inert until a matching item exists.
         XCTAssertTrue(weaponSlot.waitForExistence(timeout: Self.defaultTimeout))
-        XCTAssertTrue(weaponSlot.label.contains(AccessibilityID.Equipment.findWeaponToUnlock))
-        XCTAssertTrue(armorSlot.label.contains(AccessibilityID.Equipment.findArmorToUnlock))
-        XCTAssertTrue(trinketSlot.label.contains(AccessibilityID.Equipment.findTrinketToUnlock))
+        XCTAssertTrue(app.staticTexts["Weapon"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(app.staticTexts["Armor"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(app.staticTexts["Trinket"].waitForExistence(timeout: Self.defaultTimeout))
 
         weaponSlot.tap()
         XCTAssertFalse(app.navigationBars[AccessibilityID.Equipment.equipWeapon].waitForExistence(timeout: 1))
@@ -87,9 +91,5 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertItemCardExists("Crossbow")
         collection.filterInventory(to: "All")
         assertItemCardExists("Crossbow")
-    }
-
-    private func firstEquipOption() -> XCUIElement {
-        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'Equip ' AND identifier != 'Equip Weapon'")).firstMatch
     }
 }

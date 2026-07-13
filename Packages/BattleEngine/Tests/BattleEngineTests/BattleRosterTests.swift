@@ -35,54 +35,48 @@ struct BattleRosterTests {
 
     private func makeRoster(
         hero: CombatantRuntime? = nil,
-        pet: CombatantRuntime? = nil,
+        companion: CombatantRuntime? = nil,
         enemy: CombatantRuntime? = nil
     ) -> BattleRoster {
         BattleRoster(
             hero: hero ?? runtime(id: "hero", role: .hero),
-            pet: pet ?? runtime(id: "pet", role: .pet),
+            companion: companion ?? runtime(id: "companion", role: .companion),
             enemy: enemy ?? runtime(id: "enemy", role: .enemy)
         )
     }
 
     // MARK: - Dispatch by Combatant identity
 
-    @Test func effectTickOrderIsEnemyHeroPet() throws {
-        try #expect(BattleParticipant.effectTickOrder == [.enemy, .hero, .pet])
+    @Test func effectTickOrderIsEnemyHeroCompanion() throws {
+        try #expect(BattleParticipant.effectTickOrder == [.enemy, .hero, .companion])
     }
 
     @Test func matchupCombatantForParticipant() throws {
         let hero = combatant(id: "hero", role: .hero)
-        let pet = combatant(id: "pet", role: .pet)
+        let companion = combatant(id: "companion", role: .companion)
         let enemy = combatant(id: "enemy", role: .enemy)
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
 
         try #expect(matchup.combatant(for: .hero).id == "hero")
-        try #expect(matchup.combatant(for: .pet).id == "pet")
+        try #expect(matchup.combatant(for: .companion).id == "companion")
         try #expect(matchup.combatant(for: .enemy).id == "enemy")
     }
 
     @Test func runtimeForReturnsMatching() throws {
         let hero = runtime(id: "hero", role: .hero)
-        let pet = runtime(id: "pet", role: .pet)
+        let companion = runtime(id: "companion", role: .companion)
         let enemy = runtime(id: "enemy", role: .enemy)
-        let roster = BattleRoster(hero: hero, pet: pet, enemy: enemy)
+        let roster = BattleRoster(hero: hero, companion: companion, enemy: enemy)
 
         try #expect(roster.runtime(for: hero.combatant)?.id == "hero")
-        try #expect(roster.runtime(for: pet.combatant)?.id == "pet")
+        try #expect(roster.runtime(for: companion.combatant)?.id == "companion")
         try #expect(roster.runtime(for: enemy.combatant)?.id == "enemy")
-    }
-
-    @Test func runtimeForReturnsNilForUnknownID() throws {
-        let roster = makeRoster()
-        let unknown = combatant(id: "stranger", role: .hero)
-        try #expect(roster.runtime(for: unknown) == nil)
     }
 
     @Test func combatantForReturnsRuntimeByID() throws {
         let roster = makeRoster()
         try #expect(roster.combatant(for: "hero")?.role == .hero)
-        try #expect(roster.combatant(for: "pet")?.role == .pet)
+        try #expect(roster.combatant(for: "companion")?.role == .companion)
         try #expect(roster.combatant(for: "enemy")?.role == .enemy)
         try #expect(roster.combatant(for: "missing") == nil)
     }
@@ -94,14 +88,7 @@ struct BattleRosterTests {
         roster.update(hero)
 
         try #expect(roster.hero.currentHealth == hero.maxHealth - 5)
-        try #expect(roster.pet.currentHealth == roster.pet.maxHealth)
-    }
-
-    @Test func updateIgnoresUnknownRuntime() throws {
-        var roster = makeRoster()
-        let stranger = runtime(id: "stranger", role: .hero)
-        roster.update(stranger)
-        try #expect(roster.hero.id == "hero")
+        try #expect(roster.companion.currentHealth == roster.companion.maxHealth)
     }
 
     // MARK: - Active effects
@@ -117,37 +104,22 @@ struct BattleRosterTests {
 
     // MARK: - Health
 
-    @Test func healthAndMaxHealth() throws {
-        let hero = runtime(id: "hero", role: .hero, maxHealth: 10)
-        let roster = BattleRoster(
-            hero: hero,
-            pet: runtime(id: "pet", role: .pet),
-            enemy: runtime(id: "enemy", role: .enemy)
-        )
-        try #expect(roster.health(for: hero.combatant) == 10)
-        try #expect(roster.maxHealth(for: hero.combatant) == 10)
-    }
-
     // MARK: - Targeting
 
-    @Test func enemyAttackTargetPrefersHeroWhenBothAlive() throws {
-        let roster = makeRoster()
-        try #expect(roster.enemyAttackTarget.id == "hero")
-    }
+    @Test func enemyAttackTargetCoversAliveDeadAndHealthPriority() throws {
+        let aliveRoster = makeRoster()
+        try #expect(aliveRoster.enemyAttackTarget.id == "hero")
 
-    @Test func enemyAttackTargetFallsBackToPetWhenHeroDead() throws {
-        var roster = makeRoster()
-        var hero = roster.hero
+        var woundedRoster = makeRoster()
+        var hero = woundedRoster.hero
         hero.takeRawDamage(999)
-        roster.update(hero)
-        try #expect(roster.enemyAttackTarget.id == "pet")
-    }
+        woundedRoster.update(hero)
+        try #expect(woundedRoster.enemyAttackTarget.id == "companion")
 
-    @Test func enemyAttackTargetPrefersHigherHealthWhenBothAlive() throws {
-        let hero = runtime(id: "hero", role: .hero, initialHealth: 5)
-        let pet = runtime(id: "pet", role: .pet, initialHealth: 10)
-        let roster = BattleRoster(hero: hero, pet: pet, enemy: runtime(id: "enemy", role: .enemy))
-        try #expect(roster.enemyAttackTarget.id == "pet")
+        let priorityHero = runtime(id: "hero", role: .hero, initialHealth: 5)
+        let priorityCompanion = runtime(id: "companion", role: .companion, initialHealth: 10)
+        let priorityRoster = BattleRoster(hero: priorityHero, companion: priorityCompanion, enemy: runtime(id: "enemy", role: .enemy))
+        try #expect(priorityRoster.enemyAttackTarget.id == "companion")
     }
 
     // MARK: - Defeat flags
@@ -161,9 +133,9 @@ struct BattleRosterTests {
         roster.update(hero)
         try #expect(!(roster.isPartyDefeated))
 
-        var pet = roster.pet
-        pet.takeRawDamage(999)
-        roster.update(pet)
+        var companion = roster.companion
+        companion.takeRawDamage(999)
+        roster.update(companion)
         try #expect(roster.isPartyDefeated)
     }
 

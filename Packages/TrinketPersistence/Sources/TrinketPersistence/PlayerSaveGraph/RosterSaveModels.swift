@@ -6,7 +6,7 @@ import TrinketCore
 @Model
 public final class RosterModel {
     public var activeHeroID: String = PlayerRosterState.starterHeroID
-    public var activePetID: String = PlayerRosterState.starterPetID
+    public var activeCompanionID: String = PlayerRosterState.starterCompanionID
     public var gold: Int = 0
     public var root: PlayerSaveRoot?
 

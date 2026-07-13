@@ -123,8 +123,8 @@ public enum TrinketDesign {
             color: DesignAssetColors.named("PlaceholderHero"),
             symbolName: "person.fill"
         )
-        public static let pet = CardPlaceholderStyle(
-            color: DesignAssetColors.named("PlaceholderPet"),
+        public static let companion = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderCompanion"),
             symbolName: "pawprint.fill"
         )
         public static let enemy = CardPlaceholderStyle(

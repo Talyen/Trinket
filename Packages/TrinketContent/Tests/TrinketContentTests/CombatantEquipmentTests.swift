@@ -3,9 +3,9 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantEquipmentTests {
-    @Test func petEquipmentSlotsUseTwoTrinketsAndArmor() throws {
+    @Test func companionEquipmentSlotsUseTwoTrinketsAndArmor() throws {
         try #expect(
-            Combatant.Role.pet.equipmentSlots == [.trinket, .armor, .secondaryTrinket]
+            Combatant.Role.companion.equipmentSlots == [.trinket, .armor, .secondaryTrinket]
         )
     }
 
@@ -16,7 +16,7 @@ struct CombatantEquipmentTests {
     }
 
     @Test func secondaryTrinketSlotAcceptsTrinketItems() throws {
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let trinketBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .trinket })
         let trinket = InventoryItem(
             id: "ring-a",

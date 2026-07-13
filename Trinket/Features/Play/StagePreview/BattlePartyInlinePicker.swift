@@ -4,7 +4,7 @@ import TrinketDesignSystem
 
 enum BattlePartySlot: String, Identifiable {
     case hero
-    case pet
+    case companion
 
     var id: String {
         rawValue
@@ -17,19 +17,19 @@ enum BattlePartySlot: String, Identifiable {
     var role: Combatant.Role {
         switch self {
         case .hero: .hero
-        case .pet: .pet
+        case .companion: .companion
         }
     }
 
     var controlAccessibilityID: String {
         switch self {
         case .hero: AccessibilityID.Play.battlePartyHeroControl
-        case .pet: AccessibilityID.Play.battlePartyPetControl
+        case .companion: AccessibilityID.Play.battlePartyCompanionControl
         }
     }
 }
 
-/// Compact Hero + Pet selection placed directly above a battle CTA.
+/// Compact Hero + Companion selection placed directly above a battle CTA.
 struct BattlePartyInlinePicker: View {
     @Environment(AppState.self) private var appState
 
@@ -50,7 +50,7 @@ struct BattlePartyInlinePicker: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 slotButton(.hero, combatant: appState.roster.activeHero)
-                slotButton(.pet, combatant: appState.roster.activePet)
+                slotButton(.companion, combatant: appState.roster.activeCompanion)
             }
 
             if let aspect {
@@ -72,7 +72,6 @@ struct BattlePartyInlinePicker: View {
             .presentationDragIndicator(.visible)
         }
         .disabled(appState.battle.activeBattle != nil)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyInlinePicker)
     }
 
@@ -104,7 +103,6 @@ struct BattlePartyInlinePicker: View {
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .trinketSurface(.secondary)
@@ -112,16 +110,13 @@ struct BattlePartyInlinePicker: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(slot.controlAccessibilityID)
-        .accessibilityLabel(slot.title + ", " + combatant.name)
-        .accessibilityValue(combatant.name)
-        .accessibilityHint("Choose a different " + slot.title.lowercased())
     }
 
     @ViewBuilder
     private func attunementLine(for aspect: AspectDefinition) -> some View {
         let status = AspectAttunement.evaluate(
             hero: appState.roster.activeHero,
-            pet: appState.roster.activePet,
+            companion: appState.roster.activeCompanion,
             aspect: aspect
         )
 
@@ -138,14 +133,14 @@ struct BattlePartyInlinePicker: View {
     private func combatants(for slot: BattlePartySlot) -> [Combatant] {
         switch slot {
         case .hero: appState.roster.heroes
-        case .pet: appState.roster.pets
+        case .companion: appState.roster.companions
         }
     }
 
     private func selectedID(for slot: BattlePartySlot) -> String {
         switch slot {
         case .hero: appState.roster.activeHero.id
-        case .pet: appState.roster.activePet.id
+        case .companion: appState.roster.activeCompanion.id
         }
     }
 
@@ -156,8 +151,8 @@ struct BattlePartyInlinePicker: View {
         switch slot {
         case .hero:
             updatedRoster.setActiveHero(combatant)
-        case .pet:
-            updatedRoster.setActivePet(combatant)
+        case .companion:
+            updatedRoster.setActiveCompanion(combatant)
         }
         appState.roster.current = updatedRoster
     }
@@ -196,12 +191,11 @@ struct BattleCombatantPickerSheet: View {
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
             }
-            .trinketScreenBackground(.modal)
             .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
             .navigationTitle("Choose \(slot.title)")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .accessibilityElement(children: .contain)
+
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
         .trinketSensoryFeedback(
             .selection,
@@ -253,8 +247,6 @@ struct BattleCombatantPickerSheet: View {
         .accessibilityIdentifier(
             AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
         )
-        .accessibilityLabel(combatant.name + " " + slot.title.lowercased())
-        .accessibilityValue(selected ? "Selected" : (eligible ? "Available" : "Not attuned"))
     }
 
     private func isEligible(_ combatant: Combatant) -> Bool {
@@ -266,10 +258,12 @@ struct BattleCombatantPickerSheet: View {
 /// Journey's compact, single-sheet party editor.
 struct StageBattlePartyPickerSheet: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let accentColor: Color
 
     @State private var presentedSlot: BattlePartySlot?
+    @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
         NavigationStack {
@@ -289,27 +283,33 @@ struct StageBattlePartyPickerSheet: View {
                     partySlots
                 }
             }
-            .trinketScreenBackground(.modal)
-            .navigationTitle(presentedSlot == nil ? "Choose Party" : "Choose \(presentedSlot?.title ?? "")")
+            .navigationTitle(presentedSlot == nil ? "Party" : "Choose \(presentedSlot?.title ?? "")")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if presentedSlot != nil {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Party", systemImage: "chevron.left") {
-                            presentedSlot = nil
-                        }
-                    }
-                }
-            }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.stagePartyPickerSheet)
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectionFeedbackTrigger,
+            enabled: appState.options.hapticsEnabled
+        )
     }
 
     private var partySlots: some View {
-        VStack(spacing: 12) {
-            partySlot(.hero, combatant: appState.roster.activeHero)
-            partySlot(.pet, combatant: appState.roster.activePet)
-            Spacer(minLength: 0)
+        ScrollView {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+                    partySlot(.hero, combatant: appState.roster.activeHero)
+                    partySlot(.companion, combatant: appState.roster.activeCompanion)
+                }
+                .frame(maxWidth: 240)
+                .frame(maxWidth: .infinity)
+            } else {
+                HStack(alignment: .top, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    partySlot(.hero, combatant: appState.roster.activeHero)
+                    partySlot(.companion, combatant: appState.roster.activeCompanion)
+                }
+            }
         }
         .padding(TrinketDesign.Metrics.contentMargin)
     }
@@ -318,51 +318,54 @@ struct StageBattlePartyPickerSheet: View {
         Button {
             presentedSlot = slot
         } label: {
-            HStack(spacing: 12) {
-                CombatantArtwork(combatant: combatant, variant: .card)
-                    // UIStyleCheck: allow - Party rows reserve a consistent portrait footprint.
-                    .frame(width: 54, height: 68)
-                    .clipShape(TrinketDesign.cardShape)
+            TrinketDesign.cardShape
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    ZStack(alignment: .bottomLeading) {
+                        CombatantArtwork(combatant: combatant, variant: .card)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(slot.title)
-                        .trinketTypography(.badge)
-                        .foregroundStyle(.secondary)
-                    Text(combatant.name)
-                        .trinketTypography(.cardTitle)
-                        .foregroundStyle(.primary)
+                        TrinketHeroScrim.gradient(for: .detailHeader)
+
+                        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                            Text(slot.title)
+                                .trinketTypography(.badge)
+                                .trinketOnArtText(.eyebrow)
+                            Text(combatant.name)
+                                .trinketTypography(.cardTitle)
+                                .trinketOnArtText(.title)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.75)
+                        }
+                        .padding(TrinketDesign.Metrics.mediumSpacing)
+                    }
                 }
-
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
-            }
-            .padding(10)
-            .trinketSurface(.secondary)
-            .clipShape(TrinketDesign.cardShape)
+                .clipShape(TrinketDesign.cardShape)
+                .trinketCardSurface()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ArtworkNavigationCardButtonStyle())
         .accessibilityIdentifier(slot.controlAccessibilityID)
         .accessibilityLabel("\(slot.title), \(combatant.name)")
-        .accessibilityValue(combatant.name)
         .accessibilityHint("Choose a different \(slot.title.lowercased())")
     }
 
     private func combatants(for slot: BattlePartySlot) -> [Combatant] {
-        slot == .hero ? appState.roster.heroes : appState.roster.pets
+        slot == .hero ? appState.roster.heroes : appState.roster.companions
     }
 
     private func selectedID(for slot: BattlePartySlot) -> String {
-        slot == .hero ? appState.roster.activeHero.id : appState.roster.activePet.id
+        slot == .hero ? appState.roster.activeHero.id : appState.roster.activeCompanion.id
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         var roster = appState.roster.current
         switch slot {
-        case .hero: roster.setActiveHero(combatant)
-        case .pet: roster.setActivePet(combatant)
+        case .hero:
+            roster.setActiveHero(combatant)
+        case .companion:
+            roster.setActiveCompanion(combatant)
         }
         appState.roster.current = roster
+        selectionFeedbackTrigger += 1
     }
 }
 
@@ -375,40 +378,61 @@ private struct BattlePartyOptionsGrid: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 12)], spacing: 12) {
+            LazyVGrid(
+                columns: TrinketDesign.Metrics.partyPickerGridItems,
+                spacing: TrinketDesign.Metrics.largeSpacing
+            ) {
                 ForEach(combatants) { combatant in
+                    let selected = combatant.id == selectedID
+
                     Button {
                         onSelect(combatant)
                     } label: {
-                        VStack(spacing: 6) {
-                            CombatantArtwork(combatant: combatant, variant: .card)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 88)
-                                .clipShape(TrinketDesign.cardShape)
-                            Text(combatant.name)
-                                .trinketTypography(.cardLabel)
-                                .foregroundStyle(.primary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.center)
-                                // UIStyleCheck: allow - Grid option labels reserve two lines for long names.
-                                .frame(minHeight: 34)
-                        }
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .trinketSurface(.card)
-                        .clipShape(TrinketDesign.cardShape)
-                        .overlay {
-                            TrinketDesign.cardShape.strokeBorder(
-                                combatant.id == selectedID ? accentColor : .clear,
-                                lineWidth: combatant.id == selectedID ? 3 : 0
-                            )
-                        }
+                        TrinketDesign.cardShape
+                            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                            .overlay {
+                                ZStack(alignment: .bottomLeading) {
+                                    CombatantArtwork(combatant: combatant, variant: .card)
+
+                                    TrinketHeroScrim.gradient(for: .detailHeader)
+
+                                    Text(combatant.name)
+                                        .trinketTypography(.cardTitle)
+                                        .trinketOnArtText(.title)
+                                        .lineLimit(2)
+                                        .minimumScaleFactor(0.75)
+                                        .padding(TrinketDesign.Metrics.mediumSpacing)
+
+                                    if selected {
+                                        VStack {
+                                            HStack {
+                                                Spacer()
+                                                Image(systemName: "checkmark")
+                                                    .font(.caption.weight(.bold))
+                                                    .foregroundStyle(accentColor)
+                                                    .trinketGlassChip(.compact)
+                                                    .accessibilityHidden(true)
+                                            }
+                                            Spacer()
+                                        }
+                                        .padding(TrinketDesign.Metrics.smallSpacing)
+                                    }
+                                }
+                            }
+                            .clipShape(TrinketDesign.cardShape)
+                            .trinketCardSurface()
+                            .overlay {
+                                TrinketDesign.cardShape.strokeBorder(
+                                    selected ? accentColor : .clear,
+                                    lineWidth: selected ? 3 : 0
+                                )
+                            }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(ArtworkNavigationCardButtonStyle())
                     .accessibilityIdentifier(
                         AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
                     )
-                    .accessibilityValue(combatant.id == selectedID ? "Selected" : "Available")
+                    .accessibilityValue(selected ? "Selected" : "Available")
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)

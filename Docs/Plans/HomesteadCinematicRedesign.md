@@ -10,7 +10,7 @@ Success means:
 - Project rows clearly distinguish prerequisite-locked, unlocked-unbuilt, built, upgrade-ready, and completed states.
 - Tapping any project—including locked projects—pushes a native detail destination while retaining the tab bar and standard back navigation.
 - Detail screens present the complete three-tier progression path and a persistent build/upgrade footer.
-- The interface supports Dynamic Type, VoiceOver, Light/Dark appearance, Reduce Motion, Reduce Transparency, and smaller portrait devices without clipping.
+- The interface is visual-first and targets the supported portrait layout with native SwiftUI controls and visible labels; comprehensive accessibility support is out of scope per PD-007.
 
 ## Experience Specification
 
@@ -24,7 +24,7 @@ Success means:
 - Use the existing shared overscroll contract: artwork expands directly during pull-down and the compact navigation title cross-fades in after the overlaid title scrolls away.
 - Use system serif only for display and section titles; retain SF typography for body text, balances, statuses, and buttons.
 - Keep dense content on semantic solid surfaces. Reserve material for floating navigation and the persistent detail footer rather than stacking glass panels.
-- Lay out the wallet as four resources followed by three at normal Dynamic Type sizes. Adapt to fewer columns and additional rows at accessibility sizes instead of truncating labels or balances.
+- Lay out the wallet as four columns using the product’s supported visual layout.
 - Use existing SF Symbols and resource colors; do not add custom resource icons.
 
 ### Project rows
@@ -36,7 +36,7 @@ Success means:
   - **Built:** show the current tier’s active effect, never the next tier’s effect.
   - **Upgrade-ready:** replace the chevron with `arrow.up.circle.fill` only when the next tier exists and is immediately affordable.
   - **Completed:** show the final active effect with a completion symbol; row remains tappable.
-- Give rows immediate press-down feedback through a design-system-owned pressed state. Use a restrained critically damped response and remove scaling under Reduce Motion.
+- Give rows immediate press-down feedback through a design-system-owned pressed state.
 - Preserve live content assignments: all nine projects remain under their current manifest categories, including Alchemy Lab under Research.
 
 ### Project detail
@@ -54,9 +54,9 @@ Success means:
   - Each node’s title and complete effect copy appear alongside it.
 - Add a persistent bottom safe-area footer above the tab bar:
   - Show the next tier’s resource icons and required quantities.
-  - Tint shortages semantically while exposing “available of required” through VoiceOver.
+  - Tint shortages semantically and show the required quantities visually.
   - Label tier one as **Build** and later tiers as **Upgrade**.
-  - Keep the button disabled when prerequisites or resources are insufficient, with an accessibility value/hint explaining why.
+  - Keep the button disabled when prerequisites or resources are insufficient, with the visible state explaining the action.
   - At maximum tier, preserve the footer footprint with a noninteractive checkmark and **Complete** state.
 - Build and upgrade remain immediate, with no confirmation dialog. On success:
   - Stay on the detail screen.
@@ -64,7 +64,6 @@ Success means:
   - Advance the tier path and footer to the next tier.
   - Animate the completed node with a critically damped emphasis.
   - Fire the existing success haptic when enabled.
-  - Under Reduce Motion, use short opacity/color transitions without scale, travel, or glow animation.
 - Preserve the existing error alert for persistence failures.
 
 ## Implementation Changes and Interfaces
@@ -75,9 +74,9 @@ Success means:
 - Add opt-in design-system interfaces for:
   - System-serif display and section typography roles.
   - A semantic pressable navigation-row style.
-  - Homestead motion presets using approximately `response: 0.35`, `dampingFraction: 1.0`, plus a short Reduce Motion fade.
+  - Homestead motion presets using approximately `response: 0.35`, `dampingFraction: 1.0`.
 - Add accessibility identifiers for the wallet, category sections, tier nodes, prerequisite callout, and footer action states while retaining existing screen, row, and detail identifiers.
-- Add a final art-manifest entry with ID `homestead`, asset name `bg_homestead`, source `Raw Assets/Homestead/Homestead.jpeg`, a curated focal point, and a descriptive accessibility label. Run the asset generator rather than editing processed assets.
+- Add a final art-manifest entry with ID `homestead`, asset name `bg_homestead`, source `Raw Assets/Homestead/Homestead.jpeg`, and a curated focal point. Run the asset generator rather than editing processed assets.
 - Until the clean hero source exists, resolve the overview hero through an explicit fallback to existing Wheat Field art. Do not crop artwork from the phone-composite mockup.
 - No persistence models, save migrations, gameplay rules, tier costs, category assignments, or public content schemas change.
 
@@ -97,8 +96,8 @@ Success means:
   - The tab bar and back affordance remain present on detail.
   - Tier nodes and the persistent footer exist.
   - An affordable build/upgrade remains on detail and advances the UI.
-- Manually inspect standard and smallest supported portrait layouts, default and accessibility Dynamic Type, Light/Dark/System appearance, Reduce Motion, Reduce Transparency, and Increased Contrast.
-- Verify full-bleed crops, scroll-title handoff, wallet wrapping, tab/footer separation, disabled-action legibility, and VoiceOver reading order.
+- Manually inspect the supported portrait layout and primary visual states.
+- Verify full-bleed crops, scroll-title handoff, wallet layout, tab/footer separation, and disabled-action legibility.
 - After asset work, run `./Scripts/generate.sh --assets` and inspect only expected manifest, processed asset, and generated catalog changes.
 - Run verification sequentially:
   1. `./Scripts/test-package.sh TrinketDesignSystem`
@@ -114,7 +113,7 @@ Success means:
 - The attached mockup defines hierarchy and mood, not literal resource balances, category data, or bonus copy.
 - The design is a native fantasy hybrid: warm art and gold/tinted accents with adaptive semantic surfaces and platform typography behavior.
 - All nine live projects are visible from the start.
-- Required amounts—not balance/required fractions—appear visually in the footer; VoiceOver provides the full comparison.
+- Required amounts—not balance/required fractions—appear visually in the footer.
 - Completed projects retain a stable Complete footer.
 - The clean Homestead hero will eventually be supplied as a standalone source image; the implementation remains functional with its explicit fallback.
-- Portrait remains the primary layout, but accessibility adaptations take precedence over preserving the exact mockup geometry.
+- Portrait remains the primary layout; accessibility adaptations beyond native SwiftUI defaults are not part of this product decision.

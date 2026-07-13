@@ -1,0 +1,13 @@
+{
+  "actionTitle": "Build",
+  "status": "Failed",
+  "errorCount": 1,
+  "errors": [
+    {
+      "issueType": "Error",
+      "message": "Cannot find type 'MissingType' in scope",
+      "targetName": "Trinket"
+    }
+  ],
+  "warnings": []
+}

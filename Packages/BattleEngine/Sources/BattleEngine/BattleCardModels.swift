@@ -10,7 +10,7 @@ public enum BattlePhase: Equatable, Sendable {
 public struct BattleCard: Identifiable, Hashable, Sendable {
     public let id: Int
     public let ability: Ability
-    /// Always `.hero` or `.pet` for cards in the player's hand.
+    /// Always `.hero` or `.companion` for cards in the player's hand.
     public let owner: BattleParticipant
 
     public init(id: Int, ability: Ability, owner: BattleParticipant) {

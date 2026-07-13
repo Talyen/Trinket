@@ -85,7 +85,7 @@ struct BattleHandLayoutTests {
         #expect(metrics.overlap > 0)
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
         #expect((0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
-            == [-13, -6.5, 0, 6.5, 13])
+            == [-18, -9, 0, 9, 18])
         #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: count) == 0)
         #expect(BattleHandLayout.restingOffsetY(index: 0, cardCount: count)
             > BattleHandLayout.restingOffsetY(index: 1, cardCount: count))
@@ -114,6 +114,56 @@ struct BattleHandLayoutTests {
             translation: CGSize(width: 4, height: -55),
             predictedEndTranslation: CGSize(width: 7, height: -105),
             isPlayable: true
+        ))
+    }
+
+    @Test func playZoneArmingUsesActualTranslationUntilDirectionalThreshold() {
+        // Predicted release is intentionally ignored while the finger is held:
+        // a fast flick can commit on release, but cannot prematurely arm the card.
+        #expect(!BattleHandLayout.isPlayArmed(
+            translation: CGSize(width: 0, height: -55),
+            isPlayable: true
+        ))
+        #expect(BattleHandLayout.isPlayArmed(
+            translation: CGSize(width: 0, height: -80),
+            isPlayable: true
+        ))
+        #expect(!BattleHandLayout.isPlayArmed(
+            translation: CGSize(width: 120, height: -100),
+            isPlayable: true
+        ))
+        #expect(!BattleHandLayout.isPlayArmed(
+            translation: CGSize(width: 0, height: -120),
+            isPlayable: false
+        ))
+    }
+
+    @Test func armedPlayZoneUsesHysteresisWhenFingerMovesBackTowardBoundary() {
+        // The exit band is 72% of the entry threshold, preventing flicker while
+        // a held card jitters near the play boundary.
+        #expect(BattleHandLayout.shouldRemainPlayArmed(
+            translation: CGSize(width: 0, height: -60),
+            isPlayable: true,
+            threshold: 80,
+            currentlyArmed: true
+        ))
+        #expect(!BattleHandLayout.shouldRemainPlayArmed(
+            translation: CGSize(width: 0, height: -57),
+            isPlayable: true,
+            threshold: 80,
+            currentlyArmed: true
+        ))
+        #expect(!BattleHandLayout.shouldRemainPlayArmed(
+            translation: CGSize(width: 0, height: -79),
+            isPlayable: true,
+            threshold: 80,
+            currentlyArmed: false
+        ))
+        #expect(!BattleHandLayout.shouldRemainPlayArmed(
+            translation: CGSize(width: 0, height: -90),
+            isPlayable: false,
+            threshold: 80,
+            currentlyArmed: true
         ))
     }
 
@@ -168,5 +218,14 @@ struct BattleHandLayoutTests {
         #expect(left < 0)
         #expect(right <= 7)
         #expect(left >= -7)
+    }
+
+    @Test func releaseCenterTracksTheCardPresentation() {
+        let center = BattleHandLayout.releaseCenter(
+            restingCenter: CGPoint(x: 190, y: 650),
+            dragTranslation: CGSize(width: 18, height: -104)
+        )
+
+        #expect(center == CGPoint(x: 208, y: 546))
     }
 }

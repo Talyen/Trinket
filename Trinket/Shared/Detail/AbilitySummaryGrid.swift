@@ -23,12 +23,11 @@ struct AbilitySummaryGrid: View {
                     .buttonStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                    .accessibilityHint("Shows \(tier.rawValue) ability choices.")
+
                 } else {
                     abilitySlot(for: tier)
                         .frame(maxWidth: .infinity, alignment: .top)
                         .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                        .accessibilityHint(accessibilityHint(for: tier))
                 }
             }
         }
@@ -57,12 +56,5 @@ struct AbilitySummaryGrid: View {
 
     private func lockLabel(for tier: AbilityTier) -> String? {
         isLocked(tier) ? tier.unlockLabel : nil
-    }
-
-    private func accessibilityHint(for tier: AbilityTier) -> String {
-        if isLocked(tier) {
-            return tier.unlockLabel
-        }
-        return "Shows selected \(tier.rawValue) ability."
     }
 }

@@ -57,11 +57,11 @@ public struct BalanceSweepConfig: Equatable, Sendable {
 public struct BalanceBattleRecord: Equatable, Sendable {
     public var tier: SimulationPowerTier
     public var heroID: String
-    public var petID: String
+    public var companionID: String
     public var enemyID: String
-    public var isBossOrElite: Bool
+    public var isBoss: Bool
     public var heroAbilityIDs: [String]
-    public var petAbilityIDs: [String]
+    public var companionAbilityIDs: [String]
     public var affixIDs: [String]
     public var seed: UInt64
     public var result: BattleSimResult

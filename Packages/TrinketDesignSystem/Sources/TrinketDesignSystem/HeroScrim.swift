@@ -15,17 +15,13 @@ public enum OnArtTextEmphasis: Sendable {
 
 public enum TrinketHeroScrim {
     public static func colors(for role: HeroScrimRole) -> [Color] {
-        let ink = TrinketDesign.Colors.Overlay.ink
         let warm = TrinketDesign.Colors.Overlay.heroWarm
         switch role {
-        case .homesteadOverview:
+        case .homesteadOverview, .homesteadDetail, .chapter:
+            // Keep full-bleed collection and journey heroes on the Homestead overview treatment.
             return [Color.clear, warm.opacity(0.88)]
-        case .homesteadDetail:
-            return [Color.clear, warm.opacity(0.9)]
         case .detailHeader:
             return [Color.clear, TrinketDesign.Colors.Overlay.detailHeroScrim]
-        case .chapter:
-            return [Color.clear, ink.opacity(0.22), ink.opacity(0.94)]
         }
     }
 

@@ -11,19 +11,23 @@ SCRIPT_DIR="$(dirname "$0")"
 source "$SCRIPT_DIR/build-stamp.sh"
 # shellcheck source=build-inputs.sh
 source "$SCRIPT_DIR/build-inputs.sh"
+# shellcheck source=xcode-runner.sh
+source "$SCRIPT_DIR/xcode-runner.sh"
 
 ACTION="test"
 DESTINATION=""
 PACKAGES=()
 QUIET=true
 VERBOSE=false
+DEFER_TERMINAL_OUTPUT=false
+REPORT_PREFIX=""
 
 usage() {
   cat <<'USAGE'
 Usage: ./Scripts/test-package.sh [--no-build] [--destination DESTINATION] [--verbose] [--quiet] <Package> [Package...]
 
-Runs Swift package test schemes from inside their package directories, removing
-the package result bundle first so repeated runs do not fail on stale xcresults.
+Runs Swift package test schemes from inside their package directories, allocating
+a unique result bundle for each invocation so repeated runs do not collide.
 
 Packages:
   TrinketCore
@@ -58,6 +62,19 @@ while [[ $# -gt 0 ]]; do
       QUIET=false
       shift
       ;;
+    --defer-terminal-output)
+      DEFER_TERMINAL_OUTPUT=true
+      shift
+      ;;
+    --report-prefix)
+      if [[ $# -lt 2 ]]; then
+        echo "--report-prefix requires a value." >&2
+        usage >&2
+        exit 1
+      fi
+      REPORT_PREFIX="$2"
+      shift 2
+      ;;
     --help|-h)
       usage
       exit 0
@@ -91,72 +108,61 @@ scheme_for_package() {
   esac
 }
 
-xcresult_failed() {
-  local result_path="$1"
-  [[ -d "$result_path" ]] || return 1
-  xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null \
-    | grep -Eq '"result" : "(Failed|unknown)"'
-}
-
 for package in "${PACKAGES[@]}"; do
   scheme="$(scheme_for_package "$package")"
-  result_bundle="$RESULTS_DIR/${package}.xcresult"
-  log_file="$RESULTS_DIR/${package}-xcodebuild.log"
+  package_report_prefix=""
+  if [[ -n "$REPORT_PREFIX" ]]; then
+    package_report_prefix="${REPORT_PREFIX}-${package}"
+  fi
+  xcode_runner_prepare "$package" "$RESULTS_DIR" "$package_report_prefix"
+  result_bundle="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+  log_file="$XCODE_RUNNER_LOG_PATH"
+  package_report_prefix="$XCODE_RUNNER_REPORT_PREFIX"
 
   if [[ "$ACTION" == "test-without-building" ]]; then
-    assert_no_build_inputs_are_fresh \
+    if assert_no_build_inputs_are_fresh \
       "$(build_stamp_path "$RESULTS_DIR" "package_$package")" \
-      "package_$package"
+      "package_$package"; then
+      :
+    else
+      freshness_status=$?
+      # This is a wrapper/preflight failure rather than an Xcode invocation;
+      # still leave a completion record so CI cannot mistake a partial unit
+      # run for a clean pass.
+      xcode_runner_write_manifest "$result_bundle" "$package_report_prefix" "$freshness_status" "$package"
+      exit "$freshness_status"
+    fi
   fi
-
-  rm -rf "$result_bundle"
 
   package_status=0
+  if [[ "$DEFER_TERMINAL_OUTPUT" == "false" ]]; then
+    echo "Running $package package tests..."
+  fi
+  runner_args=(
+    --label "$package"
+    --result-bundle "$result_bundle"
+    --log "$log_file"
+    --report-prefix "$package_report_prefix"
+    --working-directory "$PWD/Packages/$package"
+  )
   if [[ "$QUIET" == "true" ]]; then
-    echo "Running $package package tests... (raw log at .DerivedData/TestResults/${package}-xcodebuild.log)"
-    (
-      cd "Packages/$package"
-      xcodebuild "$ACTION" \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination "$DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH" \
-        -resultBundlePath "$result_bundle"
-    ) > "$log_file" 2>&1 || package_status=$?
-  elif command -v xcbeautify &>/dev/null; then
-    echo "Running $package package tests..."
-    (
-      cd "Packages/$package"
-      xcodebuild "$ACTION" \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination "$DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH" \
-        -resultBundlePath "$result_bundle"
-    ) | xcbeautify || package_status=${PIPESTATUS[0]}
+    runner_args+=(--quiet)
   else
-    echo "Running $package package tests..."
-    (
-      cd "Packages/$package"
-      xcodebuild "$ACTION" \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination "$DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH" \
-        -resultBundlePath "$result_bundle"
-    ) || package_status=$?
+    runner_args+=(--verbose)
   fi
-
-  if xcresult_failed "$result_bundle"; then
-    package_status=1
+  if [[ "$DEFER_TERMINAL_OUTPUT" == "true" ]]; then
+    runner_args+=(--defer-terminal-output)
   fi
+  xcode_runner_run "${runner_args[@]}" -- \
+    xcodebuild "$ACTION" \
+      -scheme "$scheme" \
+      -sdk iphonesimulator \
+      -destination "$DESTINATION" \
+      -derivedDataPath "$DERIVED_DATA_PATH" \
+      -resultBundlePath "$result_bundle" \
+    || package_status=$?
 
   if [[ "$package_status" -ne 0 ]]; then
-    ./Scripts/summarize-failures.py "$result_bundle"
-    if [[ "$QUIET" == "true" && ! -d "$result_bundle" ]]; then
-      echo -e "\n\033[1;31m=== $package BUILD FAILURE ===\033[0m"
-      grep -E -A 2 -i "error:|warning:|failed:" "$log_file" | head -n 40 || tail -n 40 "$log_file"
-    fi
     exit "$package_status"
   fi
 

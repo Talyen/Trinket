@@ -6,7 +6,7 @@ import TrinketPersistence
 struct CombatantDetailContext: Identifiable, Hashable {
     enum Kind: Hashable {
         case hero
-        case pet
+        case companion
     }
 
     let kind: Kind

@@ -41,7 +41,7 @@ extension AppState {
             appStateLogger.error(
                 "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
             )
-            completeStage(resolvedStage, hero: roster.activeHero, pet: roster.activePet)
+            completeStage(resolvedStage, hero: roster.activeHero, companion: roster.activeCompanion)
             return StageMapMessage(
                 title: "Shop Closed",
                 message: "The merchant has nothing left to sell. You continue on."
@@ -119,7 +119,8 @@ extension AppState {
     @discardableResult
     func beginMysteryEncounter(
         for stage: Stage? = nil,
-        labyrinthNodeID: String? = nil
+        labyrinthNodeID: String? = nil,
+        forcedEventID: String? = nil
     ) -> StageMapMessage? {
         guard activeMysteryEncounter == nil else { return nil }
         guard activeShopEncounter == nil else { return nil }
@@ -146,14 +147,16 @@ extension AppState {
         } else if let stage {
             // Journey keeps separate RNGs for pool pick vs recruit substitute (prior contract).
             var pickRNG = SystemRandomNumberGenerator()
-            var picked = stage.mysteryEvent ?? GameContent.pickEligibleMysteryEvent(
-                unlockedHeroIDs: roster.current.unlockedHeroIDs,
-                unlockedPetIDs: roster.current.unlockedPetIDs,
-                using: &pickRNG
-            )
+            var picked = forcedEventID.flatMap { RecruitMysteryEventPool.event(matching: $0) }
+                ?? stage.mysteryEvent
+                ?? GameContent.pickEligibleMysteryEvent(
+                    unlockedHeroIDs: roster.current.unlockedHeroIDs,
+                    unlockedCompanionIDs: roster.current.unlockedCompanionIDs,
+                    using: &pickRNG
+                )
             var substituteRNG = SystemRandomNumberGenerator()
             guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
-                completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+                completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
                 return nil
             }
             event = picked
@@ -234,7 +237,7 @@ extension AppState {
         if let labyrinthNodeID {
             completeLabyrinthNode(nodeID: labyrinthNodeID)
         } else {
-            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+            completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
         }
     }
 
@@ -259,7 +262,7 @@ extension AppState {
     ) -> MysteryEvent? {
         var event = authored ?? GameContent.pickEligibleMysteryEvent(
             unlockedHeroIDs: roster.current.unlockedHeroIDs,
-            unlockedPetIDs: roster.current.unlockedPetIDs,
+            unlockedCompanionIDs: roster.current.unlockedCompanionIDs,
             using: &randomNumberGenerator
         )
         guard resolveRecruitSubstitution(event: &event, using: &randomNumberGenerator) else {
@@ -280,7 +283,7 @@ extension AppState {
         }
         let eligible = RecruitMysteryEventPool.eligible(
             unlockedHeroIDs: roster.current.unlockedHeroIDs,
-            unlockedPetIDs: roster.current.unlockedPetIDs
+            unlockedCompanionIDs: roster.current.unlockedCompanionIDs
         ).filter { $0.id != event.id }
         guard let substitute = eligible.randomElement(using: &randomNumberGenerator) else {
             return false

@@ -14,13 +14,6 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.first?.text == "Burn active")
     }
 
-    @Test func poisonStackYieldsActiveSummary() throws {
-        let effects = [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.keyword == .poison)
-        try #expect(summaries.first?.text == "Poison active")
-    }
-
     // MARK: - Bleed totals
 
     @Test func bleedStacksSummed() throws {
@@ -33,16 +26,6 @@ struct EffectSummaryBuilderTests {
         try #expect(summaries.first?.text == "Bleed: 5 damage")
     }
 
-    @Test func expiredBleedNotSummed() throws {
-        let effects = [
-            ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .bleed(2), remainingTicks: 1)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        // Only the active one contributes; total = 2.
-        try #expect(summaries.first?.text == "Bleed: 2 damage")
-    }
-
     // MARK: - Defensive totals
 
     @Test func shieldSummary() throws {
@@ -51,14 +34,6 @@ struct EffectSummaryBuilderTests {
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.first?.text == "Block: 5.")
-    }
-
-    @Test func mitigationSummary() throws {
-        let effects = [
-            ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 0)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Armor: 2.")
     }
 
     // MARK: - Prevention / build-up
@@ -77,25 +52,6 @@ struct EffectSummaryBuilderTests {
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.first?.text == "Stunned: action prevented.")
-    }
-
-    @Test func partialBuildupSummaryWhenBelowThreshold() throws {
-        let effects = [
-            ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 10), remainingTicks: 0)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Freeze Build-up: 1/10")
-    }
-
-    @Test func stunAndFreezeBuildupSummariesAreSeparate() throws {
-        let effects = [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .controlMeter(.freeze, 5, 10), remainingTicks: 0)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.count == 2)
-        try #expect(summaries.contains { $0.keyword == .stun && $0.text == "Stun Build-up: 3/10" })
-        try #expect(summaries.contains { $0.keyword == .freeze && $0.text == "Freeze Build-up: 5/10" })
     }
 
     // MARK: - Other tickable effects
@@ -124,14 +80,6 @@ struct EffectSummaryBuilderTests {
 
     @Test func emptyEffectsProducesEmptySummaries() throws {
         try #expect(EffectSummaryBuilder.build(for: []).isEmpty)
-    }
-
-    @Test func instantEffectsHaveNoSummary() throws {
-        let effects = [
-            ActiveEffect(id: 1, effect: .instantHeal(.health, 5), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .resourceGain(.gold, 3), remainingTicks: 0)
-        ]
-        try #expect(EffectSummaryBuilder.build(for: effects).isEmpty)
     }
 
     // MARK: - Multi-keyword

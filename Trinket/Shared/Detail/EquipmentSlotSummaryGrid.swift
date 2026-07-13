@@ -21,12 +21,11 @@ struct EquipmentSlotSummaryGrid: View {
                     .buttonStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityIdentifier(slot.accessibilityIdentifier)
-                    .accessibilityHint("Shows \(slot.displayName) items.")
+
                 } else {
                     itemSlot(for: slot)
                         .frame(maxWidth: .infinity, alignment: .top)
                         .accessibilityIdentifier(slot.accessibilityIdentifier)
-                        .accessibilityHint("Shows equipped \(slot.displayName) item.")
                 }
             }
         }

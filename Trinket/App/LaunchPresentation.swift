@@ -6,9 +6,14 @@ enum LaunchPresentation: Equatable {
     case collectionItem(String)
 }
 
-/// Deep-link / return target on the Play tab (launch args, last-mode restore, or post-battle).
+/// Deep-link / return target on the Play tab (launch args or post-battle).
+///
+/// The route is intentionally flat and `PlayView` expands it into a
+/// hierarchical path (`Explore → Aspects → Climb`, for example). Keeping the
+/// value Hashable makes it safe to use with `NavigationStack(path:)`.
 enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     case campaign
+    case explore
     case aspectsHub
     case labyrinthMap
     case aspectClimb(AspectID)
@@ -17,6 +22,8 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         switch self {
         case .campaign:
             "campaign"
+        case .explore:
+            "explore"
         case .aspectsHub:
             "aspectsHub"
         case .labyrinthMap:
@@ -36,17 +43,6 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             .campaign
         case let .aspect(aspectID, _):
             .aspectClimb(aspectID)
-        case .labyrinth:
-            .labyrinthMap
-        }
-    }
-
-    static func restoring(lastMode: PlayerShellSessionPlayMode) -> PlayLaunchDestination {
-        switch lastMode {
-        case .campaign:
-            .campaign
-        case .aspects:
-            .aspectsHub
         case .labyrinth:
             .labyrinthMap
         }

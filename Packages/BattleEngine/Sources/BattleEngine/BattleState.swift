@@ -11,14 +11,14 @@ public typealias BattleEngineContext = BattleState
 /// turn-based card combat.
 ///
 /// **Public surface (read-only views):**
-/// - Combatant definitions: `hero`, `pet`, `enemy`
+/// - Combatant definitions: `hero`, `companion`, `enemy`
 /// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
 ///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
 ///   `effectSummaries(of:)`, `modifiers(for:)`
 /// - Global state: `tickCount` (round index), `actionCount`, `events`, `gold`,
 ///   `earnedGold`, `rngSeed`, `phase`, `hand`
 /// - Derived: `log` (empty when `tracksLog` is `false`)
-/// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
+/// - Booleans: `isHeroAlive`, `isCompanionAlive`, `isEnemyDefeated`,
 ///   `isPartyDefeated`, `isBattleOver`
 /// - AI helper: `enemyAttackTarget`
 ///
@@ -50,7 +50,7 @@ public typealias BattleEngineContext = BattleState
 /// - Turn orchestration lives in `BattleCardCombatEngine`
 public struct BattleState {
     public let hero: Combatant
-    public let pet: Combatant
+    public let companion: Combatant
     public let enemy: Combatant
 
     /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
@@ -73,7 +73,7 @@ public struct BattleState {
     public var gold: Int
     public let initialGold: Int
     public let heroModifiers: CombatModifierProfile
-    public let petModifiers: CombatModifierProfile
+    public let companionModifiers: CombatModifierProfile
     public let enemyModifiers: CombatModifierProfile
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
@@ -84,7 +84,7 @@ public struct BattleState {
     /// Cards drawn while the hand was full; promote FIFO when a slot frees.
     public var handBuffer: BattleHandBuffer
     public var heroDeck: CombatDeck
-    public var petDeck: CombatDeck
+    public var companionDeck: CombatDeck
     public var nextCardID: Int
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
@@ -105,7 +105,7 @@ public struct BattleState {
         gold: Int,
         initialGold: Int,
         heroModifiers: CombatModifierProfile,
-        petModifiers: CombatModifierProfile,
+        companionModifiers: CombatModifierProfile,
         enemyModifiers: CombatModifierProfile,
         actionCount: Int = 0,
         hasLoggedDefeat: Bool = false,
@@ -114,19 +114,19 @@ public struct BattleState {
         hand: BattleHand = BattleHand(),
         handBuffer: BattleHandBuffer = BattleHandBuffer(),
         heroDeck: CombatDeck = CombatDeck(),
-        petDeck: CombatDeck = CombatDeck(),
+        companionDeck: CombatDeck = CombatDeck(),
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         tracksLog: Bool = false,
         tracksEvents: Bool = true
     ) {
         hero = roster.hero.combatant
-        pet = roster.pet.combatant
+        companion = roster.companion.combatant
         enemy = roster.enemy.combatant
         rngSeed = rng.seed
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
-        cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        cachedMatchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         self.roster = roster
         self.rng = rng
         self.tickCount = tickCount
@@ -136,7 +136,7 @@ public struct BattleState {
         self.gold = gold
         self.initialGold = initialGold
         self.heroModifiers = heroModifiers
-        self.petModifiers = petModifiers
+        self.companionModifiers = companionModifiers
         self.enemyModifiers = enemyModifiers
         self.actionCount = actionCount
         self.hasLoggedDefeat = hasLoggedDefeat
@@ -145,33 +145,33 @@ public struct BattleState {
         self.hand = hand
         self.handBuffer = handBuffer
         self.heroDeck = heroDeck
-        self.petDeck = petDeck
+        self.companionDeck = companionDeck
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
     }
 
     public init(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant? = nil,
         activeEnemyEffects: [ActiveEffect] = [],
         activeHeroEffects: [ActiveEffect] = [],
-        activePetEffects: [ActiveEffect] = [],
+        activeCompanionEffects: [ActiveEffect] = [],
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
-        petModifiers: CombatModifierProfile = .zero,
+        companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true,
         tracksEvents: Bool = true
     ) {
         self.hero = hero
-        self.pet = pet
+        self.companion = companion
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.enemy = resolvedEnemy
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
-        cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy)
+        cachedMatchup = BattleMatchup(hero: hero, companion: companion, enemy: resolvedEnemy)
 
         let seed = rngSeed ?? Self.defaultRNGSeed
         self.rngSeed = seed
@@ -183,18 +183,18 @@ public struct BattleState {
                 maximumHealthBonus: heroModifiers.maximumHealthBonus,
                 maximumManaBonus: heroModifiers.maximumManaBonus
             ),
-            pet: CombatantRuntime(
-                combatant: pet,
-                initialActiveEffects: activePetEffects,
-                maximumHealthBonus: petModifiers.maximumHealthBonus,
-                maximumManaBonus: petModifiers.maximumManaBonus
+            companion: CombatantRuntime(
+                combatant: companion,
+                initialActiveEffects: activeCompanionEffects,
+                maximumHealthBonus: companionModifiers.maximumHealthBonus,
+                maximumManaBonus: companionModifiers.maximumManaBonus
             ),
             enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
         )
         let maxExistingEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
-            activePetEffects.map(\.id).max() ?? 0
+            activeCompanionEffects.map(\.id).max() ?? 0
         )
         nextEffectID = maxExistingEffectID + 1
         rng = SeededRandomNumberGenerator(seed: seed)
@@ -204,7 +204,7 @@ public struct BattleState {
         gold = initialGold
         self.initialGold = initialGold
         self.heroModifiers = heroModifiers
-        self.petModifiers = petModifiers
+        self.companionModifiers = companionModifiers
         self.enemyModifiers = enemyModifiers
         actionCount = 0
         hasLoggedDefeat = false
@@ -213,7 +213,7 @@ public struct BattleState {
         hand = BattleHand()
         handBuffer = BattleHandBuffer()
         heroDeck = CombatDeck()
-        petDeck = CombatDeck()
+        companionDeck = CombatDeck()
         nextCardID = 0
         ownersSkippingThisPlayerTurn = []
 

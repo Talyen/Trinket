@@ -78,7 +78,7 @@ public struct AspectFloor: Identifiable, Hashable, Sendable {
 public enum AspectAttunement: Equatable, Sendable {
     case ready
     case missingHeroAffinity
-    case missingPetAffinity
+    case missingCompanionAffinity
 
     public var isReady: Bool {
         self == .ready
@@ -90,22 +90,22 @@ public enum AspectAttunement: Equatable, Sendable {
             "Party is attuned."
         case .missingHeroAffinity:
             "Hero needs an ability that matches this Aspect."
-        case .missingPetAffinity:
-            "Pet needs an ability that matches this Aspect."
+        case .missingCompanionAffinity:
+            "Companion needs an ability that matches this Aspect."
         }
     }
 
-    /// v1: Hero and Pet must each have the Aspect keyword in their ability pool.
+    /// v1: Hero and Companion must each have the Aspect keyword in their ability pool.
     public static func evaluate(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         aspect: AspectDefinition
     ) -> AspectAttunement {
         if !hero.keywordProfile.contains(aspect.keyword) {
             return .missingHeroAffinity
         }
-        if !pet.keywordProfile.contains(aspect.keyword) {
-            return .missingPetAffinity
+        if !companion.keywordProfile.contains(aspect.keyword) {
+            return .missingCompanionAffinity
         }
         return .ready
     }

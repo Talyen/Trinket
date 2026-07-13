@@ -20,7 +20,7 @@ Point-in-time audit: **July 2026**. Compares Trinket production code against iOS
 | StoreKit / UIKit legacy | ✅ Clean | No `SKPayment*`, `UIWebView`, `UIScreen.main` |
 | Liquid Glass | ✅ Complete | Shared `TrinketGlassBackgroundModifier`; badge/wallet/bottomBar glass; `GlassEffectContainer` on wallet row |
 | Primary CTAs | ✅ `.glassProminent` | `PrimaryActionButtonModifier` migrated |
-| UI test guard | ✅ Removed | `performAccessibilityAudit()` unconditional at iOS 26 |
+| UI test guard | ✅ Removed | Accessibility audit execution path deleted; UI tests retain stable selectors |
 | Toolbar backgrounds | ✅ Intentional | Hidden chrome retained on Battle / Play map / combatant detail for art-forward screens — not scheduled for change |
 | Dynamic Type (icons) | ✅ `@ScaledMetric` | Decorative placeholder glyphs scale with content size |
 | Haptics | ✅ Gated | `.trinketSensoryFeedback` respects Options toggle |
@@ -111,9 +111,9 @@ Product decision: do **not** use `.tabBarMinimizeBehavior(.onScrollDown)` on roo
 
 Applied on `ChapterJourneyHero`.
 
-### 4. Stale UI test availability guard ✅ Complete
+### 4. Accessibility scope ✅ Complete
 
-Guard removed; `performAccessibilityAudit()` runs unconditionally at iOS 26 deployment target.
+Trinket intentionally keeps a minimal visual-first baseline: native SwiftUI controls and stable UI-test selectors remain, while custom semantics, accessibility-setting branches, accessibility audits, and art accessibility metadata are out of scope per PD-007.
 
 ### 5. Fixed decorative font sizes ✅ Complete
 
@@ -154,7 +154,7 @@ After any Liquid Glass or chrome migration:
 ./Scripts/build.sh
 ```
 
-Manual: launch under dark appearance (app is always dark) and accessibility settings (Reduce Transparency, Reduce Motion) on iOS 26 simulator.
+Manual: launch under dark appearance (app is always dark) and verify the primary visual flows on iOS 26 simulator. Accessibility-setting permutations are outside the product test matrix.
 
 ---
 

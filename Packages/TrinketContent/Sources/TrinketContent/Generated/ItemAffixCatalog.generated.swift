@@ -568,8 +568,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Pet damage dealt by 1", modifiers: [.petDamageDealt(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Pet damage dealt by 3", modifiers: [.petDamageDealt(3)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Companion damage dealt by 1", modifiers: [.companionDamageDealt(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Companion damage dealt by 3", modifiers: [.companionDamageDealt(3)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "biting",
@@ -766,8 +766,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Gains 5% Leech for 2 seconds when the Pet acts", modifiers: [], triggers: CombatTraitTriggers(petActLeechPercent: 0.05, petActLeechDurationTicks: 2)),
-            astral: ItemAffixPower(description: "Gains 10% Leech for 2 seconds when the Pet acts", modifiers: [], triggers: CombatTraitTriggers(petActLeechPercent: 0.10, petActLeechDurationTicks: 2))
+            basic: ItemAffixPower(description: "Gains 5% Leech for 2 seconds when the Companion acts", modifiers: [], triggers: CombatTraitTriggers(companionActLeechPercent: 0.05, companionActLeechDurationTicks: 2)),
+            astral: ItemAffixPower(description: "Gains 10% Leech for 2 seconds when the Companion acts", modifiers: [], triggers: CombatTraitTriggers(companionActLeechPercent: 0.10, companionActLeechDurationTicks: 2))
         ),
         ItemAffixCatalogSupport.affix(
             id: "symbiosis",
@@ -775,8 +775,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health],
             weight: 8,
-            basic: ItemAffixPower(description: "Pets receive 10% of your Health restored", modifiers: [], triggers: CombatTraitTriggers(petHealSharePercent: 0.10)),
-            astral: ItemAffixPower(description: "Pets receive 20% of your Health restored", modifiers: [], triggers: CombatTraitTriggers(petHealSharePercent: 0.20))
+            basic: ItemAffixPower(description: "Companions receive 10% of your Health restored", modifiers: [], triggers: CombatTraitTriggers(companionHealSharePercent: 0.10)),
+            astral: ItemAffixPower(description: "Companions receive 20% of your Health restored", modifiers: [], triggers: CombatTraitTriggers(companionHealSharePercent: 0.20))
         ),
         ItemAffixCatalogSupport.affix(
             id: "second_wind",

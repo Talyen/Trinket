@@ -5,11 +5,10 @@ import TrinketCore
 import TrinketDesignSystem
 import UIKit
 
-/// Full-screen Ultimate cinematic overlay (Hero/Pet). Uses ability art immediately,
+/// Full-screen Ultimate cinematic overlay (Hero/Companion). Uses ability art immediately,
 /// then crossfades to a preloaded video when available.
 struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
-    let reduceMotion: Bool
     let canSkip: Bool
     let effectsVolume: Double
     let namespace: Namespace.ID
@@ -44,7 +43,6 @@ struct UltimateCinematicOverlay: View {
                     isSource: false
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, reduceMotion ? TrinketDesign.Metrics.extraLargeSpacing : 0)
 
             if canSkip, skipHintVisible, cinematic.phase == .playing {
                 VStack {
@@ -64,8 +62,7 @@ struct UltimateCinematicOverlay: View {
             guard canSkip else { return }
             onRequestSkip()
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(cinematic.actorName) ultimate \(cinematic.abilityName)")
+
         .accessibilityIdentifier("Ultimate Cinematic \(cinematic.abilityName)")
         .onAppear {
             runEnter()
@@ -84,7 +81,7 @@ struct UltimateCinematicOverlay: View {
                 artLayer
                     .frame(width: frame.width, height: frame.height)
                     .clipShape(RoundedRectangle(
-                        cornerRadius: reduceMotion ? TrinketDesign.Corners.card : 0,
+                        cornerRadius: 0,
                         style: .continuous
                     ))
 
@@ -92,7 +89,7 @@ struct UltimateCinematicOverlay: View {
                     CinematicVideoView(player: player)
                         .frame(width: frame.width, height: frame.height)
                         .clipShape(RoundedRectangle(
-                            cornerRadius: reduceMotion ? TrinketDesign.Corners.card : 0,
+                            cornerRadius: 0,
                             style: .continuous
                         ))
                         .transition(.opacity)
@@ -129,16 +126,6 @@ struct UltimateCinematicOverlay: View {
     }
 
     private func runEnter() {
-        if reduceMotion {
-            withAnimation(TrinketMotion.Battle.reduceMotion) {
-                scrimOpacity = 1
-                contentOpacity = 1
-            }
-            onPlaying()
-            scheduleFallbackHold()
-            return
-        }
-
         withAnimation(TrinketMotion.Battle.scrim) {
             scrimOpacity = 1
         }
@@ -157,10 +144,7 @@ struct UltimateCinematicOverlay: View {
         guard !didFinish else { return }
         didFinish = true
         BattleCinematicPlayer.shared.pause(abilityID: cinematic.abilityID)
-        let animation = reduceMotion
-            ? TrinketMotion.Battle.reduceMotion
-            : TrinketMotion.Battle.ultimateCollapseAnimation
-        withAnimation(animation) {
+        withAnimation(TrinketMotion.Battle.ultimateCollapseAnimation) {
             scrimOpacity = 0
             contentOpacity = 0
             showVideo = false
@@ -168,9 +152,7 @@ struct UltimateCinematicOverlay: View {
         }
         Task { @MainActor in
             let clock = SuspendingClock()
-            let duration = reduceMotion
-                ? TrinketMotion.Battle.reduceMotionFade
-                : TrinketMotion.Battle.ultimateCollapse
+            let duration = TrinketMotion.Battle.ultimateCollapse
             try? await clock.sleep(for: .seconds(duration), tolerance: .milliseconds(20))
             onCollapseFinished()
         }
@@ -178,7 +160,6 @@ struct UltimateCinematicOverlay: View {
 
     @discardableResult
     private func attemptVideoReveal() -> Bool {
-        guard !reduceMotion else { return false }
         guard BattleCinematicPlayer.shared.hasVideo(for: cinematic.abilityID) else { return false }
         guard BattleCinematicPlayer.shared.isReady(for: cinematic.abilityID) else { return false }
         withAnimation(.easeInOut(duration: 0.2)) {
@@ -197,9 +178,7 @@ struct UltimateCinematicOverlay: View {
     private func scheduleFallbackHold() {
         Task { @MainActor in
             let clock = SuspendingClock()
-            let hold = reduceMotion
-                ? TrinketMotion.Battle.reduceMotionFade + 0.85
-                : TrinketMotion.Battle.ultimateFallbackHold
+            let hold = TrinketMotion.Battle.ultimateFallbackHold
             try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(40))
             guard !didFinish else { return }
             onAutoFinish()

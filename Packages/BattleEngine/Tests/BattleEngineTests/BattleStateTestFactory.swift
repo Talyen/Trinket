@@ -18,25 +18,25 @@ enum BattleStateTestFactory {
     /// (minus the `rngSeed` argument, which is fixed here).
     static func makeBattle(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant? = nil,
         activeEnemyEffects: [ActiveEffect] = [],
         activeHeroEffects: [ActiveEffect] = [],
-        activePetEffects: [ActiveEffect] = [],
+        activeCompanionEffects: [ActiveEffect] = [],
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
-        petModifiers: CombatModifierProfile = .zero
+        companionModifiers: CombatModifierProfile = .zero
     ) -> BattleState {
         BattleState(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             activeEnemyEffects: activeEnemyEffects,
             activeHeroEffects: activeHeroEffects,
-            activePetEffects: activePetEffects,
+            activeCompanionEffects: activeCompanionEffects,
             initialGold: initialGold,
             heroModifiers: heroModifiers,
-            petModifiers: petModifiers,
+            companionModifiers: companionModifiers,
             rngSeed: deterministicNonCriticalSeed
         )
     }

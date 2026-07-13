@@ -43,9 +43,9 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var blockGainedCleanseIntervalTicks: Int
     public var enemyStunnedHasteDurationTicks: Int
     public var firstHitApplyMarked: Bool
-    public var petActLeechPercent: Double
-    public var petActLeechDurationTicks: Int
-    public var petHealSharePercent: Double
+    public var companionActLeechPercent: Double
+    public var companionActLeechDurationTicks: Int
+    public var companionHealSharePercent: Double
     public var onceBelowHealthPercentThreshold: Double
     public var onceBelowHealthPercentHeal: Int
     public var blockPerActionWhileDeathsDoor: Int
@@ -94,9 +94,9 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         blockGainedCleanseIntervalTicks: Int = 0,
         enemyStunnedHasteDurationTicks: Int = 0,
         firstHitApplyMarked: Bool = false,
-        petActLeechPercent: Double = 0,
-        petActLeechDurationTicks: Int = 0,
-        petHealSharePercent: Double = 0,
+        companionActLeechPercent: Double = 0,
+        companionActLeechDurationTicks: Int = 0,
+        companionHealSharePercent: Double = 0,
         onceBelowHealthPercentThreshold: Double = 0,
         onceBelowHealthPercentHeal: Int = 0,
         blockPerActionWhileDeathsDoor: Int = 0,
@@ -144,9 +144,9 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
         self.enemyStunnedHasteDurationTicks = enemyStunnedHasteDurationTicks
         self.firstHitApplyMarked = firstHitApplyMarked
-        self.petActLeechPercent = petActLeechPercent
-        self.petActLeechDurationTicks = petActLeechDurationTicks
-        self.petHealSharePercent = petHealSharePercent
+        self.companionActLeechPercent = companionActLeechPercent
+        self.companionActLeechDurationTicks = companionActLeechDurationTicks
+        self.companionHealSharePercent = companionHealSharePercent
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
@@ -202,9 +202,9 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)
         enemyStunnedHasteDurationTicks = max(enemyStunnedHasteDurationTicks, other.enemyStunnedHasteDurationTicks)
         firstHitApplyMarked = firstHitApplyMarked || other.firstHitApplyMarked
-        petActLeechPercent += other.petActLeechPercent
-        petActLeechDurationTicks = max(petActLeechDurationTicks, other.petActLeechDurationTicks)
-        petHealSharePercent += other.petHealSharePercent
+        companionActLeechPercent += other.companionActLeechPercent
+        companionActLeechDurationTicks = max(companionActLeechDurationTicks, other.companionActLeechDurationTicks)
+        companionHealSharePercent += other.companionHealSharePercent
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
         blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor

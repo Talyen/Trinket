@@ -17,18 +17,18 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
-        #expect(state.roster.current.isPetUnlocked("wolf") == false)
+        #expect(state.roster.current.isCompanionUnlocked("bear") == false)
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeMysteryEncounter)
-        #expect(session.event.id == "recruit-wolf")
-        #expect(session.combatant?.id == "wolf")
+        #expect(session.event.id == "recruit-bear")
+        #expect(session.combatant?.id == "bear")
         #expect(session.phase == .reading)
 
         #expect(state.resolveActiveMysteryChoice(choiceID: "welcome"))
-        #expect(state.roster.current.isPetUnlocked("wolf"))
+        #expect(state.roster.current.isCompanionUnlocked("bear"))
         #expect(state.activeMysteryEncounter?.phase == .revealing)
-        #expect(state.activeMysteryEncounter?.unlockedCombatantID == "wolf")
+        #expect(state.activeMysteryEncounter?.unlockedCombatantID == "bear")
         // Opening / resolving a mystery does not advance journey progress.
         #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
 
@@ -45,7 +45,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.persistStageCompletions(
             [completedStage],
             hero: state.roster.activeHero,
-            pet: state.roster.activePet
+            companion: state.roster.activeCompanion
         ) != nil)
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
@@ -66,6 +66,6 @@ struct AppStateMysteryRecruitTests {
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
         #expect(!state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.roster.current.isPetUnlocked("wolf") == false)
+        #expect(state.roster.current.isCompanionUnlocked("bear") == false)
     }
 }

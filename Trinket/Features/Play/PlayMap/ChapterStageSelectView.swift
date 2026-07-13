@@ -52,7 +52,6 @@ struct ChapterStageSelectView: View {
                 )
                 .frame(width: 0, height: 0)
                 .opacity(0)
-                .accessibilityHidden(false)
         }
         .onAppear {
             updateMusicPreview()
@@ -89,10 +88,6 @@ struct ChapterStageSelectView: View {
         }
         .trinketPrimaryActionButton(controlSize: .large)
         .accessibilityIdentifier(AccessibilityID.Play.chapterAdvance)
-        .accessibilityLabel(
-            "Continue to Chapter \(nextChapter.number), \(nextChapter.title)"
-        )
-        .accessibilityHint("Begin the next chapter")
     }
 
     private func updateMusicPreview() {
@@ -121,16 +116,15 @@ private struct ChapterJourneyHero: View {
                 Image(art.imageName)
                     .resizable()
                     .scaledToFill()
-                    .accessibilityLabel(art.accessibilityLabel)
+
             } else {
                 chapter.theme.tint
-                    .accessibilityLabel("\(chapter.title) chapter artwork")
             }
         } overlay: {
             ZStack(alignment: .bottomLeading) {
                 TrinketHeroScrim.gradient(
                     for: .chapter,
-                    startPoint: .init(x: 0.5, y: 0.35),
+                    startPoint: .init(x: 0.5, y: 0.42),
                     endPoint: .bottom
                 )
                 .allowsHitTesting(false)
@@ -146,12 +140,10 @@ private struct ChapterJourneyHero: View {
                         .accessibilityIdentifier(
                             AccessibilityID.Play.chapterTitle(number: chapter.number)
                         )
-                        .accessibilityAddTraits(.isHeader)
                 }
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.bottom, 16)
             }
         }
-        .accessibilityElement(children: .contain)
     }
 }

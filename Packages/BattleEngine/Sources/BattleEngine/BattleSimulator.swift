@@ -44,10 +44,10 @@ public enum BattleSimulator {
     ) -> BattleSimResult {
         var battle = BattleState(
             hero: matchup.hero,
-            pet: matchup.pet,
+            companion: matchup.companion,
             enemy: matchup.enemy,
             heroModifiers: matchup.heroModifiers,
-            petModifiers: matchup.petModifiers,
+            companionModifiers: matchup.companionModifiers,
             enemyModifiers: matchup.enemyModifiers,
             rngSeed: matchup.context.seed,
             tracksLog: false,
@@ -102,10 +102,10 @@ public enum BattleSimulator {
 
     private static func partyHPFraction(in battle: BattleState) -> Double {
         let heroMax = Double(max(battle.maxHealth(of: battle.hero), 1))
-        let petMax = Double(max(battle.maxHealth(of: battle.pet), 1))
+        let companionMax = Double(max(battle.maxHealth(of: battle.companion), 1))
         let heroHP = Double(max(battle.health(of: battle.hero), 0))
-        let petHP = Double(max(battle.health(of: battle.pet), 0))
-        return (heroHP + petHP) / (heroMax + petMax)
+        let companionHP = Double(max(battle.health(of: battle.companion), 0))
+        return (heroHP + companionHP) / (heroMax + companionMax)
     }
 
     private static func enemyHPFraction(in battle: BattleState) -> Double {

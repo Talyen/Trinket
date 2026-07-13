@@ -8,10 +8,6 @@ extension AppState {
     func startAspectBattle(for floor: AspectFloor) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
 
-        guard ModesUnlock.isUnlocked(journey: journey.current) else {
-            return StageMapMessage(title: "Modes Locked", message: ModesUnlock.unlockHint)
-        }
-
         guard let aspect = GameContent.aspect(id: floor.aspectID) else {
             return StageMapMessage(title: "Aspect Missing", message: "This Aspect is not ready yet.")
         }
@@ -38,7 +34,7 @@ extension AppState {
 
         let attunement = AspectAttunement.evaluate(
             hero: roster.activeHero,
-            pet: roster.activePet,
+            companion: roster.activeCompanion,
             aspect: aspect
         )
         guard attunement.isReady else {
@@ -52,7 +48,7 @@ extension AppState {
         activateBattle(
             resumeToken: .aspect(aspectID: floor.aspectID, floor: floor.floor),
             hero: roster.activeHero,
-            pet: roster.activePet,
+            companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: floor.rewards
@@ -64,7 +60,7 @@ extension AppState {
     func completeAspectFloor(
         _ floor: AspectFloor,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil
@@ -74,7 +70,7 @@ extension AppState {
                 AspectCompletion.complete(
                     floor: floor,
                     hero: hero,
-                    pet: pet,
+                    companion: companion,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards,
                     rewardItem: rewardItem,

@@ -4,54 +4,54 @@ import TrinketCore
 
 public enum BattleParticipant: CaseIterable, Sendable {
     case hero
-    case pet
+    case companion
     case enemy
 
     /// Participants in effect-tick order for each end-of-round pass.
-    public static let effectTickOrder: [BattleParticipant] = [.enemy, .hero, .pet]
+    public static let effectTickOrder: [BattleParticipant] = [.enemy, .hero, .companion]
 
     public var isPartyMember: Bool {
         switch self {
-        case .hero, .pet: true
+        case .hero, .companion: true
         case .enemy: false
         }
     }
 }
 
 /// Collection of the three `CombatantRuntime`s participating in a battle:
-/// the hero, the pet, and the enemy. Provides dispatch by role or by
+/// the hero, the companion, and the enemy. Provides dispatch by role or by
 /// `Combatant` identity.
 ///
 /// The roster is the single source of truth for per-combatant mutable state
 /// (health, active effects, action counts). `BattleState` delegates to it.
 public struct BattleRoster {
     public var hero: CombatantRuntime
-    public var pet: CombatantRuntime
+    public var companion: CombatantRuntime
     public var enemy: CombatantRuntime
 
-    public init(hero: CombatantRuntime, pet: CombatantRuntime, enemy: CombatantRuntime) {
+    public init(hero: CombatantRuntime, companion: CombatantRuntime, enemy: CombatantRuntime) {
         self.hero = hero
-        self.pet = pet
+        self.companion = companion
         self.enemy = enemy
     }
 
-    /// All three runtimes, in role order (hero, pet, enemy).
+    /// All three runtimes, in role order (hero, companion, enemy).
     public var allRuntimes: [CombatantRuntime] {
-        [hero, pet, enemy]
+        [hero, companion, enemy]
     }
 
     public subscript(participant: BattleParticipant) -> CombatantRuntime {
         get {
             switch participant {
             case .hero: hero
-            case .pet: pet
+            case .companion: companion
             case .enemy: enemy
             }
         }
         set {
             switch participant {
             case .hero: hero = newValue
-            case .pet: pet = newValue
+            case .companion: companion = newValue
             case .enemy: enemy = newValue
             }
         }
@@ -61,8 +61,8 @@ public struct BattleRoster {
         if hero.id == combatant.id {
             return .hero
         }
-        if pet.id == combatant.id {
-            return .pet
+        if companion.id == combatant.id {
+            return .companion
         }
         if enemy.id == combatant.id {
             return .enemy
@@ -115,20 +115,20 @@ public struct BattleRoster {
     /// The combatant the enemy prefers to attack: the living party member with
     /// the highest current health, preferring the hero when both are alive and tied.
     public var enemyAttackTarget: Combatant {
-        if hero.isAlive, pet.isAlive {
-            return hero.currentHealth >= pet.currentHealth ? hero.combatant : pet.combatant
+        if hero.isAlive, companion.isAlive {
+            return hero.currentHealth >= companion.currentHealth ? hero.combatant : companion.combatant
         }
         if hero.isAlive {
             return hero.combatant
         }
-        if pet.isAlive {
-            return pet.combatant
+        if companion.isAlive {
+            return companion.combatant
         }
         return hero.combatant
     }
 
     public var isPartyDefeated: Bool {
-        !hero.isAlive && !pet.isAlive
+        !hero.isAlive && !companion.isAlive
     }
 
     public var isEnemyDefeated: Bool {

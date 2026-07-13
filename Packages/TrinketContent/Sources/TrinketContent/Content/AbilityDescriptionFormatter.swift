@@ -73,7 +73,7 @@ public enum AbilityDescriptionFormatter {
         case .enemyStunnedOrFrozen: "the enemy is Stunned or Frozen"
         case .enemyMarked: "the enemy is Marked"
         case .enemyLowerHealthThanActor: "the enemy has less Health than you"
-        case .allyBelowHalfHealth: "your Hero or Pet is below half Health"
+        case .allyBelowHalfHealth: "your Hero or Companion is below half Health"
         case .enemyHasBuff: "the enemy has a buff"
         }
     }

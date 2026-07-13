@@ -20,7 +20,7 @@ struct HomesteadBuildingArtwork: View {
                     art: art,
                     imageName: variant == .full ? art.imageName : "\(art.imageName)_thumb"
                 )
-                .accessibilityLabel(art.accessibilityLabel)
+
             } else {
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .fill(
@@ -33,11 +33,9 @@ struct HomesteadBuildingArtwork: View {
                 Image(systemName: definition.symbolName)
                     .font(.system(size: placeholderIconSize, weight: .semibold))
                     .foregroundStyle(definition.tint)
-                    .accessibilityHidden(true)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
-        .accessibilityLabel("\(definition.title) artwork")
     }
 }
 

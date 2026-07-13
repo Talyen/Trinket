@@ -15,7 +15,7 @@ struct ItemModifierBattleTests {
             maxHealth: 20,
             abilities: [.slash]
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
@@ -26,7 +26,7 @@ struct ItemModifierBattleTests {
 
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             heroModifiers: modifiers
         )
@@ -48,7 +48,7 @@ struct ItemModifierBattleTests {
             abilities: [],
             primaryStats: PrimaryStats(toughness: 0)
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
@@ -59,7 +59,7 @@ struct ItemModifierBattleTests {
 
         let battle = BattleStateTestFactory.makeBattle(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             heroModifiers: modifiers
         )
@@ -94,7 +94,7 @@ struct ItemModifierBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: configuration.combatant,
-            pet: Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: []),
+            companion: Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: []),
             enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: []),
             heroModifiers: configuration.modifiers
         )
@@ -114,7 +114,7 @@ struct ItemModifierBattleTests {
             maxHealth: 20,
             abilities: [.fangs]
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
@@ -124,7 +124,7 @@ struct ItemModifierBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: enemy,
             heroModifiers: modifiers
         )

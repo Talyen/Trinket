@@ -10,7 +10,7 @@ struct CombatOutcomeTests {
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
         )
         return BattleEngineContext(
@@ -22,7 +22,7 @@ struct CombatOutcomeTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }
@@ -50,7 +50,7 @@ struct CombatOutcomeTests {
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
         )
         var context = BattleEngineContext(
@@ -62,7 +62,7 @@ struct CombatOutcomeTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
         let outcome = context.resolveDamage(

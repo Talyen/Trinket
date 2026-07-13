@@ -1,0 +1,13 @@
+{
+  "result": "Failed",
+  "failedTests": 1,
+  "testFailures": [
+    {
+      "targetName": "TrinketTests",
+      "testIdentifierString": "BattleTests/failedExpectation()",
+      "testIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/failedExpectation()",
+      "testName": "failedExpectation()",
+      "failureText": "Expectation failed: score == 2"
+    }
+  ]
+}

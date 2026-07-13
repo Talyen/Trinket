@@ -5,10 +5,6 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("homestead")
     }
 
-    func testHomesteadTabLoads() {
-        homestead.assertLoaded()
-    }
-
     func testHomesteadOverviewShowsWalletCategoriesAndRepresentativeRows() {
         homestead.assertLoaded()
         assertExists(AccessibilityID.Homestead.resourceWallet)
@@ -17,7 +13,7 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
 
         assertExistsAfterScroll(AccessibilityID.Homestead.category("Crafting"))
         assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Alchemy Lab"))
-        assertExistsAfterScroll(AccessibilityID.Homestead.category("Research"))
+        assertExistsAfterScroll(AccessibilityID.Homestead.category("Arcana"))
     }
 
     func testLockedProjectsRemainVisibleButDoNotOpenDetail() {

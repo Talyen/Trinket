@@ -9,7 +9,7 @@ extension AppState {
     func completeStage(
         _ stage: Stage,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
     ) -> String {
@@ -17,7 +17,7 @@ extension AppState {
         if let resultingJourney = persistStageCompletions(
             [stage],
             hero: hero,
-            pet: pet,
+            companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards
         ) {
@@ -37,7 +37,7 @@ extension AppState {
         guard battle.activeBattle != nil else { return false }
 
         let hero = configuration.hero.combatant
-        let pet = configuration.pet.combatant
+        let companion = configuration.companion.combatant
         let persisted: Bool
         switch configuration.resumeToken {
         case let .journey(stageID):
@@ -45,7 +45,7 @@ extension AppState {
                 if let resultingJourney = persistStageCompletions(
                     [stage],
                     hero: hero,
-                    pet: pet,
+                    companion: companion,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards
                 ) {
@@ -62,7 +62,7 @@ extension AppState {
                 persisted = completeAspectFloor(
                     floor,
                     hero: hero,
-                    pet: pet,
+                    companion: companion,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards,
                     rewardItem: configuration.pendingRewardItem
@@ -74,7 +74,7 @@ extension AppState {
             persisted = completeLabyrinthNode(
                 nodeID: nodeID,
                 hero: hero,
-                pet: pet,
+                companion: companion,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards
             )
@@ -120,7 +120,7 @@ extension AppState {
         activateBattle(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
-            pet: roster.activePet,
+            companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards
@@ -133,13 +133,13 @@ extension AppState {
 
         let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
             ?? roster.activeHero
-        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
-            ?? roster.activePet
+        let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
+            ?? roster.activeCompanion
 
         activateBattle(
             resumeToken: activeBattle.resumeToken,
             hero: hero,
-            pet: pet,
+            companion: companion,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward
@@ -150,7 +150,7 @@ extension AppState {
     func activateBattle(
         resumeToken: ActiveBattleResumeToken? = nil,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant?,
         enemyEncounterLevel: Int?,
         stageReward: StageReward?
@@ -184,7 +184,7 @@ extension AppState {
             labyrinthBattle: labyrinthBattle,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
-            pet: pet,
+            companion: companion,
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
@@ -204,7 +204,7 @@ extension AppState {
         case .shop:
             return beginShopEncounter(for: stage)
         case .event, .rest:
-            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+            completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
             return nil
         }
     }
@@ -230,7 +230,7 @@ extension AppState {
     func persistStageCompletions(
         _ stages: [Stage],
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         resetJourney: Bool = false
@@ -248,7 +248,7 @@ extension AppState {
                     StageCompletion.complete(
                         stage,
                         hero: hero,
-                        pet: pet,
+                        companion: companion,
                         battleEarnedGold: isLast ? battleEarnedGold : 0,
                         materialRewards: isLast ? materialRewards : nil,
                         in: GameContent.chapters,

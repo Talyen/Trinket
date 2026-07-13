@@ -42,8 +42,8 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "pack_leader",
             name: "Pack Leader",
-            description: "Increases Pet damage dealt by 1.",
-            modifiers: [.petDamageDealt(1)],
+            description: "Increases Companion damage dealt by 1.",
+            modifiers: [.companionDamageDealt(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(

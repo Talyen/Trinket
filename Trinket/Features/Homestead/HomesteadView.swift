@@ -67,10 +67,9 @@ struct HomesteadOverviewHero: View {
         ) {
             if let art {
                 HomesteadFocalArtwork(art: art)
-                    .accessibilityLabel(art.accessibilityLabel)
+
             } else {
                 TrinketDesign.Colors.surface
-                    .accessibilityLabel("Homestead artwork")
             }
         } overlay: {
             ZStack(alignment: .bottomLeading) {
@@ -88,7 +87,5 @@ struct HomesteadOverviewHero: View {
                     .padding(.bottom, 14)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Homestead, overview")
     }
 }

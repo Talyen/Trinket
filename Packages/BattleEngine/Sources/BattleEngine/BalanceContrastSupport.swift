@@ -5,7 +5,7 @@ import TrinketCore
 struct BalanceContrastContext {
     var config: BalanceSweepConfig
     var heroes: [Combatant]
-    var pets: [Combatant]
+    var companions: [Combatant]
     var enemies: [Enemy]
 }
 
@@ -102,11 +102,11 @@ enum BalanceContrastSupport {
         partnerGear: SimulationMatchupBuilder.GearOverride?
     ) -> (
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         heroLoadout: AbilityLoadout,
-        petLoadout: AbilityLoadout,
+        companionLoadout: AbilityLoadout,
         heroGear: SimulationMatchupBuilder.GearOverride?,
-        petGear: SimulationMatchupBuilder.GearOverride?
+        companionGear: SimulationMatchupBuilder.GearOverride?
     ) {
         if owner.role == .hero {
             return (owner, partner, ownerLoadout, partnerLoadout, ownerGear, partnerGear)
@@ -137,14 +137,14 @@ enum BalanceContrastSupport {
         )
         return SimulationMatchupBuilder.build(
             hero: roles.hero,
-            pet: roles.pet,
+            companion: roles.companion,
             enemy: parts.enemy,
             tier: parts.tier,
             heroLoadout: roles.heroLoadout,
-            petLoadout: roles.petLoadout,
+            companionLoadout: roles.companionLoadout,
             seed: parts.seed,
             heroGear: roles.heroGear,
-            petGear: roles.petGear
+            companionGear: roles.companionGear
         )
     }
 }

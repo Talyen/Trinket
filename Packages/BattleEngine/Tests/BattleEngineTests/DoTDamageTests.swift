@@ -16,7 +16,7 @@ struct DoTDamageTests {
         )
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
         )
         return BattleEngineContext(
@@ -28,7 +28,7 @@ struct DoTDamageTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }

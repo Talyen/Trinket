@@ -42,8 +42,6 @@ struct VolumeOptionRow: View {
             }
 
             Slider(value: $value, in: 0 ... 1, step: 0.05)
-                .accessibilityLabel(title)
-                .accessibilityValue(percentageText)
         }
         .accessibilityIdentifier("\(title) Volume")
     }

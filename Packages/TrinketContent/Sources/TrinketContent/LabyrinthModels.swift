@@ -120,9 +120,8 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
     }
 }
 
-public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable {
+public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable {
     case battle
-    case elite
     case warden
     case shop
     case rest
@@ -137,10 +136,25 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
         self == .event ? .mystery : self
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        if rawValue == "elite" {
+            self = .battle
+            return
+        }
+        guard let value = Self(rawValue: rawValue) else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown Labyrinth node type: \(rawValue)"
+            )
+        }
+        self = value
+    }
+
     public var title: String {
         switch canonical {
         case .battle: "Battle"
-        case .elite: "Elite"
         case .warden: "Warden"
         case .shop: "Merchant's Shop"
         case .rest: "Shrine"
@@ -153,7 +167,6 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
     public var symbolName: String {
         switch canonical {
         case .battle: "bolt.fill"
-        case .elite: "flame.fill"
         case .warden: "crown.fill"
         case .shop: "bag.fill"
         case .rest: "tent.fill"
@@ -165,7 +178,7 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
 
     public var primaryActionTitle: String {
         switch canonical {
-        case .battle, .elite, .warden, .gate:
+        case .battle, .warden, .gate:
             "Fight"
         case .shop:
             "Visit"
@@ -180,7 +193,7 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
 
     public var isCombat: Bool {
         switch canonical {
-        case .battle, .elite, .warden, .gate:
+        case .battle, .warden, .gate:
             true
         case .shop, .rest, .mystery, .event, .craft:
             false

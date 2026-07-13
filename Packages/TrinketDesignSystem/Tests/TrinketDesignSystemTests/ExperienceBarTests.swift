@@ -3,24 +3,22 @@ import TrinketCore
 import TrinketDesignSystem
 
 struct ExperienceBarTests {
-    @Test func noChangeReturnsEmptySegments() throws {
+    @Test func experienceSegmentsCoverNoChangeAndPartialProgress() throws {
         let progression = CombatantProgression(level: 2, currentXP: 35, requiredXP: 155)
         let segments = ExperienceBar.segments(from: progression, to: progression)
         try #expect(segments.isEmpty)
-    }
 
-    @Test func noLevelUpProducesSingleSegment() throws {
         let pre = CombatantProgression(level: 2, currentXP: 35, requiredXP: 155)
         let post = CombatantProgression(level: 2, currentXP: 59, requiredXP: 155)
 
-        let segments = ExperienceBar.segments(from: pre, to: post)
+        let partialSegments = ExperienceBar.segments(from: pre, to: post)
 
-        try #expect(segments.count == 1)
-        try #expect(abs((segments[0].startFraction) - (pre.progressFraction)) < 0.001)
-        try #expect(abs((segments[0].endFraction) - (post.progressFraction)) < 0.001)
-        try #expect(segments[0].endXP == post.currentXP)
-        try #expect(segments[0].levelsGained == 0)
-        try #expect(segments[0].newLevel == post.level)
+        try #expect(partialSegments.count == 1)
+        try #expect(abs((partialSegments[0].startFraction) - (pre.progressFraction)) < 0.001)
+        try #expect(abs((partialSegments[0].endFraction) - (post.progressFraction)) < 0.001)
+        try #expect(partialSegments[0].endXP == post.currentXP)
+        try #expect(partialSegments[0].levelsGained == 0)
+        try #expect(partialSegments[0].newLevel == post.level)
     }
 
     @Test func singleLevelUpProducesTwoSegments() throws {

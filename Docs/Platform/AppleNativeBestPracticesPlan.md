@@ -150,7 +150,7 @@ Or centralize in `TrinketDesignSystem` as `TrinketDesign.Metrics.scaledIcon(_:re
 ./Scripts/test.sh smoke
 ```
 
-Manual: Accessibility → Larger Accessibility Sizes; icons grow without clipping cards.
+Manual: inspect the supported portrait layout; comprehensive accessibility-size permutations are outside PD-007.
 
 ---
 
@@ -163,7 +163,7 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
 
 2. **`.backgroundExtensionEffect()`** on `ChapterJourneyHero` (Play journey).
    - Evaluate against existing `scrollTransition` / `ignoresSafeArea`.
-   - Keep Reduce Transparency / Reduce Motion paths intact.
+   - Keep the product’s native SwiftUI material and motion behavior consistent.
 
 3. **`.scrollEdgeEffectStyle(...)`** on dense scroll surfaces: Collection shelves, Inventory lists, Options `Form`.
    - Prefer automatic/system defaults first; tune only if legibility fails over artwork.

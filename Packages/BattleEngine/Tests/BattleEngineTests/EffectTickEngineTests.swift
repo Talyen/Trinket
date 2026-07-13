@@ -11,11 +11,11 @@ struct EffectTickEngineTests {
         enemyEffects: [ActiveEffect] = []
     ) -> BattleEngineContext {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 50)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
-            pet: CombatantRuntime(combatant: pet),
+            companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP, initialActiveEffects: enemyEffects)
         )
         return BattleEngineContext(
@@ -27,7 +27,7 @@ struct EffectTickEngineTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
     }

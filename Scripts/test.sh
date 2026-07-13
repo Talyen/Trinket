@@ -10,6 +10,8 @@ SCRIPT_DIR="$(dirname "$0")"
 source "$SCRIPT_DIR/build-stamp.sh"
 # shellcheck source=build-inputs.sh
 source "$SCRIPT_DIR/build-inputs.sh"
+# shellcheck source=xcode-runner.sh
+source "$SCRIPT_DIR/xcode-runner.sh"
 
 # Parse arguments
 MODE="unit"
@@ -86,63 +88,6 @@ fi
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
 
-run_xcodebuild() {
-  local attempt=1
-  local max_attempts=2
-  local exit_code=0
-  local log_file="$RESULTS_DIR/xcodebuild.log"
-
-  while (( attempt <= max_attempts )); do
-    if [[ "$QUIET" == "true" ]]; then
-      echo "Building and running tests... (raw log at .DerivedData/TestResults/xcodebuild.log)"
-      set +e
-      "$@" > "$log_file" 2>&1
-      exit_code=$?
-      set -e
-      if [[ "$exit_code" -eq 0 ]]; then
-        echo "Tests succeeded!"
-        return 0
-      fi
-    elif command -v xcbeautify &>/dev/null; then
-      set +e
-      "$@" 2>&1 | tee "$log_file" | xcbeautify
-      exit_code=${PIPESTATUS[0]}
-      set -e
-      if [[ "$exit_code" -eq 0 ]]; then
-        return 0
-      fi
-    else
-      set +e
-      "$@" 2>&1 | tee "$log_file"
-      exit_code=${PIPESTATUS[0]}
-      set -e
-      if [[ "$exit_code" -eq 0 ]]; then
-        return 0
-      fi
-    fi
-
-    if (( attempt < max_attempts )) && retryable_xcodebuild_infrastructure_failure "$exit_code" "$log_file"; then
-      echo "xcodebuild infrastructure failure; re-preparing simulator and retrying once..." >&2
-      if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-        echo "::warning title=Xcode infrastructure retry::Destination or simulator service failed; retrying once."
-      fi
-      ensure_test_simulator_logged force
-      ((attempt++))
-      continue
-    fi
-
-    # Print compilation errors if quiet and build failed (no result bundle generated)
-    if [[ "$QUIET" == "true" && ! -d "$RESULT_BUNDLE_PATH" ]]; then
-      echo -e "\n\033[1;31m=== BUILD/COMPILATION FAILURE ===\033[0m"
-      grep -E -A 2 -i "error:|warning:|failed:" "$log_file" | head -n 40 || tail -n 40 "$log_file"
-    fi
-
-    return "$exit_code"
-  done
-
-  return "$exit_code"
-}
-
 retryable_xcodebuild_infrastructure_failure() {
   local exit_code="$1"
   local log_file="$2"
@@ -152,13 +97,6 @@ retryable_xcodebuild_infrastructure_failure() {
   rg -qi \
     'Unable to boot|CoreSimulator|DTServiceHub|destination.*not available|no matching destination|launchd_sim|Simulator.*failed' \
     "$log_file"
-}
-
-xcresult_failed() {
-  local result_path="$1"
-  [[ -d "$result_path" ]] || return 1
-  xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null \
-    | grep -Eq '"result" : "(Failed|unknown)"'
 }
 
 # Determine xcodebuild test target constraints using arrays to prevent zsh argument splitting issues
@@ -239,9 +177,6 @@ else
 fi
 
 mkdir -p "$RESULTS_DIR"
-RESULT_BUNDLE_PATH="$RESULTS_DIR/$MODE.xcresult"
-rm -rf "$RESULT_BUNDLE_PATH"
-
 ACTION="test"
 RUN_FINGERPRINT="$MODE"
 if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -250,6 +185,10 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
   done
 fi
 BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$RUN_FINGERPRINT")"
+xcode_runner_prepare "$MODE" "$RESULTS_DIR"
+RESULT_BUNDLE_PATH="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+XCODEBUILD_LOG_PATH="$XCODE_RUNNER_LOG_PATH"
+XCODEBUILD_REPORT_PREFIX="$XCODE_RUNNER_REPORT_PREFIX"
 
 record_timing() {
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -274,14 +213,22 @@ assert_no_build_is_fresh() {
   local built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
   if [[ ! -d "$built_app" ]]; then
     echo "Built app is missing from DerivedData. Run without --no-build first." >&2
-    exit 1
+    return 1
   fi
 
   assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT"
 }
 
 if [[ "$NO_BUILD" == "true" ]]; then
-  assert_no_build_is_fresh
+  if assert_no_build_is_fresh; then
+    :
+  else
+    no_build_status=$?
+    # The binary freshness guard is a wrapper/preflight failure, but it still
+    # needs a completion record so CI does not classify a partial run as pass.
+    xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" "$no_build_status" "$MODE"
+    exit "$no_build_status"
+  fi
   ACTION="test-without-building"
 fi
 
@@ -303,14 +250,26 @@ run_package_tests() {
     for package in "${packages[@]}"; do
       echo "Building $package package tests..."
       package_status=0
-      (
-        cd "Packages/$package"
+      xcode_runner_prepare "package-build-$package" "$RESULTS_DIR"
+      package_build_result="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+      package_build_log="$XCODE_RUNNER_LOG_PATH"
+      package_build_report="$XCODE_RUNNER_REPORT_PREFIX"
+      build_runner_args=(
+        --label "package-build-$package"
+        --result-bundle "$package_build_result"
+        --log "$package_build_log"
+        --report-prefix "$package_build_report"
+        --quiet
+        --working-directory "$PWD/Packages/$package"
+      )
+      xcode_runner_run "${build_runner_args[@]}" -- \
         xcodebuild build-for-testing \
           -scheme "$package" \
           -sdk iphonesimulator \
           -destination "$SIMULATOR_DESTINATION" \
-          -derivedDataPath "$DERIVED_DATA_PATH"
-      ) || package_status=$?
+          -derivedDataPath "$DERIVED_DATA_PATH" \
+          -resultBundlePath "$package_build_result" \
+        || package_status=$?
       if [[ "$package_status" -eq 0 ]]; then
         touch_build_stamp "$RESULTS_DIR" "package_$package"
       fi
@@ -335,6 +294,10 @@ run_package_tests() {
   fi
 
   echo "Running package tests in parallel (jobs=$jobs)..."
+  package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+  package_report_root="$RESULTS_DIR/unit-packages-$package_run_token"
+  package_output_root="$RESULTS_DIR/.deferred/$package_run_token"
+  mkdir -p "$package_output_root"
   SECONDS=0
   printf '%s\n' "${packages[@]}" | xargs -P "$jobs" -I{} bash -c '
     set -euo pipefail
@@ -342,16 +305,33 @@ run_package_tests() {
     destination="$2"
     quiet="$3"
     verbose="$4"
-    package_args=(--no-build "$package" --destination "$destination")
+    report_root="$5"
+    output_root="$6"
+    package_args=(--no-build "$package" --destination "$destination" --defer-terminal-output --report-prefix "$report_root")
     if [[ "$quiet" == "true" ]]; then
       package_args+=(--quiet)
     fi
     if [[ "$verbose" == "true" ]]; then
       package_args+=(--verbose)
     fi
-    ./Scripts/test-package.sh "${package_args[@]}"
-  ' _ {} "$SIMULATOR_DESTINATION" "$QUIET" "$VERBOSE" || failed=1
+    ./Scripts/test-package.sh "${package_args[@]}" >"$output_root/$package.stdout" 2>&1
+  ' _ {} "$SIMULATOR_DESTINATION" "$QUIET" "$VERBOSE" "$package_report_root" "$package_output_root" || failed=1
   test_seconds=$SECONDS
+
+  # Child output is intentionally deferred while packages run in parallel.
+  # Emit one deterministic aggregate section in package declaration order.
+  for package in "${packages[@]}"; do
+    package_report="${package_report_root}-${package}"
+    package_manifest="$RESULTS_DIR/${package}-invocation.json"
+    if [[ -f "${package_report}.md" && -f "$package_manifest" ]] \
+      && grep -q '"status":"failed"' "$package_manifest"; then
+      cat "${package_report}.md"
+    elif [[ -s "$package_output_root/$package.stdout" ]]; then
+      cat "$package_output_root/$package.stdout"
+    else
+      echo "Package $package completed without diagnostics."
+    fi
+  done
 
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + build_seconds + test_seconds))
   return "$failed"
@@ -377,17 +357,28 @@ if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
   XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
 fi
 
-run_xcodebuild xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
+runner_args=(
+  --label "$MODE"
+  --result-bundle "$RESULT_BUNDLE_PATH"
+  --log "$XCODEBUILD_LOG_PATH"
+  --report-prefix "$XCODEBUILD_REPORT_PREFIX"
+  --retry-callback retryable_xcodebuild_infrastructure_failure
+)
+if [[ "$QUIET" == "true" ]]; then
+  runner_args+=(--quiet)
+else
+  runner_args+=(--verbose)
+fi
+xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 
 TEST_WALL_SECONDS=$SECONDS
 
-if xcresult_failed "$RESULT_BUNDLE_PATH"; then
-  XCODEBUILD_EXIT_CODE=1
+if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
+  echo "Tests succeeded!"
 fi
 
 if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
   if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
-    ./Scripts/summarize-failures.py "$RESULT_BUNDLE_PATH"
     record_timing
     echo ""
     echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"

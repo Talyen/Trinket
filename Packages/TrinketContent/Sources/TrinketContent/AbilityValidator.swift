@@ -36,7 +36,7 @@ public enum AbilityValidator {
     }
 
     private static func validateEffectTargets(for ability: Ability) -> [Issue] {
-        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet, .lowestHealthAlly]
+        let allyTargets: Set<EffectTarget> = [.actor, .hero, .companion, .lowestHealthAlly]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
         var issues: [Issue] = []
 
@@ -46,7 +46,7 @@ public enum AbilityValidator {
                 if !allyTargets.contains(targetedEffect.target) {
                     issues.append(Issue(
                         abilityID: ability.id,
-                        message: "cleanse effects must target allies (.actor, .hero, or .pet)"
+                        message: "cleanse effects must target allies (.actor, .hero, or .companion)"
                     ))
                 }
             case .purge, .purgeRandom:

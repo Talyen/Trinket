@@ -20,7 +20,6 @@ struct EmptyAbilitySlotCard: View {
                     Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
                         .font(.system(size: placeholderIconSize, weight: .semibold))
                         .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                        .accessibilityHidden(true)
                 }
                 .trinketCardSurface()
 
@@ -32,7 +31,6 @@ struct EmptyAbilitySlotCard: View {
                 .padding(.horizontal, 4)
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -71,15 +69,6 @@ struct EmptyItemSlotCard: View {
                 .padding(.horizontal, 4)
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: String {
-        if let lockLabel {
-            return "\(slot.displayName) slot, \(lockLabel)"
-        }
-        return "Empty \(slot.displayName) slot"
     }
 
     private var title: String {

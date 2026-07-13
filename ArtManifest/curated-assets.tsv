@@ -1,221 +1,225 @@
-# kind	id	asset_name	source_path	focal_x	focal_y	accessibility_label
-combatant	alchemist	hero_alchemist_card	Raw Assets/Heroes/Alchemist.jpeg	0.50	0.50	Full art of the Alchemist hero
-combatant	druid	hero_druid_card	Raw Assets/Heroes/Druid.jpeg	0.50	0.50	Full art of the Druid hero
-combatant	knight	hero_knight_card	Raw Assets/Heroes/Knight.png	0.50	0.50	Full art of the Knight hero
-combatant	ranger	hero_ranger_card	Raw Assets/Heroes/Ranger.jpeg	0.50	0.50	Full art of the Ranger hero
-combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.png	0.50	0.34	Full art of the Rogue hero
-combatant	warlock	hero_warlock_card	Raw Assets/Heroes/Warlock.jpeg	0.50	0.50	Full art of the Warlock hero
-combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.png	0.50	0.50	Full art of the Wizard hero
-combatant	wolf	pet_wolf_card	Raw Assets/Pets/Wolf.jpeg	0.50	0.36	Full art of the Wolf pet
-combatant	bear	pet_bear_card	Raw Assets/Pets/Bear.jpeg	0.50	0.50	Full art of the Bear pet
-combatant	frost_whelp	pet_frost_whelp_card	Raw Assets/Pets/Frost Whelp.jpeg	0.50	0.50	Full art of the Frost Whelp pet
-combatant	lizard_scout	pet_lizard_scout_card	Raw Assets/Pets/Lizard Scout.png	0.50	0.50	Full art of the Lizard Scout pet
-combatant	panther	pet_panther_card	Raw Assets/Pets/Panther.jpeg	0.50	0.50	Full art of the Panther pet
-combatant	phoenix	pet_phoenix_card	Raw Assets/Pets/Phoenix.jpeg	0.50	0.50	Full art of the Phoenix pet
-combatant	golden_retriever	pet_golden_retriever_card	Raw Assets/Pets/Golden Retriever.jpeg	0.50	0.50	Full art of the Golden Retriever pet
-combatant	library_owl	pet_library_owl_card	Raw Assets/Pets/Library Owl.jpeg	0.50	0.50	Full art of the Library Owl pet
-combatant	risen_skeleton	pet_risen_skeleton_card	Raw Assets/Pets/Risen Skeleton.jpeg	0.50	0.50	Full art of the Risen Skeleton pet
-combatant	mana_moth	pet_mana_moth_card	Raw Assets/Pets/Mana Moth.jpeg	0.50	0.50	Full art of the Mana Moth pet
-ability	acid-potion	ability_acid_potion	Raw Assets/Abilities/Acid Potion.jpeg	0.50	0.50	Ability art for Acid Potion
-ability	antivenom-potion	ability_antivenom_potion	Raw Assets/Abilities/Antivenom Potion.jpeg	0.50	0.50	Ability art for Antivenom Potion
-ability	anvil	ability_anvil	Raw Assets/Abilities/Anvil.png	0.50	0.50	Ability art for Anvil
-ability	apple	ability_apple	Raw Assets/Abilities/Apple.png	0.50	0.50	Ability art for Apple
-ability	bash	ability_bash	Raw Assets/Abilities/Bash.png	0.50	0.50	Ability art for Bash
-ability	blackjack	ability_blackjack	Raw Assets/Abilities/Blackjack.jpeg	0.50	0.50	Ability art for Blackjack
-ability	blessed-aegis	ability_blessed_aegis	Raw Assets/Abilities/Blessed Aegis.jpeg	0.50	0.50	Ability art for Blessed Aegis
-ability	blizzard	ability_blizzard	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.50	Ability art for Blizzard
-ability	block	ability_block	Raw Assets/Abilities/Block.png	0.50	0.50	Ability art for Block
-ability	blood-offering	ability_blood_offering	Raw Assets/Abilities/Blood Offering.jpeg	0.50	0.50	Ability art for Blood Offering
-ability	bloodthorn	ability_bloodthorn	Raw Assets/Abilities/Bloodthorn.jpeg	0.50	0.50	Ability art for Bloodthorn
-ability	bounty-shot	ability_bounty_shot	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50	Ability art for Bounty Shot
-ability	bread	ability_bread	Raw Assets/Abilities/Bread.png	0.50	0.50	Ability art for Bread
-ability	briar-shield	ability_briar_shield	Raw Assets/Abilities/Briar Shield.jpeg	0.50	0.50	Ability art for Briar Shield
-ability	burning-blade	ability_burning_blade	Raw Assets/Abilities/Burning Blade.jpeg	0.50	0.50	Ability art for Burning Blade
-ability	cauterize	ability_cauterize	Raw Assets/Abilities/Cauterize.jpeg	0.50	0.50	Ability art for Cauterize
-ability	caustic-jab	ability_caustic_jab	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50	Ability art for Caustic Jab
-ability	cinderbloom	ability_cinderbloom	Raw Assets/Abilities/Cinderbloom.jpeg	0.50	0.50	Ability art for Cinderbloom
-ability	cleanse	ability_cleanse	Raw Assets/Abilities/Cleanse.jpeg	0.50	0.50	Ability art for Cleanse
-ability	cold-snap	ability_cold_snap	Raw Assets/Abilities/Cold Snap.jpeg	0.50	0.50	Ability art for Cold Snap
-ability	combustion	ability_combustion	Raw Assets/Abilities/Combustion.jpeg	0.50	0.50	Ability art for Combustion
-ability	concussive-shot	ability_concussive_shot	Raw Assets/Abilities/Concussive Shot.jpeg	0.50	0.50	Ability art for Concussive Shot
-ability	crystal-bulwark	ability_crystal_bulwark	Raw Assets/Abilities/Crystal Bulwark.jpeg	0.50	0.50	Ability art for Crystal Bulwark
-ability	dark-pact	ability_dark_pact	Raw Assets/Abilities/Dark Pact.jpeg	0.50	0.50	Ability art for Dark Pact
-ability	exorcism	ability_exorcism	Raw Assets/Abilities/Exorcism.jpeg	0.50	0.50	Ability art for Exorcism
-ability	fangs	ability_fangs	Raw Assets/Abilities/Fangs.png	0.50	0.50	Ability art for Fangs
-ability	faustian-bargain	ability_faustian_bargain	Raw Assets/Abilities/Faustian Bargain.jpeg	0.50	0.50	Ability art for Faustian Bargain
-ability	fire-arrow	ability_fire_arrow	Raw Assets/Abilities/Fire Arrow.jpeg	0.50	0.50	Ability art for Fire Arrow
-ability	fireball	ability_fireball	Raw Assets/Abilities/Fireball.jpeg	0.50	0.50	Ability art for Fireball
-ability	frostbolt	ability_frostbolt	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.50	Ability art for Frostbolt
-ability	gamblers-shot	ability_gamblers_shot	Raw Assets/Abilities/Gambler's Shot.jpeg	0.50	0.50	Ability art for Gambler's Shot
-ability	glacial-ward	ability_glacial_ward	Raw Assets/Abilities/Glacial Ward.jpeg	0.50	0.50	Ability art for Glacial Ward
-ability	golden-plate	ability_golden_plate	Raw Assets/Abilities/Golden Plate.jpeg	0.50	0.50	Ability art for Golden Plate
-ability	grasping-vines	ability_grasping_vines	Raw Assets/Abilities/Grasping Vines.jpeg	0.50	0.50	Ability art for Grasping Vines
-ability	haste	ability_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50	Ability art for Haste
-ability	heal	ability_heal	Raw Assets/Abilities/Heal.jpeg	0.50	0.50	Ability art for Heal
-ability	health-potion	ability_health_potion	Raw Assets/Abilities/Health Potion.png	0.50	0.50	Ability art for Health Potion
-ability	hemorrhage	ability_hemorrhage	Raw Assets/Abilities/Hemorrhage.jpeg	0.50	0.50	Ability art for Hemorrhage
-ability	holy-radiance	ability_holy_radiance	Raw Assets/Abilities/Holy Radiance.jpeg	0.50	0.50	Ability art for Holy Radiance
-ability	ice-shot	ability_ice_shot	Raw Assets/Abilities/Ice Shot.jpeg	0.50	0.50	Ability art for Ice Shot
-ability	judgment	ability_judgment	Raw Assets/Abilities/Judgment.jpeg	0.50	0.50	Ability art for Judgment
-ability	kindling	ability_kindling	Raw Assets/Abilities/Kindling.jpeg	0.50	0.50	Ability art for Kindling
-ability	lightning-arrow	ability_lightning_arrow	Raw Assets/Abilities/Lightning Arrow.jpeg	0.50	0.50	Ability art for Lightning Arrow
-ability	lightning-bolt	ability_lightning_bolt	Raw Assets/Abilities/Lightning Bolt.jpeg	0.50	0.50	Ability art for Lightning Bolt
-ability	luck-potion	ability_luck_potion	Raw Assets/Abilities/Luck Potion.jpeg	0.50	0.50	Ability art for Luck Potion
-ability	mana-bulwark	ability_mana_bulwark	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50	Ability art for Mana Bulwark
-ability	mana-berries	ability_mana_berries	Raw Assets/Abilities/Mana Berries.png	0.50	0.50	Ability art for Mana Berries
-ability	mana-crystals	ability_mana_crystals	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50	Ability art for Mana Crystals
-ability	mana-potion	ability_mana_potion	Raw Assets/Abilities/Mana Potion.png	0.50	0.50	Ability art for Mana Potion
-ability	mana-shield	ability_mana_shield	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50	Ability art for Mana Shield
-ability	meteor	ability_meteor	Raw Assets/Abilities/Meteor.jpeg	0.50	0.50	Ability art for Meteor
-ability	molten-bulwark	ability_molten_bulwark	Raw Assets/Abilities/Molten Bulwark.jpeg	0.50	0.50	Ability art for Molten Bulwark
-ability	pack-tactics	ability_pack_tactics	Raw Assets/Abilities/Pack Tactics.jpeg	0.50	0.50	Ability art for Pack Tactics
-ability	panacea-potion	ability_panacea_potion	Raw Assets/Abilities/Panacea Potion.png	0.50	0.50	Ability art for Panacea Potion
-ability	phoenix-feather	ability_phoenix_feather	Raw Assets/Abilities/Phoenix Feather.jpeg	0.50	0.50	Ability art for Phoenix Feather
-ability	pixie-dust	ability_pixie_dust	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50	Ability art for Pixie Dust
-ability	plate-mail	ability_plate_mail	Raw Assets/Abilities/Plate Mail.png	0.50	0.50	Ability art for Plate Mail
-ability	poison-dagger	ability_poison_dagger	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50	Ability art for Poison Dagger
-ability	prayer	ability_prayer	Raw Assets/Abilities/Prayer.jpeg	0.50	0.50	Ability art for Prayer
-ability	predators-haste	ability_predators_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50	Ability art for Predator's Haste
-ability	ray-of-frost	ability_ray_of_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50	Ability art for Ray of Frost
-ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Slash.png	0.50	0.50	Ability art for Rending Slash
-ability	roulette	ability_roulette	Raw Assets/Abilities/Roulette.jpeg	0.50	0.50	Ability art for Roulette
-ability	sage-heal	ability_sage_heal	Raw Assets/Abilities/Heal.jpeg	0.50	0.50	Ability art for Sage Heal
-ability	sanctified-plate	ability_sanctified_plate	Raw Assets/Abilities/Sanctified Plate.jpeg	0.50	0.50	Ability art for Sanctified Plate
-ability	sap-arrow	ability_sap_arrow	Raw Assets/Abilities/Sap Arrow.jpeg	0.50	0.50	Ability art for Sap Arrow
-ability	serrated-arrowhead	ability_serrated_arrowhead	Raw Assets/Abilities/Serrated Arrowhead.jpeg	0.50	0.50	Ability art for Serrated Arrowhead
-ability	serrated-edge	ability_serrated_edge	Raw Assets/Abilities/Serrated Edge.jpeg	0.50	0.50	Ability art for Serrated Edge
-ability	shield-bash	ability_shield_bash	Raw Assets/Abilities/Shield Bash.jpeg	0.50	0.50	Ability art for Shield Bash
-ability	slash	ability_slash	Raw Assets/Abilities/Slash.png	0.50	0.50	Ability art for Slash
-ability	smelling-salts	ability_smelling_salts	Raw Assets/Abilities/Smelling Salts.jpeg	0.50	0.50	Ability art for Smelling Salts
-ability	smite	ability_smite	Raw Assets/Abilities/Smite.jpeg	0.50	0.50	Ability art for Smite
-ability	sniff-out	ability_sniff_out	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50	Ability art for Sniff Out
-ability	spiked-shield	ability_spiked_shield	Raw Assets/Abilities/Spiked Shield.jpeg	0.50	0.50	Ability art for Spiked Shield
-ability	stab	ability_stab	Raw Assets/Abilities/Stab.png	0.50	0.50	Ability art for Stab
-ability	stargaze	ability_stargaze	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50	Ability art for Stargaze
-ability	steal	ability_steal	Raw Assets/Abilities/Steal.jpeg	0.50	0.50	Ability art for Steal
-ability	stoneskin-potion	ability_stoneskin_potion	Raw Assets/Abilities/Stoneskin Potion.jpeg	0.50	0.50	Ability art for Stoneskin Potion
-ability	sunburst	ability_sunburst	Raw Assets/Abilities/Sunburst.png	0.50	0.50	Ability art for Sunburst
-ability	sunder-armor	ability_sunder_armor	Raw Assets/Abilities/Sunder Armor.jpeg	0.50	0.50	Ability art for Sunder Armor
-ability	thorn-mail	ability_thorn_mail	Raw Assets/Abilities/Thorn Mail.jpeg	0.50	0.50	Ability art for Thorn Mail
-ability	tithe	ability_tithe	Raw Assets/Abilities/Tithe.jpeg	0.50	0.50	Ability art for Tithe
-ability	venom-arrow	ability_venom_arrow	Raw Assets/Abilities/Venom Arrow.jpeg	0.50	0.50	Ability art for Venom Arrow
-ability	venom-fangs	ability_venom_fangs	Raw Assets/Abilities/Venom Fangs.jpeg	0.50	0.50	Ability art for Venom Fangs
-ability	wise-frost	ability_wise_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50	Ability art for Wise Frost
-item	crossbow-astral	item_crossbow_astral	Raw Assets/Gear/Crossbow - Astral.jpeg	0.50	0.50	Item art for Crossbow (Astral)
-item	crossbow-basic	item_crossbow_basic	Raw Assets/Gear/Crossbow - Basic.jpeg	0.50	0.50	Item art for Crossbow (Basic)
-item	dagger-astral	item_dagger_astral	Raw Assets/Gear/Dagger - Astral.jpeg	0.50	0.50	Item art for Dagger (Astral)
-item	dagger-basic	item_dagger_basic	Raw Assets/Gear/Dagger - Basic.jpeg	0.50	0.50	Item art for Dagger (Basic)
-item	double_axe-astral	item_double_axe_astral	Raw Assets/Gear/Double Axe - Astral.jpeg	0.50	0.50	Item art for Double Axe (Astral)
-item	double_axe-basic	item_double_axe_basic	Raw Assets/Gear/Double Axe - Basic.jpeg	0.50	0.50	Item art for Double Axe (Basic)
-item	emerald_amulet-astral	item_emerald_amulet_astral	Raw Assets/Gear/Emerald Amulet - Astral.jpeg	0.50	0.50	Item art for Emerald Amulet (Astral)
-item	emerald_amulet-basic	item_emerald_amulet_basic	Raw Assets/Gear/Emerald Amulet - Basic.jpeg	0.50	0.50	Item art for Emerald Amulet (Basic)
-item	emerald_ring-astral	item_emerald_ring_astral	Raw Assets/Gear/Emerald Ring - Astral.jpeg	0.50	0.50	Item art for Emerald Ring (Astral)
-item	emerald_ring-basic	item_emerald_ring_basic	Raw Assets/Gear/Emerald Ring - Basic.jpeg	0.50	0.50	Item art for Emerald Ring (Basic)
-item	flail-astral	item_flail_astral	Raw Assets/Gear/Flail - Astral.jpeg	0.50	0.50	Item art for Flail (Astral)
-item	flail-basic	item_flail_basic	Raw Assets/Gear/Flail - Basic.jpeg	0.50	0.50	Item art for Flail (Basic)
-item	greatsword-astral	item_greatsword_astral	Raw Assets/Gear/Greatsword - Astral.jpeg	0.50	0.50	Item art for Greatsword (Astral)
-item	greatsword-basic	item_greatsword_basic	Raw Assets/Gear/Greatsword - Basic.jpeg	0.50	0.50	Item art for Greatsword (Basic)
-item	hatchet-astral	item_hatchet_astral	Raw Assets/Gear/Hatchet - Astral.jpeg	0.50	0.50	Item art for Hatchet (Astral)
-item	hatchet-basic	item_hatchet_basic	Raw Assets/Gear/Hatchet - Basic.jpeg	0.50	0.50	Item art for Hatchet (Basic)
-item	kite_shield-astral	item_kite_shield_astral	Raw Assets/Gear/Kite Shield - Astral.jpeg	0.50	0.50	Item art for Kite Shield (Astral)
-item	kite_shield-basic	item_kite_shield_basic	Raw Assets/Gear/Kite Shield - Basic.jpeg	0.50	0.50	Item art for Kite Shield (Basic)
-item	leather_armor-astral	item_leather_armor_astral	Raw Assets/Gear/Leather Armor - Astral.jpeg	0.50	0.50	Item art for Leather Armor (Astral)
-item	leather_armor-basic	item_leather_armor_basic	Raw Assets/Gear/Leather Armor - Basic.jpeg	0.50	0.50	Item art for Leather Armor (Basic)
-item	longbow-astral	item_longbow_astral	Raw Assets/Gear/Longbow - Astral.jpeg	0.50	0.50	Item art for Longbow (Astral)
-item	longbow-basic	item_longbow_basic	Raw Assets/Gear/Longbow - Basic.jpeg	0.50	0.50	Item art for Longbow (Basic)
-item	longsword-astral	item_longsword_astral	Raw Assets/Gear/Longsword - Astral.jpeg	0.50	0.50	Item art for Longsword (Astral)
-item	longsword-basic	item_longsword_basic	Raw Assets/Gear/Longsword - Basic.jpeg	0.50	0.50	Item art for Longsword (Basic)
-item	mace-astral	item_mace_astral	Raw Assets/Gear/Mace - Astral.jpeg	0.50	0.50	Item art for Mace (Astral)
-item	mace-basic	item_mace_basic	Raw Assets/Gear/Mace - Basic.jpeg	0.50	0.50	Item art for Mace (Basic)
-item	maul-astral	item_maul_astral	Raw Assets/Gear/Maul - Astral.jpeg	0.50	0.50	Item art for Maul (Astral)
-item	maul-basic	item_maul_basic	Raw Assets/Gear/Maul - Basic.jpeg	0.50	0.50	Item art for Maul (Basic)
-item	plate_armor-astral	item_plate_armor_astral	Raw Assets/Gear/Plate Armor - Astral.jpeg	0.50	0.50	Item art for Plate Armor (Astral)
-item	plate_armor-basic	item_plate_armor_basic	Raw Assets/Gear/Plate Armor - Basic.jpeg	0.50	0.50	Item art for Plate Armor (Basic)
-item	recurve_bow-astral	item_recurve_bow_astral	Raw Assets/Gear/Recurve Bow - Astral.jpeg	0.50	0.50	Item art for Recurve Bow (Astral)
-item	recurve_bow-basic	item_recurve_bow_basic	Raw Assets/Gear/Recurve Bow - Basic.jpeg	0.50	0.50	Item art for Recurve Bow (Basic)
-item	ruby_amulet-astral	item_ruby_amulet_astral	Raw Assets/Gear/Ruby Amulet - Astral.jpeg	0.50	0.50	Item art for Ruby Amulet (Astral)
-item	ruby_amulet-basic	item_ruby_amulet_basic	Raw Assets/Gear/Ruby Amulet - Basic.jpeg	0.50	0.50	Item art for Ruby Amulet (Basic)
-item	ruby_ring-astral	item_ruby_ring_astral	Raw Assets/Gear/Ruby Ring - Astral.jpeg	0.50	0.50	Item art for Ruby Ring (Astral)
-item	ruby_ring-basic	item_ruby_ring_basic	Raw Assets/Gear/Ruby Ring - Basic.jpeg	0.50	0.50	Item art for Ruby Ring (Basic)
-item	sapphire_amulet-astral	item_sapphire_amulet_astral	Raw Assets/Gear/Sapphire Amulet - Astral.jpeg	0.50	0.50	Item art for Sapphire Amulet (Astral)
-item	sapphire_amulet-basic	item_sapphire_amulet_basic	Raw Assets/Gear/Sapphire Amulet - Basic.jpeg	0.50	0.50	Item art for Sapphire Amulet (Basic)
-item	sapphire_ring-astral	item_sapphire_ring_astral	Raw Assets/Gear/Sapphire Ring - Astral.jpeg	0.50	0.50	Item art for Sapphire Ring (Astral)
-item	sapphire_ring-basic	item_sapphire_ring_basic	Raw Assets/Gear/Sapphire Ring - Basic.jpeg	0.50	0.50	Item art for Sapphire Ring (Basic)
-item	shortbow-astral	item_shortbow_astral	Raw Assets/Gear/Shortbow - Astral.jpeg	0.50	0.50	Item art for Shortbow (Astral)
-item	shortbow-basic	item_shortbow_basic	Raw Assets/Gear/Shortbow - Basic.jpeg	0.50	0.50	Item art for Shortbow (Basic)
-item	shortsword-astral	item_shortsword_astral	Raw Assets/Gear/Shortsword - Astral.jpeg	0.50	0.50	Item art for Shortsword (Astral)
-item	shortsword-basic	item_shortsword_basic	Raw Assets/Gear/Shortsword - Basic.jpeg	0.50	0.50	Item art for Shortsword (Basic)
-item	spellbook-astral	item_spellbook_astral	Raw Assets/Gear/Spellbook - Astral.jpeg	0.50	0.50	Item art for Spellbook (Astral)
-item	spellbook-basic	item_spellbook_basic	Raw Assets/Gear/Spellbook - Basic.jpeg	0.50	0.50	Item art for Spellbook (Basic)
-item	staff-astral	item_staff_astral	Raw Assets/Gear/Staff - Astral.jpeg	0.50	0.50	Item art for Staff (Astral)
-item	staff-basic	item_staff_basic	Raw Assets/Gear/Staff - Basic.jpeg	0.50	0.50	Item art for Staff (Basic)
-item	topaz_amulet-astral	item_topaz_amulet_astral	Raw Assets/Gear/Topaz Amulet - Astral.jpeg	0.50	0.50	Item art for Topaz Amulet (Astral)
-item	topaz_amulet-basic	item_topaz_amulet_basic	Raw Assets/Gear/Topaz Amulet - Basic.jpeg	0.50	0.50	Item art for Topaz Amulet (Basic)
-item	topaz_ring-astral	item_topaz_ring_astral	Raw Assets/Gear/Topaz Ring - Astral.jpeg	0.50	0.50	Item art for Topaz Ring (Astral)
-item	topaz_ring-basic	item_topaz_ring_basic	Raw Assets/Gear/Topaz Ring - Basic.jpeg	0.50	0.50	Item art for Topaz Ring (Basic)
-item	wand-astral	item_wand_astral	Raw Assets/Gear/Wand - Astral.jpeg	0.50	0.50	Item art for Wand (Astral)
-item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50	Item art for Wand (Basic)
-slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50	Empty armor slot frame
-slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50	Empty trinket slot frame
-slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50	Empty weapon slot frame
-combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpg	0.50	0.50	Full art of the Living Armor enemy
-combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpg	0.50	0.50	Full art of the Mimic enemy
-combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpg	0.50	0.50	Full art of the Mud Elemental enemy
-combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpg	0.50	0.50	Full art of the Necromancer enemy
-combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpg	0.50	0.50	Full art of the Plague Doctor enemy
-combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50	Full art of the Skeleton enemy
-combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpg	0.50	0.50	Full art of the Blight Treant enemy
-combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpg	0.50	0.50	Full art of the Forge Golem enemy
-combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpg	0.50	0.50	Full art of the Frostwarden enemy
-combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpg	0.50	0.50	Full art of the Iron Bear enemy
-combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50	Full art of the Fire Elemental enemy
-combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50	Full art of the Frost Elemental enemy
-combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50	Full art of the Goblin enemy
-combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50	Full art of the Slime enemy
-combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50	Full art of the Will-o-Wisp enemy
-combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of the Pixie pet
-combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
-background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50	Lush green canopy and winding forest path of the Verdant Forest
-background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.png	0.50	0.50	A prosperous mountain Homestead glowing beneath a dramatic golden sunset
-background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.png	0.50	0.50	Golden wheat field and mountain path at the Homestead
-background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.png	0.50	0.50	Medicinal herb beds beside a timber cottage at sunset
-background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.png	0.50	0.50	Rustic timber chicken coop in a mountain yard
-background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Pasture.jpeg	0.50	0.50	Fenced mountain pasture and sturdy field shelter at sunset
-background	culinaryArts	bg_homestead_culinary_arts	Raw Assets/Homestead/Culinary Arts.jpeg	0.50	0.50	Warm homestead kitchen preparing harvest meals
-background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith's Forge.png	0.50	0.50	Glowing medieval blacksmith forge with anvil and bellows
-background	woolTailoring	bg_homestead_wool_tailoring	Raw Assets/Homestead/Wool Tailoring.jpeg	0.50	0.50	Wool loom and padded wraps in a mountain tailor shop
-background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.png	0.50	0.50	Copper stills, glass flasks, and herbs in a medieval alchemy lab
-background	botanicalDistillation	bg_homestead_botanical_distillation	Raw Assets/Homestead/Botanical Distillation.jpeg	0.50	0.50	Botanical stills concentrating garden greens into reagents
-background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.png	0.50	0.50	Cultivated amethyst and blue crystal beds at mountain dusk
-background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.png	0.50	0.50	Arcane runesmith worktable with engraved iron and crystal tools
-background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's Lodge.jpeg	0.50	0.50	Timber hunter lodge for companion drills and field craft
-background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50	Practice yard sharpening companion footwork and reflexes
-background	detectMagic	bg_homestead_detect_magic	Raw Assets/Homestead/Detect Magic.jpeg	0.50	0.50	Quiet sanctum for sensing rare finds and unnatural threats
-background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50	Ancient mossy wishing well beneath old trees in golden light
-resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50	Bundle of cut wood logs
-resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50	Cluster of rugged building stones
-resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.50	0.50	Stacked dark iron ingots
-resource	food	resource_homestead_food	Raw Assets/Homestead/Resources/food.png	0.50	0.50	Golden sheaf of wheat
-resource	herbs	resource_homestead_herbs	Raw Assets/Homestead/Resources/herbs.png	0.50	0.50	Bundle of medicinal herbs
-resource	crystal	resource_homestead_crystal	Raw Assets/Homestead/Resources/crystal.png	0.50	0.50	Amethyst crystal cluster
-resource	gold	resource_homestead_gold	Raw Assets/Homestead/Resources/gold.png	0.50	0.50	Antique gold sun coin
-encounter	mystery-amethyst-geode	encounter_mystery_amethyst_geode	Raw Assets/Mystery Events/Amethyst Geode.jpeg	0.50	0.50	Mystery event art showing a glowing amethyst geode
-encounter	mystery-bioluminescent-mushrooms	encounter_mystery_bioluminescent_mushrooms	Raw Assets/Mystery Events/Bioluminescent Mushrooms.jpeg	0.50	0.50	Mystery event art showing bioluminescent mushrooms
-encounter	mystery-circle-of-glowing-mushrooms	encounter_mystery_circle_of_glowing_mushrooms	Raw Assets/Mystery Events/Circle of Glowing Mushrooms.jpeg	0.50	0.50	Mystery event art showing a circle of glowing mushrooms
-encounter	mystery-dusty-shelves-in-tower	encounter_mystery_dusty_shelves_in_tower	Raw Assets/Mystery Events/Dusty Shelves in Tower.jpeg	0.50	0.50	Mystery event art showing dusty shelves in a tower
-encounter	mystery-field-of-glowing-mana-berries	encounter_mystery_field_of_glowing_mana_berries	Raw Assets/Mystery Events/Field of Glowing Mana Berries.jpeg	0.50	0.50	Mystery event art showing glowing mana berries
-encounter	mystery-gold-coins-among-bones	encounter_mystery_gold_coins_among_bones	Raw Assets/Mystery Events/Gold Coins among Bones.jpeg	0.50	0.50	Mystery event art showing gold coins among bones
-encounter	mystery-leather-book-floats	encounter_mystery_leather_book_floats	Raw Assets/Mystery Events/Leather Book Floats.jpeg	0.50	0.50	Mystery event art showing a floating leather book
-encounter	mystery-leather-bundle-between-roots	encounter_mystery_leather_bundle_between_roots	Raw Assets/Mystery Events/Leather Bundle Between Roots.jpeg	0.50	0.50	Mystery event art showing a leather bundle between roots
-encounter	mystery-narrow-pass-through-peaks	encounter_mystery_narrow_pass_through_peaks	Raw Assets/Mystery Events/Narrow Pass Through Peaks.jpeg	0.50	0.50	Mystery event art showing a narrow pass through peaks
-encounter	mystery-oak-tree-with-face	encounter_mystery_oak_tree_with_face	Raw Assets/Mystery Events/Oak Tree with Face.jpeg	0.50	0.50	Mystery event art showing an oak tree with a face
-encounter	mystery-pond-reflects-gnarled-trees	encounter_mystery_pond_reflects_gnarled_trees	Raw Assets/Mystery Events/Pond Reflects Gnarled Trees.jpeg	0.50	0.50	Mystery event art showing a pond reflecting gnarled trees
-encounter	mystery-pool-of-water-steams	encounter_mystery_pool_of_water_steams	Raw Assets/Mystery Events/Pool of Water Steams.jpeg	0.50	0.50	Mystery event art showing a steaming pool of water
-encounter	mystery-smoldering-crater	encounter_mystery_smoldering_crater	Raw Assets/Mystery Events/Smoldering Crater.jpeg	0.50	0.50	Mystery event art showing a smoldering crater
-encounter	mystery-sunlight-breaks-canopy	encounter_mystery_sunlight_breaks_canopy	Raw Assets/Mystery Events/Sunlight Breaks Canopy.jpeg	0.50	0.50	Mystery event art showing sunlight breaking through a canopy
-encounter	mystery-vines-carpet-mosaic-floors	encounter_mystery_vines_carpet_mosaic_floors	Raw Assets/Mystery Events/Vines Carpet Mosaic Floors.jpeg	0.50	0.50	Mystery event art showing vines over mosaic floors
-encounter	mystery-weathered-stone-altar	encounter_mystery_weathered_stone_altar	Raw Assets/Mystery Events/Weathered Stone Altar.jpeg	0.50	0.50	Mystery event art showing a weathered stone altar
-encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Assets/Destinations/Merchant's Shop.jpeg	0.50	0.50	Destination art showing a merchant shop
-encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50	Destination art showing an alchemist shop
-encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50	Destination art showing a campfire
-encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50	Destination art showing a corruption altar
+# kind	id	asset_name	source_path	focal_x	focal_y
+combatant	alchemist	hero_alchemist_card	Raw Assets/Heroes/Alchemist.jpeg	0.50	0.50
+combatant	druid	hero_druid_card	Raw Assets/Heroes/Druid.jpeg	0.50	0.50
+combatant	knight	hero_knight_card	Raw Assets/Heroes/Knight.png	0.50	0.50
+combatant	ranger	hero_ranger_card	Raw Assets/Heroes/Ranger.jpeg	0.50	0.50
+combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.png	0.50	0.34
+combatant	warlock	hero_warlock_card	Raw Assets/Heroes/Warlock.jpeg	0.50	0.50
+combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.png	0.50	0.50
+combatant	wolf	companion_wolf_card	Raw Assets/Companions/Wolf.jpeg	0.50	0.36
+combatant	bear	companion_bear_card	Raw Assets/Companions/Bear.jpeg	0.50	0.50
+combatant	frost_whelp	companion_frost_whelp_card	Raw Assets/Companions/Frost Whelp.jpeg	0.50	0.50
+combatant	lizard_scout	companion_lizard_scout_card	Raw Assets/Companions/Lizard Scout.png	0.50	0.50
+combatant	panther	companion_panther_card	Raw Assets/Companions/Panther.jpeg	0.50	0.50
+combatant	phoenix	companion_phoenix_card	Raw Assets/Companions/Phoenix.jpeg	0.50	0.50
+combatant	golden_retriever	companion_golden_retriever_card	Raw Assets/Companions/Golden Retriever.jpeg	0.50	0.50
+combatant	library_owl	companion_library_owl_card	Raw Assets/Companions/Library Owl.jpeg	0.50	0.50
+combatant	risen_skeleton	companion_risen_skeleton_card	Raw Assets/Companions/Risen Skeleton.jpeg	0.50	0.50
+combatant	mana_moth	companion_mana_moth_card	Raw Assets/Companions/Mana Moth.jpeg	0.50	0.50
+ability	acid-potion	ability_acid_potion	Raw Assets/Abilities/Acid Potion.jpeg	0.50	0.50
+ability	antivenom-potion	ability_antivenom_potion	Raw Assets/Abilities/Antivenom Potion.jpeg	0.50	0.50
+ability	anvil	ability_anvil	Raw Assets/Abilities/Anvil.png	0.50	0.50
+ability	apple	ability_apple	Raw Assets/Abilities/Apple.png	0.50	0.50
+ability	bash	ability_bash	Raw Assets/Abilities/Bash.png	0.50	0.50
+ability	blackjack	ability_blackjack	Raw Assets/Abilities/Blackjack.jpeg	0.50	0.50
+ability	blessed-aegis	ability_blessed_aegis	Raw Assets/Abilities/Blessed Aegis.jpeg	0.50	0.50
+ability	blizzard	ability_blizzard	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.50
+ability	block	ability_block	Raw Assets/Abilities/Block.png	0.50	0.50
+ability	blood-offering	ability_blood_offering	Raw Assets/Abilities/Blood Offering.jpeg	0.50	0.50
+ability	bloodthorn	ability_bloodthorn	Raw Assets/Abilities/Bloodthorn.jpeg	0.50	0.50
+ability	bounty-shot	ability_bounty_shot	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50
+ability	bread	ability_bread	Raw Assets/Abilities/Bread.png	0.50	0.50
+ability	briar-shield	ability_briar_shield	Raw Assets/Abilities/Briar Shield.jpeg	0.50	0.50
+ability	burning-blade	ability_burning_blade	Raw Assets/Abilities/Burning Blade.jpeg	0.50	0.50
+ability	cauterize	ability_cauterize	Raw Assets/Abilities/Cauterize.jpeg	0.50	0.50
+ability	caustic-jab	ability_caustic_jab	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50
+ability	cinderbloom	ability_cinderbloom	Raw Assets/Abilities/Cinderbloom.jpeg	0.50	0.50
+ability	cleanse	ability_cleanse	Raw Assets/Abilities/Cleanse.jpeg	0.50	0.50
+ability	cold-snap	ability_cold_snap	Raw Assets/Abilities/Cold Snap.jpeg	0.50	0.50
+ability	combustion	ability_combustion	Raw Assets/Abilities/Combustion.jpeg	0.50	0.50
+ability	concussive-shot	ability_concussive_shot	Raw Assets/Abilities/Concussive Shot.jpeg	0.50	0.50
+ability	crystal-bulwark	ability_crystal_bulwark	Raw Assets/Abilities/Crystal Bulwark.jpeg	0.50	0.50
+ability	dark-pact	ability_dark_pact	Raw Assets/Abilities/Dark Pact.jpeg	0.50	0.50
+ability	exorcism	ability_exorcism	Raw Assets/Abilities/Exorcism.jpeg	0.50	0.50
+ability	fangs	ability_fangs	Raw Assets/Abilities/Fangs.png	0.50	0.50
+ability	faustian-bargain	ability_faustian_bargain	Raw Assets/Abilities/Faustian Bargain.jpeg	0.50	0.50
+ability	fire-arrow	ability_fire_arrow	Raw Assets/Abilities/Fire Arrow.jpeg	0.50	0.50
+ability	fireball	ability_fireball	Raw Assets/Abilities/Fireball.jpeg	0.50	0.50
+ability	frostbolt	ability_frostbolt	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.50
+ability	gamblers-shot	ability_gamblers_shot	Raw Assets/Abilities/Gambler's Shot.jpeg	0.50	0.50
+ability	glacial-ward	ability_glacial_ward	Raw Assets/Abilities/Glacial Ward.jpeg	0.50	0.50
+ability	golden-plate	ability_golden_plate	Raw Assets/Abilities/Golden Plate.jpeg	0.50	0.50
+ability	grasping-vines	ability_grasping_vines	Raw Assets/Abilities/Grasping Vines.jpeg	0.50	0.50
+ability	haste	ability_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
+ability	heal	ability_heal	Raw Assets/Abilities/Heal.jpeg	0.50	0.50
+ability	health-potion	ability_health_potion	Raw Assets/Abilities/Health Potion.png	0.50	0.50
+ability	hemorrhage	ability_hemorrhage	Raw Assets/Abilities/Hemorrhage.jpeg	0.50	0.50
+ability	holy-radiance	ability_holy_radiance	Raw Assets/Abilities/Holy Radiance.jpeg	0.50	0.50
+ability	ice-shot	ability_ice_shot	Raw Assets/Abilities/Ice Shot.jpeg	0.50	0.50
+ability	judgment	ability_judgment	Raw Assets/Abilities/Judgment.jpeg	0.50	0.50
+ability	kindling	ability_kindling	Raw Assets/Abilities/Kindling.jpeg	0.50	0.50
+ability	lightning-arrow	ability_lightning_arrow	Raw Assets/Abilities/Lightning Arrow.jpeg	0.50	0.50
+ability	lightning-bolt	ability_lightning_bolt	Raw Assets/Abilities/Lightning Bolt.jpeg	0.50	0.50
+ability	luck-potion	ability_luck_potion	Raw Assets/Abilities/Luck Potion.jpeg	0.50	0.50
+ability	mana-bulwark	ability_mana_bulwark	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50
+ability	mana-berries	ability_mana_berries	Raw Assets/Abilities/Mana Berries.png	0.50	0.50
+ability	mana-crystals	ability_mana_crystals	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
+ability	mana-potion	ability_mana_potion	Raw Assets/Abilities/Mana Potion.png	0.50	0.50
+ability	mana-shield	ability_mana_shield	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50
+ability	meteor	ability_meteor	Raw Assets/Abilities/Meteor.jpeg	0.50	0.50
+ability	molten-bulwark	ability_molten_bulwark	Raw Assets/Abilities/Molten Bulwark.jpeg	0.50	0.50
+ability	pack-tactics	ability_pack_tactics	Raw Assets/Abilities/Pack Tactics.jpeg	0.50	0.50
+ability	panacea-potion	ability_panacea_potion	Raw Assets/Abilities/Panacea Potion.png	0.50	0.50
+ability	phoenix-feather	ability_phoenix_feather	Raw Assets/Abilities/Phoenix Feather.jpeg	0.50	0.50
+ability	pixie-dust	ability_pixie_dust	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
+ability	plate-mail	ability_plate_mail	Raw Assets/Abilities/Plate Mail.png	0.50	0.50
+ability	poison-dagger	ability_poison_dagger	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50
+ability	prayer	ability_prayer	Raw Assets/Abilities/Prayer.jpeg	0.50	0.50
+ability	predators-haste	ability_predators_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
+ability	ray-of-frost	ability_ray_of_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
+ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Slash.png	0.50	0.50
+ability	roulette	ability_roulette	Raw Assets/Abilities/Roulette.jpeg	0.50	0.50
+ability	sage-heal	ability_sage_heal	Raw Assets/Abilities/Heal.jpeg	0.50	0.50
+ability	sanctified-plate	ability_sanctified_plate	Raw Assets/Abilities/Sanctified Plate.jpeg	0.50	0.50
+ability	sap-arrow	ability_sap_arrow	Raw Assets/Abilities/Sap Arrow.jpeg	0.50	0.50
+ability	serrated-arrowhead	ability_serrated_arrowhead	Raw Assets/Abilities/Serrated Arrowhead.jpeg	0.50	0.50
+ability	serrated-edge	ability_serrated_edge	Raw Assets/Abilities/Serrated Edge.jpeg	0.50	0.50
+ability	shield-bash	ability_shield_bash	Raw Assets/Abilities/Shield Bash.jpeg	0.50	0.50
+ability	slash	ability_slash	Raw Assets/Abilities/Slash.png	0.50	0.50
+ability	smelling-salts	ability_smelling_salts	Raw Assets/Abilities/Smelling Salts.jpeg	0.50	0.50
+ability	smite	ability_smite	Raw Assets/Abilities/Smite.jpeg	0.50	0.50
+ability	sniff-out	ability_sniff_out	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50
+ability	spiked-shield	ability_spiked_shield	Raw Assets/Abilities/Spiked Shield.jpeg	0.50	0.50
+ability	stab	ability_stab	Raw Assets/Abilities/Stab.png	0.50	0.50
+ability	stargaze	ability_stargaze	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
+ability	steal	ability_steal	Raw Assets/Abilities/Steal.jpeg	0.50	0.50
+ability	stoneskin-potion	ability_stoneskin_potion	Raw Assets/Abilities/Stoneskin Potion.jpeg	0.50	0.50
+ability	sunburst	ability_sunburst	Raw Assets/Abilities/Sunburst.png	0.50	0.50
+ability	sunder-armor	ability_sunder_armor	Raw Assets/Abilities/Sunder Armor.jpeg	0.50	0.50
+ability	thorn-mail	ability_thorn_mail	Raw Assets/Abilities/Thorn Mail.jpeg	0.50	0.50
+ability	tithe	ability_tithe	Raw Assets/Abilities/Tithe.jpeg	0.50	0.50
+ability	venom-arrow	ability_venom_arrow	Raw Assets/Abilities/Venom Arrow.jpeg	0.50	0.50
+ability	venom-fangs	ability_venom_fangs	Raw Assets/Abilities/Venom Fangs.jpeg	0.50	0.50
+ability	wise-frost	ability_wise_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
+item	crossbow-astral	item_crossbow_astral	Raw Assets/Gear/Crossbow - Astral.jpeg	0.50	0.50
+item	crossbow-basic	item_crossbow_basic	Raw Assets/Gear/Crossbow - Basic.jpeg	0.50	0.50
+item	dagger-astral	item_dagger_astral	Raw Assets/Gear/Dagger - Astral.jpeg	0.50	0.50
+item	dagger-basic	item_dagger_basic	Raw Assets/Gear/Dagger - Basic.jpeg	0.50	0.50
+item	double_axe-astral	item_double_axe_astral	Raw Assets/Gear/Double Axe - Astral.jpeg	0.50	0.50
+item	double_axe-basic	item_double_axe_basic	Raw Assets/Gear/Double Axe - Basic.jpeg	0.50	0.50
+item	emerald_amulet-astral	item_emerald_amulet_astral	Raw Assets/Gear/Emerald Amulet - Astral.jpeg	0.50	0.50
+item	emerald_amulet-basic	item_emerald_amulet_basic	Raw Assets/Gear/Emerald Amulet - Basic.jpeg	0.50	0.50
+item	emerald_ring-astral	item_emerald_ring_astral	Raw Assets/Gear/Emerald Ring - Astral.jpeg	0.50	0.50
+item	emerald_ring-basic	item_emerald_ring_basic	Raw Assets/Gear/Emerald Ring - Basic.jpeg	0.50	0.50
+item	flail-astral	item_flail_astral	Raw Assets/Gear/Flail - Astral.jpeg	0.50	0.50
+item	flail-basic	item_flail_basic	Raw Assets/Gear/Flail - Basic.jpeg	0.50	0.50
+item	greatsword-astral	item_greatsword_astral	Raw Assets/Gear/Greatsword - Astral.jpeg	0.50	0.50
+item	greatsword-basic	item_greatsword_basic	Raw Assets/Gear/Greatsword - Basic.jpeg	0.50	0.50
+item	hatchet-astral	item_hatchet_astral	Raw Assets/Gear/Hatchet - Astral.jpeg	0.50	0.50
+item	hatchet-basic	item_hatchet_basic	Raw Assets/Gear/Hatchet - Basic.jpeg	0.50	0.50
+item	kite_shield-astral	item_kite_shield_astral	Raw Assets/Gear/Kite Shield - Astral.jpeg	0.50	0.50
+item	kite_shield-basic	item_kite_shield_basic	Raw Assets/Gear/Kite Shield - Basic.jpeg	0.50	0.50
+item	leather_armor-astral	item_leather_armor_astral	Raw Assets/Gear/Leather Armor - Astral.jpeg	0.50	0.50
+item	leather_armor-basic	item_leather_armor_basic	Raw Assets/Gear/Leather Armor - Basic.jpeg	0.50	0.50
+item	longbow-astral	item_longbow_astral	Raw Assets/Gear/Longbow - Astral.jpeg	0.50	0.50
+item	longbow-basic	item_longbow_basic	Raw Assets/Gear/Longbow - Basic.jpeg	0.50	0.50
+item	longsword-astral	item_longsword_astral	Raw Assets/Gear/Longsword - Astral.jpeg	0.50	0.50
+item	longsword-basic	item_longsword_basic	Raw Assets/Gear/Longsword - Basic.jpeg	0.50	0.50
+item	mace-astral	item_mace_astral	Raw Assets/Gear/Mace - Astral.jpeg	0.50	0.50
+item	mace-basic	item_mace_basic	Raw Assets/Gear/Mace - Basic.jpeg	0.50	0.50
+item	maul-astral	item_maul_astral	Raw Assets/Gear/Maul - Astral.jpeg	0.50	0.50
+item	maul-basic	item_maul_basic	Raw Assets/Gear/Maul - Basic.jpeg	0.50	0.50
+item	plate_armor-astral	item_plate_armor_astral	Raw Assets/Gear/Plate Armor - Astral.jpeg	0.50	0.50
+item	plate_armor-basic	item_plate_armor_basic	Raw Assets/Gear/Plate Armor - Basic.jpeg	0.50	0.50
+item	recurve_bow-astral	item_recurve_bow_astral	Raw Assets/Gear/Recurve Bow - Astral.jpeg	0.50	0.50
+item	recurve_bow-basic	item_recurve_bow_basic	Raw Assets/Gear/Recurve Bow - Basic.jpeg	0.50	0.50
+item	ruby_amulet-astral	item_ruby_amulet_astral	Raw Assets/Gear/Ruby Amulet - Astral.jpeg	0.50	0.50
+item	ruby_amulet-basic	item_ruby_amulet_basic	Raw Assets/Gear/Ruby Amulet - Basic.jpeg	0.50	0.50
+item	ruby_ring-astral	item_ruby_ring_astral	Raw Assets/Gear/Ruby Ring - Astral.jpeg	0.50	0.50
+item	ruby_ring-basic	item_ruby_ring_basic	Raw Assets/Gear/Ruby Ring - Basic.jpeg	0.50	0.50
+item	sapphire_amulet-astral	item_sapphire_amulet_astral	Raw Assets/Gear/Sapphire Amulet - Astral.jpeg	0.50	0.50
+item	sapphire_amulet-basic	item_sapphire_amulet_basic	Raw Assets/Gear/Sapphire Amulet - Basic.jpeg	0.50	0.50
+item	sapphire_ring-astral	item_sapphire_ring_astral	Raw Assets/Gear/Sapphire Ring - Astral.jpeg	0.50	0.50
+item	sapphire_ring-basic	item_sapphire_ring_basic	Raw Assets/Gear/Sapphire Ring - Basic.jpeg	0.50	0.50
+item	shortbow-astral	item_shortbow_astral	Raw Assets/Gear/Shortbow - Astral.jpeg	0.50	0.50
+item	shortbow-basic	item_shortbow_basic	Raw Assets/Gear/Shortbow - Basic.jpeg	0.50	0.50
+item	shortsword-astral	item_shortsword_astral	Raw Assets/Gear/Shortsword - Astral.jpeg	0.50	0.50
+item	shortsword-basic	item_shortsword_basic	Raw Assets/Gear/Shortsword - Basic.jpeg	0.50	0.50
+item	spellbook-astral	item_spellbook_astral	Raw Assets/Gear/Spellbook - Astral.jpeg	0.50	0.50
+item	spellbook-basic	item_spellbook_basic	Raw Assets/Gear/Spellbook - Basic.jpeg	0.50	0.50
+item	staff-astral	item_staff_astral	Raw Assets/Gear/Staff - Astral.jpeg	0.50	0.50
+item	staff-basic	item_staff_basic	Raw Assets/Gear/Staff - Basic.jpeg	0.50	0.50
+item	topaz_amulet-astral	item_topaz_amulet_astral	Raw Assets/Gear/Topaz Amulet - Astral.jpeg	0.50	0.50
+item	topaz_amulet-basic	item_topaz_amulet_basic	Raw Assets/Gear/Topaz Amulet - Basic.jpeg	0.50	0.50
+item	topaz_ring-astral	item_topaz_ring_astral	Raw Assets/Gear/Topaz Ring - Astral.jpeg	0.50	0.50
+item	topaz_ring-basic	item_topaz_ring_basic	Raw Assets/Gear/Topaz Ring - Basic.jpeg	0.50	0.50
+item	wand-astral	item_wand_astral	Raw Assets/Gear/Wand - Astral.jpeg	0.50	0.50
+item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50
+slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50
+slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50
+slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50
+combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpg	0.50	0.50
+combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpg	0.50	0.50
+combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpg	0.50	0.50
+combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpg	0.50	0.50
+combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpg	0.50	0.50
+combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpg	0.50	0.50
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpg	0.50	0.50
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpg	0.50	0.50
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpg	0.50	0.50
+combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50
+combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50
+combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50
+combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50
+combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50
+combatant	pixie	companion_pixie_card	Raw Assets/Companions/Pixie.jpeg	0.50	0.50
+combatant	shield_scarab	companion_shield_scarab_card	Raw Assets/Companions/Shield Scarab.jpeg	0.50	0.50
+background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50
+background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.png	0.50	0.50
+background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.png	0.50	0.50
+background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.png	0.50	0.50
+background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.png	0.50	0.50
+background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Pasture.jpeg	0.50	0.50
+background	culinaryArts	bg_homestead_culinary_arts	Raw Assets/Homestead/Culinary Arts.jpeg	0.50	0.50
+background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith's Forge.png	0.50	0.50
+background	woolTailoring	bg_homestead_wool_tailoring	Raw Assets/Homestead/Wool Tailoring.jpeg	0.50	0.50
+background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.png	0.50	0.50
+background	botanicalDistillation	bg_homestead_botanical_distillation	Raw Assets/Homestead/Botanical Distillation.jpeg	0.50	0.50
+background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.png	0.50	0.50
+background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.png	0.50	0.50
+background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's Lodge.jpeg	0.50	0.50
+background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50
+background	detectMagic	bg_homestead_detect_magic	Raw Assets/Homestead/Detect Magic.jpeg	0.50	0.50
+background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50
+resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50
+resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50
+resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.50	0.50
+resource	food	resource_homestead_food	Raw Assets/Homestead/Resources/food.png	0.50	0.50
+resource	herbs	resource_homestead_herbs	Raw Assets/Homestead/Resources/herbs.png	0.50	0.50
+resource	crystal	resource_homestead_crystal	Raw Assets/Homestead/Resources/crystal.png	0.50	0.50
+resource	gold	resource_homestead_gold	Raw Assets/Homestead/Resources/gold.png	0.50	0.50
+encounter	mystery-amethyst-geode	encounter_mystery_amethyst_geode	Raw Assets/Mystery Events/Amethyst Geode.jpeg	0.50	0.50
+encounter	mystery-bioluminescent-mushrooms	encounter_mystery_bioluminescent_mushrooms	Raw Assets/Mystery Events/Bioluminescent Mushrooms.jpeg	0.50	0.50
+encounter	mystery-circle-of-glowing-mushrooms	encounter_mystery_circle_of_glowing_mushrooms	Raw Assets/Mystery Events/Circle of Glowing Mushrooms.jpeg	0.50	0.50
+encounter	mystery-dusty-shelves-in-tower	encounter_mystery_dusty_shelves_in_tower	Raw Assets/Mystery Events/Dusty Shelves in Tower.jpeg	0.50	0.50
+encounter	mystery-field-of-glowing-mana-berries	encounter_mystery_field_of_glowing_mana_berries	Raw Assets/Mystery Events/Field of Glowing Mana Berries.jpeg	0.50	0.50
+encounter	mystery-gold-coins-among-bones	encounter_mystery_gold_coins_among_bones	Raw Assets/Mystery Events/Gold Coins among Bones.jpeg	0.50	0.50
+encounter	mystery-leather-book-floats	encounter_mystery_leather_book_floats	Raw Assets/Mystery Events/Leather Book Floats.jpeg	0.50	0.50
+encounter	mystery-leather-bundle-between-roots	encounter_mystery_leather_bundle_between_roots	Raw Assets/Mystery Events/Leather Bundle Between Roots.jpeg	0.50	0.50
+encounter	mystery-narrow-pass-through-peaks	encounter_mystery_narrow_pass_through_peaks	Raw Assets/Mystery Events/Narrow Pass Through Peaks.jpeg	0.50	0.50
+encounter	mystery-oak-tree-with-face	encounter_mystery_oak_tree_with_face	Raw Assets/Mystery Events/Oak Tree with Face.jpeg	0.50	0.50
+encounter	mystery-pond-reflects-gnarled-trees	encounter_mystery_pond_reflects_gnarled_trees	Raw Assets/Mystery Events/Pond Reflects Gnarled Trees.jpeg	0.50	0.50
+encounter	mystery-pool-of-water-steams	encounter_mystery_pool_of_water_steams	Raw Assets/Mystery Events/Pool of Water Steams.jpeg	0.50	0.50
+encounter	mystery-smoldering-crater	encounter_mystery_smoldering_crater	Raw Assets/Mystery Events/Smoldering Crater.jpeg	0.50	0.50
+encounter	mystery-sunlight-breaks-canopy	encounter_mystery_sunlight_breaks_canopy	Raw Assets/Mystery Events/Sunlight Breaks Canopy.jpeg	0.50	0.50
+encounter	mystery-vines-carpet-mosaic-floors	encounter_mystery_vines_carpet_mosaic_floors	Raw Assets/Mystery Events/Vines Carpet Mosaic Floors.jpeg	0.50	0.50
+encounter	mystery-weathered-stone-altar	encounter_mystery_weathered_stone_altar	Raw Assets/Mystery Events/Weathered Stone Altar.jpeg	0.50	0.50
+encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Assets/Destinations/Merchant's Shop.jpeg	0.50	0.50
+encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50
+encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50
+encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
+background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Game Mode Campaign.png	0.50	0.76
+background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Game Mode Explore.png	0.50	0.78
+background	rewardChestClosed	reward_chest_closed	Raw Assets/Misc/Reward Chest.png	0.50	0.50
+background	rewardChestOpen	reward_chest_open	Raw Assets/Misc/Reward Chest Open.png	0.50	0.50

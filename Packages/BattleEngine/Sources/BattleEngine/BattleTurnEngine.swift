@@ -167,7 +167,7 @@ extension BattleTurnEngine {
                 actor: actor,
                 abilityTarget: abilityTarget,
                 hero: matchup.hero,
-                pet: matchup.pet,
+                companion: matchup.companion,
                 enemy: matchup.enemy,
                 context: context
             )
@@ -179,7 +179,7 @@ extension BattleTurnEngine {
                    actor: actor,
                    enemy: matchup.enemy,
                    hero: matchup.hero,
-                   pet: matchup.pet,
+                   companion: matchup.companion,
                    context: context
                ) {
                 amount += component.bonusAmount
@@ -310,7 +310,7 @@ extension BattleTurnEngine {
                    actor: actor,
                    enemy: matchup.enemy,
                    hero: matchup.hero,
-                   pet: matchup.pet,
+                   companion: matchup.companion,
                    context: context
                ) {
                 continue
@@ -322,7 +322,7 @@ extension BattleTurnEngine {
                 actor: actor,
                 abilityTarget: abilityTarget,
                 hero: matchup.hero,
-                pet: matchup.pet,
+                companion: matchup.companion,
                 enemy: matchup.enemy,
                 context: context
             )
@@ -375,8 +375,8 @@ extension BattleTurnEngine {
         guard var runtime = context.roster.runtime(for: actor) else { return [] }
         runtime.markActed()
         context.roster.update(runtime)
-        if actor.id == context.roster.pet.id {
-            return CombatReactionEngine.afterPetActed(in: &context)
+        if actor.id == context.roster.companion.id {
+            return CombatReactionEngine.afterCompanionActed(in: &context)
         }
         return []
     }
@@ -386,7 +386,7 @@ extension BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Combatant,
         context: BattleEngineContext
     ) -> Combatant {
@@ -399,13 +399,13 @@ extension BattleTurnEngine {
             return enemy
         case .hero:
             return hero
-        case .pet:
-            return pet
+        case .companion:
+            return companion
         case .lowestHealthAlly:
             if actor.role == .enemy {
                 return enemy
             }
-            return BattleConditionEvaluator.lowestHealthAlly(hero: hero, pet: pet, context: context)
+            return BattleConditionEvaluator.lowestHealthAlly(hero: hero, companion: companion, context: context)
         }
     }
 }

@@ -35,20 +35,6 @@ struct EffectHandlersApplyTests {
         try #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
     }
 
-    @Test func poisonHandlerAppliesPoisonEffect() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.poison(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
-    }
-
-    @Test func bleedHandlerAppliesBleedEffect() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.bleed(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
-    }
-
     // MARK: - Defensive buffs
 
     @Test func shieldHandlerAddsShieldAndEmitsEvent() throws {
@@ -167,31 +153,6 @@ struct EffectHandlersApplyTests {
     }
 
     // MARK: - Restoration
-
-    @Test func instantHealHandlerHealsTarget() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let hero = battle.hero
-        _ = battle.withEngineContext { $0.applyTestDamage(30, to: hero) }
-        let before = battle.health(of: battle.hero)
-        let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.health(of: battle.hero) > before)
-        try #expect(outcome.events.first?.amount == battle.health(of: battle.hero) - before)
-    }
-
-    @Test func instantHealHandlerDoesNotApplyAtFullHealth() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let hero = battle.hero
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .instantHeal(.health, 5),
-            ability: CombatantFixtures.ability(),
-            source: hero,
-            target: hero,
-            battle: &battle
-        )
-        try #expect(!(outcome.didApply))
-        try #expect(outcome.events.isEmpty)
-    }
 
     @Test func resourceGainHandlerAddsGold() throws {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)

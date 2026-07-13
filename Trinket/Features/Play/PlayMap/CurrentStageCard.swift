@@ -45,6 +45,8 @@ struct CurrentStageCard: View {
                         .clipped()
                 }
             }
+
+            .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
     }
 
     private var footerDock: some View {
@@ -66,14 +68,12 @@ struct CurrentStageCard: View {
             Text(stage.mapLabel.uppercased())
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
-                .accessibilityLabel(stage.mapLabel)
 
             Text(stage.encounterSubjectName)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
-                .accessibilityAddTraits(.isHeader)
         }
     }
 
@@ -102,7 +102,6 @@ struct CurrentStageCard: View {
             labelColor: TrinketDesign.Colors.Overlay.paper
         )
         .accessibilityIdentifier(StageMapID.stageAction(for: stage))
-        .accessibilityLabel("\(stage.mapLabel), \(stage.encounter.primaryActionTitle)")
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
@@ -123,11 +122,6 @@ struct CurrentStageCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(AccessibilityID.Play.stagePartyControl)
-        .accessibilityLabel("Choose party")
-        .accessibilityValue(
-            "Hero: \(appState.roster.activeHero.name), Pet: \(appState.roster.activePet.name)"
-        )
-        .accessibilityHint("Choose a different hero or pet")
     }
 
     @ViewBuilder
@@ -140,12 +134,11 @@ struct CurrentStageCard: View {
             // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
             .buttonStyle(.plain)
             .accessibilityIdentifier(stageArtAccessibilityIdentifier)
-            .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
+
         } else {
             EncounterArtwork(stage: stage)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityIdentifier(stageArtAccessibilityIdentifier)
-                .accessibilityHidden(true)
         }
     }
 
@@ -160,22 +153,25 @@ struct CurrentStageCard: View {
     }
 }
 
-/// Shared stage index + type meta (type tinted, no SF Symbol).
+/// Shared stage index + type meta, with an optional encounter icon for compact rows.
 struct StageMapMetaLine: View {
     let stage: Stage
     var role: TypographyRole = .caption
+    var showsEncounterIcon = false
 
     var body: some View {
         HStack(spacing: 4) {
             Text(stage.mapLabel)
             Text("·")
-                .accessibilityHidden(true)
+
             Text(stage.encounterTypeTitle)
                 .foregroundStyle(stage.encounter.mapTint)
+            if showsEncounterIcon {
+                Image(systemName: stage.encounter.symbolName)
+                    .foregroundStyle(stage.encounter.mapTint)
+            }
         }
         .trinketTypography(role)
         .foregroundStyle(.secondary)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(stage.mapMetaLabel)
     }
 }

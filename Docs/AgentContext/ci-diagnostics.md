@@ -1,0 +1,48 @@
+# CI failure diagnostics context
+
+Load this card only after a test, package, build, or CI invocation fails. Structured
+diagnostics are the first source of evidence; raw xcodebuild logs are a last resort.
+
+## Emitted reports
+
+Every test or package invocation writes an atomically completed
+`*-invocation.json` manifest in `.DerivedData/TestResults/`. It records the label,
+exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
+Failed invocations also produce bounded sibling reports:
+
+- `*-diagnostics.json` with the label, exit code, result-bundle path, classification,
+  actionable issues, structured-source availability, and terminal limits.
+- `*-diagnostics.md` with a human-readable summary.
+- `*-diagnostics.annotations` with GitHub Actions annotations.
+- `*-diagnostics.attachments/` when a bounded attachment is needed.
+
+Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
+`configuration`, `tooling`, or `unknown`. A failure report may identify source
+locations and attachments even when the underlying result bundle is incomplete.
+
+## Aggregate and triage order
+
+Run:
+
+```sh
+./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+```
+
+The command aggregates completion manifests and failure reports into
+`.DerivedData/TestResults/ci-diagnostics.json`; in CI it also writes the actionable
+summary to `GITHUB_STEP_SUMMARY`. It consumes the structured reports and does not
+reparse xcresult bundles. Cached status/diagnostic artifacts can be cleared at job
+start without deleting raw logs or xcresult bundles:
+
+```sh
+./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+```
+
+Coding agents should inspect the aggregate, then the referenced per-invocation JSON,
+Markdown, annotations, and attachments for the failure category, issue, source
+location, and suggested action. Inspect raw xcodebuild logs only when the aggregate
+category is `unknown` (or a report explicitly escalates to raw-log inspection).
+
+The test and package command scopes are unchanged: diagnostics describe the existing
+`test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
+verification or the pre-push/pre-merge gates.

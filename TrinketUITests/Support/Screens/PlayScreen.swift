@@ -8,8 +8,8 @@ struct PlayScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let element = app.descendants(matching: .any)[AccessibilityID.Screen.play]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Play screen not found", file: file, line: line)
+        let element = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
+        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Play mode screen not found", file: file, line: line)
     }
 
     func assertModeHub(
@@ -17,8 +17,7 @@ struct PlayScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let element = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Mode Hub not found", file: file, line: line)
+        assertLoaded(timeout: timeout, file: file, line: line)
     }
 
     func assertChapterHeader(
@@ -31,18 +30,32 @@ struct PlayScreen {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Chapter \(number) header not found", file: file, line: line)
     }
 
+    func assertCampaignLoaded(
+        number: Int = 1,
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: number)]
+        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Campaign Chapter \(number) not found", file: file, line: line)
+    }
+
     func openModeHub() {
-        // Last mode restores into a pushed destination; pop back to the hub root.
+        if app.descendants(matching: .any)[AccessibilityID.Play.modesScreen].exists {
+            return
+        }
+
+        // Be tolerant of a caller arriving from a nested Play destination.
         for _ in 0 ..< 4 {
             let back = app.navigationBars.buttons.element(boundBy: 0)
             guard back.waitForExistence(timeout: 1), back.isHittable else { break }
             back.tap()
             let hub = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
-            let play = app.descendants(matching: .any)[AccessibilityID.Screen.play]
-            if hub.exists, !play.exists {
+            if hub.exists {
                 return
             }
         }
+        assertModeHub()
     }
 
     func openCampaign() {
@@ -50,8 +63,36 @@ struct PlayScreen {
         app.buttons[AccessibilityID.Play.campaignModeCard].tap()
     }
 
+    func openExplore() {
+        openModeHub()
+        app.buttons[AccessibilityID.Play.exploreModeCard].tap()
+        assertElementExists(AccessibilityID.Play.exploreHub)
+    }
+
+    func openAspects() {
+        openExplore()
+        app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
+        assertElementExists(AccessibilityID.Play.aspectsHub)
+    }
+
+    func openLabyrinth() {
+        openExplore()
+        app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
+        assertElementExists(AccessibilityID.Play.labyrinthMap)
+    }
+
     func openStage(_ actionID: String) {
         app.buttons[actionID].tap()
+    }
+
+    private func assertElementExists(
+        _ identifier: String,
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.descendants(matching: .any)[identifier]
+        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)
     }
 
     func openStage(chapter: Int, stage: Int) {

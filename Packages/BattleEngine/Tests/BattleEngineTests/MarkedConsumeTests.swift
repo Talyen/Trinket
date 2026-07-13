@@ -16,7 +16,7 @@ struct MarkedConsumeTests {
         var context = BattleEngineContext(
             roster: BattleRoster(
                 hero: heroRuntime,
-                pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+                companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
                 enemy: enemyRuntime
             ),
             rng: SeededRandomNumberGenerator(seed: 1772),
@@ -26,7 +26,7 @@ struct MarkedConsumeTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero,
+            companionModifiers: .zero,
             enemyModifiers: .zero
         )
 

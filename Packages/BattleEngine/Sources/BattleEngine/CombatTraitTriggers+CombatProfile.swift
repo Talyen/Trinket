@@ -64,9 +64,9 @@ public extension CombatTraitTriggers {
             enemyStunnedHasteDurationTicks
         )
         profile.firstHitApplyMarked = profile.firstHitApplyMarked || firstHitApplyMarked
-        profile.petActLeechPercent += petActLeechPercent
-        profile.petActLeechDurationTicks = max(profile.petActLeechDurationTicks, petActLeechDurationTicks)
-        profile.petHealSharePercent += petHealSharePercent
+        profile.companionActLeechPercent += companionActLeechPercent
+        profile.companionActLeechDurationTicks = max(profile.companionActLeechDurationTicks, companionActLeechDurationTicks)
+        profile.companionHealSharePercent += companionHealSharePercent
         profile.onceBelowHealthPercentThreshold = max(
             profile.onceBelowHealthPercentThreshold,
             onceBelowHealthPercentThreshold

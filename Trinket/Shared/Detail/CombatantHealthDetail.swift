@@ -14,7 +14,6 @@ struct CombatHealthBar: View {
     let fillColor: Color
     var style: Style = .standard
     var height: CGFloat = TrinketDesign.Metrics.statBarHeight
-    var reduceMotion: Bool = false
 
     @State private var displayedHealth: Double
     @State private var trailingHealth: Double
@@ -26,15 +25,13 @@ struct CombatHealthBar: View {
         maxHealth: Int,
         fillColor: Color,
         style: Style = .standard,
-        height: CGFloat = TrinketDesign.Metrics.statBarHeight,
-        reduceMotion: Bool = false
+        height: CGFloat = TrinketDesign.Metrics.statBarHeight
     ) {
         self.health = health
         self.maxHealth = maxHealth
         self.fillColor = fillColor
         self.style = style
         self.height = height
-        self.reduceMotion = reduceMotion
         let initialHealth = Double(health)
         _displayedHealth = State(initialValue: initialHealth)
         _trailingHealth = State(initialValue: initialHealth)
@@ -106,14 +103,6 @@ struct CombatHealthBar: View {
 
     private func animateHealthChange(from oldValue: Int, to newValue: Int) {
         let newHealth = Double(newValue)
-
-        if reduceMotion {
-            displayedHealth = newHealth
-            trailingHealth = newHealth
-            restoreHealth = newHealth
-            restoreOpacity = 0
-            return
-        }
 
         if newValue < oldValue {
             withAnimation(.easeOut(duration: 0.22)) {

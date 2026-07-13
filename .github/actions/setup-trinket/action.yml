@@ -67,3 +67,7 @@ runs:
         fi
         echo "SwiftFormat $actual_swiftformat, SwiftLint $actual_swiftlint, XcodeGen $actual_xcodegen, and ripgrep $actual_ripgrep verified."
         echo "PATH=$PWD/.tools:$PATH" >> "$GITHUB_ENV"
+
+    - name: Clear cached test diagnostics
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults

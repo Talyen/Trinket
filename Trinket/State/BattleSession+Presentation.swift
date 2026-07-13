@@ -37,7 +37,7 @@ extension BattleSession {
     }
 
     func handleOutcomeIfNeeded(
-        at _: Date,
+        at date: Date,
         journey: JourneyProgressState,
         homestead: PlayerHomesteadState
     ) -> Int? {
@@ -56,8 +56,7 @@ extension BattleSession {
                 state: battleState,
                 homestead: homestead
             )
-            isShowingVictory = true
-            playSFX(SFXID.victory)
+            scheduleVictoryPresentation(after: date)
             return nil
         case .defeat:
             isShowingDefeat = true
@@ -68,6 +67,28 @@ extension BattleSession {
         }
     }
 
+    func scheduleVictoryPresentation(after date: Date) {
+        pendingVictoryPresentationTask?.cancel()
+        let latestFeedbackDelay = activeFeedbackItems
+            .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
+            .max() ?? 0
+        let spectacleDelay = max(TrinketMotion.Battle.cardActivationDuration, latestFeedbackDelay)
+            + TrinketMotion.Battle.outcomePresentationPadding
+        let delay = outcomePresentationDelayOverride ?? spectacleDelay
+        guard delay > 0 else {
+            isShowingVictory = true
+            playSFX(SFXID.victory)
+            return
+        }
+        pendingVictoryPresentationTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard let self, !Task.isCancelled, outcome == .victory else { return }
+            isShowingVictory = true
+            playSFX(SFXID.victory)
+            pendingVictoryPresentationTask = nil
+        }
+    }
+
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
         guard let state else {
@@ -75,13 +96,13 @@ extension BattleSession {
             return
         }
         let heroID = state.hero.id
-        let petID = state.pet.id
+        let companionID = state.companion.id
 
         if let ultimate = nonMilestone.first(where: {
             BattleSpectaclePolicy.shouldPresentUltimateCinematic(
                 for: $0,
                 heroID: heroID,
-                petID: petID
+                companionID: companionID
             )
         }) {
             let autoSkip = options?.shouldAutoSkipUltimateCinematic(
@@ -98,7 +119,7 @@ extension BattleSession {
         }
 
         recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
-        presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
+        presentCallouts(from: nonMilestone, heroID: heroID, companionID: companionID, at: date)
     }
 
     func beginCinematic(from event: ActionEvent, at date: Date) {
@@ -121,7 +142,7 @@ extension BattleSession {
     func presentCallouts(
         from events: [ActionEvent],
         heroID: String,
-        petID: String,
+        companionID: String,
         at date: Date
     ) {
         let calloutEvent = events.first {
@@ -129,7 +150,7 @@ extension BattleSession {
                 || BattleSpectaclePolicy.shouldPresentEnemyUltimateAsCallout(
                     for: $0,
                     heroID: heroID,
-                    petID: petID
+                    companionID: companionID
                 )
         }
         guard let calloutEvent else { return }
@@ -175,16 +196,21 @@ extension BattleSession {
     }
 
     /// Applies delayed haptics, SFX, hit reactions, and particle requests on the
-    /// same frame that a staggered feedback chip becomes visible.
+    /// same frame that a synchronized action group becomes visible.
     func scheduleFeedbackPresentation(for items: [CombatFeedbackItem], at date: Date) {
-        for item in items where item.availableAt > date {
-            pendingFeedbackPresentationTasks[item.id]?.cancel()
-            let delay = max(0, item.availableAt.timeIntervalSince(date))
-            pendingFeedbackPresentationTasks[item.id] = Task { @MainActor [weak self] in
+        let groups = Dictionary(grouping: items, by: \.actionGroupID)
+        for (actionGroupID, group) in groups {
+            guard let availableAt = group.first?.availableAt, availableAt > date else { continue }
+            pendingFeedbackPresentationTasks[actionGroupID]?.cancel()
+            let delay = max(0, availableAt.timeIntervalSince(date))
+            pendingFeedbackPresentationTasks[actionGroupID] = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(delay))
                 guard let self, !Task.isCancelled else { return }
-                self.applyImmediatePresentation(for: [item], at: .now)
-                self.pendingFeedbackPresentationTasks.removeValue(forKey: item.id)
+                let activeGroup = activeFeedbackItems.filter {
+                    $0.actionGroupID == actionGroupID
+                }
+                applyImmediatePresentation(for: activeGroup, at: .now)
+                pendingFeedbackPresentationTasks.removeValue(forKey: actionGroupID)
             }
         }
     }
@@ -210,8 +236,13 @@ extension BattleSession {
 
         for item in due {
             presentedFeedbackIDs.insert(item.id)
-            if let reaction = CombatFeedbackPresenter.reaction(for: [item]) {
-                hitReactionsByTargetID[item.targetID] = reaction
+        }
+
+        let groups = Dictionary(grouping: due, by: \.actionGroupID)
+        for group in groups.values {
+            if let reaction = CombatFeedbackPresenter.reaction(for: group),
+               let targetID = group.first?.targetID {
+                hitReactionsByTargetID[targetID] = reaction
             }
         }
 
@@ -272,7 +303,7 @@ extension BattleSession {
               let journey = autoEndJourney,
               let homestead = autoEndHomestead else { return }
 
-        let delay = Self.autoEndTurnDelay
+        let delay = autoEndTurnDelay
         pendingAutoEndTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard let self, !Task.isCancelled else { return }
@@ -291,10 +322,10 @@ extension BattleSession {
         cancelPendingAutoEnd()
         state = BattleState(
             hero: configuration.hero.combatant,
-            pet: configuration.pet.combatant,
+            companion: configuration.companion.combatant,
             enemy: configuration.enemy,
             heroModifiers: configuration.hero.modifiers,
-            petModifiers: configuration.pet.modifiers,
+            companionModifiers: configuration.companion.modifiers,
             enemyModifiers: configuration.enemyModifiers,
             rngSeed: configuration.rngSeed,
             tracksLog: false
@@ -308,7 +339,7 @@ extension BattleSession {
         playSFX(SFXID.abilityDraw) // opening hand
         BattleCinematicPlayer.shared.warmLoadout(
             heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
-            petUltimateID: configuration.pet.combatant.abilityLoadout.ultimate?.id
+            companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id
         )
     }
 

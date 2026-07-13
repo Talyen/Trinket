@@ -7,14 +7,14 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
 - `ContentManifest/abilities.tsv`: manifest-driven abilities (`direct_hit`, `buff_only`, `multi_damage`).
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
-- `ContentManifest/combatants.tsv`: manifest-driven heroes and pets (ability choices + stats).
+- `ContentManifest/combatants.tsv`: manifest-driven heroes and companions (ability choices + stats).
 - `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
 - `ContentManifest/item_bases.tsv`: manifest-driven weapon, armor, and trinket base types.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and pets from `combatants.tsv`.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and companions from `combatants.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
 - `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift`: generated item base catalog.
@@ -96,7 +96,7 @@ Tab-separated columns:
 id	name	role	max_health	max_mana	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
 ```
 
-- `role`: `hero` or `pet`.
+- `role`: `hero` or `companion`.
 - `max_mana`: `0` when unused.
 - `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
 - Stats are non-negative integers.

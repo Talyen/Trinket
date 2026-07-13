@@ -23,7 +23,7 @@ public struct BalanceTierStats: Sendable {
     public var averagePartyHPOnWin: Double
     public var averageEnemyHPOnLoss: Double
     public var heroes: [WinRateSummary]
-    public var pets: [WinRateSummary]
+    public var companions: [WinRateSummary]
     public var enemies: [WinRateSummary]
     public var abilities: [WinRateSummary]
     public var affixes: [WinRateSummary]
@@ -55,16 +55,16 @@ public enum BalanceStatsAggregator {
                     peerRate: overallRate,
                     threshold: threshold
                 ),
-                pets: margin(
+                companions: margin(
                     records: records,
-                    ids: { [$0.petID] },
+                    ids: { [$0.companionID] },
                     peerRate: overallRate,
                     threshold: threshold
                 ),
                 enemies: enemyMargins(records: records),
                 abilities: margin(
                     records: records,
-                    ids: { $0.heroAbilityIDs + $0.petAbilityIDs },
+                    ids: { $0.heroAbilityIDs + $0.companionAbilityIDs },
                     peerRate: overallRate,
                     threshold: threshold
                 ),
@@ -125,19 +125,19 @@ public enum BalanceStatsAggregator {
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int, boss: Bool)] = [:]
         for record in records {
-            var bucket = buckets[record.enemyID] ?? (0, 0, record.isBossOrElite)
+            var bucket = buckets[record.enemyID] ?? (0, 0, record.isBoss)
             bucket.battles += 1
             if record.result.isVictory {
                 bucket.wins += 1
             }
-            bucket.boss = record.isBossOrElite
+            bucket.boss = record.isBoss
             buckets[record.enemyID] = bucket
         }
 
         return buckets.sorted { $0.key < $1.key }.map { id, bucket in
             let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
             let ci = wilson(wins: bucket.wins, battles: bucket.battles)
-            let band = targetBand(isBossOrElite: bucket.boss, tier: records.first?.tier ?? .early)
+            let band = targetBand(isBoss: bucket.boss, tier: records.first?.tier ?? .early)
             let inBand = rate >= band.lower && rate <= band.upper
             let flagged = !inBand && bucket.battles >= 10
             let reason: String? = if flagged {
@@ -166,10 +166,10 @@ public enum BalanceStatsAggregator {
     }
 
     private static func targetBand(
-        isBossOrElite: Bool,
+        isBoss: Bool,
         tier: SimulationPowerTier
     ) -> (lower: Double, upper: Double) {
-        if isBossOrElite {
+        if isBoss {
             return (0.70, 0.80)
         }
         switch tier {

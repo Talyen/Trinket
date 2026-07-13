@@ -6,7 +6,7 @@ public extension Combatant.Role {
         switch self {
         case .hero:
             [.weapon, .armor, .trinket]
-        case .pet:
+        case .companion:
             [.trinket, .armor, .secondaryTrinket]
         case .enemy:
             []

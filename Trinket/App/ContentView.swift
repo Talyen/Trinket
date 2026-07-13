@@ -83,10 +83,8 @@ struct ContentView: View {
     private func tabRoot(selection: Binding<AppTab>) -> some View {
         TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
-                NavigationStack {
-                    PlayView()
-                }
-                .battleTabBarVisibility(appState.battle.activeBattle != nil)
+                PlayView()
+                    .battleTabBarVisibility(appState.battle.activeBattle != nil)
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {

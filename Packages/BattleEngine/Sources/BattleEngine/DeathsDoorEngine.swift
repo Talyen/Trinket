@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Intrinsic battle rule: hero and pet each get one Death's Door proc per battle.
+/// Intrinsic battle rule: hero and companion each get one Death's Door proc per battle.
 package enum DeathsDoorEngine {
     public static func applies(to combatant: Combatant) -> Bool {
-        combatant.role == .hero || combatant.role == .pet
+        combatant.role == .hero || combatant.role == .companion
     }
 
     public static func isActive(for combatant: Combatant, in context: BattleEngineContext) -> Bool {

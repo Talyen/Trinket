@@ -22,10 +22,9 @@ struct CombatantArtwork: View {
                     .resizable()
                     .interpolation(interpolation)
                     .modifier(ArtFillModifier(variant: variant))
-                    .accessibilityLabel(artReference.accessibilityLabel)
+
             } else {
                 placeholderArt
-                    .accessibilityLabel("\(combatant.name) placeholder art")
             }
         }
         .modifier(BattleFrameModifier(variant: variant))
@@ -47,7 +46,7 @@ struct CombatantArtwork: View {
     private var placeholderArt: some View {
         let style: TrinketDesign.CardPlaceholderStyle = switch combatant.role {
         case .hero: .hero
-        case .pet: .pet
+        case .companion: .companion
         case .enemy: .enemy
         }
         return ZStack {
@@ -57,7 +56,6 @@ struct CombatantArtwork: View {
                 .font(.system(size: placeholderIconSize, weight: .semibold))
                 .foregroundStyle(style.color)
                 .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
         }
     }
 

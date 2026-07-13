@@ -4,7 +4,7 @@ cutpurse	Cutpurse	Increases Gold gained by 1.	gold_gained:1
 arcane_focus	Arcane Focus	Increases Burn and Freeze damage dealt by 1.	damage_dealt:burn:1|damage_dealt:freeze:1	
 reinforced_formula	Reinforced Formula	Increases Health restored by 1.	health_restored:1	
 thornskin	Thornskin	Decreases Poison and Bleed damage taken by 10%.	damage_taken_percent:poison:0.10|damage_taken_percent:bleed:0.10	
-pack_leader	Pack Leader	Increases Pet damage dealt by 1.	pet_damage_dealt:1	
+pack_leader	Pack Leader	Increases Companion damage dealt by 1.	companion_damage_dealt:1	
 soul_siphon	Soul Siphon	Increases Leech duration by 2.	leech_duration:2	
 thick_hide	Thick Hide	Increases Maximum Health by 2.	maximum_health:2	
 permafrost	Permafrost	Increases Freeze damage dealt by 1.	damage_dealt:freeze:1	

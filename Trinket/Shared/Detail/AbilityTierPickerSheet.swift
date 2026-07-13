@@ -6,76 +6,88 @@ import TrinketDesignSystem
 struct AbilityTierPickerSheet: View {
     let combatant: Combatant
     let tier: AbilityTier
-    @Binding var loadout: AbilityLoadout
-    @Environment(AppState.self) private var appState
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var selectedAbilityID: String?
+    let selectedAbilityID: String?
+    let onOpenDetail: (Ability) -> Void
 
     private var abilities: [Ability] {
-        combatant.abilityChoices.abilities(for: tier)
+        let tierAbilities = combatant.abilityChoices.abilities(for: tier)
+        guard
+            let selectedAbilityID,
+            let selected = tierAbilities.first(where: { $0.id == selectedAbilityID })
+        else {
+            return tierAbilities
+        }
+
+        return [selected] + tierAbilities.filter { $0.id != selectedAbilityID }
     }
 
     var body: some View {
-        List {
-            Section {
+        ScrollView {
+            LazyVGrid(
+                columns: TrinketDesign.Metrics.partyPickerGridItems,
+                spacing: TrinketDesign.Metrics.largeSpacing
+            ) {
                 ForEach(abilities) { ability in
-                    Button {
-                        selectedAbilityID = ability.id
-                        loadout = loadout.selecting(ability)
-                        dismiss()
-                    } label: {
-                        let isSelected = ability.id == (selectedAbilityID ?? selectedAbility?.id)
-                        HStack(spacing: 14) {
-                            AbilityChoiceCard(ability: ability, showsName: false)
-                                .frame(height: HeroHeaderLayout.pickerRowCardHeight)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(ability.name)
-                                    .trinketTypography(.cardTitle)
-                                    .foregroundStyle(.primary)
-
-                                KeywordDescriptionText(text: ability.summary)
-                                    .trinketTypography(.secondaryBody)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-
-                            Spacer()
-
-                            if isSelected {
-                                Image(systemName: "checkmark")
-                                    .trinketTypography(.button)
-                                    .foregroundStyle(TrinketDesign.Colors.selection)
-                                    .accessibilityHidden(true)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("\(tier.rawValue) \(ability.name) ability card")
-                    .accessibilityValue(ability.id == (selectedAbilityID ?? selectedAbility?.id) ? "Selected" : "Available")
+                    optionButton(ability)
                 }
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .trinketSensoryFeedback(
-            .selection,
-            trigger: selectedAbilityID,
-            enabled: appState.options.hapticsEnabled
-        )
-        .trinketScreenBackground(.modal)
+        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
         .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var selectedAbility: Ability? {
-        if let selected = loadout.ability(for: tier),
-           let ability = abilities.first(where: { $0.id == selected.id }) {
-            return ability
-        }
+    private func optionButton(_ ability: Ability) -> some View {
+        let isSelected = ability.id == selectedAbilityID
 
-        return abilities.first
+        return Button {
+            onOpenDetail(ability)
+        } label: {
+            ZStack(alignment: .bottomLeading) {
+                AbilityChoiceCard(
+                    ability: ability,
+                    showsName: false
+                )
+
+                TrinketHeroScrim.gradient(for: .detailHeader)
+                    .clipShape(TrinketDesign.cardShape)
+
+                Text(ability.name)
+                    .trinketTypography(.cardTitle)
+                    .trinketOnArtText(.title)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .padding(TrinketDesign.Metrics.mediumSpacing)
+
+                if isSelected {
+                    selectedCheckmark
+                }
+            }
+            .clipShape(TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape.strokeBorder(
+                    isSelected ? TrinketDesign.Colors.selection : .clear,
+                    lineWidth: isSelected ? 3 : 0
+                )
+            }
+        }
+        .buttonStyle(ArtworkNavigationCardButtonStyle())
+        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityCandidate(ability.id))
+    }
+
+    private var selectedCheckmark: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Image(systemName: "checkmark")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(TrinketDesign.Colors.selection)
+                    .trinketGlassChip(.compact)
+            }
+            Spacer()
+        }
+        .padding(TrinketDesign.Metrics.smallSpacing)
     }
 }

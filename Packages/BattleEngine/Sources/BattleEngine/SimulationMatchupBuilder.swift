@@ -21,15 +21,15 @@ public enum SimulationMatchupBuilder {
 
     public static func build(
         hero: Combatant,
-        pet: Combatant,
+        companion: Combatant,
         enemy: Enemy,
         tier: SimulationPowerTier,
         heroLoadout: AbilityLoadout,
-        petLoadout: AbilityLoadout,
+        companionLoadout: AbilityLoadout,
         seed: UInt64,
         loadoutSampleIndex: Int = 0,
         heroGear: GearOverride? = nil,
-        petGear: GearOverride? = nil,
+        companionGear: GearOverride? = nil,
         gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator()
     ) -> ConfiguredSimulationMatchup {
@@ -48,10 +48,10 @@ public enum SimulationMatchupBuilder {
             request: requestBase.with(idPrefix: "sim-hero", gearOverride: heroGear),
             using: &rng
         )
-        let petPrepared = preparePartyMember(
-            pet,
-            loadout: petLoadout,
-            request: requestBase.with(idPrefix: "sim-pet", gearOverride: petGear),
+        let companionPrepared = preparePartyMember(
+            companion,
+            loadout: companionLoadout,
+            request: requestBase.with(idPrefix: "sim-companion", gearOverride: companionGear),
             using: &rng
         )
 
@@ -61,23 +61,23 @@ public enum SimulationMatchupBuilder {
         let context = SimulationBuildContext(
             tier: tier,
             heroLoadout: heroPrepared.loadout,
-            petLoadout: petPrepared.loadout,
+            companionLoadout: companionPrepared.loadout,
             loadoutSampleIndex: loadoutSampleIndex,
             seed: seed,
             heroAffixIDs: heroPrepared.affixIDs,
-            petAffixIDs: petPrepared.affixIDs
+            companionAffixIDs: companionPrepared.affixIDs
         )
 
         return ConfiguredSimulationMatchup(
             hero: heroPrepared.build.combatant,
-            pet: petPrepared.build.combatant,
+            companion: companionPrepared.build.combatant,
             enemy: scaledEnemy,
             heroModifiers: heroPrepared.build.modifiers,
-            petModifiers: petPrepared.build.modifiers,
+            companionModifiers: companionPrepared.build.modifiers,
             enemyModifiers: enemyBuild.modifiers,
             context: context,
             enemyID: enemy.id,
-            isBoss: enemy.isBoss || enemy.isElite
+            isBoss: enemy.isBoss
         )
     }
 
