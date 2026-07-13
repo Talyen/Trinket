@@ -42,8 +42,28 @@ struct BattleSessionSimulationTests {
         #expect(session.outcome == .victory)
         #expect(session.victorySummary != nil)
         #expect(!session.isShowingVictory)
+        #expect(!session.canRetreat)
         try await Task.sleep(for: .milliseconds(80))
         #expect(session.isShowingVictory)
+        #expect(!session.canRetreat)
+    }
+
+    @Test func canRetreatIsFalseOnceOutcomeIsDecidedBeforeChromeAppears() throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = BattleSession(outcomePresentationDelayOverride: 0.05)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        #expect(session.canRetreat)
+        BattleSessionTestSupport.driveUntilOutcome(session)
+
+        #expect(session.outcome == .victory)
+        #expect(!session.isShowingVictory)
+        #expect(!session.canRetreat)
     }
 
     @Test func playCardCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {

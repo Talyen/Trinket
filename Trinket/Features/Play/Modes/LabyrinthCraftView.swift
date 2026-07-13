@@ -39,8 +39,9 @@ struct LabyrinthCraftView: View {
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftForge)
 
                 Button {
-                    appState.leaveActiveLabyrinthCraftWithoutForging()
-                    dismiss()
+                    if appState.leaveActiveLabyrinthCraftWithoutForging() {
+                        dismiss()
+                    }
                 } label: {
                     Text("Leave without forging")
                         .frame(maxWidth: .infinity)

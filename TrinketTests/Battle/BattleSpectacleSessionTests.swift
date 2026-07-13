@@ -41,6 +41,51 @@ struct BattleSpectacleSessionTests {
         #expect(callout.expiresAt > now)
     }
 
+    @Test func ultimateKillingBlowDefersVictoryUntilCinematicCollapse() throws {
+        // Only Bloodthorn in the deck so draw cycling cannot kill before the Ultimate.
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            abilities: [.bloodthorn]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 5,
+                abilities: []
+            )
+        )
+        let options = try OptionsStore(
+            defaults: #require(UserDefaults(suiteName: "BattleSpectacleKillCinematic.\(UUID().uuidString)"))
+        )
+        options.ultimateCinematicSkipPolicy = .always
+        session.options = options
+
+        let now = Date()
+        _ = BattleSessionTestSupport.playAbility(
+            Ability.bloodthorn.id,
+            on: session,
+            at: now
+        )
+
+        #expect(session.outcome == .victory)
+        #expect(session.activeCinematic != nil)
+        #expect(session.victorySummary != nil)
+        #expect(!session.isShowingVictory)
+        #expect(!session.canRetreat)
+
+        session.markCinematicPlaying()
+        session.beginCinematicCollapse()
+        session.completeCinematicCollapse(at: now.addingTimeInterval(1))
+
+        #expect(session.activeCinematic == nil)
+        #expect(session.isShowingVictory)
+        #expect(!session.canRetreat)
+    }
+
     @Test func playingHeroUltimateDefersFeedbackUntilCinematicCompletes() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",

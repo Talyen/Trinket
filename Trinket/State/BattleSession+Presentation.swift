@@ -32,6 +32,33 @@ extension BattleSession {
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
         recordFeedbackEvents(deferred, at: date, stagger: TrinketMotion.Battle.ultimateChipStagger)
+        presentDeferredOutcomeIfNeeded(at: date)
+    }
+
+    /// Outcome chrome (or claimed-stage auto-complete) waits until Ultimate collapse finishes.
+    private func presentDeferredOutcomeIfNeeded(at date: Date) {
+        switch outcome {
+        case .victory:
+            if let journey = autoEndJourney,
+               Self.stageRewardsAlreadyClaimed(
+                stageID: activeBattle?.stageID,
+                journey: journey
+               ) {
+                onTurnAutoEnded?(state?.earnedGold ?? 0)
+                return
+            }
+            if victorySummary != nil, !isShowingVictory {
+                scheduleVictoryPresentation(after: date)
+                return
+            }
+        case .defeat:
+            if !isShowingDefeat {
+                scheduleDefeatPresentation(after: date)
+                return
+            }
+        case .none:
+            break
+        }
         scheduleAutoEndIfNeeded()
     }
 
@@ -53,6 +80,10 @@ extension BattleSession {
                 stageID: configuration.stageID,
                 journey: journey
             ) {
+                // Keep the Ultimate on screen; collapse fires claimed-stage auto-complete.
+                if activeCinematic != nil {
+                    return nil
+                }
                 return state?.earnedGold ?? 0
             }
             guard let battleState = state else { return nil }
@@ -61,10 +92,15 @@ extension BattleSession {
                 state: battleState,
                 homestead: homestead
             )
-            scheduleVictoryPresentation(after: date)
+            // Defer outcome chrome until Ultimate collapse so the killing blow finishes.
+            if activeCinematic == nil {
+                scheduleVictoryPresentation(after: date)
+            }
             return nil
         case .defeat:
-            scheduleDefeatPresentation(after: date)
+            if activeCinematic == nil {
+                scheduleDefeatPresentation(after: date)
+            }
             return nil
         case .none:
             return nil

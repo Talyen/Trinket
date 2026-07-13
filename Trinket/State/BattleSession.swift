@@ -112,6 +112,12 @@ final class BattleSession {
             && !isShowingVictory && !isShowingDefeat
     }
 
+    /// Retreat is closed once the fight is decided, including the spectacle hold
+    /// before victory/defeat chrome appears.
+    var canRetreat: Bool {
+        activeBattle != nil && outcome == nil
+    }
+
     var hasPlayableCard: Bool {
         hand.contains { isCardPlayable($0) }
     }
