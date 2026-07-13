@@ -15,8 +15,9 @@ This card adds the CI/project-generation exceptions:
   wrapper tests so a single verification run does not regenerate the project repeatedly.
 - Do not run wrapper tests in parallel: `test.sh` may invoke XcodeGen and concurrent
   generation collides. Use a filtered command for intentionally narrow work; an affected
-  player flow needs `./Scripts/test.sh smoke <Class>`, while bare `smoke` is only the
-  local Homestead canary.
+  player flow needs only `./Scripts/test.sh smoke <SmokeClass>` during feature iteration.
+  Bare `smoke` is the pre-push Homestead canary; global style, full unit, `smoke-full`,
+  and exhaustive UI suites remain pre-push or CI checks.
 - Use `--no-build` only after a matching successful build; the wrappers reject stale
   inputs. Without Xcode 26/simulator, run the applicable generation, generated-output,
   boundary, style, and CI-gate checks and report skipped build/test work.

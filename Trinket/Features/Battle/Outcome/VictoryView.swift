@@ -234,10 +234,9 @@ private struct RewardItemRevealCard: View {
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             ItemArtwork(item: item, contentMode: .fit)
+                .clipShape(TrinketDesign.cardShape)
                 .frame(maxWidth: .infinity)
                 .frame(height: 260)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
 
             VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 TrinketRarityLabel(rarity: item.rarity)

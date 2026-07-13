@@ -61,6 +61,7 @@ private struct ChapterStageRow: View {
             EncounterArtwork(stage: presentation.stage)
                 // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps the five-stage path compact.
                 .frame(width: 74, height: 55.5)
+                .trinketArtworkBlend(.perimeter(into: .surface))
                 .clipShape(TrinketDesign.cardShape)
 
             VStack(alignment: .leading, spacing: 3) {

@@ -110,7 +110,8 @@ private struct ChapterJourneyHero: View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
             overscroll: overscroll,
-            alignment: .bottomLeading
+            alignment: .bottomLeading,
+            artworkBlend: .bottom(into: .canvas)
         ) {
             if let art {
                 Image(art.imageName)
@@ -121,29 +122,20 @@ private struct ChapterJourneyHero: View {
                 chapter.theme.tint
             }
         } overlay: {
-            ZStack(alignment: .bottomLeading) {
-                TrinketHeroScrim.gradient(
-                    for: .chapter,
-                    startPoint: .init(x: 0.5, y: 0.42),
-                    endPoint: .bottom
-                )
-                .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Chapter \(chapter.number)".uppercased())
+                    .trinketTypography(.eyebrow)
+                    .trinketOnArtText(.eyebrow)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Chapter \(chapter.number)".uppercased())
-                        .trinketTypography(.eyebrow)
-                        .trinketOnArtText(.eyebrow)
-
-                    Text(chapter.title)
-                        .trinketTypography(.screenDisplay)
-                        .trinketOnArtText(.title)
-                        .accessibilityIdentifier(
-                            AccessibilityID.Play.chapterTitle(number: chapter.number)
-                        )
-                }
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, 16)
+                Text(chapter.title)
+                    .trinketTypography(.screenDisplay)
+                    .trinketOnArtText(.title)
+                    .accessibilityIdentifier(
+                        AccessibilityID.Play.chapterTitle(number: chapter.number)
+                    )
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.bottom, 16)
         }
     }
 }

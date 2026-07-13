@@ -55,18 +55,23 @@ trinket_classify_paths
 trinket_build_verification_plan
 commands=()
 if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then commands=("${TRINKET_VERIFICATION_COMMANDS[@]}"); fi
-needs_smoke="$TRINKET_NEEDS_SMOKE"
+smoke_target_unresolved="$TRINKET_SMOKE_TARGET_UNRESOLVED"
 
 if [[ ${#commands[@]} -eq 0 ]]; then
   echo "No source verification selected for the current changes."
-  echo "Review docs/tooling changes directly; use ci-gate or a task-specific command when appropriate."
+  if [[ "$smoke_target_unresolved" == true ]]; then
+    echo "UI note: no single smoke owner could be inferred; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke."
+    echo "Run that focused smoke target directly before handoff."
+  else
+    echo "Review docs/tooling changes directly; use ci-gate or a task-specific command when appropriate."
+  fi
   exit 0
 fi
 
 echo "Verification plan (sequential):"
 printf '  %s\n' "${commands[@]}"
-if [[ "$needs_smoke" == true ]]; then
-  echo "UI note: bare smoke is only the Homestead canary; run ./Scripts/test.sh smoke <Class> for the affected flow."
+if [[ "$smoke_target_unresolved" == true ]]; then
+  echo "UI note: no single smoke owner could be inferred for every path; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke."
 fi
 if [[ "$DRY_RUN" == true ]]; then
   exit 0

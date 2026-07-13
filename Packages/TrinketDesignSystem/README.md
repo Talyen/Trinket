@@ -12,6 +12,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, homestead, resource, chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
 | `HeroScrim.swift` | Hero art scrims and on-art text styling |
+| `ArtworkBlend.swift` | Optional semantic perimeter and bottom-edge artwork blending |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
 | `HomesteadTint+Color.swift` | Homestead node tint resolution |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution |
@@ -77,8 +78,11 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |
+| `.trinketArtworkBlend(_:)` | Optional `.perimeter` or `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
+
+Artwork blends should replace an overlapping edge scrim rather than stack with it. Use `.perimeter(into:)` for bounded thumbnails and cards, `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
 Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/Skills/apple-design/SKILL.md` (`TrinketMotion`). Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays (`VisualFoundation.swift` surface roles above).

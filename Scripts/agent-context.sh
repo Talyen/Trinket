@@ -90,6 +90,7 @@ print_json() {
   printf '"boundary_warnings":'; json_array TRINKET_BOUNDARY_WARNINGS; printf ','
   printf '"generated_warnings":'; json_array TRINKET_GENERATED_WARNINGS; printf ','
   printf '"verification_commands":'; json_array TRINKET_VERIFICATION_COMMANDS; printf ','
+  printf '"smoke_targets":'; json_array TRINKET_SMOKE_TARGETS; printf ','
   printf '"flags":{'
   printf '"content":'; json_bool "$TRINKET_HAS_CONTENT"; printf ','
   printf '"assets":'; json_bool "$TRINKET_HAS_ASSETS"; printf ','
@@ -98,7 +99,8 @@ print_json() {
   printf '"app_state":'; json_bool "$TRINKET_HAS_APP_STATE"; printf ','
   printf '"feature":'; json_bool "$TRINKET_HAS_FEATURE"; printf ','
   printf '"audio":'; json_bool "$TRINKET_HAS_AUDIO"; printf ','
-  printf '"docs_or_tools":'; json_bool "$TRINKET_HAS_DOCS_OR_TOOLS"
+  printf '"docs_or_tools":'; json_bool "$TRINKET_HAS_DOCS_OR_TOOLS"; printf ','
+  printf '"smoke_target_unresolved":'; json_bool "$TRINKET_SMOKE_TARGET_UNRESOLVED"
   printf '}'
   printf '}'
   printf '\n'
@@ -152,8 +154,8 @@ print_agent() {
   else
     printf '  (none; review docs/tooling directly)\n'
   fi
-  if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
-    printf 'UI note: bare smoke is only the Homestead canary; use ./Scripts/test.sh smoke <Class> for the affected flow.\n'
+  if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
+    printf 'UI note: no single smoke owner could be inferred for every path; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke.\n'
   fi
 }
 

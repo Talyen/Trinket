@@ -28,7 +28,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 2,
-                    flavorText: "A broad shape steps from the brush, watching the trail with calm, patient eyes.",
+                    flavorText: "Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.",
                     encounter: .mysteryEvent(eventID: "recruit-bear"),
                     rewards: StageReward(
                         gold: 8,
@@ -54,7 +54,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    flavorText: "A quick-footed Rogue waits in the shadows, offering a hand and a hidden blade.",
+                    flavorText: "A silent figure shadows the trail from above, leaving warning marks where the path grows dangerous.",
                     encounter: .mysteryEvent(eventID: "recruit-rogue"),
                     rewards: StageReward(
                         gold: 5,
@@ -101,7 +101,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 2,
-                    flavorText: "A battered shield rests against the dungeon wall. A Knight steps from the torchlight and offers a solemn nod.",
+                    flavorText: "A battered shield rests against the dungeon wall while an armored silhouette waits beyond the torchlight.",
                     encounter: .mysteryEvent(eventID: "recruit-knight"),
                     rewards: StageReward(
                         gold: 10,
@@ -174,7 +174,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 2,
-                    flavorText: "A ruined lectern still keeps its place among the trees.",
+                    flavorText: "Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.",
                     encounter: .mysteryEvent(eventID: "recruit-library-owl"),
                     rewards: StageReward(
                         gold: 8,

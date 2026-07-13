@@ -31,24 +31,24 @@ public enum RecruitMysteryEventPool {
         recruit(
             id: "recruit-bear",
             combatantID: "bear",
-            title: "A Guardian in the Brush",
-            narrative: "A broad shape steps from the brush, watching the trail with calm, patient eyes. The bear turns toward your camp and waits.",
+            title: "Footsteps in the Brush",
+            narrative: "Something broad moves between the trees, never quite stepping into the light. Calm eyes follow your party from the leaves, and a low rustle answers when you call out.",
             choiceID: "welcome",
-            choiceLabel: "Stand with us."
+            choiceLabel: "Offer a place by the fire."
         ),
         recruit(
             id: "recruit-knight",
             combatantID: "knight",
-            title: "A Shield in the Dark",
-            narrative: "A Knight emerges from the dungeon shadows, shield scarred and sword lowered. They offer a quiet nod toward the road ahead.",
+            title: "The Scarred Shield",
+            narrative: "A battered shield rests against the dungeon wall. From beyond the torchlight, an armored silhouette approaches with weapon lowered and waits in solemn silence.",
             choiceID: "welcome",
             choiceLabel: "Hold the line."
         ),
         recruit(
             id: "recruit-rogue",
             combatantID: "rogue",
-            title: "A Blade in the Undergrowth",
-            narrative: "A figure drops from the canopy without a sound, already counting the coins on your belt. They grin, sheath a knife, and nod toward the darker trail ahead.",
+            title: "A Shadow Overhead",
+            narrative: "Branches stir without wind. A cloaked silhouette drops soundlessly onto the trail, returns a purse you never noticed missing, and gestures toward the dangers ahead.",
             choiceID: "welcome",
             choiceLabel: "Watch my back."
         ),
@@ -127,8 +127,8 @@ public enum RecruitMysteryEventPool {
         recruit(
             id: "recruit-library-owl",
             combatantID: "library_owl",
-            title: "The Night Librarian",
-            narrative: "An owl blinks from a ruined lectern, a ribbon still marking a page in a water-stained tome. It hoots once, as if grading your posture.",
+            title: "The Watcher at the Lectern",
+            narrative: "Pages turn on their own atop a ruined lectern. From the rafters, two bright eyes study your party before a small shadow glides down beside the open book.",
             choiceID: "welcome",
             choiceLabel: "Share your wisdom."
         ),

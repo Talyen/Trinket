@@ -9,8 +9,6 @@ struct MysteryEncounterView: View {
     @State private var selectedDetail: CombatantDetailContext?
     @State private var artAppeared = false
     @State private var narrativeAppeared = false
-    @State private var revealCardScale: CGFloat = 0.86
-    @State private var revealCardOpacity: Double = 0
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
 
@@ -36,11 +34,6 @@ struct MysteryEncounterView: View {
         }
         .onAppear {
             presentReadingEntrance()
-        }
-        .onChange(of: session.phase) { _, newPhase in
-            if newPhase == .revealing {
-                presentRevealEntrance()
-            }
         }
     }
 
@@ -91,12 +84,11 @@ struct MysteryEncounterView: View {
 
     @ViewBuilder
     private var recruitArtwork: some View {
-        if let combatant = session.combatant {
-            CombatantArtwork(combatant: combatant, variant: .hero)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+        if session.combatant != nil {
+            EncounterArtwork(stage: recruitArtworkStage)
+                .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
-                .frame(maxWidth: .infinity)
 
         } else {
             TrinketDesign.cardShape
@@ -109,6 +101,18 @@ struct MysteryEncounterView: View {
                 }
                 .frame(maxWidth: .infinity)
         }
+    }
+
+    private var recruitArtworkStage: Stage {
+        Stage(
+            id: session.stage.id,
+            chapterID: session.stage.chapterID,
+            chapterNumber: session.stage.chapterNumber,
+            stageNumber: session.stage.stageNumber,
+            flavorText: session.stage.flavorText,
+            encounter: .mysteryEvent(eventID: session.event.id),
+            rewards: session.stage.rewards
+        )
     }
 
     @ViewBuilder
@@ -129,7 +133,7 @@ struct MysteryEncounterView: View {
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
             onPrimaryAction: appState.finishActiveMysteryEncounter,
-            pinsPrimaryActionToBottom: false
+            pinsPrimaryActionToBottom: true
         )
         .onAppear {
             unlockFeedbackTrigger += 1
@@ -156,8 +160,6 @@ struct MysteryEncounterView: View {
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
                 .frame(maxWidth: 430)
-                .scaleEffect(revealCardScale)
-                .opacity(revealCardOpacity)
             }
             // UIStyleCheck: allow - Unlock art opens detail without button chrome.
             .buttonStyle(.plain)
@@ -180,15 +182,6 @@ struct MysteryEncounterView: View {
         }
         withAnimation(.easeOut(duration: 0.4).delay(0.08)) {
             narrativeAppeared = true
-        }
-    }
-
-    private func presentRevealEntrance() {
-        revealCardScale = 0.86
-        revealCardOpacity = 0
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
-            revealCardScale = 1
-            revealCardOpacity = 1
         }
     }
 }

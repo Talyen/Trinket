@@ -33,7 +33,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
     }
 
-    func testHeroRecruitRevealOpensDetail() {
+    func testHeroRecruitChoiceRevealsAndOpensDetail() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -43,16 +43,17 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             "mystery"
         ]
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
-            + TestLaunchArg.mysteryRecruit(eventID: "recruit-knight"))
+            + TestLaunchArg.mysteryRecruit(eventID: "recruit-rogue"))
 
         assertExists(AccessibilityID.Mystery.encounterTitle)
+        XCTAssertEqual(any(AccessibilityID.Mystery.welcomeButton).label, "Watch my back.")
         tapButton(AccessibilityID.Mystery.welcomeButton)
 
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW HERO")
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Knight"))
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Rogue"))
         assertDoesNotExist(AccessibilityID.Mystery.unlockSubtitle)
         XCTAssertFalse(app.staticTexts["View Details"].exists)
-        button(AccessibilityID.Mystery.unlockCard(name: "Knight")).tap()
-        combatantDetail.assertLoaded(for: "Knight")
+        button(AccessibilityID.Mystery.unlockCard(name: "Rogue")).tap()
+        combatantDetail.assertLoaded(for: "Rogue")
     }
 }

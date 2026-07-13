@@ -27,4 +27,10 @@ Before handoff, run the path-scoped checks:
 
 Use `--dry-run` only when previewing an unfamiliar or potentially expensive route. Do not parallelize `test.sh` wrapper invocations.
 
+- For a small UI feature confined to one screen or flow, run only the closest focused smoke target selected by the router (`./Scripts/test.sh smoke <SmokeClass>`). Prefer `SmokeClass/testMethod` when one method directly owns the behavior. Do not run bare smoke, the full unit suite, `smoke-full`, exhaustive UI tests, or global style checks for that iteration; those belong to pre-push or CI gates.
+- If no existing smoke class closely covers the changed behavior, add or update one focused smoke test and run only that class. Do not use the unrelated Homestead canary as a substitute.
+- Before starting a build or test wrapper, check whether another repository build or test run is already active.
+- Never terminate a build or test process you did not start merely to run your own checks. Wait 30 seconds, check again, and repeat until the active run finishes before starting yours.
+- You may terminate only processes started by your own agent. If another agent's run appears stale or hung, inspect its elapsed time and available output, then report or coordinate the suspected hang instead of killing it. Do not use broad process cleanup commands such as `pkill`, `killall`, or simulator shutdown while another run may be active.
+
 If verification fails, follow `Docs/AgentContext/ci-diagnostics.md` and use its structured reports before opening raw logs.

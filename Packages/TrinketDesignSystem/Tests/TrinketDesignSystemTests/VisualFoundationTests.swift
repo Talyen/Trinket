@@ -32,4 +32,19 @@ struct VisualFoundationTests {
         try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)
         try #expect(HomesteadPalette.accent == ThemePalette.trinket.accent)
     }
+
+    @Test func artworkBlendDestinationsUseSemanticSurfaces() throws {
+        try #expect(ArtworkBlendDestination.canvas.color == TrinketDesign.Colors.canvas)
+        try #expect(ArtworkBlendDestination.surface.color == TrinketDesign.Colors.surface)
+        try #expect(ArtworkBlendDestination.panel.color == TrinketDesign.Colors.panel)
+        try #expect(ArtworkBlendDestination.elevated.color == TrinketDesign.Colors.elevated)
+    }
+
+    @Test func artworkBlendRecipesPreserveAProtectedCenter() throws {
+        try #expect(ArtworkBlendRecipe.perimeterShoulderLocation < ArtworkBlendRecipe.perimeterInnerLocation)
+        try #expect(ArtworkBlendRecipe.perimeterInnerLocation < 0.5)
+        try #expect(ArtworkBlendRecipe.bottomClearLocation < ArtworkBlendRecipe.bottomShoulderLocation)
+        try #expect(ArtworkBlendRecipe.bottomShoulderLocation < ArtworkBlendRecipe.bottomNearEdgeLocation)
+        try #expect(ArtworkBlendRecipe.bottomNearEdgeLocation < 1)
+    }
 }

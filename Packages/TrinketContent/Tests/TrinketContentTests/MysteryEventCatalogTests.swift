@@ -44,6 +44,31 @@ struct MysteryEventCatalogTests {
         try #expect(Set(unlockIDs.filter { expectedCompanions.contains($0) }) == expectedCompanions)
     }
 
+    @Test func chapterRecruitCopyKeepsCombatantIdentityMysterious() throws {
+        for stage in GameContent.chapters.flatMap(\.stages) {
+            guard let eventID = stage.encounter.mysteryEventID,
+                  let event = RecruitMysteryEventPool.event(matching: eventID),
+                  let combatant = GameContent.combatant(forMysteryEvent: event) else {
+                continue
+            }
+
+            let copy = [stage.flavorText, event.title, event.narrative]
+                .joined(separator: " ")
+                .lowercased()
+            let identityWords = combatant.name
+                .lowercased()
+                .split(separator: " ")
+                .filter { $0.count > 3 }
+
+            for identityWord in identityWords {
+                try #expect(
+                    !copy.contains(identityWord),
+                    "Chapter recruit event \(event.id) gives away \(combatant.name)"
+                )
+            }
+        }
+    }
+
     @Test func allMysteryEventsHaveUniqueChoiceIDs() throws {
         for event in GameContent.mysteryEvents {
             let choiceIDs = event.choices.map(\.id)

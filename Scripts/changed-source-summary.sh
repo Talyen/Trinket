@@ -48,6 +48,7 @@ if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
 fi
 
 trinket_classify_paths
+trinket_build_verification_plan
 authored=()
 omitted=()
 packages=()
@@ -57,8 +58,6 @@ if (( ${#TRINKET_PACKAGES[@]} > 0 )); then packages=("${TRINKET_PACKAGES[@]}"); 
 has_content="$TRINKET_HAS_CONTENT"
 has_assets="$TRINKET_HAS_ASSETS"
 has_project="$TRINKET_HAS_PROJECT"
-has_swift="$TRINKET_HAS_SWIFT"
-has_app_state="$TRINKET_HAS_APP_STATE"
 has_feature="$TRINKET_HAS_FEATURE"
 has_audio="$TRINKET_HAS_AUDIO"
 has_docs_or_tools="$TRINKET_HAS_DOCS_OR_TOOLS"
@@ -90,12 +89,11 @@ if [[ "$PATH_MODE" == "explicit" ]]; then
 else
   echo "Suggested verification (preview with ./Scripts/verify-changed.sh --dry-run)"
 fi
-if [[ "$has_content" == true ]]; then echo "  ./Scripts/generate.sh"; fi
-if [[ "$has_assets" == true ]]; then echo "  ./Scripts/generate.sh --assets"; fi
-if [[ "$has_project" == true ]]; then echo "  ./Scripts/generate.sh"; fi
-if [[ "$has_swift" == true ]]; then echo "  ./Scripts/test.sh style"; fi
-if (( ${#packages[@]} > 0 )); then
-  for package in "${packages[@]}"; do echo "  ./Scripts/test-package.sh $package"; done
+if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
+  printf '  %s\n' "${TRINKET_VERIFICATION_COMMANDS[@]}"
+else
+  echo "  (none; review docs/tooling directly)"
 fi
-if [[ "$has_app_state" == true || "$has_audio" == true ]]; then echo "  ./Scripts/test.sh unit"; fi
-if [[ "$has_feature" == true ]]; then echo "  ./Scripts/test.sh smoke <Class> (bare smoke is only the Homestead canary)"; fi
+if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
+  echo "  UI note: choose the closest existing Smoke* class or add focused coverage; do not substitute bare smoke."
+fi

@@ -43,11 +43,12 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 7. Verify with the AGENTS Task→Command Router (toolchain permitting):
    - **Package-only** change → `./Scripts/test-package.sh <Package>`
    - **App orchestration** → `./Scripts/test.sh unit <Class>` (or full `./Scripts/test.sh unit` when cross-cutting)
-   - **UI** → `./Scripts/test.sh smoke` (canary); full unit / smoke-full remain pre-push / CI via `ci-locally.sh` / PR workflows
+   - **Small UI feature** → only `./Scripts/test.sh smoke <SmokeClass>` for the closest affected screen or flow; use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
+   - **Cross-cutting UI** → run only the affected focused smoke classes during iteration. Global style, full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
 
 ## UI tests (summary)
 
-Local/agent default: `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`). Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
+Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`) and is a pre-push gate, not a generic feature check. Agents use `./Scripts/test.sh smoke <SmokeClass>` for the affected feature. Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix.
 

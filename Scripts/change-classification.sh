@@ -16,6 +16,7 @@ TRINKET_AGENT_GUIDES=()
 TRINKET_BOUNDARY_WARNINGS=()
 TRINKET_GENERATED_WARNINGS=()
 TRINKET_VERIFICATION_COMMANDS=()
+TRINKET_SMOKE_TARGETS=()
 
 TRINKET_HAS_CONTENT=false
 TRINKET_HAS_ASSETS=false
@@ -32,6 +33,7 @@ TRINKET_NEEDS_PROJECT_GENERATION=false
 TRINKET_NEEDS_STYLE=false
 TRINKET_NEEDS_UNIT=false
 TRINKET_NEEDS_SMOKE=false
+TRINKET_SMOKE_TARGET_UNRESOLVED=false
 
 trinket_add_unique() {
   local array_name="$1"
@@ -54,6 +56,7 @@ trinket_add_agent_guide() { trinket_add_unique TRINKET_AGENT_GUIDES "$1"; }
 trinket_add_boundary_warning() { trinket_add_unique TRINKET_BOUNDARY_WARNINGS "$1"; }
 trinket_add_generated_warning() { trinket_add_unique TRINKET_GENERATED_WARNINGS "$1"; }
 trinket_add_command() { trinket_add_unique TRINKET_VERIFICATION_COMMANDS "$1"; }
+trinket_add_smoke_target() { trinket_add_unique TRINKET_SMOKE_TARGETS "$1"; }
 
 trinket_collect_paths() {
   local path_mode="${1:-working-tree}"
@@ -84,6 +87,7 @@ trinket_reset_classification() {
   TRINKET_BOUNDARY_WARNINGS=()
   TRINKET_GENERATED_WARNINGS=()
   TRINKET_VERIFICATION_COMMANDS=()
+  TRINKET_SMOKE_TARGETS=()
 
   TRINKET_HAS_CONTENT=false
   TRINKET_HAS_ASSETS=false
@@ -100,6 +104,39 @@ trinket_reset_classification() {
   TRINKET_NEEDS_STYLE=false
   TRINKET_NEEDS_UNIT=false
   TRINKET_NEEDS_SMOKE=false
+  TRINKET_SMOKE_TARGET_UNRESOLVED=false
+}
+
+trinket_classify_smoke_target() {
+  local path="$1"
+
+  case "$path" in
+    Trinket/Features/Battle/*)
+      trinket_add_smoke_target SmokeBattleTests
+      ;;
+    Trinket/Features/Collection/*)
+      trinket_add_smoke_target SmokeCollectionTests
+      ;;
+    Trinket/Features/Homestead/*)
+      trinket_add_smoke_target SmokeHomesteadTests
+      ;;
+    Trinket/Features/Play/Shop/*)
+      trinket_add_smoke_target SmokeShopTests
+      ;;
+    Trinket/Features/Play/PlayView.swift|Trinket/Features/Play/Modes/PlayModeHubView.swift)
+      trinket_add_smoke_target SmokePlayTests
+      ;;
+    Trinket/Shared/Detail/*)
+      trinket_add_smoke_target SmokeHeroDetailTests
+      ;;
+    TrinketUITests/Smoke/*.swift)
+      local target="${path##*/}"
+      trinket_add_smoke_target "${target%.swift}"
+      ;;
+    *)
+      TRINKET_SMOKE_TARGET_UNRESOLVED=true
+      ;;
+  esac
 }
 
 trinket_classify_path() {
@@ -173,20 +210,21 @@ trinket_classify_path() {
       if [[ "$path" == Trinket/Audio/* ]]; then TRINKET_HAS_AUDIO=true; fi
       if [[ "$path" == Trinket/State/* || "$path" == Trinket/App/* || "$path" == Trinket/BattleShell/* ]]; then TRINKET_HAS_APP_STATE=true; fi
       ;;
+    Docs/*|*.md|Scripts/*|.github/*)
+      TRINKET_HAS_DOCS_OR_TOOLS=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
     Trinket/Features/*|Trinket/Shared/*|Trinket/Models/*|TrinketUITests/*)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_SMOKE=true
       TRINKET_HAS_FEATURE=true
       TRINKET_AUTHORED_PATHS+=("$path")
+      trinket_classify_smoke_target "$path"
       ;;
     *.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      TRINKET_AUTHORED_PATHS+=("$path")
-      ;;
-    Docs/*|*.md|Scripts/*|.github/*)
-      TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     project.pbxproj|*/project.pbxproj)
@@ -279,6 +317,15 @@ trinket_add_agent_guides_for_path() {
 
 trinket_build_verification_plan() {
   TRINKET_VERIFICATION_COMMANDS=()
+  local feature_iteration=false
+  if [[ "$TRINKET_NEEDS_SMOKE" == true \
+    && "$TRINKET_NEEDS_CONTENT_GENERATION" == false \
+    && "$TRINKET_NEEDS_ASSET_GENERATION" == false \
+    && "$TRINKET_NEEDS_PROJECT_GENERATION" == false \
+    && ${#TRINKET_PACKAGES[@]} -eq 0 ]]; then
+    feature_iteration=true
+  fi
+
   if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
     trinket_add_command "./Scripts/generate.sh --assets"
   elif [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
@@ -291,12 +338,19 @@ trinket_build_verification_plan() {
       trinket_add_command "./Scripts/assert-generated-output.sh"
     fi
   fi
-  if [[ "$TRINKET_NEEDS_STYLE" == true ]]; then trinket_add_command "./Scripts/test.sh style"; fi
+  if [[ "$TRINKET_NEEDS_STYLE" == true && "$feature_iteration" == false ]]; then trinket_add_command "./Scripts/test.sh style"; fi
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     for package in "${TRINKET_PACKAGES[@]}"; do
       trinket_add_command "./Scripts/test-package.sh $package"
     done
   fi
-  if [[ "$TRINKET_NEEDS_UNIT" == true ]]; then trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh unit"; fi
-  if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh smoke"; fi
+  if [[ "$TRINKET_NEEDS_UNIT" == true && "$feature_iteration" == false ]]; then trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh unit"; fi
+  if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
+    local smoke_target
+    if (( ${#TRINKET_SMOKE_TARGETS[@]} > 0 )); then
+      for smoke_target in "${TRINKET_SMOKE_TARGETS[@]}"; do
+        trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh smoke $smoke_target"
+      done
+    fi
+  fi
 }

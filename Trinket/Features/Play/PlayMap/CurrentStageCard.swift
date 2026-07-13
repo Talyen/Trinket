@@ -42,11 +42,10 @@ struct CurrentStageCard: View {
                 GeometryReader { geometry in
                     stageArt
                         .frame(width: geometry.size.width, height: geometry.size.height)
+                        .trinketArtworkBlend(.perimeter(into: .canvas))
                         .clipped()
                 }
             }
-
-            .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
     }
 
     private var footerDock: some View {
