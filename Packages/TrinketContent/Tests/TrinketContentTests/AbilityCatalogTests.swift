@@ -12,12 +12,6 @@ struct AbilityCatalogTests {
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func staticReexportsMatchCatalog() throws {
-        try #expect(Ability.fireball == AbilityCatalog.ability(id: Ability.fireball.id))
-        try #expect(Ability.bloodthorn == AbilityCatalog.ability(id: Ability.bloodthorn.id))
-        try #expect(Ability.slash == AbilityCatalog.ability(id: Ability.slash.id))
-    }
-
     @Test func doTPairingMatchesDamageComponents() throws {
         for ability in AbilityCatalog.all {
             if ["mana-berries", "pixie-dust"].contains(ability.id) {

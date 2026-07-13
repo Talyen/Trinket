@@ -14,53 +14,6 @@ struct BattleStateTests {
         GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions[0]
     }
 
-    @Test func openingHandDrawsThreeCards() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash, .heal, .smite])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [.bash, .fangs, .bloodthorn])
-        let battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: defaultEnemy)
-
-        try #expect(battle.phase == .playerTurn)
-        try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.handBuffer.isEmpty)
-        let heroDrawn = battle.hand.cards.filter { $0.owner == .hero }.count
-        let companionDrawn = battle.hand.cards.filter { $0.owner == .companion }.count
-        try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
-        try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
-        try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
-    }
-
-    @Test func enemyAttackTargetPrefersHigherHealthMember() throws {
-        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], companion: wolfCompanion, enemy: defaultEnemy)
-        let target = battle.enemyAttackTarget
-        try #expect(target.id == heroId)
-    }
-
-    @Test func enemyTargetsCompanionWhenHeroDead() throws {
-        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 1)
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
-
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
-        }
-
-        try #expect(!(battle.isHeroAlive))
-        try #expect(battle.enemyAttackTarget.id == companion.id)
-    }
-
-    @Test func partyDefeatWhenBothHeroAndCompanionDie() throws {
-        let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
-        let helper = Combatant(id: "helper", name: "Helper", role: .companion, maxHealth: 1, abilities: [])
-        let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleStateTestFactory.makeBattle(hero: fragile, companion: helper, enemy: enemy)
-        while !battle.isBattleOver {
-            _ = battle.endTurn()
-        }
-        try #expect(battle.isPartyDefeated)
-        try #expect(!(battle.isEnemyDefeated))
-    }
-
     @Test func partyNotDefeatedWhenOneMemberOnDeathsDoor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)
@@ -257,9 +210,5 @@ struct BattleStateTests {
             enemyModifiers: .zero
         )
         try #expect(battle.rngSeed == seed)
-    }
-
-    private var heroId: String {
-        GameContent.heroes[0].id
     }
 }

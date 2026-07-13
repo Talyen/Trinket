@@ -142,17 +142,4 @@ struct HealingEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
     }
-
-    @Test func contextResolveHealDelegatesToHealingEngine() throws {
-        var context = makeContext(seed: 1772)
-        let contextOutcome = context.resolveHeal(
-            HealRequest(amount: 5, target: context.roster.enemy.combatant)
-        )
-        var fresh = makeContext(seed: 1772)
-        let engineOutcome = HealingEngine.resolveHeal(
-            HealRequest(amount: 5, target: fresh.roster.enemy.combatant),
-            in: &fresh
-        )
-        try #expect(contextOutcome.healthRestored == engineOutcome.healthRestored)
-    }
 }

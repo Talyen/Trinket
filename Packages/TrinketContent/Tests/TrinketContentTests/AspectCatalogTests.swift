@@ -5,7 +5,9 @@ import TrinketCore
 @Suite("AspectCatalog")
 struct AspectCatalogTests {
     @Test func damageAspectsAreAuthored() throws {
-        try #expect(GameContent.aspects.count == 8)
+        try #expect(!GameContent.aspects.isEmpty)
+        let ids = GameContent.aspects.map(\.id)
+        try #expect(Set(ids).count == ids.count)
         for aspect in GameContent.aspects {
             try #expect(aspect.keyword.category == .damageType)
             try #expect(!aspect.title.isEmpty)

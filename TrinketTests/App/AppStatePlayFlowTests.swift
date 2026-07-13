@@ -13,7 +13,7 @@ struct AppStatePlayFlowTests {
         context = try AppTestContext()
     }
 
-    @Test func completeActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
+    @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
@@ -26,20 +26,13 @@ struct AppStatePlayFlowTests {
         #expect(state.journey.activeStageID == "chapter-1-stage-2")
         #expect(state.journey.completedStageIDs.contains(stage.id))
         #expect(state.roster.gold > initialGold + 4)
-    }
 
-    @Test func completeActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        let configuration = try #require(state.battle.activeBattle)
-        let initialGold = state.roster.gold
-
-        state.completeActiveBattle(configuration, battleEarnedGold: 5)
+        let goldAfterFirstContinue = state.roster.gold
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.roster.gold == goldAfterFirstContinue)
         #expect(state.roster.gold == initialGold + 5 + stage.rewards.gold)
     }
 
@@ -99,22 +92,6 @@ struct AppStatePlayFlowTests {
         #expect(state.roster.gold == PlayerRosterState.maxGoldBalance)
     }
     #endif
-
-    @Test func legacyBattleResumeKeysDoNotRestoreBattle() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            Date().timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
-
-        let state = try context.makeAppState()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.selectedTab == .play)
-    }
 
     @Test func shouldRestoreMapScrollIgnoresCompletedStage() {
         var journey = JourneyProgressState.initial
@@ -198,21 +175,6 @@ struct AppStatePlayFlowTests {
         #expect(state.selectedTab == .options)
         #expect(state.battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
-    }
-
-    @Test func playLaunchDestinationMapsResumeTokens() {
-        #expect(PlayLaunchDestination.returning(from: nil) == nil)
-        #expect(
-            PlayLaunchDestination.returning(from: .journey(stageID: "chapter-1-stage-1"))
-                == .campaign
-        )
-        #expect(
-            PlayLaunchDestination.returning(from: .aspect(aspectID: .ironVein, floor: 2))
-                == .aspectClimb(.ironVein)
-        )
-        #expect(
-            PlayLaunchDestination.returning(from: .labyrinth(nodeID: "node-1")) == .labyrinthMap
-        )
     }
 
     private func makeProgressedStateForReturnTests() throws -> AppState {

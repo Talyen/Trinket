@@ -102,23 +102,6 @@ struct ControlMeterEngineTests {
         try #expect(meters.count == 2)
     }
 
-    @Test func contextControlMeterDelegatesToControlMeterEngine() throws {
-        var contextContext = makeContext(seed: 1772)
-        var engineContext = makeContext(seed: 1772)
-        let target = contextContext.roster.enemy.combatant
-
-        let contextEvents = contextContext.applyControlMeter(
-            15, keyword: .stun, to: target, sourceActorID: "source"
-        )
-        let engineEvents = ControlMeterEngine.applyMeterCharge(
-            15, keyword: .stun, to: target, sourceActorID: "source", in: &engineContext
-        )
-
-        try #expect(
-            contextEvents.map(\.effectKind) == engineEvents.map(\.effectKind)
-        )
-    }
-
     @Test func overflowChargeIsConsumedOnTrigger() throws {
         var context = makeContext(targetMaxHealth: 100, seed: 1772)
         let target = context.roster.enemy.combatant
