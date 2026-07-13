@@ -203,4 +203,39 @@ struct LabyrinthProgressTests {
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
         #expect(save.roster.gold < goldBefore)
     }
+
+    @Test func corruptMapPayloadClearsTopologyThenSanitizeRebuilds() {
+        let model = LabyrinthProgressModel()
+        model.worldSeed = 55
+        model.hasEntered = true
+        model.deepestDepth = 3
+        model.mapPayload = Data("{not-valid-labyrinth-json".utf8)
+
+        let loaded = model.toPlayerLabyrinthState()
+        #expect(loaded.nodes.isEmpty)
+        #expect(loaded.clusters.isEmpty)
+        #expect(loaded.hasEntered)
+        #expect(loaded.worldSeed == 55)
+        #expect(loaded.deepestDepth == 3)
+
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
+        #expect(sanitized.hasMap)
+        #expect(!sanitized.nodes.isEmpty)
+        #expect(sanitized.worldSeed == 55)
+    }
+
+    @Test func mapUpdatePreservesPriorPayloadWhenReencodingSameState() throws {
+        let model = LabyrinthProgressModel()
+        var state = PlayerLabyrinthState.freshStart
+        state.ensureMap(seed: 77)
+        model.update(from: state)
+        let firstPayload = try #require(model.mapPayload)
+
+        model.update(from: state)
+        #expect(model.mapPayload == firstPayload)
+
+        let reloaded = model.toPlayerLabyrinthState()
+        #expect(reloaded.nodes.count == state.nodes.count)
+        #expect(reloaded.worldSeed == 77)
+    }
 }

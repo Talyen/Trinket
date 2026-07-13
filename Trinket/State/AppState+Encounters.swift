@@ -106,10 +106,19 @@ extension AppState {
         return false
     }
 
-    func finishActiveShopEncounter() {
-        guard let session = activeShopEncounter else { return }
+    /// Completes the shop stage/node only after persistence succeeds so a failed leave
+    /// does not drop the session while progress stays uncleared.
+    @discardableResult
+    func finishActiveShopEncounter() -> Bool {
+        guard let session = activeShopEncounter else { return false }
+        guard finishEncounterProgress(
+            stage: session.stage,
+            labyrinthNodeID: session.labyrinthNodeID
+        ) else {
+            return false
+        }
         activeShopEncounter = nil
-        finishEncounterProgress(stage: session.stage, labyrinthNodeID: session.labyrinthNodeID)
+        return true
     }
 
     func dismissActiveShopEncounterWithoutCompleting() {
@@ -185,7 +194,8 @@ extension AppState {
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
-    /// Recruit unlocks transition to the reveal phase; other outcomes complete the stage.
+    /// Recruit unlocks transition to the reveal phase; other outcomes complete the stage
+    /// in the same persist transaction so effects cannot land without completion.
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let session = activeMysteryEncounter else { return false }
@@ -200,6 +210,7 @@ extension AppState {
         }
 
         var applyResult = MysteryEffectApplyResult()
+        var resultingJourney: JourneyProgressState?
         do {
             try playerSave.performBatchMutation { save in
                 var randomNumberGenerator = SystemRandomNumberGenerator()
@@ -211,6 +222,25 @@ extension AppState {
                     save: &save,
                     using: &randomNumberGenerator
                 )
+                // Recruit unlocks reveal first; complete only after the player confirms.
+                guard applyResult.unlockedCombatantIDs.isEmpty else { return }
+                if let labyrinthNodeID = session.labyrinthNodeID {
+                    LabyrinthCompletion.complete(
+                        nodeID: labyrinthNodeID,
+                        hero: save.roster.activeHero,
+                        companion: save.roster.activeCompanion,
+                        save: &save
+                    )
+                } else {
+                    StageCompletion.complete(
+                        session.stage,
+                        hero: save.roster.activeHero,
+                        companion: save.roster.activeCompanion,
+                        in: GameContent.chapters,
+                        save: &save
+                    )
+                    resultingJourney = save.journey
+                }
             }
         } catch {
             appStateLogger.error(
@@ -225,26 +255,46 @@ extension AppState {
             return true
         }
 
-        finishActiveMysteryEncounter()
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        }
+        activeMysteryEncounter = nil
         return true
     }
 
-    func finishActiveMysteryEncounter() {
-        guard let session = activeMysteryEncounter else { return }
+    /// Completes the mystery stage/node only after persistence succeeds so a failed finish
+    /// cannot clear the session while leaving progress uncleared (replay double-grants).
+    @discardableResult
+    func finishActiveMysteryEncounter() -> Bool {
+        guard let session = activeMysteryEncounter else { return false }
+        guard finishEncounterProgress(
+            stage: session.stage,
+            labyrinthNodeID: session.labyrinthNodeID
+        ) else {
+            return false
+        }
         activeMysteryEncounter = nil
-        finishEncounterProgress(stage: session.stage, labyrinthNodeID: session.labyrinthNodeID)
+        return true
     }
 
     func dismissActiveMysteryEncounterWithoutCompleting() {
         activeMysteryEncounter = nil
     }
 
-    private func finishEncounterProgress(stage: Stage, labyrinthNodeID: String?) {
+    @discardableResult
+    private func finishEncounterProgress(stage: Stage, labyrinthNodeID: String?) -> Bool {
         if let labyrinthNodeID {
-            completeLabyrinthNode(nodeID: labyrinthNodeID)
-        } else {
-            completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+            return completeLabyrinthNode(nodeID: labyrinthNodeID)
         }
+        guard let resultingJourney = persistStageCompletions(
+            [stage],
+            hero: roster.activeHero,
+            companion: roster.activeCompanion
+        ) else {
+            return false
+        }
+        noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        return true
     }
 
     private static func syntheticLabyrinthStage(

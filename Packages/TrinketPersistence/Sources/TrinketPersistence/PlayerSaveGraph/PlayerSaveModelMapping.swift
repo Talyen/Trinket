@@ -1,6 +1,12 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketCore
+
+private let labyrinthMapLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "LabyrinthMapPayload"
+)
 
 extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
@@ -257,16 +263,29 @@ extension LabyrinthProgressModel {
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id }
         )
-        mapPayload = try? JSONEncoder().encode(payload)
+        // Keep the prior blob when encode fails so a transient encoder error cannot wipe
+        // topology while scalar labyrinth fields still save successfully.
+        do {
+            mapPayload = try JSONEncoder().encode(payload)
+        } catch {
+            labyrinthMapLogger.error(
+                "Failed to encode labyrinth map payload: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
     private func decodeMapPayload() -> LabyrinthMapPayload {
-        guard let mapPayload,
-              let decoded = try? JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
-        else {
+        guard let mapPayload else {
             return LabyrinthMapPayload(clusters: [], nodes: [])
         }
-        return decoded
+        do {
+            return try JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
+        } catch {
+            labyrinthMapLogger.error(
+                "Failed to decode labyrinth map payload; topology cleared for sanitize rebuild: \(error.localizedDescription, privacy: .public)"
+            )
+            return LabyrinthMapPayload(clusters: [], nodes: [])
+        }
     }
 }
 

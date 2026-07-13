@@ -225,7 +225,9 @@ struct BattleView: View {
                 onPlaying: { battleSession.markCinematicPlaying() },
                 onRequestSkip: { battleSession.requestSkipCinematic() },
                 onAutoFinish: { battleSession.beginCinematicCollapse() },
-                onCollapseFinished: { battleSession.completeCinematicCollapse() }
+                onCollapseFinished: { cinematicID in
+                    battleSession.completeCinematicCollapse(expectedID: cinematicID)
+                }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)

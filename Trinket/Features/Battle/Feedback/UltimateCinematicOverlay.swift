@@ -15,13 +15,14 @@ struct UltimateCinematicOverlay: View {
     let onPlaying: () -> Void
     let onRequestSkip: () -> Void
     let onAutoFinish: () -> Void
-    let onCollapseFinished: () -> Void
+    let onCollapseFinished: (Int) -> Void
 
     @State private var scrimOpacity = 0.0
     @State private var contentOpacity = 0.0
     @State private var showVideo = false
     @State private var skipHintVisible = false
     @State private var didFinish = false
+    @State private var collapseTask: Task<Void, Never>?
     @ScaledMetric(relativeTo: .largeTitle) private var fallbackStarSize: CGFloat = 64
 
     private var ability: Ability? {
@@ -70,6 +71,16 @@ struct UltimateCinematicOverlay: View {
         .onChange(of: cinematic.phase) { _, phase in
             if phase == .collapsing {
                 runExit()
+            }
+        }
+        .onDisappear {
+            let shouldFlushCollapse = didFinish
+            let collapseID = cinematic.id
+            collapseTask?.cancel()
+            collapseTask = nil
+            // Teardown can cancel the sleep task; flush so presentationHoldCount still clears.
+            if shouldFlushCollapse {
+                onCollapseFinished(collapseID)
             }
         }
     }
@@ -150,11 +161,14 @@ struct UltimateCinematicOverlay: View {
             showVideo = false
             skipHintVisible = false
         }
-        Task { @MainActor in
+        let collapseID = cinematic.id
+        collapseTask?.cancel()
+        collapseTask = Task { @MainActor in
             let clock = SuspendingClock()
             let duration = TrinketMotion.Battle.ultimateCollapse
             try? await clock.sleep(for: .seconds(duration), tolerance: .milliseconds(20))
-            onCollapseFinished()
+            guard !Task.isCancelled else { return }
+            onCollapseFinished(collapseID)
         }
     }
 
