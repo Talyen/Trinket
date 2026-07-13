@@ -24,9 +24,7 @@ struct BattleView: View {
     }
 
     private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
-        let isShowingOutcome = battleSession.isShowingVictory || battleSession.isShowingDefeat
-
-        return outcomeContent(battleSession: battleSession, battleState: battleState)
+        outcomeContent(battleSession: battleSession, battleState: battleState)
             .trinketScreenBackground(.battle)
             .navigationTitle(battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
@@ -34,7 +32,7 @@ struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    battleActionsMenu(canRetreat: !isShowingOutcome)
+                    battleActionsMenu(canRetreat: battleSession.canRetreat)
                 }
             }
             .trinketSensoryFeedback(

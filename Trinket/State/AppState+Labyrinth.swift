@@ -82,10 +82,12 @@ extension AppState {
         return nil
     }
 
-    func finishActiveLabyrinthRest() {
-        guard let session = activeLabyrinthRest else { return }
-        guard completeLabyrinthNode(nodeID: session.nodeID) else { return }
+    @discardableResult
+    func finishActiveLabyrinthRest() -> Bool {
+        guard let session = activeLabyrinthRest else { return false }
+        guard completeLabyrinthNode(nodeID: session.nodeID) else { return false }
         activeLabyrinthRest = nil
+        return true
     }
 
     func dismissActiveLabyrinthRestWithoutCompleting() {
@@ -121,10 +123,15 @@ extension AppState {
         return false
     }
 
-    func leaveActiveLabyrinthCraftWithoutForging() {
-        guard let session = activeLabyrinthCraft else { return }
-        guard completeLabyrinthNode(nodeID: session.nodeID) else { return }
+    @discardableResult
+    func leaveActiveLabyrinthCraftWithoutForging() -> Bool {
+        guard let session = activeLabyrinthCraft else { return false }
+        guard completeLabyrinthNode(nodeID: session.nodeID) else {
+            session.markFailed("The altar stays cold. Try again.")
+            return false
+        }
         activeLabyrinthCraft = nil
+        return true
     }
 
     func dismissActiveLabyrinthCraftWithoutCompleting() {

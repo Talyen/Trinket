@@ -23,8 +23,9 @@ struct LabyrinthRestView: View {
                 Spacer(minLength: 0)
 
                 Button {
-                    appState.finishActiveLabyrinthRest()
-                    dismiss()
+                    if appState.finishActiveLabyrinthRest() {
+                        dismiss()
+                    }
                 } label: {
                     Text("Rest")
                         .frame(maxWidth: .infinity)

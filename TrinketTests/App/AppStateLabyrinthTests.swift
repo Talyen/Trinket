@@ -145,11 +145,52 @@ struct AppStateLabyrinthTests {
         let session = try #require(state.activeLabyrinthRest)
         #expect(session.nodeID == restNodeID)
 
-        state.finishActiveLabyrinthRest()
+        #expect(state.finishActiveLabyrinthRest())
 
         #expect(state.activeLabyrinthRest == nil)
         #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
     }
+
+    #if DEBUG
+    @Test func finishActiveLabyrinthRestKeepsSessionOpenWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        _ = state.enterLabyrinth()
+        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
+        #expect(state.activeLabyrinthRest != nil)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.finishActiveLabyrinthRest())
+        #expect(state.activeLabyrinthRest != nil)
+        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == false)
+
+        #expect(state.finishActiveLabyrinthRest())
+        #expect(state.activeLabyrinthRest == nil)
+        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
+    }
+
+    @Test func leaveActiveLabyrinthCraftWithoutForgingKeepsSessionOpenWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        _ = state.enterLabyrinth()
+        let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
+        let session = try #require(state.activeLabyrinthCraft)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.leaveActiveLabyrinthCraftWithoutForging())
+        #expect(state.activeLabyrinthCraft != nil)
+        #expect(session.failureMessage != nil)
+        #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == false)
+
+        #expect(state.leaveActiveLabyrinthCraftWithoutForging())
+        #expect(state.activeLabyrinthCraft == nil)
+        #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
+    }
+    #endif
 
     @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
