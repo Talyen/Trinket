@@ -1,11 +1,11 @@
 import SwiftUI
 import TrinketCore
 
-public struct TrinketRarityPresentation: Equatable, Sendable {
-    public let label: String
-    public let isPremium: Bool
+struct TrinketRarityPresentation: Equatable, Sendable {
+    let label: String
+    let isPremium: Bool
 
-    public init(rarity: Rarity) {
+    init(rarity: Rarity) {
         label = rarity.label.uppercased()
         isPremium = rarity == .astral
     }

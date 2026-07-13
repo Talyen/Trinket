@@ -104,17 +104,17 @@ public enum TypographyRole: Sendable {
     }
 }
 
-public enum HomesteadPalette {
-    public static let accent = TrinketDesign.Colors.accent
-    public static let success = TrinketDesign.Colors.success
-    public static let walletPanel = TrinketDesign.Colors.panel
+enum HomesteadPalette {
+    static let accent = TrinketDesign.Colors.accent
+    static let success = TrinketDesign.Colors.success
+    static let walletPanel = TrinketDesign.Colors.panel
 
-    public static let background = TrinketDesign.Colors.canvas
-    public static let panel = TrinketDesign.Colors.panel
-    public static let elevatedPanel = TrinketDesign.Colors.elevated
-    public static let stroke = TrinketDesign.Colors.subtleStroke
-    public static let mutedText = Color.secondary
-    public static let pressedFill = TrinketDesign.Colors.accent.opacity(0.14)
+    static let background = TrinketDesign.Colors.canvas
+    static let panel = TrinketDesign.Colors.panel
+    static let elevatedPanel = TrinketDesign.Colors.elevated
+    static let stroke = TrinketDesign.Colors.subtleStroke
+    static let mutedText = Color.secondary
+    static let pressedFill = TrinketDesign.Colors.accent.opacity(0.14)
 }
 
 public struct TrinketScreenBackground: View {

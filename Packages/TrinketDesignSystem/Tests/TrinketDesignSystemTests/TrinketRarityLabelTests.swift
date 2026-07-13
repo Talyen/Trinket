@@ -1,6 +1,6 @@
 import Testing
 import TrinketCore
-import TrinketDesignSystem
+@testable import TrinketDesignSystem
 
 struct TrinketRarityLabelTests {
     @Test func basicRarityUsesTheStandardTreatment() {
