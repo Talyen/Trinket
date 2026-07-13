@@ -104,10 +104,11 @@ enum BalanceAbilityContrastRunner {
         pairSeed: UInt64,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        let partnerPool = focus.owner.role == .hero ? context.companions : context.heroes
-        guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
-            preconditionFailure("Contrast partner pool empty after roster guard")
-        }
+        let partner = BalanceContrastSupport.pickPartner(
+            for: focus.owner,
+            from: context,
+            using: &randomNumberGenerator
+        )
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,
             battleIndex: pairIndex,

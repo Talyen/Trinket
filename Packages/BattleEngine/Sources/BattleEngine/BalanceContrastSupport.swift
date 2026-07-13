@@ -93,6 +93,18 @@ enum BalanceContrastSupport {
         return hash
     }
 
+    static func pickPartner(
+        for owner: Combatant,
+        from context: BalanceContrastContext,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> Combatant {
+        let partnerPool = owner.role == .hero ? context.companions : context.heroes
+        guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
+            preconditionFailure("Contrast partner pool empty after roster guard")
+        }
+        return partner
+    }
+
     static func assignRoles(
         owner: Combatant,
         partner: Combatant,
@@ -146,5 +158,17 @@ enum BalanceContrastSupport {
             heroGear: roles.heroGear,
             companionGear: roles.companionGear
         )
+    }
+
+    static func buildOwnerGearPair(
+        base: MatchupParts,
+        entityOwnerGear: SimulationMatchupBuilder.GearOverride?,
+        baselineOwnerGear: SimulationMatchupBuilder.GearOverride?
+    ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
+        var withEntity = base
+        withEntity.ownerGear = entityOwnerGear
+        var withBaseline = base
+        withBaseline.ownerGear = baselineOwnerGear
+        return (buildMatchup(withEntity), buildMatchup(withBaseline))
     }
 }

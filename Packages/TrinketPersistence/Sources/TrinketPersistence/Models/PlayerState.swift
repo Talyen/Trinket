@@ -340,8 +340,7 @@ public struct PlayerRosterState: Equatable, Sendable {
             return hero
         }
         if let starter = GameContent.heroes.first(where: { $0.id == PlayerRosterState.starterHeroID })
-            ?? collectionHeroes.first
-        {
+            ?? collectionHeroes.first {
             return starter
         }
         preconditionFailure("GameContent.heroes must be non-empty")

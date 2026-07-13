@@ -112,10 +112,11 @@ enum BalanceAffixContrastRunner {
         pairSeed: UInt64,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
-        let partnerPool = focus.owner.role == .hero ? context.companions : context.heroes
-        guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
-            preconditionFailure("Contrast partner pool empty after roster guard")
-        }
+        let partner = BalanceContrastSupport.pickPartner(
+            for: focus.owner,
+            from: context,
+            using: &randomNumberGenerator
+        )
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,
             battleIndex: pairIndex,
@@ -145,33 +146,20 @@ enum BalanceAffixContrastRunner {
             idPrefix: "contrast-partner",
             using: &fillRNG
         )
-        return (
-            BalanceContrastSupport.buildMatchup(
-                .init(
-                    owner: focus.owner,
-                    partner: partner,
-                    ownerLoadout: ownerLoadout,
-                    partnerLoadout: partnerLoadout,
-                    ownerGear: gears.withAffix,
-                    partnerGear: partnerGear,
-                    enemy: enemy,
-                    tier: tier,
-                    seed: pairSeed
-                )
+        return BalanceContrastSupport.buildOwnerGearPair(
+            base: .init(
+                owner: focus.owner,
+                partner: partner,
+                ownerLoadout: ownerLoadout,
+                partnerLoadout: partnerLoadout,
+                ownerGear: nil,
+                partnerGear: partnerGear,
+                enemy: enemy,
+                tier: tier,
+                seed: pairSeed
             ),
-            BalanceContrastSupport.buildMatchup(
-                .init(
-                    owner: focus.owner,
-                    partner: partner,
-                    ownerLoadout: ownerLoadout,
-                    partnerLoadout: partnerLoadout,
-                    ownerGear: gears.withoutAffix,
-                    partnerGear: partnerGear,
-                    enemy: enemy,
-                    tier: tier,
-                    seed: pairSeed
-                )
-            )
+            entityOwnerGear: gears.withAffix,
+            baselineOwnerGear: gears.withoutAffix
         )
     }
 
