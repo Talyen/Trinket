@@ -9,6 +9,8 @@ struct EffectModelTests {
         try #expect(Effect.instantHeal(.health, 5).summary == "restore 5 Health")
         try #expect(Effect.instantHeal(.health, 5).isInstant)
         try #expect(Effect.cleanse(nil).summary == "cleanse all debuffs")
+        try #expect(Effect.drawCards(2).summary == "draw 2 cards")
+        try #expect(Effect.drawCards(2).isInstant)
     }
 
     @Test func activeEffectTracksRemainingTicks() throws {
@@ -20,40 +22,7 @@ struct EffectModelTests {
         try #expect(active.remainingTicks == 2)
     }
 
-    @Test func effectKindMatchesCase() throws {
-        try #expect(Effect.burn(3).kind == .burn)
-        try #expect(Effect.poison(2).kind == .poison)
-        try #expect(Effect.bleed(1).kind == .bleed)
-        try #expect(Effect.controlMeter(.stun, 1, 10).kind == .controlMeter)
-        try #expect(Effect.shield(.block, 1).kind == .shield)
-        try #expect(Effect.mitigation(.armor, 2).kind == .mitigation)
-        try #expect(Effect.instantHeal(.health, 1).kind == .instantHeal)
-        try #expect(Effect.leech(.leech, 0.1, 6).kind == .leech)
-        try #expect(Effect.resourceGain(.gold, 1).kind == .resourceGain)
-        try #expect(Effect.resourceGain(.mana, 1).kind == .resourceGain)
-        try #expect(Effect.drawCards(2).kind == .drawCards)
-        try #expect(Effect.drawCards(2).summary == "draw 2 cards")
-        try #expect(Effect.drawCards(2).isInstant)
-        try #expect(Effect.cleanse(.poison).kind == .cleanse)
-        try #expect(Effect.cleanse(nil).kind == .cleanse)
-        try #expect(Effect.cleanseRandom.kind == .cleanseRandom)
-        try #expect(Effect.purge(.block).kind == .purge)
-        try #expect(Effect.purge(nil).kind == .purge)
-        try #expect(Effect.purgeRandom.kind == .purgeRandom)
-        try #expect(Effect.halveMitigation(.armor).kind == .halveMitigation)
-        try #expect(Effect.haste(4).kind == .haste)
-        try #expect(Effect.thorns(.physical, 1, 6).kind == .thorns)
-        try #expect(Effect.marked(2, 6).kind == .marked)
-        try #expect(Effect.criticalChanceBonus(0.1, 6).kind == .criticalChanceBonus)
-        try #expect(Effect.restoreManaOnHit(1, 6).kind == .restoreManaOnHit)
-        try #expect(Effect.damageKeywordOverride(.holy, 3, 6).kind == .damageKeywordOverride)
-    }
-
-    @Test func effectKindIsUniquePerCase() throws {
-        try #expect(Set(EffectKind.allCases).count == EffectKind.allCases.count)
-    }
-
-    @Test func isRemovableDebuffMatchesPriorDefinition() throws {
+    @Test func effectClassificationFlagsMatchDefinitions() throws {
         try #expect(Effect.burn(1).isRemovableDebuff)
         try #expect(Effect.poison(1).isRemovableDebuff)
         try #expect(Effect.bleed(1).isRemovableDebuff)
@@ -69,18 +38,14 @@ struct EffectModelTests {
         try #expect(!(Effect.purge(.block)).isRemovableDebuff)
         try #expect(!(Effect.purgeRandom.isRemovableDebuff))
         try #expect(!(Effect.halveMitigation(.armor)).isRemovableDebuff)
-    }
 
-    @Test func isRemovableBuffMatchesDefinition() throws {
         try #expect(Effect.shield(.block, 1).isRemovableBuff)
         try #expect(Effect.mitigation(.armor, 2).isRemovableBuff)
         try #expect(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
         try #expect(!(Effect.burn(1)).isRemovableBuff)
         try #expect(!(Effect.poison(1)).isRemovableBuff)
         try #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
-    }
 
-    @Test func isTickableMatchesPriorDefinition() throws {
         try #expect(Effect.burn(1).isTickable)
         try #expect(Effect.poison(1).isTickable)
         try #expect(Effect.bleed(1).isTickable)

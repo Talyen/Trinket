@@ -6,35 +6,37 @@ import TrinketDesignSystem
 @testable import Trinket
 
 struct CombatFeedbackPresenterTests {
-    @Test func dropsZeroDamageAbilityChips() {
-        let events = [
-            makeEvent(id: 1, kind: .ability, amount: 0, keyword: .physical),
-            makeEvent(id: 2, kind: .ability, amount: 5, keyword: .physical)
-        ]
-        let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 100))
-        #expect(items.count == 1)
-        #expect(items[0].id == 2)
-        #expect(items[0].feedbackClass == .directDamage)
-    }
+    @Test func filtersAndMergesDamageChips() {
+        let filtered = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 0, keyword: .physical),
+                makeEvent(id: 2, kind: .ability, amount: 5, keyword: .physical)
+            ],
+            at: Date(timeIntervalSince1970: 100)
+        )
+        #expect(filtered.count == 1)
+        #expect(filtered[0].id == 2)
+        #expect(filtered[0].feedbackClass == .directDamage)
 
-    @Test func mergesCriticalIntoDamageChip() {
-        let events = [
-            makeEvent(id: 10, kind: .ability, amount: 12, keyword: .physical),
-            makeEvent(
-                id: 11,
-                kind: .effect,
-                effectKind: .criticalApplied,
-                amount: 0,
-                keyword: .physical
-            )
-        ]
-        let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 100))
-        #expect(items.count == 1)
-        #expect(items[0].feedbackClass == .critical)
-        #expect(items[0].text.contains("12"))
-        #expect(items[0].secondaryText == nil)
-        #expect(items[0].reactionKind == .critical)
-        #expect(items[0].sourceEventIDs == [10, 11])
+        let merged = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 10, kind: .ability, amount: 12, keyword: .physical),
+                makeEvent(
+                    id: 11,
+                    kind: .effect,
+                    effectKind: .criticalApplied,
+                    amount: 0,
+                    keyword: .physical
+                )
+            ],
+            at: Date(timeIntervalSince1970: 100)
+        )
+        #expect(merged.count == 1)
+        #expect(merged[0].feedbackClass == .critical)
+        #expect(merged[0].text.contains("12"))
+        #expect(merged[0].secondaryText == nil)
+        #expect(merged[0].reactionKind == .critical)
+        #expect(merged[0].sourceEventIDs == [10, 11])
     }
 
     @Test func classifiesHealAndDodge() {

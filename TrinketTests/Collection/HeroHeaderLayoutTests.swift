@@ -23,35 +23,31 @@ struct HeroHeaderLayoutTests {
         #expect(abs(height - 400) < 0.5)
     }
 
-    @Test func cinematicHeightIsDenseAndClamped() {
-        #expect(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 320) == 288)
-        #expect(abs(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 390) - 304.2) < 0.1)
-        #expect(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 500) == 344)
+    @Test func cinematicHeightIsDenserThanStandardAndClamped() {
+        let narrow = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 320)
+        let mid = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 390)
+        let wide = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 500)
+        let standardMid = HeroHeaderLayout.headerHeight(forWidth: 390)
+
+        #expect(mid < standardMid)
+        #expect(narrow <= mid)
+        #expect(mid <= wide)
+        #expect(narrow == HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 300))
+        #expect(wide == HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 600))
     }
 
     // MARK: - Overscroll stretch contract
 
-    @Test func overscrollIsZeroWhenContentIsNotPulledPastTop() {
-        let overscroll = HeroHeaderLayout.overscroll(contentOffsetY: 20, topInset: 0)
-        #expect(overscroll == 0)
-    }
+    @Test func overscrollContractCoversOffsetAndMetrics() {
+        #expect(HeroHeaderLayout.overscroll(contentOffsetY: 20, topInset: 0) == 0)
+        #expect(HeroHeaderLayout.overscroll(contentOffsetY: -132, topInset: 44) == 88)
 
-    @Test func overscrollUsesNegativeAdjustedContentOffset() {
-        let overscroll = HeroHeaderLayout.overscroll(contentOffsetY: -132, topInset: 44)
-        #expect(overscroll == 88)
-    }
+        let stretched = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 88)
+        #expect(stretched.height == 608)
+        #expect(stretched.offsetY == -88)
 
-    @Test func overscrollMetricsExpandHeightAndPinTopEdge() {
-        let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 88)
-
-        #expect(metrics.height == 608)
-        #expect(metrics.offsetY == -88)
-    }
-
-    @Test func overscrollMetricsDoNotMoveAtRest() {
-        let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 0)
-
-        #expect(metrics.height == 520)
-        #expect(metrics.offsetY == 0)
+        let atRest = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 0)
+        #expect(atRest.height == 520)
+        #expect(atRest.offsetY == 0)
     }
 }

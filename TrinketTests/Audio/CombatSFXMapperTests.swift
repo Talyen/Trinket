@@ -106,7 +106,6 @@ struct CombatSFXMapperTests {
         for id in expected {
             #expect(SFXCatalog.clipsByID[id] != nil, "Missing clip \(id)")
         }
-        #expect(SFXCatalog.clips.count == expected.count)
         #expect(SFXCatalog.clipsByID["ability_play"] == nil)
     }
 

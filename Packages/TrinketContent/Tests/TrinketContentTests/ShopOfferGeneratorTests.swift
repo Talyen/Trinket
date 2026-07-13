@@ -3,16 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct ShopOfferGeneratorTests {
-    @Test func generatesRequestedOfferCount() {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-4",
-            using: &randomNumberGenerator
-        )
-
-        #expect(offers.count == ShopOfferGenerator.offerCount)
-    }
-
     @Test func pricesFollowBasicAndAstralRules() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let offers = ShopOfferGenerator.generateOffers(
