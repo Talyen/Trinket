@@ -49,28 +49,7 @@ struct BattleSessionSimulationTests {
         #expect(!session.canRetreat)
     }
 
-    @Test func playCardCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
-        let party = BattlePartyFixtures.quickWinParty()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        var journey = JourneyProgressState.initial
-        journey.markRewardsClaimed(for: stage)
-        let session = BattleSession()
-        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            stageID: stage.id,
-            rngSeed: 0,
-            hero: party.hero,
-            companion: party.companion,
-            enemy: party.enemy
-        )
-
-        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
-
-        #expect(earnedGold == session.state?.earnedGold ?? 0)
-        #expect(!(session.isShowingVictory))
-        #expect(session.victorySummary == nil)
-    }
-
-    @Test func presentVictoryChromeForPersistRetryShowsLootPathAfterClaimedAutoComplete() throws {
+    @Test func claimedStageRewardsAutoCompleteThenPersistRetryRestoresLootChrome() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
@@ -84,7 +63,9 @@ struct BattleSessionSimulationTests {
             enemy: party.enemy
         )
 
-        _ = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
+        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
+
+        #expect(earnedGold == session.state?.earnedGold ?? 0)
         #expect(!(session.isShowingVictory))
         #expect(session.victorySummary == nil)
 

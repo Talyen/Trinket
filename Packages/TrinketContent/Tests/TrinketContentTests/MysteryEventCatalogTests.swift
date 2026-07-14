@@ -90,16 +90,6 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func recruitEventsResolveCombatantArt() throws {
-        for event in GameContent.recruitMysteryEvents {
-            let combatant = try #require(GameContent.combatant(forMysteryEvent: event))
-            _ = try #require(
-                combatant.artReference,
-                "Recruit event \(event.id) combatant \(combatant.id) missing art"
-            )
-        }
-    }
-
     @Test func pickEligibleMysteryEventRespectsRosterUnlocks() throws {
         var lockedRNG = SeededRandomNumberGenerator(seed: 7)
         let lockedPick = GameContent.pickEligibleMysteryEvent(

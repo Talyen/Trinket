@@ -37,24 +37,14 @@ struct EffectHandlersTickTests {
         try #expect(expiredOutcome.updatedStack == nil)
     }
 
-    @Test func defaultTickLeavesDurationlessBlockUntouched() throws {
+    @Test(arguments: [
+        Effect.shield(.block, 5),
+        .mitigation(.armor, 2)
+    ])
+    func durationlessMitigationTicksLeaveStacksUntouched(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0, sourceActorID: "hero")
-        let outcome = EffectHandlersTestSupport.dispatchTick(shield, target: battle.enemy, battle: &battle)
-        try #expect(outcome.events.isEmpty)
-        try #expect(outcome.updatedStack == nil)
-        try #expect(!(outcome.removeAfter))
-    }
-
-    @Test func mitigationTickLeavesDurationlessArmorUntouched() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let mitigation = ActiveEffect(
-            id: 1,
-            effect: .mitigation(.armor, 2),
-            remainingTicks: 0,
-            sourceActorID: "hero"
-        )
-        let outcome = EffectHandlersTestSupport.dispatchTick(mitigation, target: battle.enemy, battle: &battle)
+        let stack = ActiveEffect(id: 1, effect: effect, remainingTicks: 0, sourceActorID: "hero")
+        let outcome = EffectHandlersTestSupport.dispatchTick(stack, target: battle.enemy, battle: &battle)
         try #expect(outcome.events.isEmpty)
         try #expect(outcome.updatedStack == nil)
         try #expect(!(outcome.removeAfter))

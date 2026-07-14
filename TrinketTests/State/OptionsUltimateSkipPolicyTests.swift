@@ -37,24 +37,20 @@ struct OptionsUltimateSkipPolicyTests {
         #expect(options.ultimateCinematicSkipPolicy == .oncePerBattle)
     }
 
-    @Test func neverPolicyBlocksSkip() throws {
-        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.never.\(UUID().uuidString)"))
-        let options = OptionsStore(defaults: defaults)
-        options.ultimateCinematicSkipPolicy = .never
-        #expect(options.canSkipUltimateCinematic() == false)
-        #expect(
-            options.shouldAutoSkipUltimateCinematic(
-                actorID: "hero",
-                actorsWhoPresentedThisBattle: ["hero"]
-            ) == false
+    @Test(arguments: [
+        (UltimateCinematicSkipPolicy.never, false),
+        (.always, true)
+    ])
+    func neverAndAlwaysPoliciesControlManualSkipWithoutAutoSkip(
+        policy: UltimateCinematicSkipPolicy,
+        canSkip: Bool
+    ) throws {
+        let defaults = try #require(
+            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)")
         )
-    }
-
-    @Test func alwaysPolicyAllowsSkipAndNeverAutoSkips() throws {
-        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.always.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
-        options.ultimateCinematicSkipPolicy = .always
-        #expect(options.canSkipUltimateCinematic())
+        options.ultimateCinematicSkipPolicy = policy
+        #expect(options.canSkipUltimateCinematic() == canSkip)
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",

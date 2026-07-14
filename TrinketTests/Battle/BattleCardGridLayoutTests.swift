@@ -78,25 +78,19 @@ struct BattleHandLayoutTests {
             #expect(metrics.overlap > 0)
             #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
         }
-    }
 
-    @Test func fiveCardsUseSymmetricFan() {
-        let width: CGFloat = 390
-        let count = 5
-        let metrics = BattleHandLayout.metrics(containerWidth: width, cardCount: count)
-        let span = metrics.cardWidth + metrics.overlap * CGFloat(count - 1)
-
-        #expect(metrics.overlap > 0)
-        #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
-        #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: count) == 0)
-        #expect(BattleHandLayout.restingOffsetY(index: 0, cardCount: count)
-            > BattleHandLayout.restingOffsetY(index: 1, cardCount: count))
-        let rotations = (0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
-        #expect(rotations[2] == 0)
-        #expect(rotations[0] == -rotations[4])
-        #expect(rotations[1] == -rotations[3])
-        #expect(rotations[0] < rotations[1])
-        #expect(rotations[1] < rotations[2])
+        // Symmetric fan geometry is owned by the 5-card case; assert once on a mid phone width.
+        if width == 390, cardCount == 5 {
+            #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: cardCount) == 0)
+            #expect(BattleHandLayout.restingOffsetY(index: 0, cardCount: cardCount)
+                > BattleHandLayout.restingOffsetY(index: 1, cardCount: cardCount))
+            let rotations = (0 ..< cardCount).map { BattleHandLayout.rotation(index: $0, cardCount: cardCount) }
+            #expect(rotations[2] == 0)
+            #expect(rotations[0] == -rotations[4])
+            #expect(rotations[1] == -rotations[3])
+            #expect(rotations[0] < rotations[1])
+            #expect(rotations[1] < rotations[2])
+        }
     }
 
     @Test(arguments: [

@@ -3,16 +3,15 @@ import TrinketContent
 import TrinketCore
 
 struct CombatantEquipmentTests {
-    @Test func companionEquipmentSlotsUseTwoTrinketsAndArmor() throws {
-        try #expect(
-            Combatant.Role.companion.equipmentSlots == [.trinket, .armor, .secondaryTrinket]
-        )
-    }
-
-    @Test func heroEquipmentSlotsKeepWeaponArmorTrinket() throws {
-        try #expect(
-            Combatant.Role.hero.equipmentSlots == [.weapon, .armor, .trinket]
-        )
+    @Test(arguments: [
+        (Combatant.Role.hero, [EquipmentSlot.weapon, .armor, .trinket]),
+        (.companion, [.trinket, .armor, .secondaryTrinket])
+    ])
+    func roleEquipmentSlotsMatchAuthoredLoadout(
+        role: Combatant.Role,
+        expectedSlots: [EquipmentSlot]
+    ) throws {
+        try #expect(role.equipmentSlots == expectedSlots)
     }
 
     @Test func secondaryTrinketSlotAcceptsTrinketItems() throws {
