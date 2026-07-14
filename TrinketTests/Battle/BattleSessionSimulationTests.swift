@@ -70,6 +70,31 @@ struct BattleSessionSimulationTests {
         #expect(session.victorySummary == nil)
     }
 
+    @Test func presentVictoryChromeForPersistRetryShowsLootPathAfterClaimedAutoComplete() throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        var journey = JourneyProgressState.initial
+        journey.markRewardsClaimed(for: stage)
+        let session = BattleSession(outcomePresentationDelayOverride: 0)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            stageID: stage.id,
+            rngSeed: 0,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+
+        _ = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
+        #expect(!(session.isShowingVictory))
+        #expect(session.victorySummary == nil)
+
+        session.presentVictoryChromeForPersistRetry(homestead: .freshStart)
+
+        #expect(session.isShowingVictory)
+        #expect(session.victorySummary != nil)
+        #expect(!session.canRetreat)
+    }
+
     @Test func endTurnDoesNothingWhenBattleAlreadyOver() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 0)

@@ -35,13 +35,14 @@ extension AppState {
         )
         guard !offers.isEmpty else {
             if let labyrinthNodeID {
-                completeLabyrinthNode(nodeID: labyrinthNodeID)
-                return nil
+                return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
             }
             appStateLogger.error(
                 "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
             )
-            completeStage(resolvedStage, hero: roster.activeHero, companion: roster.activeCompanion)
+            if let failure = completeStageOrPersistFailure(resolvedStage) {
+                return failure
+            }
             return StageMapMessage(
                 title: "Shop Closed",
                 message: "The merchant has nothing left to sell. You continue on."
@@ -145,8 +146,7 @@ extension AppState {
                 authored: nil,
                 using: &randomNumberGenerator
             ) else {
-                completeLabyrinthNode(nodeID: labyrinthNodeID)
-                return nil
+                return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
             }
             event = picked
             sessionStage = Self.syntheticLabyrinthStage(
@@ -167,14 +167,12 @@ extension AppState {
             if let authoredEvent {
                 if let combatantID = authoredEvent.unlockCombatantID,
                    roster.isCombatantUnlocked(id: combatantID) {
-                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
-                    return nil
+                    return completeStageOrPersistFailure(stage)
                 }
             } else {
                 var substituteRNG = SystemRandomNumberGenerator()
                 guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
-                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
-                    return nil
+                    return completeStageOrPersistFailure(stage)
                 }
             }
             event = picked
