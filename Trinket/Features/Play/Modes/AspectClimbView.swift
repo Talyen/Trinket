@@ -112,7 +112,7 @@ struct AspectClimbView: View {
 
         VStack(alignment: .leading, spacing: isActive || !cleared ? TrinketDesign.Metrics.mediumSpacing : 6) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                     Text(floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)")
                         .trinketTypography(isActive ? .sectionTitle : .cardTitle)
                     if unlocked || cleared, let enemy = GameContent.enemy(matching: floor.enemyID) {
@@ -137,7 +137,6 @@ struct AspectClimbView: View {
                 floorBattleControls(floor, aspect: aspect, tint: style.color)
             }
         }
-        .padding(isActive ? TrinketDesign.Metrics.largeSpacing : 14)
         .trinketSurface(isActive ? .elevated : (cleared || unlocked ? .elevated : .denseRow))
         .trinketLockedCardEffect(
             isLocked: isLocked,

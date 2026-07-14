@@ -18,7 +18,7 @@ struct ChapterStageList: View {
             }
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.vertical, 12)
+        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
     }
 }
 
@@ -42,7 +42,7 @@ private struct ChapterStageRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         .accessibilityIdentifier(
             AccessibilityID.Play.stageRow(
                 chapter: presentation.stage.chapterNumber,
@@ -72,7 +72,7 @@ private struct ChapterStageRow: View {
                 StageMapMetaLine(stage: presentation.stage, showsEncounterIcon: true)
             }
 
-            Spacer(minLength: 4)
+            Spacer(minLength: TrinketDesign.Metrics.extraSmallSpacing)
 
             if presentation.isCompleted {
                 Image(systemName: "checkmark")
@@ -80,7 +80,6 @@ private struct ChapterStageRow: View {
                     .foregroundStyle(TrinketDesign.Colors.success)
             }
         }
-        .padding(.horizontal, 10)
         .frame(minHeight: 68)
         .trinketSurface(.denseRow)
         .clipShape(TrinketDesign.cardShape)
