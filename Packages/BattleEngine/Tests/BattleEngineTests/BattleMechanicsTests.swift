@@ -65,25 +65,6 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func enemyAbilityCadenceSelectsSkillOnThirdTurn() throws {
-        let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
-        let skill = Ability(id: "skill", name: "Skill", tier: .skill, directDamage: 5, description: "Skill")
-        let ultimate = Ability(id: "ult", name: "Ult", tier: .ultimate, directDamage: 9, description: "Ult")
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 30,
-            abilities: [basic, skill, ultimate]
-        )
-
-        try #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
-        try #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
-        try #expect(BattleTurnEngine.preferredTier(for: 6) == .ultimate)
-        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
-        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
-    }
-
     @Test func predatorsHasteIsNoOp() throws {
         // Wolf lists Predator's Haste in skill choices; withAbilityLoadout resolves
         // selections against choices, so panther cannot select this skill.

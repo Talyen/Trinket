@@ -9,6 +9,7 @@ struct TrinketMotionTests {
             + TrinketMotion.Battle.skillCalloutHold
             + TrinketMotion.Battle.skillCalloutOut
         #expect(TrinketMotion.Battle.skillCalloutTotal == total)
+        #expect(TrinketMotion.Battle.cardActivationDuration == 1.0)
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)

@@ -1,14 +1,8 @@
 import Testing
-import TrinketCore
-import TrinketDesignSystem
 @testable import Trinket
 
 @MainActor
 struct CardActivationTests {
-    @Test func cardActivationUsesTheFullParticleDuration() {
-        #expect(TrinketMotion.Battle.cardActivationDuration == 1.0)
-    }
-
     @Test func cardParticlesArePreparedDeterministically() {
         let first = CardActivationParticle.make(count: 50)
         let second = CardActivationParticle.make(count: 50)

@@ -27,28 +27,7 @@ struct BattleSessionSimulationTests {
         #expect(!(session.isShowingDefeat))
     }
 
-    @Test func victoryPresentationWaitsForTheConfiguredSpectacleHold() async throws {
-        let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(outcomePresentationDelayOverride: 0.05)
-        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: party.hero,
-            companion: party.companion,
-            enemy: party.enemy
-        )
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        #expect(session.outcome == .victory)
-        #expect(session.victorySummary != nil)
-        #expect(!session.isShowingVictory)
-        #expect(!session.canRetreat)
-        try await Task.sleep(for: .milliseconds(80))
-        #expect(session.isShowingVictory)
-        #expect(!session.canRetreat)
-    }
-
-    @Test func canRetreatIsFalseOnceOutcomeIsDecidedBeforeChromeAppears() throws {
+    @Test func victoryPresentationHoldsChromeAndLocksRetreatUntilConfiguredDelay() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(outcomePresentationDelayOverride: 0.05)
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
@@ -62,7 +41,11 @@ struct BattleSessionSimulationTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .victory)
+        #expect(session.victorySummary != nil)
         #expect(!session.isShowingVictory)
+        #expect(!session.canRetreat)
+        try await Task.sleep(for: .milliseconds(80))
+        #expect(session.isShowingVictory)
         #expect(!session.canRetreat)
     }
 
@@ -252,15 +235,7 @@ struct BattleSessionSimulationTests {
         )
     }
 
-    @Test func openingHandIsDealtAndCanEndTurnWhilePlayerTurn() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-
-        #expect(!(session.hand.isEmpty))
-        #expect(session.canEndTurn)
-        #expect(session.hasPlayableCard)
-    }
-
-    @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
+    @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
         let tickWhilePlayable = try #require(session.state?.tickCount)

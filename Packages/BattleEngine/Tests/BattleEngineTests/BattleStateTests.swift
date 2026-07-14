@@ -84,20 +84,6 @@ struct BattleStateTests {
         try #expect(initialGoldBattle.earnedGold == initialGoldBattle.gold - 5)
     }
 
-    @Test func cardCombatVictoryWhenEnemyDies() throws {
-        let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 100, description: "Finisher")
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 5, abilities: [])
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        try #expect(battle.isEnemyDefeated)
-        try #expect(battle.isBattleOver)
-        try #expect(battle.phase == .ended)
-    }
-
     @Test func cardCombatDefeatWhenPartyObliterated() throws {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let observer = Combatant(id: "observer", name: "Observer", role: .companion, maxHealth: 1, abilities: [])

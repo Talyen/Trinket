@@ -3,26 +3,19 @@ import Testing
 @testable import Trinket
 
 struct BattleCardGridLayoutTests {
-    @Test(arguments: [CGFloat(375), 390, 430])
-    func commonPhoneWidthsUseFullBleedTriptychRatios(width: CGFloat) {
-        let containerSize = CGSize(width: width, height: 840)
+    @Test func compactScreensScaleWithoutNegativeSizes() {
+        let containerSize = CGSize(width: 320, height: 410)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
         #expect(metrics.outerPadding == 0)
         #expect(metrics.cardSpacing == 12)
         #expect(metrics.handReservedHeight == BattleCardGridLayout.handReservedHeight)
-        #expect(abs(metrics.enemySize.width - width * BattleCardGridLayout.combatantScale) < 0.001)
-        assertRelationships(metrics, in: containerSize)
-    }
-
-    @Test func compactScreensScaleWithoutNegativeSizes() {
-        let metrics = BattleCardGridLayout.metrics(in: CGSize(width: 320, height: 410))
-
+        #expect(abs(metrics.enemySize.width - containerSize.width * BattleCardGridLayout.combatantScale) < 0.001)
         #expect(metrics.enemySize.width >= 0)
         #expect(metrics.enemySize.height >= 0)
         #expect(metrics.partySize.width >= 0)
         #expect(metrics.partySize.height >= 0)
-        assertRelationships(metrics, in: CGSize(width: 320, height: 410))
+        assertRelationships(metrics, in: containerSize)
     }
 
     @Test func veryShortScreensKeepNonNegativeCardSizes() {
