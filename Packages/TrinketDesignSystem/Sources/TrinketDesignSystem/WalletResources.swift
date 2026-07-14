@@ -47,7 +47,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             artwork
                 .frame(width: 36, height: 36)
 

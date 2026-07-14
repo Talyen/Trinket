@@ -51,7 +51,7 @@ public struct ExperienceBar: View {
     }
 
     public var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             if let artworkName {
                 Image(artworkName)
                     .resizable()
@@ -66,9 +66,9 @@ public struct ExperienceBar: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
                     Text(combatantName)
-                        .font(.subheadline.weight(.semibold))
+                        .trinketTypography(.cardLabel)
 
                     if let burstLevel = levelUpBurst {
                         Text("Level \(burstLevel)!")
@@ -80,11 +80,12 @@ public struct ExperienceBar: View {
                             .transition(.scale.combined(with: .opacity))
                     }
 
-                    Spacer(minLength: 8)
+                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
                     if let experienceAward, experienceAward > 0 {
                         Text("+\(experienceAward) XP")
-                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .trinketTypography(.badge)
+                            .monospacedDigit()
                             .foregroundStyle(fillColor)
                     }
                 }
@@ -111,11 +112,11 @@ public struct ExperienceBar: View {
 
                 HStack {
                     Text("Level \(displayedLevel)")
-                    Spacer(minLength: 8)
+                    Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
                     Text("\(displayedXP) / \(displayedRequiredXP) XP")
                         .monospacedDigit()
                 }
-                .font(.caption)
+                .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
             }
         }
