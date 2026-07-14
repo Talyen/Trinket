@@ -70,6 +70,24 @@ struct AspectsProgressTests {
         #expect(!save.aspects.isFloorStartable(1, aspectID: AspectID.ironVein.rawValue))
     }
 
+    @Test func aspectCompletionFallbackItemIsDeterministic() throws {
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "bear" })
+
+        var first = PlayerSave.fresh
+        AspectCompletion.complete(floor: floor, hero: hero, companion: companion, save: &first)
+        let firstItem = try #require(first.inventory.items.last)
+
+        var second = PlayerSave.fresh
+        AspectCompletion.complete(floor: floor, hero: hero, companion: companion, save: &second)
+        let secondItem = try #require(second.inventory.items.last)
+
+        #expect(firstItem.id == secondItem.id)
+        #expect(firstItem.baseType.id == secondItem.baseType.id)
+        #expect(firstItem.baseType.keywordAffinities.contains(.physical))
+    }
+
     @Test func floorCompletionGrantsBiasedItemAndIsIdempotent() throws {
         var save = PlayerSave.fresh
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))

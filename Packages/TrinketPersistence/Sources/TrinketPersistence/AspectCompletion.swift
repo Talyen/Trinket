@@ -48,7 +48,13 @@ public enum AspectCompletion {
         if let rewardItem {
             save.inventory.appendUniqueItem(rewardItem)
         } else {
-            var rng = SystemRandomNumberGenerator()
+            // Deterministic fallback when battle did not pre-roll `rewardItem`
+            // (mirrors LabyrinthCompletion's seeded item grants).
+            var rng = SeededRandomNumberGenerator(
+                seed: GameContent.stableSeed(
+                    for: "aspect-item-\(floor.aspectID.rawValue)-\(floor.floor)"
+                )
+            )
             if let generated = makeAspectFloorItem(for: floor, using: &rng) {
                 save.inventory.appendUniqueItem(generated)
             }
