@@ -41,8 +41,8 @@ extension BattleSession {
         case .victory:
             if let journey = autoEndJourney,
                Self.stageRewardsAlreadyClaimed(
-                stageID: activeBattle?.stageID,
-                journey: journey
+                   stageID: activeBattle?.stageID,
+                   journey: journey
                ) {
                 onTurnAutoEnded?(state?.earnedGold ?? 0)
                 return

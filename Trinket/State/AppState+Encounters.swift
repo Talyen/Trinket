@@ -194,8 +194,9 @@ extension AppState {
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
-    /// Recruit unlocks transition to the reveal phase; other outcomes complete the stage
-    /// in the same persist transaction so effects cannot land without completion.
+    /// Recruit unlocks transition to the reveal phase; choose-item choices present
+    /// candidates; other outcomes complete the stage in the same persist transaction
+    /// so effects cannot land without completion.
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let session = activeMysteryEncounter else { return false }
@@ -224,23 +225,9 @@ extension AppState {
                 )
                 // Recruit unlocks reveal first; complete only after the player confirms.
                 guard applyResult.unlockedCombatantIDs.isEmpty else { return }
-                if let labyrinthNodeID = session.labyrinthNodeID {
-                    LabyrinthCompletion.complete(
-                        nodeID: labyrinthNodeID,
-                        hero: save.roster.activeHero,
-                        companion: save.roster.activeCompanion,
-                        save: &save
-                    )
-                } else {
-                    StageCompletion.complete(
-                        session.stage,
-                        hero: save.roster.activeHero,
-                        companion: save.roster.activeCompanion,
-                        in: GameContent.chapters,
-                        save: &save
-                    )
-                    resultingJourney = save.journey
-                }
+                // Choose-item presents candidates next; grant + complete on selection.
+                guard applyResult.chooseItemCandidates.isEmpty else { return }
+                resultingJourney = completeMysteryProgress(session: session, save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -255,10 +242,41 @@ extension AppState {
             return true
         }
 
-        if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        if !applyResult.chooseItemCandidates.isEmpty {
+            session.presentItemChoice(candidates: applyResult.chooseItemCandidates)
+            return true
         }
-        activeMysteryEncounter = nil
+
+        dismissMysteryAfterProgress(resultingJourney: resultingJourney)
+        return true
+    }
+
+    /// Grants the chosen mystery item and completes the stage/node in one transaction.
+    @discardableResult
+    func selectActiveMysteryItem(itemID: String) -> Bool {
+        guard let session = activeMysteryEncounter else { return false }
+        guard session.showsItemChoice else { return false }
+        guard !session.isResolvingChoice else { return false }
+        guard let item = session.itemCandidates.first(where: { $0.id == itemID }) else {
+            return false
+        }
+
+        session.markChoiceStarted()
+        var resultingJourney: JourneyProgressState?
+        do {
+            try playerSave.performBatchMutation { save in
+                MysteryEffectApplier.grantChosenItem(item, save: &save)
+                resultingJourney = completeMysteryProgress(session: session, save: &save)
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to grant mystery item: \(error.localizedDescription, privacy: .public)"
+            )
+            session.markResolvedWithoutReveal()
+            return false
+        }
+
+        dismissMysteryAfterProgress(resultingJourney: resultingJourney)
         return true
     }
 
@@ -295,6 +313,38 @@ extension AppState {
         }
         noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         return true
+    }
+
+    /// Completes the active mystery's stage or Labyrinth node inside an open save mutation.
+    @discardableResult
+    private func completeMysteryProgress(
+        session: MysteryEncounterSession,
+        save: inout PlayerSave
+    ) -> JourneyProgressState? {
+        if let labyrinthNodeID = session.labyrinthNodeID {
+            LabyrinthCompletion.complete(
+                nodeID: labyrinthNodeID,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save
+            )
+            return nil
+        }
+        StageCompletion.complete(
+            session.stage,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            in: GameContent.chapters,
+            save: &save
+        )
+        return save.journey
+    }
+
+    private func dismissMysteryAfterProgress(resultingJourney: JourneyProgressState?) {
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        }
+        activeMysteryEncounter = nil
     }
 
     private static func syntheticLabyrinthStage(

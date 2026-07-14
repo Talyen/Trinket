@@ -53,10 +53,14 @@ public enum LabyrinthCompletion {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Bool {
         switch node.type.canonical {
-        case .warden, .craft:
+        case .warden:
             true
         case .battle, .gate:
             Int.random(in: 0 ... 99, using: &randomNumberGenerator) < (8 + effects.itemDropBonusPercent)
+        case .craft:
+            // Craft items come only from forgeAtAltar (paid). Leaving without forging
+            // must not mint a free generated item.
+            false
         default:
             false
         }
@@ -101,7 +105,7 @@ public enum LabyrinthCompletion {
         }
 
         if node.type.canonical == .craft {
-            // Thin v1 craft altar: gold stipend already granted; bonus material.
+            // Leave without forging: gold stipend already granted; bonus material only.
             save.homestead.grant([ResourceAmount(.wood, 1)])
         }
 
