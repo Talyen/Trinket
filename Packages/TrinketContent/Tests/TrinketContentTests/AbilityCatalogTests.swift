@@ -15,40 +15,15 @@ struct AbilityCatalogTests {
                 continue
             }
             for component in ability.damageComponents where component.target == .abilityTarget {
-                switch component.keyword {
-                case .burn:
-                    try #expect(
-                        ability.effects.contains {
-                            if case let .burn(potency) = $0 {
-                                return potency == component.amount
-                            }
-                            return false
-                        },
-                        "\(ability.id) should pair Burn damage with .burn(\(component.amount))"
-                    )
-                case .poison:
-                    try #expect(
-                        ability.effects.contains {
-                            if case let .poison(potency) = $0 {
-                                return potency == component.amount
-                            }
-                            return false
-                        },
-                        "\(ability.id) should pair Poison damage with .poison(\(component.amount))"
-                    )
-                case .bleed:
-                    try #expect(
-                        ability.effects.contains {
-                            if case let .bleed(potency) = $0 {
-                                return potency == component.amount
-                            }
-                            return false
-                        },
-                        "\(ability.id) should pair Bleed damage with .bleed(\(component.amount))"
-                    )
-                default:
+                guard Effect.pairedDoT(keyword: component.keyword, potency: component.amount) != nil else {
                     continue
                 }
+                try #expect(
+                    ability.effects.contains {
+                        $0.keyword == component.keyword && $0.potency == component.amount
+                    },
+                    "\(ability.id) should pair \(component.keyword.rawValue) damage with .\(String(describing: component.keyword).lowercased())(\(component.amount))"
+                )
             }
         }
     }

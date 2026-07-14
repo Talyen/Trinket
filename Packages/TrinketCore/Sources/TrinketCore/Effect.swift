@@ -85,6 +85,17 @@ public enum Effect: Hashable, Sendable {
     public static let standardMarkedBonus = 2
     public static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
 
+    /// DoT stack paired with a direct hit of the same keyword (`burn` / `poison` / `bleed`).
+    public static func pairedDoT(keyword: Keyword, potency: Int) -> Effect? {
+        guard potency > 0 else { return nil }
+        switch keyword {
+        case .burn: .burn(potency)
+        case .poison: .poison(potency)
+        case .bleed: .bleed(potency)
+        default: nil
+        }
+    }
+
     public var keyword: Keyword {
         switch self {
         case .burn: .burn
