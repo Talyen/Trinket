@@ -2,6 +2,7 @@ import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 
 struct AffixReactionBattleTests {
     private func hero(
