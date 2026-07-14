@@ -60,5 +60,4 @@ struct ItemAffixCatalogTests {
         let sparkling = try #require(byID["sparkling"])
         try #expect(sparkling.basic.description == "Increases Holy damage dealt by 1 and Block gained by 1")
     }
-
 }
