@@ -18,6 +18,7 @@
         "MysteryRecruitUITests",
         "PlayMapUITests",
         "PlayModeNavigationUITests",
+        "ShopFlowUITests",
         "TabNavigationUITests"
       ],
       "target" : {

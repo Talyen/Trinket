@@ -34,7 +34,7 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Avoid long Play-map scrolls; use `-completed-stages` or `-map-scroll-target`.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
-- Mid-battle exhaustive tests: enter via Play map, not `-launch-screen battle` with very fast ticks.
+- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`), not `-launch-screen battle` (ticks start at launch and race setup).
 - Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors, visible text, and interaction outcomes.
