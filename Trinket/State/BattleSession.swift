@@ -20,8 +20,6 @@ final class BattleSession {
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     var isShowingBattleLog = false
     var activeFeedbackItems: [CombatFeedbackItem] = []
-    /// Compatibility mirror of underlying events for tests that inspect event kinds.
-    var activeFeedbackEvents: [ActionEvent] = []
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
@@ -196,7 +194,6 @@ final class BattleSession {
             if hitReactionsByTargetID[item.targetID]?.id == item.id {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
             }
-            activeFeedbackEvents.removeAll { sourceEventIDs.contains($0.id) }
             activeFeedbackItems.removeAll { $0.id == item.id }
             for sourceEventID in sourceEventIDs {
                 feedbackEventRecordedAt.removeValue(forKey: sourceEventID)
@@ -204,7 +201,6 @@ final class BattleSession {
             }
             return
         }
-        activeFeedbackEvents.removeAll { $0.id == id }
         feedbackEventRecordedAt.removeValue(forKey: id)
         presentedFeedbackIDs.remove(id)
     }
@@ -221,7 +217,7 @@ final class BattleSession {
         let expiredRawIDs = feedbackEventRecordedAt.compactMap { eventID, recordedAt in
             date.timeIntervalSince(recordedAt) >= maxRawLifetime ? eventID : nil
         }
-        for eventID in expiredRawIDs where activeFeedbackEvents.contains(where: { $0.id == eventID }) {
+        for eventID in expiredRawIDs {
             removeFeedbackEvent(eventID)
         }
         for (targetID, bursts) in keywordBurstsByTargetID {

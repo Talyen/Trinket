@@ -5,7 +5,7 @@ import TrinketCore
 public enum BalanceSweepRunner {
     public static func run(
         config: BalanceSweepConfig,
-        policy: some PlayerPolicy = GreedyHeuristicPolicy(),
+        policy: GreedyHeuristicPolicy = GreedyHeuristicPolicy(),
         heroes: [Combatant] = GameContent.heroes,
         companions: [Combatant] = GameContent.companions,
         enemies: [Enemy] = GameContent.enemies
@@ -66,7 +66,7 @@ public enum BalanceSweepRunner {
 
     private static func runIdentitySweep(
         config: BalanceSweepConfig,
-        policy: some PlayerPolicy,
+        policy: GreedyHeuristicPolicy,
         heroes: [Combatant],
         companions: [Combatant],
         enemies: [Enemy]
@@ -89,7 +89,7 @@ public enum BalanceSweepRunner {
 
     private static func simulateIdentityBattle(
         config: BalanceSweepConfig,
-        policy: some PlayerPolicy,
+        policy: GreedyHeuristicPolicy,
         heroes: [Combatant],
         companions: [Combatant],
         enemies: [Enemy],

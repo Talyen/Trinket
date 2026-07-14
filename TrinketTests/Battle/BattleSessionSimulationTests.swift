@@ -135,17 +135,19 @@ struct BattleSessionSimulationTests {
         #expect(session.victorySummary == nil)
     }
 
-    @Test func playCardAppendsNonMilestoneEventsWhenCardPlays() throws {
+    @Test func playCardAppendsFeedbackItemsWhenCardPlays() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
 
-        #expect(!(session.activeFeedbackEvents.isEmpty))
-        #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        #expect(!(session.activeFeedbackItems.isEmpty))
+        let recordedIDs = Set(session.feedbackEventRecordedAt.keys)
+        let milestoneIDs = Set((session.state?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
 
-    @Test func endTurnExcludesMilestonesWhenBattleEnds() throws {
+    @Test func endTurnExcludesMilestonesFromFeedbackWhenBattleEnds() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -161,7 +163,10 @@ struct BattleSessionSimulationTests {
         }
 
         #expect(session.state?.isPartyDefeated == true)
-        #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        let recordedIDs = Set(session.feedbackEventRecordedAt.keys)
+        let milestoneIDs = Set((session.state?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        #expect(recordedIDs.isDisjoint(with: milestoneIDs))
+        #expect(session.deferredFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
     @Test func resetClearsFeedbackAndRebuildsStateWhenResetCalled() throws {
@@ -174,7 +179,7 @@ struct BattleSessionSimulationTests {
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
-        #expect(!(session.activeFeedbackEvents.isEmpty))
+        #expect(!(session.activeFeedbackItems.isEmpty))
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) ?? 0 < 100)
 
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
@@ -184,7 +189,7 @@ struct BattleSessionSimulationTests {
             enemy: party.enemy
         )
 
-        #expect(session.activeFeedbackEvents.isEmpty)
+        #expect(session.activeFeedbackItems.isEmpty)
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) == 100)
         #expect(session.state?.health(of: session.state?.hero ?? party.hero) == party.hero.maxHealth)
     }
@@ -205,7 +210,6 @@ struct BattleSessionSimulationTests {
         #expect(session.activeFeedbackItems[0].sourceEventIDs == [1, 2])
         session.removeFeedbackEvent(2)
         #expect(session.activeFeedbackItems.isEmpty)
-        #expect(session.activeFeedbackEvents.isEmpty)
         #expect(session.feedbackEventRecordedAt.isEmpty)
 
         session.recordFeedbackEvents(
@@ -219,7 +223,7 @@ struct BattleSessionSimulationTests {
         let item = try #require(session.activeFeedbackItems.first)
         session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.01))
         #expect(session.activeFeedbackItems.isEmpty)
-        #expect(session.activeFeedbackEvents.isEmpty)
+        #expect(session.feedbackEventRecordedAt.isEmpty)
     }
 
     @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {

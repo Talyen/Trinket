@@ -5,49 +5,13 @@ import TrinketCore
 /// Mutation surface passed to rule engines. Same storage as `BattleState`.
 public typealias BattleEngineContext = BattleState
 
-/// The state of a single battle. `BattleState` is the top-level facade
-/// drivers (UI) interact with: it exposes per-combatant read-only views and
-/// the mutable entry points `playCard(cardID:)` / `endTurn()` that drive
-/// turn-based card combat.
+/// Top-level battle facade: UI calls `playCard` / `endTurn`; rule engines mutate
+/// via `package` APIs in `BattleState+*.swift`. Put effect rules in
+/// `EffectHandlers/`, shared math in existing engines, and never add
+/// catalog-specific branches here. See `Docs/AgentContext/battle.md`.
 ///
-/// **Public surface (read-only views):**
-/// - Combatant definitions: `hero`, `companion`, `enemy`
-/// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
-///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
-///   `effectSummaries(of:)`, `modifiers(for:)`
-/// - Global state: `tickCount` (round index), `actionCount`, `events`, `gold`,
-///   `earnedGold`, `rngSeed`, `phase`, `hand`
-/// - Derived: `log` (empty when `tracksLog` is `false`)
-/// - Booleans: `isHeroAlive`, `isCompanionAlive`, `isEnemyDefeated`,
-///   `isPartyDefeated`, `isBattleOver`
-/// - AI helper: `enemyAttackTarget`
-///
-/// **Public surface (mutations):**
-/// - `init(...)` — construct a battle (opens with 3 randomly drawn cards)
-/// - `playCard(cardID:)` / `endTurn()` — drive card combat
-/// - `syncLog()` / `releaseLogProjection()` — log cache lifecycle
-///
-/// **Engine-facing mutations** (`package`, in `BattleState+*.swift`):
-/// damage/heal/DoT/control, effect append, gold/mana, event factories.
-/// App and feature code must not call these — extend an `*Engine` or handler.
-///
-/// **Where to put new combat code:**
-/// 1. Effect-specific rules → `EffectHandlers/`
-/// 2. Shared combat math → existing `*Engine` / `DamagePipeline` / applicator
-/// 3. Shared mutation plumbing used by multiple engines → `BattleState+*.swift`
-/// 4. Never add catalog-specific branching to `BattleState`
-///
-/// **Event semantics:**
-/// - `events` is the cumulative append-only stream for the whole battle.
-/// - Method return values hold the delta emitted during that call only.
-/// - Metrics consumers should use the returned delta; replay and log
-///   projection use `events`.
-///
-/// **Internal:**
-/// - Rule engines mutate battle state in place during each step
-/// - Optional `BattleLogProjection` holds the cached combat log when
-///   `tracksLog` is enabled
-/// - Turn orchestration lives in `BattleCardCombatEngine`
+/// `events` is the append-only stream for the whole battle; method return
+/// values are the delta from that call only.
 public struct BattleState {
     public let hero: Combatant
     public let companion: Combatant
