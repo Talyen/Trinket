@@ -153,6 +153,21 @@ struct PlayerRosterStateTests {
         try #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }
 
+    @Test func setEquipmentLoadoutDropsDuplicateItemAcrossSlots() throws {
+        var roster = PlayerRosterState.initial
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        let loadout = EquipmentLoadout(itemIDsBySlot: [
+            .trinket: "ring-a",
+            .secondaryTrinket: "ring-a"
+        ])
+
+        roster.setEquipmentLoadout(loadout, for: bear)
+
+        let stored = roster.equipmentLoadout(for: bear)
+        try #expect(stored.itemID(for: .trinket) == "ring-a")
+        try #expect(stored.itemID(for: .secondaryTrinket) == nil)
+    }
+
     @Test func inventorySlotUnlocksWhenSlotItemExists() throws {
         let weapon = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var inventory = PlayerInventoryState.freshStart

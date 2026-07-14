@@ -209,7 +209,9 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
-        let newlyEquipped = Set(loadout.itemIDsBySlot.values)
+        // One inventory instance per combatant — collapse same-item multi-slot state.
+        let resolvedLoadout = Self.deduplicatedLoadout(loadout)
+        let newlyEquipped = Set(resolvedLoadout.itemIDsBySlot.values)
         for (combatantID, var otherLoadout) in equipmentLoadouts where combatantID != combatant.id {
             for slot in ItemSlot.allCases {
                 if let itemID = otherLoadout.itemID(for: slot), newlyEquipped.contains(itemID) {
@@ -218,7 +220,20 @@ public struct PlayerRosterState: Equatable, Sendable {
             }
             equipmentLoadouts[combatantID] = otherLoadout
         }
-        equipmentLoadouts[combatant.id] = loadout
+        equipmentLoadouts[combatant.id] = resolvedLoadout
+    }
+
+    private static func deduplicatedLoadout(_ loadout: EquipmentLoadout) -> EquipmentLoadout {
+        var unique = EquipmentLoadout()
+        var claimedItemIDs = Set<String>()
+        for slot in ItemSlot.allCases {
+            guard let itemID = loadout.itemID(for: slot), !claimedItemIDs.contains(itemID) else {
+                continue
+            }
+            claimedItemIDs.insert(itemID)
+            unique.itemIDsBySlot[slot] = itemID
+        }
+        return unique
     }
 
     public mutating func setActiveHero(_ hero: Combatant) {

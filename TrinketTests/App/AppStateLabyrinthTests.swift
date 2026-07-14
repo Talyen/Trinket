@@ -151,6 +151,26 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
     }
 
+    @Test func labyrinthRestGoldCrumbMatchesHomesteadAdjustedGrant() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        var homestead = state.homestead
+        homestead.nodeTiers[.wishingWell] = 2
+        state.homestead = homestead
+        _ = state.enterLabyrinth()
+        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+        let node = try #require(state.labyrinth.node(id: restNodeID))
+        let rawGold = LabyrinthCompletion.rewards(
+            for: node,
+            effects: state.labyrinth.effects(for: restNodeID)
+        ).gold
+        let expected = state.homestead.effects.adjustedGold(rawGold)
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
+        let session = try #require(state.activeLabyrinthRest)
+        #expect(session.goldCrumb == expected)
+        #expect(expected > rawGold)
+    }
+
     #if DEBUG
     @Test func finishActiveLabyrinthRestKeepsSessionOpenWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
