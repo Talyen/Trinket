@@ -264,11 +264,7 @@ struct BattleSessionSimulationTests {
         )
     }
 
-<<<<<<< HEAD
-    @Test func autoEndTurnAdvancesOnlyAfterHandIsExhausted() async throws {
-=======
     @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
->>>>>>> origin/main
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
         let tickWhilePlayable = try #require(session.state?.tickCount)
