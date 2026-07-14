@@ -179,7 +179,7 @@ private struct SurfaceStyle {
             fill = palette.panelSurface
             stroke = palette.subtleStroke
             strokeWidth = 1
-            padding = 16
+            padding = TrinketDesign.Metrics.largeSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .secondary:
@@ -193,7 +193,7 @@ private struct SurfaceStyle {
             fill = palette.elevatedBackground
             stroke = palette.subtleStroke
             strokeWidth = 1
-            padding = 16
+            padding = TrinketDesign.Metrics.largeSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = palette.shadow
         case .card:
@@ -207,7 +207,7 @@ private struct SurfaceStyle {
             fill = palette.secondaryBackground
             stroke = .clear
             strokeWidth = 0
-            padding = 12
+            padding = TrinketDesign.Metrics.mediumSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .selected:
@@ -235,7 +235,7 @@ private struct SurfaceStyle {
             fill = palette.elevatedBackground
             stroke = palette.accent.opacity(0.70)
             strokeWidth = 1.25
-            padding = 16
+            padding = TrinketDesign.Metrics.largeSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = ShadowStyle(color: palette.accent.opacity(0.20), radius: 14, y: 4)
         case .modal:
@@ -256,7 +256,7 @@ private struct SurfaceStyle {
             fill = palette.panelSurface
             stroke = palette.subtleStroke
             strokeWidth = 1
-            padding = 12
+            padding = TrinketDesign.Metrics.mediumSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         }
