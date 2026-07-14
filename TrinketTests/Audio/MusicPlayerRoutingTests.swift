@@ -93,25 +93,17 @@ struct MusicPlayerRoutingTests {
         #expect(request.resumeKey.contextKind == .menu)
     }
 
-    @Test func inactiveSceneSilencesAndPreservesPosition() {
+    @Test(arguments: [
+        (sceneIsActive: false, musicVolume: 0.75),
+        (sceneIsActive: true, musicVolume: 0.0)
+    ])
+    func silencePreservesPositionWhenSceneInactiveOrMuted(sceneIsActive: Bool, musicVolume: Double) {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
-            sceneIsActive: false,
-            musicVolume: 0.75
-        )
-
-        #expect(route == .silence(preservingPosition: true))
-    }
-
-    @Test func mutedMusicSilencesAndPreservesPosition() {
-        let route = MusicRoute.resolve(
-            selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
-            activeBattle: nil,
-            sceneIsActive: true,
-            musicVolume: 0
+            sceneIsActive: sceneIsActive,
+            musicVolume: musicVolume
         )
 
         #expect(route == .silence(preservingPosition: true))

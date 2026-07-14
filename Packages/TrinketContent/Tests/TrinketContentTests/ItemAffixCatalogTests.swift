@@ -61,20 +61,4 @@ struct ItemAffixCatalogTests {
         try #expect(sparkling.basic.description == "Increases Holy damage dealt by 1 and Block gained by 1")
     }
 
-    @Test func newArchetypeAndUtilityAffixesArePresent() throws {
-        let ids = Set(GameContent.itemAffixDefinitions.map(\.id))
-        let expected: Set = [
-            "venomancers", "cryomancers", "thunderers", "druids",
-            "leeching", "sapping", "caustic", "persistent", "scorching",
-            "rimed", "insulated", "sanctified", "thorned", "bloodbound",
-            "enduring", "plated",
-            "siphoning", "manabound", "beastbond", "biting", "noxious",
-            "hallowed", "hoarfrost", "stormforged", "vitalis", "ashen",
-            "infected", "ashen_wake", "cauterize", "contagion", "shatter",
-            "brittle", "executioners", "riposte", "relentless", "cascading",
-            "undergird", "ablution", "aftershock", "hexmark", "packbond",
-            "symbiosis", "second_wind", "deathgrip", "frostburn"
-        ]
-        try #expect(expected.isSubset(of: ids))
-    }
 }

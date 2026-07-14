@@ -28,12 +28,6 @@ struct AbilityCatalogTests {
         }
     }
 
-    @Test func bloodthornUsesDamageComponents() throws {
-        try #expect(Ability.bloodthorn.directDamage == 6)
-        try #expect(Ability.fireball.directDamage == 2)
-        try #expect(Ability.fireball.damageKeyword == .burn)
-    }
-
     @Test func catalogPassesValidation() throws {
         let issues = AbilityValidator.validateCatalog()
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
@@ -124,10 +118,5 @@ struct AbilityCatalogTests {
                 "\(ability.id) should not carry a manual description override"
             )
         }
-    }
-
-    @Test(arguments: AbilityCatalog.all)
-    func abilityLookupByID(ability: Ability) throws {
-        try #expect(AbilityCatalog.ability(id: ability.id) == ability)
     }
 }

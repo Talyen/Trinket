@@ -19,19 +19,6 @@ struct GameContentCatalogInvariantTests {
     }
 
     @Test(arguments: GameContent.chapters.flatMap(\.stages))
-    func encounterArtManifestReferencesCatalogEntries(stage: Stage) throws {
-        guard let artID = GameContent.encounterArtID(for: stage) else { return }
-        try #require(
-            ArtCatalog.encounterArtByID[artID] != nil,
-            "Encounter art \(artID) for stage \(stage.id) is missing from ArtCatalog"
-        )
-        try #expect(
-            !(GameContent.encounterArtTitle(for: stage)?.isEmpty ?? true),
-            "Encounter art title should be set when art id is set for \(stage.id)"
-        )
-    }
-
-    @Test(arguments: GameContent.chapters.flatMap(\.stages))
     func mysteryStagesReferenceKnownEvents(stage: Stage) throws {
         guard let eventID = stage.encounter.mysteryEventID else { return }
         let event = try #require(

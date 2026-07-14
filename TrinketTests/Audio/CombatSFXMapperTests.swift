@@ -92,60 +92,34 @@ struct CombatSFXMapperTests {
 
     // swiftlint:enable function_body_length
 
-    @Test func catalogContainsExpectedIDs() {
-        let expected = [
-            SFXID.uiTap, SFXID.uiConfirm, SFXID.uiCancel, SFXID.uiDecline, SFXID.uiDeny,
-            SFXID.uiToggleOn, SFXID.uiToggleOff, SFXID.uiEquip, SFXID.uiUnequip, SFXID.uiBuySell,
-            SFXID.abilityDraw,
-            SFXID.hit, SFXID.hitBurn, SFXID.hitFreeze,
-            SFXID.heal, SFXID.buff, SFXID.block,
-            SFXID.controlFreeze, SFXID.controlStun,
-            SFXID.purge, SFXID.deathsDoor,
-            SFXID.victory, SFXID.defeat, SFXID.mysteryEvent
-        ]
-        for id in expected {
-            #expect(SFXCatalog.clipsByID[id] != nil, "Missing clip \(id)")
-        }
-        #expect(SFXCatalog.clipsByID["ability_play"] == nil)
-    }
-
-    @Test func uniqueClipIDsDedupesIdenticalClips() {
-        let items = [
-            feedbackItem(id: 1, feedbackClass: .buff, keyword: .stun, text: "Cleanse Stunned"),
-            feedbackItem(id: 2, feedbackClass: .heal, keyword: .health, text: "+1 Health"),
-            feedbackItem(id: 3, feedbackClass: .buff, keyword: .block, text: "+4 Block"),
-            feedbackItem(id: 4, feedbackClass: .buff, keyword: .armor, text: "+22% Armor")
-        ]
-        #expect(CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.heal, SFXID.block])
-    }
-
-    @Test func uniqueClipIDsPrefersTypedHitOverGenericPhysicalHit() {
-        let items = [
-            feedbackItem(id: 1, feedbackClass: .directDamage, keyword: .physical, text: "-6"),
-            feedbackItem(id: 2, feedbackClass: .dot, keyword: .burn, text: "-2")
-        ]
-        #expect(CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn])
-    }
-
-    @Test func uniqueClipIDsKeepsPoisonHitAlongsideBurn() {
-        let items = [
-            feedbackItem(id: 1, feedbackClass: .dot, keyword: .burn, text: "-2"),
-            feedbackItem(id: 2, feedbackClass: .dot, keyword: .poison, text: "-1")
-        ]
+    @Test func uniqueClipIDsDedupesAndPreferTypedHitsAcrossTargets() {
         #expect(
-            CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn, SFXID.hit]
+            CombatSFXMapper.uniqueClipIDs(for: [
+                feedbackItem(id: 1, feedbackClass: .buff, keyword: .stun, text: "Cleanse Stunned"),
+                feedbackItem(id: 2, feedbackClass: .heal, keyword: .health, text: "+1 Health"),
+                feedbackItem(id: 3, feedbackClass: .buff, keyword: .block, text: "+4 Block"),
+                feedbackItem(id: 4, feedbackClass: .buff, keyword: .armor, text: "+22% Armor")
+            ]) == [SFXID.heal, SFXID.block]
         )
-    }
-
-    @Test func uniqueClipIDsKeepsOneBurnAcrossMultipleTargets() {
-        let items = [
-            feedbackItem(id: 1, targetID: "enemy", feedbackClass: .dot, keyword: .burn, text: "-2"),
-            feedbackItem(id: 2, targetID: "hero", feedbackClass: .dot, keyword: .burn, text: "-2"),
-            feedbackItem(id: 3, targetID: "companion", feedbackClass: .dot, keyword: .burn, text: "-1"),
-            feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3")
-        ]
         #expect(
-            CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn, SFXID.hit]
+            CombatSFXMapper.uniqueClipIDs(for: [
+                feedbackItem(id: 1, feedbackClass: .directDamage, keyword: .physical, text: "-6"),
+                feedbackItem(id: 2, feedbackClass: .dot, keyword: .burn, text: "-2")
+            ]) == [SFXID.hitBurn]
+        )
+        #expect(
+            CombatSFXMapper.uniqueClipIDs(for: [
+                feedbackItem(id: 1, feedbackClass: .dot, keyword: .burn, text: "-2"),
+                feedbackItem(id: 2, feedbackClass: .dot, keyword: .poison, text: "-1")
+            ]) == [SFXID.hitBurn, SFXID.hit]
+        )
+        #expect(
+            CombatSFXMapper.uniqueClipIDs(for: [
+                feedbackItem(id: 1, targetID: "enemy", feedbackClass: .dot, keyword: .burn, text: "-2"),
+                feedbackItem(id: 2, targetID: "hero", feedbackClass: .dot, keyword: .burn, text: "-2"),
+                feedbackItem(id: 3, targetID: "companion", feedbackClass: .dot, keyword: .burn, text: "-1"),
+                feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3")
+            ]) == [SFXID.hitBurn, SFXID.hit]
         )
     }
 

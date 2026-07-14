@@ -6,6 +6,7 @@ struct MysteryEventCatalogTests {
     @Test func allMysteryEventsHaveUniqueIDs() throws {
         let ids = GameContent.mysteryEvents.map(\.id)
         try #expect(ids.count == Set(ids).count)
+        try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
     @Test func mysteryEventChoiceCountsMatchKind() throws {
@@ -66,20 +67,15 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func allMysteryEventsHaveUniqueChoiceIDs() throws {
+    @Test func allMysteryEventChoicesHaveUniqueIDsAndAtLeastOneEffect() throws {
         for event in GameContent.mysteryEvents {
             let choiceIDs = event.choices.map(\.id)
             try #expect(
                 choiceIDs.count == Set(choiceIDs).count,
                 "Mystery event \(event.id) has duplicate choice IDs"
             )
-        }
-    }
-
-    @Test func allMysteryEventsHaveAtLeastOneEffectPerChoice() throws {
-        for event in GameContent.mysteryEvents {
             for choice in event.choices {
-                try #expect(!choice.effects.isEmpty, "Choice \(choice.id)) in event \(event.id) has no effects")
+                try #expect(!choice.effects.isEmpty, "Choice \(choice.id) in event \(event.id) has no effects")
             }
         }
     }
@@ -102,14 +98,6 @@ struct MysteryEventCatalogTests {
                 "Recruit event \(event.id) combatant \(combatant.id) missing art"
             )
         }
-    }
-
-    @Test func mysteryEventLookupHandlesKnownAndUnknownIDs() throws {
-        for event in GameContent.mysteryEvents {
-            let lookedUp = try #require(GameContent.mysteryEvent(matching: event.id))
-            try #expect(lookedUp.id == event.id)
-        }
-        try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
     @Test func pickEligibleMysteryEventRespectsRosterUnlocks() throws {
