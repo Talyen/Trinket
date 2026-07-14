@@ -65,6 +65,10 @@ struct ArtCatalogIntegrationTests {
                     ArtCatalog.encounterArtByID[artID],
                     "Stage \(stage.id) references missing encounter art \(artID)"
                 )
+                try #expect(
+                    !(GameContent.encounterArtTitle(for: stage)?.isEmpty ?? true),
+                    "Encounter art title should be set when art id is set for \(stage.id)"
+                )
             }
         }
 

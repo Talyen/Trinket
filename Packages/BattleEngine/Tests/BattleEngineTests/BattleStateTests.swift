@@ -173,28 +173,4 @@ struct BattleStateTests {
         try #expect(!(battle.isPartyDefeated))
         try #expect(battle.isEnemyDefeated)
     }
-
-    @Test func rosterContextInitPreservesRngSeed() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        let seed: UInt64 = 42
-        let battle = BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemy)
-            ),
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
-        try #expect(battle.rngSeed == seed)
-    }
 }

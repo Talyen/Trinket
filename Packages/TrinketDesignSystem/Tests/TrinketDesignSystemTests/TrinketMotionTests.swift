@@ -24,17 +24,6 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
     }
 
-    @Test func everyCombatFeedbackClassHasPositiveLifetimeRecipe() {
-        for feedbackClass in CombatFeedbackClass.allCases {
-            let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
-            #expect(recipe.lifetime > 0)
-            #expect(recipe.scale.count == 3)
-            #expect(recipe.opacity.count == 3)
-            #expect(recipe.offsetY.count == 3)
-            #expect(recipe.feedbackClass == feedbackClass)
-        }
-    }
-
     @Test func chipMotionRecipesStayWithinSemanticContracts() {
         let critical = TrinketMotion.Battle.chip(for: .critical)
         let dot = TrinketMotion.Battle.chip(for: .dot)
@@ -45,8 +34,13 @@ struct TrinketMotionTests {
         #expect((critical.scale.last?.value ?? 0) > (TrinketMotion.Battle.chip(for: .directDamage).scale.last?.value ?? 0))
         for feedbackClass in CombatFeedbackClass.allCases {
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
+            #expect(recipe.lifetime > 0)
             #expect(recipe.lifetime <= 1.2)
             #expect(recipe.lifetime >= 0.85)
+            #expect(recipe.scale.count == 3)
+            #expect(recipe.opacity.count == 3)
+            #expect(recipe.offsetY.count == 3)
+            #expect(recipe.feedbackClass == feedbackClass)
             #expect(recipe.initialOpacity == 0)
             #expect(recipe.initialScale < 1)
             #expect(recipe.initialOffsetY > 0)

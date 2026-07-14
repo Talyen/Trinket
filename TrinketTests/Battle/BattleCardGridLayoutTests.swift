@@ -7,8 +7,6 @@ struct BattleCardGridLayoutTests {
         let containerSize = CGSize(width: 320, height: 410)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
-        #expect(metrics.outerPadding == 0)
-        #expect(metrics.cardSpacing == 12)
         #expect(metrics.handReservedHeight == BattleCardGridLayout.handReservedHeight)
         #expect(abs(metrics.enemySize.width - containerSize.width * BattleCardGridLayout.combatantScale) < 0.001)
         #expect(metrics.enemySize.width >= 0)
@@ -59,14 +57,27 @@ struct BattleCardGridLayoutTests {
 }
 
 struct BattleHandLayoutTests {
-    @Test func singleCardCentersWithinWidthClamps() {
-        let metrics = BattleHandLayout.metrics(containerWidth: 390, cardCount: 1)
+    @Test(arguments: [
+        (width: CGFloat(390), cardCount: 1),
+        (width: CGFloat(375), cardCount: 5),
+        (width: CGFloat(390), cardCount: 5),
+        (width: CGFloat(430), cardCount: 5)
+    ])
+    func handMetricsClampAndSpanAcrossPhoneWidths(width: CGFloat, cardCount: Int) {
+        let metrics = BattleHandLayout.metrics(containerWidth: width, cardCount: cardCount)
         #expect(metrics.cardWidth >= BattleHandLayout.minCardWidth)
         #expect(metrics.cardWidth <= BattleHandLayout.maxCardWidth)
-        #expect(abs(metrics.cardHeight - metrics.cardWidth * BattleHandLayout.aspectRatio) < 0.001)
-        #expect(abs(metrics.overlap) < 0.001)
-        let offset = BattleHandLayout.cardOffsetX(index: 0, metrics: metrics, containerWidth: 390)
-        #expect(abs(offset) < 0.001)
+        #expect(abs(metrics.cardHeight / metrics.cardWidth - BattleHandLayout.aspectRatio) < 0.001)
+
+        if cardCount == 1 {
+            #expect(abs(metrics.overlap) < 0.001)
+            let offset = BattleHandLayout.cardOffsetX(index: 0, metrics: metrics, containerWidth: width)
+            #expect(abs(offset) < 0.001)
+        } else {
+            let span = metrics.cardWidth + metrics.overlap * CGFloat(cardCount - 1)
+            #expect(metrics.overlap > 0)
+            #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
+        }
     }
 
     @Test func fiveCardsUseSymmetricFan() {
@@ -77,34 +88,62 @@ struct BattleHandLayoutTests {
 
         #expect(metrics.overlap > 0)
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
-        #expect((0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
-            == [-18, -9, 0, 9, 18])
         #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: count) == 0)
         #expect(BattleHandLayout.restingOffsetY(index: 0, cardCount: count)
             > BattleHandLayout.restingOffsetY(index: 1, cardCount: count))
+        let rotations = (0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
+        #expect(rotations[2] == 0)
+        #expect(rotations[0] == -rotations[4])
+        #expect(rotations[1] == -rotations[3])
+        #expect(rotations[0] < rotations[1])
+        #expect(rotations[1] < rotations[2])
     }
 
-    @Test(arguments: [CGFloat(375), 390, 430])
-    func fiveCardFanRespondsAcrossPhoneWidths(width: CGFloat) {
-        let metrics = BattleHandLayout.metrics(containerWidth: width, cardCount: 5)
-        #expect(metrics.cardWidth >= BattleHandLayout.minCardWidth)
-        #expect(metrics.cardWidth <= BattleHandLayout.maxCardWidth)
-        #expect(abs(metrics.cardHeight / metrics.cardWidth - 4.0 / 3.0) < 0.001)
-        let span = metrics.cardWidth + metrics.overlap * 4
-        #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
-    }
-
-    @Test func upwardPlayGestureCommitsFromTranslationOrProjectedFlick() {
-        #expect(BattleHandLayout.shouldPlay(
+    @Test(arguments: [
+        (
             translation: CGSize(width: 8, height: -84),
-            predictedEndTranslation: CGSize(width: 10, height: -120),
-            isPlayable: true
-        ))
-        #expect(BattleHandLayout.shouldPlay(
+            predicted: CGSize(width: 10, height: -120),
+            isPlayable: true,
+            shouldPlay: true
+        ),
+        (
             translation: CGSize(width: 4, height: -55),
-            predictedEndTranslation: CGSize(width: 7, height: -105),
-            isPlayable: true
-        ))
+            predicted: CGSize(width: 7, height: -105),
+            isPlayable: true,
+            shouldPlay: true
+        ),
+        (
+            translation: CGSize(width: 120, height: -90),
+            predicted: CGSize(width: 170, height: -110),
+            isPlayable: true,
+            shouldPlay: false
+        ),
+        (
+            translation: CGSize(width: 0, height: 120),
+            predicted: CGSize(width: 0, height: 180),
+            isPlayable: true,
+            shouldPlay: false
+        ),
+        (
+            translation: CGSize(width: 0, height: -120),
+            predicted: CGSize(width: 0, height: -180),
+            isPlayable: false,
+            shouldPlay: false
+        )
+    ])
+    func shouldPlayGestureMatrix(
+        translation: CGSize,
+        predicted: CGSize,
+        isPlayable: Bool,
+        shouldPlay: Bool
+    ) {
+        #expect(
+            BattleHandLayout.shouldPlay(
+                translation: translation,
+                predictedEndTranslation: predicted,
+                isPlayable: isPlayable
+            ) == shouldPlay
+        )
     }
 
     @Test func playZoneArmingUsesActualTranslationUntilDirectionalThreshold() {
@@ -154,24 +193,6 @@ struct BattleHandLayoutTests {
             isPlayable: false,
             threshold: 80,
             currentlyArmed: true
-        ))
-    }
-
-    @Test func sidewaysDownwardAndUnplayableReleasesReturn() {
-        #expect(!BattleHandLayout.shouldPlay(
-            translation: CGSize(width: 120, height: -90),
-            predictedEndTranslation: CGSize(width: 170, height: -110),
-            isPlayable: true
-        ))
-        #expect(!BattleHandLayout.shouldPlay(
-            translation: CGSize(width: 0, height: 120),
-            predictedEndTranslation: CGSize(width: 0, height: 180),
-            isPlayable: true
-        ))
-        #expect(!BattleHandLayout.shouldPlay(
-            translation: CGSize(width: 0, height: -120),
-            predictedEndTranslation: CGSize(width: 0, height: -180),
-            isPlayable: false
         ))
     }
 

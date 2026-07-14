@@ -39,28 +39,20 @@ struct OptionsStoreTests {
         #expect(store.ultimateCinematicSkipPolicy == .never)
     }
 
-    @Test func musicVolumePersistsOnChange() {
+    @Test func optionValuesPersistOnChange() {
         let store = OptionsStore(defaults: context.userDefaults)
         store.musicVolume = 0.25
-
-        #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - 0.25) < 0.001)
-        #expect(abs((OptionsStore(defaults: context.userDefaults).musicVolume) - 0.25) < 0.001)
-    }
-
-    @Test func effectsVolumePersistsOnChange() {
-        let store = OptionsStore(defaults: context.userDefaults)
         store.effectsVolume = 0.5
-
-        #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - 0.5) < 0.001)
-        #expect(abs((OptionsStore(defaults: context.userDefaults).effectsVolume) - 0.5) < 0.001)
-    }
-
-    @Test func hapticsEnabledPersistsOnChange() {
-        let store = OptionsStore(defaults: context.userDefaults)
         store.hapticsEnabled = false
 
+        #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - 0.25) < 0.001)
+        #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - 0.5) < 0.001)
         #expect(!(context.userDefaults.bool(forKey: "options.hapticsEnabled")))
-        #expect(!OptionsStore(defaults: context.userDefaults).hapticsEnabled)
+
+        let reloaded = OptionsStore(defaults: context.userDefaults)
+        #expect(abs((reloaded.musicVolume) - 0.25) < 0.001)
+        #expect(abs((reloaded.effectsVolume) - 0.5) < 0.001)
+        #expect(!reloaded.hapticsEnabled)
     }
 
     @Test func appStorageKeysMatchPublicConstants() {
