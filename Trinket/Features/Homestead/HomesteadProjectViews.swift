@@ -81,7 +81,7 @@ struct HomesteadProjectRow: View {
                     .symbolRenderingMode(.hierarchical)
             } else {
                 Image(systemName: status.statusSymbolName)
-                    .font(statusAffordanceFont)
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
                     .symbolEffect(
@@ -89,18 +89,10 @@ struct HomesteadProjectRow: View {
                         options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
                         isActive: status.canBuildOrUpgrade
                     )
-                    .frame(width: statusAffordanceSize, height: statusAffordanceSize)
+                    .frame(width: 22, height: 22)
             }
         }
         .padding(.vertical, 6)
-    }
-
-    private var statusAffordanceFont: Font {
-        .body.weight(.semibold)
-    }
-
-    private var statusAffordanceSize: CGFloat {
-        22
     }
 
     private var effectLine: String {
@@ -143,50 +135,6 @@ struct HomesteadProjectSection: View {
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        }
-    }
-}
-
-struct HomesteadBonusCopy: View {
-    let bonus: HomesteadBonus
-    var titleRole: TypographyRole = .badge
-    var descriptionRole: TypographyRole = .secondaryBody
-    var showsTitle = true
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-            if showsTitle {
-                Text(bonus.title)
-                    .trinketTypography(titleRole)
-            }
-            Text(bonus.description)
-                .trinketTypography(descriptionRole)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-}
-
-struct HomesteadRequirementCountText: View {
-    let balance: Int
-    let required: Int
-    let role: TypographyRole
-
-    var body: some View {
-        if balance >= required {
-            Text("\(balance)/\(required)")
-                .trinketTypography(role)
-                .foregroundStyle(TrinketDesign.Colors.success)
-                .contentTransition(.numericText())
-        } else {
-            HStack(spacing: 0) {
-                Text("\(balance)")
-                    .foregroundStyle(TrinketDesign.Colors.destructive)
-                Text("/\(required)")
-                    .foregroundStyle(.secondary)
-            }
-            .trinketTypography(role)
-            .contentTransition(.numericText())
         }
     }
 }

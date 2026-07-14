@@ -276,9 +276,8 @@ struct StageRewardTests {
     @Test func rewardItemPreservesCatalogAffixes() throws {
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         var inventory = PlayerInventoryState(items: [])
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 999)
 
-        inventory.addRewardItem(from: template, for: firstStage, using: &randomNumberGenerator)
+        inventory.addRewardItem(from: template, for: firstStage)
 
         let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(rewardItem.affixes == template.affixes)

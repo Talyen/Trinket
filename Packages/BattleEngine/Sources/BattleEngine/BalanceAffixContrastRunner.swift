@@ -11,7 +11,7 @@ enum BalanceAffixContrastRunner {
 
     static func run(
         context: BalanceContrastContext,
-        policy: some PlayerPolicy
+        policy: GreedyHeuristicPolicy
     ) -> [PairedContrastSummary] {
         guard !context.heroes.isEmpty,
               !context.companions.isEmpty,
@@ -73,7 +73,7 @@ enum BalanceAffixContrastRunner {
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
-        policy: some PlayerPolicy
+        policy: GreedyHeuristicPolicy
     ) -> (entityWon: Bool, baselineWon: Bool) {
         let pairSeed = context.config.seed
             &+ UInt64(tier.level) &* 800021

@@ -39,8 +39,10 @@ public enum AspectCompletion {
         grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
         grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
 
-        let resolvedMaterials = materialRewards
-            ?? floor.rewards.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
+        let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
+            stageReward: floor.rewards,
+            override: materialRewards
+        )
         save.homestead.grant(resolvedMaterials)
 
         if let rewardItem {
@@ -78,15 +80,6 @@ public enum AspectCompletion {
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
-    }
-
-    /// Backward-compatible alias used by older call sites and tests.
-    public static func makeWardenItem(
-        for floor: AspectFloor,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> InventoryItem? {
-        guard floor.isWarden else { return nil }
-        return makeAspectFloorItem(for: floor, using: &randomNumberGenerator)
     }
 
     private static func grantBattleExperience(

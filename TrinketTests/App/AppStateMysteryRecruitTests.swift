@@ -147,6 +147,29 @@ struct AppStateMysteryRecruitTests {
         #expect(state.roster.gold == goldBefore + 20)
     }
 
+    @Test func beginMysteryEncounterSurfacesPersistFailureWhenRecruitAlreadyUnlocked() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(
+            arguments: ["-reset-state", "-seed-test-progress"],
+            playerSave: playerSave
+        )
+        let completedStage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
+        #expect(state.persistStageCompletions(
+            [completedStage],
+            hero: state.roster.activeHero,
+            companion: state.roster.activeCompanion
+        ) != nil)
+
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        playerSave.forcesNextSaveFailure = true
+        let message = state.beginMysteryEncounter(for: stage)
+
+        #expect(message?.title == "Couldn't Save Progress")
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(!state.journey.completedStageIDs.contains(stage.id))
+        #expect(state.journey.activeStageID == stage.id)
+    }
+
     @Test func finishActiveMysteryEncounterKeepsSessionOpenWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)

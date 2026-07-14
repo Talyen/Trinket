@@ -93,8 +93,10 @@ public enum LabyrinthCompletion {
             grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: companion, roster: &save.roster)
         }
 
-        let resolvedMaterials = materialRewards
-            ?? reward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
+        let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
+            stageReward: reward,
+            override: materialRewards
+        )
         save.homestead.grant(resolvedMaterials)
 
         var itemRNG = SeededRandomNumberGenerator(

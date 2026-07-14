@@ -240,8 +240,8 @@ struct BattleView: View {
             cardID: cardID,
             journey: appState.journey,
             homestead: appState.homestead
-        ), let configuration = appState.battle.activeBattle {
-            _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
+        ) {
+            completeClaimedStageVictoryIfNeeded(earnedGold: earnedGold)
         }
         return !appState.battle.hand.contains { $0.id == cardID }
     }
@@ -251,7 +251,30 @@ struct BattleView: View {
             guard let appState,
                   let earnedGold,
                   let configuration = appState.battle.activeBattle else { return }
-            _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
+            let didPersist = appState.completeActiveBattle(
+                configuration,
+                battleEarnedGold: earnedGold
+            )
+            if !didPersist {
+                // Fall back to victory chrome so Loot All can retry; retreat stays locked
+                // once outcome is resolved, so silent failure would hard-stick the fight.
+                appState.battle.presentVictoryChromeForPersistRetry(homestead: appState.homestead)
+            }
+        }
+    }
+
+    private func completeClaimedStageVictoryIfNeeded(earnedGold: Int) {
+        guard let configuration = appState.battle.activeBattle else { return }
+        let didPersist = appState.completeActiveBattle(
+            configuration,
+            battleEarnedGold: earnedGold
+        )
+        if !didPersist {
+            appState.battle.presentVictoryChromeForPersistRetry(homestead: appState.homestead)
+            persistFailureMessage = StageMapMessage(
+                title: "Couldn't Save Progress",
+                message: "Your victory was not saved. Stay on this screen and try Continue again."
+            )
         }
     }
 

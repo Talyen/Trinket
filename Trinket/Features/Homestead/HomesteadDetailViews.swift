@@ -150,14 +150,6 @@ struct HomesteadTierNode: View {
         return false
     }
 
-    private var actionTitle: String {
-        tier.tier == 1 ? "Build" : "Upgrade"
-    }
-
-    private var actionSymbolName: String {
-        "arrowshape.up.fill"
-    }
-
     private var tierTitle: String {
         HomesteadTierCopy.title(for: tier.tier, nodeTitle: definition.title)
     }
@@ -238,7 +230,7 @@ struct HomesteadTierNode: View {
         let glyphFont = PathNodeMetrics.glyphFont(emphasized: isActionable)
         switch glyphKind {
         case .action:
-            Image(systemName: actionSymbolName)
+            Image(systemName: "arrowshape.up.fill")
                 .font(glyphFont)
                 .foregroundStyle(definition.tint)
                 .symbolRenderingMode(.hierarchical)

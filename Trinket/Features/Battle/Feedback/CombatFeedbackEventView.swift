@@ -24,7 +24,7 @@ struct CombatFeedbackEventView: View {
     }
 
     private var recipe: CombatFeedbackMotionRecipe {
-        item.recipe
+        TrinketMotion.Battle.chip(for: item.feedbackClass)
     }
 
     private var jitterX: CGFloat {

@@ -43,7 +43,8 @@ struct HomesteadFocalArtwork: View {
     let art: BackgroundArtReference
     var imageName: String?
 
-    /// Source Homestead JPEGs are 1200×896 (~4:3); registry frames match that ratio.
+    /// Mode, chapter, and homestead art share a 4:3 source crop. Catalog focal
+    /// points keep subjects stable across portrait and regular-width layouts.
     private let sourceAspectRatio: CGFloat = 4.0 / 3.0
 
     init(art: BackgroundArtReference, imageName: String? = nil) {

@@ -71,6 +71,44 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle != nil)
         #expect(state.journey.activeStageID == stage.id)
     }
+
+    @Test func completeActiveBattleKeepsBattleOpenWhenStageMissing() throws {
+        let state = try context.makeAppState()
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            stageID: "missing-stage-bug-hunt-audit",
+            rngSeed: 0,
+            hero: state.roster.activeHero,
+            companion: state.roster.activeCompanion,
+            enemy: enemy
+        )
+        state.battle.activeBattle = configuration
+        let goldBefore = state.roster.gold
+
+        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
+
+        #expect(!didPersist)
+        #expect(state.battle.activeBattle != nil)
+        #expect(state.roster.gold == goldBefore)
+    }
+
+    @Test func completeActiveBattleKeepsBattleOpenWhenAspectFloorMissing() throws {
+        let state = try context.makeAppState()
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            aspectBattle: .init(aspectID: .ironVein, floor: 9999),
+            rngSeed: 0,
+            hero: state.roster.activeHero,
+            companion: state.roster.activeCompanion,
+            enemy: enemy
+        )
+        state.battle.activeBattle = configuration
+
+        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
+
+        #expect(!didPersist)
+        #expect(state.battle.activeBattle != nil)
+    }
     #endif
 
     #if DEBUG

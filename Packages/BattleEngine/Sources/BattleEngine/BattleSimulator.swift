@@ -38,7 +38,7 @@ public enum BattleSimulator {
 
     public static func run(
         matchup: ConfiguredSimulationMatchup,
-        policy: some PlayerPolicy,
+        policy: GreedyHeuristicPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions
     ) -> BattleSimResult {
@@ -58,7 +58,7 @@ public enum BattleSimulator {
 
     public static func run(
         battle: inout BattleState,
-        policy: some PlayerPolicy,
+        policy: GreedyHeuristicPolicy,
         maxRounds: Int = defaultMaxRounds,
         maxActions: Int = defaultMaxActions
     ) -> BattleSimResult {

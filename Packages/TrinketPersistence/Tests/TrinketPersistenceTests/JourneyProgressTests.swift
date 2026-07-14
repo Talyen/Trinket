@@ -69,9 +69,8 @@ final class JourneyProgressTests {
         var inventory = PlayerInventoryState.initial
         let stage = chapter.stages[0]
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
 
-        inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
+        inventory.addRewardItem(from: template, for: stage)
 
         let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(rewardItem.templateID == "shortsword-basic")

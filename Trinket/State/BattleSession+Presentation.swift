@@ -117,6 +117,24 @@ extension BattleSession {
         }
     }
 
+    /// Surfaces victory chrome after a claimed-stage auto-complete persist failure so
+    /// the player can retry via Loot All instead of remaining stuck on the battlefield.
+    func presentVictoryChromeForPersistRetry(homestead: PlayerHomesteadState) {
+        guard outcome == .victory,
+              let configuration = activeBattle,
+              let battleState = state,
+              !isShowingVictory
+        else { return }
+        if victorySummary == nil {
+            victorySummary = BattleVictorySummary.make(
+                configuration: configuration,
+                state: battleState,
+                homestead: homestead
+            )
+        }
+        isShowingVictory = true
+    }
+
     func scheduleDefeatPresentation(after date: Date) {
         scheduleOutcomePresentation(
             after: date,
@@ -249,7 +267,6 @@ extension BattleSession {
         stagger: TimeInterval
     ) {
         for event in events {
-            activeFeedbackEvents.append(event)
             feedbackEventRecordedAt[event.id] = date
         }
 
@@ -335,7 +352,6 @@ extension BattleSession {
             task.cancel()
         }
         pendingFeedbackPresentationTasks = [:]
-        activeFeedbackEvents = []
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]
         hitReactionsByTargetID = [:]

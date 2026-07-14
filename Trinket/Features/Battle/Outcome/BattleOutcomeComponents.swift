@@ -80,24 +80,6 @@ struct BattleOutcomeInfoSection: View {
     }
 }
 
-struct BattleOutcomeRewardSection<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-            Text(title)
-                .trinketTypography(.cardTitle)
-                .accessibilityIdentifier(title)
-
-            content
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .trinketCardSurface()
-    }
-}
-
 struct BattleOutcomeRewardRow: View {
     let symbolName: String
     let tint: Color

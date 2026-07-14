@@ -48,8 +48,7 @@ struct BattleVictorySummary: Equatable {
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
         let materialRewards = StageCompletion.resolvedMaterialRewards(
-            stageReward: stageReward,
-            homestead: homestead
+            stageReward: stageReward
         )
         let totalGold = StageCompletion.resolvedGoldReward(
             stageGold: stageReward.gold,

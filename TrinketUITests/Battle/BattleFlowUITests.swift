@@ -3,7 +3,9 @@ import XCTest
 final class BattleFlowUITests: TrinketUITestCase {
     /// Mid-battle interactions: enter via Play map and assert turn-based chrome stays visible.
     func testMidBattleCombatantDetailAndHandChrome() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.screen("battle"))
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
 
         // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
         if battle.waitForMidBattleOrVictory() {
@@ -69,7 +71,9 @@ final class BattleFlowUITests: TrinketUITestCase {
     }
 
     func testRetreatRestoresPlayNavigation() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.screen("battle"))
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
 
         battle.assertActive()
         battle.openActions()
