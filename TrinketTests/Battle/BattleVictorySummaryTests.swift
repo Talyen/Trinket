@@ -190,10 +190,11 @@ struct BattleVictorySummaryTests {
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
         rosterState.progressions[companion.id] = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
+        let baseType = try #require(GameContent.itemBaseTypes.first)
         let pendingItem = InventoryItem(
             id: "labyrinth-audit-node",
             templateID: "audit-basic",
-            baseType: try #require(GameContent.itemBaseTypes.first),
+            baseType: baseType,
             rarity: .basic,
             displayName: "Audit Find",
             affixes: []
