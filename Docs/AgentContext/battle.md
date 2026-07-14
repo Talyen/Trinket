@@ -14,6 +14,6 @@ Start with `BattleState`, the matching `EffectHandlers/` type, and the closest t
 
 For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Use `BattleStateTestFactory.makeBattle(..., rngSeed: 0)` and `EffectHandlers.all`. Do not assert full log prose.
 
-Run `./Scripts/test.sh style` and `./Scripts/test-package.sh BattleEngine`. For UI-only battle changes, also run `./Scripts/test.sh smoke`. Read `Packages/BattleEngine/Tests/README.md` for the ownership matrix.
+The root task-scoped workflow selects style and package checks; for a deliberately narrow iteration, run `./Scripts/test-package.sh BattleEngine`. For UI-only battle changes, run `./Scripts/test.sh smoke SmokeBattleTests` (or the closest focused smoke class / method). Bare `./Scripts/test.sh smoke` is only the Homestead canary. Read `Packages/BattleEngine/Tests/README.md` for the ownership matrix.
 
 Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Battle layout contracts (three-card hand, art ratios, no top chrome) live in that README.

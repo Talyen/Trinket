@@ -6,4 +6,4 @@ Authored track and SFX metadata belongs in `MusicManifest/` and `SoundManifest/`
 
 Keep audio ownership layered: catalog metadata in `TrinketContent`, player state/preferences in `OptionsStore`, routing/playback in `Trinket/Audio/`, and battle event interpretation at the feature/battle boundary. Do not unit-test AVFoundation playback or real device audio output; test deterministic routing/mapping logic instead.
 
-Run `./Scripts/test.sh style`, focused unit coverage for app-level logic, and `./Scripts/test.sh smoke` when an audible user flow changes. Read `Trinket/Audio/README.md` for current playback behavior.
+Use the root task-scoped workflow for style and focused unit coverage of app-level logic. When an audible user flow changes, also run the affected smoke class (`./Scripts/test.sh smoke <SmokeClass>`); bare `./Scripts/test.sh smoke` is only the Homestead canary. Read `Trinket/Audio/README.md` for current playback behavior.
