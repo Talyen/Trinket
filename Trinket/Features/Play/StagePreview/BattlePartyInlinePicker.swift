@@ -145,11 +145,7 @@ struct BattlePartyInlinePicker: View {
 
         Text(status.message)
             .trinketTypography(.footnote)
-            .foregroundStyle(
-                status.isReady
-                    ? AnyShapeStyle(.secondary)
-                    : AnyShapeStyle(TrinketDesign.Colors.warning)
-            )
+            .foregroundStyle(status.isReady ? Color.secondary : TrinketDesign.Colors.warning)
             .padding(.horizontal, 4)
     }
 
@@ -190,7 +186,6 @@ struct BattleCombatantPickerSheet: View {
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
             }
-            .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
             .navigationTitle("Choose \(slot.title)")
             .navigationBarTitleDisplayMode(.inline)
         }
