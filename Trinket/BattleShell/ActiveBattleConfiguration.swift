@@ -37,6 +37,8 @@ struct ActiveBattleConfiguration: Identifiable {
     let stageReward: StageReward?
     let rewardItems: [InventoryItem]
     let pendingRewardItem: InventoryItem?
+    /// Labyrinth modifier XP bonus percent applied to victory chrome and grants.
+    let experienceBonusPercent: Int
 
     var hasProgressionRewards: Bool {
         stageID != nil || aspectBattle != nil || labyrinthBattle != nil
@@ -118,16 +120,20 @@ struct ActiveBattleConfiguration: Identifiable {
         homesteadState: PlayerHomesteadState = .freshStart,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil
+        stageReward: StageReward? = nil,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil
     ) -> ActiveBattleConfiguration {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var rng = SeededRandomNumberGenerator(seed: rngSeed)
-        let pendingRewardItem = pendingAspectRewardItem(aspectBattle: aspectBattle, using: &rng)
+        let resolvedPendingRewardItem = pendingRewardItem
+            ?? pendingAspectRewardItem(aspectBattle: aspectBattle, using: &rng)
         let rewardItems = resolvedRewardItems(
             stageID: stageID,
             aspectBattle: aspectBattle,
+            labyrinthBattle: labyrinthBattle,
             stageReward: stageReward,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: resolvedPendingRewardItem
         )
         let homesteadEffects = homesteadState.effects
         return ActiveBattleConfiguration(
@@ -155,7 +161,8 @@ struct ActiveBattleConfiguration: Identifiable {
             inventoryState: inventoryState,
             stageReward: stageReward,
             rewardItems: rewardItems,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: resolvedPendingRewardItem,
+            experienceBonusPercent: experienceBonusPercent
         )
     }
 
@@ -216,10 +223,11 @@ struct ActiveBattleConfiguration: Identifiable {
     private static func resolvedRewardItems(
         stageID: String?,
         aspectBattle: AspectBattle?,
+        labyrinthBattle: LabyrinthBattle?,
         stageReward: StageReward?,
         pendingRewardItem: InventoryItem?
     ) -> [InventoryItem] {
-        if aspectBattle != nil {
+        if aspectBattle != nil || labyrinthBattle != nil {
             return pendingRewardItem.map { [$0] } ?? []
         }
 

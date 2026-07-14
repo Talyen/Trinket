@@ -241,6 +241,83 @@ struct LabyrinthProgressTests {
         #expect(save.roster.gold > goldBefore)
     }
 
+    @Test func adjustedExperienceAwardAppliesModifierPercent() {
+        #expect(LabyrinthCompletion.adjustedExperienceAward(50, xpPercent: 0) == 50)
+        #expect(LabyrinthCompletion.adjustedExperienceAward(50, xpPercent: 20) == 60)
+        #expect(LabyrinthCompletion.adjustedExperienceAward(0, xpPercent: 20) == 0)
+        #expect(LabyrinthCompletion.adjustedExperienceAward(-5, xpPercent: 20) == 0)
+    }
+
+    @Test func pendingCombatRewardItemMatchesCompletionGrantForWarden() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 41)
+        let wardenID = try #require(
+            save.labyrinth.nodes.values.first(where: { $0.type.canonical == .warden })?.id
+        )
+        // Make the warden reachable for completion.
+        if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
+            if !entrance.outgoingIDs.contains(wardenID) {
+                entrance.outgoingIDs.append(wardenID)
+                save.labyrinth.nodes[entrance.id] = entrance
+            }
+        }
+        guard var warden = save.labyrinth.nodes[wardenID] else {
+            Issue.record("Missing warden")
+            return
+        }
+        warden.isRevealed = true
+        save.labyrinth.nodes[wardenID] = warden
+
+        let effects = save.labyrinth.effects(for: wardenID)
+        let pending = try #require(
+            LabyrinthCompletion.pendingCombatRewardItem(
+                for: warden,
+                effects: effects,
+                worldSeed: save.labyrinth.worldSeed
+            )
+        )
+        #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: wardenID))
+
+        LabyrinthCompletion.complete(
+            nodeID: wardenID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            rewardItem: pending,
+            save: &save
+        )
+        #expect(save.inventory.items.contains(where: { $0.id == pending.id }))
+        #expect(save.inventory.items.filter { $0.id == pending.id }.count == 1)
+    }
+
+    @Test func combatCompletionUsesStableRewardItemID() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 7)
+        let wardenID = try #require(
+            save.labyrinth.nodes.values.first(where: { $0.type.canonical == .warden })?.id
+        )
+        if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
+            if !entrance.outgoingIDs.contains(wardenID) {
+                entrance.outgoingIDs.append(wardenID)
+                save.labyrinth.nodes[entrance.id] = entrance
+            }
+        }
+        guard var warden = save.labyrinth.nodes[wardenID] else {
+            Issue.record("Missing warden")
+            return
+        }
+        warden.isRevealed = true
+        save.labyrinth.nodes[wardenID] = warden
+
+        LabyrinthCompletion.complete(
+            nodeID: wardenID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+        let expectedID = LabyrinthCompletion.rewardItemID(forNodeID: wardenID)
+        #expect(save.inventory.items.contains(where: { $0.id == expectedID }))
+    }
+
     @Test func corruptMapPayloadClearsTopologyThenSanitizeRebuilds() {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55

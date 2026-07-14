@@ -98,7 +98,8 @@ extension AppState {
                 hero: hero,
                 companion: companion,
                 battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
+                materialRewards: materialRewards,
+                rewardItem: configuration.pendingRewardItem
             )
         case .none:
             guard battleEarnedGold > 0 else { return true }
@@ -166,7 +167,9 @@ extension AppState {
         companion: Combatant,
         enemy: Combatant?,
         enemyEncounterLevel: Int?,
-        stageReward: StageReward?
+        stageReward: StageReward?,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil
     ) {
         let stageID: String?
         let aspectBattle: ActiveBattleConfiguration.AspectBattle?
@@ -203,7 +206,9 @@ extension AppState {
             homesteadState: homestead,
             enemy: enemy,
             enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward
+            stageReward: stageReward,
+            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: pendingRewardItem
         )
     }
 

@@ -35,15 +35,21 @@ struct BattleVictorySummary: Equatable {
     ) -> BattleVictorySummary {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.hero.progression.level
-        let heroXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.hero.progression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestHeroLevel
+        let heroXP = LabyrinthCompletion.adjustedExperienceAward(
+            StageCompletion.battleExperienceAward(
+                playerLevel: configuration.hero.progression.level,
+                enemyLevel: enemyLevel,
+                highestLevel: configuration.highestHeroLevel
+            ),
+            xpPercent: configuration.experienceBonusPercent
         )
-        let companionXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.companion.progression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestCompanionLevel
+        let companionXP = LabyrinthCompletion.adjustedExperienceAward(
+            StageCompletion.battleExperienceAward(
+                playerLevel: configuration.companion.progression.level,
+                enemyLevel: enemyLevel,
+                highestLevel: configuration.highestCompanionLevel
+            ),
+            xpPercent: configuration.experienceBonusPercent
         )
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
