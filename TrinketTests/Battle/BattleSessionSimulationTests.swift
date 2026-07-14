@@ -260,7 +260,7 @@ struct BattleSessionSimulationTests {
         )
     }
 
-    @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
+    @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
         let tickWhilePlayable = try #require(session.state?.tickCount)
