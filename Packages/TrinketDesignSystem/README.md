@@ -73,6 +73,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
+| `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
 | `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger secondary-grey lock icon |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
