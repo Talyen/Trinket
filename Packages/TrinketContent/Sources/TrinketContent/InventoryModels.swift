@@ -49,7 +49,14 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     }
 
     public mutating func equip(_ item: InventoryItem, in slot: ItemSlot? = nil) {
-        itemIDsBySlot[slot ?? item.baseType.slot] = item.id
+        let destination = slot ?? item.baseType.slot
+        // One inventory instance can occupy only one slot; moving re-equips.
+        for occupied in ItemSlot.allCases where occupied != destination {
+            if itemIDsBySlot[occupied] == item.id {
+                itemIDsBySlot[occupied] = nil
+            }
+        }
+        itemIDsBySlot[destination] = item.id
     }
 
     public mutating func unequip(_ slot: ItemSlot) {

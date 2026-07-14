@@ -156,7 +156,10 @@ package extension CombatReactionEngine {
             }
         }
 
-        if let runtime = context.roster.runtime(for: source.combatant),
+        // Direct ability hits only — DoT ticks also run with applyItemBonus and
+        // would otherwise spend the dodge bonus on end-of-round status damage.
+        if state.qualifiesForAmbush,
+           let runtime = context.roster.runtime(for: source.combatant),
            runtime.pendingDamageAfterDodge > 0 {
             bonus += runtime.pendingDamageAfterDodge
             context.roster.mutateRuntime(for: source.combatant) { $0.pendingDamageAfterDodge = 0 }

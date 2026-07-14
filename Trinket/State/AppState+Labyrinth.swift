@@ -60,7 +60,7 @@ extension AppState {
         let reward = LabyrinthCompletion.rewards(for: node, effects: effects)
         activeLabyrinthRest = LabyrinthRestSession(
             nodeID: nodeID,
-            goldCrumb: reward.gold,
+            goldCrumb: homestead.effects.adjustedGold(reward.gold),
             depth: node.depth
         )
         return nil

@@ -236,4 +236,64 @@ struct AffixReactionBattleTests {
 
         try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
+
+    @Test func damageAfterDodgeSurvivesDoTTickAndAppliesOnDirectHit() throws {
+        let heroCombatant = hero(
+            abilities: [
+                Ability(
+                    id: "strike",
+                    name: "Strike",
+                    tier: .basic,
+                    directDamage: 1,
+                    damageKeyword: .physical
+                )
+            ],
+            maxHealth: 50
+        )
+        let enemyCombatant = passiveEnemy(maxHealth: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: heroCombatant),
+                companion: CombatantRuntime(combatant: passiveCompanion()),
+                enemy: CombatantRuntime(combatant: enemyCombatant)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 1,
+            nextEventID: 1,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        context.roster.mutateRuntime(for: heroCombatant) { $0.pendingDamageAfterDodge = 3 }
+
+        let dotLost = DoTDamage.resolveTick(
+            basePotency: 1,
+            keyword: .burn,
+            target: enemyCombatant,
+            sourceActorID: heroCombatant.id,
+            in: &context
+        ).healthLost
+        try #expect(dotLost == 1)
+        try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 3)
+
+        let directLost = context.resolveDamage(
+            DamageRequest(
+                amount: 1,
+                target: enemyCombatant,
+                keyword: .physical,
+                sourceActorID: heroCombatant.id,
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: true,
+                    applyDodge: false,
+                    qualifiesForAmbush: true
+                )
+            )
+        ).healthLost
+        try #expect(directLost == 4)
+        try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 0)
+    }
 }
