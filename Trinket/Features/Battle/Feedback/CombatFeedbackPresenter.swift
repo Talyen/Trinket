@@ -20,10 +20,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let availableAt: Date
     let expiresAt: Date
     let reactionKind: CombatantHitReactionKind
-
-    var recipe: CombatFeedbackMotionRecipe {
-        TrinketMotion.Battle.chip(for: feedbackClass)
-    }
 }
 
 /// Card hit-reaction trigger published alongside feedback items.
@@ -93,7 +89,6 @@ enum CombatFeedbackPresenter {
         guard let item = items.first(where: {
             $0.presentationIndex == 0 && $0.reactionKind != .none
         }) else { return nil }
-        guard item.reactionKind != .none else { return nil }
         return CombatantHitReaction(
             id: item.id,
             kind: item.reactionKind,

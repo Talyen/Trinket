@@ -133,7 +133,7 @@ struct VictoryView: View {
                         amount: summary.totalGold,
                         showsIncreasePrefix: true
                     ) {
-                        rewardArtwork(for: .gold)
+                        HomesteadResourceArtwork(resource: .gold)
                     }
                     .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
                 }
@@ -144,7 +144,7 @@ struct VictoryView: View {
                         amount: reward.quantity,
                         showsIncreasePrefix: true
                     ) {
-                        rewardArtwork(for: reward.resource)
+                        HomesteadResourceArtwork(resource: reward.resource)
                     }
                     .opacity(visibleWalletRewardCount > index + (summary.totalGold > 0 ? 1 : 0) ? 1 : 0)
                 }
@@ -154,20 +154,6 @@ struct VictoryView: View {
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
                 .opacity(areItemsVisible ? 1 : 0)
-        }
-    }
-
-    @ViewBuilder
-    private func rewardArtwork(for resource: HomesteadResource) -> some View {
-        if let art = ArtCatalog.resourceArtByID[resource.rawValue] {
-            Image(art.imageName)
-                .resizable()
-                .scaledToFit()
-        } else {
-            Image(systemName: resource.symbolName)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(resource.tint)
-                .symbolRenderingMode(.hierarchical)
         }
     }
 

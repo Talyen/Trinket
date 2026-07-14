@@ -17,7 +17,6 @@ public enum StageCompletion {
 
     public static func resolvedMaterialRewards(
         stageReward: StageReward,
-        homestead _: PlayerHomesteadState,
         override: [ResourceAmount]? = nil
     ) -> [ResourceAmount] {
         override ?? stageReward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
@@ -93,7 +92,6 @@ public enum StageCompletion {
         }
         let resolvedMaterialRewards = resolvedMaterialRewards(
             stageReward: stage.rewards,
-            homestead: save.homestead,
             override: materialRewards
         )
         save.homestead.grant(resolvedMaterialRewards)

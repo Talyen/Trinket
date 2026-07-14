@@ -134,7 +134,7 @@ private struct PlayModeArtworkCard: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             if let art {
-                FocalArtwork(art: art)
+                HomesteadFocalArtwork(art: art)
 
             } else {
                 TrinketDesign.Colors.surface
@@ -180,34 +180,5 @@ private struct PlayModeArtworkCard: View {
             radius: 12,
             y: 6
         )
-    }
-}
-
-private struct FocalArtwork: View {
-    let art: BackgroundArtReference
-
-    /// Generated mode art uses the same 4:3 source crop as chapter and
-    /// homestead backgrounds. Applying the catalog focal point keeps subjects
-    /// stable when cards switch between portrait and regular-width layouts.
-    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
-
-    var body: some View {
-        GeometryReader { geometry in
-            let container = geometry.size
-            let scale = max(container.width / sourceAspectRatio, container.height)
-            let renderedWidth = sourceAspectRatio * scale
-            let renderedHeight = scale
-            let overflowX = max(renderedWidth - container.width, 0)
-            let overflowY = max(renderedHeight - container.height, 0)
-            let offsetX = (0.5 - art.focalPoint.x) * overflowX
-            let offsetY = (0.5 - art.focalPoint.y) * overflowY
-
-            Image(art.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: container.width, height: container.height)
-                .offset(x: offsetX, y: offsetY)
-        }
-        .clipped()
     }
 }

@@ -58,7 +58,6 @@
 		1FA15A805428B5C66379CC21 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"ArtFocalPoint+UnitPoint.swift",
 				Cards/AbilityCard.swift,
 				Cards/CombatantArtwork.swift,
 				Cards/CombatantCard.swift,

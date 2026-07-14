@@ -4,7 +4,6 @@ import TrinketCore
 
 /// Normalized art crop anchor. Kept as Doubles so the catalog stays Sendable
 /// without relying on SwiftUI `UnitPoint` Sendable conformance.
-/// SwiftUI bridging lives in the app (`ArtFocalPoint+UnitPoint`).
 public struct ArtFocalPoint: Hashable, Sendable {
     public let x: Double
     public let y: Double

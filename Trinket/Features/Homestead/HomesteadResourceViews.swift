@@ -11,24 +11,15 @@ struct HomesteadResourceWallet: View {
     var body: some View {
         TrinketWalletGrid {
             ForEach(HomesteadResource.allCases) { resource in
-                HomesteadResourcePill(
-                    resource: resource,
-                    balance: homestead.balance(for: resource, roster: roster)
-                )
+                TrinketWalletResourcePill(
+                    title: resource.displayName,
+                    amount: homestead.balance(for: resource, roster: roster)
+                ) {
+                    HomesteadResourceArtwork(resource: resource)
+                }
             }
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
-    }
-}
-
-struct HomesteadResourcePill: View {
-    let resource: HomesteadResource
-    let balance: Int
-
-    var body: some View {
-        TrinketWalletResourcePill(title: resource.displayName, amount: balance) {
-            HomesteadResourceArtwork(resource: resource)
-        }
     }
 }
 
