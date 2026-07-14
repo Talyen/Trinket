@@ -13,6 +13,14 @@ struct EffectModelTests {
         try #expect(Effect.drawCards(2).isInstant)
     }
 
+    @Test func pairedDoTMapsDamageKeywordsOnly() throws {
+        try #expect(Effect.pairedDoT(keyword: .burn, potency: 3) == .burn(3))
+        try #expect(Effect.pairedDoT(keyword: .poison, potency: 2) == .poison(2))
+        try #expect(Effect.pairedDoT(keyword: .bleed, potency: 4) == .bleed(4))
+        try #expect(Effect.pairedDoT(keyword: .physical, potency: 2) == nil)
+        try #expect(Effect.pairedDoT(keyword: .burn, potency: 0) == nil)
+    }
+
     @Test func activeEffectTracksRemainingTicks() throws {
         let effect = Effect.bleed(3)
         var active = ActiveEffect(id: 1, effect: effect, remainingTicks: 3)

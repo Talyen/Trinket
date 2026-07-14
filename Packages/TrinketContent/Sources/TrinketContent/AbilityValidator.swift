@@ -71,33 +71,17 @@ public enum AbilityValidator {
         var issues: [Issue] = []
 
         for component in ability.damageComponents where component.target == .abilityTarget {
-            switch component.keyword {
-            case .burn:
-                if !ability.effects.contains(where: {
-                    if case let .burn(p) = $0 {
-                        return p == component.amount
-                    }; return false
-                }) {
-                    issues.append(Issue(abilityID: ability.id, message: "missing paired .burn(\(component.amount))"))
-                }
-            case .poison:
-                if !ability.effects.contains(where: {
-                    if case let .poison(p) = $0 {
-                        return p == component.amount
-                    }; return false
-                }) {
-                    issues.append(Issue(abilityID: ability.id, message: "missing paired .poison(\(component.amount))"))
-                }
-            case .bleed:
-                if !ability.effects.contains(where: {
-                    if case let .bleed(p) = $0 {
-                        return p == component.amount
-                    }; return false
-                }) {
-                    issues.append(Issue(abilityID: ability.id, message: "missing paired .bleed(\(component.amount))"))
-                }
-            default:
+            guard Effect.pairedDoT(keyword: component.keyword, potency: component.amount) != nil else {
                 continue
+            }
+            let hasPair = ability.effects.contains {
+                $0.keyword == component.keyword && $0.potency == component.amount
+            }
+            if !hasPair {
+                issues.append(Issue(
+                    abilityID: ability.id,
+                    message: "missing paired .\(String(describing: component.keyword).lowercased())(\(component.amount))"
+                ))
             }
         }
 

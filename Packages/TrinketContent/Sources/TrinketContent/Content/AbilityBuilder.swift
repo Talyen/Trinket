@@ -14,7 +14,7 @@ public enum AbilityBuilder {
     ) -> Ability {
         let damageComponents = amount > 0 ? [DamageComponent(amount, keyword: keyword)] : []
         var targetedEffects = extras
-        if let dot = pairedDoT(keyword: keyword, potency: amount) {
+        if let dot = Effect.pairedDoT(keyword: keyword, potency: amount) {
             targetedEffects.insert(TargetedEffect(dot), at: 0)
         }
         return Ability(
@@ -64,15 +64,5 @@ public enum AbilityBuilder {
             targetedEffects: effects,
             hasLeech: hasLeech
         )
-    }
-
-    private static func pairedDoT(keyword: Keyword, potency: Int) -> Effect? {
-        guard potency > 0 else { return nil }
-        switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        case .bleed: return .bleed(potency)
-        default: return nil
-        }
     }
 }

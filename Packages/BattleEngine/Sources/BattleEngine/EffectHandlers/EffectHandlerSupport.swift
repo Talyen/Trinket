@@ -5,36 +5,50 @@ import TrinketCore
 enum EffectRemoval {
     @discardableResult
     static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
-        let before = effects.count
-        if let keyword {
-            effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableDebuff }
-        } else {
-            effects.removeAll { $0.effect.isRemovableDebuff }
-        }
-        return effects.count < before
+        removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableDebuff }
     }
 
-    static func removeRandomDebuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {
-        let debuffs = effects.filter(\.effect.isRemovableDebuff)
-        guard let removed = debuffs.randomElement(using: &rng) else { return nil }
-        effects.removeAll { $0.id == removed.id }
-        return removed.keyword
+    static func removeRandomDebuff(
+        from effects: inout [ActiveEffect],
+        using rng: inout SeededRandomNumberGenerator
+    ) -> Keyword? {
+        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
     }
 
     @discardableResult
     static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
+        removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableBuff }
+    }
+
+    static func removeRandomBuff(
+        from effects: inout [ActiveEffect],
+        using rng: inout SeededRandomNumberGenerator
+    ) -> Keyword? {
+        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableBuff }
+    }
+
+    @discardableResult
+    private static func removeMatching(
+        from effects: inout [ActiveEffect],
+        keyword: Keyword?,
+        where matches: (ActiveEffect) -> Bool
+    ) -> Bool {
         let before = effects.count
         if let keyword {
-            effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableBuff }
+            effects.removeAll { $0.keyword == keyword && matches($0) }
         } else {
-            effects.removeAll { $0.effect.isRemovableBuff }
+            effects.removeAll(where: matches)
         }
         return effects.count < before
     }
 
-    static func removeRandomBuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {
-        let buffs = effects.filter(\.effect.isRemovableBuff)
-        guard let removed = buffs.randomElement(using: &rng) else { return nil }
+    private static func removeRandom(
+        from effects: inout [ActiveEffect],
+        using rng: inout SeededRandomNumberGenerator,
+        where matches: (ActiveEffect) -> Bool
+    ) -> Keyword? {
+        let candidates = effects.filter(matches)
+        guard let removed = candidates.randomElement(using: &rng) else { return nil }
         effects.removeAll { $0.id == removed.id }
         return removed.keyword
     }
