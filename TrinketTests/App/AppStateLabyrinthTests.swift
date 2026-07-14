@@ -32,7 +32,7 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth == firstMap)
     }
 
-    @Test func startLabyrinthBattleSetsConfiguration() throws {
+    @Test func startLabyrinthBattleSetsConfigurationAndInMemoryOrigin() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
@@ -41,6 +41,7 @@ struct AppStateLabyrinthTests {
         let battle = try #require(state.battle.activeBattle)
         #expect(battle.labyrinthBattle?.nodeID == combatNodeID)
         #expect(battle.hasProgressionRewards)
+        #expect(battle.resumeToken == .labyrinth(nodeID: combatNodeID))
     }
 
     @Test func completeLabyrinthNodeAdvancesMap() throws {
@@ -62,20 +63,36 @@ struct AppStateLabyrinthTests {
         #expect(state.battle.activeBattle == nil)
     }
 
-    @Test func labyrinthShopFinishClearsNode() throws {
+    @Test(arguments: [LabyrinthNodeType.shop, .mystery, .rest])
+    func labyrinthEncounterFinishClearsNode(nodeType: LabyrinthNodeType) throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         _ = state.enterLabyrinth()
-        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+        let nodeID = try #require(firstReachableNodeID(of: nodeType, in: state))
 
-        #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
-        let session = try #require(state.activeShopEncounter)
-        #expect(session.labyrinthNodeID == shopNodeID)
-        #expect(session.offers.count == ShopOfferGenerator.offerCount)
+        #expect(state.handleLabyrinthNodeAction(nodeID: nodeID) == nil)
+        switch nodeType {
+        case .shop:
+            let session = try #require(state.activeShopEncounter)
+            #expect(session.labyrinthNodeID == nodeID)
+            #expect(session.offers.count == ShopOfferGenerator.offerCount)
+            state.finishActiveShopEncounter()
+            #expect(state.activeShopEncounter == nil)
+        case .mystery:
+            let session = try #require(state.activeMysteryEncounter)
+            #expect(session.labyrinthNodeID == nodeID)
+            state.finishActiveMysteryEncounter()
+            #expect(state.activeMysteryEncounter == nil)
+        case .rest:
+            let session = try #require(state.activeLabyrinthRest)
+            #expect(session.nodeID == nodeID)
+            #expect(state.finishActiveLabyrinthRest())
+            #expect(state.activeLabyrinthRest == nil)
+        default:
+            Issue.record("Unexpected labyrinth encounter type \(nodeType)")
+            return
+        }
 
-        state.finishActiveShopEncounter()
-
-        #expect(state.activeShopEncounter == nil)
-        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
+        #expect(state.labyrinth.nodes[nodeID]?.isCleared == true)
     }
 
     #if DEBUG
@@ -111,44 +128,6 @@ struct AppStateLabyrinthTests {
 
         #expect(state.activeShopEncounter == nil)
         #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
-    }
-
-    @Test func labyrinthMysteryFinishClearsNode() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        _ = state.enterLabyrinth()
-        let mysteryNodeID = try #require(firstReachableNodeID(of: .mystery, in: state))
-
-        #expect(state.handleLabyrinthNodeAction(nodeID: mysteryNodeID) == nil)
-        let session = try #require(state.activeMysteryEncounter)
-        #expect(session.labyrinthNodeID == mysteryNodeID)
-
-        state.finishActiveMysteryEncounter()
-
-        #expect(state.activeMysteryEncounter == nil)
-        #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
-    }
-
-    @Test func startLabyrinthBattleSetsInMemoryOrigin() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        _ = state.enterLabyrinth()
-        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
-        _ = state.startLabyrinthBattle(nodeID: combatNodeID)
-        #expect(state.battle.activeBattle?.resumeToken == .labyrinth(nodeID: combatNodeID))
-    }
-
-    @Test func labyrinthRestFinishClearsNode() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        _ = state.enterLabyrinth()
-        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
-
-        #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
-        let session = try #require(state.activeLabyrinthRest)
-        #expect(session.nodeID == restNodeID)
-
-        #expect(state.finishActiveLabyrinthRest())
-
-        #expect(state.activeLabyrinthRest == nil)
-        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
     }
 
     #if DEBUG

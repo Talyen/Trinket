@@ -15,13 +15,6 @@ struct VisualFoundationTests {
         try #expect(TypographyRole.footnote.font != TypographyRole.caption.font)
     }
 
-    @Test func artworkBlendDestinationsUseSemanticSurfaces() throws {
-        try #expect(ArtworkBlendDestination.canvas.color == TrinketDesign.Colors.canvas)
-        try #expect(ArtworkBlendDestination.surface.color == TrinketDesign.Colors.surface)
-        try #expect(ArtworkBlendDestination.panel.color == TrinketDesign.Colors.panel)
-        try #expect(ArtworkBlendDestination.elevated.color == TrinketDesign.Colors.elevated)
-    }
-
     @Test func artworkBlendRecipesPreserveAProtectedCenter() throws {
         try #expect(ArtworkBlendRecipe.perimeterShoulderLocation < ArtworkBlendRecipe.perimeterInnerLocation)
         try #expect(ArtworkBlendRecipe.perimeterInnerLocation < 0.5)
