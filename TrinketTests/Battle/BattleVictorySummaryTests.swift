@@ -229,4 +229,55 @@ struct BattleVictorySummaryTests {
         #expect(summary.rewardItems == [pendingItem])
         #expect(expectedXP > baseXP)
     }
+
+    @Test func makeVictorySummaryKeepsRawBattleGoldSeparateFromHomesteadDisplaySplit() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            abilities: [.slash]
+        )
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            stageReward: StageReward(gold: 100, itemTemplateIDs: [])
+        )
+        let session = BattleSession()
+        session.activeBattle = configuration
+        BattleSessionTestSupport.driveUntilOutcome(session)
+
+        let state = try #require(session.state)
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
+        let summary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: state,
+            homestead: homestead
+        )
+
+        let expectedTotal = StageCompletion.resolvedGoldReward(
+            stageGold: 100,
+            battleEarnedGold: state.earnedGold,
+            homestead: homestead
+        )
+        #expect(summary.rawBattleEarnedGold == state.earnedGold)
+        #expect(summary.totalGold == expectedTotal)
+        // Display `battleGold` absorbs the homestead remainder; re-feeding it into
+        // grant APIs would apply gold-find twice.
+        #expect(summary.battleGold >= summary.rawBattleEarnedGold)
+        #expect(
+            StageCompletion.resolvedGoldReward(
+                stageGold: 100,
+                battleEarnedGold: summary.battleGold,
+                homestead: homestead
+            ) > expectedTotal
+        )
+    }
 }
