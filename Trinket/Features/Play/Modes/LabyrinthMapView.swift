@@ -30,7 +30,7 @@ struct LabyrinthMapView: View {
         }
         .navigationTitle("The Labyrinth")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.playJourney)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

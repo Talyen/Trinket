@@ -20,7 +20,6 @@ struct ChapterStageSelectView: View {
     var body: some View {
         DetailHeroScrollShell(
             title: chapter.title,
-            backgroundMode: .playJourney,
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
             ChapterJourneyHero(

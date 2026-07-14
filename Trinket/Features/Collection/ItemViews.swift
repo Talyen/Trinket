@@ -63,7 +63,7 @@ struct InventoryGridView: View {
                 .padding(TrinketDesign.Metrics.contentMargin)
             }
         }
-        .trinketScreenBackground(.collection)
+        .trinketScreenBackground()
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.large)

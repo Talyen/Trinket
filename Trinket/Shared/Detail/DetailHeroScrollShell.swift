@@ -4,7 +4,6 @@ import TrinketDesignSystem
 /// Shared scroll + toolbar chrome for full-bleed hero detail sheets (combatants, items).
 struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
-    let backgroundMode: BackgroundMode
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
     var showsDoneButton = false
     var hidesNavigationBar = false
@@ -18,7 +17,6 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
 
     init(
         title: String,
-        backgroundMode: BackgroundMode = .standard,
         heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
         showsDoneButton: Bool = false,
         hidesNavigationBar: Bool = false,
@@ -27,7 +25,6 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         @ViewBuilder bodyContent: @escaping () -> BodyContent
     ) {
         self.title = title
-        self.backgroundMode = backgroundMode
         self.heroHeightPolicy = heroHeightPolicy
         self.showsDoneButton = showsDoneButton
         self.hidesNavigationBar = hidesNavigationBar
@@ -48,7 +45,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .trinketScreenBackground(backgroundMode)
+            .trinketScreenBackground()
             .ignoresSafeArea(edges: .top)
             // Soft edge only once the inline title is pinned — keep hero art sharp at rest.
             .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)

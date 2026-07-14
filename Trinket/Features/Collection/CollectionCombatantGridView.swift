@@ -54,7 +54,7 @@ struct CollectionCombatantGridView: View {
                 .padding(TrinketDesign.Metrics.contentMargin)
             }
         }
-        .trinketScreenBackground(.collection)
+        .trinketScreenBackground()
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { context in

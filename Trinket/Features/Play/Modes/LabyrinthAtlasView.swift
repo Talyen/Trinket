@@ -72,7 +72,7 @@ struct LabyrinthAtlasView: View {
         }
         .navigationTitle("Atlas")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.denseList)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthAtlas)
     }
 }

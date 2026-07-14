@@ -37,7 +37,7 @@ struct ExploreHubView: View {
         }
         .navigationTitle("Explore")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.denseList)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.exploreHub)
     }
 

@@ -44,7 +44,7 @@ struct AspectClimbView: View {
         }
         .navigationTitle(aspect?.title ?? "Aspect")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.playJourney)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.aspectClimb(aspectID.rawValue))
         .alert(item: $floorMessage) { message in
             Alert(

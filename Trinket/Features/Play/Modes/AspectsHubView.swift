@@ -30,7 +30,7 @@ struct AspectsHubView: View {
         }
         .navigationTitle("Aspects")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.denseList)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.aspectsHub)
     }
 

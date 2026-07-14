@@ -112,17 +112,15 @@ struct CardCastEffectsLayer: View {
     }
 
     private func cast(_ request: CardActivationRequest, at date: Date) -> some View {
-        let progress = CGFloat(min(max(
-            date.timeIntervalSince(request.startedAt) / TrinketMotion.Battle.cardActivationDuration,
-            0
-        ), 1))
-        return CardCastEffect(
-            artworkName: request.artworkName,
+        let progress = cardActivationProgress(elapsed: date.timeIntervalSince(request.startedAt))
+        return BattleDissolveEffect(
             progress: progress,
             keywords: request.keywords,
-            cardSize: request.size,
+            size: request.size,
             particles: request.particles
-        )
+        ) {
+            BattleAbilityCardFace(artworkName: request.artworkName)
+        }
         .rotationEffect(.radians(request.rotation), anchor: .bottom)
         .rotation3DEffect(
             .degrees(request.verticalTilt),
@@ -213,27 +211,6 @@ struct BattleDissolveEffect<Content: View>: View {
     }
 }
 
-private struct CardCastEffect: View {
-    let artworkName: String?
-    let progress: CGFloat
-    let keywords: [Keyword]
-    let cardSize: CGSize
-    let particles: [CardActivationParticle]
-    var configuration = CardCastEffectConfiguration()
-
-    var body: some View {
-        BattleDissolveEffect(
-            progress: progress,
-            keywords: keywords,
-            size: cardSize,
-            particles: particles,
-            configuration: configuration
-        ) {
-            BattleAbilityCardFace(artworkName: artworkName)
-        }
-    }
-}
-
 struct BattleDissolveArtwork<Content: View>: View {
     let content: Content
 
@@ -247,11 +224,9 @@ struct BattleDissolveArtwork<Content: View>: View {
     var body: some View {
         TimelineView(.animation) { timeline in
             GeometryReader { geometry in
-                let progress = CGFloat(min(
-                    max(timeline.date.timeIntervalSince(startDate), 0)
-                        / TrinketMotion.Battle.cardActivationDuration,
-                    1
-                ))
+                let progress = cardActivationProgress(
+                    elapsed: timeline.date.timeIntervalSince(startDate)
+                )
 
                 BattleDissolveEffect(
                     progress: progress,
@@ -386,6 +361,10 @@ private func dissolveNoise(column: Int, row: Int) -> CGFloat {
     CombatFeedbackLayout.unitNoise(seed: column &* 12989 &+ row &* 78233)
 }
 
+private func cardActivationProgress(elapsed: TimeInterval) -> CGFloat {
+    CGFloat(min(max(elapsed / TrinketMotion.Battle.cardActivationDuration, 0), 1))
+}
+
 #if DEBUG
 private struct CardCastEffectPlayground: View {
     private let cardSize = CGSize(width: 168, height: 224)
@@ -401,14 +380,15 @@ private struct CardCastEffectPlayground: View {
     var body: some View {
         HStack(spacing: 0) {
             TimelineView(.animation) { timeline in
-                CardCastEffect(
-                    artworkName: nil,
+                BattleDissolveEffect(
                     progress: progress(at: timeline.date),
                     keywords: [keyword, .physical],
-                    cardSize: cardSize,
+                    size: cardSize,
                     particles: CardActivationParticle.make(count: particleCount),
                     configuration: configuration
-                )
+                ) {
+                    BattleAbilityCardFace(artworkName: nil)
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .trinketSurface(.base)

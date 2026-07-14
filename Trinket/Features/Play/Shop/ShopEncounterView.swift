@@ -72,7 +72,7 @@ struct ShopEncounterView: View {
                 .padding(TrinketDesign.Metrics.extraLargeSpacing)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .trinketScreenBackground(.modal)
+            .trinketScreenBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

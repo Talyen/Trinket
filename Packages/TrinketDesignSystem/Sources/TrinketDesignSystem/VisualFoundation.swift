@@ -1,31 +1,5 @@
 import SwiftUI
 
-public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
-    case standard
-    case playJourney
-    case collection
-    case denseList
-    case homestead
-    case battle
-    case modal
-
-    public var id: Self {
-        self
-    }
-
-    public var displayName: String {
-        switch self {
-        case .standard: "Standard"
-        case .playJourney: "Play"
-        case .collection: "Collection"
-        case .denseList: "Dense List"
-        case .homestead: "Homestead"
-        case .battle: "Battle"
-        case .modal: "Modal"
-        }
-    }
-}
-
 public enum SurfaceRole: Equatable, Sendable {
     case base
     case secondary
@@ -118,13 +92,7 @@ enum HomesteadPalette {
 }
 
 public struct TrinketScreenBackground: View {
-    private let mode: BackgroundMode
-    private let elementTint: Color?
-
-    public init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
-        self.mode = mode
-        self.elementTint = elementTint
-    }
+    public init() {}
 
     public var body: some View {
         ThemePalette.trinket.appBackground
@@ -133,13 +101,10 @@ public struct TrinketScreenBackground: View {
 }
 
 public struct ScreenBackgroundModifier: ViewModifier {
-    let mode: BackgroundMode
-    let elementTint: Color?
-
     public func body(content: Content) -> some View {
         content
             .background {
-                TrinketScreenBackground(mode: mode, elementTint: elementTint)
+                TrinketScreenBackground()
             }
     }
 }
@@ -432,8 +397,8 @@ public struct WalletPillModifier: ViewModifier {
 }
 
 public extension View {
-    func trinketScreenBackground(_ mode: BackgroundMode = .standard, elementTint: Color? = nil) -> some View {
-        modifier(ScreenBackgroundModifier(mode: mode, elementTint: elementTint))
+    func trinketScreenBackground() -> some View {
+        modifier(ScreenBackgroundModifier())
     }
 
     func trinketSurface(_ role: SurfaceRole, isPressed: Bool = false) -> some View {

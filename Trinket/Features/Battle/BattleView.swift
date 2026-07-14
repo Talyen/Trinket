@@ -25,7 +25,7 @@ struct BattleView: View {
 
     private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
         outcomeContent(battleSession: battleSession, battleState: battleState)
-            .trinketScreenBackground(.battle)
+            .trinketScreenBackground()
             .navigationTitle(battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)

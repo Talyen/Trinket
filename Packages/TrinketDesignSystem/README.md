@@ -55,7 +55,7 @@ Hero stack order is always **eyebrow → title** (never title then rarity/role).
 
 ## Surface roles
 
-Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground(.playJourney)`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`, `modal`, `popover`.
+Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`, `modal`, `popover`.
 
 ## Keyword styling
 
@@ -67,7 +67,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 
 | Modifier / API | Use for |
 |----------------|---------|
-| `.trinketScreenBackground(_:)` | Tab/screen background by semantic `BackgroundMode` |
+| `.trinketScreenBackground()` | Shared tab/screen canvas (`ThemePalette.trinket.appBackground`) |
 | `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
 | `.trinketMaterial(_:)` | Bottom bars, popovers, reward reveals; modal uses solid surface; toolbar passes through |
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |

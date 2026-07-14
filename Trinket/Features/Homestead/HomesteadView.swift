@@ -18,7 +18,6 @@ struct HomesteadView: View {
     var body: some View {
         DetailHeroScrollShell(
             title: "Homestead",
-            backgroundMode: .homestead,
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
             HomesteadOverviewHero(baseHeight: baseHeight, overscroll: overscroll)

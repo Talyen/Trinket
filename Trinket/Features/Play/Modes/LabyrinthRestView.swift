@@ -46,7 +46,7 @@ struct LabyrinthRestView: View {
                 }
             }
         }
-        .trinketScreenBackground(.playJourney)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthRest)
         .interactiveDismissDisabled()
     }

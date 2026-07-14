@@ -75,10 +75,9 @@ struct ActiveBattleConfiguration: Identifiable {
               let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
 
-        let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        return (
-            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
-            level
+        return scaledEnemy(
+            catalogEnemy,
+            level: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
         )
     }
 
@@ -86,11 +85,7 @@ struct ActiveBattleConfiguration: Identifiable {
         for floor: AspectFloor
     ) -> (combatant: Combatant, level: Int)? {
         guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        let level = AspectCompletion.enemyLevel(for: floor)
-        return (
-            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
-            level
-        )
+        return scaledEnemy(catalogEnemy, level: AspectCompletion.enemyLevel(for: floor))
     }
 
     static func resolvedLabyrinthEncounter(
@@ -100,11 +95,17 @@ struct ActiveBattleConfiguration: Identifiable {
         guard let enemyID = node.enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        let level = LabyrinthCompletion.enemyLevel(for: node, effects: effects)
-        return (
-            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
-            level
+        return scaledEnemy(
+            catalogEnemy,
+            level: LabyrinthCompletion.enemyLevel(for: node, effects: effects)
         )
+    }
+
+    private static func scaledEnemy(
+        _ enemy: Enemy,
+        level: Int
+    ) -> (combatant: Combatant, level: Int) {
+        (CombatantLevelScaler.scale(enemy: enemy, level: level), level)
     }
 
     @MainActor

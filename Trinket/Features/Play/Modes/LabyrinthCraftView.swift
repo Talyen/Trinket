@@ -64,7 +64,7 @@ struct LabyrinthCraftView: View {
                 }
             }
         }
-        .trinketScreenBackground(.playJourney)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraft)
         .interactiveDismissDisabled()
     }

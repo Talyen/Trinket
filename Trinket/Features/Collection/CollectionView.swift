@@ -10,7 +10,7 @@ struct CollectionView: View {
 
     var body: some View {
         collectionBrowseContent
-            .trinketScreenBackground(.collection)
+            .trinketScreenBackground()
             .scrollEdgeEffectStyle(.soft, for: .top)
             .accessibilityIdentifier("Collection Screen")
             .navigationTitle("Collection")

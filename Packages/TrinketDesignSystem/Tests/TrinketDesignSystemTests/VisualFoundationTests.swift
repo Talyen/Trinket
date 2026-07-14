@@ -3,13 +3,6 @@ import Testing
 @testable import TrinketDesignSystem
 
 struct VisualFoundationTests {
-    @Test func backgroundModeDisplayNamesAreNonEmpty() throws {
-        for mode in BackgroundMode.allCases {
-            try #expect(!(mode.displayName.isEmpty))
-            try #expect(mode.id == mode)
-        }
-    }
-
     @Test func typographyRolesProvideFonts() throws {
         try #expect(TypographyRole.button.font != TypographyRole.body.font)
         try #expect(TypographyRole.statValue.font != TypographyRole.tooltip.font)

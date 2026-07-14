@@ -39,7 +39,7 @@ struct PlayModeHubView: View {
         .scrollIndicators(.hidden)
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.denseList)
+        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.modesScreen)
         .trinketSensoryFeedback(
             .selection,
