@@ -267,7 +267,6 @@ extension BattleSession {
         stagger: TimeInterval
     ) {
         for event in events {
-            activeFeedbackEvents.append(event)
             feedbackEventRecordedAt[event.id] = date
         }
 
@@ -353,7 +352,6 @@ extension BattleSession {
             task.cancel()
         }
         pendingFeedbackPresentationTasks = [:]
-        activeFeedbackEvents = []
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]
         hitReactionsByTargetID = [:]

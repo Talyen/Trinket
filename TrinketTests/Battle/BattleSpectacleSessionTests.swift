@@ -116,7 +116,7 @@ struct BattleSpectacleSessionTests {
                 at: now
             )
         )
-        let beforeFeedbackCount = session.activeFeedbackEvents.count
+        let beforeFeedbackCount = session.activeFeedbackItems.count
         _ = session.playCard(
             cardID: ultimate.id,
             at: now,
@@ -127,7 +127,7 @@ struct BattleSpectacleSessionTests {
         let cinematic = try #require(session.activeCinematic)
         #expect(cinematic.abilityID == Ability.bloodthorn.id)
         #expect(cinematic.actorID == "hero")
-        #expect(session.activeFeedbackEvents.count == beforeFeedbackCount)
+        #expect(session.activeFeedbackItems.count == beforeFeedbackCount)
         #expect(session.canEndTurn == false)
 
         session.markCinematicPlaying()
@@ -136,7 +136,6 @@ struct BattleSpectacleSessionTests {
 
         session.completeCinematicCollapse(at: now.addingTimeInterval(1))
         #expect(session.activeCinematic == nil)
-        #expect(session.activeFeedbackEvents.count > beforeFeedbackCount)
         #expect(session.activeFeedbackItems.count > beforeFeedbackCount)
 
         let flushAt = now.addingTimeInterval(1)
@@ -190,7 +189,7 @@ struct BattleSpectacleSessionTests {
                 at: secondUltimateAt
             )
         )
-        let feedbackBefore = session.activeFeedbackEvents.count
+        let feedbackBefore = session.activeFeedbackItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,
             at: secondUltimateAt,
@@ -198,7 +197,7 @@ struct BattleSpectacleSessionTests {
             homestead: .freshStart
         )
         #expect(session.activeCinematic == nil)
-        #expect(session.activeFeedbackEvents.count > feedbackBefore)
+        #expect(session.activeFeedbackItems.count > feedbackBefore)
     }
 
     @Test func enemyUltimateUsesSkillCalloutNotCinematic() throws {

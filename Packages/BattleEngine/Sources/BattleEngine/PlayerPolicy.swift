@@ -7,14 +7,9 @@ public enum SimAction: Equatable, Sendable {
     case endTurn
 }
 
-public protocol PlayerPolicy: Sendable {
-    /// Stable ID recorded in sweep reports (e.g. `greedy-v1`).
-    var id: String { get }
-    func nextAction(in battle: BattleState) -> SimAction
-}
-
 /// Prefer lethal damage, then higher ability tiers, then raw direct damage.
-public struct GreedyHeuristicPolicy: PlayerPolicy {
+/// Stable `id` is recorded in balance-sweep reports (e.g. `greedy-v1`).
+public struct GreedyHeuristicPolicy: Sendable {
     public let id = "greedy-v1"
 
     public init() {}
