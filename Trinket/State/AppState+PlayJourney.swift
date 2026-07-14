@@ -37,48 +37,63 @@ extension AppState {
     ) -> Bool {
         guard battle.activeBattle != nil else { return false }
 
-        let hero = configuration.hero.combatant
-        let companion = configuration.companion.combatant
-        let persisted: Bool
+        let persisted = persistBattleProgress(
+            for: configuration,
+            hero: configuration.hero.combatant,
+            companion: configuration.companion.combatant,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards
+        )
+        if persisted {
+            queueReturnToBattleOrigin(from: configuration.resumeToken)
+            battle.endBattle()
+        }
+        return persisted
+    }
+
+    private func persistBattleProgress(
+        for configuration: ActiveBattleConfiguration,
+        hero: Combatant,
+        companion: Combatant,
+        battleEarnedGold: Int,
+        materialRewards: [ResourceAmount]?
+    ) -> Bool {
         switch configuration.resumeToken {
         case let .journey(stageID):
-            if let stage = GameContent.stage(id: stageID) {
-                if let resultingJourney = persistStageCompletions(
-                    [stage],
-                    hero: hero,
-                    companion: companion,
-                    battleEarnedGold: battleEarnedGold,
-                    materialRewards: materialRewards
-                ) {
-                    noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-                    persisted = true
-                } else {
-                    persisted = false
-                }
-            } else {
+            guard let stage = GameContent.stage(id: stageID) else {
                 appStateLogger.error(
                     "Missing stage for resume token: \(stageID, privacy: .public)"
                 )
-                persisted = false
+                return false
             }
+            guard let resultingJourney = persistStageCompletions(
+                [stage],
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            ) else {
+                return false
+            }
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+            return true
         case let .aspect(aspectID, floorNumber):
-            if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
-                persisted = completeAspectFloor(
-                    floor,
-                    hero: hero,
-                    companion: companion,
-                    battleEarnedGold: battleEarnedGold,
-                    materialRewards: materialRewards,
-                    rewardItem: configuration.pendingRewardItem
-                )
-            } else {
+            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
                 appStateLogger.error(
                     "Missing aspect floor for resume token: \(aspectID.rawValue, privacy: .public)/\(floorNumber)"
                 )
-                persisted = false
+                return false
             }
+            return completeAspectFloor(
+                floor,
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: configuration.pendingRewardItem
+            )
         case let .labyrinth(nodeID):
-            persisted = completeLabyrinthNode(
+            return completeLabyrinthNode(
                 nodeID: nodeID,
                 hero: hero,
                 companion: companion,
@@ -86,18 +101,9 @@ extension AppState {
                 materialRewards: materialRewards
             )
         case .none:
-            if battleEarnedGold > 0 {
-                persisted = grantBattleEarnedGold(battleEarnedGold)
-            } else {
-                persisted = true
-            }
+            guard battleEarnedGold > 0 else { return true }
+            return grantBattleEarnedGold(battleEarnedGold)
         }
-
-        if persisted {
-            queueReturnToBattleOrigin(from: configuration.resumeToken)
-            battle.endBattle()
-        }
-        return persisted
     }
 
     @discardableResult
@@ -205,24 +211,40 @@ extension AppState {
     func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
         switch stage.encounter {
         case .battle:
-            return startBattle(for: stage)
+            startBattle(for: stage)
         case .mysteryEvent:
-            return beginMysteryEncounter(for: stage)
+            beginMysteryEncounter(for: stage)
         case .shop:
-            return beginShopEncounter(for: stage)
+            beginShopEncounter(for: stage)
         case .event, .rest:
-            guard completeStage(
-                stage,
-                hero: roster.activeHero,
-                companion: roster.activeCompanion
-            ) != nil else {
-                return StageMapMessage(
-                    title: "Couldn't Save Progress",
-                    message: "This stage wasn't saved. Try again."
-                )
-            }
-            return nil
+            completeStageOrPersistFailure(stage)
         }
+    }
+
+    /// Completes a stage, returning a save-failure message when persistence fails.
+    func completeStageOrPersistFailure(_ stage: Stage) -> StageMapMessage? {
+        guard completeStage(
+            stage,
+            hero: roster.activeHero,
+            companion: roster.activeCompanion
+        ) != nil else {
+            return StageMapMessage(
+                title: "Couldn't Save Progress",
+                message: "This stage wasn't saved. Try again."
+            )
+        }
+        return nil
+    }
+
+    /// Completes a Labyrinth node, returning a save-failure message when persistence fails.
+    func completeLabyrinthNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
+        guard completeLabyrinthNode(nodeID: nodeID) else {
+            return StageMapMessage(
+                title: "Couldn't Save Progress",
+                message: "This path wasn't saved. Try again."
+            )
+        }
+        return nil
     }
 
     @discardableResult
