@@ -380,29 +380,17 @@ private struct BattlePartyOptionsGrid: View {
                                         .padding(TrinketDesign.Metrics.mediumSpacing)
 
                                     if selected {
-                                        VStack {
-                                            HStack {
-                                                Spacer()
-                                                Image(systemName: "checkmark")
-                                                    .font(.caption.weight(.bold))
-                                                    .foregroundStyle(accentColor)
-                                                    .trinketGlassChip(.compact)
-                                                    .accessibilityHidden(true)
-                                            }
-                                            Spacer()
-                                        }
-                                        .padding(TrinketDesign.Metrics.smallSpacing)
+                                        ArtworkPickerSelectionBadge(color: accentColor)
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
                             .clipShape(TrinketDesign.cardShape)
                             .trinketCardSurface()
-                            .overlay {
-                                TrinketDesign.cardShape.strokeBorder(
-                                    selected ? accentColor : .clear,
-                                    lineWidth: selected ? 3 : 0
-                                )
-                            }
+                            .trinketArtworkPickerSelectionBorder(
+                                isSelected: selected,
+                                color: accentColor
+                            )
                     }
                     .buttonStyle(ArtworkNavigationCardButtonStyle())
                     .accessibilityIdentifier(

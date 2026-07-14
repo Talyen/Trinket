@@ -3,10 +3,6 @@ import Foundation
 import os
 import TrinketContent
 
-private enum AudioLogging {
-    static let subsystem = Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket"
-}
-
 @MainActor
 final class MusicPlayer {
     private let isDisabled: Bool
@@ -188,16 +184,6 @@ final class MusicPlayer {
     }
 
     private func configureSessionIfNeeded() {
-        guard !hasConfiguredSession else { return }
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-        } catch {
-            logger.error(
-                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-        hasConfiguredSession = true
+        AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
     }
 }
