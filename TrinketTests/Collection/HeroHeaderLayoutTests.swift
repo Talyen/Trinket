@@ -5,22 +5,17 @@ import Testing
 struct HeroHeaderLayoutTests {
     // MARK: - Header height (3:4 of width, minimum 300)
 
-    @Test func headerHeightMatchesThreeToFourAspect() {
-        let width: CGFloat = 390
-        let height = HeroHeaderLayout.headerHeight(forWidth: width)
-        let aspect = height / width
-        #expect(abs(aspect - (4.0 / 3.0)) < 0.001)
-    }
-
-    @Test func headerHeightHasMinimumOf300() {
+    @Test func headerHeightUsesThreeToFourAspectWithMinimumFloor() {
         #expect(HeroHeaderLayout.headerHeight(forWidth: 100) == 300)
         #expect(HeroHeaderLayout.headerHeight(forWidth: 225) == 300)
-    }
 
-    @Test func headerHeightAboveMinimumUsesWidth() {
-        let width: CGFloat = 300
-        let height = HeroHeaderLayout.headerHeight(forWidth: width)
-        #expect(abs(height - 400) < 0.5)
+        let aboveFloorWidth: CGFloat = 300
+        let aboveFloorHeight = HeroHeaderLayout.headerHeight(forWidth: aboveFloorWidth)
+        #expect(abs(aboveFloorHeight - 400) < 0.5)
+
+        let aspectWidth: CGFloat = 390
+        let aspectHeight = HeroHeaderLayout.headerHeight(forWidth: aspectWidth)
+        #expect(abs(aspectHeight / aspectWidth - (4.0 / 3.0)) < 0.001)
     }
 
     @Test func cinematicHeightIsDenserThanStandardAndClamped() {
