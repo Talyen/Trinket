@@ -37,14 +37,17 @@ final class ShopFlowUITests: TrinketUITestCase {
         let buyButtons = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "Buy ")
         )
+        var purchased = false
         for index in 0 ..< buyButtons.count {
             let buyButton = buyButtons.element(boundBy: index)
             if buyButton.exists, buyButton.isHittable, buyButton.isEnabled {
                 buyButton.tap()
                 assertExists(AccessibilityID.Shop.purchaseConfirmation)
+                purchased = true
                 break
             }
         }
+        XCTAssertTrue(purchased, "Expected at least one enabled shop Buy control")
 
         // Offer grid can grow taller than the viewport; scroll the Leave button into view
         // before tapping so a covered/off-screen element doesn't swallow the tap.

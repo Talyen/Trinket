@@ -63,9 +63,12 @@ struct BattleScreen {
 
     /// Waits for mid-battle combatant chrome, or returns `true` if the battle already resolved.
     /// Skips Ultimate cinematics when present so matched-geometry expand does not hide cards.
+    /// Fails (rather than silently skipping) when neither mid-battle chrome nor victory appears.
     func waitForMidBattleOrVictory(
         combatantName: String = "Ranger",
-        timeout: TimeInterval = 8
+        timeout: TimeInterval = 8,
+        file: StaticString = #file,
+        line: UInt = #line
     ) -> Bool {
         let card = app.descendants(matching: .any)[AccessibilityID.CombatantDetail.battleCard(name: combatantName)]
         let deadline = Date().addingTimeInterval(timeout)
@@ -84,7 +87,16 @@ struct BattleScreen {
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
-        return victory.exists || !card.exists
+        if victory.exists {
+            return true
+        }
+        XCTAssertTrue(
+            card.exists,
+            "Neither mid-battle combatant card nor victory chrome appeared",
+            file: file,
+            line: line
+        )
+        return false
     }
 
     func openCombatantCard(named name: String) {

@@ -137,10 +137,10 @@ final class PlayMapUITests: TrinketUITestCase {
     }
 
     func testLabyrinthBattleUsesInlinePartyPicker() {
-        launchApp(arguments: chapterOneCompleteArgs)
+        // Deep-link straight to The Labyrinth map — skip Explore hub navigation.
+        launchApp(arguments: chapterOneCompleteArgs + TestLaunchArg.screen("labyrinth"))
 
-        play.openLabyrinth()
-
+        assertExists(AccessibilityID.Play.labyrinthMap)
         let fight = app.buttons["Fight"].firstMatch
         XCTAssertTrue(fight.waitForExistence(timeout: Self.defaultTimeout), "Labyrinth combat CTA not found")
         assertExists(AccessibilityID.Play.battlePartyHeroControl)
