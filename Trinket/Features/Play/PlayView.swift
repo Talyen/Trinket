@@ -49,80 +49,49 @@ struct PlayView: View {
         }
         .sheet(item: $battle.overlayCombatantDetail, content: { detail in
             CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
-                .presentationDetents([.large])
-                .presentationContentInteraction(.resizes)
-                .presentationDragIndicator(.hidden)
+                .trinketDetailSheet(dragIndicator: .hidden)
         })
-        .sheet(item: Binding(
-            get: { battle.overlayAbilityDetail },
-            set: { newValue in
-                if newValue == nil {
-                    battle.clearAbilityDetail()
-                }
+        .sheet(item: $battle.overlayAbilityDetail, content: { ability in
+            NavigationStack {
+                AbilityDetailView(ability: ability)
+                    .accessibilityIdentifier(AccessibilityID.Battle.abilityDetail)
             }
-        ), content: { ability in
-            AbilityDetailSheet(ability: ability)
-                .presentationDetents([.large])
-                .presentationContentInteraction(.resizes)
-                .presentationDragIndicator(.hidden)
+            .trinketDetailSheet(dragIndicator: .hidden)
         })
-        .sheet(isPresented: Binding(
-            get: { battle.isShowingBattleLog },
-            set: { isShowing in
-                if !isShowing {
-                    battle.clearBattleLog()
-                }
-            }
-        )) {
+        .sheet(isPresented: $battle.isShowingBattleLog) {
             BattleLogSheet(entries: battle.state?.log ?? [])
                 .presentationDetents([.medium])
         }
         .fullScreenCover(
-            item: Binding(
+            item: dismissibleSessionBinding(
                 get: { appState.activeMysteryEncounter },
-                set: { newValue in
-                    if newValue == nil, appState.activeMysteryEncounter != nil {
-                        appState.dismissActiveMysteryEncounterWithoutCompleting()
-                    }
-                }
+                dismissWithoutCompleting: { appState.dismissActiveMysteryEncounterWithoutCompleting() }
             )
         ) { session in
             MysteryEncounterView(session: session)
                 .interactiveDismissDisabled()
         }
         .fullScreenCover(
-            item: Binding(
+            item: dismissibleSessionBinding(
                 get: { appState.activeShopEncounter },
-                set: { newValue in
-                    if newValue == nil, appState.activeShopEncounter != nil {
-                        appState.dismissActiveShopEncounterWithoutCompleting()
-                    }
-                }
+                dismissWithoutCompleting: { appState.dismissActiveShopEncounterWithoutCompleting() }
             )
         ) { session in
             ShopEncounterView(session: session)
                 .interactiveDismissDisabled()
         }
         .sheet(
-            item: Binding(
+            item: dismissibleSessionBinding(
                 get: { appState.activeLabyrinthRest },
-                set: { newValue in
-                    if newValue == nil, appState.activeLabyrinthRest != nil {
-                        appState.dismissActiveLabyrinthRestWithoutCompleting()
-                    }
-                }
+                dismissWithoutCompleting: { appState.dismissActiveLabyrinthRestWithoutCompleting() }
             )
         ) { session in
             LabyrinthRestView(session: session)
         }
         .sheet(
-            item: Binding(
+            item: dismissibleSessionBinding(
                 get: { appState.activeLabyrinthCraft },
-                set: { newValue in
-                    if newValue == nil, appState.activeLabyrinthCraft != nil {
-                        appState.dismissActiveLabyrinthCraftWithoutCompleting()
-                    }
-                }
+                dismissWithoutCompleting: { appState.dismissActiveLabyrinthCraftWithoutCompleting() }
             )
         ) { session in
             LabyrinthCraftView(session: session)
@@ -159,6 +128,22 @@ struct PlayView: View {
         guard appState.battle.activeBattle == nil else { return }
 
         navigationPath.append(destination)
+    }
+
+    /// Sheet/cover dismiss sets `nil`; route that through the incomplete-dismiss path
+    /// instead of dropping the session without cleanup.
+    private func dismissibleSessionBinding<Session>(
+        get: @escaping () -> Session?,
+        dismissWithoutCompleting: @escaping () -> Void
+    ) -> Binding<Session?> {
+        Binding(
+            get: get,
+            set: { newValue in
+                if newValue == nil, get() != nil {
+                    dismissWithoutCompleting()
+                }
+            }
+        )
     }
 
     /// Prefer pending post-battle / launch destinations. Otherwise leave the

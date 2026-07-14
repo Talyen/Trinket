@@ -77,34 +77,21 @@ public struct Combatant: Identifiable, Hashable, Sendable {
     }
 
     public func withAbilityLoadout(_ loadout: AbilityLoadout) -> Combatant {
-        Combatant(
-            id: id,
-            name: name,
-            role: role,
-            maxHealth: maxHealth,
-            maxMana: maxMana,
-            actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: abilityChoices.withSelectedLoadout(loadout),
-            primaryStats: primaryStats,
-            growthArchetype: growthArchetype
-        )
+        replacing(abilityChoices: abilityChoices.withSelectedLoadout(loadout))
     }
 
     public func withAbilityLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Combatant {
-        Combatant(
-            id: id,
-            name: name,
-            role: role,
-            maxHealth: maxHealth,
-            maxMana: maxMana,
-            actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout),
-            primaryStats: primaryStats,
-            growthArchetype: growthArchetype
-        )
+        replacing(abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout))
     }
 
     public func withPrimaryStats(_ primaryStats: PrimaryStats) -> Combatant {
+        replacing(primaryStats: primaryStats)
+    }
+
+    private func replacing(
+        abilityChoices: AbilityChoices? = nil,
+        primaryStats: PrimaryStats? = nil
+    ) -> Combatant {
         Combatant(
             id: id,
             name: name,
@@ -112,8 +99,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxHealth: maxHealth,
             maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: abilityChoices,
-            primaryStats: primaryStats,
+            abilityChoices: abilityChoices ?? self.abilityChoices,
+            primaryStats: primaryStats ?? self.primaryStats,
             growthArchetype: growthArchetype
         )
     }
