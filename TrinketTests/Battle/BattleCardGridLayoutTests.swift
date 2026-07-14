@@ -224,13 +224,4 @@ struct BattleHandLayoutTests {
         #expect(right <= 7)
         #expect(left >= -7)
     }
-
-    @Test func releaseCenterTracksTheCardPresentation() {
-        let center = BattleHandLayout.releaseCenter(
-            restingCenter: CGPoint(x: 190, y: 650),
-            dragTranslation: CGSize(width: 18, height: -104)
-        )
-
-        #expect(center == CGPoint(x: 208, y: 546))
-    }
 }

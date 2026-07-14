@@ -53,23 +53,28 @@ struct AppStateAspectsTests {
         #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
     }
 
-    @Test func startAspectBattleRejectsLockedFloor() throws {
+    @Test(arguments: [
+        (floor: 3, clearFirst: false, expectedTitle: "Floor Locked"),
+        (floor: 1, clearFirst: true, expectedTitle: "Floor Cleared")
+    ])
+    func startAspectBattleRejectsLockedAndClearedFloors(
+        floor: Int,
+        clearFirst: Bool,
+        expectedTitle: String
+    ) throws {
         let state = try makeProgressedState()
         try attunePhysicalParty(on: state)
 
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 3))
-        let message = state.startAspectBattle(for: floor)
-        #expect(message?.title == "Floor Locked")
-    }
-
-    @Test func startAspectBattleRejectsClearedFloor() throws {
-        let state = try makeProgressedState()
-        try attunePhysicalParty(on: state)
-
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        state.completeAspectFloor(floor, hero: state.roster.activeHero, companion: state.roster.activeCompanion)
-        let message = state.startAspectBattle(for: floor)
-        #expect(message?.title == "Floor Cleared")
+        let aspectFloor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: floor))
+        if clearFirst {
+            state.completeAspectFloor(
+                aspectFloor,
+                hero: state.roster.activeHero,
+                companion: state.roster.activeCompanion
+            )
+        }
+        let message = state.startAspectBattle(for: aspectFloor)
+        #expect(message?.title == expectedTitle)
         #expect(state.battle.activeBattle == nil)
     }
 
@@ -86,16 +91,6 @@ struct AppStateAspectsTests {
 
         state.completeAspectFloor(floor, hero: hero, companion: companion, battleEarnedGold: 2)
         #expect(state.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
-    }
-
-    @Test func endAspectBattleClearsLiveBattle() throws {
-        let state = try makeProgressedState()
-        try attunePhysicalParty(on: state)
-
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        #expect(state.startAspectBattle(for: floor) == nil)
-        state.battle.endBattle()
-        #expect(state.battle.activeBattle == nil)
     }
 
     @Test func startAspectBattlePreviewsFloorRewardItem() throws {

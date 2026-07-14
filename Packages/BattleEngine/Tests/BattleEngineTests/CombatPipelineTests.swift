@@ -86,32 +86,30 @@ struct CombatPipelineTests {
 
     // MARK: - Leech
 
-    @Test func applyLeechFromDamageNoLeechEffectNoHeal() throws {
-        var context = makeContext(seed: 1772)
-        _ = context.applyTestDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
-        let events = context.applyLeechFromDamage(10, sourceActorID: "source")
-        try #expect(events.isEmpty)
-    }
+    @Test func applyLeechFromDamageRequiresLeechSource() throws {
+        var withoutLeech = makeContext(seed: 1772)
+        _ = withoutLeech.applyTestDamage(10, to: withoutLeech.roster.enemy.combatant, sourceActorID: "source")
+        try #expect(withoutLeech.applyLeechFromDamage(10, sourceActorID: "source").isEmpty)
 
-    @Test func applyLeechFromDamageWithLeechEffectHealsSource() throws {
+        var withAbilityLeech = makeContext()
+        withAbilityLeech.roster.mutateRuntime(for: withAbilityLeech.roster.hero.combatant) { $0.currentHealth = 30 }
+        let beforeAbility = withAbilityLeech.roster.hero.currentHealth
+        let abilityEvents = withAbilityLeech.applyLeechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true
+        )
+        try #expect(!(abilityEvents.isEmpty))
+        try #expect(withAbilityLeech.roster.hero.currentHealth == beforeAbility + 5)
+
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 0.20, 3), remainingTicks: 3)
-        var context = makeContext()
-        // Damage the hero so leech has room to heal
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let before = context.roster.hero.currentHealth
-        let events = context.applyLeechFromDamage(10, sourceActorID: "source")
-        try #expect(!(events.isEmpty))
-        try #expect(context.roster.hero.currentHealth > before)
-    }
-
-    @Test func applyLeechFromDamageWithAbilityKeywordHealsSource() throws {
-        var context = makeContext()
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        let before = context.roster.hero.currentHealth
-        let events = context.applyLeechFromDamage(10, sourceActorID: "source", abilityHasLeech: true)
-        try #expect(!(events.isEmpty))
-        try #expect(context.roster.hero.currentHealth == before + 5)
+        var withEffect = makeContext()
+        withEffect.roster.mutateRuntime(for: withEffect.roster.hero.combatant) { $0.currentHealth = 30 }
+        withEffect.roster.setActiveEffects([leech], for: withEffect.roster.hero.combatant)
+        let beforeEffect = withEffect.roster.hero.currentHealth
+        let effectEvents = withEffect.applyLeechFromDamage(10, sourceActorID: "source")
+        try #expect(!(effectEvents.isEmpty))
+        try #expect(withEffect.roster.hero.currentHealth > beforeEffect)
     }
 
     // MARK: - Prevention buildup

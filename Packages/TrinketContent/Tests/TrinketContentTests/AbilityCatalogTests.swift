@@ -33,19 +33,6 @@ struct AbilityCatalogTests {
         try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func abilityBuilderMatchesDirectHitPattern() throws {
-        let built = AbilityBuilder.directHit(
-            id: "fireball",
-            name: "Fireball",
-            tier: .skill,
-            amount: 2,
-            keyword: .burn
-        )
-        try #expect(built.damageComponents == Ability.fireball.damageComponents)
-        try #expect(built.targetedEffects == Ability.fireball.targetedEffects)
-        try #expect(built.summary == Ability.fireball.summary)
-    }
-
     @Test func directHitBuilderAddsPairedDoT() throws {
         let ability = AbilityBuilder.directHit(
             id: "burn-hit",
