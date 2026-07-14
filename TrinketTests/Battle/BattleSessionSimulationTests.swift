@@ -114,6 +114,7 @@ struct BattleSessionSimulationTests {
         session.victorySummary = BattleVictorySummary(
             stageGold: 1,
             battleGold: 2,
+            rawBattleEarnedGold: 2,
             experience: 3,
             companionExperience: 4,
             heroName: "Hero",

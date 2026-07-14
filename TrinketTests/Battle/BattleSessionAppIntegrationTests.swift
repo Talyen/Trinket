@@ -147,6 +147,28 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
+    @Test func restartBattlePreservesLabyrinthRewardFields() throws {
+        let appState = try context.makeAppState(arguments: ["-reset-state"])
+        _ = appState.enterLabyrinth()
+        let combatNodeID = try #require(
+            appState.labyrinth.reachableNodeIDs().first(where: { id in
+                appState.labyrinth.node(id: id)?.type.isCombat == true
+            })
+        )
+        #expect(appState.startLabyrinthBattle(nodeID: combatNodeID) == nil)
+        let original = try #require(appState.battle.activeBattle)
+        #expect(original.experienceBonusPercent == appState.labyrinth.effects(for: combatNodeID).xpPercent)
+
+        appState.restartActiveBattle()
+
+        let restarted = try #require(appState.battle.activeBattle)
+        #expect(restarted.labyrinthBattle?.nodeID == combatNodeID)
+        #expect(restarted.experienceBonusPercent == original.experienceBonusPercent)
+        #expect(restarted.pendingRewardItem == original.pendingRewardItem)
+        #expect(restarted.rewardItems == original.rewardItems)
+        #expect(restarted.id != original.id)
+    }
+
     @Test func presentAbilityDetailSetsOverlayWhenBattleActive() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)

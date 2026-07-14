@@ -156,7 +156,9 @@ extension AppState {
             companion: companion,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward
+            stageReward: activeBattle.stageReward,
+            experienceBonusPercent: activeBattle.experienceBonusPercent,
+            pendingRewardItem: activeBattle.pendingRewardItem
         )
     }
 
