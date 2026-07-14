@@ -222,7 +222,9 @@ struct BattleView: View {
                 namespace: cinematicNamespace,
                 onPlaying: { battleSession.markCinematicPlaying() },
                 onRequestSkip: { battleSession.requestSkipCinematic() },
-                onAutoFinish: { battleSession.beginCinematicCollapse() },
+                onAutoFinish: { cinematicID in
+                    battleSession.beginCinematicCollapse(expectedID: cinematicID)
+                },
                 onCollapseFinished: { cinematicID in
                     battleSession.completeCinematicCollapse(expectedID: cinematicID)
                 }

@@ -14,7 +14,7 @@ struct UltimateCinematicOverlay: View {
     let namespace: Namespace.ID
     let onPlaying: () -> Void
     let onRequestSkip: () -> Void
-    let onAutoFinish: () -> Void
+    let onAutoFinish: (Int) -> Void
     let onCollapseFinished: (Int) -> Void
 
     @State private var scrimOpacity = 0.0
@@ -23,6 +23,8 @@ struct UltimateCinematicOverlay: View {
     @State private var skipHintVisible = false
     @State private var didFinish = false
     @State private var collapseTask: Task<Void, Never>?
+    @State private var fallbackHoldTask: Task<Void, Never>?
+    @State private var skipHintTask: Task<Void, Never>?
     @ScaledMetric(relativeTo: .largeTitle) private var fallbackStarSize: CGFloat = 64
 
     private var ability: Ability? {
@@ -76,8 +78,7 @@ struct UltimateCinematicOverlay: View {
         .onDisappear {
             let shouldFlushCollapse = didFinish
             let collapseID = cinematic.id
-            collapseTask?.cancel()
-            collapseTask = nil
+            cancelPendingOverlayTasks()
             // Teardown can cancel the sleep task; flush so presentationHoldCount still clears.
             if shouldFlushCollapse {
                 onCollapseFinished(collapseID)
@@ -154,6 +155,10 @@ struct UltimateCinematicOverlay: View {
     private func runExit() {
         guard !didFinish else { return }
         didFinish = true
+        fallbackHoldTask?.cancel()
+        fallbackHoldTask = nil
+        skipHintTask?.cancel()
+        skipHintTask = nil
         BattleCinematicPlayer.shared.pause(abilityID: cinematic.abilityID)
         withAnimation(TrinketMotion.Battle.ultimateCollapseAnimation) {
             scrimOpacity = 0
@@ -179,39 +184,52 @@ struct UltimateCinematicOverlay: View {
         withAnimation(.easeInOut(duration: 0.2)) {
             showVideo = true
         }
+        let cinematicID = cinematic.id
         BattleCinematicPlayer.shared.play(
             abilityID: cinematic.abilityID,
             effectsVolume: effectsVolume
         ) {
             guard !didFinish else { return }
-            onAutoFinish()
+            onAutoFinish(cinematicID)
         }
         return true
     }
 
     private func scheduleFallbackHold() {
-        Task { @MainActor in
+        fallbackHoldTask?.cancel()
+        let cinematicID = cinematic.id
+        fallbackHoldTask = Task { @MainActor in
             let clock = SuspendingClock()
             let hold = TrinketMotion.Battle.ultimateFallbackHold
             try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(40))
-            guard !didFinish else { return }
-            onAutoFinish()
+            guard !Task.isCancelled, !didFinish else { return }
+            onAutoFinish(cinematicID)
         }
     }
 
     private func scheduleSkipHint() {
         guard canSkip else { return }
-        Task { @MainActor in
+        skipHintTask?.cancel()
+        skipHintTask = Task { @MainActor in
             let clock = SuspendingClock()
             try? await clock.sleep(
                 for: .seconds(TrinketMotion.Battle.ultimateSkipLockout),
                 tolerance: .milliseconds(20)
             )
-            guard !didFinish, cinematic.phase != .collapsing else { return }
+            guard !Task.isCancelled, !didFinish, cinematic.phase != .collapsing else { return }
             withAnimation(.easeOut(duration: 0.2)) {
                 skipHintVisible = true
             }
         }
+    }
+
+    private func cancelPendingOverlayTasks() {
+        collapseTask?.cancel()
+        collapseTask = nil
+        fallbackHoldTask?.cancel()
+        fallbackHoldTask = nil
+        skipHintTask?.cancel()
+        skipHintTask = nil
     }
 
     private static func portraitFrame(in size: CGSize) -> CGSize {

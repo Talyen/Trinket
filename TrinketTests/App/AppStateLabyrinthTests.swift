@@ -108,6 +108,7 @@ struct AppStateLabyrinthTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.finishActiveShopEncounter())
         #expect(state.activeShopEncounter != nil)
+        #expect(state.activeShopEncounter?.leaveFailureMessage != nil)
         #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
         #expect(state.finishActiveShopEncounter())
@@ -143,6 +144,7 @@ struct AppStateLabyrinthTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.finishActiveLabyrinthRest())
         #expect(state.activeLabyrinthRest != nil)
+        #expect(state.activeLabyrinthRest?.failureMessage != nil)
         #expect(state.labyrinth.nodes[restNodeID]?.isCleared == false)
 
         #expect(state.finishActiveLabyrinthRest())

@@ -233,6 +233,55 @@ struct BattleSpectacleSessionTests {
         #expect(callout.actorID == "enemy")
         #expect(callout.abilityTierMatchesUltimateOrSkill)
     }
+
+    @Test func beginCinematicCollapseIgnoresStaleExpectedID() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            abilities: [.slash, .fireball, .bloodthorn]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                abilities: []
+            )
+        )
+        let options = try OptionsStore(
+            defaults: #require(UserDefaults(suiteName: "BattleSpectacleStaleCollapse.\(UUID().uuidString)"))
+        )
+        options.ultimateCinematicSkipPolicy = .always
+        session.options = options
+
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.bloodthorn.id,
+                on: session,
+                at: now
+            )
+        )
+        _ = session.playCard(
+            cardID: ultimate.id,
+            at: now,
+            journey: .initial,
+            homestead: .freshStart
+        )
+
+        let cinematic = try #require(session.activeCinematic)
+        session.markCinematicPlaying()
+
+        // Stale fallback/video task from a prior overlay must not collapse the live cinematic.
+        session.beginCinematicCollapse(expectedID: cinematic.id &+ 1)
+        #expect(session.activeCinematic?.phase == .playing)
+        #expect(session.activeCinematic?.id == cinematic.id)
+
+        session.beginCinematicCollapse(expectedID: cinematic.id)
+        #expect(session.activeCinematic?.phase == .collapsing)
+    }
 }
 
 private extension SkillCalloutPresentation {

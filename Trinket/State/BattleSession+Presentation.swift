@@ -13,10 +13,10 @@ extension BattleSession {
     }
 
     func requestSkipCinematic(at date: Date = .now) {
-        guard activeCinematic != nil else { return }
-        guard date >= (activeCinematic?.skipArmedAt ?? .distantPast) else { return }
+        guard let cinematic = activeCinematic else { return }
+        guard date >= cinematic.skipArmedAt else { return }
         guard options?.canSkipUltimateCinematic() ?? true else { return }
-        beginCinematicCollapse()
+        beginCinematicCollapse(expectedID: cinematic.id)
     }
 
     func completeCinematicCollapse(expectedID: Int? = nil, at date: Date = .now) {
@@ -62,8 +62,13 @@ extension BattleSession {
         scheduleAutoEndIfNeeded()
     }
 
-    func beginCinematicCollapse() {
+    func beginCinematicCollapse(expectedID: Int? = nil) {
         guard var cinematic = activeCinematic, cinematic.phase != .collapsing else { return }
+        // Ignore stale auto-finish tasks from a prior overlay (fallback hold / video end
+        // can outlive the view that scheduled them).
+        if let expectedID, cinematic.id != expectedID {
+            return
+        }
         cinematic.phase = .collapsing
         activeCinematic = cinematic
     }

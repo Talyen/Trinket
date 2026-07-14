@@ -85,7 +85,11 @@ extension AppState {
     @discardableResult
     func finishActiveLabyrinthRest() -> Bool {
         guard let session = activeLabyrinthRest else { return false }
-        guard completeLabyrinthNode(nodeID: session.nodeID) else { return false }
+        session.clearFailure()
+        guard completeLabyrinthNode(nodeID: session.nodeID) else {
+            session.markFailed("Couldn't save progress. Stay here and try Rest again.")
+            return false
+        }
         activeLabyrinthRest = nil
         return true
     }

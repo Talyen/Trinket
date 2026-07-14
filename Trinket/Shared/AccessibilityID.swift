@@ -85,6 +85,7 @@ enum AccessibilityID {
         static let labyrinthRest = "Labyrinth Rest"
         static let labyrinthRestConfirm = "Labyrinth Rest Confirm"
         static let labyrinthRestLeave = "Labyrinth Rest Leave"
+        static let labyrinthRestFailure = "Labyrinth Rest Failure"
         static let labyrinthCraft = "Labyrinth Craft"
         static let labyrinthCraftForge = "Labyrinth Craft Forge"
         static let labyrinthCraftSkip = "Labyrinth Craft Skip"
@@ -131,6 +132,7 @@ enum AccessibilityID {
         static let goldBalance = "Shop Gold Balance"
         static let purchaseConfirmation = "Shop Purchase Confirmation"
         static let leaveButton = "Shop Leave Button"
+        static let leaveFailure = "Shop Leave Failure"
         static let detailBuyButton = "Shop Detail Buy Button"
         static let purchaseError = "Shop Purchase Error"
 

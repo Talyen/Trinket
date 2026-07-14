@@ -50,6 +50,14 @@ struct ShopEncounterView: View {
                                 .accessibilityIdentifier(AccessibilityID.Shop.purchaseError)
                                 .transition(.opacity)
                         }
+
+                        if let leaveFailure = session.leaveFailureMessage {
+                            Text(leaveFailure)
+                                .trinketTypography(.badge)
+                                .foregroundStyle(TrinketDesign.Colors.warning)
+                                .accessibilityIdentifier(AccessibilityID.Shop.leaveFailure)
+                                .transition(.opacity)
+                        }
                     }
                     .opacity(contentAppeared ? 1 : 0)
                     .offset(y: contentAppeared ? 0 : 8)
