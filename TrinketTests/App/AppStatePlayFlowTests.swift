@@ -202,6 +202,32 @@ struct AppStatePlayFlowTests {
         #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
     }
 
+    @Test func completeActiveBattleGoldMatchesVictorySummaryWhenHomesteadBonusActive() throws {
+        let state = try context.makeAppState()
+        var homestead = state.homestead
+        homestead.nodeTiers[.wishingWell] = 2
+        state.homestead = homestead
+
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+        // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold), not the
+        // homestead-adjusted display split (summary.battleGold).
+        let rawBattleEarnedGold = 20
+        let expectedTotal = StageCompletion.resolvedGoldReward(
+            stageGold: stage.rewards.gold,
+            battleEarnedGold: rawBattleEarnedGold,
+            homestead: state.homestead
+        )
+        let initialGold = state.roster.gold
+
+        #expect(state.completeActiveBattle(
+            configuration,
+            battleEarnedGold: rawBattleEarnedGold
+        ))
+        #expect(state.roster.gold == initialGold + expectedTotal)
+    }
+
     @Test func presentCombatLogShowsLogWithoutChangingTabs() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)

@@ -88,7 +88,7 @@ struct BattleView: View {
                     if hasStageProgression {
                         let didPersist = appState.completeActiveBattle(
                             configuration,
-                            battleEarnedGold: victorySummary.battleGold,
+                            battleEarnedGold: victorySummary.rawBattleEarnedGold,
                             materialRewards: victorySummary.materialRewards
                         )
                         if !didPersist {
@@ -259,6 +259,10 @@ struct BattleView: View {
                 // Fall back to victory chrome so Loot All can retry; retreat stays locked
                 // once outcome is resolved, so silent failure would hard-stick the fight.
                 appState.battle.presentVictoryChromeForPersistRetry(homestead: appState.homestead)
+                persistFailureMessage = StageMapMessage(
+                    title: "Couldn't Save Progress",
+                    message: "Your victory was not saved. Stay on this screen and try Continue again."
+                )
             }
         }
     }

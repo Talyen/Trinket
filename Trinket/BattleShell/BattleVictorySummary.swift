@@ -7,6 +7,9 @@ import TrinketPersistence
 struct BattleVictorySummary: Equatable {
     let stageGold: Int
     let battleGold: Int
+    /// Unadjusted mid-battle gold for grant paths. Do not pass `battleGold` into
+    /// completion APIs — that display split already includes homestead bonus.
+    let rawBattleEarnedGold: Int
     let experience: Int
     let companionExperience: Int
     let heroName: String
@@ -56,9 +59,10 @@ struct BattleVictorySummary: Equatable {
         let materialRewards = StageCompletion.resolvedMaterialRewards(
             stageReward: stageReward
         )
+        let rawBattleEarnedGold = state.earnedGold
         let totalGold = StageCompletion.resolvedGoldReward(
             stageGold: stageReward.gold,
-            battleEarnedGold: state.earnedGold,
+            battleEarnedGold: rawBattleEarnedGold,
             homestead: homestead
         )
         let stageGold = min(stageReward.gold, totalGold)
@@ -67,6 +71,7 @@ struct BattleVictorySummary: Equatable {
         return BattleVictorySummary(
             stageGold: stageGold,
             battleGold: battleGold,
+            rawBattleEarnedGold: rawBattleEarnedGold,
             experience: heroXP,
             companionExperience: companionXP,
             heroName: state.hero.name,
