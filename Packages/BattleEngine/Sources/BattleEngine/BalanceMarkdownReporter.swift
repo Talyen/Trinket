@@ -57,25 +57,6 @@ public enum BalanceMarkdownReporter {
         return lines.joined(separator: "\n")
     }
 
-    public static func write(
-        _ report: BalanceSweepReport,
-        toDirectory directoryPath: String,
-        fileManager: FileManager = .default
-    ) throws -> URL {
-        let directory = URL(fileURLWithPath: directoryPath, isDirectory: true)
-        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
-
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
-        let stamp = formatter.string(from: Date())
-        let filename = "\(stamp)-\(report.config.mode.rawValue)-seed\(report.config.seed).md"
-        let fileURL = directory.appendingPathComponent(filename)
-        try render(report).write(to: fileURL, atomically: true, encoding: .utf8)
-        return fileURL
-    }
-
     private static func appendIdentityTier(_ tierStats: BalanceTierStats, into lines: inout [String]) {
         lines.append("## \(tierStats.tier.displayName)")
         lines.append("")

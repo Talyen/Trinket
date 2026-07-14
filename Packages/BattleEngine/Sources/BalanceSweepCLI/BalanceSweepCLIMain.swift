@@ -21,18 +21,37 @@ enum BalanceSweepCLI {
             ))
 
             let report = BalanceSweepRunner.run(config: config)
-            let url = try BalanceMarkdownReporter.write(
-                report,
-                toDirectory: config.outputDirectory
-            )
+            let markdown = BalanceMarkdownReporter.render(report)
+            let url = try writeReport(markdown, report: report, toDirectory: config.outputDirectory)
 
-            print(BalanceMarkdownReporter.render(report))
+            print(markdown)
             FileHandle.standardError.write(Data("Wrote \(url.path)\n".utf8))
         } catch {
             FileHandle.standardError.write(Data("error: \(error)\n".utf8))
             FileHandle.standardError.write(Data(usageText.utf8))
             exit(1)
         }
+    }
+
+    /// Disk I/O stays in the CLI entrypoint so the BattleEngine library remains pure.
+    private static func writeReport(
+        _ markdown: String,
+        report: BalanceSweepReport,
+        toDirectory directoryPath: String,
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        let directory = URL(fileURLWithPath: directoryPath, isDirectory: true)
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let stamp = formatter.string(from: Date())
+        let filename = "\(stamp)-\(report.config.mode.rawValue)-seed\(report.config.seed).md"
+        let fileURL = directory.appendingPathComponent(filename)
+        try markdown.write(to: fileURL, atomically: true, encoding: .utf8)
+        return fileURL
     }
 
     private static var usageText: String {
