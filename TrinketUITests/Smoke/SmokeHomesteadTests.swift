@@ -5,14 +5,12 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("homestead")
     }
 
-    func testHomesteadOverviewShowsWalletCategoriesAndRepresentativeRows() {
+    /// Canary: wallet + first category/row after the cinematic hero. Cross-category
+    /// scroll coverage lives in `HomesteadFlowUITests`.
+    func testHomesteadOverviewShowsWalletAndFirstCategory() {
         homestead.assertLoaded()
         assertExists(AccessibilityID.Homestead.resourceWallet)
         assertExistsAfterScroll(AccessibilityID.Homestead.category("Farming"))
         assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Wheat Field"))
-
-        assertExistsAfterScroll(AccessibilityID.Homestead.category("Crafting"))
-        assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Alchemy Lab"))
-        assertExistsAfterScroll(AccessibilityID.Homestead.category("Arcana"))
     }
 }
