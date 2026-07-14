@@ -59,33 +59,14 @@ struct ItemSlotPickerView: View {
                     .padding(TrinketDesign.Metrics.mediumSpacing)
 
                 if isSelected {
-                    selectedCheckmark
+                    ArtworkPickerSelectionBadge()
                 }
             }
             .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape.strokeBorder(
-                    isSelected ? TrinketDesign.Colors.selection : .clear,
-                    lineWidth: isSelected ? 3 : 0
-                )
-            }
+            .trinketArtworkPickerSelectionBorder(isSelected: isSelected)
         }
         .buttonStyle(ArtworkNavigationCardButtonStyle())
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemCandidate(item.id))
-    }
-
-    private var selectedCheckmark: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Image(systemName: "checkmark")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(TrinketDesign.Colors.selection)
-                    .trinketGlassChip(.compact)
-            }
-            Spacer()
-        }
-        .padding(TrinketDesign.Metrics.smallSpacing)
     }
 
     private var orderedItems: [InventoryItem] {

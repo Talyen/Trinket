@@ -233,61 +233,17 @@ enum CombatFeedbackChipRecipes {
     )
 
     /// Soft float.
-    static let buffChip = CombatFeedbackMotionRecipe(
+    static let buffChip = softFloatChip(
         feedbackClass: .buff,
-        initialScale: 0.84,
-        scale: [
-            .init(value: 1.1, duration: 0.12),
-            .init(value: 1.02, duration: 0.2),
-            .init(value: 0.98, duration: 0.48)
-        ],
-        opacity: [
-            .init(value: 1.0, duration: 0.1, usesSpring: false),
-            .init(value: 1.0, duration: 0.44, usesSpring: false),
-            .init(value: 0.0, duration: 0.32, usesSpring: false)
-        ],
-        offsetY: [
-            .init(value: -8, duration: 0.12),
-            .init(value: -28, duration: 0.44),
-            .init(value: -50, duration: 0.32)
-        ],
-        lifetime: 0.98,
-        horizontalJitter: -7 ... 7,
-        stackSpacing: 22,
-        chrome: .standard,
         fontWeight: .semibold,
-        textStyle: .title3,
-        bouncesSymbol: false,
-        showsSecondaryCaption: false
+        bouncesSymbol: false
     )
 
     /// Soft float.
-    static let resourceChip = CombatFeedbackMotionRecipe(
+    static let resourceChip = softFloatChip(
         feedbackClass: .resource,
-        initialScale: 0.84,
-        scale: [
-            .init(value: 1.1, duration: 0.12),
-            .init(value: 1.02, duration: 0.2),
-            .init(value: 0.98, duration: 0.48)
-        ],
-        opacity: [
-            .init(value: 1.0, duration: 0.1, usesSpring: false),
-            .init(value: 1.0, duration: 0.44, usesSpring: false),
-            .init(value: 0.0, duration: 0.32, usesSpring: false)
-        ],
-        offsetY: [
-            .init(value: -8, duration: 0.12),
-            .init(value: -28, duration: 0.44),
-            .init(value: -50, duration: 0.32)
-        ],
-        lifetime: 0.98,
-        horizontalJitter: -7 ... 7,
-        stackSpacing: 22,
-        chrome: .standard,
         fontWeight: .bold,
-        textStyle: .title3,
-        bouncesSymbol: true,
-        showsSecondaryCaption: false
+        bouncesSymbol: true
     )
 
     /// Soft float with a bit more presence.
@@ -318,4 +274,38 @@ enum CombatFeedbackChipRecipes {
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
+
+    private static func softFloatChip(
+        feedbackClass: CombatFeedbackClass,
+        fontWeight: Font.Weight,
+        bouncesSymbol: Bool
+    ) -> CombatFeedbackMotionRecipe {
+        CombatFeedbackMotionRecipe(
+            feedbackClass: feedbackClass,
+            initialScale: 0.84,
+            scale: [
+                .init(value: 1.1, duration: 0.12),
+                .init(value: 1.02, duration: 0.2),
+                .init(value: 0.98, duration: 0.48)
+            ],
+            opacity: [
+                .init(value: 1.0, duration: 0.1, usesSpring: false),
+                .init(value: 1.0, duration: 0.44, usesSpring: false),
+                .init(value: 0.0, duration: 0.32, usesSpring: false)
+            ],
+            offsetY: [
+                .init(value: -8, duration: 0.12),
+                .init(value: -28, duration: 0.44),
+                .init(value: -50, duration: 0.32)
+            ],
+            lifetime: 0.98,
+            horizontalJitter: -7 ... 7,
+            stackSpacing: 22,
+            chrome: .standard,
+            fontWeight: fontWeight,
+            textStyle: .title3,
+            bouncesSymbol: bouncesSymbol,
+            showsSecondaryCaption: false
+        )
+    }
 }

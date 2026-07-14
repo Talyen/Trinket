@@ -55,7 +55,7 @@ final class SFXPlayer {
     private var hasConfiguredSession = false
     private var preparedPlayersByID: [String: [AVAudioPlayer]] = [:]
     private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket",
+        subsystem: AudioLogging.subsystem,
         category: "Audio"
     )
 
@@ -144,16 +144,6 @@ final class SFXPlayer {
     }
 
     private func configureSessionIfNeeded() {
-        guard !hasConfiguredSession else { return }
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true)
-        } catch {
-            logger.error(
-                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-        hasConfiguredSession = true
+        AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
     }
 }

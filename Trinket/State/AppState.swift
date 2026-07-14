@@ -180,12 +180,7 @@ final class AppState {
             )
             return false
         }
-        battle.endBattle()
-        activeMysteryEncounter = nil
-        activeShopEncounter = nil
-        activeLabyrinthRest = nil
-        activeLabyrinthCraft = nil
-        shellSession.resetToDefaults(selectingTab: .play)
+        clearTransientPlaySession()
         return true
     }
 
@@ -201,15 +196,20 @@ final class AppState {
             )
             return false
         }
+        clearTransientPlaySession()
+        return true
+    }
+    #endif
+
+    /// Ends any live encounter and resets shell session after a full progress rewrite.
+    private func clearTransientPlaySession() {
         battle.endBattle()
         activeMysteryEncounter = nil
         activeShopEncounter = nil
         activeLabyrinthRest = nil
         activeLabyrinthCraft = nil
         shellSession.resetToDefaults(selectingTab: .play)
-        return true
     }
-    #endif
 
     static func shouldRestoreMapScroll(
         _ targetID: String,
