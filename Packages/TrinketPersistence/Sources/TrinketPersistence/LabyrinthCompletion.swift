@@ -71,12 +71,43 @@ public enum LabyrinthCompletion {
         max(8, 6 + node.depth * 2)
     }
 
+    /// Applies Labyrinth modifier XP bonuses to a base battle award.
+    public static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
+        guard base > 0, xpPercent != 0 else { return max(0, base) }
+        return max(0, base + (base * xpPercent) / 100)
+    }
+
+    /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
+    public static func rewardItemID(forNodeID nodeID: String) -> String {
+        "labyrinth-\(nodeID)"
+    }
+
+    /// Pre-rolls a combat drop using the same seeds as `complete`, for victory chrome.
+    public static func pendingCombatRewardItem(
+        for node: LabyrinthNode,
+        effects: LabyrinthModifierEffects,
+        worldSeed: UInt64,
+        astralChanceBonusPercent: Int = 0
+    ) -> InventoryItem? {
+        var rollRNG = SeededRandomNumberGenerator(
+            seed: worldSeed &+ GameContent.stableSeed(for: "labyrinth-roll-\(node.id)")
+        )
+        guard shouldRollItem(for: node, effects: effects, using: &rollRNG) else { return nil }
+        return makeGeneratedItem(
+            nodeID: node.id,
+            effects: effects,
+            worldSeed: worldSeed,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )
+    }
+
     public static func complete(
         nodeID: String,
         hero: Combatant,
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
         save: inout PlayerSave
     ) {
         save.labyrinth.ensureMap()
@@ -99,11 +130,15 @@ public enum LabyrinthCompletion {
         )
         save.homestead.grant(resolvedMaterials)
 
-        var itemRNG = SeededRandomNumberGenerator(
-            seed: save.labyrinth.worldSeed &+ GameContent.stableSeed(for: "labyrinth-roll-\(nodeID)")
-        )
-        if shouldRollItem(for: node, effects: effects, using: &itemRNG) {
-            grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
+        if let rewardItem {
+            appendUniqueRewardItem(rewardItem, save: &save)
+        } else {
+            var itemRNG = SeededRandomNumberGenerator(
+                seed: save.labyrinth.worldSeed &+ GameContent.stableSeed(for: "labyrinth-roll-\(nodeID)")
+            )
+            if shouldRollItem(for: node, effects: effects, using: &itemRNG) {
+                grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
+            }
         }
 
         if node.type.canonical == .craft {
@@ -163,26 +198,43 @@ public enum LabyrinthCompletion {
         effects: LabyrinthModifierEffects,
         save: inout PlayerSave
     ) {
+        guard let item = makeGeneratedItem(
+            nodeID: nodeID,
+            effects: effects,
+            worldSeed: save.labyrinth.worldSeed,
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
+        ) else { return }
+        appendUniqueRewardItem(item, save: &save)
+    }
+
+    private static func makeGeneratedItem(
+        nodeID: String,
+        effects: LabyrinthModifierEffects,
+        worldSeed: UInt64,
+        astralChanceBonusPercent: Int
+    ) -> InventoryItem? {
         let bases = GameContent.itemBaseTypes
-        guard !bases.isEmpty else { return }
+        guard !bases.isEmpty else { return nil }
         var rng = SeededRandomNumberGenerator(
-            seed: save.labyrinth.worldSeed &+ GameContent.stableSeed(for: "labyrinth-item-\(nodeID)")
+            seed: worldSeed &+ GameContent.stableSeed(for: "labyrinth-item-\(nodeID)")
         )
         let baseType = bases.randomElement(using: &rng) ?? bases[0]
         let rarity = ItemRarityRoll.roll(
             baseAstralChancePercent: 15,
-            astralChanceBonusPercent: effects.astralChanceBonusPercent
-                + save.homestead.effects.astralChanceBonusPercent,
+            astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
             using: &rng
         )
-        let item = ItemGenerator().generate(
-            id: "labyrinth-\(nodeID)-\(save.inventory.items.count)",
+        return ItemGenerator().generate(
+            id: rewardItemID(forNodeID: nodeID),
             templateID: "\(baseType.id)-\(rarity.rawValue)",
             baseType: baseType,
             rarity: rarity,
             keywordBias: effects.keywordBiases,
             using: &rng
         )
+    }
+
+    private static func appendUniqueRewardItem(_ item: InventoryItem, save: inout PlayerSave) {
         guard !save.inventory.items.contains(where: { $0.id == item.id }) else { return }
         save.inventory.items.append(item)
     }
@@ -197,14 +249,14 @@ public enum LabyrinthCompletion {
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
             : roster.highestCompanionLevel
-        var award = StageCompletion.battleExperienceAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: highestLevel
+        let award = adjustedExperienceAward(
+            StageCompletion.battleExperienceAward(
+                playerLevel: playerLevel,
+                enemyLevel: enemyLevel,
+                highestLevel: highestLevel
+            ),
+            xpPercent: effects.xpPercent
         )
-        if effects.xpPercent != 0 {
-            award = max(0, award + (award * effects.xpPercent) / 100)
-        }
         roster.grantExperience(award, to: combatant)
     }
 }

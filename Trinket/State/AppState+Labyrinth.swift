@@ -153,13 +153,21 @@ extension AppState {
         }
 
         let rewards = LabyrinthCompletion.rewards(for: node, effects: effects)
+        let pendingRewardItem = LabyrinthCompletion.pendingCombatRewardItem(
+            for: node,
+            effects: effects,
+            worldSeed: labyrinth.worldSeed,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+        )
         activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: rewards
+            stageReward: rewards,
+            experienceBonusPercent: effects.xpPercent,
+            pendingRewardItem: pendingRewardItem
         )
         return nil
     }
@@ -170,7 +178,8 @@ extension AppState {
         hero: Combatant? = nil,
         companion: Combatant? = nil,
         battleEarnedGold: Int = 0,
-        materialRewards: [ResourceAmount]? = nil
+        materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil
     ) -> Bool {
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
@@ -182,6 +191,7 @@ extension AppState {
                     companion: resolvedCompanion,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards,
+                    rewardItem: rewardItem,
                     save: &save
                 )
             }
