@@ -35,13 +35,27 @@ extension AppState {
         )
         guard !offers.isEmpty else {
             if let labyrinthNodeID {
-                completeLabyrinthNode(nodeID: labyrinthNodeID)
+                guard completeLabyrinthNode(nodeID: labyrinthNodeID) else {
+                    return StageMapMessage(
+                        title: "Couldn't Save Progress",
+                        message: "This path wasn't saved. Try again."
+                    )
+                }
                 return nil
             }
             appStateLogger.error(
                 "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
             )
-            completeStage(resolvedStage, hero: roster.activeHero, companion: roster.activeCompanion)
+            guard completeStage(
+                resolvedStage,
+                hero: roster.activeHero,
+                companion: roster.activeCompanion
+            ) != nil else {
+                return StageMapMessage(
+                    title: "Couldn't Save Progress",
+                    message: "This stage wasn't saved. Try again."
+                )
+            }
             return StageMapMessage(
                 title: "Shop Closed",
                 message: "The merchant has nothing left to sell. You continue on."
@@ -145,7 +159,12 @@ extension AppState {
                 authored: nil,
                 using: &randomNumberGenerator
             ) else {
-                completeLabyrinthNode(nodeID: labyrinthNodeID)
+                guard completeLabyrinthNode(nodeID: labyrinthNodeID) else {
+                    return StageMapMessage(
+                        title: "Couldn't Save Progress",
+                        message: "This path wasn't saved. Try again."
+                    )
+                }
                 return nil
             }
             event = picked
@@ -167,13 +186,31 @@ extension AppState {
             if let authoredEvent {
                 if let combatantID = authoredEvent.unlockCombatantID,
                    roster.isCombatantUnlocked(id: combatantID) {
-                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+                    guard completeStage(
+                        stage,
+                        hero: roster.activeHero,
+                        companion: roster.activeCompanion
+                    ) != nil else {
+                        return StageMapMessage(
+                            title: "Couldn't Save Progress",
+                            message: "This stage wasn't saved. Try again."
+                        )
+                    }
                     return nil
                 }
             } else {
                 var substituteRNG = SystemRandomNumberGenerator()
                 guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
-                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+                    guard completeStage(
+                        stage,
+                        hero: roster.activeHero,
+                        companion: roster.activeCompanion
+                    ) != nil else {
+                        return StageMapMessage(
+                            title: "Couldn't Save Progress",
+                            message: "This stage wasn't saved. Try again."
+                        )
+                    }
                     return nil
                 }
             }

@@ -5,6 +5,7 @@ import TrinketCore
 import TrinketPersistence
 
 extension AppState {
+    /// Completes a stage and returns the map scroll target when persistence succeeds.
     @discardableResult
     func completeStage(
         _ stage: Stage,
@@ -12,18 +13,18 @@ extension AppState {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
-    ) -> String {
-        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey)
-        if let resultingJourney = persistStageCompletions(
+    ) -> String? {
+        guard let resultingJourney = persistStageCompletions(
             [stage],
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards
-        ) {
-            scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
-            noteMapScrollFocus(scrollTarget)
+        ) else {
+            return nil
         }
+        let scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
+        noteMapScrollFocus(scrollTarget)
         return scrollTarget
     }
 
@@ -55,7 +56,10 @@ extension AppState {
                     persisted = false
                 }
             } else {
-                persisted = true
+                appStateLogger.error(
+                    "Missing stage for resume token: \(stageID, privacy: .public)"
+                )
+                persisted = false
             }
         case let .aspect(aspectID, floorNumber):
             if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
@@ -68,7 +72,10 @@ extension AppState {
                     rewardItem: configuration.pendingRewardItem
                 )
             } else {
-                persisted = true
+                appStateLogger.error(
+                    "Missing aspect floor for resume token: \(aspectID.rawValue, privacy: .public)/\(floorNumber)"
+                )
+                persisted = false
             }
         case let .labyrinth(nodeID):
             persisted = completeLabyrinthNode(
@@ -204,7 +211,16 @@ extension AppState {
         case .shop:
             return beginShopEncounter(for: stage)
         case .event, .rest:
-            completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+            guard completeStage(
+                stage,
+                hero: roster.activeHero,
+                companion: roster.activeCompanion
+            ) != nil else {
+                return StageMapMessage(
+                    title: "Couldn't Save Progress",
+                    message: "This stage wasn't saved. Try again."
+                )
+            }
             return nil
         }
     }
