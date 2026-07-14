@@ -118,8 +118,8 @@ struct CombatFeedbackPresenterTests {
         #expect(abilityItems[0].text == "-6")
     }
 
-    @Test func keepsSameKeywordEventsSeparateAcrossTargets() {
-        let items = CombatFeedbackPresenter.makeItems(
+    @Test func keepsDistinctFeedbackSeparateByTargetAndEffectKind() {
+        let acrossTargets = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
                 makeEvent(
@@ -132,25 +132,10 @@ struct CombatFeedbackPresenterTests {
             ],
             at: .now
         )
-        #expect(items.count == 2)
-        #expect(Set(items.map(\.targetID)) == ["enemy", "hero"])
-    }
+        #expect(acrossTargets.count == 2)
+        #expect(Set(acrossTargets.map(\.targetID)) == ["enemy", "hero"])
 
-    @Test func keepsDirectAndStatusDamageSeparate() {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed)
-            ],
-            at: .now
-        )
-        #expect(items.map(\.feedbackClass) == [.directDamage, .dot])
-        #expect(items[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
-        #expect(items[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
-    }
-
-    @Test func keepsDifferentAdditiveEffectKindsSeparate() {
-        let items = CombatFeedbackPresenter.makeItems(
+        let acrossKinds = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(
                     id: 1,
@@ -169,8 +154,21 @@ struct CombatFeedbackPresenterTests {
             ],
             at: .now
         )
-        #expect(items.count == 2)
-        #expect(items.map(\.text) == ["+2", "+3"])
+        #expect(acrossKinds.count == 2)
+        #expect(acrossKinds.map(\.text) == ["+2", "+3"])
+    }
+
+    @Test func keepsDirectAndStatusDamageSeparate() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .bleed),
+                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed)
+            ],
+            at: .now
+        )
+        #expect(items.map(\.feedbackClass) == [.directDamage, .dot])
+        #expect(items[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
+        #expect(items[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
     }
 
     @Test func assignsPriorityAndOverflowMetadataDeterministically() {

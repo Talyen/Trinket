@@ -112,10 +112,12 @@ extension AppState {
     @discardableResult
     func finishActiveShopEncounter() -> Bool {
         guard let session = activeShopEncounter else { return false }
+        session.clearLeaveFailure()
         guard finishEncounterProgress(
             stage: session.stage,
             labyrinthNodeID: session.labyrinthNodeID
         ) else {
+            session.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
         }
         activeShopEncounter = nil

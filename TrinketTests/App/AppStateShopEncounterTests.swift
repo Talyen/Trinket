@@ -176,4 +176,22 @@ struct AppStateShopEncounterTests {
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.activeShopEncounter != nil)
     }
+
+    #if DEBUG
+    @Test func finishShopEncounterSurfacesLeaveFailureWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+        let session = try #require(state.activeShopEncounter)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter != nil)
+        #expect(session.leaveFailureMessage != nil)
+
+        #expect(state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter == nil)
+    }
+    #endif
 }

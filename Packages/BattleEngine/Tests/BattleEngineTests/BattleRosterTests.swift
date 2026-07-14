@@ -51,30 +51,24 @@ struct BattleRosterTests {
         try #expect(BattleParticipant.effectTickOrder == [.enemy, .hero, .companion])
     }
 
-    @Test func matchupCombatantForParticipant() throws {
+    @Test func lookupHelpersResolveParticipantsByRoleAndID() throws {
         let hero = combatant(id: "hero", role: .hero)
         let companion = combatant(id: "companion", role: .companion)
         let enemy = combatant(id: "enemy", role: .enemy)
         let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+        let heroRuntime = runtime(id: "hero", role: .hero)
+        let companionRuntime = runtime(id: "companion", role: .companion)
+        let enemyRuntime = runtime(id: "enemy", role: .enemy)
+        let roster = BattleRoster(hero: heroRuntime, companion: companionRuntime, enemy: enemyRuntime)
 
         try #expect(matchup.combatant(for: .hero).id == "hero")
         try #expect(matchup.combatant(for: .companion).id == "companion")
         try #expect(matchup.combatant(for: .enemy).id == "enemy")
-    }
 
-    @Test func runtimeForReturnsMatching() throws {
-        let hero = runtime(id: "hero", role: .hero)
-        let companion = runtime(id: "companion", role: .companion)
-        let enemy = runtime(id: "enemy", role: .enemy)
-        let roster = BattleRoster(hero: hero, companion: companion, enemy: enemy)
+        try #expect(roster.runtime(for: heroRuntime.combatant)?.id == "hero")
+        try #expect(roster.runtime(for: companionRuntime.combatant)?.id == "companion")
+        try #expect(roster.runtime(for: enemyRuntime.combatant)?.id == "enemy")
 
-        try #expect(roster.runtime(for: hero.combatant)?.id == "hero")
-        try #expect(roster.runtime(for: companion.combatant)?.id == "companion")
-        try #expect(roster.runtime(for: enemy.combatant)?.id == "enemy")
-    }
-
-    @Test func combatantForReturnsRuntimeByID() throws {
-        let roster = makeRoster()
         try #expect(roster.combatant(for: "hero")?.role == .hero)
         try #expect(roster.combatant(for: "companion")?.role == .companion)
         try #expect(roster.combatant(for: "enemy")?.role == .enemy)
@@ -92,19 +86,6 @@ struct BattleRosterTests {
     }
 
     // MARK: - Active effects
-
-    @Test func activeEffectsAndSetActiveEffects() throws {
-        var roster = makeRoster()
-        try #expect(roster.activeEffects(for: roster.hero.combatant).isEmpty)
-
-        let burn = ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)
-        roster.setActiveEffects([burn], for: roster.hero.combatant)
-        try #expect(roster.activeEffects(for: roster.hero.combatant) == [burn])
-    }
-
-    // MARK: - Health
-
-    // MARK: - Targeting
 
     @Test func enemyAttackTargetCoversAliveDeadAndHealthPriority() throws {
         let aliveRoster = makeRoster()

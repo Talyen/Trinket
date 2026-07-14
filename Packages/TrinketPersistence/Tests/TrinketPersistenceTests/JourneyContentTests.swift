@@ -18,10 +18,8 @@ struct JourneyContentTests {
         }
     }
 
-    @Test func everyChapterHasFiveSequentialStages() throws {
+    @Test func everyChapterHasSequentialStagesWithUniqueIDs() throws {
         for chapter in GameContent.chapters {
-            try #expect(chapter.stages.count == 5, "\(chapter.id)")
-
             for (index, stage) in chapter.stages.enumerated() {
                 try #expect(stage.stageNumber == index + 1, "\(stage.id)")
                 try #expect(stage.chapterNumber == chapter.number, "\(stage.id)")

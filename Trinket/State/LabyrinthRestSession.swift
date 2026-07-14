@@ -8,10 +8,19 @@ final class LabyrinthRestSession: Identifiable {
     let nodeID: String
     let goldCrumb: Int
     let depth: Int
+    private(set) var failureMessage: String?
 
     init(nodeID: String, goldCrumb: Int, depth: Int) {
         self.nodeID = nodeID
         self.goldCrumb = goldCrumb
         self.depth = depth
+    }
+
+    func markFailed(_ message: String) {
+        failureMessage = message
+    }
+
+    func clearFailure() {
+        failureMessage = nil
     }
 }

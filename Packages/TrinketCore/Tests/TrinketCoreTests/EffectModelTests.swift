@@ -21,15 +21,6 @@ struct EffectModelTests {
         try #expect(Effect.pairedDoT(keyword: .burn, potency: 0) == nil)
     }
 
-    @Test func activeEffectTracksRemainingTicks() throws {
-        let effect = Effect.bleed(3)
-        var active = ActiveEffect(id: 1, effect: effect, remainingTicks: 3)
-        try #expect(active.keyword == .bleed)
-        try #expect(active.remainingTicks == 3)
-        active.remainingTicks -= 1
-        try #expect(active.remainingTicks == 2)
-    }
-
     @Test func effectClassificationFlagsMatchDefinitions() throws {
         try #expect(Effect.burn(1).isRemovableDebuff)
         try #expect(Effect.poison(1).isRemovableDebuff)

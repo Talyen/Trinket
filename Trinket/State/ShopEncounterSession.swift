@@ -21,6 +21,7 @@ final class ShopEncounterSession: Identifiable {
     private(set) var purchaseCount = 0
     private(set) var lastPurchasedItemName: String?
     private(set) var lastPurchaseError: String?
+    private(set) var leaveFailureMessage: String?
     private(set) var isPurchasing = false
 
     init(
@@ -57,5 +58,13 @@ final class ShopEncounterSession: Identifiable {
     func markPurchaseFailed(message: String) {
         isPurchasing = false
         lastPurchaseError = message
+    }
+
+    func markLeaveFailed(_ message: String) {
+        leaveFailureMessage = message
+    }
+
+    func clearLeaveFailure() {
+        leaveFailureMessage = nil
     }
 }

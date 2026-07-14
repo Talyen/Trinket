@@ -20,6 +20,13 @@ struct LabyrinthRestView: View {
                     .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
 
+                if let failure = session.failureMessage {
+                    Text(failure)
+                        .trinketTypography(.secondaryBody)
+                        .foregroundStyle(TrinketDesign.Colors.warning)
+                        .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestFailure)
+                }
+
                 Spacer(minLength: 0)
 
                 Button {
