@@ -13,6 +13,8 @@ struct BattlePerformanceScenarioHarness: View {
     let battleSize: CGSize
     @Binding var castingCards: [CardActivationRequest]
     @Binding var forcedDrag: (cardID: Int, translation: CGSize)?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
 
     @State private var status = "ready"
     @State private var generation = 0
@@ -62,6 +64,12 @@ struct BattlePerformanceScenarioHarness: View {
         castingCards = []
         battleSession.clearFeedback()
         battleSession.clearSpectacle()
+        CombatFeedbackRasterPool.shared.removeAll()
+        CombatFeedbackRasterPool.shared.resetDiagnostics()
+        if scenario == .feedbackRasterWarm {
+            prepareFeedbackRasters(runGeneration: runGeneration)
+            CombatFeedbackRasterPool.shared.resetDiagnostics()
+        }
         NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
         BattleFramePacingSignposts.event(
             BattleFramePacingSignposts.Name.performanceScenario,
@@ -78,10 +86,19 @@ struct BattlePerformanceScenarioHarness: View {
             }
             guard !Task.isCancelled, runGeneration == generation else { return }
             forcedDrag = nil
+            let rasterSnapshot = CombatFeedbackRasterPool.shared.snapshot()
             status = "complete:\(scenario.rawValue):\(runGeneration)"
+                + ":rasterEntries=\(rasterSnapshot.entryCount)"
+                + ":rasterBytes=\(rasterSnapshot.estimatedByteCount)"
+                + ":rasterHits=\(rasterSnapshot.hitCount)"
+                + ":rasterBuilds=\(rasterSnapshot.buildCount)"
+                + ":rasterEvictions=\(rasterSnapshot.evictionCount)"
             BattleFramePacingSignposts.event(
                 BattleFramePacingSignposts.Name.performanceScenario,
-                detail: "phase=complete scenario=\(scenario.rawValue) run=\(runGeneration)"
+                detail: "phase=complete scenario=\(scenario.rawValue) run=\(runGeneration) "
+                    + "rasterEntries=\(rasterSnapshot.entryCount) rasterHits=\(rasterSnapshot.hitCount) "
+                    + "rasterBytes=\(rasterSnapshot.estimatedByteCount) "
+                    + "rasterBuilds=\(rasterSnapshot.buildCount) rasterEvictions=\(rasterSnapshot.evictionCount)"
             )
         }
     }
@@ -105,6 +122,8 @@ struct BattlePerformanceScenarioHarness: View {
                 appendCast(enforceProductionCap: false)
             }
         case .feedbackChipsOnly:
+            await runFeedbackChipsOnly(runGeneration: runGeneration)
+        case .feedbackRasterCold, .feedbackRasterWarm:
             await runFeedbackChipsOnly(runGeneration: runGeneration)
         case .feedbackReactionsOnly:
             await runFeedbackReactionsOnly(runGeneration: runGeneration)
@@ -183,6 +202,26 @@ struct BattlePerformanceScenarioHarness: View {
             battleSession.activeFeedbackItems.append(contentsOf: items)
             battleSession.scheduleFeedbackPruneIfNeeded(at: date)
             try? await Task.sleep(for: .milliseconds(650))
+        }
+    }
+
+    private func prepareFeedbackRasters(runGeneration: Int) {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: feedbackEvents(runGeneration: runGeneration, batch: 0),
+            at: .now,
+            stagger: 0.02
+        )
+        let itemsByTarget = Dictionary(grouping: items, by: \.targetID)
+        for targetItems in itemsByTarget.values {
+            let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: targetItems)
+            guard let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(from: groups).first else {
+                continue
+            }
+            _ = CombatFeedbackRasterPool.shared.raster(
+                for: canvasItem,
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
         }
     }
 

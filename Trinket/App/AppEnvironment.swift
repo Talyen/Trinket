@@ -7,6 +7,8 @@ enum BattlePerformanceScenario: String, CaseIterable, Sendable {
     case repeatedCardCasts = "repeated-card-casts"
     case maximumConcurrentCasts = "maximum-concurrent-casts"
     case feedbackChipsOnly = "feedback-chips-only"
+    case feedbackRasterCold = "feedback-raster-cold"
+    case feedbackRasterWarm = "feedback-raster-warm"
     case feedbackReactionsOnly = "feedback-reactions-only"
     case keywordBurstsOnly = "keyword-bursts-only"
     case denseFeedback = "dense-feedback"

@@ -33,6 +33,14 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         run(scenario: "feedback-chips-only")
     }
 
+    func test06a1FeedbackRasterCold() {
+        run(scenario: "feedback-raster-cold")
+    }
+
+    func test06a2FeedbackRasterWarm() {
+        run(scenario: "feedback-raster-warm")
+    }
+
     func test06bFeedbackReactionsOnly() {
         run(scenario: "feedback-reactions-only")
     }
@@ -100,11 +108,21 @@ final class BattlePerformanceUITests: TrinketUITestCase {
                 120,
                 "Sampler did not capture enough delivered frames: \(report.accessibilityValue)"
             )
-            record(report: report, scenario: scenario, iteration: index + 1)
+            record(
+                report: report,
+                scenario: scenario,
+                iteration: index + 1,
+                rasterStatus: capturedStatuses[index]
+            )
         }
     }
 
-    private func record(report: FramePacingReport, scenario: String, iteration: Int) {
+    private func record(
+        report: FramePacingReport,
+        scenario: String,
+        iteration: Int,
+        rasterStatus: String
+    ) {
         let environment = ProcessInfo.processInfo.environment
         let object: [String: Any] = [
             "schemaVersion": FramePacingReport.schemaVersion,
@@ -126,7 +144,8 @@ final class BattlePerformanceUITests: TrinketUITestCase {
             "missedDeadlineCount": report.missedDeadlineCount,
             "estimatedMissedFrameCount": report.estimatedMissedFrameCount,
             "severeStallCount": report.severeStallCount,
-            "missedDeadlineRatio": report.missedDeadlineRatio
+            "missedDeadlineRatio": report.missedDeadlineRatio,
+            "rasterStatus": rasterStatus
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]),
               let json = String(data: data, encoding: .utf8) else {

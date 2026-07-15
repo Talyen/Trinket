@@ -37,13 +37,15 @@ Every scenario drives the normal Battle SwiftUI and `BattleSession` presentation
 4. Repeated warmed card casts.
 5. Maximum configured concurrent card casts.
 6. Feedback chips in isolation.
-7. Combatant reactions and haptics in isolation.
-8. Keyword bursts in isolation.
-9. Dense combat feedback plus keyword bursts.
-10. Turn transition and hand reflow.
-11. Full Ultimate cinematic.
-12. Real SFX playback path (audio is not disabled).
-13. Combined worst case.
+7. Feedback-raster cold activation with an empty bounded pool.
+8. Feedback-raster warm activation with the first production label set prepared.
+9. Combatant reactions and haptics in isolation.
+10. Keyword bursts in isolation.
+11. Dense combat feedback plus keyword bursts.
+12. Turn transition and hand reflow.
+13. Full Ultimate cinematic.
+14. Real SFX playback path (audio is not disabled).
+15. Combined worst case.
 
 The scenario launch argument changes stimulus only: `-battle-performance-scenario <name>`. It is DEBUG-only UI tooling and is not a gameplay mode.
 
@@ -74,7 +76,7 @@ Short runs intentionally omit 0.1% lows: with only hundreds of frames that numbe
 
 1. Reproduce the exact failing scenario with the same Xcode, runtime, and Simulator/device.
 2. Check the raw per-iteration spread before treating a median movement as causal.
-3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback.
+3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, feedback-raster builds, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback. Scenario completion metadata includes bounded raster-pool entries, estimated bytes, hits, builds, and evictions.
 4. Identify an app-attributed stack or rendering phase. Simulator scheduling noise alone is not an app regression.
 5. Make one hypothesis-driven change without changing visible Battle behavior.
 6. Re-run the same scenario matrix and compare native hitch data, raw reports, and the calibrated reference.

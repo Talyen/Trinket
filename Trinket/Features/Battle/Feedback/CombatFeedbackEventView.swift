@@ -12,61 +12,46 @@ struct CombatFeedbackCanvasItem: Identifiable {
     }
 }
 
-/// One asynchronous renderer per combatant pane. A single display clock and canvas
-/// replace the prior independently animated SwiftUI hierarchy while preserving motion.
-struct CombatFeedbackCanvasLayer: View {
-    let items: [CombatFeedbackCanvasItem]
+/// A stable slot per combatant pane. The display-link path only transforms a prepared
+/// bitmap; glyph shaping, SF Symbol composition, color, and shadow happen on cache miss.
+struct CombatFeedbackRasterSlot: View {
+    let canvasItem: CombatFeedbackCanvasItem?
+    let raster: CombatFeedbackRaster?
 
     var body: some View {
-        if !items.isEmpty {
-            TimelineView(.animation) { timeline in
-                Canvas(rendersAsynchronously: true) { context, size in
-                    for item in items {
-                        draw(item, at: timeline.date, in: &context, size: size)
-                    }
+        TimelineView(.animation(paused: canvasItem == nil || raster == nil)) { timeline in
+            ZStack {
+                if let canvasItem, let raster {
+                    let item = canvasItem.item
+                    let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
+                    let state = CombatFeedbackMotionSampler.state(
+                        for: item,
+                        recipe: recipe,
+                        at: timeline.date
+                    )
+                    Image(
+                        decorative: raster.image,
+                        scale: raster.displayScale,
+                        orientation: .up
+                    )
+                    .resizable()
+                    .frame(width: raster.pointSize.width, height: raster.pointSize.height)
+                    .opacity(state.opacity)
+                    .scaleEffect(state.scale)
+                    .rotationEffect(.degrees(state.rotation))
+                    .offset(
+                        x: state.horizontalOffset + CombatFeedbackLayout.horizontalOffset(
+                            seed: item.spawnSeed,
+                            jitter: recipe.horizontalJitter
+                        ),
+                        y: state.verticalOffset
+                    )
+                } else {
+                    Color.clear
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-
-    private func draw(
-        _ canvasItem: CombatFeedbackCanvasItem,
-        at date: Date,
-        in context: inout GraphicsContext,
-        size: CGSize
-    ) {
-        let item = canvasItem.item
-        let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
-        let state = CombatFeedbackMotionSampler.state(for: item, recipe: recipe, at: date)
-        guard state.opacity > 0.001 else { return }
-
-        let style = item.feedbackVisualStyle
-        let label = Text(Image(systemName: style.symbolName))
-            + Text("  \(canvasItem.text)")
-        var resolved = context.resolve(
-            label
-                .font(recipe.font(for: .headline))
-                .foregroundStyle(style.color)
-        )
-        resolved.shading = .color(style.color)
-
-        let jitterX = CombatFeedbackLayout.horizontalOffset(
-            seed: item.spawnSeed,
-            jitter: recipe.horizontalJitter
-        )
-        var layer = context
-        layer.opacity = state.opacity
-        layer.translateBy(
-            x: size.width * 0.5 + CGFloat(state.horizontalOffset) + jitterX,
-            y: size.height * 0.5 + CGFloat(state.verticalOffset)
-        )
-        layer.rotate(by: .degrees(state.rotation))
-        layer.scaleBy(x: CGFloat(state.scale), y: CGFloat(state.scale))
-
-        var shadow = resolved
-        shadow.shading = .color(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
-        layer.draw(shadow, at: CGPoint(x: 0, y: 1.5), anchor: .center)
-        layer.draw(resolved, at: .zero, anchor: .center)
     }
 }
 

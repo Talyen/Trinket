@@ -15,6 +15,7 @@ enum BattleFramePacingSignposts {
         static let cardCast: StaticString = "CardCast"
         static let keywordBurst: StaticString = "KeywordBurst"
         static let combatFeedback: StaticString = "CombatFeedback"
+        static let feedbackRasterBuild: StaticString = "FeedbackRasterBuild"
         static let ultimateCinematic: StaticString = "UltimateCinematic"
         static let cardCommit: StaticString = "CardCommit"
         static let turnTransition: StaticString = "TurnTransition"

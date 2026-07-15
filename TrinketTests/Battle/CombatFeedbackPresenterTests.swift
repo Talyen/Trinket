@@ -246,6 +246,40 @@ struct CombatFeedbackPresenterTests {
         #expect(canvasItems.first?.text.contains("+1 Effect") == true)
     }
 
+    @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
+        let pool = CombatFeedbackRasterPool(capacity: 2)
+        let canvasItems = [3, 4, 5].map { amount in
+            let items = CombatFeedbackPresenter.makeItems(
+                from: [makeEvent(id: amount, kind: .ability, amount: amount, keyword: .physical)],
+                at: Date(timeIntervalSince1970: 10)
+            )
+            return CombatFeedbackOverlayPolicy.canvasItems(
+                from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
+            )[0]
+        }
+
+        let first = try #require(pool.raster(
+            for: canvasItems[0],
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        let reused = try #require(pool.raster(
+            for: canvasItems[0],
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(first === reused)
+
+        _ = pool.raster(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
+        _ = pool.raster(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
+        let snapshot = pool.snapshot()
+        #expect(snapshot.entryCount == 2)
+        #expect(snapshot.estimatedByteCount > 0)
+        #expect(snapshot.hitCount == 1)
+        #expect(snapshot.buildCount == 3)
+        #expect(snapshot.evictionCount == 1)
+    }
+
     @Test func burstsSkipUtilityClasses() {
         let now = Date(timeIntervalSince1970: 10)
         let items = CombatFeedbackPresenter.makeItems(

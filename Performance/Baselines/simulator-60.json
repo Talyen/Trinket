@@ -20,6 +20,8 @@
     "repeated-card-casts",
     "maximum-concurrent-casts",
     "feedback-chips-only",
+    "feedback-raster-cold",
+    "feedback-raster-warm",
     "feedback-reactions-only",
     "keyword-bursts-only",
     "dense-feedback",

@@ -2,10 +2,20 @@ import SwiftUI
 
 struct CombatFeedbackOverlay: View {
     let items: [CombatFeedbackItem]
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        CombatFeedbackCanvasLayer(items: CombatFeedbackOverlayPolicy.canvasItems(from: groups))
+        let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(from: groups).first
+        let raster = canvasItem.flatMap {
+            CombatFeedbackRasterPool.shared.raster(
+                for: $0,
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+        }
+        CombatFeedbackRasterSlot(canvasItem: canvasItem, raster: raster)
             .frame(maxWidth: .infinity)
             .allowsHitTesting(false)
             .battleFramePacingSignpost(

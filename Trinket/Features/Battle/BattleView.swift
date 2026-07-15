@@ -57,6 +57,12 @@ struct BattleView: View {
                 battleSession.clearOutcomePresentation()
                 castingCards = []
                 showCastEffectsPrewarm = true
+                CombatFeedbackRasterPool.shared.removeAll()
+                CombatFeedbackRasterPool.shared.resetDiagnostics()
+            }
+            .onDisappear {
+                CombatFeedbackRasterPool.shared.removeAll()
+                CombatFeedbackRasterPool.shared.resetDiagnostics()
             }
     }
 
