@@ -15,6 +15,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var qualifiesForAmbush: Bool
     /// When true, heal the attacker for `Effect.abilityLeechPercent` of health lost.
     public var abilityHasLeech: Bool
+    /// When true, treat as a fixed "Lose N Health" cost — exact HP, no attack pipeline.
+    public var isHealthCost: Bool
 
     public init(
         applyStatBonus: Bool = true,
@@ -24,7 +26,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         isRetaliation: Bool = false,
         qualifiesForAmbush: Bool = false,
-        abilityHasLeech: Bool = false
+        abilityHasLeech: Bool = false,
+        isHealthCost: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
@@ -34,6 +37,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.isRetaliation = isRetaliation
         self.qualifiesForAmbush = qualifiesForAmbush
         self.abilityHasLeech = abilityHasLeech
+        self.isHealthCost = isHealthCost
     }
 
     /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.
@@ -44,6 +48,14 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyStatBonus: true,
         applyItemBonus: true,
         applyDodge: false
+    )
+
+    /// Authored "Lose N Health" cost: exact HP loss with no dodge/crit/mitigation/ambush.
+    public static let healthCost = DamageOptions(
+        applyStatBonus: false,
+        applyItemBonus: false,
+        applyDodge: false,
+        isHealthCost: true
     )
 }
 

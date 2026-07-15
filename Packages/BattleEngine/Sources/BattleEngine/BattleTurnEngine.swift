@@ -185,8 +185,9 @@ extension BattleTurnEngine {
                 amount += component.bonusAmount
             }
 
+            let isSelfHealthCost = damageTarget.id == actor.id
             var damageKeyword = component.keyword
-            if amount > 0, let override = keywordOverride {
+            if amount > 0, !isSelfHealthCost, let override = keywordOverride {
                 damageKeyword = override.keyword
                 amount += override.bonus
                 if component.target == .abilityTarget {
@@ -195,6 +196,7 @@ extension BattleTurnEngine {
             }
 
             let shouldConsumeNextHolyStrike = amount > 0
+                && !isSelfHealthCost
                 && damageKeyword == .holy
                 && hasNextHolyStrike(for: actor, in: context)
             if shouldConsumeNextHolyStrike {
@@ -207,12 +209,14 @@ extension BattleTurnEngine {
                     target: damageTarget,
                     keyword: damageKeyword,
                     sourceActorID: actor.id,
-                    options: DamageOptions(
-                        abilityCriticalChanceBonus: ability.criticalChanceBonus,
-                        guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                        qualifiesForAmbush: true,
-                        abilityHasLeech: ability.hasLeech
-                    )
+                    options: isSelfHealthCost
+                        ? .healthCost
+                        : DamageOptions(
+                            abilityCriticalChanceBonus: ability.criticalChanceBonus,
+                            guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
+                            qualifiesForAmbush: true,
+                            abilityHasLeech: ability.hasLeech
+                        )
                 )
             )
             let dealt = damageOutcome.healthLost
@@ -230,7 +234,8 @@ extension BattleTurnEngine {
                 ))
             }
 
-            if amount > 0 {
+            // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
+            if amount > 0, !isSelfHealthCost {
                 var pairedAmount = amount
                 if damageKeyword == .bleed {
                     pairedAmount += EnemyTraitEngine.bonusBleedPotency(

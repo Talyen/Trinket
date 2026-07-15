@@ -52,6 +52,17 @@ package enum DamagePipeline {
         in context: inout BattleEngineContext,
         onStep: ((String) -> Void)? = nil
     ) {
+        // Authored "Lose N Health" costs are exact HP — not attacks.
+        if state.isHealthCost {
+            state.remaining = state.amount
+            state.dealt = state.amount
+            onStep?("TakeDamage")
+            applyTakeDamage(to: &state, in: &context)
+            onStep?("DeathsDoor")
+            applyDeathsDoor(to: &state, in: &context)
+            return
+        }
+
         for step in steps {
             if state.isRetaliation, step.name == "ReactiveOnHit" {
                 continue
@@ -83,7 +94,8 @@ package enum DamagePipeline {
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush,
-            abilityHasLeech: request.options.abilityHasLeech
+            abilityHasLeech: request.options.abilityHasLeech,
+            isHealthCost: request.options.isHealthCost
         )
         state.activeEffects = context.roster.activeEffects(for: request.target)
 

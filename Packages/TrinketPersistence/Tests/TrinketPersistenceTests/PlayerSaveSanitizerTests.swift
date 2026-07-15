@@ -280,6 +280,34 @@ final class PlayerSaveSanitizerTests {
         try #expect(loadout.itemID(for: .trinket) == trinket.id)
     }
 
+    @Test func sanitizeRosterStripsDuplicateItemAcrossCombatants() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        let wand = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        let roster = PlayerRosterState(
+            activeHeroID: PlayerRosterState.starterHeroID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
+            unlockedHeroIDs: [knight.id, wizard.id, PlayerRosterState.starterHeroID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
+            abilityLoadouts: [:],
+            progressions: [:],
+            equipmentLoadouts: [
+                knight.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id]),
+                wizard.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id])
+            ],
+            gold: 0
+        )
+        var save = PlayerSave.fresh
+        save.inventory = PlayerInventoryState.initial
+        save.roster = roster
+
+        let sanitized = PlayerSaveSanitizer.sanitize(save)
+
+        // Stable combatant-ID order: first claim wins.
+        try #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
+        try #expect(sanitized.roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
+    }
+
     @Test func sanitizeFullPipelineCombinesInventoryAndRoster() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let item = InventoryItem(

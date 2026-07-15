@@ -111,6 +111,38 @@ struct BattleCardCombatTests {
         try #expect(battle.health(of: battle.hero) == 48)
     }
 
+    @Test func darkPactHealthCostIgnoresBlock() throws {
+        var battle = makeBattle(
+            heroAbilities: [.darkPact, .slash, .heal, .smite],
+            enemyMaxHealth: 500
+        )
+        battle.heroDeck.putOnBottom(.heal)
+        battle.heroDeck.putOnBottom(.smite)
+        battle.withEngineContext { context in
+            context.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)],
+                for: context.roster.hero.combatant
+            )
+        }
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
+
+        _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
+
+        try #expect(battle.health(of: battle.hero) == 48)
+        let shield = battle.activeEffects(of: battle.hero).first {
+            if case .shield = $0.effect { return true }
+            return false
+        }
+        guard case let .shield(_, buffer) = shield?.effect else {
+            Issue.record("Block should survive Dark Pact's Lose 2 Health cost")
+            return
+        }
+        try #expect(buffer == 20)
+    }
+
     @Test func endTurnAtFullHandDrawsIntoBuffer() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],

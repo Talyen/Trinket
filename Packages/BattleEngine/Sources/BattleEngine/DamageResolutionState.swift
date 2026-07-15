@@ -19,6 +19,8 @@ package struct DamageResolutionState {
     public let isRetaliation: Bool
     public let qualifiesForAmbush: Bool
     public let abilityHasLeech: Bool
+    /// Fixed ability health cost — pipeline runs TakeDamage + DeathsDoor only.
+    public let isHealthCost: Bool
 
     /// Damage remaining after each step. `BonusStep` initializes this to
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
@@ -68,7 +70,8 @@ package struct DamageResolutionState {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         isRetaliation: Bool = false,
         qualifiesForAmbush: Bool = false,
-        abilityHasLeech: Bool = false
+        abilityHasLeech: Bool = false,
+        isHealthCost: Bool = false
     ) {
         self.amount = amount
         self.combatant = combatant
@@ -82,5 +85,6 @@ package struct DamageResolutionState {
         self.isRetaliation = isRetaliation
         self.qualifiesForAmbush = qualifiesForAmbush
         self.abilityHasLeech = abilityHasLeech
+        self.isHealthCost = isHealthCost
     }
 }
