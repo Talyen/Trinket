@@ -102,7 +102,7 @@ struct BattlePartyInlinePicker: View {
         Button {
             presentedSlot = slot
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(width: 38, height: 48)
                     .trinketArtworkBlend(.perimeter(into: .surface))
@@ -147,7 +147,7 @@ struct BattlePartyInlinePicker: View {
         Text(status.message)
             .trinketTypography(.footnote)
             .foregroundStyle(status.isReady ? Color.secondary : TrinketDesign.Colors.warning)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
@@ -177,8 +177,8 @@ struct BattleCombatantPickerSheet: View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 104), spacing: 12)],
-                    spacing: 12
+                    columns: TrinketDesign.Metrics.partyPickerGridItems,
+                    spacing: TrinketDesign.Metrics.largeSpacing
                 ) {
                     ForEach(combatants) { combatant in
                         optionButton(combatant)
@@ -225,7 +225,7 @@ struct BattleCombatantPickerSheet: View {
                     // UIStyleCheck: allow - Reserve label space so grid cards stay aligned.
                     .frame(minHeight: 34)
             }
-            .padding(8)
+            .padding(TrinketDesign.Metrics.smallSpacing)
             .frame(maxWidth: .infinity)
             .trinketSurface(.card)
             .clipShape(TrinketDesign.cardShape)
