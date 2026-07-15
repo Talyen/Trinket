@@ -4,7 +4,7 @@ import TrinketDesignSystem
 struct LabyrinthRestView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    let session: LabyrinthRestSession
+    let session: LabyrinthNodeSession
 
     var body: some View {
         NavigationStack {
@@ -14,7 +14,7 @@ struct LabyrinthRestView: View {
                     .foregroundStyle(.secondary)
 
                 LabeledContent("Depth", value: "\(session.depth)")
-                LabeledContent("Gold crumb", value: "\(session.goldCrumb)")
+                LabeledContent("Gold crumb", value: "\(session.goldAmount)")
 
                 Text("Rest here to claim a small stipend and continue the path.")
                     .trinketTypography(.secondaryBody)
@@ -46,7 +46,7 @@ struct LabyrinthRestView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Leave") {
-                        appState.dismissActiveLabyrinthRestWithoutCompleting()
+                        appState.dismissActiveLabyrinthNodeSessionWithoutCompleting()
                         dismiss()
                     }
                     .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestLeave)

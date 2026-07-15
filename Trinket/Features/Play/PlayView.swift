@@ -82,19 +82,16 @@ struct PlayView: View {
         }
         .sheet(
             item: dismissibleSessionBinding(
-                get: { appState.activeLabyrinthRest },
-                dismissWithoutCompleting: { appState.dismissActiveLabyrinthRestWithoutCompleting() }
+                get: { appState.activeLabyrinthNodeSession },
+                dismissWithoutCompleting: { appState.dismissActiveLabyrinthNodeSessionWithoutCompleting() }
             )
         ) { session in
-            LabyrinthRestView(session: session)
-        }
-        .sheet(
-            item: dismissibleSessionBinding(
-                get: { appState.activeLabyrinthCraft },
-                dismissWithoutCompleting: { appState.dismissActiveLabyrinthCraftWithoutCompleting() }
-            )
-        ) { session in
-            LabyrinthCraftView(session: session)
+            switch session.kind {
+            case .rest:
+                LabyrinthRestView(session: session)
+            case .craft:
+                LabyrinthCraftView(session: session)
+            }
         }
         .alert(item: $stageMessage) { message in
             Alert(

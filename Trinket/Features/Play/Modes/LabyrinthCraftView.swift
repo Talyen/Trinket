@@ -4,7 +4,7 @@ import TrinketDesignSystem
 struct LabyrinthCraftView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    let session: LabyrinthCraftSession
+    let session: LabyrinthNodeSession
 
     var body: some View {
         NavigationStack {
@@ -14,7 +14,7 @@ struct LabyrinthCraftView: View {
                     .foregroundStyle(.secondary)
 
                 LabeledContent("Depth", value: "\(session.depth)")
-                LabeledContent("Forge cost", value: "\(session.goldCost) Gold")
+                LabeledContent("Forge cost", value: "\(session.goldAmount) Gold")
                 LabeledContent("Your gold", value: "\(appState.roster.gold)")
 
                 if let failure = session.failureMessage {
@@ -35,7 +35,7 @@ struct LabyrinthCraftView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
-                .disabled(appState.roster.gold < session.goldCost)
+                .disabled(appState.roster.gold < session.goldAmount)
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftForge)
 
                 Button {
@@ -57,7 +57,7 @@ struct LabyrinthCraftView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
-                        appState.dismissActiveLabyrinthCraftWithoutCompleting()
+                        appState.dismissActiveLabyrinthNodeSessionWithoutCompleting()
                         dismiss()
                     }
                     .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftLeave)
