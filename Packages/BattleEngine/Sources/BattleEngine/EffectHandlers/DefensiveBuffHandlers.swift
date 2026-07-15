@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct ShieldHandler: BattleEffectHandler {
+struct ShieldHandler: BattleEffectHandler {
     public let kind: EffectKind = .shield
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -47,7 +47,7 @@ public struct ShieldHandler: BattleEffectHandler {
     }
 }
 
-public struct MitigationHandler: BattleEffectHandler {
+struct MitigationHandler: BattleEffectHandler {
     public let kind: EffectKind = .mitigation
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -92,7 +92,7 @@ public struct MitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct LeechHandler: BattleEffectHandler {
+struct LeechHandler: BattleEffectHandler {
     public let kind: EffectKind = .leech
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -157,7 +157,7 @@ public struct LeechHandler: BattleEffectHandler {
     }
 }
 
-public struct NextHolyStrikeHandler: BattleEffectHandler {
+struct NextHolyStrikeHandler: BattleEffectHandler {
     public let kind: EffectKind = .nextHolyStrike
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

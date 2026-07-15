@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct CleanseHandler: BattleEffectHandler {
+struct CleanseHandler: BattleEffectHandler {
     public let kind: EffectKind = .cleanse
 
     public func apply(
@@ -30,7 +30,7 @@ public struct CleanseHandler: BattleEffectHandler {
     }
 }
 
-public struct CleanseRandomHandler: BattleEffectHandler {
+struct CleanseRandomHandler: BattleEffectHandler {
     public let kind: EffectKind = .cleanseRandom
 
     public func apply(
@@ -55,7 +55,7 @@ public struct CleanseRandomHandler: BattleEffectHandler {
     }
 }
 
-public struct PurgeHandler: BattleEffectHandler {
+struct PurgeHandler: BattleEffectHandler {
     public let kind: EffectKind = .purge
 
     public func apply(
@@ -83,7 +83,7 @@ public struct PurgeHandler: BattleEffectHandler {
     }
 }
 
-public struct PurgeRandomHandler: BattleEffectHandler {
+struct PurgeRandomHandler: BattleEffectHandler {
     public let kind: EffectKind = .purgeRandom
 
     public func apply(

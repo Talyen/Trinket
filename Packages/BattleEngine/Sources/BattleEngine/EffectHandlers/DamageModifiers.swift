@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct HalveMitigationHandler: BattleEffectHandler {
+struct HalveMitigationHandler: BattleEffectHandler {
     public let kind: EffectKind = .halveMitigation
 
     public func apply(
@@ -40,7 +40,7 @@ public struct HalveMitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct ControlMeterHandler: BattleEffectHandler {
+struct ControlMeterHandler: BattleEffectHandler {
     public let kind: EffectKind = .controlMeter
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

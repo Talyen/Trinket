@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct DecayingDoTHandler: BattleEffectHandler {
+struct DecayingDoTHandler: BattleEffectHandler {
     public let keyword: Keyword
     public let kind: EffectKind
 
@@ -95,7 +95,7 @@ public struct DecayingDoTHandler: BattleEffectHandler {
     }
 }
 
-public struct BleedHandler: BattleEffectHandler {
+struct BleedHandler: BattleEffectHandler {
     public let kind: EffectKind = .bleed
 
     public func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {

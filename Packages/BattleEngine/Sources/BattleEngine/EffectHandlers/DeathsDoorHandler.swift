@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct DeathsDoorHandler: BattleEffectHandler {
+struct DeathsDoorHandler: BattleEffectHandler {
     public let kind: EffectKind = .deathsDoor
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct HasteHandler: BattleEffectHandler {
+struct HasteHandler: BattleEffectHandler {
     public let kind: EffectKind = .haste
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -26,7 +26,7 @@ public struct HasteHandler: BattleEffectHandler {
     }
 }
 
-public struct ThornsHandler: BattleEffectHandler {
+struct ThornsHandler: BattleEffectHandler {
     public let kind: EffectKind = .thorns
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -78,7 +78,7 @@ public struct ThornsHandler: BattleEffectHandler {
     }
 }
 
-public struct MarkedHandler: BattleEffectHandler {
+struct MarkedHandler: BattleEffectHandler {
     public let kind: EffectKind = .marked
 
     public func summary(for _: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -117,7 +117,7 @@ public struct MarkedHandler: BattleEffectHandler {
     }
 }
 
-public struct CriticalChanceBonusHandler: BattleEffectHandler {
+struct CriticalChanceBonusHandler: BattleEffectHandler {
     public let kind: EffectKind = .criticalChanceBonus
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -162,7 +162,7 @@ public struct CriticalChanceBonusHandler: BattleEffectHandler {
     }
 }
 
-public struct RestoreManaOnHitHandler: BattleEffectHandler {
+struct RestoreManaOnHitHandler: BattleEffectHandler {
     public let kind: EffectKind = .restoreManaOnHit
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -207,7 +207,7 @@ public struct RestoreManaOnHitHandler: BattleEffectHandler {
     }
 }
 
-public struct DamageKeywordOverrideHandler: BattleEffectHandler {
+struct DamageKeywordOverrideHandler: BattleEffectHandler {
     public let kind: EffectKind = .damageKeywordOverride
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
