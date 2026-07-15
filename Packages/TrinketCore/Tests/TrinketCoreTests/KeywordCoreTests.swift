@@ -12,33 +12,32 @@ struct KeywordCoreTests {
     }
 
     @Test(arguments: Keyword.allCases)
-    func allKeywordsHaveRulesText(keyword: Keyword) throws {
+    func allKeywordsHaveRulesTextAndCategory(keyword: Keyword) throws {
         try #expect(!keyword.rulesText.isEmpty, "\(keyword.rawValue) should have rules text")
-    }
-
-    @Test(arguments: Keyword.allCases)
-    func allKeywordsHaveCategory(keyword: Keyword) throws {
         try #expect(!keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
     }
 
-    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun])
-    func damageTypeCategory(keyword: Keyword) throws {
-        try #expect(keyword.category == .damageType, "\(keyword.rawValue) should be damageType")
-    }
-
-    @Test(arguments: [Keyword.block, .armor, .dodge, .purge])
-    func mitigationCategory(keyword: Keyword) throws {
-        try #expect(keyword.category == .mitigation, "\(keyword.rawValue) should be mitigation")
-    }
-
-    @Test(arguments: [Keyword.health, .leech, .deathsDoor])
-    func restorationCategory(keyword: Keyword) throws {
-        try #expect(keyword.category == .restoration, "\(keyword.rawValue) should be restoration")
-    }
-
-    @Test(arguments: [Keyword.gold, .mana])
-    func resourceCategory(keyword: Keyword) throws {
-        try #expect(keyword.category == .resource, "\(keyword.rawValue) should be resource")
+    @Test(arguments: [
+        (Keyword.physical, Keyword.Category.damageType),
+        (.burn, .damageType),
+        (.poison, .damageType),
+        (.bleed, .damageType),
+        (.holy, .damageType),
+        (.nature, .damageType),
+        (.freeze, .damageType),
+        (.stun, .damageType),
+        (.block, .mitigation),
+        (.armor, .mitigation),
+        (.dodge, .mitigation),
+        (.purge, .mitigation),
+        (.health, .restoration),
+        (.leech, .restoration),
+        (.deathsDoor, .restoration),
+        (.gold, .resource),
+        (.mana, .resource)
+    ])
+    func keywordCategory(keyword: Keyword, category: Keyword.Category) throws {
+        try #expect(keyword.category == category, "\(keyword.rawValue) should be \(category)")
     }
 
     @Test func statusAliases() throws {

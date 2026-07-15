@@ -35,6 +35,7 @@ struct ActionEventFormatterTests {
         try #expect(display.text == "-3")
         try #expect(display.emphasis == .damage)
         try #expect(display.keyword == .physical)
+        try #expect(display.secondaryText == nil)
     }
 
     @Test func instantHealFormatsAsPositiveWithKeyword() throws {
@@ -43,6 +44,7 @@ struct ActionEventFormatterTests {
         )
         try #expect(display.text == "+3 Health")
         try #expect(display.emphasis == .heal)
+        try #expect(display.secondaryText == nil)
     }
 
     @Test func controlTriggeredUsesStatusAlias() throws {
@@ -51,20 +53,6 @@ struct ActionEventFormatterTests {
         )
         try #expect(display.text == "Stunned!")
         try #expect(display.emphasis == .control)
-    }
-
-    @Test func secondaryTextIsAlwaysNil() throws {
-        let cases: [ActionEvent] = [
-            event(kind: .ability, amount: 3, keyword: .physical),
-            event(kind: .status, amount: 1, keyword: .burn),
-            event(kind: .effect, effectKind: .instantHeal, amount: 1, keyword: .health),
-            event(kind: .effect, effectKind: .dodgeApplied, keyword: .dodge)
-        ]
-        for event in cases {
-            try #expect(
-                ActionEventFormatter.display(for: event).secondaryText == nil,
-                "secondaryText should be nil for \(event)"
-            )
-        }
+        try #expect(display.secondaryText == nil)
     }
 }

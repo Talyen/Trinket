@@ -5,6 +5,11 @@ import TrinketCore
 import TrinketTestSupport
 
 struct DoTDamageTests {
+    private enum TickBonusCase {
+        case intellectStat
+        case itemDamageDealt
+    }
+
     private func makeContext(
         sourceStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
@@ -47,32 +52,34 @@ struct DoTDamageTests {
         try #expect(potency == 4)
     }
 
-    @Test func resolveTickAppliesStatBonusAtDamageTime() throws {
-        let stats = PrimaryStats(intellect: 20) // +4 burn
-        var context = makeContext(sourceStats: stats)
-        let outcome = DoTDamage.resolveTick(
-            basePotency: 4,
-            keyword: .burn,
-            target: context.roster.enemy.combatant,
-            sourceActorID: "source",
-            in: &context
-        )
-        try #expect(outcome.healthLost == 8)
-        try #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
-    }
+    @Test(arguments: [TickBonusCase.intellectStat, .itemDamageDealt])
+    func resolveTickAppliesDamageBonuses(caseKind: TickBonusCase) throws {
+        let context: BattleEngineContext
+        let expectedHealthLost: Int
+        switch caseKind {
+        case .intellectStat:
+            // intellect 20 → +4 burn
+            context = makeContext(sourceStats: PrimaryStats(intellect: 20))
+            expectedHealthLost = 8
+        case .itemDamageDealt:
+            var modifiers = CombatModifierProfile.zero
+            modifiers.damageDealtBonus[.burn] = 3
+            context = makeContext(heroModifiers: modifiers)
+            expectedHealthLost = 7
+        }
 
-    @Test func resolveTickAppliesItemDamageDealtBonus() throws {
-        var modifiers = CombatModifierProfile.zero
-        modifiers.damageDealtBonus[.burn] = 3
-        var context = makeContext(heroModifiers: modifiers)
+        var mutable = context
         let outcome = DoTDamage.resolveTick(
             basePotency: 4,
             keyword: .burn,
-            target: context.roster.enemy.combatant,
+            target: mutable.roster.enemy.combatant,
             sourceActorID: "source",
-            in: &context
+            in: &mutable
         )
-        try #expect(outcome.healthLost == 7)
+        try #expect(outcome.healthLost == expectedHealthLost)
+        if case .intellectStat = caseKind {
+            try #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
+        }
     }
 
     @Test func resolveTickIncludesStatusEventWhenDamageDealt() throws {

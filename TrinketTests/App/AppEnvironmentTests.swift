@@ -73,6 +73,9 @@ struct AppEnvironmentTests {
         #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
         #expect(Self.parse(arguments: ["-map-scroll-target", ""]).mapScrollTarget == nil)
         #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
+        #expect(
+            Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil
+        )
     }
 
     @Test func noFlagsYieldsDefaultEnvironment() {
@@ -90,11 +93,6 @@ struct AppEnvironmentTests {
         #expect(env.battleTickInterval == nil)
         #expect(!env.persistSaveImmediately)
         #expect(!env.enableFrameMetrics)
-        #expect(env.battlePerformanceScenario == nil)
-    }
-
-    @Test func invalidBattlePerformanceScenarioIsIgnored() {
-        let env = Self.parse(arguments: ["-battle-performance-scenario", "unknown"])
         #expect(env.battlePerformanceScenario == nil)
     }
 

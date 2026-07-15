@@ -45,11 +45,9 @@ struct DamagePipelineTests {
         )
     }
 
-    @Test func registryCanonicalNamesMatchExpectedOrder() throws {
-        try #expect(DamagePipeline.canonicalNames == expectedStepNames)
-    }
-
     @Test func executedStepNamesMatchCanonicalOrderForFullHit() throws {
+        try #expect(DamagePipeline.canonicalNames == expectedStepNames)
+
         var context = makeContext(seed: 1772)
         let executed = DamagePipeline.executedStepNames(
             for: .directAbilityHit(
@@ -61,6 +59,7 @@ struct DamagePipelineTests {
             in: &context
         )
         try #expect(executed == expectedStepNames)
+        try #expect(executed == DamagePipeline.canonicalNames)
     }
 
     @Test func executedStepNamesShortCircuitAfterDodge() throws {

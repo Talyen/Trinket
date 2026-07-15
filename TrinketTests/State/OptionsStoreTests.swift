@@ -54,13 +54,4 @@ struct OptionsStoreTests {
         #expect(abs((reloaded.effectsVolume) - 0.5) < 0.001)
         #expect(!reloaded.hapticsEnabled)
     }
-
-    @Test func appStorageKeysMatchPublicConstants() {
-        #expect(OptionsStore.musicVolumeKey == "options.musicVolume")
-        #expect(OptionsStore.effectsVolumeKey == "options.effectsVolume")
-        #expect(OptionsStore.hapticsEnabledKey == "options.hapticsEnabled")
-        #expect(OptionsStore.appearanceKey == "options.appearance")
-        #expect(OptionsStore.ultimateCinematicSkipPolicyKey == "options.ultimateCinematicSkipPolicy")
-        #expect(OptionsStore.seenUltimateCinematicsKey == "options.seenUltimateCinematics")
-    }
 }

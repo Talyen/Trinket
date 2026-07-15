@@ -4,40 +4,49 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct HomesteadStateTests {
-    @Test func buildOrUpgradeSpendsMaterialsAndGold() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        var homestead = PlayerHomesteadState(
-            resources: [.wood: 20, .stone: 10],
-            nodeTiers: [:]
-        )
-        var roster = PlayerRosterState.freshStart
-        roster.gold = 4
-
-        let built = homestead.buildOrUpgrade(definition, roster: &roster)
-        try #expect(built)
-
-        try #expect(homestead.tier(for: .wheatField) == 1)
-        try #expect(homestead.resources[.wood] == 10)
-        try #expect(homestead.resources[.stone] == 6)
-        try #expect(roster.gold == 4)
+    private enum BuildSpendCase {
+        case wheatFieldMaterialsOnly
+        case herbGardenMaterialsAndGold
     }
 
-    @Test func buildOrUpgradeSpendsGoldWhenCostRequiresIt() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
-        var homestead = PlayerHomesteadState(
-            resources: [.wood: 12, .food: 6],
-            nodeTiers: [.wheatField: 1]
-        )
-        var roster = PlayerRosterState.freshStart
-        roster.gold = 10
+    @Test(arguments: [
+        BuildSpendCase.wheatFieldMaterialsOnly,
+        .herbGardenMaterialsAndGold
+    ])
+    func buildOrUpgradeSpendsRequiredCosts(caseKind: BuildSpendCase) throws {
+        switch caseKind {
+        case .wheatFieldMaterialsOnly:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            var homestead = PlayerHomesteadState(
+                resources: [.wood: 20, .stone: 10],
+                nodeTiers: [:]
+            )
+            var roster = PlayerRosterState.freshStart
+            roster.gold = 4
 
-        let built = homestead.buildOrUpgrade(definition, roster: &roster)
-        try #expect(built)
+            let built = homestead.buildOrUpgrade(definition, roster: &roster)
+            try #expect(built)
+            try #expect(homestead.tier(for: .wheatField) == 1)
+            try #expect(homestead.resources[.wood] == 10)
+            try #expect(homestead.resources[.stone] == 6)
+            try #expect(roster.gold == 4)
 
-        try #expect(homestead.tier(for: .herbGarden) == 1)
-        try #expect(homestead.resources[.wood] == 0)
-        try #expect(homestead.resources[.food] == 0)
-        try #expect(roster.gold == 0)
+        case .herbGardenMaterialsAndGold:
+            let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
+            var homestead = PlayerHomesteadState(
+                resources: [.wood: 12, .food: 6],
+                nodeTiers: [.wheatField: 1]
+            )
+            var roster = PlayerRosterState.freshStart
+            roster.gold = 10
+
+            let built = homestead.buildOrUpgrade(definition, roster: &roster)
+            try #expect(built)
+            try #expect(homestead.tier(for: .herbGarden) == 1)
+            try #expect(homestead.resources[.wood] == 0)
+            try #expect(homestead.resources[.food] == 0)
+            try #expect(roster.gold == 0)
+        }
     }
 
     @Test func lockedNodeCannotUpgradeBeforePrerequisites() throws {
