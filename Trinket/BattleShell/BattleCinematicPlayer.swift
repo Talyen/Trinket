@@ -14,6 +14,7 @@ final class BattleCinematicPlayer {
     private var playersByAbilityID: [String: AVPlayer] = [:]
     private var warmedAbilityIDs: Set<String> = []
     private var endObserversByAbilityID: [String: NSObjectProtocol] = [:]
+    private var failureObserversByAbilityID: [String: NSObjectProtocol] = [:]
 
     private init() {}
 
@@ -69,7 +70,7 @@ final class BattleCinematicPlayer {
         applyVolume(effectsVolume: effectsVolume, to: player, abilityID: abilityID)
         clearEndObserver(for: abilityID)
         if let item = player.currentItem {
-            let observer = NotificationCenter.default.addObserver(
+            let endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime,
                 object: item,
                 queue: .main
@@ -79,7 +80,18 @@ final class BattleCinematicPlayer {
                     onEnded()
                 }
             }
-            endObserversByAbilityID[abilityID] = observer
+            let failObserver = NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemFailedToPlayToEndTime,
+                object: item,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.clearEndObserver(for: abilityID)
+                    onEnded()
+                }
+            }
+            endObserversByAbilityID[abilityID] = endObserver
+            failureObserversByAbilityID[abilityID] = failObserver
         }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
@@ -91,7 +103,8 @@ final class BattleCinematicPlayer {
     }
 
     func releaseAll() {
-        for abilityID in Array(endObserversByAbilityID.keys) {
+        let observerIDs = Set(endObserversByAbilityID.keys).union(failureObserversByAbilityID.keys)
+        for abilityID in observerIDs {
             clearEndObserver(for: abilityID)
         }
         for player in playersByAbilityID.values {
@@ -116,6 +129,9 @@ final class BattleCinematicPlayer {
 
     private func clearEndObserver(for abilityID: String) {
         if let observer = endObserversByAbilityID.removeValue(forKey: abilityID) {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = failureObserversByAbilityID.removeValue(forKey: abilityID) {
             NotificationCenter.default.removeObserver(observer)
         }
     }

@@ -147,6 +147,11 @@ public struct ExperienceBar: View {
         .onDisappear {
             animationTask?.cancel()
             animationTask = nil
+            // Cancel without completion left Victory CTA locked when @State survived.
+            if hasAnimated {
+                snapToPost()
+                reportCompletion()
+            }
         }
     }
 
