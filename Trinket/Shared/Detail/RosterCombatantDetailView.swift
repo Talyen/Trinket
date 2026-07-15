@@ -3,13 +3,16 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-extension AppState {
-    @ViewBuilder
-    func rosterCombatantDetail(
-        kind: CombatantDetailContext.Kind,
-        combatantID: String,
-        hidesNavigationBar: Bool = false
-    ) -> some View {
+/// Editable roster combatant detail wired from `AppState` save slices.
+/// Lives in Shared so `State/` does not construct feature/shared views.
+struct RosterCombatantDetailView: View {
+    @Environment(AppState.self) private var appState
+
+    let kind: CombatantDetailContext.Kind
+    let combatantID: String
+    var hidesNavigationBar = false
+
+    var body: some View {
         let catalog: [Combatant] = switch kind {
         case .hero:
             GameContent.heroes
@@ -17,33 +20,33 @@ extension AppState {
             GameContent.companions
         }
 
-        if let combatant = roster
+        if let combatant = appState.roster
             .configuredCombatants(catalog)
             .first(where: { $0.id == combatantID }) {
             CombatantDetailPane(
                 combatant: combatant,
-                progression: roster.progression(for: combatant),
+                progression: appState.roster.progression(for: combatant),
                 loadout: Binding(
-                    get: { self.roster.loadout(for: combatant) },
+                    get: { appState.roster.loadout(for: combatant) },
                     set: { newValue in
-                        var updated = self.roster
+                        var updated = appState.roster
                         updated.setLoadout(newValue, for: combatant)
-                        self.roster = updated
+                        appState.roster = updated
                     }
                 ),
                 equipmentLoadout: Binding(
-                    get: { self.roster.equipmentLoadout(for: combatant) },
+                    get: { appState.roster.equipmentLoadout(for: combatant) },
                     set: { newValue in
-                        var updated = self.roster
+                        var updated = appState.roster
                         updated.setEquipmentLoadout(newValue, for: combatant)
-                        self.roster = updated
+                        appState.roster = updated
                     }
                 ),
                 inventoryState: Binding(
-                    get: { self.inventory },
-                    set: { self.inventory = $0 }
+                    get: { appState.inventory },
+                    set: { appState.inventory = $0 }
                 ),
-                allowsEditing: roster.isUnlocked(combatant),
+                allowsEditing: appState.roster.isUnlocked(combatant),
                 hidesNavigationBar: hidesNavigationBar
             )
         } else {

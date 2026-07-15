@@ -26,7 +26,7 @@ struct MysteryEncounterView: View {
         .background(.background)
         .sheet(item: $selectedDetail) { context in
             NavigationStack {
-                appState.rosterCombatantDetail(
+                RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID,
                     hidesNavigationBar: false

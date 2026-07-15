@@ -59,7 +59,7 @@ struct CollectionCombatantGridView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { context in
             NavigationStack {
-                appState.rosterCombatantDetail(
+                RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID
                 )

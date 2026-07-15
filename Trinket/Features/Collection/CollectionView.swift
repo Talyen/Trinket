@@ -29,7 +29,7 @@ struct CollectionView: View {
             }
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {
-                    appState.rosterCombatantDetail(
+                    RosterCombatantDetailView(
                         kind: context.kind,
                         combatantID: context.combatantID
                     )
