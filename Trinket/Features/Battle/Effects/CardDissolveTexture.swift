@@ -13,19 +13,19 @@ struct CardDissolveThresholdMask: View {
 
     var body: some View {
         // CPU-baked alpha masks avoid per-frame brightness/contrast/luminanceToAlpha.
-        Image(
-            decorative: CardDissolveTexture.thresholdMaskImage(
-                progress: progress,
-                edgeDepthWeight: edgeDepthWeight,
-                noiseWeight: noiseWeight,
-                cellSize: cellSize,
-                thresholdMidpoint: thresholdMidpoint,
-                thresholdContrast: thresholdContrast
-            ),
-            scale: 1
-        )
-        .resizable()
-        .interpolation(.none)
+        // Soft-fail: if CGImage baking fails, omit the mask rather than crashing the cast.
+        if let image = CardDissolveTexture.thresholdMaskImage(
+            progress: progress,
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: cellSize,
+            thresholdMidpoint: thresholdMidpoint,
+            thresholdContrast: thresholdContrast
+        ) {
+            Image(decorative: image, scale: 1)
+                .resizable()
+                .interpolation(.none)
+        }
     }
 }
 
@@ -70,14 +70,16 @@ enum CardDissolveTexture {
 
         func thresholdImage(
             key: ThresholdCacheKey,
-            make: () -> CGImage
-        ) -> CGImage {
+            make: () -> CGImage?
+        ) -> CGImage? {
             lock.lock()
             defer { lock.unlock() }
             if let cached = thresholdCache[key] {
                 return cached
             }
-            let image = make()
+            guard let image = make() else {
+                return nil
+            }
             thresholdCache[key] = image
             return image
         }
@@ -87,7 +89,7 @@ enum CardDissolveTexture {
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1
-    ) -> CGImage {
+    ) -> CGImage? {
         let bytes = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
@@ -104,7 +106,7 @@ enum CardDissolveTexture {
         cellSize: Int = 1,
         thresholdMidpoint: CGFloat = 0.46,
         thresholdContrast: CGFloat = 100
-    ) -> CGImage {
+    ) -> CGImage? {
         let clampedCell = max(1, min(cellSize, 16))
         let noiseKey = NoiseCacheKey(
             edgeDepthWeight: quantize(edgeDepthWeight),
@@ -234,7 +236,7 @@ enum CardDissolveTexture {
         progress: CGFloat,
         thresholdMidpoint: CGFloat,
         thresholdContrast: CGFloat
-    ) -> CGImage {
+    ) -> CGImage? {
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         let brightness = Double(thresholdMidpoint) - Double(progress)
         let contrast = max(Double(thresholdContrast), 1)
@@ -252,12 +254,12 @@ enum CardDissolveTexture {
         return makeRGBAImage(pixels: rgba, width: width, height: height)
     }
 
-    private static func makeGrayscaleImage(pixels: [UInt8], width: Int, height: Int) -> CGImage {
+    private static func makeGrayscaleImage(pixels: [UInt8], width: Int, height: Int) -> CGImage? {
         let data = Data(pixels) as CFData
         guard let provider = CGDataProvider(data: data) else {
-            preconditionFailure("Unable to create dissolve texture data provider")
+            return nil
         }
-        guard let image = CGImage(
+        return CGImage(
             width: width,
             height: height,
             bitsPerComponent: 8,
@@ -269,18 +271,15 @@ enum CardDissolveTexture {
             decode: nil,
             shouldInterpolate: false,
             intent: .defaultIntent
-        ) else {
-            preconditionFailure("Unable to create dissolve texture image")
-        }
-        return image
+        )
     }
 
-    private static func makeRGBAImage(pixels: [UInt8], width: Int, height: Int) -> CGImage {
+    private static func makeRGBAImage(pixels: [UInt8], width: Int, height: Int) -> CGImage? {
         let data = Data(pixels) as CFData
         guard let provider = CGDataProvider(data: data) else {
-            preconditionFailure("Unable to create dissolve threshold data provider")
+            return nil
         }
-        guard let image = CGImage(
+        return CGImage(
             width: width,
             height: height,
             bitsPerComponent: 8,
@@ -292,9 +291,6 @@ enum CardDissolveTexture {
             decode: nil,
             shouldInterpolate: false,
             intent: .defaultIntent
-        ) else {
-            preconditionFailure("Unable to create dissolve threshold image")
-        }
-        return image
+        )
     }
 }
