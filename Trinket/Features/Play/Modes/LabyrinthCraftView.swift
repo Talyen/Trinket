@@ -7,25 +7,24 @@ struct LabyrinthCraftView: View {
     let session: LabyrinthCraftSession
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Offer gold to the altar. The stone answers with a forged find.")
-                    .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
-
+        LabyrinthNodeEncounterSheet(
+            title: "Crafting Altar",
+            intro: "Offer gold to the altar. The stone answers with a forged find.",
+            screenAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraft,
+            leaveButtonTitle: "Close",
+            leaveAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraftLeave,
+            failureMessage: session.failureMessage,
+            failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraftFailure,
+            onLeave: {
+                appState.dismissActiveLabyrinthCraftWithoutCompleting()
+                dismiss()
+            },
+            facts: {
                 LabeledContent("Depth", value: "\(session.depth)")
                 LabeledContent("Forge cost", value: "\(session.goldCost) Gold")
                 LabeledContent("Your gold", value: "\(appState.roster.gold)")
-
-                if let failure = session.failureMessage {
-                    Text(failure)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(TrinketDesign.Colors.warning)
-                        .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftFailure)
-                }
-
-                Spacer(minLength: 0)
-
+            },
+            actions: {
                 Button {
                     if appState.forgeActiveLabyrinthCraft() {
                         dismiss()
@@ -51,21 +50,6 @@ struct LabyrinthCraftView: View {
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftSkip)
             }
-            .padding(TrinketDesign.Metrics.contentMargin)
-            .navigationTitle("Crafting Altar")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        appState.dismissActiveLabyrinthCraftWithoutCompleting()
-                        dismiss()
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftLeave)
-                }
-            }
-        }
-        .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraft)
-        .interactiveDismissDisabled()
+        )
     }
 }

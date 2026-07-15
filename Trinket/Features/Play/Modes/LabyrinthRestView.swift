@@ -7,28 +7,24 @@ struct LabyrinthRestView: View {
     let session: LabyrinthRestSession
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("A quiet shrine waits in the stone.")
-                    .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
-
+        LabyrinthNodeEncounterSheet(
+            title: "Shrine",
+            intro: "A quiet shrine waits in the stone.",
+            detail: "Rest here to claim a small stipend and continue the path.",
+            screenAccessibilityIdentifier: AccessibilityID.Play.labyrinthRest,
+            leaveButtonTitle: "Leave",
+            leaveAccessibilityIdentifier: AccessibilityID.Play.labyrinthRestLeave,
+            failureMessage: session.failureMessage,
+            failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthRestFailure,
+            onLeave: {
+                appState.dismissActiveLabyrinthRestWithoutCompleting()
+                dismiss()
+            },
+            facts: {
                 LabeledContent("Depth", value: "\(session.depth)")
                 LabeledContent("Gold crumb", value: "\(session.goldCrumb)")
-
-                Text("Rest here to claim a small stipend and continue the path.")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-
-                if let failure = session.failureMessage {
-                    Text(failure)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(TrinketDesign.Colors.warning)
-                        .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestFailure)
-                }
-
-                Spacer(minLength: 0)
-
+            },
+            actions: {
                 Button {
                     if appState.finishActiveLabyrinthRest() {
                         dismiss()
@@ -40,21 +36,6 @@ struct LabyrinthRestView: View {
                 .trinketPrimaryActionButton()
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestConfirm)
             }
-            .padding(TrinketDesign.Metrics.contentMargin)
-            .navigationTitle("Shrine")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Leave") {
-                        appState.dismissActiveLabyrinthRestWithoutCompleting()
-                        dismiss()
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Play.labyrinthRestLeave)
-                }
-            }
-        }
-        .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthRest)
-        .interactiveDismissDisabled()
+        )
     }
 }
