@@ -121,9 +121,7 @@ struct BattlePerformanceScenarioHarness: View {
             for _ in 0 ..< count {
                 appendCast(enforceProductionCap: false)
             }
-        case .feedbackChipsOnly:
-            await runFeedbackChipsOnly(runGeneration: runGeneration)
-        case .feedbackRasterCold, .feedbackRasterWarm:
+        case .feedbackChipsOnly, .feedbackRasterCold, .feedbackRasterWarm:
             await runFeedbackChipsOnly(runGeneration: runGeneration)
         case .feedbackReactionsOnly:
             await runFeedbackReactionsOnly(runGeneration: runGeneration)
