@@ -4,16 +4,21 @@ import TrinketContent
 import TrinketCore
 
 struct ItemModifierBattleTests {
-    @Test func equippedPhysicalDamageAffixIncreasesDirectDamage() throws {
-        let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
-        let modifiers = CombatModifierProfile(modifiers: keen.basic.modifiers)
+    @Test(arguments: [
+        (affixID: "keen", abilityID: "slash"),
+        (affixID: "serrated", abilityID: "fangs")
+    ])
+    func equippedDamageAffixIncreasesCardDamage(affixID: String, abilityID: String) throws {
+        let affix = try #require(GameContent.itemAffixDefinitions.first { $0.id == affixID })
+        let ability = try #require(GameContent.ability(id: abilityID))
+        let modifiers = CombatModifierProfile(modifiers: affix.basic.modifiers)
 
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.slash]
+            abilities: [ability]
         )
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
         let enemy = Combatant(
@@ -97,36 +102,6 @@ struct ItemModifierBattleTests {
             companion: Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: []),
             enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: []),
             heroModifiers: configuration.modifiers
-        )
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        try #expect(100 - battle.health(of: battle.enemy) == 2)
-    }
-
-    @Test func equippedSerratedAffixIncreasesBleedDamage() throws {
-        let serrated = try #require(GameContent.itemAffixDefinitions.first { $0.id == "serrated" })
-        let modifiers = CombatModifierProfile(modifiers: serrated.basic.modifiers)
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.fangs]
-        )
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: [])
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: []
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            heroModifiers: modifiers
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)

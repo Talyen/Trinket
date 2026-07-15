@@ -4,15 +4,12 @@ import TrinketContent
 import TrinketCore
 
 struct EffectHandlersTests {
-    @Test func registryKeysMatchAllEffectKinds() throws {
+    @Test func registryCoversEveryEffectKind() throws {
         try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
-    }
-
-    @Test(arguments: EffectKind.allCases)
-    func registryContainsHandler(for kind: EffectKind) throws {
-        let handler = EffectHandlers.all[kind]
-        try #require(handler != nil, "Missing handler for \(kind)")
-        try #expect(handler?.kind == kind)
-        try #expect(EffectHandlers.handler(for: kind)?.kind == kind)
+        for kind in EffectKind.allCases {
+            let handler = try #require(EffectHandlers.all[kind], "Missing handler for \(kind)")
+            try #expect(handler.kind == kind)
+            try #expect(EffectHandlers.handler(for: kind)?.kind == kind)
+        }
     }
 }

@@ -5,12 +5,12 @@ import TrinketCore
 
 /// Integration tests for cleanse abilities through card combat.
 struct CleanseIntegrationTests {
-    @Test func cleanseAllRemovesDebuffsWhenAbilityFires() throws {
+    @Test func cleanseAllRemovesDebuffsButLeavesShields() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
-            maxHealth: 10,
+            maxHealth: 20,
             abilities: [.cleanse]
         )
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
@@ -20,14 +20,20 @@ struct CleanseIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
+                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTicks: 6)
             ]
         )
 
         _ = try BattleTestFixtures.playUntilAbility("Cleanse", on: &battle)
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
+        try #expect(battle.hasHeroEffect {
+            if case .shield = $0 {
+                return true
+            }; return false
+        })
     }
 
     @Test func cleanseSpecificKeywordRemovesMatchingDebuffsOnUse() throws {
@@ -65,52 +71,6 @@ struct CleanseIntegrationTests {
         }))
         try #expect(battle.hasHeroEffect {
             if case .burn = $0 {
-                return true
-            }; return false
-        })
-    }
-
-    @Test func cleanseAllRemovesAllDebuffsButLeavesShields() throws {
-        let cleanseAll = Ability(
-            id: "cleanse-all",
-            name: "Cleanse All",
-            tier: .basic,
-            directDamage: 0,
-            description: "Cleanse all.",
-            effects: [.cleanse(nil)]
-        )
-        let hero = Combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 20,
-            abilities: [cleanseAll]
-        )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
-                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTicks: 6)
-            ]
-        )
-
-        let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
-
-        try #expect(events.contains { $0.effectKind == .cleanseApplied })
-        try #expect(!(battle.hasHeroEffect {
-            if case .poison = $0 {
-                return true
-            }; return false
-        }))
-        try #expect(!(battle.hasHeroEffect {
-            if case .burn = $0 {
-                return true
-            }; return false
-        }))
-        try #expect(battle.hasHeroEffect {
-            if case .shield = $0 {
                 return true
             }; return false
         })

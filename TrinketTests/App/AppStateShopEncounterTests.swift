@@ -26,27 +26,6 @@ struct AppStateShopEncounterTests {
         #expect(state.journey.activeStageID == "chapter-1-stage-1")
     }
 
-    @Test func purchasingOfferSpendsGoldAndGrantsItem() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-2-stage-4"))
-        #expect(state.handleStagePrimaryAction(for: stage) == nil)
-
-        let session = try #require(state.activeShopEncounter)
-        let offer = try #require(session.offers.first)
-        try state.playerSave.performBatchMutation { save in
-            save.roster.gold = offer.price + 5
-        }
-        let goldBefore = state.roster.gold
-        let itemsBefore = state.inventory.items.count
-
-        #expect(state.purchaseActiveShopOffer(offerID: offer.id))
-        #expect(state.roster.gold == goldBefore - offer.price)
-        #expect(state.inventory.items.count == itemsBefore + 1)
-        #expect(state.activeShopEncounter?.purchaseCount == 1)
-        #expect(state.activeShopEncounter?.lastPurchasedItemName == offer.item.displayName)
-        #expect(state.activeShopEncounter?.isSoldOut(offer.id) == true)
-    }
-
     @Test(arguments: [
         (goldOffset: -1, shouldSucceed: false, expectedError: "Not enough Gold." as String?),
         (goldOffset: 0, shouldSucceed: true, expectedError: nil)
@@ -71,6 +50,9 @@ struct AppStateShopEncounterTests {
         #expect(state.purchaseActiveShopOffer(offerID: offer.id) == shouldSucceed)
         if shouldSucceed {
             #expect(state.roster.gold == 0)
+            #expect(state.inventory.items.count == itemsBefore + 1)
+            #expect(state.activeShopEncounter?.purchaseCount == 1)
+            #expect(state.activeShopEncounter?.lastPurchasedItemName == offer.item.displayName)
             #expect(state.activeShopEncounter?.isSoldOut(offer.id) == true)
         } else {
             #expect(state.roster.gold == goldBefore)

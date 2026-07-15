@@ -21,29 +21,20 @@ struct AppStateSessionPersistenceTests {
         #expect(state.mapScrollStageID == nil)
     }
 
-    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaultsButLandsOnPlay() throws {
+    @Test func migratesLegacyShellKeysWithAppStatePolicy() throws {
         context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
-
-        let state = try makeState()
-
-        #expect(state.selectedTab == .play)
-        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
-    }
-
-    @Test func discardsLegacyBattleStageIDFromUserDefaults() throws {
         context.userDefaults.set("chapter-1-stage-3", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
-
-        let state = try makeState()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
-    }
-
-    @Test func migratesPreviouslyStoredMapScrollStageIDFromLegacyUserDefaults() throws {
         context.userDefaults.set("chapter-2-stage-1", forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
         let state = try makeState()
 
+        // App policy: relaunch always lands on Play even when a legacy tab was stored.
+        #expect(state.selectedTab == .play)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
+        // Battles are never restored from legacy shell keys.
+        #expect(state.battle.activeBattle == nil)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
+        // Map scroll target still restores.
         #expect(state.mapScrollStageID == "chapter-2-stage-1")
     }
 
@@ -61,7 +52,7 @@ struct AppStateSessionPersistenceTests {
         #expect(try makeState().mapScrollStageID == "chapter-3-gate")
     }
 
-    @Test func noteMapScrollFocusPersistsTargetAndPublishesFocus() throws {
+    @Test func noteMapScrollFocusPersistsPublishesAndBumpsRevision() throws {
         let state = try makeState()
 
         state.noteMapScrollFocus("chapter-1-stage-2")
@@ -69,11 +60,6 @@ struct AppStateSessionPersistenceTests {
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
         #expect(state.mapScrollFocus == MapScrollFocus(stageID: "chapter-1-stage-2", revision: 1))
         #expect(try makeState().mapScrollStageID == "chapter-1-stage-2")
-    }
-
-    @Test func noteMapScrollFocusIncrementsRevisionWhenTargetUnchanged() throws {
-        let state = try makeState()
-        state.noteMapScrollFocus("chapter-1-stage-2")
 
         state.noteMapScrollFocus("chapter-1-stage-2")
 

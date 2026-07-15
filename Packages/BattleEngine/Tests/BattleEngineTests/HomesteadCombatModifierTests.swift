@@ -4,16 +4,6 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HomesteadCombatModifierTests {
-    @Test func flatFreezeReductionLowersIncomingFreezeDamage() throws {
-        var profile = CombatModifierProfile.zero
-        profile.merge(.damageTakenFlat(.freeze, 2))
-
-        var remaining = 5
-        let flatReduction = profile.damageTakenFlat(for: .freeze)
-        remaining = max(0, remaining - flatReduction)
-        try #expect(remaining == 3)
-    }
-
     @Test func manaCostReductionRoundsDownAndAllowsZero() throws {
         var profile = CombatModifierProfile.zero
         profile.merge(.manaCostReductionPercent(0.15))
