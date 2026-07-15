@@ -25,6 +25,7 @@ final class MysteryEncounterSession: Identifiable {
     private(set) var unlockedCombatantID: String?
     private(set) var itemCandidates: [InventoryItem] = []
     private(set) var isResolvingChoice = false
+    private(set) var persistFailureMessage: String?
 
     var showsReveal: Bool {
         phase == .revealing && unlockedCombatantID != nil
@@ -50,21 +51,33 @@ final class MysteryEncounterSession: Identifiable {
 extension MysteryEncounterSession {
     func markChoiceStarted() {
         isResolvingChoice = true
+        persistFailureMessage = nil
     }
 
     func presentReveal(unlockedCombatantID: String) {
         self.unlockedCombatantID = unlockedCombatantID
         phase = .revealing
         isResolvingChoice = false
+        persistFailureMessage = nil
     }
 
     func presentItemChoice(candidates: [InventoryItem]) {
         itemCandidates = candidates
         phase = .choosingItem
         isResolvingChoice = false
+        persistFailureMessage = nil
     }
 
     func markResolvedWithoutReveal() {
         isResolvingChoice = false
+    }
+
+    func markPersistFailed(_ message: String) {
+        isResolvingChoice = false
+        persistFailureMessage = message
+    }
+
+    func clearPersistFailure() {
+        persistFailureMessage = nil
     }
 }

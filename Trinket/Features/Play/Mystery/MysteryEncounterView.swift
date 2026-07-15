@@ -61,6 +61,14 @@ struct MysteryEncounterView: View {
                 .offset(y: narrativeAppeared ? 0 : 8)
 
                 if let choice = session.event.choices.first {
+                    if let persistFailure = session.persistFailureMessage {
+                        Text(persistFailure)
+                            .trinketTypography(.badge)
+                            .foregroundStyle(TrinketDesign.Colors.warning)
+                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+                            .transition(.opacity)
+                    }
+
                     Button {
                         welcomeFeedbackTrigger += 1
                         _ = appState.resolveActiveMysteryChoice(choiceID: choice.id)
@@ -96,6 +104,14 @@ struct MysteryEncounterView: View {
                         .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    if let persistFailure = session.persistFailureMessage {
+                        Text(persistFailure)
+                            .trinketTypography(.badge)
+                            .foregroundStyle(TrinketDesign.Colors.warning)
+                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+                            .transition(.opacity)
+                    }
                 }
 
                 LazyVGrid(
@@ -177,8 +193,18 @@ struct MysteryEncounterView: View {
             subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
             content: {
-                if let combatant {
-                    recruitRevealContent(combatant)
+                VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+                    if let combatant {
+                        recruitRevealContent(combatant)
+                    }
+                    if let persistFailure = session.persistFailureMessage {
+                        Text(persistFailure)
+                            .trinketTypography(.badge)
+                            .foregroundStyle(TrinketDesign.Colors.warning)
+                            .multilineTextAlignment(.center)
+                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+                            .transition(.opacity)
+                    }
                 }
             },
             primaryActionTitle: "Recruit",

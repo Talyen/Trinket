@@ -132,6 +132,7 @@ struct AppStateMysteryRecruitTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
         #expect(state.activeMysteryEncounter != nil)
+        #expect(state.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(state.roster.gold == goldBefore)
 
         #expect(state.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
@@ -175,6 +176,7 @@ struct AppStateMysteryRecruitTests {
         playerSave.forcesNextSaveFailure = true
         #expect(!state.finishActiveMysteryEncounter())
         #expect(state.activeMysteryEncounter != nil)
+        #expect(state.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(!state.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
         #expect(state.finishActiveMysteryEncounter())
@@ -201,6 +203,7 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.selectActiveMysteryItem(itemID: chosen.id))
         #expect(state.activeMysteryEncounter != nil)
         #expect(state.activeMysteryEncounter?.phase == .choosingItem)
+        #expect(state.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(state.inventory.items.count == itemsBefore)
         #expect(!state.journey.completedStageIDs.contains(stage.id))
 
