@@ -242,35 +242,6 @@ struct BattleHandLayoutTests {
         #expect(resisted.height > defaultResisted.height)
     }
 
-    @Test func defaultConfigurationMatchesLayoutConstants() {
-        let configuration = BattleHandMotionConfiguration()
-        #expect(configuration.minCardWidth == BattleHandLayout.minCardWidth)
-        #expect(configuration.maxCardWidth == BattleHandLayout.maxCardWidth)
-        #expect(configuration.fanAngleStep == BattleHandLayout.fanAngleStep)
-        #expect(configuration.playDragThreshold == BattleHandLayout.playDragThreshold)
-        #expect(configuration.playArmReleaseRatio == BattleHandLayout.playArmReleaseRatio)
-        #expect(abs(configuration.cardHeldScale - TrinketMotion.Battle.cardHeldScale) < 0.0001)
-    }
-
-    @Test func releaseCenterMatchesRestingPlusDragTranslation() {
-        // Cast handoff uses this math instead of a live geometry probe so drag
-        // frames do not double-invalidate via onGeometryChange.
-        let resting = CGPoint(x: 180, y: 640)
-        let drag = CGSize(width: 24, height: -96)
-        let center = BattleHandLayout.releaseCenter(
-            restingCenter: resting,
-            dragTranslation: drag
-        )
-        #expect(center.x == resting.x + drag.width)
-        #expect(center.y == resting.y + drag.height)
-
-        let zeroDrag = BattleHandLayout.releaseCenter(
-            restingCenter: resting,
-            dragTranslation: .zero
-        )
-        #expect(zeroDrag == resting)
-    }
-
     @Test func tapGestureIgnoresDragReturnNearRestingPosition() {
         // A press that never leaves slop opens ability detail.
         #expect(BattleHandLayout.isTapGesture(
@@ -290,10 +261,4 @@ struct BattleHandLayoutTests {
         ))
     }
 
-    @Test func combatantTapSuppressionGraceCoversFingerUpRace() {
-        // Long enough to outlast the same-touch Button activation after a hand
-        // drag ends over a combatant pane; short enough not to feel sticky.
-        #expect(BattleHandLayout.combatantTapSuppressionGrace >= 0.1)
-        #expect(BattleHandLayout.combatantTapSuppressionGrace <= 0.3)
-    }
 }

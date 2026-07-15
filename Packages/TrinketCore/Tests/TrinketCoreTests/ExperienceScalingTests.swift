@@ -40,9 +40,21 @@ struct ExperienceScalingTests {
         }
     }
 
-    @Test func battleAwardAppliesLevelDeltaMultiplier() throws {
+    @Test func battleAwardAppliesLevelDeltaAndCatchUpMultiplier() throws {
         try #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
         try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) > 0)
+
+        try #expect(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
+        )
+
+        let baseAward = ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5)
+        let catchUp = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
+        let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
+        try #expect(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
+                == expected
+        )
     }
 
     // MARK: - Catch-up multiplier
@@ -66,21 +78,5 @@ struct ExperienceScalingTests {
         let gap50 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 51, maxMultiplier: 3.0)
         try #expect(gap50 < 3.0)
         try #expect(gap50 > 2.9)
-    }
-
-    @Test func battleAwardWithCatchUpReturnsZeroWhenBaseAwardIsZero() throws {
-        try #expect(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
-        )
-    }
-
-    @Test func battleAwardWithCatchUpAppliesCatchUpMultiplier() throws {
-        let baseAward = ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5)
-        let catchUp = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
-        let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
-
-        try #expect(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10) == expected
-        )
     }
 }

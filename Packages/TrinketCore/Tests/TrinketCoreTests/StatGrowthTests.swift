@@ -9,10 +9,19 @@ struct StatGrowthTests {
         try #expect(assassinGrowth.maxHealth == 4)
     }
 
-    @Test func mageGrowthAddsIntellectAndMana() throws {
-        let growth = StatGrowth.playerGrowth(archetype: .mage, levelsAbove: 5)
-        try #expect(growth.intellect == 5)
-        try #expect(growth.maxMana == 2)
+    @Test func mageGrowthAddsIntellectAndOptionalManaByRole() throws {
+        let player = StatGrowth.playerGrowth(archetype: .mage, levelsAbove: 5)
+        try #expect(player.intellect == 5)
+        try #expect(player.maxMana == 2)
+
+        let enemy = StatGrowth.enemyGrowth(
+            archetype: .mage,
+            isBoss: false,
+            levelsAbove: 5,
+            identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
+        )
+        try #expect(enemy.maxMana == 0)
+        try #expect(enemy.intellect == 5)
     }
 
     @Test func nonBossEnemyGrowthMatchesPlayerGrowth() throws {
@@ -24,17 +33,6 @@ struct StatGrowthTests {
             identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
         )
         try #expect(enemy == player)
-    }
-
-    @Test func nonBossMageGrowthDoesNotAddMana() throws {
-        let enemy = StatGrowth.enemyGrowth(
-            archetype: .mage,
-            isBoss: false,
-            levelsAbove: 5,
-            identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
-        )
-        try #expect(enemy.maxMana == 0)
-        try #expect(enemy.intellect == 5)
     }
 
     @Test func bossGrowthSpikesPrimaryStat() throws {

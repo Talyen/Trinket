@@ -37,38 +37,47 @@ struct EffectHandlersApplyTests {
 
     // MARK: - Defensive buffs
 
-    @Test func shieldHandlerAddsShieldAndEmitsEvent() throws {
+    @Test(arguments: [
+        Effect.shield(.block, 5),
+        .mitigation(.armor, 2),
+        .standardLeechBuff
+    ])
+    func defensiveBuffHandlersApplyAndEmitEvents(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.shield(.block, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(
+            effect,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
         try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-            if case .shield(.block, 5) = ae.effect {
-                return true
-            }
-            return false
-        })
-        try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-    }
 
-    @Test func mitigationHandlerAddsMitigationAndEmitsEvent() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.mitigation(.armor, 2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-            if case .mitigation(.armor, 2) = ae.effect {
-                return true
-            }
-            return false
-        })
-        try #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 2 })
-    }
-
-    @Test func leechHandlerAddsLeechEffectAndEmitsEvent() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
-        try #expect(outcome.events.contains { $0.effectKind == .leechApplied })
+        switch effect {
+        case .shield(.block, 5):
+            try #expect(battle.activeEffects(of: battle.hero).contains { ae in
+                if case .shield(.block, 5) = ae.effect {
+                    return true
+                }
+                return false
+            })
+            try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+        case .mitigation(.armor, 2):
+            try #expect(battle.activeEffects(of: battle.hero).contains { ae in
+                if case .mitigation(.armor, 2) = ae.effect {
+                    return true
+                }
+                return false
+            })
+            try #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 2 })
+        case .standardLeechBuff:
+            try #expect(battle.activeEffects(of: battle.hero).contains {
+                $0.effect.keyword == .leech && !$0.effect.isInstant
+            })
+            try #expect(outcome.events.contains { $0.effectKind == .leechApplied })
+        default:
+            Issue.record("Unexpected defensive buff \(effect)")
+        }
     }
 
     @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() throws {

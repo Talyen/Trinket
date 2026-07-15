@@ -177,9 +177,21 @@ final class PlayerSaveStoreTests {
         try #expect(sanitized.lastCompletedStageID == "chapter-1-stage-5")
     }
 
-    @Test func validateRejectsNegativeProgressionXP() throws {
+    @Test(arguments: [
+        ("negative-xp", true),
+        ("schema-version", false)
+    ])
+    func validateRejectsCorruptSaveFields(mode: String, expectsMessageContainsXP: Bool) throws {
         var save = PlayerSave.fresh
-        save.roster.progressions["knight"] = CombatantProgression(level: 1, currentXP: -1, requiredXP: 100)
+        switch mode {
+        case "negative-xp":
+            save.roster.progressions["knight"] = CombatantProgression(level: 1, currentXP: -1, requiredXP: 100)
+        case "schema-version":
+            save.schemaVersion = 0
+        default:
+            Issue.record("Unexpected validate mode \(mode)")
+            return
+        }
 
         let error = try #require(throws: PlayerSavePersistenceError.self) {
             try PlayerSaveSanitizer.validate(save)
@@ -188,19 +200,8 @@ final class PlayerSaveStoreTests {
             Issue.record("Expected invalidSave, got \(error)")
             return
         }
-        try #expect(message.contains("current XP"))
-    }
-
-    @Test func validateRejectsInvalidSchemaVersion() throws {
-        var save = PlayerSave.fresh
-        save.schemaVersion = 0
-
-        let error = try #require(throws: PlayerSavePersistenceError.self) {
-            try PlayerSaveSanitizer.validate(save)
-        }
-        guard case .invalidSave = error else {
-            Issue.record("Expected invalidSave, got \(error)")
-            return
+        if expectsMessageContainsXP {
+            try #expect(message.contains("current XP"))
         }
     }
 

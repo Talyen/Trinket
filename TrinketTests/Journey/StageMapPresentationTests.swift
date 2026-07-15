@@ -4,38 +4,26 @@ import TrinketPersistence
 @testable import Trinket
 
 struct StageMapPresentationTests {
-    @Test func chapterGateIDUsesChapterIdentifier() {
+    @Test func stageMapIdentifiersAndLabelsMatchAuthoredContent() throws {
         let chapter = GameContent.chapters[0]
-
+        let stage = try #require(chapter.stages.first)
         #expect(StageMapID.chapterGate(for: chapter) == "chapter-gate-\(chapter.id)")
-    }
-
-    @Test func placeholderGateIDUsesChapterNumber() {
         #expect(StageMapID.placeholderGate(afterChapterNumber: 2) == "chapter-gate-placeholder-2")
-    }
 
-    @Test func chapterJourneyRowIDMatchesStageOrGate() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first)
         let gateChapter = Chapter(
             id: StageMapID.placeholderGate(afterChapterNumber: 2),
             number: 2,
             title: "",
-            theme: GameContent.chapters[0].theme,
+            theme: chapter.theme,
             stages: []
         )
-
         #expect(ChapterJourneyRow.stage(stage, .active).id == stage.id)
         #expect(ChapterJourneyRow.chapterGate(gateChapter).id == StageMapID.chapterGate(for: gateChapter))
-    }
-
-    @Test func stageMapLabelFormatsChapterAndStageNumber() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first)
-
         #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
         #expect(stage.mapMetaLabel == "\(stage.mapLabel) · \(stage.encounterTypeTitle)")
     }
 
-    @Test func chapterRowsKeepAllFiveStagesAndStopProgressAtTheActiveNode() {
+    @Test func chapterRowsKeepAllStagesAndStopProgressAtTheActiveNode() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial
         progress.completedStageIDs = [chapter.stages[0].id, chapter.stages[1].id]
@@ -44,7 +32,7 @@ struct StageMapPresentationTests {
 
         let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
 
-        #expect(rows.count == 5)
+        #expect(rows.count == chapter.stages.count)
         #expect(rows.map(\.stage.id) == chapter.stages.map(\.id))
         #expect(rows[0].state == .completed)
         #expect(rows[1].state == .justCompleted)
@@ -76,7 +64,7 @@ struct StageMapPresentationTests {
 
         let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
 
-        #expect(rows.count == 5)
+        #expect(rows.count == chapter.stages.count)
         #expect(!rows.contains { !$0.isCompleted })
         #expect(rows.allSatisfy { !$0.isActionable })
         #expect(rows.dropLast().allSatisfy { $0.connectorAfter == .progressed })

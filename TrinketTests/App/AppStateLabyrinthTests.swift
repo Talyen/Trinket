@@ -14,20 +14,16 @@ struct AppStateLabyrinthTests {
         context = try AppTestContext()
     }
 
-    @Test func enterLabyrinthIsAvailableFromFreshState() throws {
+    @Test func enterLabyrinthCreatesMapAndReusesItOnRepeat() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let message = state.enterLabyrinth()
         #expect(message == nil)
         #expect(state.labyrinth.hasMap)
         #expect(!state.labyrinth.reachableNodeIDs().isEmpty)
-    }
-
-    @Test func enterLabyrinthReusesExistingMap() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        #expect(state.enterLabyrinth() == nil)
         let firstMap = state.labyrinth
-        let message = state.enterLabyrinth()
-        #expect(message == nil)
+
+        let reuseMessage = state.enterLabyrinth()
+        #expect(reuseMessage == nil)
         #expect(state.labyrinth.hasMap)
         #expect(state.labyrinth == firstMap)
     }
@@ -42,14 +38,6 @@ struct AppStateLabyrinthTests {
         #expect(battle.labyrinthNodeID == combatNodeID)
         #expect(battle.hasProgressionRewards)
         #expect(battle.resumeToken == .labyrinth(nodeID: combatNodeID))
-    }
-
-    @Test func completeLabyrinthNodeAdvancesMap() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        _ = state.enterLabyrinth()
-        let nodeID = try #require(state.labyrinth.reachableNodeIDs().first)
-        state.completeLabyrinthNode(nodeID: nodeID)
-        #expect(state.labyrinth.nodes[nodeID]?.isCleared == true)
     }
 
     @Test func completeActiveBattleClearsLabyrinthNode() throws {
@@ -97,24 +85,59 @@ struct AppStateLabyrinthTests {
     }
 
     #if DEBUG
-    @Test func finishActiveShopEncounterKeepsSessionOpenWhenPersistFails() throws {
+    @Test(arguments: ["shop", "rest", "craft"] as [String])
+    func labyrinthEncounterFinishKeepsSessionOpenWhenPersistFails(kind: String) throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.enterLabyrinth()
-        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
 
-        #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
-        #expect(state.activeShopEncounter != nil)
+        switch kind {
+        case "shop":
+            let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+            #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
+            #expect(state.activeShopEncounter != nil)
 
-        playerSave.forcesNextSaveFailure = true
-        #expect(!state.finishActiveShopEncounter())
-        #expect(state.activeShopEncounter != nil)
-        #expect(state.activeShopEncounter?.leaveFailureMessage != nil)
-        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
+            playerSave.forcesNextSaveFailure = true
+            #expect(!state.finishActiveShopEncounter())
+            #expect(state.activeShopEncounter != nil)
+            #expect(state.activeShopEncounter?.leaveFailureMessage != nil)
+            #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
-        #expect(state.finishActiveShopEncounter())
-        #expect(state.activeShopEncounter == nil)
-        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
+            #expect(state.finishActiveShopEncounter())
+            #expect(state.activeShopEncounter == nil)
+            #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
+        case "rest":
+            let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+            #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
+            #expect(state.activeLabyrinthNodeSession?.kind == .rest)
+
+            playerSave.forcesNextSaveFailure = true
+            #expect(!state.finishActiveLabyrinthRest())
+            #expect(state.activeLabyrinthNodeSession != nil)
+            #expect(state.activeLabyrinthNodeSession?.failureMessage != nil)
+            #expect(state.labyrinth.nodes[restNodeID]?.isCleared == false)
+
+            #expect(state.finishActiveLabyrinthRest())
+            #expect(state.activeLabyrinthNodeSession == nil)
+            #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
+        case "craft":
+            let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
+            #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
+            let session = try #require(state.activeLabyrinthNodeSession)
+            #expect(session.kind == .craft)
+
+            playerSave.forcesNextSaveFailure = true
+            #expect(!state.leaveActiveLabyrinthCraftWithoutForging())
+            #expect(state.activeLabyrinthNodeSession != nil)
+            #expect(session.failureMessage != nil)
+            #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == false)
+
+            #expect(state.leaveActiveLabyrinthCraftWithoutForging())
+            #expect(state.activeLabyrinthNodeSession == nil)
+            #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
+        default:
+            Issue.record("Unexpected encounter kind \(kind)")
+        }
     }
     #endif
 
@@ -151,49 +174,6 @@ struct AppStateLabyrinthTests {
         #expect(session.kind == .rest)
         #expect(session.goldAmount == expected)
     }
-
-    #if DEBUG
-    @Test func finishActiveLabyrinthRestKeepsSessionOpenWhenPersistFails() throws {
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
-        _ = state.enterLabyrinth()
-        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
-
-        #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
-        #expect(state.activeLabyrinthNodeSession?.kind == .rest)
-
-        playerSave.forcesNextSaveFailure = true
-        #expect(!state.finishActiveLabyrinthRest())
-        #expect(state.activeLabyrinthNodeSession != nil)
-        #expect(state.activeLabyrinthNodeSession?.failureMessage != nil)
-        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == false)
-
-        #expect(state.finishActiveLabyrinthRest())
-        #expect(state.activeLabyrinthNodeSession == nil)
-        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
-    }
-
-    @Test func leaveActiveLabyrinthCraftWithoutForgingKeepsSessionOpenWhenPersistFails() throws {
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
-        _ = state.enterLabyrinth()
-        let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
-
-        #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
-        let session = try #require(state.activeLabyrinthNodeSession)
-        #expect(session.kind == .craft)
-
-        playerSave.forcesNextSaveFailure = true
-        #expect(!state.leaveActiveLabyrinthCraftWithoutForging())
-        #expect(state.activeLabyrinthNodeSession != nil)
-        #expect(session.failureMessage != nil)
-        #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == false)
-
-        #expect(state.leaveActiveLabyrinthCraftWithoutForging())
-        #expect(state.activeLabyrinthNodeSession == nil)
-        #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
-    }
-    #endif
 
     @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])

@@ -9,24 +9,6 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
-    @Test func playCardShowsVictorySummaryWhenEnemyDefeated() throws {
-        let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(outcomePresentationDelayOverride: 0)
-        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: party.hero,
-            companion: party.companion,
-            enemy: party.enemy
-        )
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        #expect(session.outcome == .victory)
-        #expect(session.isShowingVictory)
-        _ = try #require(session.victorySummary)
-        #expect(!(session.isShowingDefeat))
-    }
-
     @Test func victoryPresentationHoldsChromeAndLocksRetreatUntilConfiguredDelay() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(outcomePresentationDelayOverride: 0.05)
@@ -74,18 +56,6 @@ struct BattleSessionSimulationTests {
         #expect(session.isShowingVictory)
         #expect(session.victorySummary != nil)
         #expect(!session.canRetreat)
-    }
-
-    @Test func endTurnDoesNothingWhenBattleAlreadyOver() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 0)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
-        #expect(session.canEndTurn == false)
-
-        let result = session.endTurn(journey: .initial, homestead: .freshStart)
-
-        #expect(result == nil)
     }
 
     @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {

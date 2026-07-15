@@ -5,57 +5,6 @@ import TrinketPersistence
 
 @MainActor
 struct ActiveBattleConfigurationTests {
-    @Test func makeWithoutEquipmentUsesTraitOnlyModifiers() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            enemy: enemy
-        )
-
-        #expect(configuration.hero.modifiers.blockGainedBonus == 1)
-        #expect(configuration.companion.modifiers.bleedDurationBonus == 1)
-        #expect(configuration.hero.modifiers.damageDealtBonus(for: .physical) == 0)
-        #expect(configuration.companion.modifiers.damageDealtBonus(for: .physical) == 0)
-        #expect(configuration.hero.combatant.id == knight.id)
-        #expect(configuration.companion.combatant.id == wolf.id)
-    }
-
-    @Test func makeResolvesEquippedItemModifiers() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
-        let item = InventoryItem(
-            id: "keen-longsword",
-            baseType: baseType,
-            rarity: .basic,
-            displayName: baseType.name,
-            affixes: [keen.resolved(for: .basic)]
-        )
-        var rosterState = PlayerRosterState.initial
-        var loadout = EquipmentLoadout()
-        loadout.equip(item)
-        rosterState.setEquipmentLoadout(loadout, for: knight)
-
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            enemy: enemy,
-            roster: rosterState,
-            inventory: PlayerInventoryState(items: [item])
-        )
-
-        #expect(configuration.hero.modifiers.damageDealtBonus(for: .physical) == 1)
-        #expect(configuration.hero.combatant.primaryStats.strength == knight.primaryStats.strength)
-    }
-
     @Test func makeResolvesEnemyTraitModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })

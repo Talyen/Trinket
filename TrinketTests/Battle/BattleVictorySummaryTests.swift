@@ -8,7 +8,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleVictorySummaryTests {
-    @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
+    @Test func makeVictorySummaryIncludesStageBattleRewardsAndLevelScaledXP() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
@@ -45,6 +45,8 @@ struct BattleVictorySummaryTests {
         let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
         #expect(summary.stageGold == 12)
+        #expect(summary.battleGold >= 0)
+        #expect(summary.totalGold == summary.stageGold + summary.battleGold)
         #expect(summary.experience == expectedHeroXP)
         #expect(summary.heroName == hero.name)
         #expect(summary.companionName == companion.name)
@@ -56,85 +58,35 @@ struct BattleVictorySummaryTests {
         #expect(summary.heroProgressionBefore.level == 2)
         #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
         #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
-    }
 
-    @Test func makeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 1,
-            abilities: []
-        )
-        var rosterState = PlayerRosterState.freshStart
-        rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
-        rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
+        // Level-delta scaling: overleveled hero earns 0; underleveled companion still awards.
+        var scaledRoster = PlayerRosterState.freshStart
+        scaledRoster.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
+        scaledRoster.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        let scaledConfiguration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 1,
-            roster: rosterState,
+            roster: scaledRoster,
             stageReward: StageReward(gold: 0, itemTemplateIDs: [])
         )
-        let session = BattleSession()
-        session.activeBattle = configuration
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        let state = try #require(session.state)
-        let summary = try BattleVictorySummary.make(
-            configuration: configuration,
-            state: state,
+        let scaledSession = BattleSession()
+        scaledSession.activeBattle = scaledConfiguration
+        BattleSessionTestSupport.driveUntilOutcome(scaledSession)
+        let scaledState = try #require(scaledSession.state)
+        let scaledSummary = try BattleVictorySummary.make(
+            configuration: scaledConfiguration,
+            state: scaledState,
             homestead: .freshStart
         )
-        let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
-
-        #expect(summary.experience == 0)
-        #expect(summary.companionExperience == expectedCompanionXP)
-        #expect(summary.hasExperienceAwards == true)
-        #expect(summary.rewardItems.isEmpty)
-        #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
-    }
-
-    @Test func makeVictorySummaryIncludesBattleGoldWhenRewardsGranted() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.slash]
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 1,
-            abilities: []
-        )
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: "chapter-1-stage-1"),
-            rngSeed: 0,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            stageReward: StageReward(gold: 12, itemTemplateIDs: [])
-        )
-        let session = BattleSession()
-        session.activeBattle = configuration
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        let state = try #require(session.state)
-        let summary = try BattleVictorySummary.make(
-            configuration: configuration,
-            state: state,
-            homestead: .freshStart
-        )
-
-        #expect(summary.stageGold == 12)
-        #expect(summary.battleGold >= 0)
-        #expect(summary.totalGold == summary.stageGold + summary.battleGold)
+        let expectedScaledCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
+        #expect(scaledSummary.experience == 0)
+        #expect(scaledSummary.companionExperience == expectedScaledCompanionXP)
+        #expect(scaledSummary.hasExperienceAwards == true)
+        #expect(scaledSummary.rewardItems.isEmpty)
+        #expect(scaledSummary.companionProgressionAfter.currentXP == expectedScaledCompanionXP)
     }
 
     @Test func makeVictorySummaryAppliesHomesteadBonusesWhenBonusesActive() throws {

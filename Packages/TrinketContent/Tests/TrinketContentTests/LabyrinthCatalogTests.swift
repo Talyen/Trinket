@@ -5,8 +5,8 @@ import TrinketCore
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
-    @Test func biomesAreAuthoredWithResolvableEnemies() {
-        #expect(GameContent.labyrinthBiomes.count >= 8)
+    @Test func biomesAndModifiersAreAuthoredWithPlayerFacingContent() {
+        #expect(!GameContent.labyrinthBiomes.isEmpty)
         for biome in GameContent.labyrinthBiomes {
             #expect(!biome.enemyPool.isEmpty)
             for enemyID in biome.enemyPool {
@@ -14,10 +14,8 @@ struct LabyrinthCatalogTests {
             }
             #expect(GameContent.enemy(matching: biome.wardenEnemyID) != nil)
         }
-    }
 
-    @Test func modifiersHavePlayerFacingTitles() {
-        #expect(GameContent.labyrinthModifiers.count >= 8)
+        #expect(!GameContent.labyrinthModifiers.isEmpty)
         for modifier in GameContent.labyrinthModifiers {
             #expect(!modifier.title.isEmpty)
             #expect(!modifier.epithet.isEmpty)

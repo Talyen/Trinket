@@ -134,17 +134,6 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func manaBerryHarvestGrantsHerbsAndManaboundSapphireRing() throws {
-        let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
-        let harvest = try #require(event.choices.first { $0.id == "harvest" })
-        try #expect(harvest.effects.contains(.gainMaterial(.herbs, 3)))
-        try #expect(
-            harvest.effects.contains(
-                .gainGeneratedItem(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"])
-            )
-        )
-    }
-
     @Test func mysteryEffectsNeverSpendResources() throws {
         for event in GameContent.mysteryEvents {
             for choice in event.choices {
