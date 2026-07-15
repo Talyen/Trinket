@@ -257,11 +257,11 @@ public enum ArtCatalog {
 $(cat "$combatants_temp")
     ]
 
-    static let abilityArtByID: [String: AbilityArtReference] = [
+    public static let abilityArtByID: [String: AbilityArtReference] = [
 $(cat "$abilities_temp")
     ]
 
-    static let itemArtByID: [String: ItemArtReference] = [
+    public static let itemArtByID: [String: ItemArtReference] = [
 $(cat "$items_temp")
     ]
 

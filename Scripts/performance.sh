@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-LOCK_DIR=".DerivedData/.battle-performance.lock"
+LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
 REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-5}"
@@ -54,7 +54,7 @@ payload = {
 output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 PY
 
-echo "Running exclusive full-fidelity Battle performance matrix ($REPETITIONS repetitions/scenario)..."
+echo "Running exclusive full-fidelity app performance matrix ($REPETITIONS repetitions/scenario)..."
 TRINKET_ISOLATE=1 \
 TRINKET_MAX_CONCURRENT_UI=1 \
 TRINKET_PERFORMANCE_REPETITIONS="$REPETITIONS" \
@@ -69,4 +69,4 @@ python3 Scripts/compare-performance.py \
   --results "$OUTPUT_DIR/reports.json" \
   --summary "$OUTPUT_DIR/summary.md"
 
-echo "Battle performance artifacts: $OUTPUT_DIR"
+echo "App performance artifacts: $OUTPUT_DIR"

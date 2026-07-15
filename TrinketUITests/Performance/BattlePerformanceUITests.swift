@@ -3,7 +3,7 @@ import XCTest
 /// Full-fidelity Battle workloads. The dedicated runner repeats the matrix and compares
 /// raw reports; XCTest's native hitch metric captures the Core Animation render pipeline.
 final class BattlePerformanceUITests: TrinketUITestCase {
-    private static let scenarioDuration: TimeInterval = 6.8
+    private static let scenarioDuration: TimeInterval = 7.2
 
     func test01Idle() {
         run(scenario: "idle")
@@ -123,40 +123,13 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         iteration: Int,
         rasterStatus: String
     ) {
-        let environment = ProcessInfo.processInfo.environment
-        let object: [String: Any] = [
-            "schemaVersion": FramePacingReport.schemaVersion,
-            "runID": UUID().uuidString,
-            "scenario": scenario,
-            "iteration": iteration,
-            "capturedAt": ISO8601DateFormatter().string(from: .now),
-            "simulatorModel": environment["SIMULATOR_MODEL_IDENTIFIER"] ?? "unknown",
-            "simulatorRuntime": environment["SIMULATOR_RUNTIME_VERSION"] ?? "unknown",
-            "sampleCount": report.sampleCount,
-            "expectedFPS": report.expectedFPS,
-            "averageFPS": report.averageFPS,
-            "p95FrameMs": report.p95FrameMs,
-            "p99FrameMs": report.p99FrameMs,
-            "p999FrameMs": report.p999FrameMs,
-            "onePercentLowFPS": report.onePercentLowFPS,
-            "pointOnePercentLowFPS": report.pointOnePercentLowFPS,
-            "maxFrameMs": report.maxFrameMs,
-            "missedDeadlineCount": report.missedDeadlineCount,
-            "estimatedMissedFrameCount": report.estimatedMissedFrameCount,
-            "severeStallCount": report.severeStallCount,
-            "missedDeadlineRatio": report.missedDeadlineRatio,
-            "rasterStatus": rasterStatus
-        ]
-        guard let data = try? JSONSerialization.data(withJSONObject: object, options: [.sortedKeys]),
-              let json = String(data: data, encoding: .utf8) else {
-            XCTFail("Could not encode performance report")
-            return
-        }
-
-        let attachment = XCTAttachment(string: json)
-        attachment.name = "battle-performance-\(scenario)-\(iteration).json"
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        print("TRINKET_PERFORMANCE_REPORT \(json)")
+        PerformanceReportRecorder.record(
+            report,
+            scenario: scenario,
+            suite: "battle",
+            iteration: iteration,
+            metadata: ["rasterStatus": rasterStatus],
+            in: self
+        )
     }
 }

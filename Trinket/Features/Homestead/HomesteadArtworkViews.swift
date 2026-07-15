@@ -63,7 +63,7 @@ struct HomesteadFocalArtwork: View {
             let offsetX = (0.5 - art.focalPoint.x) * overflowX
             let offsetY = (0.5 - art.focalPoint.y) * overflowY
 
-            Image(imageName ?? art.imageName)
+            Image.preparedAsset(named: imageName ?? art.imageName)
                 .resizable()
                 .scaledToFill()
                 .frame(width: container.width, height: container.height)

@@ -66,6 +66,8 @@ final class BattleSession {
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
+    var pendingBattlePrewarmTask: Task<Void, Never>?
+    @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
     var autoEndHomestead: PlayerHomesteadState?
@@ -232,6 +234,27 @@ final class BattleSession {
         guard releaseBattleLog, var state else { return }
         state.releaseLogProjection()
         self.state = state
+    }
+
+    /// Spreads decoder/player setup across run-loop turns before battle interaction.
+    /// Repeated calls are cheap because `SFXPlayer.warm` skips prepared voices.
+    func prepareBattlePresentation(heroUltimateID: String?, companionUltimateID: String?) {
+        guard pendingBattlePrewarmTask == nil else { return }
+
+        pendingBattlePrewarmTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            for id in SFXID.battlePrewarmIDs {
+                guard !Task.isCancelled else { return }
+                sfxPlayer?.warm([id], concurrentPlayerCount: 2)
+                try? await Task.sleep(for: .milliseconds(8))
+            }
+            guard !Task.isCancelled else { return }
+            BattleCinematicPlayer.shared.warmLoadout(
+                heroUltimateID: heroUltimateID,
+                companionUltimateID: companionUltimateID
+            )
+            pendingBattlePrewarmTask = nil
+        }
     }
 
     func syncLogForDisplay() {

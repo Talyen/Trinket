@@ -222,7 +222,7 @@ public enum ArtCatalog {
         ),
     ]
 
-    static let abilityArtByID: [String: AbilityArtReference] = [
+    public static let abilityArtByID: [String: AbilityArtReference] = [
         "acid-potion": AbilityArtReference(
             imageName: "ability_acid_potion_thumb"
         ),
@@ -480,7 +480,7 @@ public enum ArtCatalog {
         ),
     ]
 
-    static let itemArtByID: [String: ItemArtReference] = [
+    public static let itemArtByID: [String: ItemArtReference] = [
         "crossbow-astral": ItemArtReference(
             imageName: "item_crossbow_astral",
             thumbnailImageName: "item_crossbow_astral_thumb"

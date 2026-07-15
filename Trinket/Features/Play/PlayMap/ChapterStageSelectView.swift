@@ -54,6 +54,10 @@ struct ChapterStageSelectView: View {
         }
         .onAppear {
             updateMusicPreview()
+            appState.battle.prepareBattlePresentation(
+                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
+                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+            )
         }
         .onChange(of: appState.journey) { _, _ in
             updateMusicPreview()
@@ -113,7 +117,7 @@ private struct ChapterJourneyHero: View {
             artworkBlend: .bottom(into: .canvas)
         ) {
             if let art {
-                Image(art.imageName)
+                Image.preparedAsset(named: art.imageName)
                     .resizable()
                     .scaledToFill()
 

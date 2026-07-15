@@ -18,7 +18,7 @@ struct CombatantArtwork: View {
     var body: some View {
         Group {
             if let artReference = combatant.artReference {
-                Image(imageName(for: artReference))
+                Image.preparedAsset(named: imageName(for: artReference))
                     .resizable()
                     .interpolation(interpolation)
                     .modifier(ArtFillModifier(variant: variant))

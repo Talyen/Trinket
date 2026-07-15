@@ -29,7 +29,7 @@ struct AbilityHeroHeader: View {
     @ViewBuilder
     private var abilityArtwork: some View {
         if let artReference = ability.artReference {
-            Image(artReference.imageName)
+            Image.preparedAsset(named: artReference.imageName)
                 .resizable()
                 .interpolation(.medium)
                 .aspectRatio(contentMode: .fill)

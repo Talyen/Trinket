@@ -17,7 +17,7 @@ struct ItemArtwork: View {
     var body: some View {
         Group {
             if let imageName {
-                Image(imageName)
+                Image.preparedAsset(named: imageName)
                     .resizable()
                     .interpolation(variant == .thumbnail ? .low : .medium)
                     .aspectRatio(contentMode: contentMode)

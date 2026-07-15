@@ -38,7 +38,7 @@ struct CombatantDetailPane: View {
         }
     }
 
-    private var combatBuild: CombatBuild {
+    private var resolvedCombatBuild: CombatBuild {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
@@ -57,11 +57,9 @@ struct CombatantDetailPane: View {
         return GameContent.traits(for: enemy)
     }
 
-    private var effectiveCombatant: Combatant {
-        combatBuild.combatant
-    }
-
     var body: some View {
+        let combatBuild = resolvedCombatBuild
+
         DetailHeroScrollShell(
             title: combatant.name,
             hidesNavigationBar: hidesNavigationBar
@@ -77,17 +75,17 @@ struct CombatantDetailPane: View {
             DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
                 statRow(
                     "Health",
-                    value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)",
+                    value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
                     accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
                 )
                 if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
                     statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
                 }
-                statRow("Strength", value: "\(effectiveCombatant.primaryStats.strength)")
-                statRow("Agility", value: "\(effectiveCombatant.primaryStats.agility)")
-                statRow("Toughness", value: "\(effectiveCombatant.primaryStats.toughness)")
-                statRow("Intellect", value: "\(effectiveCombatant.primaryStats.intellect)")
-                statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
+                statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
+                statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
+                statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
+                statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
+                statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
             }
 
             if let heroOrCompanionTrait {
@@ -205,7 +203,7 @@ struct CombatantDetailPane: View {
         }
     }
 
-    private var currentHealth: Int {
+    private func currentHealth(for combatBuild: CombatBuild) -> Int {
         battleHealth ?? combatBuild.effectiveMaxHealth
     }
 

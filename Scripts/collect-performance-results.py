@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect one-line Battle performance JSON records from xcodebuild logs."""
+"""Collect one-line app performance JSON records from xcodebuild logs."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ def main() -> int:
     records.sort(key=lambda item: (str(item.get("scenario")), int(item.get("iteration", 0))))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps({"reports": records}, indent=2, sort_keys=True) + "\n")
-    print(f"Collected {len(records)} Battle performance reports into {args.output}")
+    print(f"Collected {len(records)} app performance reports into {args.output}")
     return 0 if records else 1
 
 

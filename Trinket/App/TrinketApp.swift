@@ -1,5 +1,6 @@
 import os
 import SwiftUI
+import TrinketContent
 import TrinketPersistence
 
 private let trinketAppLogger = Logger(
@@ -11,6 +12,7 @@ private let trinketAppLogger = Logger(
 struct TrinketApp: App {
     @State private var appState: AppState?
     @State private var bootstrapFailureMessage: String?
+    @State private var artworkCache = PreparedArtworkCache.shared
 
     init() {
         do {
@@ -43,8 +45,17 @@ struct TrinketApp: App {
     var body: some Scene {
         WindowGroup {
             if let appState {
-                ContentView()
-                    .environment(appState)
+                Group {
+                    if artworkCache.isLaunchWarmupComplete {
+                        ContentView()
+                    } else {
+                        LaunchWarmupView(progress: artworkCache.progress)
+                    }
+                }
+                .environment(appState)
+                .task {
+                    await artworkCache.prepareAll(priorityImageNames: priorityImageNames(for: appState))
+                }
             } else {
                 AppBootstrapFailureView(
                     message: bootstrapFailureMessage
@@ -52,5 +63,20 @@ struct TrinketApp: App {
                 )
             }
         }
+    }
+
+    private func priorityImageNames(for appState: AppState) -> [String] {
+        let activeParty = [appState.roster.activeHero, appState.roster.activeCompanion]
+            .compactMap(\.artReference)
+            .flatMap { reference in
+                [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
+            }
+        let activeEnemy = appState.journey.activeStageID
+            .flatMap(GameContent.stage(id:))?
+            .encounterCombatantArtReference
+        let enemyNames = activeEnemy.map { reference in
+            [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
+        } ?? []
+        return activeParty + enemyNames
     }
 }

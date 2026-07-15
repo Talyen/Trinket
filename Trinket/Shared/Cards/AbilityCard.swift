@@ -21,7 +21,7 @@ struct AbilityChoiceCard: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     if let artRef = ability.artReference {
-                        Image(artRef.imageName)
+                        Image.preparedAsset(named: artRef.imageName)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .trinketArtworkBlend(artworkBlend)

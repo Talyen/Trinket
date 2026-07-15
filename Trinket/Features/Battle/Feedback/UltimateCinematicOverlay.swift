@@ -128,7 +128,7 @@ struct UltimateCinematicOverlay: View {
     @ViewBuilder
     private var artLayer: some View {
         if let artRef = ability?.artReference {
-            Image(artRef.imageName)
+            Image.preparedAsset(named: artRef.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
         } else {

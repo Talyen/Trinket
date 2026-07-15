@@ -28,7 +28,7 @@ struct HomesteadResourceArtwork: View {
 
     var body: some View {
         if let art = ArtCatalog.resourceArtByID[resource.rawValue] {
-            Image(art.imageName)
+            Image.preparedAsset(named: art.imageName)
                 .resizable()
                 .scaledToFit()
 

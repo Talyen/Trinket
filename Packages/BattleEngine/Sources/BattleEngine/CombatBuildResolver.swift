@@ -60,7 +60,7 @@ public enum CombatBuildResolver {
         for item: InventoryItem
     ) -> CombatModifierProfile {
         item.affixes.reduce(into: CombatModifierProfile.zero) { partial, affix in
-            guard let definition = GameContent.itemAffixDefinitions.first(where: { $0.id == affix.id }) else {
+            guard let definition = GameContent.itemAffixDefinition(matching: affix.id) else {
                 return
             }
             let power = definition.power(for: item.rarity)

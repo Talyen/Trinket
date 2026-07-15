@@ -10,6 +10,7 @@ enum AccessibilityID {
     enum Debug {
         /// Machine-readable frame-pacing report for performance scenarios (`-enable-frame-metrics`).
         static let frameMetrics = "Frame Metrics"
+        static let frameMetricsReset = "Frame Metrics Reset"
         static let battlePerformanceStart = "Battle Performance Start"
         static let battlePerformanceStatus = "Battle Performance Status"
     }

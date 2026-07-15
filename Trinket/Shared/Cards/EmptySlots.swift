@@ -50,7 +50,7 @@ struct EmptyItemSlotCard: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     if let imageName = (slot.slotBackgroundReference ?? ItemSlot.trinket.slotBackgroundReference)?.imageName {
-                        Image(imageName)
+                        Image.preparedAsset(named: imageName)
                             .resizable()
                             .scaledToFill()
                             .trinketArtworkBlend(artworkBlend)

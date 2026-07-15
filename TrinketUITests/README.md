@@ -26,7 +26,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio` (see `AppEnvironment.parse`)
-- `-enable-frame-metrics` — DEBUG frame-pacing sampler + `AccessibilityID.Debug.frameMetrics` for `BattlePerformanceUITests` (performance plan only; not smoke)
+- `-enable-frame-metrics` — DEBUG frame-pacing sampler plus `AccessibilityID.Debug.frameMetrics` and reset probes for the performance test matrix (not smoke)
 
 Keep default launch args unless testing persistence. Prefer ids from `AccessibilityID` (e.g. `AccessibilityID.Play.stageNode(chapter:stage:)`, `AccessibilityID.Battle.hand`); assert with `assertExists`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
 

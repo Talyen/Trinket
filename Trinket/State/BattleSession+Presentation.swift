@@ -368,13 +368,15 @@ extension BattleSession {
         presentedFeedbackIDs = []
     }
 
-    func clearSpectacle() {
+    func clearSpectacle(releaseCinematicPlayers: Bool = true) {
         activeSkillCallout = nil
         activeCinematic = nil
         deferredFeedbackEvents = []
         softHoldUntil = nil
         actorsWhoPresentedUltimateThisBattle = []
-        BattleCinematicPlayer.shared.releaseAll()
+        if releaseCinematicPlayers {
+            BattleCinematicPlayer.shared.releaseAll()
+        }
     }
 
     func pruneExpiredSkillCallout(at date: Date) {
@@ -410,7 +412,9 @@ extension BattleSession {
 
     func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
-        sfxPlayer?.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
+        // The opening draw is immediate; the remaining battle clips are prepared
+        // incrementally so battle activation never decodes the whole catalog in one frame.
+        sfxPlayer?.warm([SFXID.abilityDraw], concurrentPlayerCount: 2)
         state = BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,
@@ -422,13 +426,13 @@ extension BattleSession {
             tracksLog: false
         )
         clearFeedback()
-        clearSpectacle()
+        clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false
         playSFX(SFXID.abilityDraw) // opening hand
-        BattleCinematicPlayer.shared.warmLoadout(
+        prepareBattlePresentation(
             heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
             companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id
         )

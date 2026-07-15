@@ -452,7 +452,7 @@ struct BattleAbilityCardFace: View {
     var body: some View {
         Group {
             if let artworkName {
-                Image(artworkName)
+                Image.preparedAsset(named: artworkName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {

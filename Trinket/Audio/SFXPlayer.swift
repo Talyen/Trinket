@@ -95,10 +95,15 @@ final class SFXPlayer {
     /// target staggers do not allocate or cut off the immediately preceding hit.
     func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
         guard !isDisabled else { return }
-        configureSessionIfNeeded()
         let desiredCount = max(1, concurrentPlayerCount)
+        let idsNeedingWork = ids.filter { id in
+            (preparedVoicesByID[id]?.count ?? 0) < desiredCount
+        }
+        guard !idsNeedingWork.isEmpty else { return }
 
-        for id in ids {
+        configureSessionIfNeeded()
+
+        for id in idsNeedingWork {
             guard let clip = SFXCatalog.clipsByID[id] else { continue }
             guard let buffer = preparedBuffer(for: clip) else { continue }
             var voices = preparedVoicesByID[id, default: []]

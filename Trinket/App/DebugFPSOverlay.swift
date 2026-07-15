@@ -36,7 +36,7 @@ struct DebugFPSOverlayModifier: ViewModifier {
         content.overlay {
             if runSampler {
                 FramePacingOverlayHost(showVisualBadge: showVisualBadge)
-                    .allowsHitTesting(false)
+                    .allowsHitTesting(enableFrameMetrics)
             }
         }
     }
@@ -71,18 +71,37 @@ private struct FramePacingOverlayHost: View {
                 .accessibilityHidden(false)
                 .frame(width: 1, height: 1)
                 .accessibilityLabel("Frame Metrics")
+
+            HStack {
+                Spacer()
+                Button {
+                    resetMeasurement()
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .foregroundStyle(.clear)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.Debug.frameMetricsReset)
+                Spacer()
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
             monitor.start { report = $0 }
         }
         .onReceive(NotificationCenter.default.publisher(for: FramePacingMeasurementControl.reset)) { _ in
-            report = .empty
-            monitor.resetMeasurement()
+            resetMeasurement()
         }
         .onDisappear {
             monitor.stop()
         }
+    }
+
+    private func resetMeasurement() {
+        report = .empty
+        monitor.resetMeasurement()
     }
 }
 

@@ -14,6 +14,12 @@
   "reference": {},
   "refreshTargetHz": 60,
   "scenarios": [
+    "tab-round-trip",
+    "collection-navigation",
+    "homestead-detail-transition",
+    "campaign-stage-select-transition",
+    "stage-enemy-detail-transition",
+    "stage-select-battle-transition",
     "idle",
     "hand-drag-cancel",
     "first-card-cast-cold",

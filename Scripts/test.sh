@@ -171,7 +171,7 @@ elif [[ "$MODE" == "performance" ]]; then
       fi
     done
   fi
-  echo "Running the dedicated Battle performance scenario matrix..."
+  echo "Running the dedicated app performance scenario matrix..."
   ensure_test_simulator_logged
   performance_repetitions="${TRINKET_PERFORMANCE_REPETITIONS:-5}"
   if [[ ! "$performance_repetitions" =~ ^[0-9]+$ ]] || (( performance_repetitions < 1 )); then

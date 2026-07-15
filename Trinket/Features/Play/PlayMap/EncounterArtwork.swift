@@ -10,12 +10,12 @@ struct EncounterArtwork: View {
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference {
-                Image(combatantArt.thumbnailImageName ?? combatantArt.imageName)
+                Image.preparedAsset(named: combatantArt.thumbnailImageName ?? combatantArt.imageName)
                     .resizable()
                     .scaledToFill()
 
             } else if let art = stage.encounterArtReference {
-                Image(art.thumbnailImageName ?? art.imageName)
+                Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)
                     .resizable()
                     .scaledToFill()
 

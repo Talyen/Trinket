@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare repeated Battle frame reports with goals and an optional calibrated reference."""
+"""Compare repeated app frame reports with goals and an optional calibrated reference."""
 
 from __future__ import annotations
 
@@ -79,7 +79,7 @@ def main() -> int:
 
     mode = str(baseline.get("mode", "observe"))
     lines = [
-        "# Battle performance comparison",
+        "# App performance comparison",
         "",
         f"Mode: `{mode}`. Refresh target: `{baseline['refreshTargetHz']} Hz`.",
         "",

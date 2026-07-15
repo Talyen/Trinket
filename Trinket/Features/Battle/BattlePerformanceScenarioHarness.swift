@@ -21,6 +21,7 @@ struct BattlePerformanceScenarioHarness: View {
     @State private var task: Task<Void, Never>?
 
     private static let measurementDuration: Duration = .seconds(6)
+    private static let measurementWarmup: Duration = .milliseconds(800)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -77,6 +78,10 @@ struct BattlePerformanceScenarioHarness: View {
         )
 
         task = Task { @MainActor in
+            // The display-link sampler intentionally discards its first 0.75 seconds.
+            // Warm it before stimulus so cold casts and other immediate work are measured.
+            try? await Task.sleep(for: Self.measurementWarmup)
+            guard !Task.isCancelled, runGeneration == generation else { return }
             let clock = ContinuousClock()
             let startedAt = clock.now
             await performScenario(runGeneration: runGeneration)

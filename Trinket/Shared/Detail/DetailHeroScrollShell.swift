@@ -11,9 +11,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
 
-    @State private var headerBaseHeight: CGFloat = 300
-    @State private var heroOverscroll: CGFloat = 0
-    @State private var titleOpacity: CGFloat = 0
+    @State private var presentation = ScrollPresentation.initial
 
     init(
         title: String,
@@ -37,7 +35,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
-                    header(headerBaseHeight, heroOverscroll)
+                    header(presentation.headerBaseHeight, presentation.heroOverscroll)
 
                     VStack(alignment: .leading, spacing: 0) {
                         bodyContent()
@@ -50,29 +48,28 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             // Soft edge only once the inline title is pinned — keep hero art sharp at rest.
             .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
             .scrollEdgeEffectStyle(.soft, for: .top)
-            .onScrollGeometryChange(for: ScrollMetrics.self) { geometry in
+            .onScrollGeometryChange(for: ScrollPresentation.self) { geometry in
                 let topInset = geometry.contentInsets.top
-                return ScrollMetrics(
-                    containerWidth: geometry.containerSize.width,
-                    offsetY: geometry.contentOffset.y + topInset,
-                    topInset: topInset,
-                    overscroll: HeroHeaderLayout.overscroll(
+                let headerBaseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
+                let threshold = headerBaseHeight - topInset - 44
+                let offsetY = geometry.contentOffset.y + topInset
+                return ScrollPresentation(
+                    headerBaseHeight: headerBaseHeight,
+                    heroOverscroll: HeroHeaderLayout.overscroll(
                         contentOffsetY: geometry.contentOffset.y,
                         topInset: topInset
-                    )
+                    ),
+                    titleOpacity: min(max((offsetY - threshold) / 32, 0), 1)
                 )
-            } action: { _, metrics in
-                headerBaseHeight = heroHeightPolicy.height(forWidth: metrics.containerWidth)
-                heroOverscroll = metrics.overscroll
-                let threshold = headerBaseHeight - metrics.topInset - 44
-                titleOpacity = min(max((metrics.offsetY - threshold) / 32, 0), 1)
+            } action: { _, newPresentation in
+                presentation = newPresentation
             }
         }
     }
 
     /// Matches the inline title fade so edge blur arrives with pinned chrome, not over hero art.
     private var showsPinnedScrollEdgeEffect: Bool {
-        titleOpacity >= 0.5
+        presentation.titleOpacity >= 0.5
     }
 
     @ViewBuilder
@@ -97,18 +94,25 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     ToolbarItem(placement: .principal) {
                         Text(title)
                             .trinketTypography(.navigation)
-                            .opacity(titleOpacity)
+                            .opacity(presentation.titleOpacity)
                     }
                     .sharedBackgroundVisibility(.hidden)
                 }
         }
     }
 
-    private struct ScrollMetrics: Equatable {
-        var containerWidth: CGFloat
-        var offsetY: CGFloat
-        var topInset: CGFloat
-        var overscroll: CGFloat
+    private struct ScrollPresentation: Equatable {
+        static var initial: ScrollPresentation {
+            ScrollPresentation(
+                headerBaseHeight: 300,
+                heroOverscroll: 0,
+                titleOpacity: 0
+            )
+        }
+
+        var headerBaseHeight: CGFloat
+        var heroOverscroll: CGFloat
+        var titleOpacity: CGFloat
     }
 }
 
