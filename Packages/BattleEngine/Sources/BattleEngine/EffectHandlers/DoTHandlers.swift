@@ -2,11 +2,11 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct DecayingDoTHandler: BattleEffectHandler {
-    public let keyword: Keyword
-    public let kind: EffectKind
+struct DecayingDoTHandler: BattleEffectHandler {
+    let keyword: Keyword
+    let kind: EffectKind
 
-    public init(keyword: Keyword) {
+    init(keyword: Keyword) {
         self.keyword = keyword
         switch keyword {
         case .burn:
@@ -18,7 +18,7 @@ public struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
-    public func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
         guard matches(active.effect) else { return EffectTickOutcome() }
         let slowPercent = context.modifiers(for: target.id).burnDecaySlowPercent
         let nextPotency = keyword == .burn
@@ -49,12 +49,12 @@ public struct DecayingDoTHandler: BattleEffectHandler {
         return EffectTickOutcome(updatedStack: updated, removeAfter: true)
     }
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard stacks.contains(where: \.effect.isDecayingDoT) else { return nil }
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue) active")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability _: Ability,
         source: Combatant,
@@ -95,10 +95,10 @@ public struct DecayingDoTHandler: BattleEffectHandler {
     }
 }
 
-public struct BleedHandler: BattleEffectHandler {
-    public let kind: EffectKind = .bleed
+struct BleedHandler: BattleEffectHandler {
+    let kind: EffectKind = .bleed
 
-    public func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTicks > 0 else {
             return EffectTickOutcome()
         }
@@ -118,7 +118,7 @@ public struct BleedHandler: BattleEffectHandler {
         )
     }
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, activeEffect in
             guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTicks > 0 else {
                 return sum
@@ -129,7 +129,7 @@ public struct BleedHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) damage")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,

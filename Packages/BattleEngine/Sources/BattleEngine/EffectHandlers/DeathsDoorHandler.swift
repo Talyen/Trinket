@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct DeathsDoorHandler: BattleEffectHandler {
-    public let kind: EffectKind = .deathsDoor
+struct DeathsDoorHandler: BattleEffectHandler {
+    let kind: EffectKind = .deathsDoor
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
@@ -13,7 +13,7 @@ public struct DeathsDoorHandler: BattleEffectHandler {
         )
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -25,7 +25,7 @@ public struct DeathsDoorHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: [], didApply: false)
     }
 
-    public func tick(
+    func tick(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleEngineContext

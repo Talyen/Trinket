@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct CleanseHandler: BattleEffectHandler {
-    public let kind: EffectKind = .cleanse
+struct CleanseHandler: BattleEffectHandler {
+    let kind: EffectKind = .cleanse
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -30,10 +30,10 @@ public struct CleanseHandler: BattleEffectHandler {
     }
 }
 
-public struct CleanseRandomHandler: BattleEffectHandler {
-    public let kind: EffectKind = .cleanseRandom
+struct CleanseRandomHandler: BattleEffectHandler {
+    let kind: EffectKind = .cleanseRandom
 
-    public func apply(
+    func apply(
         _: Effect,
         ability: Ability,
         source: Combatant,
@@ -55,10 +55,10 @@ public struct CleanseRandomHandler: BattleEffectHandler {
     }
 }
 
-public struct PurgeHandler: BattleEffectHandler {
-    public let kind: EffectKind = .purge
+struct PurgeHandler: BattleEffectHandler {
+    let kind: EffectKind = .purge
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -83,10 +83,10 @@ public struct PurgeHandler: BattleEffectHandler {
     }
 }
 
-public struct PurgeRandomHandler: BattleEffectHandler {
-    public let kind: EffectKind = .purgeRandom
+struct PurgeRandomHandler: BattleEffectHandler {
+    let kind: EffectKind = .purgeRandom
 
-    public func apply(
+    func apply(
         _: Effect,
         ability: Ability,
         source: Combatant,

@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct InstantHealHandler: BattleEffectHandler {
-    public let kind: EffectKind = .instantHeal
+struct InstantHealHandler: BattleEffectHandler {
+    let kind: EffectKind = .instantHeal
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -37,10 +37,10 @@ public struct InstantHealHandler: BattleEffectHandler {
     }
 }
 
-public struct ResourceGainHandler: BattleEffectHandler {
-    public let kind: EffectKind = .resourceGain
+struct ResourceGainHandler: BattleEffectHandler {
+    let kind: EffectKind = .resourceGain
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -78,10 +78,10 @@ public struct ResourceGainHandler: BattleEffectHandler {
     }
 }
 
-public struct DrawCardsHandler: BattleEffectHandler {
-    public let kind: EffectKind = .drawCards
+struct DrawCardsHandler: BattleEffectHandler {
+    let kind: EffectKind = .drawCards
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,

@@ -37,6 +37,4 @@ public enum EffectHandlers {
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {
         handlerByKind[kind]
     }
-
-    private static let allHandlers: [any BattleEffectHandler] = EffectKind.allCases.compactMap { handlerByKind[$0] }
 }

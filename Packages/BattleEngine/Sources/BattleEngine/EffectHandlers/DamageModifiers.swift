@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct HalveMitigationHandler: BattleEffectHandler {
-    public let kind: EffectKind = .halveMitigation
+struct HalveMitigationHandler: BattleEffectHandler {
+    let kind: EffectKind = .halveMitigation
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -40,10 +40,10 @@ public struct HalveMitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct ControlMeterHandler: BattleEffectHandler {
-    public let kind: EffectKind = .controlMeter
+struct ControlMeterHandler: BattleEffectHandler {
+    let kind: EffectKind = .controlMeter
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let meterStacks = stacks.filter { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
             return meterKeyword == keyword
@@ -61,7 +61,7 @@ public struct ControlMeterHandler: BattleEffectHandler {
         )
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,

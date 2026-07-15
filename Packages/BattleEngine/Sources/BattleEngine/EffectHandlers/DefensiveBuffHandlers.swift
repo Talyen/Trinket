@@ -2,10 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct ShieldHandler: BattleEffectHandler {
-    public let kind: EffectKind = .shield
+struct ShieldHandler: BattleEffectHandler {
+    let kind: EffectKind = .shield
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
             if case let .shield(_, buffer) = effect.effect {
                 return sum + buffer
@@ -16,7 +16,7 @@ public struct ShieldHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -47,10 +47,10 @@ public struct ShieldHandler: BattleEffectHandler {
     }
 }
 
-public struct MitigationHandler: BattleEffectHandler {
-    public let kind: EffectKind = .mitigation
+struct MitigationHandler: BattleEffectHandler {
+    let kind: EffectKind = .mitigation
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
             if case let .mitigation(_, points) = effect.effect {
                 return sum + points
@@ -61,7 +61,7 @@ public struct MitigationHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -92,10 +92,10 @@ public struct MitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct LeechHandler: BattleEffectHandler {
-    public let kind: EffectKind = .leech
+struct LeechHandler: BattleEffectHandler {
+    let kind: EffectKind = .leech
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = stacks.reduce(0.0) { maxPercent, effect in
             if case let .leech(_, value, _) = effect.effect {
                 return max(maxPercent, value)
@@ -115,7 +115,7 @@ public struct LeechHandler: BattleEffectHandler {
         )
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -157,15 +157,15 @@ public struct LeechHandler: BattleEffectHandler {
     }
 }
 
-public struct NextHolyStrikeHandler: BattleEffectHandler {
-    public let kind: EffectKind = .nextHolyStrike
+struct NextHolyStrikeHandler: BattleEffectHandler {
+    let kind: EffectKind = .nextHolyStrike
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(keyword: keyword, text: "Next Holy Strike ready.")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
