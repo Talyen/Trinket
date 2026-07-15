@@ -53,6 +53,20 @@ enum TestLaunchArg {
         return args
     }
 
+    static let enableFrameMetrics = "-enable-frame-metrics"
+
+    static func allForBattlePerformance(
+        _ scenario: String,
+        reset: Bool = true
+    ) -> [String] {
+        var args = allForBattle(reset: reset)
+        // Performance runs exercise the real SFX playback path. Cloud sync remains off
+        // because it is unrelated external work and would reduce repeatability.
+        args.removeAll { $0 == "-disable-audio" }
+        args += [enableFrameMetrics, "-battle-performance-scenario", scenario]
+        return args
+    }
+
     static func allForBattleVictory(reset: Bool = true) -> [String] {
         allForScreen("battle-victory", reset: reset)
     }

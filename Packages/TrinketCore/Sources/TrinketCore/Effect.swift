@@ -89,10 +89,10 @@ public enum Effect: Hashable, Sendable {
     public static func pairedDoT(keyword: Keyword, potency: Int) -> Effect? {
         guard potency > 0 else { return nil }
         switch keyword {
-        case .burn: .burn(potency)
-        case .poison: .poison(potency)
-        case .bleed: .bleed(potency)
-        default: nil
+        case .burn: return .burn(potency)
+        case .poison: return .poison(potency)
+        case .bleed: return .bleed(potency)
+        default: return nil
         }
     }
 

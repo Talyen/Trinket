@@ -6,7 +6,7 @@
 
 ## Intent
 
-Confirm duplicate, weaker, or implementation-detail declarations with a stronger owner elsewhere, then make a bounded set of keep / merge / remove / tier-only changes. A clean pass is valid. Do not chase the band with low-confidence cuts.
+Confirm duplicate, weaker, or implementation-detail declarations with a stronger owner elsewhere, then make a bounded set of keep / merge / remove / tier-only changes. A clean pass is valid. Do not chase the band with low-confidence cuts. Prefer merging to a stronger shared owner over N isolated deletions when duplicates share one semantic gap — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

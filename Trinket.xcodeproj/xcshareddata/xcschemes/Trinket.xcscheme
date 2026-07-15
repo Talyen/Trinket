@@ -41,6 +41,9 @@
             reference = "container:Smoke.xctestplan">
          </TestPlanReference>
          <TestPlanReference
+            reference = "container:BattlePerformance.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
             reference = "container:FullUI.xctestplan">
          </TestPlanReference>
          <TestPlanReference

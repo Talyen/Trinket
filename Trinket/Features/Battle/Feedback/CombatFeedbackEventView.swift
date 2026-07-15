@@ -1,42 +1,114 @@
+import Foundation
 import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-struct CombatFeedbackEventView: View {
+struct CombatFeedbackCanvasItem: Identifiable {
     let item: CombatFeedbackItem
-    let role: CombatFeedbackPresentationRole
-    let laneIndex: Int
-    let textOverride: String?
+    let text: String
 
-    @State private var animationTrigger = false
-    @State private var symbolTrigger = false
+    var id: Int {
+        item.id
+    }
+}
 
-    init(
-        item: CombatFeedbackItem,
-        role: CombatFeedbackPresentationRole? = nil,
-        laneIndex: Int? = nil,
-        textOverride: String? = nil
+/// One asynchronous renderer per combatant pane. A single display clock and canvas
+/// replace the prior independently animated SwiftUI hierarchy while preserving motion.
+struct CombatFeedbackCanvasLayer: View {
+    let items: [CombatFeedbackCanvasItem]
+
+    var body: some View {
+        if !items.isEmpty {
+            TimelineView(.animation) { timeline in
+                Canvas(rendersAsynchronously: true) { context, size in
+                    for item in items {
+                        draw(item, at: timeline.date, in: &context, size: size)
+                    }
+                }
+            }
+        }
+    }
+
+    private func draw(
+        _ canvasItem: CombatFeedbackCanvasItem,
+        at date: Date,
+        in context: inout GraphicsContext,
+        size: CGSize
     ) {
-        self.item = item
-        self.role = role ?? (item.presentationIndex == 0 ? .headline : .secondary)
-        self.laneIndex = laneIndex ?? item.presentationIndex
-        self.textOverride = textOverride
-    }
+        let item = canvasItem.item
+        let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
+        let state = CombatFeedbackMotionSampler.state(for: item, recipe: recipe, at: date)
+        guard state.opacity > 0.001 else { return }
 
-    private var recipe: CombatFeedbackMotionRecipe {
-        TrinketMotion.Battle.chip(for: item.feedbackClass)
-    }
+        let style = item.feedbackVisualStyle
+        let label = Text(Image(systemName: style.symbolName))
+            + Text("  \(canvasItem.text)")
+        var resolved = context.resolve(
+            label
+                .font(recipe.font(for: .headline))
+                .foregroundStyle(style.color)
+        )
+        resolved.shading = .color(style.color)
 
-    private var jitterX: CGFloat {
-        CombatFeedbackLayout.horizontalOffset(
-            seed: item.spawnSeed &+ laneIndex &* 31,
+        let jitterX = CombatFeedbackLayout.horizontalOffset(
+            seed: item.spawnSeed,
             jitter: recipe.horizontalJitter
+        )
+        var layer = context
+        layer.opacity = state.opacity
+        layer.translateBy(
+            x: size.width * 0.5 + CGFloat(state.horizontalOffset) + jitterX,
+            y: size.height * 0.5 + CGFloat(state.verticalOffset)
+        )
+        layer.rotate(by: .degrees(state.rotation))
+        layer.scaleBy(x: CGFloat(state.scale), y: CGFloat(state.scale))
+
+        var shadow = resolved
+        shadow.shading = .color(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
+        layer.draw(shadow, at: CGPoint(x: 0, y: 1.5), anchor: .center)
+        layer.draw(resolved, at: .zero, anchor: .center)
+    }
+}
+
+struct CombatFeedbackAnimationState: Equatable {
+    var opacity = 1.0
+    var scale = 1.0
+    var verticalOffset = 0.0
+    var horizontalOffset = 0.0
+    var rotation = 0.0
+}
+
+enum CombatFeedbackMotionSampler {
+    static func state(
+        for item: CombatFeedbackItem,
+        recipe: CombatFeedbackMotionRecipe,
+        at date: Date
+    ) -> CombatFeedbackAnimationState {
+        let elapsed = max(0, date.timeIntervalSince(item.availableAt))
+        let horizontalDrift = horizontalDrift(for: item, recipe: recipe)
+        let horizontalSamples = adjustedHorizontalSamples(
+            recipe: recipe,
+            horizontalDrift: horizontalDrift
+        )
+        return CombatFeedbackAnimationState(
+            opacity: sample(initial: recipe.initialOpacity, keyframes: recipe.opacity, elapsed: elapsed),
+            scale: sample(initial: recipe.initialScale, keyframes: recipe.scale, elapsed: elapsed),
+            verticalOffset: sample(initial: recipe.initialOffsetY, keyframes: recipe.offsetY, elapsed: elapsed),
+            horizontalOffset: sample(
+                initial: recipe.initialOffsetX,
+                keyframes: horizontalSamples,
+                elapsed: elapsed
+            ),
+            rotation: sample(initial: recipe.initialRotation, keyframes: recipe.rotation, elapsed: elapsed)
         )
     }
 
-    private var floatDriftX: CGFloat {
+    private static func horizontalDrift(
+        for item: CombatFeedbackItem,
+        recipe: CombatFeedbackMotionRecipe
+    ) -> CGFloat {
         let angle = CombatFeedbackLayout.floatAngle(
-            seed: item.spawnSeed &+ laneIndex &* 97,
+            seed: item.spawnSeed &+ item.presentationIndex &* 97,
             range: recipe.floatAngleRange
         )
         let verticalTravel = CGFloat(abs(recipe.offsetY.last?.value ?? -48))
@@ -46,178 +118,65 @@ struct CombatFeedbackEventView: View {
         )
     }
 
-    private var stackY: CGFloat {
-        CombatFeedbackLayout.presentationOffset(index: laneIndex)
-    }
-
-    var body: some View {
-        animatedChip
-            .task(id: item.id) {
-                animationTrigger.toggle()
-                symbolTrigger.toggle()
-            }
-    }
-
-    private var animatedChip: some View {
-        let scale = recipe.scale
-        let opacity = recipe.opacity
-        let offsetY = recipe.offsetY
-        let offsetX = recipe.offsetX
-        let rotation = recipe.rotation
-        let horizontalDrift = floatDriftX
-
-        let baseOffsetX0 = offsetX[safe: 0]?.value ?? recipe.initialOffsetX
-        let baseOffsetX1 = offsetX[safe: 1]?.value ?? baseOffsetX0
-        let baseOffsetX2 = offsetX[safe: 2]?.value ?? baseOffsetX1
-
-        return KeyframeAnimator(
-            initialValue: CombatFeedbackAnimationState(
-                opacity: recipe.initialOpacity,
-                scale: recipe.initialScale,
-                verticalOffset: recipe.initialOffsetY,
-                horizontalOffset: recipe.initialOffsetX,
-                rotation: recipe.initialRotation
-            ),
-            trigger: animationTrigger
-        ) { state in
-            feedbackLabel
-                // Flatten the outlined glyphs once. Only the resulting texture's
-                // transform and opacity change during the animation.
-                .drawingGroup(opaque: false, colorMode: .linear)
-                .scaleEffect(state.scale)
-                .rotationEffect(.degrees(state.rotation))
-                .offset(
-                    x: state.horizontalOffset + jitterX,
-                    y: state.verticalOffset + stackY
+    private static func adjustedHorizontalSamples(
+        recipe: CombatFeedbackMotionRecipe,
+        horizontalDrift: CGFloat
+    ) -> [CombatFeedbackKeyframeSample] {
+        let source = recipe.offsetX.isEmpty
+            ? recipe.offsetY.map {
+                CombatFeedbackKeyframeSample(
+                    value: recipe.initialOffsetX,
+                    duration: $0.duration,
+                    usesSpring: $0.usesSpring
                 )
-                .opacity(state.opacity)
-        } keyframes: { _ in
-            KeyframeTrack(\.scale) {
-                SpringKeyframe(scale[safe: 0]?.value ?? 1.1, duration: scale[safe: 0]?.duration ?? 0.14)
-                SpringKeyframe(scale[safe: 1]?.value ?? 1.0, duration: scale[safe: 1]?.duration ?? 0.22)
-                SpringKeyframe(scale[safe: 2]?.value ?? 0.98, duration: scale[safe: 2]?.duration ?? 0.5)
             }
-            KeyframeTrack(\.opacity) {
-                CubicKeyframe(opacity[safe: 0]?.value ?? 1.0, duration: opacity[safe: 0]?.duration ?? 0.16)
-                CubicKeyframe(opacity[safe: 1]?.value ?? 1.0, duration: opacity[safe: 1]?.duration ?? 0.5)
-                CubicKeyframe(opacity[safe: 2]?.value ?? 0.0, duration: opacity[safe: 2]?.duration ?? 0.25)
-            }
-            KeyframeTrack(\.verticalOffset) {
-                SpringKeyframe(offsetY[safe: 0]?.value ?? -8, duration: offsetY[safe: 0]?.duration ?? 0.14)
-                SpringKeyframe(offsetY[safe: 1]?.value ?? -34, duration: offsetY[safe: 1]?.duration ?? 0.5)
-                SpringKeyframe(offsetY[safe: 2]?.value ?? -48, duration: offsetY[safe: 2]?.duration ?? 0.24)
-            }
-            KeyframeTrack(\.horizontalOffset) {
-                SpringKeyframe(baseOffsetX0, duration: offsetY[safe: 0]?.duration ?? 0.01)
-                SpringKeyframe(baseOffsetX1 + horizontalDrift * 0.62, duration: offsetY[safe: 1]?.duration ?? 0.01)
-                SpringKeyframe(baseOffsetX2 + horizontalDrift, duration: offsetY[safe: 2]?.duration ?? 0.01)
-            }
-            KeyframeTrack(\.rotation) {
-                SpringKeyframe(rotation[safe: 0]?.value ?? 0, duration: rotation[safe: 0]?.duration ?? 0.01)
-                SpringKeyframe(rotation[safe: 1]?.value ?? 0, duration: rotation[safe: 1]?.duration ?? 0.01)
-                SpringKeyframe(rotation[safe: 2]?.value ?? 0, duration: rotation[safe: 2]?.duration ?? 0.01)
-            }
+            : recipe.offsetX
+        let driftFractions = [0.0, 0.62, 1.0]
+        return source.enumerated().map { index, keyframe in
+            CombatFeedbackKeyframeSample(
+                value: keyframe.value + Double(horizontalDrift) * driftFractions[min(index, 2)],
+                duration: keyframe.duration,
+                usesSpring: keyframe.usesSpring
+            )
         }
     }
 
-    @ViewBuilder
-    private var feedbackLabel: some View {
-        if role == .overflow {
-            HStack(spacing: 5) {
-                Image(systemName: "ellipsis")
-                    .font(.callout.weight(.bold))
-                Text(textOverride ?? item.text)
-                    .font(recipe.font(for: .overflow))
+    private static func sample(
+        initial: Double,
+        keyframes: [CombatFeedbackKeyframeSample],
+        elapsed: TimeInterval
+    ) -> Double {
+        var startTime: TimeInterval = 0
+        var startValue = initial
+        for keyframe in keyframes {
+            let endTime = startTime + keyframe.duration
+            if elapsed <= endTime {
+                let rawProgress = keyframe.duration > 0
+                    ? (elapsed - startTime) / keyframe.duration
+                    : 1
+                let progress = min(max(rawProgress, 0), 1)
+                let eased = keyframe.usesSpring
+                    ? 1 - pow(1 - progress, 3)
+                    : progress * progress * (3 - 2 * progress)
+                return startValue + (keyframe.value - startValue) * eased
             }
-            .foregroundStyle(.secondary)
-            .trinketCombatFloatText()
-        } else {
-            let style = item.feedbackVisualStyle
-            HStack(spacing: 6) {
-                Image(systemName: style.symbolName)
-                    .font(symbolFont)
-                    .modifier(SymbolBounceModifier(
-                        enabled: recipe.bouncesSymbol,
-                        trigger: symbolTrigger
-                    ))
-
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(textOverride ?? item.text)
-                        .font(recipe.font(for: role))
-                        .contentTransition(.numericText())
-
-                    if role == .headline,
-                       recipe.showsSecondaryCaption,
-                       let secondary = item.secondaryText {
-                        Text(secondary)
-                            .font(.system(.footnote, design: .rounded).weight(.bold))
-                            .opacity(0.92)
-                    }
-                }
-            }
-            .foregroundStyle(style.color)
-            .trinketCombatFloatText()
+            startTime = endTime
+            startValue = keyframe.value
         }
-    }
-
-    private var symbolFont: Font {
-        switch role {
-        case .headline:
-            if recipe.feedbackClass == .critical {
-                return Font.largeTitle.weight(.black)
-            }
-            return Font.title2.weight(.heavy)
-        case .secondary: return Font.headline.weight(.bold)
-        case .overflow: return Font.callout.weight(.bold)
-        }
+        return keyframes.last?.value ?? initial
     }
 }
 
-struct CombatFeedbackAnimationState {
-    var opacity = 1.0
-    var scale = 1.0
-    var verticalOffset = 0.0
-    var horizontalOffset = 0.0
-    var rotation = 0.0
-}
-
-private struct SymbolBounceModifier: ViewModifier {
-    let enabled: Bool
-    let trigger: Bool
-
-    func body(content: Content) -> some View {
-        if enabled {
-            content.symbolEffect(.bounce, value: trigger)
-        } else {
-            content
-        }
-    }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
-    }
-}
-
-private extension CombatFeedbackItem {
+extension CombatFeedbackItem {
     var feedbackVisualStyle: Keyword.VisualStyle {
         switch feedbackClass {
-        case .heal:
-            .health
-        case .resource:
-            .gold
-        case .block:
-            .block
-        case .dodge:
-            Keyword.dodge.visualStyle
-        case .control:
-            .stun
-        case .deathsDoor:
-            Keyword.deathsDoor.visualStyle
-        case .directDamage, .critical, .dot, .buff:
-            keyword.visualStyle
+        case .heal: .health
+        case .resource: .gold
+        case .block: .block
+        case .dodge: Keyword.dodge.visualStyle
+        case .control: .stun
+        case .deathsDoor: Keyword.deathsDoor.visualStyle
+        case .directDamage, .critical, .dot, .buff: keyword.visualStyle
         }
     }
 }

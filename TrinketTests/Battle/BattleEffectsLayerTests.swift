@@ -1,4 +1,7 @@
+import CoreGraphics
 import Testing
+import TrinketCore
+import TrinketDesignSystem
 @testable import Trinket
 
 @MainActor
@@ -9,5 +12,22 @@ struct CardActivationTests {
 
         #expect(first == second)
         #expect(CardActivationParticle.make(count: -1).isEmpty)
+    }
+
+    @Test func cardActivationRequestNormalizesKeywords() {
+        let request = CardActivationRequest(
+            artworkName: nil,
+            center: .zero,
+            size: CGSize(width: 100, height: 140),
+            rotation: 0,
+            verticalTilt: 0,
+            scale: 1,
+            keywords: [.burn, .burn, .physical]
+        )
+
+        #expect(request.keywords == [.burn, .physical])
+        #expect(request.particleCount == TrinketMotion.Battle.cardCastParticleCount)
+        #expect(request.particles.count == TrinketMotion.Battle.cardCastParticleCount)
+        #expect(abs(request.perspective - 0.35) < 0.0001)
     }
 }

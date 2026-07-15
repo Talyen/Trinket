@@ -291,8 +291,16 @@ final class BattleSession {
         autoEndHomestead = homestead
         guard canEndTurn, var battleState = state else { return nil }
 
+        BattleFramePacingSignposts.event(
+            BattleFramePacingSignposts.Name.turnTransition,
+            detail: "phase=begin hand=\(battleState.hand.count)"
+        )
         let events = battleState.endTurn(rebuildLog: false)
         state = battleState
+        BattleFramePacingSignposts.event(
+            BattleFramePacingSignposts.Name.turnTransition,
+            detail: "phase=resolved events=\(events.count) hand=\(battleState.hand.count)"
+        )
         // Draw SFX only when the round completed and cards were dealt for the next turn.
         if battleState.phase == .playerTurn {
             playSFX(SFXID.abilityDraw)

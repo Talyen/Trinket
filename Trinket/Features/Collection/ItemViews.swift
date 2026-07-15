@@ -52,10 +52,11 @@ struct InventoryGridView: View {
                             } label: {
                                 ItemCard(
                                     item: item,
-                                    showsAffixCount: true
+                                    showsAffixCount: true,
+                                    artworkBlend: .perimeter(into: .surface)
                                 )
                             }
-                            .buttonStyle(.plain)
+                            .trinketQuietTapButtonStyle()
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }

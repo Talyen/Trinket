@@ -7,6 +7,7 @@ struct AbilityChoiceCard: View {
     var lockLabel: String?
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
+    var artworkBlend: ArtworkBlend = .none
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
 
@@ -23,6 +24,7 @@ struct AbilityChoiceCard: View {
                         Image(artRef.imageName)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
+                            .trinketArtworkBlend(artworkBlend)
                             .clipShape(TrinketDesign.cardShape)
 
                     } else {

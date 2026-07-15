@@ -20,7 +20,8 @@ Usage: ./Scripts/agent-context.sh [--agent|--json] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
-verification plan. Paths are repository-relative; --paths consumes all remaining
+verification plan. Agents should run the recommended verify-changed --isolate
+command. Paths are repository-relative; --paths consumes all remaining
 arguments. Without --paths, the working tree is classified.
 USAGE
       exit 0
@@ -148,9 +149,29 @@ print_agent() {
     printf 'Generated-output warnings:\n  %s\n' "${TRINKET_GENERATED_WARNINGS[@]}"
   fi
 
-  printf 'Verification (sequential):\n'
+  printf 'Verification (agents: always --isolate):\n'
+  if [[ "$PATH_MODE" == explicit ]]; then
+    printf '  ./Scripts/verify-changed.sh --isolate --paths'
+    local path
+    for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+      printf ' %s' "$path"
+    done
+    printf '\n'
+  else
+    printf '  ./Scripts/verify-changed.sh --isolate\n'
+  fi
+  printf 'Plan detail (sequential under that tenant):\n'
   if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then
-    printf '  %s\n' "${TRINKET_VERIFICATION_COMMANDS[@]}"
+    local cmd
+    for cmd in "${TRINKET_VERIFICATION_COMMANDS[@]}"; do
+      if [[ "$cmd" == *"./Scripts/test.sh"* \
+         || "$cmd" == *"./Scripts/test-package.sh"* \
+         || "$cmd" == *"./Scripts/build.sh"* ]]; then
+        printf '  TRINKET_ISOLATE=1 %s\n' "$cmd"
+      else
+        printf '  %s\n' "$cmd"
+      fi
+    done
   else
     printf '  (none; review docs/tooling directly)\n'
   fi

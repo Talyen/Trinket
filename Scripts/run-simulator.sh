@@ -4,9 +4,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BUNDLE_ID="com.ryanmcintire.Trinket"
-DERIVED_DATA_PATH="$PWD/.DerivedData"
+
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+trinket_run_env_init
+trinket_run_env_print
+
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
-RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 
 # shellcheck source=build-inputs.sh
 source ./Scripts/build-inputs.sh
@@ -14,6 +18,7 @@ prepare_generated_inputs "$RESULTS_DIR"
 
 # shellcheck source=ensure-simulator.sh
 source ./Scripts/ensure-simulator.sh
+trinket_sim_slot_ensure
 ensure_test_simulator
 
 xcodebuild build \

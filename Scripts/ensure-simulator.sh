@@ -151,6 +151,14 @@ ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
+  local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
+
+  # Never shut down or delete a device that does not belong to this run's name.
+  if [[ -n "${SIMULATOR_UDID:-}" && -n "${SIMULATOR_NAME:-}" && "$SIMULATOR_NAME" != "$owned_name" ]]; then
+    echo "Warning: ignoring foreign simulator $SIMULATOR_NAME ($SIMULATOR_UDID); using $owned_name." >&2
+    SIMULATOR_UDID=""
+  fi
+  SIMULATOR_NAME="$owned_name"
 
   if [[ -n "${SIMULATOR_UDID:-}" && -z "$force" ]]; then
     if boot_simulator; then
@@ -159,8 +167,17 @@ ensure_test_simulator() {
     fi
   fi
 
-  if [[ -n "${SIMULATOR_UDID:-}" ]]; then
-    echo "Force-resetting simulator: $SIMULATOR_NAME ($SIMULATOR_UDID)"
+  if [[ -n "${SIMULATOR_UDID:-}" && -n "$force" ]]; then
+    echo "Force-resetting simulator (erase): $SIMULATOR_NAME ($SIMULATOR_UDID)"
+    xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+    if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null; then
+      if boot_simulator; then
+        SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+        echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
+        return 0
+      fi
+    fi
+    echo "Erase/reboot failed; deleting simulator and recreating..." >&2
     xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
     xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
     SIMULATOR_UDID=""
@@ -174,11 +191,17 @@ ensure_test_simulator() {
     fi
 
     if (( attempt < max_attempts )); then
-      echo "Simulator setup failed; deleting it and retrying once..." >&2
+      echo "Simulator setup failed; erasing and retrying once..." >&2
       if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-        echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying once with a new simulator."
+        echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying once after erase (or recreate)."
       fi
       if [[ -n "${SIMULATOR_UDID:-}" ]]; then
+        xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+        if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null && boot_simulator; then
+          SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+          echo "Simulator ready after erase retry: $SIMULATOR_DESTINATION"
+          return 0
+        fi
         xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
         xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
         SIMULATOR_UDID=""

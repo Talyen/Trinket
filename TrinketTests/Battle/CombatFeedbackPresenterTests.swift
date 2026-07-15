@@ -207,6 +207,45 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3, 4])
     }
 
+    @Test func overlayKeepsOnlyNewestActionGroupPerCombatant() {
+        let first = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical)],
+            at: Date(timeIntervalSince1970: 10)
+        )
+        let second = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 2, kind: .ability, amount: 4, keyword: .burn)],
+            at: Date(timeIntervalSince1970: 10.65)
+        )
+
+        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: first + second)
+
+        #expect(groups.count == CombatFeedbackOverlayPolicy.maxSimultaneousActionGroups)
+        #expect(groups.first?.id == 2)
+        #expect(groups.first?.items.map(\.id) == [2])
+    }
+
+    @Test func overlayCondensesAnActionGroupIntoOneCanvasLabel() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 7, keyword: .physical),
+                makeEvent(
+                    id: 2,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 4,
+                    keyword: .block
+                )
+            ],
+            at: Date(timeIntervalSince1970: 10)
+        )
+
+        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
+        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: groups)
+
+        #expect(canvasItems.count == 1)
+        #expect(canvasItems.first?.text.contains("+1 Effect") == true)
+    }
+
     @Test func burstsSkipUtilityClasses() {
         let now = Date(timeIntervalSince1970: 10)
         let items = CombatFeedbackPresenter.makeItems(

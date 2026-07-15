@@ -8,7 +8,7 @@
 
 ## Intent
 
-Select one affected flow, confirm a navigation/feedback/accessibility defect by exercising it or using focused UI-test evidence, and make a bounded set of clear fixes. A clean pass is valid.
+Select one affected flow, confirm a navigation/feedback/accessibility defect by exercising it or using focused UI-test evidence, and make a bounded set of clear fixes. A clean pass is valid. If several defects in the flow share one interaction or feedback pattern, prefer that root-cause remedy — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

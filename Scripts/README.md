@@ -92,22 +92,47 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 | Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
 | Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
 | Integration | `test.sh all` | Nightly / manual |
+| Battle performance | `performance.sh` | Exclusive repeated full-fidelity matrix; nightly calibration |
 
 For agent or local task handoffs, `./Scripts/agent-context.sh --paths <file...>`
 prints a compact briefing with applicable nested `AGENTS.md` guides, context
 cards/skills, generated-output and boundary warnings, and the verification route.
 Use `--json` for machine-readable output or `--agent` for a concise handoff.
 Without `--paths`, it reports the entire working tree, which is useful only when the
-tree represents one task. `./Scripts/verify-changed.sh --dry-run --paths <file...>`
-is the authoritative sequential-plan preview; without `--dry-run`, it generates
-inputs once and runs the selected focused checks.
-It intentionally does not replace the pre-push or pre-merge gates.
+tree represents one task. Agents must run
+`./Scripts/verify-changed.sh --isolate --paths <file...>` (preview with `--dry-run`).
+`--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
+DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
+agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
+(default 3); slot sims stay Booted between runs. Humans/CI may omit `--isolate` to keep
+the shared warm cache. It intentionally does
+not replace the pre-push or pre-merge gates.
 
-`test.sh` runs the generation preflight, then builds and tests (unless `--no-build`). XcodeGen uses its cache so unchanged project inputs do not rewrite the project, and the app/test source roots are Xcode synchronized folders so ordinary source-file additions and deletions do not require regeneration. CI reports timing regressions from per-run artifacts, but does not fail a passing suite solely because hosted-runner session overhead exceeds a wall-clock budget. Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`.
+`test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
+Generation uses a shared lock (timeout via `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS`,
+default 120). Isolated runs take an agent sim slot; UI/smoke modes also take a fail-fast
+UI concurrency slot (`TRINKET_MAX_CONCURRENT_UI`, default 2). XcodeGen uses its cache so
+unchanged project inputs do not rewrite the project, and the app/test source roots are
+Xcode synchronized folders so ordinary source-file additions and deletions do not require
+regeneration. CI reports timing regressions from per-run artifacts, but does not fail a
+passing suite solely because hosted-runner session overhead exceeds a wall-clock budget.
+Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run dirs are
+kept; one-off legacy run dirs under `.DerivedData/runs/` and orphan `Trinket Run *`
+simulators are pruned by `./Scripts/prune-derived-data-cache.sh` (age via
+`TRINKET_RUN_MAX_AGE_DAYS`, default 3; set `TRINKET_PRUNE_ORPHAN_SIMULATORS=0` to skip
+sim deletes). Parallel source trees:
+`./Scripts/agent-worktree.sh create <slug>`.
+
+`performance.sh` is intentionally separate from smoke and integration gates. It takes an
+exclusive Battle-performance lock, forces one UI lane, runs `BattlePerformance.xctestplan`
+with five repetitions, collects raw frame reports, and compares them with the observe/enforce
+policy in `Performance/Baselines/simulator-60.json`. Use `test.sh performance <Class[/method]>`
+only for focused harness iteration; use `performance.sh` for comparable artifacts.
 
 For failure report schemas and triage order, read
 `Docs/AgentContext/ci-diagnostics.md`. Operators can aggregate current reports with
-`./Scripts/ci-diagnostics.sh .DerivedData/TestResults` or clear cached status and
+`./Scripts/ci-diagnostics.sh .DerivedData/TestResults` (or the isolated
+`.DerivedData/runs/agent-N/TestResults`) or clear cached status and
 diagnostic artifacts with `./Scripts/ci-diagnostics.sh --reset
 .DerivedData/TestResults`. Consume the structured aggregate and per-invocation reports
 before raw xcodebuild logs; an `unknown` category is the explicit escalation path.
@@ -138,7 +163,8 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
 | `./Scripts/changed-source-summary.sh [--paths <file...>]` | Summarize task-scoped or working-tree changes and focused agent route |
-| `./Scripts/verify-changed.sh [--dry-run] [--paths <file...>]` | Run the minimum sequential verification selected from task-scoped or working-tree changes |
+| `./Scripts/verify-changed.sh [--dry-run] [--isolate] [--paths <file...>]` | Run the minimum sequential verification; agents always pass `--isolate` |
+| `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
 

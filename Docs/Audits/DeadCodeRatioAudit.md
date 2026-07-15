@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package.
+Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package. If many unused symbols share one dead surface or misplaced API layer, prefer that cohesive cleanup — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

@@ -6,14 +6,14 @@
 
 ## Intent
 
-Inventory custom vs tokenized vs justified-custom, then fix **one** cluster — prefer adopting existing DesignSystem tokens over inventing new systems.
+Inventory custom vs tokenized vs justified-custom, then fix **one** cluster — prefer adopting existing DesignSystem tokens over inventing new systems. When the right-sized remedy is a shared DesignSystem API or layout helper rather than N call-site patches, prefer that — and propose it when significant per [README.md](README.md).
 
 **Principles:** one spacing scale (`TrinketDesign.Metrics`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
 
 ## Hard stops
 
 - Cap: **one cluster** — not a repo-wide sweep or full-tab visual redesign.
-- Do not rewrite battle battlefield proportional layout in one pass.
+- Do not rewrite battle battlefield proportional layout unsupervised in one pass — propose a scoped migration if that is the right-sized cluster.
 - Do not replace intentional game juice: combat float keyframe recipes, `trinketCombatFloatText` shadows, 3:4 card identity (`TrinketDesign.cardShape`).
 - Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
 

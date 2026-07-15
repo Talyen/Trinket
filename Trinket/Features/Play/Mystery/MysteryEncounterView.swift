@@ -111,7 +111,8 @@ struct MysteryEncounterView: View {
                                     item: item,
                                     showsAffixCount: false,
                                     showsName: false,
-                                    appliesCardSurface: false
+                                    appliesCardSurface: false,
+                                    artworkBlend: .perimeter(into: .canvas)
                                 )
                                 Text(item.displayName)
                                     .trinketTypography(.badge)
@@ -122,7 +123,7 @@ struct MysteryEncounterView: View {
                             }
                         }
                         // UIStyleCheck: allow - Mystery item pick uses card art without button chrome.
-                        .buttonStyle(.plain)
+                        .trinketQuietTapButtonStyle()
                         .disabled(session.isResolvingChoice)
                         .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemCard(itemID: item.id))
                     }
@@ -137,6 +138,7 @@ struct MysteryEncounterView: View {
         if session.combatant != nil {
             EncounterArtwork(stage: recruitArtworkStage)
                 .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
+                .trinketArtworkBlend(.perimeter(into: .canvas))
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
 
@@ -182,7 +184,7 @@ struct MysteryEncounterView: View {
             primaryActionTitle: "Recruit",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
-            onPrimaryAction: appState.finishActiveMysteryEncounter,
+            onPrimaryAction: { _ = appState.finishActiveMysteryEncounter() },
             pinsPrimaryActionToBottom: true
         )
         .onAppear {
@@ -206,13 +208,14 @@ struct MysteryEncounterView: View {
                 ZStack(alignment: .bottom) {
                     CombatantArtwork(combatant: combatant, variant: .hero)
                         .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                        .trinketArtworkBlend(.perimeter(into: .canvas))
                 }
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
                 .frame(maxWidth: 430)
             }
             // UIStyleCheck: allow - Unlock art opens detail without button chrome.
-            .buttonStyle(.plain)
+            .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
         }
     }

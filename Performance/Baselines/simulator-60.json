@@ -1,0 +1,32 @@
+{
+  "absoluteMissedRatioRegressionFloor": 0.002,
+  "goals": {
+    "maximumMissedDeadlineRatio": 0.005,
+    "maximumP99FrameMs": 20.0,
+    "maximumSevereStallCount": 0,
+    "minimumAverageFPS": 60.0,
+    "minimumOnePercentLowFPS": 60.0,
+    "minimumPointOnePercentLowFPS": 60.0
+  },
+  "maximumRegressionPercent": 10.0,
+  "minimumIterations": 5,
+  "mode": "observe",
+  "reference": {},
+  "refreshTargetHz": 60,
+  "scenarios": [
+    "idle",
+    "hand-drag-cancel",
+    "first-card-cast-cold",
+    "repeated-card-casts",
+    "maximum-concurrent-casts",
+    "feedback-chips-only",
+    "feedback-reactions-only",
+    "keyword-bursts-only",
+    "dense-feedback",
+    "turn-transition",
+    "ultimate-cinematic",
+    "audio-playback",
+    "combined-worst-case"
+  ],
+  "schemaVersion": 1
+}

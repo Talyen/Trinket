@@ -124,6 +124,7 @@ struct ShopEncounterView: View {
     private var merchantArtwork: some View {
         EncounterArtwork(stage: session.stage)
             .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
+            .trinketArtworkBlend(.perimeter(into: .canvas))
             .clipShape(TrinketDesign.cardShape)
             .trinketCardSurface()
             .frame(maxWidth: .infinity)
@@ -157,11 +158,12 @@ struct ShopEncounterView: View {
                             item: offer.item,
                             showsAffixCount: false,
                             showsName: false,
-                            appliesCardSurface: false
+                            appliesCardSurface: false,
+                            artworkBlend: .perimeter(into: .canvas)
                         )
                     }
                     // UIStyleCheck: allow - Offer card opens item detail without button chrome.
-                    .buttonStyle(.plain)
+                    .trinketQuietTapButtonStyle()
                     .accessibilityIdentifier(AccessibilityID.Shop.offerCard(offerID: offer.id))
 
                     Button {
@@ -170,7 +172,7 @@ struct ShopEncounterView: View {
                         buyButtonLabel(offer: offer, soldOut: soldOut, canBuy: canBuy)
                     }
                     // UIStyleCheck: allow - Compact price chip buy control without full primary chrome.
-                    .buttonStyle(.plain)
+                    .trinketQuietTapButtonStyle()
                     .disabled(!canBuy || session.isPurchasing)
                     .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
                 }

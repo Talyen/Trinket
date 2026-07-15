@@ -6,7 +6,7 @@
 
 ## Intent
 
-Confirm P0–P2 UI-test candidates with a focused current run, then make a bounded set of fixes. A clean pass is valid.
+Confirm P0–P2 UI-test candidates with a focused current run, then make a bounded set of fixes. A clean pass is valid. If several flakes or weak assertions share one page-object or harness gap, prefer that root-cause remedy — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

@@ -88,7 +88,6 @@ enum HomesteadPalette {
     static let elevatedPanel = TrinketDesign.Colors.elevated
     static let stroke = TrinketDesign.Colors.subtleStroke
     static let mutedText = Color.secondary
-    static let pressedFill = TrinketDesign.Colors.accent.opacity(0.14)
 }
 
 public struct TrinketScreenBackground: View {

@@ -23,9 +23,20 @@ struct CombatantDetailPane: View {
     /// is presenting this view. No nested UISheetPresentationControllers.
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
-    @State private var selectedItem: InventoryItem?
+    @State private var pendingItemEquip: PendingItemEquip?
     @State private var selectedAbility: Ability?
     @State private var selectionFeedbackTrigger = 0
+
+    /// Pairs the destination slot with the picked item so Equip does not re-read
+    /// `selectedItemSlot` from a nested navigation action (which can miss @State).
+    private struct PendingItemEquip: Hashable, Identifiable {
+        let slot: ItemSlot
+        let item: InventoryItem
+
+        var id: String {
+            "\(slot.rawValue)::\(item.id)"
+        }
+    }
 
     private var combatBuild: CombatBuild {
         CombatBuildResolver.build(
@@ -133,7 +144,7 @@ struct CombatantDetailPane: View {
                 slot: slot,
                 equipmentLoadout: equipmentLoadout,
                 inventoryState: inventoryState,
-                onOpenDetail: { selectedItem = $0 }
+                onOpenDetail: { pendingItemEquip = PendingItemEquip(slot: slot, item: $0) }
             )
         }
         .navigationDestination(item: $selectedAbilityTier) { tier in
@@ -144,13 +155,13 @@ struct CombatantDetailPane: View {
                 onOpenDetail: { selectedAbility = $0 }
             )
         }
-        .navigationDestination(item: $selectedItem) { item in
+        .navigationDestination(item: $pendingItemEquip) { pending in
             ItemDetailView(
-                item: item,
-                primaryActionTitle: "Equip \(selectedItemSlot?.displayName ?? item.baseType.slot.displayName)",
-                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
+                item: pending.item,
+                primaryActionTitle: "Equip \(pending.slot.displayName)",
+                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(pending.item.id),
                 dismissAfterPrimaryAction: true,
-                onPrimaryAction: { equip(item) }
+                onPrimaryAction: { equip(pending.item, in: pending.slot) }
             )
         }
         .navigationDestination(item: $selectedAbility) { ability in
@@ -205,15 +216,16 @@ struct CombatantDetailPane: View {
         selectedAbilityTier = nil
     }
 
-    private func equip(_ item: InventoryItem) {
-        guard let selectedItemSlot else { return }
-        equipmentLoadout.equip(item, in: selectedItemSlot)
+    private func equip(_ item: InventoryItem, in slot: ItemSlot) {
+        var updated = equipmentLoadout
+        updated.equip(item, in: slot)
+        equipmentLoadout = updated
         appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
         selectionFeedbackTrigger += 1
-        selectedItem = nil
+        pendingItemEquip = nil
         Task { @MainActor in
             await Task.yield()
-            self.selectedItemSlot = nil
+            selectedItemSlot = nil
         }
     }
 

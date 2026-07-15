@@ -6,7 +6,7 @@
 
 ## Intent
 
-Fix a small, cohesive set of confirmed high-impact persistence or transition issues. A clean pass is valid; do not add guards or logs solely to create work.
+Fix a small, cohesive set of confirmed high-impact persistence or transition issues. A clean pass is valid; do not add guards or logs solely to create work. If several hits share one missing boundary or invariant, prefer proposing that shared seam over N one-off guards — see [README.md](README.md).
 
 ## Hard stops
 

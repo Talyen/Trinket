@@ -41,8 +41,7 @@ struct HomesteadProjectRow: View {
                 NavigationLink(value: definition) {
                     rowContent
                 }
-                .buttonStyle(.plain)
-                .trinketNavigationRowButtonStyle()
+                .trinketQuietTapButtonStyle()
             }
         }
 
@@ -56,6 +55,7 @@ struct HomesteadProjectRow: View {
                     width: HomesteadProjectRowMetrics.artworkWidth,
                     height: HomesteadProjectRowMetrics.artworkHeight
                 )
+                .trinketArtworkBlend(.perimeter(into: .canvas))
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
 

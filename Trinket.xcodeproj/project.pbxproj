@@ -52,6 +52,7 @@
 		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
 		F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */ = {isa = PBXFileReference; path = QuickSmoke.xctestplan; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
+		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -193,6 +194,7 @@
 		4C496176F4614A5DBFEF2CFF = {
 			isa = PBXGroup;
 			children = (
+				FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */,
 				E89691B00998EAF137303F2E /* FullUI.xctestplan */,
 				4058BC1CE8ECD030168E8758 /* Integration.xctestplan */,
 				F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */,
@@ -401,6 +403,7 @@
 				CODE_SIGN_ENTITLEMENTS = Trinket/Trinket.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -525,6 +528,7 @@
 				CODE_SIGN_ENTITLEMENTS = Trinket/Trinket.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

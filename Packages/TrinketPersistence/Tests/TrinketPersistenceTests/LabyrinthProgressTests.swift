@@ -1,11 +1,27 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 import TrinketTestSupport
+@testable import TrinketPersistence
 
 @Suite("LabyrinthProgress")
 struct LabyrinthProgressTests {
+    private func makeWardenSave(seed: UInt64) -> PlayerSave {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: seed)
+        let nodeID = "labyrinth-test-warden-" + String(seed)
+        save.labyrinth.nodes[nodeID] = LabyrinthNode(
+            id: nodeID,
+            type: .warden,
+            enemyID: "the_frostwarden",
+            depth: 3,
+            clusterID: "labyrinth-test",
+            isRevealed: true
+        )
+        return save
+    }
+
     @Test func ensureMapCreatesReachableNodes() {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 99)
@@ -249,24 +265,9 @@ struct LabyrinthProgressTests {
     }
 
     @Test func pendingCombatRewardItemMatchesCompletionGrantForWarden() throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 41)
-        let wardenID = try #require(
-            save.labyrinth.nodes.values.first(where: { $0.type.canonical == .warden })?.id
-        )
-        // Make the warden reachable for completion.
-        if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
-            if !entrance.outgoingIDs.contains(wardenID) {
-                entrance.outgoingIDs.append(wardenID)
-                save.labyrinth.nodes[entrance.id] = entrance
-            }
-        }
-        guard var warden = save.labyrinth.nodes[wardenID] else {
-            Issue.record("Missing warden")
-            return
-        }
-        warden.isRevealed = true
-        save.labyrinth.nodes[wardenID] = warden
+        var save = makeWardenSave(seed: 41)
+        let wardenID = "labyrinth-test-warden-41"
+        let warden = try #require(save.labyrinth.nodes[wardenID])
 
         let effects = save.labyrinth.effects(for: wardenID)
         let pending = try #require(
@@ -289,24 +290,9 @@ struct LabyrinthProgressTests {
         #expect(save.inventory.items.filter { $0.id == pending.id }.count == 1)
     }
 
-    @Test func combatCompletionUsesStableRewardItemID() throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 7)
-        let wardenID = try #require(
-            save.labyrinth.nodes.values.first(where: { $0.type.canonical == .warden })?.id
-        )
-        if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
-            if !entrance.outgoingIDs.contains(wardenID) {
-                entrance.outgoingIDs.append(wardenID)
-                save.labyrinth.nodes[entrance.id] = entrance
-            }
-        }
-        guard var warden = save.labyrinth.nodes[wardenID] else {
-            Issue.record("Missing warden")
-            return
-        }
-        warden.isRevealed = true
-        save.labyrinth.nodes[wardenID] = warden
+    @Test func combatCompletionUsesStableRewardItemID() {
+        var save = makeWardenSave(seed: 7)
+        let wardenID = "labyrinth-test-warden-7"
 
         LabyrinthCompletion.complete(
             nodeID: wardenID,
@@ -346,7 +332,10 @@ struct LabyrinthProgressTests {
         let firstPayload = try #require(model.mapPayload)
 
         model.update(from: state)
-        #expect(model.mapPayload == firstPayload)
+        let secondPayload = try #require(model.mapPayload)
+        let firstMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: firstPayload)
+        let secondMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: secondPayload)
+        #expect(secondMap == firstMap)
 
         let reloaded = model.toPlayerLabyrinthState()
         #expect(reloaded.nodes.count == state.nodes.count)

@@ -6,6 +6,7 @@ struct CombatantCard: View {
     let combatant: Combatant
     var isLocked: Bool = false
     var showsName: Bool = true
+    var artworkBlend: ArtworkBlend = .none
 
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -13,6 +14,7 @@ struct CombatantCard: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)
+                        .trinketArtworkBlend(artworkBlend)
                         .clipShape(TrinketDesign.cardShape)
                 }
                 .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
@@ -36,6 +38,7 @@ struct CollectionCombatantButton: View {
     let isLocked: Bool
     var cardWidth: CGFloat? = 130
     var showsName: Bool = true
+    var artworkBlend: ArtworkBlend = .perimeter(into: .surface)
     let onSelect: () -> Void
 
     var body: some View {
@@ -45,19 +48,21 @@ struct CollectionCombatantButton: View {
                     CombatantCard(
                         combatant: combatant,
                         isLocked: isLocked,
-                        showsName: showsName
+                        showsName: showsName,
+                        artworkBlend: artworkBlend
                     )
                     .frame(width: cardWidth)
                 } else {
                     CombatantCard(
                         combatant: combatant,
                         isLocked: isLocked,
-                        showsName: showsName
+                        showsName: showsName,
+                        artworkBlend: artworkBlend
                     )
                 }
             }
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .allowsHitTesting(!isLocked)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.collectionCard(name: combatant.name))
     }

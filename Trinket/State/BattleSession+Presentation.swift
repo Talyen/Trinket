@@ -153,7 +153,7 @@ extension BattleSession {
     private func scheduleOutcomePresentation(
         after date: Date,
         expected: BattleSimulationOutcome,
-        sfx: SFXID,
+        sfx: String,
         show: @escaping @MainActor (BattleSession) -> Void
     ) {
         pendingOutcomePresentationTask?.cancel()
@@ -347,6 +347,10 @@ extension BattleSession {
 
     func playSFX(_ id: String) {
         guard let sfxPlayer else { return }
+        BattleFramePacingSignposts.event(
+            BattleFramePacingSignposts.Name.audioPlayback,
+            detail: "clip=\(id)"
+        )
         sfxPlayer.play(id, volume: options?.effectsVolume ?? 0)
     }
 

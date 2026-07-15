@@ -6,7 +6,7 @@
 
 ## Intent
 
-Find unsafe escapes via compiler/linter output and targeted probes. Fix a bounded set of confirmed issues; a clean pass is valid.
+Find unsafe escapes via compiler/linter output and targeted probes. Fix a bounded set of confirmed issues; a clean pass is valid. If several escapes share one typing or validation seam, prefer that root-cause remedy over N local patches — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

@@ -53,7 +53,10 @@ enum SFXID {
 final class SFXPlayer {
     private let isDisabled: Bool
     private var hasConfiguredSession = false
-    private var preparedPlayersByID: [String: [AVAudioPlayer]] = [:]
+    private let engine = AVAudioEngine()
+    private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
+    private var buffersByID: [String: AVAudioPCMBuffer] = [:]
+    private var nextVoiceIndexByID: [String: Int] = [:]
     private let logger = Logger(
         subsystem: AudioLogging.subsystem,
         category: "Audio"
@@ -72,19 +75,20 @@ final class SFXPlayer {
         }
 
         configureSessionIfNeeded()
-        if preparedPlayersByID[id] == nil {
+        if preparedVoicesByID[id] == nil {
             warm([id])
         }
-        guard let players = preparedPlayersByID[id],
-              let player = players.first(where: { !$0.isPlaying })
-              ?? players.max(by: { $0.currentTime < $1.currentTime }) else { return }
+        guard startEngineIfNeeded(),
+              let voices = preparedVoicesByID[id],
+              !voices.isEmpty else { return }
 
-        if player.isPlaying {
-            player.stop()
-        }
-        player.currentTime = 0
-        player.volume = min(Float(max(0, volume) * max(0, clip.volumeGain)), 1)
-        player.play()
+        let voiceIndex = (nextVoiceIndexByID[id] ?? 0) % voices.count
+        nextVoiceIndexByID[id] = (voiceIndex + 1) % voices.count
+        let voice = voices[voiceIndex]
+        voice.node.stop()
+        voice.node.volume = min(Float(max(0, volume) * max(0, clip.volumeGain)), 1)
+        voice.node.scheduleBuffer(voice.buffer)
+        voice.node.play()
     }
 
     /// Prepares a small overlap pool. Battle uses two players per clip so rapid
@@ -96,25 +100,32 @@ final class SFXPlayer {
 
         for id in ids {
             guard let clip = SFXCatalog.clipsByID[id] else { continue }
-            var players = preparedPlayersByID[id, default: []]
-            while players.count < desiredCount {
-                guard let player = makePreparedPlayer(for: clip) else { break }
-                players.append(player)
+            guard let buffer = preparedBuffer(for: clip) else { continue }
+            var voices = preparedVoicesByID[id, default: []]
+            while voices.count < desiredCount {
+                let node = AVAudioPlayerNode()
+                engine.attach(node)
+                engine.connect(node, to: engine.mainMixerNode, format: buffer.format)
+                voices.append(PreparedSFXVoice(node: node, buffer: buffer))
             }
-            preparedPlayersByID[id] = players
+            preparedVoicesByID[id] = voices
         }
+        engine.prepare()
+        _ = startEngineIfNeeded()
     }
 
     func stopAll() {
-        for players in preparedPlayersByID.values {
-            for player in players {
-                player.stop()
-                player.currentTime = 0
+        for voices in preparedVoicesByID.values {
+            for voice in voices {
+                voice.node.stop()
             }
         }
     }
 
-    private func makePreparedPlayer(for clip: SFXClip) -> AVAudioPlayer? {
+    private func preparedBuffer(for clip: SFXClip) -> AVAudioPCMBuffer? {
+        if let buffer = buffersByID[clip.id] {
+            return buffer
+        }
         guard let url = resourceURL(for: clip) else {
             logger.warning(
                 "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)"
@@ -122,12 +133,19 @@ final class SFXPlayer {
             return nil
         }
         do {
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.prepareToPlay()
-            return player
+            let file = try AVAudioFile(forReading: url)
+            guard file.length > 0,
+                  file.length <= AVAudioFramePosition(AVAudioFrameCount.max),
+                  let buffer = AVAudioPCMBuffer(
+                      pcmFormat: file.processingFormat,
+                      frameCapacity: AVAudioFrameCount(file.length)
+                  ) else { return nil }
+            try file.read(into: buffer)
+            buffersByID[clip.id] = buffer
+            return buffer
         } catch {
             logger.error(
-                "Unable to prepare SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                "Unable to decode SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
             )
             return nil
         }
@@ -146,4 +164,22 @@ final class SFXPlayer {
     private func configureSessionIfNeeded() {
         AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
     }
+
+    private func startEngineIfNeeded() -> Bool {
+        guard !engine.isRunning else { return true }
+        do {
+            try engine.start()
+            return true
+        } catch {
+            logger.error(
+                "Unable to start SFX engine: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+    }
+}
+
+private struct PreparedSFXVoice {
+    let node: AVAudioPlayerNode
+    let buffer: AVAudioPCMBuffer
 }

@@ -11,7 +11,9 @@ echo "=== Generating Xcode project / catalogs ==="
 ./Scripts/generate.sh
 
 # Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
-RESULTS_DIR="$PWD/.DerivedData/TestResults"
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+trinket_run_env_init
 mkdir -p "$RESULTS_DIR"
 touch "$RESULTS_DIR/.last-generate.stamp"
 

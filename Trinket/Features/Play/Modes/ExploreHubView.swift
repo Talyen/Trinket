@@ -22,7 +22,7 @@ struct ExploreHubView: View {
                     )
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
-                .trinketNavigationRowButtonStyle()
+                .trinketQuietTapButtonStyle()
 
                 NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
                     destinationRow(
@@ -32,7 +32,7 @@ struct ExploreHubView: View {
                     )
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
-                .trinketNavigationRowButtonStyle()
+                .trinketQuietTapButtonStyle()
             }
         }
         .navigationTitle("Explore")

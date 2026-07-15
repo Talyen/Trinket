@@ -105,6 +105,7 @@ struct BattlePartyInlinePicker: View {
             HStack(spacing: 8) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(width: 38, height: 48)
+                    .trinketArtworkBlend(.perimeter(into: .surface))
                     .clipShape(TrinketDesign.cardShape)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -131,7 +132,7 @@ struct BattlePartyInlinePicker: View {
             .trinketSurface(.secondary)
             .clipShape(TrinketDesign.cardShape)
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(slot.controlAccessibilityID)
     }
 
@@ -213,6 +214,7 @@ struct BattleCombatantPickerSheet: View {
                     .frame(maxWidth: .infinity)
                     // UIStyleCheck: allow - Compact picker thumbnails use a fixed visual height.
                     .frame(height: 88)
+                    .trinketArtworkBlend(.perimeter(into: .panel))
                     .clipShape(TrinketDesign.cardShape)
 
                 Text(combatant.name)
@@ -236,7 +238,7 @@ struct BattleCombatantPickerSheet: View {
             }
             .opacity(eligible ? 1 : 0.4)
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .disabled(!eligible)
         .accessibilityIdentifier(
             AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
@@ -312,8 +314,7 @@ struct StageBattlePartyPickerSheet: View {
                 .overlay {
                     ZStack(alignment: .bottomLeading) {
                         CombatantArtwork(combatant: combatant, variant: .card)
-
-                        TrinketHeroScrim.gradient(for: .detailHeader)
+                            .trinketArtworkBlend(.bottom(into: .panel))
 
                         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                             Text(slot.title)
@@ -331,7 +332,7 @@ struct StageBattlePartyPickerSheet: View {
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
         }
-        .buttonStyle(ArtworkNavigationCardButtonStyle())
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(slot.controlAccessibilityID)
         .accessibilityLabel("\(slot.title), \(combatant.name)")
         .accessibilityHint("Choose a different \(slot.title.lowercased())")
@@ -369,8 +370,7 @@ private struct BattlePartyOptionsGrid: View {
                             .overlay {
                                 ZStack(alignment: .bottomLeading) {
                                     CombatantArtwork(combatant: combatant, variant: .card)
-
-                                    TrinketHeroScrim.gradient(for: .detailHeader)
+                                        .trinketArtworkBlend(.bottom(into: .panel))
 
                                     Text(combatant.name)
                                         .trinketTypography(.cardTitle)
@@ -392,7 +392,7 @@ private struct BattlePartyOptionsGrid: View {
                                 color: accentColor
                             )
                     }
-                    .buttonStyle(ArtworkNavigationCardButtonStyle())
+                    .trinketQuietTapButtonStyle()
                     .accessibilityIdentifier(
                         AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
                     )

@@ -47,7 +47,7 @@ struct LabyrinthCraftView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                 }
-                .buttonStyle(.plain)
+                .trinketQuietTapButtonStyle()
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftSkip)
             }

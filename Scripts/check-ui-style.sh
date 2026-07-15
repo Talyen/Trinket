@@ -52,8 +52,8 @@ is_allowed_line() {
     return 0
   fi
 
-  # Plain buttons are commonly used to make tappable cards keep their custom card artwork.
-  if [[ "$line" == *".buttonStyle(.plain)"* ]]; then
+  # Quiet tap is the scroll-safe replacement for plain artwork / custom-content buttons.
+  if [[ "$line" == *".buttonStyle(.plain)"* || "$line" == *".trinketQuietTapButtonStyle()"* || "$line" == *"QuietTapButtonStyle()"* ]]; then
     return 0
   fi
 

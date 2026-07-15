@@ -4,13 +4,13 @@ Looping menu and encounter music via `MusicPlayer`, plus one-shot battle/UI clip
 
 ## Stack choice
 
-`AVAudioPlayer` + `AVAudioSession` category `.ambient` with `.mixWithOthers` is intentional:
+Music uses `AVAudioPlayer`. SFX use a prestarted `AVAudioEngine` with decoded PCM buffers.
+Both share an `AVAudioSession` category of `.ambient` with `.mixWithOthers`:
 
 - Ambient audio ducks under other apps and respects the Silent switch.
-- Simple looping BGM and short SFX do not need `AVAudioEngine` graph complexity.
+- Looping BGM remains simple and independent from the low-latency SFX graph.
+- Battle SFX avoid decoder, seek, and player-start work on the frame that presents feedback.
 - Crossfades use structured `Task` cancellation on the main actor.
-
-Do not migrate to AudioEngine unless product needs spatial audio, real-time effects, or sample-accurate scheduling.
 
 ## Sound effects
 

@@ -3,23 +3,52 @@ import TrinketCore
 import TrinketDesignSystem
 
 /// Low-count keyword-tinted particle bursts share one display clock and Canvas
-/// per combatant pane.
+/// per combatant pane. The display link pauses once every burst has expired.
 struct KeywordBurstLayer: View {
     let requests: [KeywordBurstRequest]
+
+    @State private var clockPaused = true
+
+    private var burstClockID: Int {
+        var hasher = Hasher()
+        for request in requests {
+            hasher.combine(request.id)
+            hasher.combine(request.availableAt.timeIntervalSinceReferenceDate)
+            hasher.combine(request.expiresAt.timeIntervalSinceReferenceDate)
+        }
+        return hasher.finalize()
+    }
 
     var body: some View {
         Group {
             if !requests.isEmpty {
-                TimelineView(.animation(paused: false)) { context in
+                TimelineView(.animation(paused: clockPaused)) { context in
                     Canvas(rendersAsynchronously: true) { canvas, size in
                         for request in requests {
                             draw(request, at: context.date, in: &canvas, size: size)
                         }
                     }
                 }
+                .task(id: burstClockID) {
+                    clockPaused = false
+                    guard let latestExpiry = requests.map(\.expiresAt).max() else {
+                        clockPaused = true
+                        return
+                    }
+                    let delay = latestExpiry.timeIntervalSince(.now)
+                    if delay > 0 {
+                        try? await Task.sleep(for: .seconds(delay))
+                    }
+                    guard !Task.isCancelled else { return }
+                    clockPaused = true
+                }
             }
         }
         .allowsHitTesting(false)
+        .battleFramePacingSignpost(
+            BattleFramePacingSignposts.Name.keywordBurst,
+            isActive: !requests.isEmpty
+        )
     }
 
     private func draw(
@@ -42,13 +71,14 @@ struct KeywordBurstLayer: View {
             let y = center.y + CGFloat(sin(angle) * distance) - CGFloat(progress * 12)
             let radius = max(1.2, 3.2 * (1 - progress))
             let opacity = Double(1 - progress) * 0.85
+            let diameter = radius * 2
 
             canvas.fill(
                 Path(ellipseIn: CGRect(
                     x: x - radius,
                     y: y - radius,
-                    width: radius * 2,
-                    height: radius * 2
+                    width: diameter,
+                    height: diameter
                 )),
                 with: .color(color.opacity(opacity))
             )

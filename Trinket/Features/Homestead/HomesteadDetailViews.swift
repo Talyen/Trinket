@@ -75,27 +75,20 @@ struct HomesteadDetailHero: View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
             overscroll: overscroll,
-            alignment: .bottomLeading
+            alignment: .bottomLeading,
+            artworkBlend: .bottom(into: .canvas)
         ) {
             HomesteadBuildingArtwork(definition: definition, variant: .full)
                 .saturation(status.isUnlocked ? 1 : 0)
                 .opacity(status.isUnlocked ? 1 : 0.66)
         } overlay: {
-            ZStack(alignment: .bottomLeading) {
-                TrinketHeroScrim.gradient(
-                    for: .homesteadDetail,
-                    startPoint: .init(x: 0.5, y: 0.42),
-                    endPoint: .bottom
-                )
-                .allowsHitTesting(false)
-
-                Text(definition.title)
-                    .trinketTypography(.screenDisplay)
-                    .lineLimit(2)
-                    .trinketOnArtText(.title)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.bottom, 14)
-            }
+            Text(definition.title)
+                .trinketTypography(.screenDisplay)
+                .lineLimit(2)
+                .trinketOnArtText(.title)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.bottom, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
     }
 }
@@ -168,7 +161,7 @@ struct HomesteadTierNode: View {
                 Button(action: onBuild) {
                     rowContent
                 }
-                .buttonStyle(.plain)
+                .trinketQuietTapButtonStyle()
                 .disabled(isBuilding)
 
             } else {

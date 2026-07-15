@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 
 struct AbilitySummaryGrid: View {
     let combatant: Combatant
@@ -20,7 +21,7 @@ struct AbilitySummaryGrid: View {
                     } label: {
                         abilitySlot(for: tier)
                     }
-                    .buttonStyle(.plain)
+                    .trinketQuietTapButtonStyle()
                     .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityIdentifier("\(tier.rawValue) ability slot")
 
@@ -36,7 +37,11 @@ struct AbilitySummaryGrid: View {
     @ViewBuilder
     private func abilitySlot(for tier: AbilityTier) -> some View {
         if let ability = selectedAbility(for: tier) {
-            AbilityChoiceCard(ability: ability, lockLabel: lockLabel(for: tier))
+            AbilityChoiceCard(
+                ability: ability,
+                lockLabel: lockLabel(for: tier),
+                artworkBlend: .perimeter(into: .surface)
+            )
         } else {
             EmptyAbilitySlotCard(tier: tier)
         }

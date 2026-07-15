@@ -45,11 +45,9 @@ struct ItemSlotPickerView: View {
                 ItemCard(
                     item: item,
                     showsAffixCount: false,
-                    showsName: false
+                    showsName: false,
+                    artworkBlend: .bottom(into: .panel)
                 )
-
-                TrinketHeroScrim.gradient(for: .detailHeader)
-                    .clipShape(TrinketDesign.cardShape)
 
                 Text(item.displayName)
                     .trinketTypography(.cardTitle)
@@ -65,7 +63,7 @@ struct ItemSlotPickerView: View {
             .clipShape(TrinketDesign.cardShape)
             .trinketArtworkPickerSelectionBorder(isSelected: isSelected)
         }
-        .buttonStyle(ArtworkNavigationCardButtonStyle())
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemCandidate(item.id))
     }
 

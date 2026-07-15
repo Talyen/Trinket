@@ -2,9 +2,12 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-DERIVED_DATA_PATH="$PWD/.DerivedData"
-RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
+
+# shellcheck source=run-env.sh
+source "$SCRIPT_DIR/run-env.sh"
+trinket_run_env_init
+trinket_run_env_print
 
 # shellcheck source=build-stamp.sh
 source "$SCRIPT_DIR/build-stamp.sh"
@@ -46,6 +49,10 @@ while [[ $# -gt 0 ]]; do
       MODE="smoke-full"
       shift
       ;;
+    performance|--performance)
+      MODE="performance"
+      shift
+      ;;
     no-build|--no-build)
       NO_BUILD=true
       shift
@@ -69,7 +76,7 @@ done
 if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are not supported for style mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full] [--no-build] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi
 
@@ -87,6 +94,7 @@ fi
 
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
+trinket_sim_slot_ensure
 
 retryable_xcodebuild_infrastructure_failure() {
   local exit_code="$1"
@@ -102,6 +110,11 @@ retryable_xcodebuild_infrastructure_failure() {
 # Determine xcodebuild test target constraints using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
+case "$MODE" in
+  smoke|smoke-full|performance|ui|all)
+    trinket_ui_slot_acquire
+    ;;
+esac
 if [[ "$MODE" == "unit" ]]; then
   TEST_TARGET_FLAG=(-testPlan Unit)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -140,13 +153,35 @@ elif [[ "$MODE" == "smoke" ]]; then
 elif [[ "$MODE" == "smoke-full" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are not supported for smoke-full mode; use smoke <Class> instead."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full] [--no-build] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi
   TEST_TARGET_FLAG=(-testPlan Smoke)
   echo "Running full UI smoke suite via Smoke test plan..."
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+elif [[ "$MODE" == "performance" ]]; then
+  TEST_TARGET_FLAG=(-testPlan BattlePerformance)
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    for target in "${TARGETS[@]}"; do
+      if [[ "$target" == TrinketUITests* ]]; then
+        TEST_TARGET_FLAG+=("-only-testing:$target")
+      else
+        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
+      fi
+    done
+  fi
+  echo "Running the dedicated Battle performance scenario matrix..."
+  ensure_test_simulator_logged
+  performance_repetitions="${TRINKET_PERFORMANCE_REPETITIONS:-5}"
+  if [[ ! "$performance_repetitions" =~ ^[0-9]+$ ]] || (( performance_repetitions < 1 )); then
+    echo "TRINKET_PERFORMANCE_REPETITIONS must be a positive integer." >&2
+    exit 1
+  fi
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  if (( performance_repetitions > 1 )); then
+    PARALLEL_FLAGS+=(-test-iterations "$performance_repetitions")
+  fi
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -167,7 +202,7 @@ elif [[ "$MODE" == "ui" ]]; then
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit, ui, or smoke mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full] [--no-build] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi
   echo "Running all tests via Xcode Test Plan..."

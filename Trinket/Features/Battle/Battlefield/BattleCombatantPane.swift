@@ -30,6 +30,7 @@ struct BattleCombatantPane: View {
                 ZStack {
                     reactiveArtwork
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .trinketArtworkBlend(.perimeter(into: .canvas))
                         .clipped()
 
                     KeywordBurstLayer(requests: keywordBursts)
@@ -63,7 +64,7 @@ struct BattleCombatantPane: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(TrinketDesign.cardShape)
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketSensoryFeedback(
             reactionFeedback,
@@ -170,6 +171,9 @@ struct BattleCombatantPane: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .opacity(isDefeated ? 0 : 1)
+        .animation(TrinketMotion.Battle.scrim, value: isDefeated)
+        .allowsHitTesting(!isDefeated)
     }
 }
 

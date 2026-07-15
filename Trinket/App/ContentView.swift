@@ -78,6 +78,9 @@ struct ContentView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)
             }
+        #if DEBUG
+            .debugFPSOverlay()
+        #endif
     }
 
     private func tabRoot(selection: Binding<AppTab>) -> some View {

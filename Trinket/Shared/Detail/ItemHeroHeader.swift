@@ -11,22 +11,16 @@ struct ItemHeroHeader: View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
             overscroll: overscroll,
-            alignment: .topLeading
+            alignment: .topLeading,
+            artworkBlend: .bottom(into: .canvas)
         ) {
             itemArtwork
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } overlay: {
-            ZStack(alignment: .bottomLeading) {
-                TrinketHeroScrim.gradient(for: .detailHeader)
-                    .frame(height: HeroHeaderLayout.scrimHeight)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .allowsHitTesting(false)
-
-                titleBlock
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-            }
+            titleBlock
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .bottom)
         }
     }
 

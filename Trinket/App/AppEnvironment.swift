@@ -1,5 +1,21 @@
 import Foundation
 
+enum BattlePerformanceScenario: String, CaseIterable, Sendable {
+    case idle
+    case handDragCancel = "hand-drag-cancel"
+    case firstCardCastCold = "first-card-cast-cold"
+    case repeatedCardCasts = "repeated-card-casts"
+    case maximumConcurrentCasts = "maximum-concurrent-casts"
+    case feedbackChipsOnly = "feedback-chips-only"
+    case feedbackReactionsOnly = "feedback-reactions-only"
+    case keywordBurstsOnly = "keyword-bursts-only"
+    case denseFeedback = "dense-feedback"
+    case turnTransition = "turn-transition"
+    case ultimateCinematic = "ultimate-cinematic"
+    case audioPlayback = "audio-playback"
+    case combinedWorstCase = "combined-worst-case"
+}
+
 struct AppEnvironment {
     static let shared = load()
 
@@ -19,6 +35,10 @@ struct AppEnvironment {
     /// One battle tick equals one second of player-facing duration.
     let battleTickInterval: TimeInterval?
     let storeName: String?
+    /// DEBUG frame-pacing sampler + accessibility metrics node (UI soak / hitch gate).
+    let enableFrameMetrics: Bool
+    /// DEBUG-only deterministic workload driver. Presence changes stimuli, never rendering fidelity.
+    let battlePerformanceScenario: BattlePerformanceScenario?
 
     static let defaultBattleTickInterval: TimeInterval = 1.0
 
@@ -34,7 +54,9 @@ struct AppEnvironment {
         mysteryRecruitEventID: String?,
         mapScrollTarget: String?,
         battleTickInterval: TimeInterval?,
-        storeName: String?
+        storeName: String?,
+        enableFrameMetrics: Bool,
+        battlePerformanceScenario: BattlePerformanceScenario?
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
@@ -48,6 +70,8 @@ struct AppEnvironment {
         self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
         self.storeName = storeName
+        self.enableFrameMetrics = enableFrameMetrics
+        self.battlePerformanceScenario = battlePerformanceScenario
     }
 
     private static func load() -> AppEnvironment {
@@ -60,6 +84,14 @@ struct AppEnvironment {
     static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let disableCloudSync: Bool
+        #if DEBUG
+        let battlePerformanceScenario = argumentValue(
+            after: "-battle-performance-scenario",
+            in: arguments
+        ).flatMap(BattlePerformanceScenario.init(rawValue:))
+        #else
+        let battlePerformanceScenario: BattlePerformanceScenario? = nil
+        #endif
         // F1 ship posture: CloudKit off unless explicitly enabled (device + simulator).
         disableCloudSync = arguments.contains("-disable-cloud-sync")
             || arguments.contains("-reset-state")
@@ -80,7 +112,9 @@ struct AppEnvironment {
             battleTickInterval: battleTickInterval(from: arguments),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
                 arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
-            }
+            },
+            enableFrameMetrics: arguments.contains("-enable-frame-metrics"),
+            battlePerformanceScenario: battlePerformanceScenario
         )
     }
 

@@ -21,7 +21,7 @@ xcode_runner_token() {
 
 xcode_runner_prepare() {
   local label="${1:-run}"
-  local results_dir="${2:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
+  local results_dir="${2:-${RESULTS_DIR:-${DERIVED_DATA_PATH:-$PWD/.DerivedData}/TestResults}}"
   local requested_prefix="${3:-}"
   local safe_label token result_bundle log_file report_prefix suffix=0
 
@@ -225,7 +225,7 @@ xcode_runner_run() {
 
   [[ -n "$label" ]] || label="${XCODE_RUNNER_LABEL:-xcodebuild}"
   if [[ -z "$result_bundle" || -z "$log_file" || -z "$report_prefix" ]]; then
-    prepare_results_dir="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
+    prepare_results_dir="${RESULTS_DIR:-${DERIVED_DATA_PATH:-$PWD/.DerivedData}/TestResults}"
     if [[ -n "$result_bundle" ]]; then
       prepare_results_dir="$(dirname "$result_bundle")"
     fi
@@ -299,7 +299,20 @@ xcode_runner_run() {
         if declare -F ensure_test_simulator_logged >/dev/null 2>&1; then
           set +e
           ensure_test_simulator_logged force
+          local sim_status=$?
           if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
+          if [[ "$sim_status" -eq 0 ]]; then
+            if [[ -n "${SIMULATOR_DESTINATION:-}" ]]; then
+              local _i
+              for (( _i = 0; _i < ${#command_args[@]}; _i++ )); do
+                if [[ "${command_args[$_i]}" == "-destination" && $((_i + 1)) -lt ${#command_args[@]} ]]; then
+                  command_args[$((_i + 1))]="$SIMULATOR_DESTINATION"
+                elif [[ "${command_args[$_i]}" == -destination=* ]]; then
+                  command_args[$_i]="-destination=$SIMULATOR_DESTINATION"
+                fi
+              done
+            fi
+          fi
         fi
         rm -rf "$result_bundle"
         attempt=$((attempt + 1))

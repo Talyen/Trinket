@@ -76,6 +76,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
 | `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger secondary-grey lock icon |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
+| `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |

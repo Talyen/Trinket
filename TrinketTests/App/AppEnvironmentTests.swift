@@ -54,7 +54,9 @@ struct AppEnvironmentTests {
             "-battle-tick-interval", "0.4",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-map-scroll-target", "chapter-gate-placeholder-2",
-            "-mystery-recruit-event", "recruit-knight"
+            "-mystery-recruit-event", "recruit-knight",
+            "-enable-frame-metrics",
+            "-battle-performance-scenario", "dense-feedback"
         ])
         #expect(env.resetState)
         #expect(env.seedTestProgress)
@@ -65,6 +67,8 @@ struct AppEnvironmentTests {
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
         #expect(env.mysteryRecruitEventID == "recruit-knight")
+        #expect(env.enableFrameMetrics)
+        #expect(env.battlePerformanceScenario == .denseFeedback)
 
         #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
         #expect(Self.parse(arguments: ["-map-scroll-target", ""]).mapScrollTarget == nil)
@@ -85,6 +89,13 @@ struct AppEnvironmentTests {
         #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
         #expect(!env.persistSaveImmediately)
+        #expect(!env.enableFrameMetrics)
+        #expect(env.battlePerformanceScenario == nil)
+    }
+
+    @Test func invalidBattlePerformanceScenarioIsIgnored() {
+        let env = Self.parse(arguments: ["-battle-performance-scenario", "unknown"])
+        #expect(env.battlePerformanceScenario == nil)
     }
 
     private static func parse(

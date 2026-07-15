@@ -2,10 +2,12 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-# Must match Scripts/build-for-testing.sh so CI --no-build restores the same products.
-DERIVED_DATA_PATH="$PWD/.DerivedData"
-RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
+
+# Must match Scripts/build-for-testing.sh so CI --no-build restores the same products.
+# shellcheck source=run-env.sh
+source "$SCRIPT_DIR/run-env.sh"
+trinket_run_env_init
 
 # shellcheck source=build-stamp.sh
 source "$SCRIPT_DIR/build-stamp.sh"
@@ -93,6 +95,7 @@ fi
 
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
+trinket_sim_slot_ensure
 
 if [[ -z "$DESTINATION" ]]; then
   ensure_test_simulator_logged

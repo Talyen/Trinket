@@ -6,11 +6,11 @@
 
 ## Intent
 
-Confirm candidate defects and fix up to three highest-value bugs. A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites — only chase hits from this pass; defer P4/P5 by default.
+Confirm candidate defects and fix up to three highest-value bugs (or one shared root cause). A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites — only chase hits from this pass; defer P4/P5 by default. Prefer the root-cause remedy over N local patches when related bugs share ownership or an invariant; if that remedy is a significant refactor or architecture change, propose and stop per [README.md](README.md).
 
 ## Hard stops
 
-- Do not refactor/rename/restyle unless required to fix a confirmed bug.
+- Do not rename/restyle or opportunistically refactor unrelated code. Fix the confirmed bug’s root cause; larger structural remedies are proposals, not unsupervised rewrites.
 - Do not expand into speculative backlog; do not touch manifests (unless a stale catalog ref), assets, music, or hand-edit `Generated/*`.
 - Do not alter `accessibilityIdentifier` values unless removing the control.
 - Do not weaken `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`.

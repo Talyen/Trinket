@@ -5,6 +5,9 @@ struct OptionsView: View {
     @Environment(AppState.self) private var appState
     @State private var isResetConfirmationPresented = false
     @State private var actionErrorMessage: String?
+    #if DEBUG
+    @AppStorage(DebugPreferenceKey.showFPSOverlay) private var showFPSOverlay = true
+    #endif
 
     var body: some View {
         @Bindable var options = appState.options
@@ -65,6 +68,9 @@ struct OptionsView: View {
 
             #if DEBUG
             Section {
+                Toggle("Show FPS Overlay", isOn: $showFPSOverlay)
+                    .accessibilityIdentifier("Show FPS Overlay Toggle")
+
                 Button("Unlock All") {
                     if !appState.unlockAllContent() {
                         actionErrorMessage = "Couldn't unlock content. Try again."
@@ -74,7 +80,7 @@ struct OptionsView: View {
             } header: {
                 Text("Developer")
             } footer: {
-                Text("Unlocks all heroes and companions at level 20 and clears Chapter 1. Debug builds only.")
+                Text("FPS overlay (avg / 1% / 0.1% lows) and Unlock All are Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1.")
             }
             #endif
         }

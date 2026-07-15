@@ -4,7 +4,7 @@
 
 ## Intent
 
-Start with a strict-concurrency build when available, then investigate diagnostics and high-risk candidates. Fix a bounded set of confirmed issues; a clean pass is valid.
+Start with a strict-concurrency build when available, then investigate diagnostics and high-risk candidates. Fix a bounded set of confirmed issues; a clean pass is valid. If several hits share one isolation or ownership model, prefer that root-cause remedy over N local annotations — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

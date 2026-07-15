@@ -62,7 +62,8 @@ struct HomesteadOverviewHero: View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
             overscroll: overscroll,
-            alignment: .bottomLeading
+            alignment: .bottomLeading,
+            artworkBlend: .bottom(into: .canvas)
         ) {
             if let art {
                 HomesteadFocalArtwork(art: art)
@@ -71,20 +72,12 @@ struct HomesteadOverviewHero: View {
                 TrinketDesign.Colors.surface
             }
         } overlay: {
-            ZStack(alignment: .bottomLeading) {
-                TrinketHeroScrim.gradient(
-                    for: .homesteadOverview,
-                    startPoint: .init(x: 0.5, y: 0.42),
-                    endPoint: .bottom
-                )
-                .allowsHitTesting(false)
-
-                Text("Homestead")
-                    .trinketTypography(.screenDisplay)
-                    .trinketOnArtText(.title)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.bottom, 14)
-            }
+            Text("Homestead")
+                .trinketTypography(.screenDisplay)
+                .trinketOnArtText(.title)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.bottom, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
     }
 }

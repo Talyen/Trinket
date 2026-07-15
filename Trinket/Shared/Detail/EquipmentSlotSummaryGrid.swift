@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 import TrinketPersistence
 
 struct EquipmentSlotSummaryGrid: View {
@@ -18,7 +19,7 @@ struct EquipmentSlotSummaryGrid: View {
                     } label: {
                         itemSlot(for: slot)
                     }
-                    .buttonStyle(.plain)
+                    .trinketQuietTapButtonStyle()
                     .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier(slot.accessibilityIdentifier)
@@ -35,11 +36,25 @@ struct EquipmentSlotSummaryGrid: View {
     @ViewBuilder
     private func itemSlot(for slot: ItemSlot) -> some View {
         if isLocked(slot) {
-            EmptyItemSlotCard(slot: slot, lockLabel: slot.unlockLabel, reservesLabelSpace: false)
+            EmptyItemSlotCard(
+                slot: slot,
+                lockLabel: slot.unlockLabel,
+                reservesLabelSpace: false,
+                artworkBlend: .perimeter(into: .surface)
+            )
         } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
-            ItemCard(item: item, showsAffixCount: false, reservesLabelSpace: false)
+            ItemCard(
+                item: item,
+                showsAffixCount: false,
+                reservesLabelSpace: false,
+                artworkBlend: .perimeter(into: .surface)
+            )
         } else {
-            EmptyItemSlotCard(slot: slot, reservesLabelSpace: false)
+            EmptyItemSlotCard(
+                slot: slot,
+                reservesLabelSpace: false,
+                artworkBlend: .perimeter(into: .surface)
+            )
         }
     }
 

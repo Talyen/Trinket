@@ -97,51 +97,17 @@ struct PrimaryActionButtonModifier: ViewModifier {
     }
 }
 
-/// Shared press treatment for navigation rows. Feature views provide only the
-/// row content; the design system owns the surface, feedback, and motion.
-public struct NavigationRowButtonStyle: ButtonStyle {
-    public init() {}
-
-    public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .contentShape(Rectangle())
-            .background(
-                configuration.isPressed ? HomesteadPalette.pressedFill : .clear,
-                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-            )
-            .scaleEffect(configuration.isPressed ? 0.985 : 1)
-            .opacity(configuration.isPressed ? 0.94 : 1)
-            .animation(
-                TrinketMotion.Homestead.rowPress,
-                value: configuration.isPressed
-            )
-    }
-}
-
-/// Press treatment for full-bleed artwork navigation cards.
+/// Tap target with no press chrome and no system dimming.
 ///
-/// Feature screens own the artwork and copy; the design system owns the
-/// immediate touch-down response so mode cards feel consistent with other
-/// navigation controls.
-public struct ArtworkNavigationCardButtonStyle: ButtonStyle {
+/// Prefer this over `.buttonStyle(.plain)` for artwork and other custom content
+/// inside scroll views. `.plain` still flashes while the finger is down during a
+/// scroll drag; this style keeps `Button` semantics (including tap-to-open) and
+/// ignores `isPressed` for visuals.
+public struct QuietTapButtonStyle: ButtonStyle {
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-
         configuration.label
-            .contentShape(shape)
-            .overlay {
-                shape
-                    .fill(TrinketDesign.Colors.Overlay.ink.opacity(configuration.isPressed ? 0.12 : 0))
-                    .allowsHitTesting(false)
-            }
-            .scaleEffect(configuration.isPressed ? 0.985 : 1)
-            .opacity(configuration.isPressed ? 0.96 : 1)
-            .animation(
-                TrinketMotion.Play.modeCardPress,
-                value: configuration.isPressed
-            )
     }
 }
 
@@ -210,12 +176,8 @@ public extension View {
         ))
     }
 
-    func trinketNavigationRowButtonStyle() -> some View {
-        buttonStyle(NavigationRowButtonStyle())
-    }
-
-    func trinketArtworkNavigationCardButtonStyle() -> some View {
-        buttonStyle(ArtworkNavigationCardButtonStyle())
+    func trinketQuietTapButtonStyle() -> some View {
+        buttonStyle(QuietTapButtonStyle())
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.

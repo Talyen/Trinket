@@ -1,0 +1,27 @@
+{
+  "configurations" : [
+    {
+      "id" : "1D808913-7241-4A0C-935E-BE7C9B36D171",
+      "name" : "Default Configuration",
+      "options" : {}
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "testExecutionOrdering" : "alphabetical"
+  },
+  "testTargets" : [
+    {
+      "automaticallyIncludesTests" : false,
+      "selectedTests" : [
+        "BattlePerformanceUITests"
+      ],
+      "target" : {
+        "containerPath" : "container:Trinket.xcodeproj",
+        "identifier" : "A76BC34F8DE0E1847F8183C5",
+        "name" : "TrinketUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -2,11 +2,11 @@
 
 **Goal:** Find and simplify hotspots of over-engineered, verbose, or un-pragmatic code — especially agent-produced “slop” — without a whole-repo rewrite.
 
-**Siblings:** dead symbols → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md); boundaries → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md); custom UI chrome → [AppleNativeUIAudit.md](AppleNativeUIAudit.md); correctness bugs → [BugHuntingAudit.md](BugHuntingAudit.md).
+**Siblings:** dead symbols → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md); boundaries → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md); custom UI chrome → [AppleNativeUIAudit.md](AppleNativeUIAudit.md); copy-paste screens → [DuplicateFeatureSurfaceAudit.md](DuplicateFeatureSurfaceAudit.md); misplaced hub logic → [StateGravityOwnershipAudit.md](StateGravityOwnershipAudit.md); correctness bugs → [BugHuntingAudit.md](BugHuntingAudit.md).
 
 ## Intent
 
-Surface a small set of **confirmed** inelegant hotspots via size, structure, and pattern signals. Simplify one cohesive area (or a few independent micro-fixes) so the result is shorter and clearer — without changing player-facing behavior unless the verbosity itself is the bug. Prefer deleting ceremony over inventing a new abstraction.
+Surface a small set of **confirmed** inelegant hotspots via size, structure, and pattern signals. Simplify one cohesive cluster so the result is shorter and clearer — without changing player-facing behavior unless the verbosity itself is the bug. Prefer deleting ceremony over inventing a new abstraction. When micro-inlines would leave a god file or duplicated pattern intact, prefer a cohesive-area refactor — and propose it when significant per [README.md](README.md).
 
 ## What “slop” means here
 
@@ -34,14 +34,14 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, design-system tokens, catalog/codegen boundaries, or module import rules.
 - Do not rewrite battle pipeline math “for clarity” without package tests proving equivalence.
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
-- Prefer the owning audit when the hit is primarily dead code, boundaries, concurrency, or type-safety escapes.
+- Prefer the owning audit when the hit is primarily dead code, boundaries, concurrency, type-safety escapes, duplicate feature surfaces, or state-ownership drift.
 
 ## Confirm before fixing
 
 1. **Cost:** real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs in one file).
 2. **No second need:** one call site / one conformer / no extension point in use.
 3. **Safer shape exists:** a shorter local form preserves behavior.
-4. **Blast radius:** one cohesive area; do not “while here” the neighbors.
+4. **Blast radius:** stay inside the justified cluster; do not expand past related ownership, duplicates, or the shared root cause.
 
 Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
 

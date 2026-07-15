@@ -16,12 +16,14 @@ public struct ExperienceBar: View {
     @State private var displayedRequiredXP: Int
     @State private var displayedFraction: Double
     @State private var levelUpBurst: Int?
+    @State private var showsExperienceAward = false
     @State private var hasAnimated = false
     @State private var hasReportedCompletion = false
     @State private var animationTask: Task<Void, Never>?
 
     private let initialDelay: TimeInterval = 0.25
-    private let segmentDuration: TimeInterval = 0.4
+    private let segmentDuration: TimeInterval = 0.45
+    private let segmentSteps = 24
     private let levelUpFlashInDuration: TimeInterval = 0.18
     private let levelUpFlashHoldDuration: TimeInterval = 0.18
     private let levelUpFlashOutDuration: TimeInterval = 0.18
@@ -82,11 +84,12 @@ public struct ExperienceBar: View {
 
                     Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
-                    if let experienceAward, experienceAward > 0 {
+                    if let experienceAward, experienceAward > 0, showsExperienceAward {
                         Text("+\(experienceAward) XP")
                             .trinketTypography(.badge)
                             .monospacedDigit()
                             .foregroundStyle(fillColor)
+                            .transition(.opacity.combined(with: .scale(scale: 0.92)))
                     }
                 }
 
@@ -97,15 +100,18 @@ public struct ExperienceBar: View {
 
                         Capsule()
                             .fill(fillColor)
-                            .frame(width: geometry.size.width * displayedFraction)
-
-                        if displayedFraction > 0.02 {
-                            Circle()
-                                .fill(fillColor)
-                                .frame(width: 7, height: 7)
-                                .shadow(color: fillColor.opacity(0.85), radius: 5)
-                                .offset(x: max(0, geometry.size.width * displayedFraction - 4))
-                        }
+                            .frame(width: max(0, geometry.size.width * displayedFraction))
+                            .overlay(alignment: .trailing) {
+                                if displayedFraction > 0.02 {
+                                    Circle()
+                                        .fill(fillColor)
+                                        .frame(width: 6, height: 6)
+                                        .shadow(color: fillColor.opacity(0.4), radius: 2)
+                                        .alignmentGuide(.trailing) { dimensions in
+                                            dimensions[HorizontalAlignment.center]
+                                        }
+                                }
+                            }
                     }
                 }
                 .frame(height: TrinketDesign.Metrics.statBarHeight)
@@ -115,6 +121,7 @@ public struct ExperienceBar: View {
                     Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
                     Text("\(displayedXP) / \(displayedRequiredXP) XP")
                         .monospacedDigit()
+                        .contentTransition(.numericText())
                 }
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
@@ -164,11 +171,17 @@ public struct ExperienceBar: View {
         displayedXP = post.currentXP
         displayedRequiredXP = post.requiredXP
         displayedFraction = post.progressFraction
+        showsExperienceAward = (experienceAward ?? 0) > 0
     }
 
     private func reportCompletion() {
         guard !hasReportedCompletion else { return }
         hasReportedCompletion = true
+        if (experienceAward ?? 0) > 0 {
+            withAnimation(.easeOut(duration: 0.2)) {
+                showsExperienceAward = true
+            }
+        }
         onAnimationCompleted()
     }
 
@@ -187,11 +200,26 @@ public struct ExperienceBar: View {
     }
 
     private func animate(to segment: Segment, clock: SuspendingClock) async {
-        withAnimation(.easeOut(duration: segmentDuration)) {
-            displayedFraction = segment.endFraction
-            displayedXP = segment.endXP
+        let startFraction = segment.startFraction
+        let endFraction = segment.endFraction
+        let startXP = displayedXP
+        let endXP = segment.endXP
+
+        displayedFraction = startFraction
+
+        let stepCount = max(1, segmentSteps)
+        let stepDuration = segmentDuration / Double(stepCount)
+
+        for step in 1 ... stepCount {
+            guard !Task.isCancelled else { return }
+            let t = Self.easeInOut(Double(step) / Double(stepCount))
+            displayedFraction = startFraction + (endFraction - startFraction) * t
+            displayedXP = startXP + Int((Double(endXP - startXP) * t).rounded())
+            try? await clock.sleep(for: .seconds(stepDuration), tolerance: .milliseconds(8))
         }
-        try? await clock.sleep(for: .seconds(segmentDuration), tolerance: .milliseconds(25))
+
+        displayedFraction = endFraction
+        displayedXP = endXP
     }
 
     private func showLevelUpFlash(newLevel: Int, newRequiredXP: Int, clock: SuspendingClock) async {
@@ -209,6 +237,14 @@ public struct ExperienceBar: View {
             levelUpBurst = nil
         }
         try? await clock.sleep(for: .seconds(levelUpFlashOutDuration), tolerance: .milliseconds(25))
+    }
+
+    private static func easeInOut(_ t: Double) -> Double {
+        if t < 0.5 {
+            return 2 * t * t
+        }
+        let inverted = -2 * t + 2
+        return 1 - (inverted * inverted) / 2
     }
 
     public struct Segment: Equatable, Sendable {

@@ -10,6 +10,9 @@ struct TrinketMotionTests {
             + TrinketMotion.Battle.skillCalloutOut
         #expect(TrinketMotion.Battle.skillCalloutTotal == total)
         #expect(TrinketMotion.Battle.cardActivationDuration == 1.0)
+        #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
+        #expect(TrinketMotion.Battle.cardCastParticleCount == 8)
+        #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)

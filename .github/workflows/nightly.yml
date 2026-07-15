@@ -42,3 +42,25 @@ jobs:
           name: nightly-integration-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
+
+  battle-performance:
+    name: Battle performance (calibration)
+    needs: gate
+    runs-on: macos-26
+    timeout-minutes: 60
+    # Simulator baselines are being calibrated. The comparator becomes blocking when
+    # Performance/Baselines/simulator-60.json moves from observe to enforce.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/setup-trinket
+      - name: Run exclusive Battle performance matrix
+        run: ./Scripts/performance.sh
+        env:
+          CI: true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: nightly-battle-performance-${{ github.run_id }}
+          path: .DerivedData/PerformanceResults/
+          if-no-files-found: warn

@@ -48,11 +48,9 @@ struct AbilityTierPickerSheet: View {
             ZStack(alignment: .bottomLeading) {
                 AbilityChoiceCard(
                     ability: ability,
-                    showsName: false
+                    showsName: false,
+                    artworkBlend: .bottom(into: .panel)
                 )
-
-                TrinketHeroScrim.gradient(for: .detailHeader)
-                    .clipShape(TrinketDesign.cardShape)
 
                 Text(ability.name)
                     .trinketTypography(.cardTitle)
@@ -68,7 +66,7 @@ struct AbilityTierPickerSheet: View {
             .clipShape(TrinketDesign.cardShape)
             .trinketArtworkPickerSelectionBorder(isSelected: isSelected)
         }
-        .buttonStyle(ArtworkNavigationCardButtonStyle())
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityCandidate(ability.id))
     }
 }

@@ -67,6 +67,10 @@ struct UltimateCinematicOverlay: View {
         }
 
         .accessibilityIdentifier("Ultimate Cinematic \(cinematic.abilityName)")
+        .battleFramePacingSignpost(
+            BattleFramePacingSignposts.Name.ultimateCinematic,
+            isActive: true
+        )
         .onAppear {
             runEnter()
         }

@@ -19,18 +19,37 @@ Once the likely paths are known, run:
 
 Read only the nested guides, context cards, and skills it selects. Rerun it only if the task crosses into another area.
 
+## Isolated verification
+
+Agents must verify with an isolated tenant so peers on the same Mac do not share DerivedData or the default simulator:
+
+`./Scripts/verify-changed.sh --isolate --paths <file...>`
+
+That acquires a reusable agent simulator slot (`Trinket Agent N`, pool size `TRINKET_MAX_AGENT_SIMS`, default 3), DerivedData under `.DerivedData/runs/agent-N/`, and a unique `TRINKET_RUN_ID` for diagnostics. Slot sims stay Booted between runs so cold create/boot is amortized. Humans and CI may omit `--isolate` to keep the shared warm cache (`.DerivedData` + `Trinket CI`).
+
+Rules:
+
+- Never kill foreign `xcodebuild`, `simctl`, or Simulator processes to start your own checks.
+- Generation uses a shared lock with a timeout (default 120s). On timeout, report and retry later or continue in a worktree — do not sleep-loop for minutes.
+- Isolated runs fail fast when the agent simulator pool is full. UI/smoke/all modes also take a fail-fast UI concurrency slot (`TRINKET_MAX_CONCURRENT_UI`, default 2). Do not wait; use a worktree or retry after a peer finishes.
+- Isolated unit/package runs may proceed in parallel once each has its own agent slot / DerivedData. Do not parallelize **shared-tenant** (non-`--isolate`) `test.sh` wrappers.
+- On failure, run diagnostics against **this run’s** `RESULTS_DIR` (printed by `run-env`), not a peer’s path.
+
+Use a worktree when another agent already dirtied overlapping paths, you need long-lived source isolation, or the UI/sim cap is saturated:
+
+`./Scripts/agent-worktree.sh create <slug>`
+
+Then `cd` into the sibling checkout and verify with `--isolate`.
+
 ## Verification
 
-Before handoff, run the path-scoped checks:
+Before handoff, run the path-scoped checks with isolation:
 
-`./Scripts/verify-changed.sh --paths <file...>`
+`./Scripts/verify-changed.sh --isolate --paths <file...>`
 
-Use `--dry-run` only when previewing an unfamiliar or potentially expensive route. Do not parallelize `test.sh` wrapper invocations.
+Use `--dry-run` only when previewing an unfamiliar or potentially expensive route.
 
-- For a small UI feature confined to one screen or flow, run only the closest focused smoke target selected by the router (`./Scripts/test.sh smoke <SmokeClass>`). Prefer `SmokeClass/testMethod` when one method directly owns the behavior. Do not run bare smoke, the full unit suite, `smoke-full`, exhaustive UI tests, or global style checks for that iteration; those belong to pre-push or CI gates.
+- For a small UI feature confined to one screen or flow, run only the closest focused smoke target selected by the router (`TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`). Prefer `SmokeClass/testMethod` when one method directly owns the behavior. Do not run bare smoke, the full unit suite, `smoke-full`, exhaustive UI tests, or global style checks for that iteration; those belong to pre-push or CI gates.
 - If no existing smoke class closely covers the changed behavior, add or update one focused smoke test and run only that class. Do not use the unrelated Homestead canary as a substitute.
-- Before starting a build or test wrapper, check whether another repository build or test run is already active.
-- Never terminate a build or test process you did not start merely to run your own checks. Wait 30 seconds, check again, and repeat until the active run finishes before starting yours.
-- You may terminate only processes started by your own agent. If another agent's run appears stale or hung, inspect its elapsed time and available output, then report or coordinate the suspected hang instead of killing it. Do not use broad process cleanup commands such as `pkill`, `killall`, or simulator shutdown while another run may be active.
 
 If verification fails, follow `Docs/AgentContext/ci-diagnostics.md` and use its structured reports before opening raw logs.

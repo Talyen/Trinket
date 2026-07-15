@@ -71,11 +71,12 @@ struct CollectionView: View {
                                 ItemCard(
                                     item: item,
                                     showsAffixCount: false,
-                                    showsName: false
+                                    showsName: false,
+                                    artworkBlend: .perimeter(into: .surface)
                                 )
                                 .collectionShelfCardWidth()
                             }
-                            .buttonStyle(.plain)
+                            .trinketQuietTapButtonStyle()
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
@@ -140,7 +141,7 @@ struct CollectionView: View {
             } label: {
                 collectionCategoryHeader(title: title)
             }
-            .buttonStyle(.plain)
+            .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(accessibilityIdentifier)
 
             horizontalShelf(content: shelf)

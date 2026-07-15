@@ -63,7 +63,7 @@ struct PlayModeHubView: View {
                 subtitle: subtitle(for: mode)
             )
         }
-        .trinketArtworkNavigationCardButtonStyle()
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(mode.accessibilityIdentifier)
     }
 
@@ -135,17 +135,11 @@ private struct PlayModeArtworkCard: View {
         ZStack(alignment: .bottomLeading) {
             if let art {
                 HomesteadFocalArtwork(art: art)
+                    .trinketArtworkBlend(.bottom(into: .canvas))
 
             } else {
                 TrinketDesign.Colors.surface
             }
-
-            TrinketHeroScrim.gradient(
-                for: .chapter,
-                startPoint: .init(x: 0.5, y: 0.28),
-                endPoint: .bottom
-            )
-            .allowsHitTesting(false)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 Text(mode.title)

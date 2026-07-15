@@ -5,18 +5,26 @@ cd "$(dirname "$0")/.."
 
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
-GENERATION_LOCK_DIR="$PWD/.DerivedData/.generate.lock"
-XCODEGEN_CACHE_PATH="$PWD/.DerivedData/XcodeGen.cache"
+
+# shellcheck source=run-env.sh
+source ./Scripts/run-env.sh
+trinket_run_env_init
+
+GENERATION_LOCK_DIR="$TRINKET_GENERATE_LOCK_DIR"
+XCODEGEN_CACHE_PATH="$TRINKET_XCODEGEN_CACHE_PATH"
+LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
 cleanup_generation_lock() {
   rm -rf "$GENERATION_LOCK_DIR"
 }
 
 acquire_generation_lock() {
-  mkdir -p "$PWD/.DerivedData"
+  mkdir -p "$(dirname "$GENERATION_LOCK_DIR")"
+  local started_at=$SECONDS
+  local lock_pid=""
 
   while ! mkdir "$GENERATION_LOCK_DIR" 2>/dev/null; do
-    local lock_pid=""
+    lock_pid=""
     if [[ -f "$GENERATION_LOCK_DIR/pid" ]]; then
       read -r lock_pid < "$GENERATION_LOCK_DIR/pid" || true
     fi
@@ -24,6 +32,17 @@ acquire_generation_lock() {
     if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
       rm -rf "$GENERATION_LOCK_DIR"
       continue
+    fi
+
+    if (( SECONDS - started_at >= LOCK_TIMEOUT_SECONDS )); then
+      echo "Generation lock timed out after ${LOCK_TIMEOUT_SECONDS}s." >&2
+      if [[ "$lock_pid" =~ ^[0-9]+$ ]]; then
+        echo "Held by pid $lock_pid. Do not kill foreign generate/xcodebuild processes." >&2
+      else
+        echo "Lock directory exists at $GENERATION_LOCK_DIR without a live pid." >&2
+      fi
+      echo "Retry after the peer finishes, or continue in a worktree (./Scripts/agent-worktree.sh)." >&2
+      return 1
     fi
 
     sleep 1

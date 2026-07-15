@@ -1,0 +1,67 @@
+# Duplicate Feature Surface Audit
+
+**Goal:** Collapse near-duplicate SwiftUI product surfaces — copied hubs, encounter shells, detail panes, pickers, and summary grids — into one parameterized owner without inventing a new UI framework.
+
+**Siblings:** ceremony / wrappers → [InelegantSlopAudit.md](InelegantSlopAudit.md); DesignSystem chrome → [AppleNativeUIAudit.md](AppleNativeUIAudit.md); dead symbols → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md); misplaced logic in state hubs → [StateGravityOwnershipAudit.md](StateGravityOwnershipAudit.md).
+
+## Intent
+
+Find one cohesive cluster of **confirmed** copy-paste feature surfaces and collapse it into a shared path under the existing owner (`Trinket/Shared/`, `Trinket/Features/Shared/`, or an existing DesignSystem modifier). A clean pass is valid. Prefer parameterization over a new abstraction layer. When the right-sized remedy is a significant shared shell or ownership move, propose and stop per [README.md](README.md).
+
+## What counts as a duplicate surface
+
+Duplicate surfaces look like parallel product screens that differ mainly by labels, catalogs, or bindings — not by interaction model.
+
+| Tell | Why it is a finding |
+|------|---------------------|
+| Parallel `*HubView` / `*EncounterView` with the same section stack | Agents copied a shell instead of parameterizing mode/content |
+| Near-identical detail / summary / picker layouts across tabs | Same grid, chrome, and empty states with tiny diffs |
+| Repeated reward / outcome / artwork wrappers | Shell already exists (or should) under `Features/Shared` or DesignSystem |
+| Same `GridItem` / card stack / sheet scaffolding in 3+ files | Layout ownership belongs in one helper, not N call sites |
+| Diverged twins that used to match | Copy-paste drift — bugs get fixed in one sibling only |
+
+**Not this audit:** single-file ceremony (`*Helper`, narrating comments) → InelegantSlop; raw Metrics/typography literals → AppleNativeUI; unused symbols → DeadCode; logic living in the wrong module → StateGravity.
+
+## Hard stops
+
+- Do not change player-facing behavior, balance, copy, layout, or `accessibilityIdentifier` values unless removing a dead duplicate control.
+- Do not invent a new package, navigation framework, or generic “ScreenBuilder.”
+- Do not force unrelated product flows into one type (e.g. Battle hand vs Collection grid) just because both show cards.
+- Do not move shared chrome into `Features/` when it already belongs in `TrinketDesignSystem`, or domain rules into views.
+- Prefer the owning audit when the hit is primarily dead code, slop ceremony, token adoption, or state ownership.
+
+## Confirm before fixing
+
+1. **Structural twin:** same section order / chrome / interaction pattern across ≥2 call sites (not merely similar names).
+2. **Maintenance cost:** a change would need to land in multiple siblings, or already has drifted.
+3. **Safer shared shape:** one parameterized view or helper in the existing owner preserves behavior.
+4. **Blast radius:** one cluster (e.g. Play mode hubs, or encounter shells) — do not unify the whole Features tree in one pass.
+
+## Simplification order
+
+1. **Delete** the weaker twin when one path is strictly redundant.
+2. **Parameterize** in place (enum / content config / `@ViewBuilder` slots) under the existing feature folder.
+3. **Move** shared product UI into `Trinket/Shared/` or `Trinket/Features/Shared/` when ≥2 feature folders need it.
+4. **Adopt** DesignSystem modifiers / Metrics for chrome duplication — route pure token work through AppleNativeUI when that is the whole fix.
+5. **Propose** a larger shared shell or ownership move when local parameterization would leave the same twins nearby.
+
+## Domain rules
+
+Ownership follows [Architecture.md](../Platform/Architecture.md):
+
+| Surface kind | Prefer owner |
+|--------------|--------------|
+| App-wide cards, detail panes, keyword text, AccessibilityID | `Trinket/Shared/` |
+| Cross-Play-mode shells (reward reveal, shared encounter chrome) | `Trinket/Features/Shared/` or the dominant Play owner |
+| Glass / surfaces / typography / Metrics | `TrinketDesignSystem` |
+| Mode-specific content bindings | Stay in the feature folder; pass data into the shared shell |
+
+Keep intentional product differences (mystery vs shop rules, labyrinth vs explore progression). Collapse only the **view scaffolding** and repeated presentation.
+
+## Probe hints
+
+Compare `Features/Play/Modes/*Hub*`, encounter views (`Mystery`, `Shop`, labyrinth rest/craft), Collection/Homestead detail grids, `*InlinePicker` / `*SummaryGrid` / reward shells. Rank by near-duplicate `body` structure, shared empty-state copy patterns, and parallel private helpers. Prefer clusters with ≥2 clear twins over one-off similarity.
+
+## Verify
+
+Focused unit/smoke for the touched flow per `AGENTS.md`; always `lint.sh` + `check-module-boundaries.sh`. DesignSystem chrome moves also need `check-ui-style.sh`.

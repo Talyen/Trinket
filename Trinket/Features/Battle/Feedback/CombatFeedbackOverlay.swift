@@ -4,16 +4,24 @@ struct CombatFeedbackOverlay: View {
     let items: [CombatFeedbackItem]
 
     var body: some View {
-        ZStack {
-            ForEach(actionGroups(from: items)) { group in
-                CombatFeedbackActionGroupView(items: group.items)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .allowsHitTesting(false)
+        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
+        CombatFeedbackCanvasLayer(items: CombatFeedbackOverlayPolicy.canvasItems(from: groups))
+            .frame(maxWidth: .infinity)
+            .allowsHitTesting(false)
+            .battleFramePacingSignpost(
+                BattleFramePacingSignposts.Name.combatFeedback,
+                isActive: !items.isEmpty
+            )
     }
+}
 
-    private func actionGroups(from visible: [CombatFeedbackItem]) -> [CombatFeedbackActionGroup] {
+enum CombatFeedbackOverlayPolicy {
+    /// A combatant only has four readable feedback lanes. Keeping older action groups
+    /// alive underneath the newest group multiplies independently animated text layers
+    /// without presenting additional readable information.
+    static let maxSimultaneousActionGroups = 1
+
+    static func visibleActionGroups(from visible: [CombatFeedbackItem]) -> [CombatFeedbackActionGroup] {
         var order: [Int] = []
         var grouped: [Int: [CombatFeedbackItem]] = [:]
         for item in visible {
@@ -22,45 +30,29 @@ struct CombatFeedbackOverlay: View {
             }
             grouped[item.actionGroupID, default: []].append(item)
         }
-        return order.compactMap { id in
+        return order.suffix(maxSimultaneousActionGroups).compactMap { id in
             guard let items = grouped[id] else { return nil }
             return CombatFeedbackActionGroup(id: id, items: items)
         }
     }
-}
 
-private struct CombatFeedbackActionGroup: Identifiable {
-    let id: Int
-    let items: [CombatFeedbackItem]
-}
-
-private struct CombatFeedbackActionGroupView: View {
-    let items: [CombatFeedbackItem]
-
-    var body: some View {
-        ZStack {
-            ForEach(visibleItems) { item in
-                CombatFeedbackEventView(item: item)
+    static func canvasItems(from groups: [CombatFeedbackActionGroup]) -> [CombatFeedbackCanvasItem] {
+        groups.compactMap { group in
+            guard let headline = group.items.first else { return nil }
+            let additionalCount = max(0, headline.groupResultCount - 1)
+            let text: String
+            if additionalCount == 0 {
+                text = headline.text
+            } else {
+                let suffix = additionalCount == 1 ? "+1 Effect" : "+\(additionalCount) Effects"
+                text = "\(headline.text)  \(suffix)"
             }
-
-            if hiddenCount > 0, let anchor = visibleItems.first {
-                CombatFeedbackEventView(
-                    item: anchor,
-                    role: .overflow,
-                    laneIndex: 3,
-                    textOverride: hiddenCount == 1 ? "+1 Effect" : "+\(hiddenCount) Effects"
-                )
-            }
+            return CombatFeedbackCanvasItem(item: headline, text: text)
         }
     }
+}
 
-    private var visibleItems: [CombatFeedbackItem] {
-        items
-            .filter { $0.presentationIndex < 3 }
-            .sorted { $0.presentationIndex < $1.presentationIndex }
-    }
-
-    private var hiddenCount: Int {
-        max(0, (items.first?.groupResultCount ?? 0) - 3)
-    }
+struct CombatFeedbackActionGroup: Identifiable {
+    let id: Int
+    let items: [CombatFeedbackItem]
 }

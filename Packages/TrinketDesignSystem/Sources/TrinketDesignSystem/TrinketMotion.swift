@@ -19,14 +19,6 @@ public enum TrinketMotion: Sendable {
         }
     }
 
-    /// Fluid feedback for large navigation cards and other mode-level choices.
-    public enum Play: Sendable {
-        /// Immediate, critically damped response on touch-down.
-        public static var modeCardPress: Animation {
-            .spring(response: 0.2, dampingFraction: 1.0)
-        }
-    }
-
     public enum Journey: Sendable {
         /// Immediate, critically damped feedback for the active stage row.
         public static var rowPress: Animation {
@@ -40,11 +32,6 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Homestead: Sendable {
-        /// Press feedback for dense navigation rows: fast, critically damped, and interruptible.
-        public static var rowPress: Animation {
-            .spring(response: 0.2, dampingFraction: 1.0)
-        }
-
         /// Completion emphasis for a tier node after a successful build or upgrade.
         public static var tierCompletion: Animation {
             .spring(response: 0.35, dampingFraction: 1.0)
@@ -159,9 +146,9 @@ public enum TrinketMotion: Sendable {
         }
 
         public static let cardHeldScale = 1.035
-        public static let cardHeldShadowRadius: CGFloat = 18
-        public static let cardHeldShadowY: CGFloat = 10
-        public static let cardMaximumTiltDegrees = 7.0
+        public static let cardHeldShadowRadius: CGFloat = 10
+        public static let cardHeldShadowY: CGFloat = 30
+        public static let cardMaximumTiltDegrees = 20.0
         public static let cardMaximumStretch = 0.025
 
         /// Soft-hold after a Skill cast so caster art is readable.
@@ -199,7 +186,13 @@ public enum TrinketMotion: Sendable {
         }
 
         /// Max concurrent keyword particle bursts per combatant pane.
-        public static let maxKeywordBurstsPerPane = 2
+        public static let maxKeywordBurstsPerPane = 1
+
+        /// Max simultaneous card cast dissolve overlays on the battlefield.
+        public static let maxConcurrentCardCasts = 1
+
+        /// Default particle count for a played-card activation burst.
+        public static let cardCastParticleCount = 8
 
         public static var ultimateExpand: Animation {
             .spring(response: 0.42, dampingFraction: 0.9)

@@ -40,16 +40,20 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
 5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
 6. New user flow → stable `AccessibilityID` test selector (or existing id) + one smoke UI test. Keep assertions focused on visible UI state and interaction outcomes; do not test custom accessibility labels or values.
-7. Verify with the AGENTS Task→Command Router (toolchain permitting):
-   - **Package-only** change → `./Scripts/test-package.sh <Package>`
-   - **App orchestration** → `./Scripts/test.sh unit <Class>` (or full `./Scripts/test.sh unit` when cross-cutting)
-   - **Small UI feature** → only `./Scripts/test.sh smoke <SmokeClass>` for the closest affected screen or flow; use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
+7. Verify with the AGENTS Task→Command Router (toolchain permitting), using
+   **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
+   - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
+   - **Package-only** change → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
+   - **App orchestration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>` (or full unit when cross-cutting)
+   - **Small UI feature** → only `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` for the closest affected screen or flow; use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
    - **Cross-cutting UI** → run only the affected focused smoke classes during iteration. Global style, full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
 
 ## UI tests (summary)
 
-Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`) and is a pre-push gate, not a generic feature check. Agents use `./Scripts/test.sh smoke <SmokeClass>` for the affected feature. Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
+Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`) and is a pre-push gate, not a generic feature check. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` (or `verify-changed --isolate`) for the affected feature. Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
 
-Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix.
+Battle frame pacing is not part of smoke. Run the exclusive repeated matrix with `./Scripts/performance.sh`; focused harness iteration can use `TRINKET_ISOLATE=1 TRINKET_PERFORMANCE_REPETITIONS=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records native `XCTHitchMetric` data and refresh-normalized raw deadline reports. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
+
+Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix. The Frame Metrics node is an explicit machine bridge used only by the performance plan (not VoiceOver product semantics).
 
 Full layout, launch-arg catalog, speed rules, and mid-battle guidance: **`TrinketUITests/README.md`**.

@@ -1,5 +1,6 @@
 import CoreGraphics
 import Testing
+import TrinketDesignSystem
 @testable import Trinket
 
 struct BattleCardGridLayoutTests {
@@ -205,23 +206,94 @@ struct BattleHandLayoutTests {
         #expect(abs(beyond.width) < 40)
     }
 
-    @Test func heldTiltIsBoundedAndRespondsToHorizontalDirection() {
-        let right = BattleHandLayout.heldTilt(
-            translation: CGSize(width: 80, height: 0),
-            predictedEndTranslation: CGSize(width: 100, height: 0),
-            cardWidth: 180,
-            maximumDegrees: 7
-        )
-        let left = BattleHandLayout.heldTilt(
-            translation: CGSize(width: -80, height: 0),
-            predictedEndTranslation: CGSize(width: -100, height: 0),
-            cardWidth: 180,
-            maximumDegrees: 7
+    @Test func configurationOverridesFanAndDenyResistDefaults() {
+        var configuration = BattleHandMotionConfiguration()
+        configuration.fanAngleStep = 4
+        configuration.fanLiftStep = 3
+        configuration.denyOvershootFactor = 3.0
+        configuration.denyWidthDamp = 0.5
+
+        let rotations = (0 ..< 5).map {
+            BattleHandLayout.rotation(index: $0, cardCount: 5, fanAngleStep: configuration.fanAngleStep)
+        }
+        #expect(rotations[0] == -8)
+        #expect(rotations[2] == 0)
+        #expect(rotations[4] == 8)
+        #expect(
+            BattleHandLayout.restingOffsetY(
+                index: 0,
+                cardCount: 5,
+                fanLiftStep: configuration.fanLiftStep
+            ) == 6
         )
 
-        #expect(right > 0)
-        #expect(left < 0)
-        #expect(right <= 7)
-        #expect(left >= -7)
+        let resisted = BattleHandLayout.presentationTranslation(
+            CGSize(width: 40, height: -180),
+            isPlayable: false,
+            threshold: 80,
+            denyOvershootFactor: configuration.denyOvershootFactor,
+            denyWidthDamp: configuration.denyWidthDamp
+        )
+        let defaultResisted = BattleHandLayout.presentationTranslation(
+            CGSize(width: 40, height: -180),
+            isPlayable: false
+        )
+        #expect(abs(resisted.width) < abs(defaultResisted.width))
+        #expect(resisted.height > defaultResisted.height)
+    }
+
+    @Test func defaultConfigurationMatchesLayoutConstants() {
+        let configuration = BattleHandMotionConfiguration()
+        #expect(configuration.minCardWidth == BattleHandLayout.minCardWidth)
+        #expect(configuration.maxCardWidth == BattleHandLayout.maxCardWidth)
+        #expect(configuration.fanAngleStep == BattleHandLayout.fanAngleStep)
+        #expect(configuration.playDragThreshold == BattleHandLayout.playDragThreshold)
+        #expect(configuration.playArmReleaseRatio == BattleHandLayout.playArmReleaseRatio)
+        #expect(abs(configuration.cardHeldScale - TrinketMotion.Battle.cardHeldScale) < 0.0001)
+    }
+
+    @Test func releaseCenterMatchesRestingPlusDragTranslation() {
+        // Cast handoff uses this math instead of a live geometry probe so drag
+        // frames do not double-invalidate via onGeometryChange.
+        let resting = CGPoint(x: 180, y: 640)
+        let drag = CGSize(width: 24, height: -96)
+        let center = BattleHandLayout.releaseCenter(
+            restingCenter: resting,
+            dragTranslation: drag
+        )
+        #expect(center.x == resting.x + drag.width)
+        #expect(center.y == resting.y + drag.height)
+
+        let zeroDrag = BattleHandLayout.releaseCenter(
+            restingCenter: resting,
+            dragTranslation: .zero
+        )
+        #expect(zeroDrag == resting)
+    }
+
+    @Test func tapGestureIgnoresDragReturnNearRestingPosition() {
+        // A press that never leaves slop opens ability detail.
+        #expect(BattleHandLayout.isTapGesture(
+            translation: CGSize(width: 4, height: -3),
+            didExceedTapSlop: false
+        ))
+        // Once the finger left slop, putting the card back down is not a tap.
+        #expect(!BattleHandLayout.isTapGesture(
+            translation: CGSize(width: 2, height: -1),
+            didExceedTapSlop: true
+        ))
+        #expect(BattleHandLayout.exceedsTapSlop(
+            translation: CGSize(width: 0, height: -12)
+        ))
+        #expect(!BattleHandLayout.exceedsTapSlop(
+            translation: CGSize(width: 5, height: -5)
+        ))
+    }
+
+    @Test func combatantTapSuppressionGraceCoversFingerUpRace() {
+        // Long enough to outlast the same-touch Button activation after a hand
+        // drag ends over a combatant pane; short enough not to feel sticky.
+        #expect(BattleHandLayout.combatantTapSuppressionGrace >= 0.1)
+        #expect(BattleHandLayout.combatantTapSuppressionGrace <= 0.3)
     }
 }

@@ -37,6 +37,10 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
         button(AccessibilityID.LoadoutPicker.equipItem("crossbow-basic")).tap()
 
+        // Equip must persist on the detail slot (not only dismiss the picker).
+        assertButtonExists(AccessibilityID.Equipment.weaponSlot)
+        assertExists("Crossbow")
+
         button(AccessibilityID.Equipment.weaponSlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.itemCandidate("crossbow-basic"))
         goBack()

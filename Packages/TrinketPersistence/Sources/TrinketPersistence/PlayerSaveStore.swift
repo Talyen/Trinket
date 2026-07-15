@@ -44,7 +44,7 @@ public final class PlayerSaveStore {
     public private(set) var recoveredAfterStoreDeletion = false
 
     #if DEBUG
-    var forcesNextSaveFailure = false
+    public var forcesNextSaveFailure = false
     #endif
 
     public var journey: JourneyProgressState {

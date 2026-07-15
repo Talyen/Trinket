@@ -43,7 +43,7 @@ struct EncounterArtworkButton: View {
                 artwork
             }
             // UIStyleCheck: allow - Artwork opens enemy details without button chrome.
-            .buttonStyle(.plain)
+            .trinketQuietTapButtonStyle()
             .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
 
         } else {

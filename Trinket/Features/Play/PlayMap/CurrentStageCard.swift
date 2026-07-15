@@ -120,7 +120,7 @@ struct CurrentStageCard: View {
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Play.stagePartyControl)
     }
 
@@ -132,7 +132,7 @@ struct CurrentStageCard: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
-            .buttonStyle(.plain)
+            .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(stageArtAccessibilityIdentifier)
 
         } else {

@@ -4,7 +4,7 @@
 
 ## Intent
 
-Discover markdown from the repository (do not trust a hardcoded file count). Fix confirmed Critical and Moderate drift within one coherent doc area. A pass with no contradiction is valid.
+Discover markdown from the repository (do not trust a hardcoded file count). Fix confirmed Critical and Moderate drift within one coherent doc area. A pass with no contradiction is valid. If several stale claims share one outdated architecture or toolchain assumption, prefer correcting that shared source of truth — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 

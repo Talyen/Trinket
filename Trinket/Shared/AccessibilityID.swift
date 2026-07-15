@@ -7,6 +7,13 @@ enum AccessibilityID {
         static let options = "Options Screen"
     }
 
+    enum Debug {
+        /// Machine-readable frame-pacing report for performance scenarios (`-enable-frame-metrics`).
+        static let frameMetrics = "Frame Metrics"
+        static let battlePerformanceStart = "Battle Performance Start"
+        static let battlePerformanceStatus = "Battle Performance Status"
+    }
+
     enum Play {
         static let modesEntry = "Modes Entry"
         static let modesScreen = "Modes Screen"

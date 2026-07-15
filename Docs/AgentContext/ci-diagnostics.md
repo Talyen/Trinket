@@ -6,7 +6,9 @@ diagnostics are the first source of evidence; raw xcodebuild logs are a last res
 ## Emitted reports
 
 Every test or package invocation writes an atomically completed
-`*-invocation.json` manifest in `.DerivedData/TestResults/`. It records the label,
+`*-invocation.json` manifest in the run’s `RESULTS_DIR` (shared default
+`.DerivedData/TestResults/`, or `.DerivedData/runs/agent-N/TestResults/` when
+`TRINKET_ISOLATE=1` / `verify-changed --isolate`). It records the label,
 exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
 Failed invocations also produce bounded sibling reports:
 
@@ -25,19 +27,23 @@ locations and attachments even when the underlying result bundle is incomplete.
 Run:
 
 ```sh
+# Shared tenant (humans / CI):
 ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+
+# Isolated agent run — use the RESULTS_DIR printed by run-env:
+./Scripts/ci-diagnostics.sh .DerivedData/runs/<TRINKET_RUN_ID>/TestResults
 ```
 
 The command aggregates completion manifests and failure reports into
-`.DerivedData/TestResults/ci-diagnostics.json`; in CI it also writes the actionable
+`<RESULTS_DIR>/ci-diagnostics.json`; in CI it also writes the actionable
 summary to `GITHUB_STEP_SUMMARY`. It consumes the structured reports and does not
 reparse xcresult bundles. Cached status/diagnostic artifacts can be cleared at job
 start without deleting raw logs or xcresult bundles:
 
 ```sh
 ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+# or the isolated RESULTS_DIR for an agent run
 ```
-
 Coding agents should inspect the aggregate, then the referenced per-invocation JSON,
 Markdown, annotations, and attachments for the failure category, issue, source
 location, and suggested action. Inspect raw xcodebuild logs only when the aggregate

@@ -8,6 +8,12 @@ struct BattleView: View {
     @State private var persistFailureMessage: StageMapMessage?
     @State private var cardPlayFeedbackToken = 0
     @State private var castingCards: [CardActivationRequest] = []
+    @State private var showCastEffectsPrewarm = true
+    @State private var performanceForcedDrag: (cardID: Int, translation: CGSize)?
+    /// Blocks combatant detail Buttons while a hand card is held, and briefly after
+    /// release so the same finger-up cannot open details.
+    @State private var suppressCombatantTaps = false
+    @State private var handInteractionGeneration = 0
     @Namespace private var cinematicNamespace
 
     private let configuration: ActiveBattleConfiguration
@@ -49,6 +55,8 @@ struct BattleView: View {
             }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
+                castingCards = []
+                showCastEffectsPrewarm = true
             }
     }
 
@@ -159,6 +167,7 @@ struct BattleView: View {
                         battleSession: battleSession
                     )
                 )
+                .allowsHitTesting(!suppressCombatantTaps)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 battleHand(
@@ -166,7 +175,12 @@ struct BattleView: View {
                     battleSize: geometry.size
                 )
 
-                CardCastEffectsPrewarmView()
+                if showCastEffectsPrewarm,
+                   AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
+                    CardCastEffectsPrewarmView {
+                        showCastEffectsPrewarm = false
+                    }
+                }
 
                 CardCastEffectsLayer(requests: castingCards) { requestID in
                     castingCards.removeAll { $0.id == requestID }
@@ -175,7 +189,22 @@ struct BattleView: View {
 
                 cinematicOverlay(for: battleSession)
                     .zIndex(10)
+
+                #if DEBUG
+                if let scenario = AppEnvironment.shared.battlePerformanceScenario {
+                    BattlePerformanceScenarioHarness(
+                        scenario: scenario,
+                        appState: appState,
+                        battleSession: battleSession,
+                        battleSize: geometry.size,
+                        castingCards: $castingCards,
+                        forcedDrag: $performanceForcedDrag
+                    )
+                    .zIndex(20)
+                }
+                #endif
             }
+            .coordinateSpace(.named(BattleCoordinateSpace.field))
         }
         .ignoresSafeArea(.container, edges: .bottom)
     }
@@ -191,14 +220,25 @@ struct BattleView: View {
                 battleSession.presentAbilityDetail(card.ability)
             },
             onPlay: { card, request in
+                BattleFramePacingSignposts.event(
+                    BattleFramePacingSignposts.Name.cardCommit,
+                    detail: "card=\(card.id) ability=\(card.ability.id) owner=\(card.owner)"
+                )
                 let didPlay = playCard(cardID: card.id)
                 guard didPlay else { return false }
                 castingCards.append(request)
+                let maxCasts = TrinketMotion.Battle.maxConcurrentCardCasts
+                if castingCards.count > maxCasts {
+                    castingCards.removeFirst(castingCards.count - maxCasts)
+                }
                 cardPlayFeedbackToken &+= 1
                 return true
             },
             hapticsEnabled: appState.options.hapticsEnabled,
-            battleFrame: CGRect(origin: .zero, size: battleSize)
+            battleFrame: CGRect(origin: .zero, size: battleSize),
+            configuration: .init(),
+            forcedDragTranslation: performanceForcedDrag,
+            onCardInteractionChanged: updateCombatantTapSuppression(_:)
         )
         .frame(height: BattleCardGridLayout.handReservedHeight)
         .offset(y: -BattleHandLayout.bottomRise)
@@ -309,6 +349,7 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant, battleState: BattleState) {
+        guard !suppressCombatantTaps else { return }
         appState.battle.presentCombatantDetail(
             CombatantCardDetail.battleSnapshot(
                 configuration: configuration,
@@ -317,5 +358,22 @@ struct BattleView: View {
                 activeEffectSummaries: battleState.effectSummaries(of: combatant)
             )
         )
+    }
+
+    private func updateCombatantTapSuppression(_ isHandInteracting: Bool) {
+        if isHandInteracting {
+            handInteractionGeneration &+= 1
+            suppressCombatantTaps = true
+            return
+        }
+
+        let generation = handInteractionGeneration
+        Task { @MainActor in
+            try? await Task.sleep(
+                for: .seconds(BattleHandLayout.combatantTapSuppressionGrace)
+            )
+            guard generation == handInteractionGeneration else { return }
+            suppressCombatantTaps = false
+        }
     }
 }

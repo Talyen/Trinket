@@ -6,7 +6,7 @@
 
 ## Intent
 
-Make a bounded set of Tier-1 or clear Tier-2 improvements with demonstrated regression value. A clean pass is valid.
+Make a bounded set of Tier-1 or clear Tier-2 improvements with demonstrated regression value. A clean pass is valid. If several weak tests share duplicated setup or an oversized suite, prefer that structural Tier-2 remedy — and propose when significant per [README.md](README.md).
 
 ## Hard stops
 
