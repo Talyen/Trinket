@@ -67,6 +67,26 @@ enum RosterHydration {
                 inventoryItems: inventoryItems
             )
         }
-        return resolved
+        return enforceUniqueEquippedItems(resolved)
+    }
+
+    /// One inventory instance may only be equipped on one combatant. First claim
+    /// wins in stable combatant-ID order; later duplicates are stripped.
+    static func enforceUniqueEquippedItems(
+        _ loadouts: [String: EquipmentLoadout]
+    ) -> [String: EquipmentLoadout] {
+        var claimedItemIDs = Set<String>()
+        var unique: [String: EquipmentLoadout] = [:]
+        for combatantID in loadouts.keys.sorted() {
+            guard let loadout = loadouts[combatantID] else { continue }
+            var cleaned = EquipmentLoadout()
+            for slot in ItemSlot.allCases {
+                guard let itemID = loadout.itemID(for: slot) else { continue }
+                guard claimedItemIDs.insert(itemID).inserted else { continue }
+                cleaned.itemIDsBySlot[slot] = itemID
+            }
+            unique[combatantID] = cleaned
+        }
+        return unique
     }
 }

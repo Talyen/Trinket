@@ -108,4 +108,53 @@ struct DamagePipelineTests {
         try #expect(DamagePipeline.steps.first?.phase == .stochastic)
         try #expect(DamagePipeline.steps.last?.phase == .post)
     }
+
+    @Test func healthCostSkipsAttackPipelineSteps() throws {
+        var context = makeContext(seed: 1772)
+        let hero = context.roster.hero.combatant
+        let executed = DamagePipeline.executedStepNames(
+            for: DamageRequest(
+                amount: 2,
+                target: hero,
+                keyword: .physical,
+                sourceActorID: hero.id,
+                options: .healthCost
+            ),
+            in: &context
+        )
+        try #expect(executed == ["TakeDamage", "DeathsDoor"])
+    }
+
+    @Test func healthCostIgnoresBlockBuffer() throws {
+        var context = makeContext(seed: 1772)
+        let hero = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)],
+            for: hero
+        )
+        let healthBefore = context.roster.health(for: hero)
+
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: 2,
+                target: hero,
+                keyword: .physical,
+                sourceActorID: hero.id,
+                options: .healthCost
+            )
+        )
+
+        try #expect(outcome.healthLost == 2)
+        try #expect(context.roster.health(for: hero) == healthBefore - 2)
+        let shield = context.roster.activeEffects(for: hero).first {
+            if case .shield = $0.effect { return true }
+            return false
+        }
+        guard case let .shield(_, buffer) = shield?.effect else {
+            Issue.record("Block should remain after a self health cost")
+            return
+        }
+        try #expect(buffer == 20)
+        try #expect(!(outcome.events.contains { $0.effectKind == .shieldAbsorbed }))
+    }
 }

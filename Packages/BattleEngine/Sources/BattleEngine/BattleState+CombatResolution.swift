@@ -17,7 +17,8 @@ package extension BattleState {
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush,
-            abilityHasLeech: request.options.abilityHasLeech
+            abilityHasLeech: request.options.abilityHasLeech,
+            isHealthCost: request.options.isHealthCost
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 
