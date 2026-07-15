@@ -9,6 +9,7 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 | Quick smoke | `QuickSmoke.xctestplan` (`SmokeHomesteadTests`) | Local / agents (`test.sh smoke`) |
 | Full smoke | `Smoke/`, `Smoke.xctestplan` | CI / PR (`test.sh smoke-full`); local only when debugging |
 | Exhaustive | `Play/`, `Collection/`, `Battle/`, `Homestead/` | Pre-merge (`test.sh ui` / `test-deploy.sh`) |
+| Performance | `Performance/`, `BattlePerformance.xctestplan` | Frame-pacing matrix (`performance.sh` / `test.sh performance`); not smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Smoke classes are lean per-screen checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here. Bare `test.sh smoke` runs only the Homestead canary; `test.sh smoke <Class>` filters the full Smoke plan for iteration.
@@ -25,7 +26,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio` (see `AppEnvironment.parse`)
-- `-enable-frame-metrics` — DEBUG frame-pacing sampler + `AccessibilityID.Debug.frameMetrics` for `SmokeBattleFramePacingTests`
+- `-enable-frame-metrics` — DEBUG frame-pacing sampler + `AccessibilityID.Debug.frameMetrics` for `BattlePerformanceUITests` (performance plan only; not smoke)
 
 Keep default launch args unless testing persistence. Prefer ids from `AccessibilityID` (e.g. `AccessibilityID.Play.stageNode(chapter:stage:)`, `AccessibilityID.Battle.hand`); assert with `assertExists`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
 
