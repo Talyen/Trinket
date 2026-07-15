@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TrinketContent
 import TrinketCore
 
@@ -186,6 +187,8 @@ enum ParallelMap {
 
         let buffer = ResultBuffer<Output>(count: inputs.count)
         let workerCount = min(jobs, inputs.count)
+        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism;
+        // slots are written via Mutex-backed ResultBuffer.
         DispatchQueue.concurrentPerform(iterations: workerCount) { worker in
             var index = worker
             while index < inputs.count {
@@ -197,28 +200,27 @@ enum ParallelMap {
     }
 }
 
-private final class ResultBuffer<Value: Sendable>: @unchecked Sendable {
-    private let lock = NSLock()
-    private var storage: [Value?]
+private final class ResultBuffer<Value: Sendable>: Sendable {
+    private let storage: Mutex<[Value?]>
 
     init(count: Int) {
-        storage = Array(repeating: nil, count: count)
+        storage = Mutex(Array(repeating: nil, count: count))
     }
 
     func set(_ value: Value, at index: Int) {
-        lock.lock()
-        storage[index] = value
-        lock.unlock()
+        storage.withLock { array in
+            array[index] = value
+        }
     }
 
     var values: [Value] {
-        lock.lock()
-        defer { lock.unlock() }
-        return storage.map { value in
-            guard let value else {
-                preconditionFailure("ParallelMap left a nil slot")
+        storage.withLock { array in
+            array.map { value in
+                guard let value else {
+                    preconditionFailure("ParallelMap left a nil slot")
+                }
+                return value
             }
-            return value
         }
     }
 }

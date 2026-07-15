@@ -207,6 +207,8 @@ private final class FramePacingMonitor: NSObject {
 
         analysisTask?.cancel()
         let handler = handler
+        // Concurrency-Safety: outer Task stays on @MainActor for handler delivery;
+        // Task.detached runs pure percentile analysis off the display-link actor.
         analysisTask = Task {
             let report = await Task.detached(priority: .utility) {
                 FramePacingAnalyzer.report(
