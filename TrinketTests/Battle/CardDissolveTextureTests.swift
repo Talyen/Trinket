@@ -3,14 +3,14 @@ import Testing
 @testable import Trinket
 
 struct CardDissolveTextureTests {
-    @Test func thresholdMaskImageDoesNotDeadlockOnCacheMiss() {
+    @Test func thresholdMaskImageDoesNotDeadlockOnCacheMiss() throws {
         // Regression: baking used to call noiseBytes while holding the threshold lock
         // (NSLock is not recursive), freezing the UI on first card play.
-        let image = CardDissolveTexture.thresholdMaskImage(progress: 0.45)
+        let image = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
         #expect(image.width == 192)
         #expect(image.height == 256)
         // Second call should hit cache and still return a live image.
-        let cached = CardDissolveTexture.thresholdMaskImage(progress: 0.45)
+        let cached = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
         #expect(cached.width == 192)
     }
 
