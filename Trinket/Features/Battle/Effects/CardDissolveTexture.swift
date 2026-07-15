@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 import SwiftUI
+import Synchronization
 import TrinketDesignSystem
 
 struct CardDissolveThresholdMask: View {
@@ -49,39 +50,41 @@ enum CardDissolveTexture {
         let thresholdContrast: Int
     }
 
-    private final class TextureCache: @unchecked Sendable {
-        private let lock = NSLock()
-        private var noiseCache: [NoiseCacheKey: [UInt8]] = [:]
-        private var thresholdCache: [ThresholdCacheKey: CGImage] = [:]
+    /// Shared bake cache read from the main actor (live casts) and a detached
+    /// prewarm task. Separate Mutexes keep noise resolution outside the
+    /// threshold lock so a cache miss cannot self-deadlock.
+    private final class TextureCache: Sendable {
+        private let noiseCache = Mutex<[NoiseCacheKey: [UInt8]]>([:])
+        private let thresholdCache = Mutex<[ThresholdCacheKey: CGImage]>([:])
 
         func noiseBytes(
             key: NoiseCacheKey,
             make: () -> [UInt8]
         ) -> [UInt8] {
-            lock.lock()
-            defer { lock.unlock() }
-            if let cached = noiseCache[key] {
-                return cached
+            noiseCache.withLock { cache in
+                if let cached = cache[key] {
+                    return cached
+                }
+                let bytes = make()
+                cache[key] = bytes
+                return bytes
             }
-            let bytes = make()
-            noiseCache[key] = bytes
-            return bytes
         }
 
         func thresholdImage(
             key: ThresholdCacheKey,
             make: () -> CGImage?
         ) -> CGImage? {
-            lock.lock()
-            defer { lock.unlock() }
-            if let cached = thresholdCache[key] {
-                return cached
+            thresholdCache.withLock { cache in
+                if let cached = cache[key] {
+                    return cached
+                }
+                guard let image = make() else {
+                    return nil
+                }
+                cache[key] = image
+                return image
             }
-            guard let image = make() else {
-                return nil
-            }
-            thresholdCache[key] = image
-            return image
         }
     }
 
@@ -123,8 +126,9 @@ enum CardDissolveTexture {
             thresholdMidpoint: quantize(thresholdMidpoint),
             thresholdContrast: Int(thresholdContrast.rounded())
         )
-        // Resolve noise outside `thresholdImage`'s lock — NSLock is not recursive, and
-        // baking under the lock while calling `noiseBytes` deadlocks the UI on first cast.
+        // Resolve noise outside `thresholdImage`'s Mutex — nested acquisition of the
+        // same lock is undefined, and baking under it while calling `noiseBytes`
+        // would deadlock the UI on first cast.
         let noise = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
@@ -142,13 +146,16 @@ enum CardDissolveTexture {
     }
 
     /// Ensures default noise + quantized threshold masks are resident before first cast.
-    /// Work runs off the main queue so battle chrome can appear without a hitch.
+    /// Work runs off the caller's actor so battle chrome can appear without a hitch.
     static func prewarm(
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1
     ) {
-        DispatchQueue.global(qos: .userInitiated).async {
+        // Concurrency-Safety: Task.detached escapes caller isolation (often
+        // @MainActor `.task`) so CPU baking does not hitch battle chrome.
+        // TextureCache is Mutex-backed and Sendable across concurrent readers.
+        Task.detached(priority: .userInitiated) {
             _ = noiseImage(
                 edgeDepthWeight: edgeDepthWeight,
                 noiseWeight: noiseWeight,

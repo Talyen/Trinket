@@ -10,7 +10,9 @@ struct CombatFeedbackRasterKey: Hashable {
     let displayScaleHundredths: Int
 }
 
-final class CombatFeedbackRaster: @unchecked Sendable {
+/// Immutable raster owned exclusively by `CombatFeedbackRasterPool` (`@MainActor`).
+/// Not Sendable: `CGImage` is not Sendable and the pool never crosses isolation.
+final class CombatFeedbackRaster {
     let key: CombatFeedbackRasterKey
     let image: CGImage
     let pointSize: CGSize
