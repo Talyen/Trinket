@@ -263,13 +263,54 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             companion: companion,
-            battleEarnedGold: 9,
+            battleEarnedGold: 0,
             save: &save
         )
 
         try #expect(save.roster.gold == goldAfterFirstClaim)
         try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
         try #expect(save.inventory.items.count == itemCountAfterFirstClaim)
+        try #expect(save.journey.hasClaimedRewards(for: firstStage))
+    }
+
+    @Test func claimRewardsBanksBattleGoldWhenStageAlreadyClaimed() throws {
+        var save = makeSave(
+            homestead: PlayerHomesteadState(
+                resources: [:],
+                nodeTiers: [.wishingWell: 2]
+            )
+        )
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: 0,
+            save: &save
+        )
+        let goldAfterClaim = save.roster.gold
+        let heroXPAfterClaim = save.roster.progression(for: hero).currentXP
+        let itemCountAfterClaim = save.inventory.items.count
+        let battleEarnedGold = 9
+        let expectedBattleGrant = StageCompletion.resolvedGoldReward(
+            stageGold: 0,
+            battleEarnedGold: battleEarnedGold,
+            homestead: save.homestead
+        )
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: battleEarnedGold,
+            save: &save
+        )
+
+        try #expect(save.roster.gold == goldAfterClaim + expectedBattleGrant)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterClaim)
+        try #expect(save.inventory.items.count == itemCountAfterClaim)
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
