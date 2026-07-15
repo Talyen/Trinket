@@ -3,16 +3,16 @@ import TrinketContent
 import TrinketCore
 
 struct HasteHandler: BattleEffectHandler {
-    public let kind: EffectKind = .haste
+    let kind: EffectKind = .haste
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         // Haste has no combat effect in turn-based card combat (action intervals removed).
         _ = stacks
         _ = keyword
         return nil
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability _: Ability,
         source _: Combatant,
@@ -27,9 +27,9 @@ struct HasteHandler: BattleEffectHandler {
 }
 
 struct ThornsHandler: BattleEffectHandler {
-    public let kind: EffectKind = .thorns
+    let kind: EffectKind = .thorns
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
             if case let .thorns(_, amount, _) = active.effect {
                 return sum + amount
@@ -46,7 +46,7 @@ struct ThornsHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "Thorns: \(total) damage, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -79,13 +79,13 @@ struct ThornsHandler: BattleEffectHandler {
 }
 
 struct MarkedHandler: BattleEffectHandler {
-    public let kind: EffectKind = .marked
+    let kind: EffectKind = .marked
 
-    public func summary(for _: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for _: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         EffectSummary(keyword: keyword, text: "Marked")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -118,9 +118,9 @@ struct MarkedHandler: BattleEffectHandler {
 }
 
 struct CriticalChanceBonusHandler: BattleEffectHandler {
-    public let kind: EffectKind = .criticalChanceBonus
+    let kind: EffectKind = .criticalChanceBonus
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = stacks.reduce(0.0) { maxPercent, active in
             if case let .criticalChanceBonus(value, _) = active.effect {
                 return max(maxPercent, value)
@@ -137,7 +137,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -163,9 +163,9 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
 }
 
 struct RestoreManaOnHitHandler: BattleEffectHandler {
-    public let kind: EffectKind = .restoreManaOnHit
+    let kind: EffectKind = .restoreManaOnHit
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = stacks.reduce(0) { maxAmount, active in
             if case let .restoreManaOnHit(value, _) = active.effect {
                 return max(maxAmount, value)
@@ -182,7 +182,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -208,9 +208,9 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
 }
 
 struct DamageKeywordOverrideHandler: BattleEffectHandler {
-    public let kind: EffectKind = .damageKeywordOverride
+    let kind: EffectKind = .damageKeywordOverride
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
         else { return nil }
@@ -226,7 +226,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         )
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,

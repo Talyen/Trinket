@@ -3,9 +3,9 @@ import TrinketContent
 import TrinketCore
 
 struct ShieldHandler: BattleEffectHandler {
-    public let kind: EffectKind = .shield
+    let kind: EffectKind = .shield
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
             if case let .shield(_, buffer) = effect.effect {
                 return sum + buffer
@@ -16,7 +16,7 @@ struct ShieldHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -48,9 +48,9 @@ struct ShieldHandler: BattleEffectHandler {
 }
 
 struct MitigationHandler: BattleEffectHandler {
-    public let kind: EffectKind = .mitigation
+    let kind: EffectKind = .mitigation
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
             if case let .mitigation(_, points) = effect.effect {
                 return sum + points
@@ -61,7 +61,7 @@ struct MitigationHandler: BattleEffectHandler {
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -93,9 +93,9 @@ struct MitigationHandler: BattleEffectHandler {
 }
 
 struct LeechHandler: BattleEffectHandler {
-    public let kind: EffectKind = .leech
+    let kind: EffectKind = .leech
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = stacks.reduce(0.0) { maxPercent, effect in
             if case let .leech(_, value, _) = effect.effect {
                 return max(maxPercent, value)
@@ -115,7 +115,7 @@ struct LeechHandler: BattleEffectHandler {
         )
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -158,14 +158,14 @@ struct LeechHandler: BattleEffectHandler {
 }
 
 struct NextHolyStrikeHandler: BattleEffectHandler {
-    public let kind: EffectKind = .nextHolyStrike
+    let kind: EffectKind = .nextHolyStrike
 
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(keyword: keyword, text: "Next Holy Strike ready.")
     }
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,

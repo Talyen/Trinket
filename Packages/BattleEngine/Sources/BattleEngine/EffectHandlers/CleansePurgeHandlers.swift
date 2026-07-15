@@ -3,9 +3,9 @@ import TrinketContent
 import TrinketCore
 
 struct CleanseHandler: BattleEffectHandler {
-    public let kind: EffectKind = .cleanse
+    let kind: EffectKind = .cleanse
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -31,9 +31,9 @@ struct CleanseHandler: BattleEffectHandler {
 }
 
 struct CleanseRandomHandler: BattleEffectHandler {
-    public let kind: EffectKind = .cleanseRandom
+    let kind: EffectKind = .cleanseRandom
 
-    public func apply(
+    func apply(
         _: Effect,
         ability: Ability,
         source: Combatant,
@@ -56,9 +56,9 @@ struct CleanseRandomHandler: BattleEffectHandler {
 }
 
 struct PurgeHandler: BattleEffectHandler {
-    public let kind: EffectKind = .purge
+    let kind: EffectKind = .purge
 
-    public func apply(
+    func apply(
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
@@ -84,9 +84,9 @@ struct PurgeHandler: BattleEffectHandler {
 }
 
 struct PurgeRandomHandler: BattleEffectHandler {
-    public let kind: EffectKind = .purgeRandom
+    let kind: EffectKind = .purgeRandom
 
-    public func apply(
+    func apply(
         _: Effect,
         ability: Ability,
         source: Combatant,
