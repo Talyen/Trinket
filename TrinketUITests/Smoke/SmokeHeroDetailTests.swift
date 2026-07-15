@@ -1,6 +1,7 @@
 import XCTest
 
 final class SmokeHeroDetailTests: TrinketUITestCase {
+    /// Load + header preservation. Equip/ability journeys live in `TabNavigationUITests`.
     func testHeroDetailOverscrollHeaderPreservation() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight")
@@ -13,20 +14,5 @@ final class SmokeHeroDetailTests: TrinketUITestCase {
         start.press(forDuration: 0.1, thenDragTo: end)
 
         XCTAssertTrue(header.exists, "Hero header should still exist after overscroll")
-    }
-
-    func testHeroDetailEquipPersistsOnWeaponSlot() {
-        launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        combatantDetail.assertLoaded(for: "Knight")
-
-        scrollUntilVisible(button(AccessibilityID.Equipment.weaponSlot), swipingUp: true)
-        button(AccessibilityID.Equipment.weaponSlot).tap()
-        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-        button(AccessibilityID.LoadoutPicker.itemCandidate("crossbow-basic")).tap()
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail("crossbow-basic"))
-        button(AccessibilityID.LoadoutPicker.equipItem("crossbow-basic")).tap()
-
-        assertButtonExists(AccessibilityID.Equipment.weaponSlot)
-        assertExists("Crossbow")
     }
 }

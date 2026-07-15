@@ -41,6 +41,40 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet()
     }
 
+    /// Hand drag onto a combatant must not open details; tap still works after.
+    /// Kept out of smoke: mid-battle interactions enter via Play map, not `-launch-screen battle`.
+    func testHandDragReleaseOnCombatantDoesNotOpenDetail() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+
+        if battle.waitForMidBattleOrVictory() {
+            return
+        }
+
+        battle.assertActive()
+        assertExists(battle.hand)
+
+        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
+        assertExists(hero)
+
+        battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
+
+        let detailHeader = combatantDetail.header(for: "Ranger")
+        XCTAssertFalse(
+            detailHeader.waitForExistence(timeout: 1),
+            "Releasing a hand-card drag on a combatant must not open details"
+        )
+
+        if battle.victory.waitForExistence(timeout: 1) {
+            return
+        }
+
+        battle.openCombatantCard(named: "Ranger")
+        combatantDetail.assertLoaded(for: "Ranger")
+    }
+
     /// Victory remains focused on Battle; Combat Log is available from Battle Actions.
     func testBattleVictorySummaryAndPostVictoryMenu() {
         launchApp(arguments: TestLaunchArg.allForBattleVictory())
