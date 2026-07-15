@@ -6,21 +6,21 @@ import TrinketCore
 /// `performAction` resolves each targeted effect through this table instead
 /// of a single inline switch.
 public enum EffectHandlers {
-    private static let handlerByKind: [EffectKind: any BattleEffectHandler] = [
+    public static let all: [EffectKind: any BattleEffectHandler] = [
         .burn: DecayingDoTHandler(keyword: .burn),
         .poison: DecayingDoTHandler(keyword: .poison),
         .bleed: BleedHandler(),
         .controlMeter: ControlMeterHandler(),
-        .shield: ShieldHandler(),
-        .mitigation: MitigationHandler(),
+        .shield: DefensePoolBuffHandler(pool: .shield),
+        .mitigation: DefensePoolBuffHandler(pool: .mitigation),
         .instantHeal: InstantHealHandler(),
         .leech: LeechHandler(),
         .resourceGain: ResourceGainHandler(),
         .drawCards: DrawCardsHandler(),
-        .cleanse: CleanseHandler(),
-        .cleanseRandom: CleanseRandomHandler(),
-        .purge: PurgeHandler(),
-        .purgeRandom: PurgeRandomHandler(),
+        .cleanse: CleansePurgeHandler(mode: .cleanse),
+        .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom),
+        .purge: CleansePurgeHandler(mode: .purge),
+        .purgeRandom: CleansePurgeHandler(mode: .purgeRandom),
         .halveMitigation: HalveMitigationHandler(),
         .deathsDoor: DeathsDoorHandler(),
         .haste: HasteHandler(),
@@ -32,9 +32,7 @@ public enum EffectHandlers {
         .nextHolyStrike: NextHolyStrikeHandler()
     ]
 
-    public static let all: [EffectKind: any BattleEffectHandler] = handlerByKind
-
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {
-        handlerByKind[kind]
+        all[kind]
     }
 }

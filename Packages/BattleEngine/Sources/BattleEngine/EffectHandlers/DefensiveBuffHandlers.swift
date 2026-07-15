@@ -2,15 +2,41 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct ShieldHandler: BattleEffectHandler {
-    let kind: EffectKind = .shield
+/// Shared handler for shield (block) and mitigation (armor) pool gains.
+struct DefensePoolBuffHandler: BattleEffectHandler {
+    enum Pool: Sendable {
+        case shield
+        case mitigation
+
+        var kind: EffectKind {
+            switch self {
+            case .shield: .shield
+            case .mitigation: .mitigation
+            }
+        }
+
+        var appliedEffectKind: ActionEvent.EffectKind {
+            switch self {
+            case .shield: .shieldApplied
+            case .mitigation: .mitigationApplied
+            }
+        }
+    }
+
+    let pool: Pool
+    var kind: EffectKind {
+        pool.kind
+    }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = stacks.reduce(0) { sum, effect in
-            if case let .shield(_, buffer) = effect.effect {
-                return sum + buffer
+        let total = stacks.reduce(0) { sum, active in
+            switch (pool, active.effect) {
+            case let (.shield, .shield(_, value)),
+                 let (.mitigation, .mitigation(_, value)):
+                sum + value
+            default:
+                sum
             }
-            return sum
         }
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
@@ -24,70 +50,43 @@ struct ShieldHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .shield(keyword, buffer) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        guard case let .shield(adjustedKeyword, adjustedBuffer) = adjusted else {
+        let keyword: Keyword
+        let amount: Int
+        switch (pool, adjusted) {
+        case let (.shield, .shield(adjustedKeyword, adjustedAmount)):
+            keyword = adjustedKeyword
+            amount = adjustedAmount
+        case let (.mitigation, .mitigation(adjustedKeyword, adjustedAmount)):
+            keyword = adjustedKeyword
+            amount = adjustedAmount
+        default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        DefensePoolEngine.addBlock(adjustedBuffer, to: target, keyword: adjustedKeyword, in: &context)
+
+        switch pool {
+        case .shield:
+            DefensePoolEngine.addBlock(amount, to: target, keyword: keyword, in: &context)
+        case .mitigation:
+            DefensePoolEngine.addArmor(amount, to: target, keyword: keyword, in: &context)
+        }
+
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .shieldApplied,
+            effectKind: pool.appliedEffectKind,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: adjustedBuffer,
-            keyword: adjustedKeyword
+            amount: amount,
+            keyword: keyword
         )
         var events = [event]
-        events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
-        return EffectApplyOutcome(events: events, didApply: true)
-    }
-}
-
-struct MitigationHandler: BattleEffectHandler {
-    let kind: EffectKind = .mitigation
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = stacks.reduce(0) { sum, effect in
-            if case let .mitigation(_, points) = effect.effect {
-                return sum + points
-            }
-            return sum
+        switch pool {
+        case .shield:
+            events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
+        case .mitigation:
+            events.append(contentsOf: CombatReactionEngine.afterArmorGained(by: target, in: &context))
         }
-        guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleEngineContext
-    ) -> EffectApplyOutcome {
-        guard case let .mitigation(keyword, points) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        guard case let .mitigation(adjustedKeyword, adjustedPoints) = adjusted else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        DefensePoolEngine.addArmor(adjustedPoints, to: target, keyword: adjustedKeyword, in: &context)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .mitigationApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: adjustedPoints,
-            keyword: adjustedKeyword
-        )
-        var events = [event]
-        events.append(contentsOf: CombatReactionEngine.afterArmorGained(by: target, in: &context))
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }
@@ -123,7 +122,7 @@ struct LeechHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .leech(keyword, percent, durationTicks) = effect else {
+        guard case .leech = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
