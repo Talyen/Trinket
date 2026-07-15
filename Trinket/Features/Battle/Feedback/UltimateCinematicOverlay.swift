@@ -150,9 +150,9 @@ struct UltimateCinematicOverlay: View {
         }
         onPlaying()
         let didStartVideo = attemptVideoReveal()
-        if !didStartVideo {
-            scheduleFallbackHold()
-        }
+        // Always arm a watchdog — video end/failure notifications can stall forever
+        // with skip policy `.never`, soft-locking battle input and deferred victory.
+        scheduleFallbackHold(forVideo: didStartVideo)
         scheduleSkipHint()
     }
 
@@ -199,12 +199,17 @@ struct UltimateCinematicOverlay: View {
         return true
     }
 
-    private func scheduleFallbackHold() {
+    private func scheduleFallbackHold(forVideo: Bool = false) {
         fallbackHoldTask?.cancel()
         let cinematicID = cinematic.id
+        let hold = forVideo
+            ? max(
+                TrinketMotion.Battle.ultimateFallbackHold,
+                TrinketMotion.Battle.ultimateVideoWatchdog
+            )
+            : TrinketMotion.Battle.ultimateFallbackHold
         fallbackHoldTask = Task { @MainActor in
             let clock = SuspendingClock()
-            let hold = TrinketMotion.Battle.ultimateFallbackHold
             try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(40))
             guard !Task.isCancelled, !didFinish else { return }
             onAutoFinish(cinematicID)

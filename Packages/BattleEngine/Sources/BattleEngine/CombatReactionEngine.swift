@@ -182,12 +182,15 @@ package extension CombatReactionEngine {
         else { return }
 
         context.roster.mutateRuntime(for: hero) { $0.hasTriggeredHexmark = true }
-        state.activeEffects.removeAll {
+        // Read roster after MarkedConsume / defense steps — do not reuse a stale
+        // pipeline snapshot that may have dropped the new mark before write-back.
+        var effects = context.roster.activeEffects(for: state.combatant)
+        effects.removeAll {
             if case .marked = $0.effect {
                 return true
             }; return false
         }
-        state.activeEffects.append(
+        effects.append(
             ActiveEffect(
                 id: context.consumeNextEffectID(),
                 effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
@@ -195,6 +198,8 @@ package extension CombatReactionEngine {
                 sourceActorID: hero.id
             )
         )
+        context.roster.setActiveEffects(effects, for: state.combatant)
+        state.activeEffects = effects
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .markedApplied,

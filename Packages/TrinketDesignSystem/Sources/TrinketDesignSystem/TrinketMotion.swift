@@ -157,6 +157,9 @@ public enum TrinketMotion: Sendable {
         /// Typical Ultimate art-fallback hold when no video is present.
         public static let ultimateFallbackHold: TimeInterval = 4.0
 
+        /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
+        public static let ultimateVideoWatchdog: TimeInterval = 12.0
+
         /// Delay before tap-to-skip is armed on an Ultimate cinematic.
         public static let ultimateSkipLockout: TimeInterval = 0.45
 

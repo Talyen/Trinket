@@ -14,6 +14,8 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.cardCastParticleCount == 8)
         #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
+        #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
+        #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
         #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
