@@ -233,7 +233,7 @@ extension AppState {
             appStateLogger.error(
                 "Failed to apply mystery effects: \(error.localizedDescription, privacy: .public)"
             )
-            session.markResolvedWithoutReveal()
+            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
 
@@ -272,7 +272,7 @@ extension AppState {
             appStateLogger.error(
                 "Failed to grant mystery item: \(error.localizedDescription, privacy: .public)"
             )
-            session.markResolvedWithoutReveal()
+            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
 
@@ -285,10 +285,14 @@ extension AppState {
     @discardableResult
     func finishActiveMysteryEncounter() -> Bool {
         guard let session = activeMysteryEncounter else { return false }
+        session.clearPersistFailure()
         guard finishEncounterProgress(
             stage: session.stage,
             labyrinthNodeID: session.labyrinthNodeID
         ) else {
+            session.markPersistFailed(
+                "Couldn't save progress. Stay here and try Recruit again."
+            )
             return false
         }
         activeMysteryEncounter = nil
