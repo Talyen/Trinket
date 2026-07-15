@@ -4,12 +4,12 @@ import TrinketCore
 
 struct CombatantEquipmentTests {
     @Test(arguments: [
-        (Combatant.Role.hero, [EquipmentSlot.weapon, .armor, .trinket]),
+        (Combatant.Role.hero, [ItemSlot.weapon, .armor, .trinket]),
         (.companion, [.trinket, .armor, .secondaryTrinket])
     ])
     func roleEquipmentSlotsMatchAuthoredLoadout(
         role: Combatant.Role,
-        expectedSlots: [EquipmentSlot]
+        expectedSlots: [ItemSlot]
     ) throws {
         try #expect(role.equipmentSlots == expectedSlots)
     }
