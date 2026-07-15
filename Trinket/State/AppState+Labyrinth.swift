@@ -21,9 +21,7 @@ extension AppState {
 
     @discardableResult
     func handleLabyrinthNodeAction(nodeID: String) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
-        guard activeShopEncounter == nil, activeMysteryEncounter == nil else { return nil }
-        guard activeLabyrinthRest == nil, activeLabyrinthCraft == nil else { return nil }
+        guard canBeginLabyrinthNodeEncounter() else { return nil }
         if let message = enterLabyrinth() {
             return message
         }
@@ -50,17 +48,16 @@ extension AppState {
 
     @discardableResult
     func beginLabyrinthRest(nodeID: String) -> StageMapMessage? {
-        guard activeLabyrinthRest == nil, activeLabyrinthCraft == nil else { return nil }
-        guard activeShopEncounter == nil, activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        guard canBeginLabyrinthNodeEncounter() else { return nil }
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
             return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
         }
         let effects = labyrinth.effects(for: nodeID)
         let reward = LabyrinthCompletion.rewards(for: node, effects: effects)
-        activeLabyrinthRest = LabyrinthRestSession(
+        activeLabyrinthNodeSession = LabyrinthNodeSession(
+            kind: .rest,
             nodeID: nodeID,
-            goldCrumb: homestead.effects.adjustedGold(reward.gold),
+            goldAmount: homestead.effects.adjustedGold(reward.gold),
             depth: node.depth
         )
         return nil
@@ -68,15 +65,14 @@ extension AppState {
 
     @discardableResult
     func beginLabyrinthCraft(nodeID: String) -> StageMapMessage? {
-        guard activeLabyrinthCraft == nil, activeLabyrinthRest == nil else { return nil }
-        guard activeShopEncounter == nil, activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        guard canBeginLabyrinthNodeEncounter() else { return nil }
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .craft else {
             return StageMapMessage(title: "Altar Missing", message: "This path is not ready yet.")
         }
-        activeLabyrinthCraft = LabyrinthCraftSession(
+        activeLabyrinthNodeSession = LabyrinthNodeSession(
+            kind: .craft,
             nodeID: nodeID,
-            goldCost: LabyrinthCompletion.craftAltarCost(for: node),
+            goldAmount: LabyrinthCompletion.craftAltarCost(for: node),
             depth: node.depth
         )
         return nil
@@ -84,23 +80,23 @@ extension AppState {
 
     @discardableResult
     func finishActiveLabyrinthRest() -> Bool {
-        guard let session = activeLabyrinthRest else { return false }
+        guard let session = activeLabyrinthNodeSession, session.kind == .rest else { return false }
         session.clearFailure()
         guard completeLabyrinthNode(nodeID: session.nodeID) else {
             session.markFailed("Couldn't save progress. Stay here and try Rest again.")
             return false
         }
-        activeLabyrinthRest = nil
+        activeLabyrinthNodeSession = nil
         return true
     }
 
-    func dismissActiveLabyrinthRestWithoutCompleting() {
-        activeLabyrinthRest = nil
+    func dismissActiveLabyrinthNodeSessionWithoutCompleting() {
+        activeLabyrinthNodeSession = nil
     }
 
     @discardableResult
     func forgeActiveLabyrinthCraft() -> Bool {
-        guard let session = activeLabyrinthCraft else { return false }
+        guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
         session.clearFailure()
         var forged = false
         do {
@@ -120,7 +116,7 @@ extension AppState {
             return false
         }
         if forged {
-            activeLabyrinthCraft = nil
+            activeLabyrinthNodeSession = nil
             return true
         }
         session.markFailed("Not enough Gold.")
@@ -129,17 +125,13 @@ extension AppState {
 
     @discardableResult
     func leaveActiveLabyrinthCraftWithoutForging() -> Bool {
-        guard let session = activeLabyrinthCraft else { return false }
+        guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
         guard completeLabyrinthNode(nodeID: session.nodeID) else {
             session.markFailed("The altar stays cold. Try again.")
             return false
         }
-        activeLabyrinthCraft = nil
+        activeLabyrinthNodeSession = nil
         return true
-    }
-
-    func dismissActiveLabyrinthCraftWithoutCompleting() {
-        activeLabyrinthCraft = nil
     }
 
     @discardableResult
@@ -218,5 +210,12 @@ extension AppState {
                 "Failed to record Labyrinth defeat: \(error.localizedDescription, privacy: .public)"
             )
         }
+    }
+
+    private func canBeginLabyrinthNodeEncounter() -> Bool {
+        battle.activeBattle == nil
+            && activeShopEncounter == nil
+            && activeMysteryEncounter == nil
+            && activeLabyrinthNodeSession == nil
     }
 }

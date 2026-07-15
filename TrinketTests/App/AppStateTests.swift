@@ -80,7 +80,7 @@ struct AppStateTests {
 
         #expect(state.selectedTab == .play)
         let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.stageID == "chapter-1-stage-1")
+        #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
     }
 
     @Test func battleVictoryLaunchScreenShowsVictoryChrome() throws {
@@ -89,7 +89,7 @@ struct AppStateTests {
         )
 
         let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.stageID == "chapter-1-stage-1")
+        #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
         #expect(state.battle.isShowingVictory)
         #expect(state.battle.victorySummary != nil)
         #expect(state.selectedTab == .play)

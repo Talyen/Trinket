@@ -6,13 +6,43 @@ public enum StageCompletion {
     public static func battleExperienceAward(
         playerLevel: Int,
         enemyLevel: Int,
-        highestLevel: Int
+        highestLevel: Int,
+        xpPercent: Int = 0
     ) -> Int {
-        ExperienceScaling.battleAwardWithCatchUp(
+        adjustedExperienceAward(
+            ExperienceScaling.battleAwardWithCatchUp(
+                playerLevel: playerLevel,
+                enemyLevel: enemyLevel,
+                highestLevel: highestLevel
+            ),
+            xpPercent: xpPercent
+        )
+    }
+
+    /// Applies an optional XP percent bonus (Labyrinth modifiers) to a base award.
+    public static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
+        guard base > 0, xpPercent != 0 else { return max(0, base) }
+        return max(0, base + (base * xpPercent) / 100)
+    }
+
+    /// Resolves catch-up XP for `combatant` and grants it on `roster`.
+    public static func grantBattleExperience(
+        enemyLevel: Int,
+        to combatant: Combatant,
+        roster: inout PlayerRosterState,
+        xpPercent: Int = 0
+    ) {
+        let playerLevel = roster.progression(for: combatant).level
+        let highestLevel = combatant.role == .hero
+            ? roster.highestHeroLevel
+            : roster.highestCompanionLevel
+        let award = battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
-            highestLevel: highestLevel
+            highestLevel: highestLevel,
+            xpPercent: xpPercent
         )
+        roster.grantExperience(award, to: combatant)
     }
 
     public static func resolvedMaterialRewards(
@@ -179,22 +209,5 @@ public enum StageCompletion {
             return true
         }
         return false
-    }
-
-    private static func grantBattleExperience(
-        enemyLevel: Int,
-        to combatant: Combatant,
-        roster: inout PlayerRosterState
-    ) {
-        let playerLevel = roster.progression(for: combatant).level
-        let highestLevel = combatant.role == .hero
-            ? roster.highestHeroLevel
-            : roster.highestCompanionLevel
-        let award = battleExperienceAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: highestLevel
-        )
-        roster.grantExperience(award, to: combatant)
     }
 }

@@ -17,8 +17,7 @@ struct AppStateAspectsTests {
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let message = state.startAspectBattle(for: floor)
         #expect(message == nil)
-        #expect(state.battle.activeBattle?.aspectBattle?.aspectID == .ironVein)
-        #expect(state.battle.activeBattle?.aspectBattle?.floor == 1)
+        #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
     }
 
     @Test func startAspectBattleRequiresAttunement() throws {
@@ -47,10 +46,8 @@ struct AppStateAspectsTests {
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let message = state.startAspectBattle(for: floor)
         #expect(message == nil)
-        #expect(state.battle.activeBattle?.aspectBattle?.aspectID == .ironVein)
-        #expect(state.battle.activeBattle?.aspectBattle?.floor == 1)
-        #expect(state.battle.activeBattle?.hasProgressionRewards == true)
         #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
+        #expect(state.battle.activeBattle?.hasProgressionRewards == true)
     }
 
     @Test(arguments: [

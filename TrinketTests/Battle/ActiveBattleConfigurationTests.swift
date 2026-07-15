@@ -82,7 +82,7 @@ struct ActiveBattleConfigurationTests {
         let expectedItem = try #require(GameContent.itemTemplate(matching: itemTemplateID))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            stageID: stage.id,
+            resumeToken: .journey(stageID: stage.id),
             rngSeed: 0,
             hero: knight,
             companion: wolf,
@@ -90,6 +90,7 @@ struct ActiveBattleConfigurationTests {
             stageReward: stage.rewards
         )
 
+        #expect(configuration.resumeToken == .journey(stageID: stage.id))
         #expect(configuration.stageID == stage.id)
         #expect(configuration.stageReward == stage.rewards)
         #expect(configuration.rewardItems.map(\.displayName) == [expectedItem.displayName])
@@ -103,7 +104,7 @@ struct ActiveBattleConfigurationTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
 
         let noItem = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "test-stage",
+            resumeToken: .journey(stageID: "test-stage"),
             rngSeed: 1,
             hero: hero,
             companion: companion,
@@ -113,7 +114,7 @@ struct ActiveBattleConfigurationTests {
         #expect(noItem.rewardItems.isEmpty)
 
         let multiple = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "test-stage",
+            resumeToken: .journey(stageID: "test-stage"),
             rngSeed: 1,
             hero: hero,
             companion: companion,
@@ -133,10 +134,8 @@ struct ActiveBattleConfigurationTests {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let aspectBattle = ActiveBattleConfiguration.AspectBattle(aspectID: .ironVein, floor: 1)
-
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            aspectBattle: aspectBattle,
+            resumeToken: .aspect(aspectID: .ironVein, floor: 1),
             rngSeed: 42,
             hero: hero,
             companion: companion,
@@ -176,7 +175,7 @@ struct ActiveBattleConfigurationTests {
         let catalogEnemy = try #require(GameContent.enemy(matching: encounter.combatant.id))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            stageID: stage.id,
+            resumeToken: .journey(stageID: stage.id),
             rngSeed: 0,
             hero: knight,
             companion: wolf,

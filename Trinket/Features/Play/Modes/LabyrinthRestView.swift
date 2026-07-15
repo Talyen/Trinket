@@ -4,7 +4,7 @@ import TrinketDesignSystem
 struct LabyrinthRestView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    let session: LabyrinthRestSession
+    let session: LabyrinthNodeSession
 
     var body: some View {
         LabyrinthNodeEncounterSheet(
@@ -17,12 +17,12 @@ struct LabyrinthRestView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthRestFailure,
             onLeave: {
-                appState.dismissActiveLabyrinthRestWithoutCompleting()
+                appState.dismissActiveLabyrinthNodeSessionWithoutCompleting()
                 dismiss()
             },
             facts: {
                 LabeledContent("Depth", value: "\(session.depth)")
-                LabeledContent("Gold crumb", value: "\(session.goldCrumb)")
+                LabeledContent("Gold crumb", value: "\(session.goldAmount)")
             },
             actions: {
                 Button {

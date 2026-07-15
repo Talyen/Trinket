@@ -39,7 +39,7 @@ struct AppStateLabyrinthTests {
         let message = state.startLabyrinthBattle(nodeID: combatNodeID)
         #expect(message == nil)
         let battle = try #require(state.battle.activeBattle)
-        #expect(battle.labyrinthBattle?.nodeID == combatNodeID)
+        #expect(battle.labyrinthNodeID == combatNodeID)
         #expect(battle.hasProgressionRewards)
         #expect(battle.resumeToken == .labyrinth(nodeID: combatNodeID))
     }
@@ -83,10 +83,11 @@ struct AppStateLabyrinthTests {
             state.finishActiveMysteryEncounter()
             #expect(state.activeMysteryEncounter == nil)
         case .rest:
-            let session = try #require(state.activeLabyrinthRest)
+            let session = try #require(state.activeLabyrinthNodeSession)
+            #expect(session.kind == .rest)
             #expect(session.nodeID == nodeID)
             #expect(state.finishActiveLabyrinthRest())
-            #expect(state.activeLabyrinthRest == nil)
+            #expect(state.activeLabyrinthNodeSession == nil)
         default:
             Issue.record("Unexpected labyrinth encounter type \(nodeType)")
             return
@@ -146,8 +147,9 @@ struct AppStateLabyrinthTests {
         let expected = state.homestead.effects.adjustedGold(rawGold)
 
         #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
-        let session = try #require(state.activeLabyrinthRest)
-        #expect(session.goldCrumb == expected)
+        let session = try #require(state.activeLabyrinthNodeSession)
+        #expect(session.kind == .rest)
+        #expect(session.goldAmount == expected)
     }
 
     #if DEBUG
@@ -158,16 +160,16 @@ struct AppStateLabyrinthTests {
         let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
 
         #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
-        #expect(state.activeLabyrinthRest != nil)
+        #expect(state.activeLabyrinthNodeSession?.kind == .rest)
 
         playerSave.forcesNextSaveFailure = true
         #expect(!state.finishActiveLabyrinthRest())
-        #expect(state.activeLabyrinthRest != nil)
-        #expect(state.activeLabyrinthRest?.failureMessage != nil)
+        #expect(state.activeLabyrinthNodeSession != nil)
+        #expect(state.activeLabyrinthNodeSession?.failureMessage != nil)
         #expect(state.labyrinth.nodes[restNodeID]?.isCleared == false)
 
         #expect(state.finishActiveLabyrinthRest())
-        #expect(state.activeLabyrinthRest == nil)
+        #expect(state.activeLabyrinthNodeSession == nil)
         #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
     }
 
@@ -178,16 +180,17 @@ struct AppStateLabyrinthTests {
         let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
 
         #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
-        let session = try #require(state.activeLabyrinthCraft)
+        let session = try #require(state.activeLabyrinthNodeSession)
+        #expect(session.kind == .craft)
 
         playerSave.forcesNextSaveFailure = true
         #expect(!state.leaveActiveLabyrinthCraftWithoutForging())
-        #expect(state.activeLabyrinthCraft != nil)
+        #expect(state.activeLabyrinthNodeSession != nil)
         #expect(session.failureMessage != nil)
         #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == false)
 
         #expect(state.leaveActiveLabyrinthCraftWithoutForging())
-        #expect(state.activeLabyrinthCraft == nil)
+        #expect(state.activeLabyrinthNodeSession == nil)
         #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
     }
     #endif
@@ -202,9 +205,9 @@ struct AppStateLabyrinthTests {
         state.roster = roster
 
         #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
-        #expect(state.activeLabyrinthCraft != nil)
+        #expect(state.activeLabyrinthNodeSession?.kind == .craft)
         #expect(state.forgeActiveLabyrinthCraft())
-        #expect(state.activeLabyrinthCraft == nil)
+        #expect(state.activeLabyrinthNodeSession == nil)
         #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
     }
 

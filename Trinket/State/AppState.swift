@@ -53,8 +53,7 @@ final class AppState {
     var battle: BattleSession
     var activeMysteryEncounter: MysteryEncounterSession?
     var activeShopEncounter: ShopEncounterSession?
-    var activeLabyrinthRest: LabyrinthRestSession?
-    var activeLabyrinthCraft: LabyrinthCraftSession?
+    var activeLabyrinthNodeSession: LabyrinthNodeSession?
     var journey: JourneyProgressState {
         get { playerSave.journey }
         set { playerSave.journey = newValue }
@@ -206,8 +205,7 @@ final class AppState {
         battle.endBattle()
         activeMysteryEncounter = nil
         activeShopEncounter = nil
-        activeLabyrinthRest = nil
-        activeLabyrinthCraft = nil
+        activeLabyrinthNodeSession = nil
         shellSession.resetToDefaults(selectingTab: .play)
     }
 

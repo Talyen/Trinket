@@ -36,8 +36,8 @@ public enum AspectCompletion {
         save.roster.grantGold(
             save.homestead.effects.adjustedGold(floor.rewards.gold + battleEarnedGold)
         )
-        grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
-        grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
+        StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
+        StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
 
         let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
             stageReward: floor.rewards,
@@ -86,23 +86,6 @@ public enum AspectCompletion {
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
-    }
-
-    private static func grantBattleExperience(
-        enemyLevel: Int,
-        to combatant: Combatant,
-        roster: inout PlayerRosterState
-    ) {
-        let playerLevel = roster.progression(for: combatant).level
-        let highestLevel = combatant.role == .hero
-            ? roster.highestHeroLevel
-            : roster.highestCompanionLevel
-        let award = StageCompletion.battleExperienceAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: highestLevel
-        )
-        roster.grantExperience(award, to: combatant)
     }
 }
 

@@ -76,7 +76,7 @@ struct AppStatePlayFlowTests {
         let state = try context.makeAppState()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "missing-stage-bug-hunt-audit",
+            resumeToken: .journey(stageID: "missing-stage-bug-hunt-audit"),
             rngSeed: 0,
             hero: state.roster.activeHero,
             companion: state.roster.activeCompanion,
@@ -96,7 +96,7 @@ struct AppStatePlayFlowTests {
         let state = try context.makeAppState()
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            aspectBattle: .init(aspectID: .ironVein, floor: 9999),
+            resumeToken: .aspect(aspectID: .ironVein, floor: 9999),
             rngSeed: 0,
             hero: state.roster.activeHero,
             companion: state.roster.activeCompanion,

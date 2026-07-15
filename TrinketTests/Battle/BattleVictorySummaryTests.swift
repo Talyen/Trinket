@@ -21,7 +21,7 @@ struct BattleVictorySummaryTests {
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
         rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "chapter-1-stage-1",
+            resumeToken: .journey(stageID: "chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -113,7 +113,7 @@ struct BattleVictorySummaryTests {
             abilities: []
         )
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "chapter-1-stage-1",
+            resumeToken: .journey(stageID: "chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -200,7 +200,7 @@ struct BattleVictorySummaryTests {
             affixes: []
         )
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            labyrinthBattle: .init(nodeID: "audit-node"),
+            resumeToken: .labyrinth(nodeID: "audit-node"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
