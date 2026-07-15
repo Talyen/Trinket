@@ -6,9 +6,7 @@ import TrinketPersistence
 @MainActor
 enum ActiveBattleConfigurationTestSupport {
     static func make(
-        stageID: String? = nil,
-        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil,
-        labyrinthBattle: ActiveBattleConfiguration.LabyrinthBattle? = nil,
+        resumeToken: ActiveBattleResumeToken? = nil,
         rngSeed: UInt64 = 0,
         hero: Combatant,
         companion: Combatant,
@@ -21,9 +19,7 @@ enum ActiveBattleConfigurationTestSupport {
         pendingRewardItem: InventoryItem? = nil
     ) throws -> ActiveBattleConfiguration {
         ActiveBattleConfiguration.make(
-            stageID: stageID,
-            aspectBattle: aspectBattle,
-            labyrinthBattle: labyrinthBattle,
+            resumeToken: resumeToken,
             rngSeed: rngSeed,
             hero: hero,
             companion: companion,

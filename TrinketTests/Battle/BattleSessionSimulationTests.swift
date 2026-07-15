@@ -56,7 +56,7 @@ struct BattleSessionSimulationTests {
         journey.markRewardsClaimed(for: stage)
         let session = BattleSession(outcomePresentationDelayOverride: 0)
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            stageID: stage.id,
+            resumeToken: .journey(stageID: stage.id),
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,

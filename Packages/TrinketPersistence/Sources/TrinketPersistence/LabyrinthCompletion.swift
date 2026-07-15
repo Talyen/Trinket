@@ -73,8 +73,7 @@ public enum LabyrinthCompletion {
 
     /// Applies Labyrinth modifier XP bonuses to a base battle award.
     public static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
-        guard base > 0, xpPercent != 0 else { return max(0, base) }
-        return max(0, base + (base * xpPercent) / 100)
+        StageCompletion.adjustedExperienceAward(base, xpPercent: xpPercent)
     }
 
     /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
@@ -120,8 +119,18 @@ public enum LabyrinthCompletion {
         save.roster.grantGold(save.homestead.effects.adjustedGold(reward.gold + battleEarnedGold))
         // Battle XP is combat-only; rest/shop/mystery/craft grant gold/materials without XP.
         if node.type.isCombat {
-            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: hero, roster: &save.roster)
-            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: companion, roster: &save.roster)
+            StageCompletion.grantBattleExperience(
+                enemyLevel: encounterLevel,
+                to: hero,
+                roster: &save.roster,
+                xpPercent: effects.xpPercent
+            )
+            StageCompletion.grantBattleExperience(
+                enemyLevel: encounterLevel,
+                to: companion,
+                roster: &save.roster,
+                xpPercent: effects.xpPercent
+            )
         }
 
         let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
@@ -237,26 +246,5 @@ public enum LabyrinthCompletion {
     private static func appendUniqueRewardItem(_ item: InventoryItem, save: inout PlayerSave) {
         guard !save.inventory.items.contains(where: { $0.id == item.id }) else { return }
         save.inventory.items.append(item)
-    }
-
-    private static func grantBattleExperience(
-        enemyLevel: Int,
-        effects: LabyrinthModifierEffects,
-        to combatant: Combatant,
-        roster: inout PlayerRosterState
-    ) {
-        let playerLevel = roster.progression(for: combatant).level
-        let highestLevel = combatant.role == .hero
-            ? roster.highestHeroLevel
-            : roster.highestCompanionLevel
-        let award = adjustedExperienceAward(
-            StageCompletion.battleExperienceAward(
-                playerLevel: playerLevel,
-                enemyLevel: enemyLevel,
-                highestLevel: highestLevel
-            ),
-            xpPercent: effects.xpPercent
-        )
-        roster.grantExperience(award, to: combatant)
     }
 }

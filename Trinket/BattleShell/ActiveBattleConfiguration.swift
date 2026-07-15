@@ -12,19 +12,9 @@ struct ActiveBattleConfiguration: Identifiable {
         let modifiers: CombatModifierProfile
     }
 
-    struct AspectBattle: Equatable, Hashable {
-        let aspectID: AspectID
-        let floor: Int
-    }
-
-    struct LabyrinthBattle: Equatable, Hashable {
-        let nodeID: String
-    }
-
     let id = UUID()
-    let stageID: String?
-    let aspectBattle: AspectBattle?
-    let labyrinthBattle: LabyrinthBattle?
+    /// Journey / Aspect / Labyrinth origin. `nil` is a non-progression battle.
+    let resumeToken: ActiveBattleResumeToken?
     let rngSeed: UInt64
     let hero: PartyMember
     let companion: PartyMember
@@ -41,19 +31,16 @@ struct ActiveBattleConfiguration: Identifiable {
     let experienceBonusPercent: Int
 
     var hasProgressionRewards: Bool {
-        stageID != nil || aspectBattle != nil || labyrinthBattle != nil
+        resumeToken != nil
     }
 
-    var resumeToken: ActiveBattleResumeToken? {
-        if let stageID {
-            return .journey(stageID: stageID)
-        }
-        if let aspectBattle {
-            return .aspect(aspectID: aspectBattle.aspectID, floor: aspectBattle.floor)
-        }
-        if let labyrinthBattle {
-            return .labyrinth(nodeID: labyrinthBattle.nodeID)
-        }
+    var stageID: String? {
+        if case let .journey(stageID) = resumeToken { return stageID }
+        return nil
+    }
+
+    var labyrinthNodeID: String? {
+        if case let .labyrinth(nodeID) = resumeToken { return nodeID }
         return nil
     }
 
@@ -110,9 +97,7 @@ struct ActiveBattleConfiguration: Identifiable {
 
     @MainActor
     static func make(
-        stageID: String? = nil,
-        aspectBattle: AspectBattle? = nil,
-        labyrinthBattle: LabyrinthBattle? = nil,
+        resumeToken: ActiveBattleResumeToken? = nil,
         rngSeed: UInt64,
         hero: Combatant,
         companion: Combatant,
@@ -128,19 +113,15 @@ struct ActiveBattleConfiguration: Identifiable {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var rng = SeededRandomNumberGenerator(seed: rngSeed)
         let resolvedPendingRewardItem = pendingRewardItem
-            ?? pendingAspectRewardItem(aspectBattle: aspectBattle, using: &rng)
+            ?? pendingAspectRewardItem(resumeToken: resumeToken, using: &rng)
         let rewardItems = resolvedRewardItems(
-            stageID: stageID,
-            aspectBattle: aspectBattle,
-            labyrinthBattle: labyrinthBattle,
+            resumeToken: resumeToken,
             stageReward: stageReward,
             pendingRewardItem: resolvedPendingRewardItem
         )
         let homesteadEffects = homesteadState.effects
         return ActiveBattleConfiguration(
-            stageID: stageID,
-            aspectBattle: aspectBattle,
-            labyrinthBattle: labyrinthBattle,
+            resumeToken: resumeToken,
             rngSeed: rngSeed,
             hero: partyMember(
                 combatant: hero,
@@ -168,14 +149,11 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     private static func pendingAspectRewardItem(
-        aspectBattle: AspectBattle?,
+        resumeToken: ActiveBattleResumeToken?,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
-        guard let aspectBattle,
-              let floor = GameContent.aspectFloor(
-                  aspectID: aspectBattle.aspectID,
-                  floor: aspectBattle.floor
-              )
+        guard case let .aspect(aspectID, floorNumber) = resumeToken,
+              let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber)
         else { return nil }
         return AspectCompletion.makeAspectFloorItem(for: floor, using: &randomNumberGenerator)
     }
@@ -222,19 +200,20 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     private static func resolvedRewardItems(
-        stageID: String?,
-        aspectBattle: AspectBattle?,
-        labyrinthBattle: LabyrinthBattle?,
+        resumeToken: ActiveBattleResumeToken?,
         stageReward: StageReward?,
         pendingRewardItem: InventoryItem?
     ) -> [InventoryItem] {
-        if aspectBattle != nil || labyrinthBattle != nil {
+        switch resumeToken {
+        case .aspect, .labyrinth:
             return pendingRewardItem.map { [$0] } ?? []
+        case let .journey(stageID):
+            guard let stageReward else { return [] }
+            let templates = stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
+            return templates.map { $0.rewardInstance(for: stageID) }
+        case .none:
+            guard let stageReward else { return [] }
+            return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
         }
-
-        guard let stageReward else { return [] }
-        let templates = stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
-        guard let stageID else { return templates }
-        return templates.map { $0.rewardInstance(for: stageID) }
     }
 }

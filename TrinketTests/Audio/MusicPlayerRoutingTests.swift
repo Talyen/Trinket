@@ -51,7 +51,7 @@ struct MusicPlayerRoutingTests {
 
     @Test func activeBattleTakesPriorityOverPreview() throws {
         let battle = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "chapter-1-stage-1",
+            resumeToken: .journey(stageID: "chapter-1-stage-1"),
             rngSeed: 0,
             hero: GameContent.heroes[0],
             companion: GameContent.companions[0],
@@ -73,7 +73,7 @@ struct MusicPlayerRoutingTests {
 
     @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
         let battle = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "chapter-1-stage-5",
+            resumeToken: .journey(stageID: "chapter-1-stage-5"),
             rngSeed: 0,
             hero: GameContent.heroes[0],
             companion: GameContent.companions[0],

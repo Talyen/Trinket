@@ -173,33 +173,9 @@ extension AppState {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil
     ) {
-        let stageID: String?
-        let aspectBattle: ActiveBattleConfiguration.AspectBattle?
-        let labyrinthBattle: ActiveBattleConfiguration.LabyrinthBattle?
-        switch resumeToken {
-        case let .journey(id):
-            stageID = id
-            aspectBattle = nil
-            labyrinthBattle = nil
-        case let .aspect(aspectID, floor):
-            stageID = nil
-            aspectBattle = .init(aspectID: aspectID, floor: floor)
-            labyrinthBattle = nil
-        case let .labyrinth(nodeID):
-            stageID = nil
-            aspectBattle = nil
-            labyrinthBattle = .init(nodeID: nodeID)
-        case .none:
-            stageID = nil
-            aspectBattle = nil
-            labyrinthBattle = nil
-        }
-
         battle.preview = nil
         battle.activeBattle = ActiveBattleConfiguration.make(
-            stageID: stageID,
-            aspectBattle: aspectBattle,
-            labyrinthBattle: labyrinthBattle,
+            resumeToken: resumeToken,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             companion: companion,

@@ -21,7 +21,7 @@ struct BattleSessionAppIntegrationTests {
 
         #expect(message == nil)
         let activeBattle = try #require(appState.battle.activeBattle)
-        #expect(activeBattle.stageID == stage.id)
+        #expect(activeBattle.resumeToken == .journey(stageID: stage.id))
         #expect(appState.battle.preview == nil)
     }
 
@@ -142,7 +142,7 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        #expect(restarted.stageID == original.stageID)
+        #expect(restarted.resumeToken == original.resumeToken)
         #expect(restarted.hero.combatant.id == original.hero.combatant.id)
         #expect(restarted.id != original.id)
     }
@@ -162,7 +162,7 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        #expect(restarted.labyrinthBattle?.nodeID == combatNodeID)
+        #expect(restarted.labyrinthNodeID == combatNodeID)
         #expect(restarted.experienceBonusPercent == original.experienceBonusPercent)
         #expect(restarted.pendingRewardItem == original.pendingRewardItem)
         #expect(restarted.rewardItems == original.rewardItems)

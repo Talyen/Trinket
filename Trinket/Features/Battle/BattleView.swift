@@ -119,7 +119,7 @@ struct BattleView: View {
                 }
             )
         } else if battleSession.isShowingDefeat {
-            if let labyrinthNodeID = configuration.labyrinthBattle?.nodeID {
+            if let labyrinthNodeID = configuration.labyrinthNodeID {
                 DefeatView(
                     enemyName: battleState.enemy.name,
                     infoTitle: "The Path Holds",
