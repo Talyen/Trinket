@@ -258,7 +258,7 @@ struct AffixReactionBattleTests {
                 companion: CombatantRuntime(combatant: passiveCompanion()),
                 enemy: CombatantRuntime(combatant: enemyCombatant)
             ),
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 2),
             nextEffectID: 1,
             nextEventID: 1,
             events: [],

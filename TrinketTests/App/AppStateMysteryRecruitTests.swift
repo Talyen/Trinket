@@ -84,15 +84,7 @@ struct AppStateMysteryRecruitTests {
     @Test func chooseItemPresentsCandidatesAndGrantsSelection() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "abandoned-study"))
-        let stage = Stage(
-            id: "audit-mystery-choose-item",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 98,
-            flavorText: "Audit choose item.",
-            encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
-        )
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         state.activeMysteryEncounter = MysteryEncounterSession(
             stage: stage,
             event: event,
@@ -194,15 +186,7 @@ struct AppStateMysteryRecruitTests {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
         let event = try #require(GameContent.mysteryEvent(matching: "abandoned-study"))
-        let stage = Stage(
-            id: "audit-mystery-choose-item-fail",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 97,
-            flavorText: "Audit choose item persist fail.",
-            encounter: .mysteryEvent(eventID: event.id),
-            rewards: .empty
-        )
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         state.activeMysteryEncounter = MysteryEncounterSession(
             stage: stage,
             event: event,

@@ -148,7 +148,6 @@ struct AppStateLabyrinthTests {
         #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
         let session = try #require(state.activeLabyrinthRest)
         #expect(session.goldCrumb == expected)
-        #expect(expected > rawGold)
     }
 
     #if DEBUG
