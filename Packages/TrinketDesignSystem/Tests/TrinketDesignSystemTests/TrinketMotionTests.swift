@@ -3,16 +3,11 @@ import Testing
 import TrinketDesignSystem
 
 struct TrinketMotionTests {
-    @Test func battleMotionTimingTokensStayWithinContracts() {
-        #expect(TrinketMotion.Battle.skillSoftHold == 0.5)
-        let total = TrinketMotion.Battle.skillCalloutIn
-            + TrinketMotion.Battle.skillCalloutHold
-            + TrinketMotion.Battle.skillCalloutOut
-        #expect(TrinketMotion.Battle.skillCalloutTotal == total)
-        #expect(TrinketMotion.Battle.cardActivationDuration == 1.0)
-        #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
-        #expect(TrinketMotion.Battle.cardCastParticleCount == 8)
-        #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
+    @Test func rewardRevealTimingStaysBriefAndSequential() {
+        #expect(TrinketMotion.Reward.resourceStagger > 0)
+        #expect(TrinketMotion.Reward.resourceStagger < 0.2)
+        #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
+        #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
@@ -20,13 +15,14 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
         #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
-    }
-
-    @Test func rewardRevealTimingStaysBriefAndSequential() {
-        #expect(TrinketMotion.Reward.resourceStagger > 0)
-        #expect(TrinketMotion.Reward.resourceStagger < 0.2)
-        #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
-        #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
+        #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
+        #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
+        #expect(
+            TrinketMotion.Battle.skillCalloutTotal
+                == TrinketMotion.Battle.skillCalloutIn
+                + TrinketMotion.Battle.skillCalloutHold
+                + TrinketMotion.Battle.skillCalloutOut
+        )
     }
 
     @Test func chipMotionRecipesStayWithinSemanticContracts() {

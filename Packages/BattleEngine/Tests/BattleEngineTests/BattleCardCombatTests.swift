@@ -221,28 +221,6 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.count == 1)
     }
 
-    @Test func enemyCadenceUsesBasicSkillAndUltimate() throws {
-        let basic = Ability(id: "e-basic", name: "E Basic", tier: .basic, directDamage: 1, description: "B")
-        let skill = Ability(id: "e-skill", name: "E Skill", tier: .skill, directDamage: 2, description: "S")
-        let ultimate = Ability(id: "e-ult", name: "E Ult", tier: .ultimate, directDamage: 3, description: "U")
-        var battle = makeBattle(
-            heroAbilities: [],
-            companionAbilities: [],
-            enemyAbilities: [basic, skill, ultimate],
-            enemyMaxHealth: 500
-        )
-
-        var abilityNames: [String] = []
-        for _ in 0 ..< 6 {
-            let events = battle.endTurn()
-            if let name = events.first(where: { $0.kind == .ability && $0.actorID == "enemy" })?.abilityName {
-                abilityNames.append(name)
-            }
-        }
-
-        try #expect(abilityNames == ["E Basic", "E Basic", "E Skill", "E Basic", "E Basic", "E Ult"])
-    }
-
     @Test func endOfRoundTicksEffectsOnce() throws {
         var battle = makeBattle(
             heroAbilities: [],

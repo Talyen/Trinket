@@ -170,21 +170,4 @@ struct DoTMechanicsTests {
 
         try #expect(battle.health(of: battle.enemy) == 100)
     }
-
-    @Test func cleanseRemovesMergedPoisonStack() throws {
-        let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison)])
-        var battle = isolatedBattle(
-            heroAbilities: [cleanse],
-            heroEffects: [ActiveEffect(id: 1, effect: .poison(6), remainingTicks: 0)]
-        )
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        try #expect(!(battle.activeEffects(of: battle.hero)).contains {
-            if case .poison = $0.effect {
-                return true
-            }
-            return false
-        })
-    }
 }

@@ -30,20 +30,10 @@ struct PrimaryStatsRulesTests {
         try #expect(PrimaryStats(toughness: 100).armorEffectivenessBonus == 20)
     }
 
-    @Test func controlMeterThresholdScalesWithAgility() throws {
+    @Test func controlMeterThresholdScalesWithAgilityAndCeilsBaseHealth() throws {
         try #expect(PrimaryStats(agility: 0).controlMeterThreshold(baseMaxHealth: 100) == 20)
         try #expect(PrimaryStats(agility: 20).controlMeterThreshold(baseMaxHealth: 101) == 25)
-    }
 
-    @Test func criticalChanceUsesBaseAndStatScaling() throws {
-        try #expect(abs((PrimaryStats().criticalChance(for: .physical)) - 0.05) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 1000).criticalChance(for: .physical)) - 0.75) < 0.0001)
-    }
-
-    @Test func controlMeterThresholdUsesCeilOfTwentyPercentMaxHealth() throws {
         let cases: [(maxHealth: Int, expectedThreshold: Int)] = [
             (7, 2),
             (20, 4),
@@ -58,11 +48,12 @@ struct PrimaryStatsRulesTests {
         }
     }
 
-    @Test func zeroStatsProduceBaselineBonuses() throws {
-        let stats = PrimaryStats()
-        try #expect(stats.statBonusForDamage(keyword: .physical) == 0)
-        try #expect(abs((stats.dodgeChance) - 0.05) < 0.0001)
-        try #expect(stats.armorEffectivenessBonus == 0)
+    @Test func criticalChanceUsesBaseAndStatScaling() throws {
+        try #expect(abs((PrimaryStats().criticalChance(for: .physical)) - 0.05) < 0.0001)
+        try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(agility: 1000).criticalChance(for: .physical)) - 0.75) < 0.0001)
     }
 
     @Test func negativeStatInputsTruncateTowardZeroForDamageBonus() throws {

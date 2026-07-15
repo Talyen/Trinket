@@ -3,22 +3,21 @@ import TrinketContent
 import TrinketCore
 
 struct ItemGeneratorTests {
-    @Test func basicItemsRollOneOrTwoAffixes() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1 ... 120)
+    @Test(arguments: [
+        (baseTypeID: "longsword", rarity: Rarity.basic, range: 1 ... 2),
+        (baseTypeID: "ruby_ring", rarity: .astral, range: 3 ... 4)
+    ])
+    func itemsRollAffixCountsInRarityRange(
+        baseTypeID: String,
+        rarity: Rarity,
+        range: ClosedRange<Int>
+    ) throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == baseTypeID })
+        let counts = generatedAffixCounts(baseType: baseType, rarity: rarity, seedRange: 1 ... 120)
 
-        try #expect(counts.allSatisfy { (1 ... 2).contains($0) })
-        try #expect(counts.contains(1))
-        try #expect(counts.contains(2))
-    }
-
-    @Test func astralItemsRollThreeOrFourAffixes() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let counts = generatedAffixCounts(baseType: baseType, rarity: .astral, seedRange: 1 ... 120)
-
-        try #expect(counts.allSatisfy { (3 ... 4).contains($0) })
-        try #expect(counts.contains(3))
-        try #expect(counts.contains(4))
+        try #expect(counts.allSatisfy { range.contains($0) })
+        try #expect(counts.contains(range.lowerBound))
+        try #expect(counts.contains(range.upperBound))
     }
 
     @Test func generatedItemsDoNotDuplicateAffixes() throws {

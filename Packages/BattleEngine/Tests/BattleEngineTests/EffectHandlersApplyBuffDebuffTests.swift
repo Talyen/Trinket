@@ -126,16 +126,16 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
-    @Test func markedHandlerAppliesMarkedAndEmitsEvent() throws {
+    @Test func markedHandlerAppliesAndReplacesInsteadOfStacking() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(
+        let first = EffectHandlersTestSupport.dispatch(
             .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle
         )
-        try #expect(outcome.didApply)
+        try #expect(first.didApply)
         try #expect(battle.activeEffects(of: battle.enemy).contains { active in
             if case let .marked(bonus, duration) = active.effect {
                 return bonus == Effect.standardMarkedBonus
@@ -144,20 +144,10 @@ struct EffectHandlersApplyBuffDebuffTests {
             }
             return false
         })
-        try #expect(outcome.events.contains {
+        try #expect(first.events.contains {
             $0.effectKind == .markedApplied && $0.amount == Effect.standardMarkedBonus
         })
-    }
 
-    @Test func markedHandlerReplacesExistingMarkInsteadOfStacking() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        _ = EffectHandlersTestSupport.dispatch(
-            .marked(2, Effect.standardMarkedDuration),
-            ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.enemy,
-            battle: &battle
-        )
         let outcome = EffectHandlersTestSupport.dispatch(
             .marked(5, Effect.standardMarkedDuration),
             ability: CombatantFixtures.ability(),

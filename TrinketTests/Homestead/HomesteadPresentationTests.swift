@@ -5,75 +5,89 @@ import TrinketPersistence
 @testable import Trinket
 
 struct HomesteadPresentationTests {
-    @Test func lockedProjectsPreviewTierOneAndKeepTierPathLocked() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
-        let status = makeStatus(definition: definition, homestead: .freshStart)
-        let firstTier = try #require(definition.tier(1))
-
-        #expect(status.rowState == .prerequisiteLocked)
-        #expect(status.overviewEffect == definition.tier(1)?.bonus)
-        #expect(status.tierPathState(for: firstTier) == .locked)
-        #expect(status.footerState == .action(title: "Build", enabled: false, reason: "Requires Wheat Field"))
+    private enum LifecycleCase {
+        case lockedPrerequisite
+        case unbuiltAffordable
+        case unbuiltUnaffordable
+        case built
+        case upgradeReady
+        case upgradeNotReady
+        case completed
     }
 
-    @Test func unbuiltProjectsDistinguishAffordableBuilds() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        let affordable = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 10, .stone: 4], nodeTiers: [:])
-        )
-        let unavailable = makeStatus(definition: definition, homestead: .freshStart)
-
-        #expect(affordable.rowState == .unbuilt(affordable: true))
-        #expect(unavailable.rowState == .unbuilt(affordable: false))
-        #expect(affordable.footerState == .action(title: "Build", enabled: true, reason: nil))
-    }
-
-    @Test func builtProjectsExposeOnlyTheirCurrentEffect() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        let status = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
-        )
-
-        #expect(status.rowState == .built)
-        #expect(status.overviewEffect == definition.tier(1)?.bonus)
-        #expect(status.overviewEffect != definition.tier(2)?.bonus)
-    }
-
-    @Test func upgradeReadyAppearsOnlyWhenTheNextTierIsAffordable() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        let affordable = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(
-                resources: [.wood: 18, .stone: 8],
-                nodeTiers: [.wheatField: 1]
-            ),
-            gold: 14
-        )
-        let unavailable = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
-        )
-        let secondTier = try #require(definition.tier(2))
-
-        #expect(affordable.rowState == .upgradeReady)
-        #expect(affordable.statusSymbolName == "arrowshape.up.fill")
-        #expect(affordable.tierPathState(for: secondTier) == .next(affordable: true))
-        #expect(unavailable.rowState == .built)
-        #expect(unavailable.tierPathState(for: secondTier) == .next(affordable: false))
-    }
-
-    @Test func completedProjectsExposeFinalEffectAndCompleteFooter() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
-        let status = makeStatus(
-            definition: definition,
-            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
-        )
-
-        #expect(status.rowState == .completed)
-        #expect(status.overviewEffect == definition.tier(3)?.bonus)
-        #expect(status.footerState == .complete)
+    @Test(arguments: [
+        LifecycleCase.lockedPrerequisite,
+        .unbuiltAffordable,
+        .unbuiltUnaffordable,
+        .built,
+        .upgradeReady,
+        .upgradeNotReady,
+        .completed
+    ])
+    func projectLifecycleExposesExpectedRowAndFooter(caseKind: LifecycleCase) throws {
+        switch caseKind {
+        case .lockedPrerequisite:
+            let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
+            let status = makeStatus(definition: definition, homestead: .freshStart)
+            let firstTier = try #require(definition.tier(1))
+            #expect(status.rowState == .prerequisiteLocked)
+            #expect(status.overviewEffect == definition.tier(1)?.bonus)
+            #expect(status.tierPathState(for: firstTier) == .locked)
+            #expect(status.footerState == .action(title: "Build", enabled: false, reason: "Requires Wheat Field"))
+        case .unbuiltAffordable:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(
+                definition: definition,
+                homestead: PlayerHomesteadState(resources: [.wood: 10, .stone: 4], nodeTiers: [:])
+            )
+            #expect(status.rowState == .unbuilt(affordable: true))
+            #expect(status.footerState == .action(title: "Build", enabled: true, reason: nil))
+        case .unbuiltUnaffordable:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(definition: definition, homestead: .freshStart)
+            #expect(status.rowState == .unbuilt(affordable: false))
+        case .built:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(
+                definition: definition,
+                homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            )
+            #expect(status.rowState == .built)
+            #expect(status.overviewEffect == definition.tier(1)?.bonus)
+            #expect(status.overviewEffect != definition.tier(2)?.bonus)
+        case .upgradeReady:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(
+                definition: definition,
+                homestead: PlayerHomesteadState(
+                    resources: [.wood: 18, .stone: 8],
+                    nodeTiers: [.wheatField: 1]
+                ),
+                gold: 14
+            )
+            let secondTier = try #require(definition.tier(2))
+            #expect(status.rowState == .upgradeReady)
+            #expect(status.statusSymbolName == "arrowshape.up.fill")
+            #expect(status.tierPathState(for: secondTier) == .next(affordable: true))
+        case .upgradeNotReady:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(
+                definition: definition,
+                homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+            )
+            let secondTier = try #require(definition.tier(2))
+            #expect(status.rowState == .built)
+            #expect(status.tierPathState(for: secondTier) == .next(affordable: false))
+        case .completed:
+            let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+            let status = makeStatus(
+                definition: definition,
+                homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
+            )
+            #expect(status.rowState == .completed)
+            #expect(status.overviewEffect == definition.tier(3)?.bonus)
+            #expect(status.footerState == .complete)
+        }
     }
 
     @Test func tierPathMapsCurrentTiersZeroThroughThree() throws {

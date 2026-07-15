@@ -18,35 +18,34 @@ struct MusicPlayerRoutingTests {
         #expect(request.resumeKey.contextKind == .menu)
     }
 
-    @Test func normalBattlePreviewPlaysBattleTrack() throws {
+    @Test(arguments: [
+        (enemyID: "skeleton", expectedTrackKind: MusicTrackKind.battle, expectedContext: MusicContextKind.battle, expectedTrackID: nil as String?),
+        (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant")
+    ])
+    func battlePreviewPlaysExpectedTrack(
+        enemyID: String,
+        expectedTrackKind: MusicTrackKind,
+        expectedContext: MusicContextKind,
+        expectedTrackID: String?
+    ) throws {
+        let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-5"
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
+            preview: BattleMusicPreview(stageID: stageID, enemyID: enemyID),
             activeBattle: nil,
             sceneIsActive: true,
             musicVolume: 0.75
         )
 
         let request = try trackRequest(from: route)
-        #expect(request.track.kind == .battle)
-        #expect(request.resumeKey.contextKind == .battle)
-        #expect(request.resumeKey.stageID == "chapter-1-stage-1")
-        #expect(request.resumeKey.enemyID == "skeleton")
-    }
-
-    @Test func bossBattlePreviewPlaysBossTrack() throws {
-        let route = MusicRoute.resolve(
-            selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-5", enemyID: "the_blight_treant"),
-            activeBattle: nil,
-            sceneIsActive: true,
-            musicVolume: 0.75
-        )
-
-        let request = try trackRequest(from: route)
-        #expect(request.track.kind == .boss)
-        #expect(request.track.id == "boss_blight_treant")
-        #expect(request.resumeKey.contextKind == .boss)
+        #expect(request.track.kind == expectedTrackKind)
+        #expect(request.resumeKey.contextKind == expectedContext)
+        if let expectedTrackID {
+            #expect(request.track.id == expectedTrackID)
+        } else {
+            #expect(request.resumeKey.stageID == stageID)
+            #expect(request.resumeKey.enemyID == enemyID)
+        }
     }
 
     @Test func activeBattleTakesPriorityOverPreview() throws {

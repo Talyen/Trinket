@@ -8,7 +8,7 @@ struct JourneyMapPresentationTests {
         GameContent.chapters[0]
     }
 
-    @Test func activeJourneyScrollsToActiveStage() {
+    @Test func activeJourneyScrollsToAndIncludesActiveStage() {
         var progress = JourneyProgressState.initial
         let activeStage = chapter.stages[2]
         progress.activeStageID = activeStage.id
@@ -25,6 +25,11 @@ struct JourneyMapPresentationTests {
         )
 
         #expect(scrollTargetID == activeStage.id)
+        let stageIDs = rows.compactMap { row -> String? in
+            guard case let .stage(stage, _) = row else { return nil }
+            return stage.id
+        }
+        #expect(stageIDs.contains(activeStage.id))
         #expect(rows.contains { row in
             if case let .stage(stage, state) = row {
                 return stage.id == activeStage.id && state == .active
@@ -33,31 +38,7 @@ struct JourneyMapPresentationTests {
         })
     }
 
-    @Test func activeStageAppearsInRows() {
-        var progress = JourneyProgressState.initial
-        let activeStage = chapter.stages[2]
-        progress.activeStageID = activeStage.id
-
-        let rows = JourneyMapPresentation.chapterRows(
-            chapters: GameContent.chapters,
-            chapter: chapter,
-            progress: progress
-        )
-        let scrollTargetID = JourneyMapPresentation.scrollFocusID(
-            for: progress,
-            chapter: chapter,
-            chapters: GameContent.chapters
-        )
-
-        let stageIDs = rows.compactMap { row -> String? in
-            guard case let .stage(stage, _) = row else { return nil }
-            return stage.id
-        }
-        #expect(stageIDs.contains(activeStage.id))
-        #expect(scrollTargetID == activeStage.id)
-    }
-
-    @Test func completedStagesAreExcludedFromRows() {
+    @Test func completedAndJustCompletedStagesAreExcludedFromRows() {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         progress.complete(firstStage, in: GameContent.chapters)
@@ -73,19 +54,6 @@ struct JourneyMapPresentationTests {
             return stage.id
         }
         #expect(!(stageIDs.contains(firstStage.id)))
-    }
-
-    @Test func justCompletedStageIsExcludedFromRows() {
-        var progress = JourneyProgressState.initial
-        let firstStage = chapter.stages[0]
-        progress.complete(firstStage, in: GameContent.chapters)
-
-        let rows = JourneyMapPresentation.chapterRows(
-            chapters: GameContent.chapters,
-            chapter: chapter,
-            progress: progress
-        )
-
         #expect(!rows.contains {
             guard case let .stage(_, state) = $0 else { return false }
             return state == .justCompleted

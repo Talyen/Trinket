@@ -6,7 +6,7 @@ import TrinketDesignSystem
 @testable import Trinket
 
 struct CombatFeedbackPresenterTests {
-    @Test func filtersAndMergesDamageChips() {
+    @Test func filtersMergesAndSumsDamageChips() {
         let filtered = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 0, keyword: .physical),
@@ -37,6 +37,27 @@ struct CombatFeedbackPresenterTests {
         #expect(merged[0].secondaryText == nil)
         #expect(merged[0].reactionKind == .critical)
         #expect(merged[0].sourceEventIDs == [10, 11])
+
+        let statusItems = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
+                makeEvent(id: 2, kind: .status, amount: 2, keyword: .bleed)
+            ],
+            at: .now
+        )
+        #expect(statusItems.count == 1)
+        #expect(statusItems[0].text == "-3")
+        #expect(statusItems[0].sourceEventIDs == [1, 2])
+
+        let abilityItems = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .physical),
+                makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical)
+            ],
+            at: .now
+        )
+        #expect(abilityItems.count == 1)
+        #expect(abilityItems[0].text == "-6")
     }
 
     @Test func classifiesHealAndDodge() {
@@ -95,30 +116,7 @@ struct CombatFeedbackPresenterTests {
         #expect(staggered[1].availableAt == now.addingTimeInterval(0.055))
     }
 
-    @Test func sumsSameKeywordDamageAndRetainsSourceIDs() {
-        let statusItems = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 2, keyword: .bleed)
-            ],
-            at: .now
-        )
-        #expect(statusItems.count == 1)
-        #expect(statusItems[0].text == "-3")
-        #expect(statusItems[0].sourceEventIDs == [1, 2])
-
-        let abilityItems = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .physical),
-                makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical)
-            ],
-            at: .now
-        )
-        #expect(abilityItems.count == 1)
-        #expect(abilityItems[0].text == "-6")
-    }
-
-    @Test func keepsDistinctFeedbackSeparateByTargetAndEffectKind() {
+    @Test func keepsDistinctFeedbackSeparateAcrossTargetsKindsAndDamageClasses() {
         let acrossTargets = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
@@ -156,19 +154,17 @@ struct CombatFeedbackPresenterTests {
         )
         #expect(acrossKinds.count == 2)
         #expect(acrossKinds.map(\.text) == ["+2", "+3"])
-    }
 
-    @Test func keepsDirectAndStatusDamageSeparate() {
-        let items = CombatFeedbackPresenter.makeItems(
+        let directAndStatus = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 2, keyword: .bleed),
                 makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed)
             ],
             at: .now
         )
-        #expect(items.map(\.feedbackClass) == [.directDamage, .dot])
-        #expect(items[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
-        #expect(items[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
+        #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .dot])
+        #expect(directAndStatus[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
+        #expect(directAndStatus[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
     }
 
     @Test func assignsPriorityAndOverflowMetadataDeterministically() {
@@ -207,7 +203,7 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3, 4])
     }
 
-    @Test func overlayKeepsOnlyNewestActionGroupPerCombatant() {
+    @Test func overlayKeepsNewestGroupAndCondensesCanvasLabels() {
         let first = CombatFeedbackPresenter.makeItems(
             from: [makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical)],
             at: Date(timeIntervalSince1970: 10)
@@ -222,10 +218,8 @@ struct CombatFeedbackPresenterTests {
         #expect(groups.count == CombatFeedbackOverlayPolicy.maxSimultaneousActionGroups)
         #expect(groups.first?.id == 2)
         #expect(groups.first?.items.map(\.id) == [2])
-    }
 
-    @Test func overlayCondensesAnActionGroupIntoOneCanvasLabel() {
-        let items = CombatFeedbackPresenter.makeItems(
+        let condensed = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 7, keyword: .physical),
                 makeEvent(
@@ -238,9 +232,8 @@ struct CombatFeedbackPresenterTests {
             ],
             at: Date(timeIntervalSince1970: 10)
         )
-
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: groups)
+        let condensedGroups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: condensed)
+        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: condensedGroups)
 
         #expect(canvasItems.count == 1)
         #expect(canvasItems.first?.text.contains("+1 Effect") == true)

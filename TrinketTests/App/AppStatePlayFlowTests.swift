@@ -57,57 +57,59 @@ struct AppStatePlayFlowTests {
     }
 
     #if DEBUG
-    @Test func completeActiveBattleKeepsBattleOpenWhenPersistFails() throws {
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = try context.makeAppState(playerSave: playerSave)
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        let configuration = try #require(state.battle.activeBattle)
+    @Test(arguments: ["persist", "missing-stage", "missing-aspect"] as [String])
+    func completeActiveBattleKeepsBattleOpenOnFailure(mode: String) throws {
+        switch mode {
+        case "persist":
+            let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+            let state = try context.makeAppState(playerSave: playerSave)
+            let stage = try #require(GameContent.chapters[0].stages.first)
+            _ = state.startBattle(for: stage)
+            let configuration = try #require(state.battle.activeBattle)
 
-        playerSave.forcesNextSaveFailure = true
-        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 0)
+            playerSave.forcesNextSaveFailure = true
+            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 0)
 
-        #expect(!didPersist)
-        #expect(state.battle.activeBattle != nil)
-        #expect(state.journey.activeStageID == stage.id)
-    }
+            #expect(!didPersist)
+            #expect(state.battle.activeBattle != nil)
+            #expect(state.journey.activeStageID == stage.id)
+        case "missing-stage":
+            let state = try context.makeAppState()
+            let enemy = try #require(GameContent.enemies.first?.combatant)
+            let configuration = try ActiveBattleConfigurationTestSupport.make(
+                resumeToken: .journey(stageID: "missing-stage-bug-hunt-audit"),
+                rngSeed: 0,
+                hero: state.roster.activeHero,
+                companion: state.roster.activeCompanion,
+                enemy: enemy
+            )
+            state.battle.activeBattle = configuration
+            let goldBefore = state.roster.gold
 
-    @Test func completeActiveBattleKeepsBattleOpenWhenStageMissing() throws {
-        let state = try context.makeAppState()
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: "missing-stage-bug-hunt-audit"),
-            rngSeed: 0,
-            hero: state.roster.activeHero,
-            companion: state.roster.activeCompanion,
-            enemy: enemy
-        )
-        state.battle.activeBattle = configuration
-        let goldBefore = state.roster.gold
+            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
-        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
+            #expect(!didPersist)
+            #expect(state.battle.activeBattle != nil)
+            #expect(state.roster.gold == goldBefore)
+        case "missing-aspect":
+            let state = try context.makeAppState()
+            let enemy = try #require(GameContent.enemies.first?.combatant)
+            let configuration = try ActiveBattleConfigurationTestSupport.make(
+                resumeToken: .aspect(aspectID: .ironVein, floor: 9999),
+                rngSeed: 0,
+                hero: state.roster.activeHero,
+                companion: state.roster.activeCompanion,
+                enemy: enemy
+            )
+            state.battle.activeBattle = configuration
 
-        #expect(!didPersist)
-        #expect(state.battle.activeBattle != nil)
-        #expect(state.roster.gold == goldBefore)
-    }
+            let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
-    @Test func completeActiveBattleKeepsBattleOpenWhenAspectFloorMissing() throws {
-        let state = try context.makeAppState()
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .aspect(aspectID: .ironVein, floor: 9999),
-            rngSeed: 0,
-            hero: state.roster.activeHero,
-            companion: state.roster.activeCompanion,
-            enemy: enemy
-        )
-        state.battle.activeBattle = configuration
-
-        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
-
-        #expect(!didPersist)
-        #expect(state.battle.activeBattle != nil)
+            #expect(!didPersist)
+            #expect(state.battle.activeBattle != nil)
+        default:
+            Issue.record("Unexpected failure mode \(mode)")
+        }
     }
     #endif
 
@@ -148,46 +150,48 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle?.resumeToken == .journey(stageID: stage.id))
     }
 
-    @Test func endBattleReturningToOriginFromJourneyQueuesCampaignDeepLink() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        state.selectedTab = .options
+    @Test(arguments: ["journey", "aspect", "labyrinth"] as [String])
+    func endBattleReturningToOriginQueuesExpectedDeepLink(origin: String) throws {
+        switch origin {
+        case "journey":
+            let state = try context.makeAppState()
+            let stage = try #require(GameContent.chapters[0].stages.first)
+            _ = state.startBattle(for: stage)
+            state.selectedTab = .options
 
-        state.endBattleReturningToOrigin()
+            state.endBattleReturningToOrigin()
 
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.selectedTab == .play)
-        #expect(state.consumePendingPlayDestination() == .campaign)
-    }
+            #expect(state.battle.activeBattle == nil)
+            #expect(state.selectedTab == .play)
+            #expect(state.consumePendingPlayDestination() == .campaign)
+        case "aspect":
+            let state = try makeProgressedStateForReturnTests()
+            try attunePhysicalPartyForReturnTests(on: state)
 
-    @Test func endBattleReturningToOriginFromAspectQueuesClimbDeepLink() throws {
-        let state = try makeProgressedStateForReturnTests()
-        try attunePhysicalPartyForReturnTests(on: state)
+            let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+            #expect(state.startAspectBattle(for: floor) == nil)
+            state.selectedTab = .options
 
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        #expect(state.startAspectBattle(for: floor) == nil)
-        state.selectedTab = .options
+            state.endBattleReturningToOrigin()
 
-        state.endBattleReturningToOrigin()
+            #expect(state.battle.activeBattle == nil)
+            #expect(state.selectedTab == .play)
+            #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
+        case "labyrinth":
+            let state = try context.makeAppState(arguments: ["-reset-state"])
+            _ = state.enterLabyrinth()
+            let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
+            #expect(state.startLabyrinthBattle(nodeID: combatNodeID) == nil)
+            state.selectedTab = .options
 
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.selectedTab == .play)
-        #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
-    }
+            state.endBattleReturningToOrigin()
 
-    @Test func endBattleReturningToOriginFromLabyrinthQueuesMapDeepLink() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        _ = state.enterLabyrinth()
-        let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
-        #expect(state.startLabyrinthBattle(nodeID: combatNodeID) == nil)
-        state.selectedTab = .options
-
-        state.endBattleReturningToOrigin()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.selectedTab == .play)
-        #expect(state.consumePendingPlayDestination() == .labyrinthMap)
+            #expect(state.battle.activeBattle == nil)
+            #expect(state.selectedTab == .play)
+            #expect(state.consumePendingPlayDestination() == .labyrinthMap)
+        default:
+            Issue.record("Unexpected origin \(origin)")
+        }
     }
 
     @Test func completeActiveBattleQueuesAspectReturnDestination() throws {

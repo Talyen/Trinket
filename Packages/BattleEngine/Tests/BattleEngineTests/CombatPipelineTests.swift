@@ -29,16 +29,14 @@ struct CombatPipelineTests {
 
     // MARK: - Dodge
 
-    @Test func applyDamageDodgeReturnsZeroWhenRollSucceeds() throws {
+    @Test func applyDamageDodgeRespectsChanceAndSkipFlags() throws {
         // 100% dodge chance via agility
         let stats = PrimaryStats(agility: 140) // dodge chance = 0.05 + 140 * 0.005 = 0.75
         var context = makeContext(targetPrimaryStats: stats, seed: 1772)
         let (lost, events) = context.applyTestDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
         try #expect(lost == 0)
         try #expect(events.contains { $0.effectKind == .dodgeApplied })
-    }
 
-    @Test func applyDamageDodgeDoesNotTriggerWhenSkipped() throws {
         var noSourceContext = makeContext(seed: 1772)
         let (lostWithoutSource, _) = noSourceContext.applyTestDamage(10, to: noSourceContext.roster.enemy.combatant)
         try #expect(lostWithoutSource > 0)
@@ -134,48 +132,46 @@ struct CombatPipelineTests {
 
     // MARK: - DoT damage
 
-    @Test func applyDoTDamageAppliesLeechWhenSourceActorPresent() throws {
+    @Test(arguments: ["dot", "direct", "self"] as [String])
+    func applyDamageLeechMatrix(mode: String) throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
-        let (lost, events) = context.applyTestDoTDamage(10, keyword: .burn, to: context.roster.enemy.combatant, sourceActorID: "source")
-        try #expect(lost > 0)
-        try #expect(context.roster.hero.currentHealth > before)
-        try #expect(events.contains { $0.effectKind == .leechHeal })
-    }
 
-    @Test func applyDamageTriggersLeechOnDirectHit() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 1772)
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let before = context.roster.hero.currentHealth
-        let (_, events) = context.applyTestDamage(
-            10,
-            to: context.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: "source"
-        )
-        try #expect(context.roster.hero.currentHealth > before)
-        try #expect(events.contains { $0.effectKind == .leechHeal })
-    }
-
-    @Test func applyDamageDoesNotLeechOnSelfDamage() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 1772)
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let before = context.roster.hero.currentHealth
-        let (_, events) = context.applyTestDamage(
-            10,
-            to: context.roster.hero.combatant,
-            keyword: .physical,
-            sourceActorID: "source"
-        )
-        try #expect(context.roster.hero.currentHealth == before - 10)
-        try #expect(!(events.contains { $0.effectKind == .leechHeal }))
+        switch mode {
+        case "dot":
+            let (lost, events) = context.applyTestDoTDamage(
+                10,
+                keyword: .burn,
+                to: context.roster.enemy.combatant,
+                sourceActorID: "source"
+            )
+            try #expect(lost > 0)
+            try #expect(context.roster.hero.currentHealth > before)
+            try #expect(events.contains { $0.effectKind == .leechHeal })
+        case "direct":
+            let (_, events) = context.applyTestDamage(
+                10,
+                to: context.roster.enemy.combatant,
+                keyword: .physical,
+                sourceActorID: "source"
+            )
+            try #expect(context.roster.hero.currentHealth > before)
+            try #expect(events.contains { $0.effectKind == .leechHeal })
+        case "self":
+            let (_, events) = context.applyTestDamage(
+                10,
+                to: context.roster.hero.combatant,
+                keyword: .physical,
+                sourceActorID: "source"
+            )
+            try #expect(context.roster.hero.currentHealth == before - 10)
+            try #expect(!(events.contains { $0.effectKind == .leechHeal }))
+        default:
+            Issue.record("Unexpected leech mode \(mode)")
+        }
     }
 
     // MARK: - Prevention threshold and post-mitigation buildup
@@ -213,38 +209,39 @@ struct CombatPipelineTests {
         try #expect(threshold == expected)
     }
 
-    @Test func stunBuildupUsesPostMitigationDamage() throws {
-        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
-        var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 1772)
-        _ = context.applyTestDamage(
-            20,
-            to: context.roster.enemy.combatant,
-            keyword: .stun,
-            sourceActorID: "source"
-        )
+    @Test(arguments: [true, false])
+    func stunBuildupTracksPostMitigationAndShieldAbsorbedHits(useShield: Bool) throws {
+        if useShield {
+            let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
+            var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
+            let (lost, _) = context.applyTestDamage(
+                5,
+                to: context.roster.enemy.combatant,
+                keyword: .stun,
+                sourceActorID: "source"
+            )
 
-        let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
-        let amount = buildup?.effect.controlMeterValues?.amount
-        // Flat Armor 3 vs 20 → remaining 17 for stun buildup
-        try #expect(amount == 17)
-    }
+            try #expect(lost == 0)
+            let stunMeter = context.roster.enemy.activeEffects.first {
+                guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+                return keyword == .stun && amount == 5
+            }
+            _ = try #require(stunMeter, "Fully shielded stun hits still charge control meters")
+        } else {
+            let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
+            var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 1772)
+            _ = context.applyTestDamage(
+                20,
+                to: context.roster.enemy.combatant,
+                keyword: .stun,
+                sourceActorID: "source"
+            )
 
-    @Test func stunBuildupAppliesWhenShieldAbsorbsAllDamage() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
-        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
-        let (lost, _) = context.applyTestDamage(
-            5,
-            to: context.roster.enemy.combatant,
-            keyword: .stun,
-            sourceActorID: "source"
-        )
-
-        try #expect(lost == 0)
-        let stunMeter = context.roster.enemy.activeEffects.first {
-            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
-            return keyword == .stun && amount == 5
+            let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
+            let amount = buildup?.effect.controlMeterValues?.amount
+            // Flat Armor 3 vs 20 → remaining 17 for stun buildup
+            try #expect(amount == 17)
         }
-        _ = try #require(stunMeter, "Fully shielded stun hits still charge control meters")
     }
 
     @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {

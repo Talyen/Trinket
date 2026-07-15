@@ -20,7 +20,7 @@ struct PlayerRosterStateTests {
         try #expect(configured.abilityLoadout.ultimate?.id == "avatar-of-justice")
     }
 
-    @Test func battleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
+    @Test func battleConfiguredCombatantFiltersPlayerAbilityTiersByUnlockLevel() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
@@ -30,24 +30,13 @@ struct PlayerRosterStateTests {
         )
 
         roster.setLoadout(customLoadout, for: knight)
-        let configured = roster.battleConfiguredCombatant(knight)
+        let locked = roster.battleConfiguredCombatant(knight)
 
         try #expect(roster.loadout(for: knight).skill?.id == "plate-mail")
-        try #expect(configured.abilityLoadout.basic?.id == "block")
-        try #expect(configured.abilityLoadout.skill?.id == "plate-mail")
-        try #expect(configured.abilityLoadout.ultimate == nil)
-        try #expect(configured.abilities.map(\.id) == ["block", "plate-mail"])
-    }
-
-    @Test func battleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
-        var roster = PlayerRosterState.freshStart
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let customLoadout = AbilityLoadout(
-            basic: .block,
-            skill: .plateMail,
-            ultimate: .sanctifiedPlate
-        )
-        roster.setLoadout(customLoadout, for: knight)
+        try #expect(locked.abilityLoadout.basic?.id == "block")
+        try #expect(locked.abilityLoadout.skill?.id == "plate-mail")
+        try #expect(locked.abilityLoadout.ultimate == nil)
+        try #expect(locked.abilities.map(\.id) == ["block", "plate-mail"])
 
         roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 220)
         try #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["block", "plate-mail"])
@@ -78,7 +67,7 @@ struct PlayerRosterStateTests {
         try #expect(roster.activeCompanionID == PlayerRosterState.starterCompanionID)
     }
 
-    @Test func goldMutationRulesRespectBounds() throws {
+    @Test func goldMutationAndSpendRespectBounds() throws {
         var roster = PlayerRosterState.initial
         roster.gold = 25
 
@@ -93,12 +82,8 @@ struct PlayerRosterStateTests {
         roster.grantGold(50)
 
         #expect(roster.gold == PlayerRosterState.maxGoldBalance)
-    }
 
-    @Test func spendGoldRespectsAffordabilityAndBounds() {
-        var roster = PlayerRosterState.initial
         roster.gold = 40
-
         let spent = roster.spendGold(28)
         #expect(spent)
         #expect(roster.gold == 12)
@@ -135,7 +120,7 @@ struct PlayerRosterStateTests {
         try #expect(loadout.itemID(for: .weapon) == nil)
     }
 
-    @Test func setEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {
+    @Test func setEquipmentLoadoutEnforcesUniqueItemOwnership() throws {
         var roster = PlayerRosterState.initial
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
@@ -151,18 +136,13 @@ struct PlayerRosterStateTests {
 
         try #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
         try #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
-    }
 
-    @Test func setEquipmentLoadoutDropsDuplicateItemAcrossSlots() throws {
-        var roster = PlayerRosterState.initial
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let loadout = EquipmentLoadout(itemIDsBySlot: [
+        let duplicateLoadout = EquipmentLoadout(itemIDsBySlot: [
             .trinket: "ring-a",
             .secondaryTrinket: "ring-a"
         ])
-
-        roster.setEquipmentLoadout(loadout, for: bear)
-
+        roster.setEquipmentLoadout(duplicateLoadout, for: bear)
         let stored = roster.equipmentLoadout(for: bear)
         try #expect(stored.itemID(for: .trinket) == "ring-a")
         try #expect(stored.itemID(for: .secondaryTrinket) == nil)
@@ -223,7 +203,7 @@ struct PlayerRosterStateTests {
         try #expect(companionIDs.dropFirst(2).allSatisfy { !roster.unlockedCompanionIDs.contains($0) })
     }
 
-    @Test func unlockCombatantsSeedsProgressionAndIsIdempotent() throws {
+    @Test func unlockCombatantsSeedsProgressionAndIgnoresInvalidIDs() throws {
         var roster = PlayerRosterState.freshStart
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -239,10 +219,7 @@ struct PlayerRosterStateTests {
         try #expect(roster.progressions["bear"] == .initial)
         let companionUnlockedAgain = roster.unlockCompanion(id: "bear")
         try #expect(companionUnlockedAgain == false)
-    }
 
-    @Test func unlockIgnoresUnknownAndEnemyIDs() throws {
-        var roster = PlayerRosterState.freshStart
         let missingHero = roster.unlockHero(id: "missing-hero")
         let missingCompanion = roster.unlockCompanion(id: "missing-companion")
         try #expect(missingHero == false)

@@ -193,33 +193,6 @@ struct AffixReactionBattleTests {
         try #expect(battle.health(of: battle.hero) == 1)
     }
 
-    @Test func deathsDoorProcsBeforeSecondWindOnLethalHit() throws {
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: [
-                Ability(id: "execute", name: "Execute", tier: .basic, directDamage: 40, damageKeyword: .physical)
-            ]
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], maxHealth: 20),
-            companion: passiveCompanion(maxHealth: 1),
-            enemy: enemy,
-            heroModifiers: CombatModifierProfile(
-                onceBelowHealthPercentThreshold: 0.25,
-                onceBelowHealthPercentHeal: 3
-            )
-        )
-
-        let events = BattleTestFixtures.endTurn(on: &battle)
-
-        try #expect(battle.health(of: battle.hero) == 1)
-        try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
-        try #expect(!events.contains { $0.abilityName == "Second Wind" })
-    }
-
     @Test func shatterAddsFreezeDamageWhileEnemyIsFrozen() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [

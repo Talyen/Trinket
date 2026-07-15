@@ -27,37 +27,37 @@ struct HealingEngineTests {
         )
     }
 
-    @Test func resolveHealSilentEmitsNoEvents() throws {
+    @Test(arguments: [true, false])
+    func resolveHealEmitsEventsOnlyForInstantHealPolicy(emitsEvent: Bool) throws {
         var context = makeContext(seed: 1772)
-        _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
-        let outcome = HealingEngine.resolveHeal(
-            HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
-            in: &context
-        )
-        try #expect(outcome.healthRestored > 0)
-        try #expect(outcome.events.isEmpty)
-    }
-
-    @Test func resolveHealInstantHealPolicyEmitsEvent() throws {
-        var context = makeContext(seed: 1772)
+        if !emitsEvent {
+            _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
+        }
         let target = context.roster.enemy.combatant
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
-                amount: 3,
+                amount: emitsEvent ? 3 : 5,
                 target: target,
-                sourceActorID: "source",
-                logAs: .instantHeal(
-                    actorName: "Hero",
-                    abilityName: "Heal",
-                    keyword: .health,
-                    displayAmount: 3
-                )
+                sourceActorID: emitsEvent ? "source" : nil,
+                logAs: emitsEvent
+                    ? .instantHeal(
+                        actorName: "Hero",
+                        abilityName: "Heal",
+                        keyword: .health,
+                        displayAmount: 3
+                    )
+                    : .silent
             ),
             in: &context
         )
-        try #expect(outcome.events.count == 1)
-        try #expect(outcome.events.first?.effectKind == .instantHeal)
-        try #expect(outcome.events.first?.amount == outcome.healthRestored)
+        if emitsEvent {
+            try #expect(outcome.events.count == 1)
+            try #expect(outcome.events.first?.effectKind == .instantHeal)
+            try #expect(outcome.events.first?.amount == outcome.healthRestored)
+        } else {
+            try #expect(outcome.healthRestored > 0)
+            try #expect(outcome.events.isEmpty)
+        }
     }
 
     @Test func leechFromDamageHealsAndSetsLeechedFlag() throws {

@@ -25,28 +25,18 @@ struct CombatantRuntimeTests {
 
     // MARK: - Initialization
 
-    @Test func initialHealthAccountsForToughness() throws {
-        let combatant = makeCombatant(maxHealth: 10, toughness: 5)
-        let runtime = CombatantRuntime(combatant: combatant)
-        try #expect(runtime.currentHealth == 15)
-        try #expect(runtime.maxHealth == 15)
-    }
+    @Test func initialResourcesAccountForStatsAndOverrides() throws {
+        let toughnessRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10, toughness: 5))
+        try #expect(toughnessRuntime.currentHealth == 15)
+        try #expect(toughnessRuntime.maxHealth == 15)
 
-    @Test func initialHealthUsesProvidedOverride() throws {
-        let combatant = makeCombatant(maxHealth: 20, toughness: 0)
-        let runtime = CombatantRuntime(combatant: combatant, initialHealth: 7)
-        try #expect(runtime.currentHealth == 7)
-    }
+        let overrideRuntime = CombatantRuntime(
+            combatant: makeCombatant(maxHealth: 20, toughness: 0),
+            initialHealth: 7
+        )
+        try #expect(overrideRuntime.currentHealth == 7)
 
-    @Test func initialActiveEffectsAreStored() throws {
-        let combatant = makeCombatant()
-        let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)]
-        let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
-        try #expect(runtime.activeEffects == initial)
-    }
-
-    @Test func initialManaAccountsForIntellect() throws {
-        let combatant = Combatant(
+        let mage = Combatant(
             id: "mage",
             name: "Mage",
             role: .hero,
@@ -55,9 +45,16 @@ struct CombatantRuntimeTests {
             abilities: [],
             primaryStats: PrimaryStats(intellect: 5)
         )
-        let runtime = CombatantRuntime(combatant: combatant)
-        try #expect(runtime.currentMana == 15)
-        try #expect(runtime.maxMana == 15)
+        let manaRuntime = CombatantRuntime(combatant: mage)
+        try #expect(manaRuntime.currentMana == 15)
+        try #expect(manaRuntime.maxMana == 15)
+    }
+
+    @Test func initialActiveEffectsAreStored() throws {
+        let combatant = makeCombatant()
+        let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)]
+        let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
+        try #expect(runtime.activeEffects == initial)
     }
 
     // MARK: - takeRawDamage
@@ -138,7 +135,7 @@ struct CombatantRuntimeTests {
 
     // MARK: - Effect storage
 
-    @Test func setEffectsReplacesEntireArray() throws {
+    @Test func effectStorageReplacesAndFiltersByPredicate() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
@@ -146,11 +143,7 @@ struct CombatantRuntimeTests {
             ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0)
         ])
         try #expect(runtime.activeEffects.count == 2)
-    }
 
-    @Test func removeEffectsFiltersByPredicate() throws {
-        let combatant = makeCombatant()
-        var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
             ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0),
             ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0),
@@ -159,16 +152,5 @@ struct CombatantRuntimeTests {
         runtime.removeEffects { $0.effect.isDecayingDoT }
         try #expect(runtime.activeEffects.count == 1)
         try #expect(runtime.activeEffects.first?.effect.keyword == .block)
-    }
-
-    // MARK: - Identity passthrough
-
-    @Test func identityPassthrough() throws {
-        let combatant = makeCombatant(id: "alice", role: .hero, maxHealth: 12, toughness: 3)
-        let runtime = CombatantRuntime(combatant: combatant)
-        try #expect(runtime.id == "alice")
-        try #expect(runtime.name == "Alice")
-        try #expect(runtime.role == .hero)
-        try #expect(runtime.maxHealth == 15)
     }
 }

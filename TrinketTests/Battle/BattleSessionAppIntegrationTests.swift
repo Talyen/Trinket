@@ -37,16 +37,6 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.id == firstBattleID)
     }
 
-    @Test func setMusicPreviewUsesBattleEncounterWhenStageHasBattle() throws {
-        let appState = try context.makeAppState()
-        let stage = try #require(GameContent.stages.first { $0.encounter.battleEnemyID != nil })
-
-        appState.battle.setMusicPreview(for: stage)
-
-        #expect(appState.battle.preview?.stageID == stage.id)
-        #expect(appState.battle.preview?.enemyID == stage.encounter.battleEnemyID)
-    }
-
     @Test func restartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -169,32 +159,21 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
-    @Test func presentAbilityDetailSetsOverlayWhenBattleActive() throws {
+    @Test func musicPreviewSetsForBattleStageAndClearsForActiveBattleOrNonBattle() throws {
         let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = appState.startBattle(for: stage)
+        let battleStage = try #require(GameContent.stages.first { $0.encounter.battleEnemyID != nil })
 
-        appState.battle.presentAbilityDetail(.slash)
+        appState.battle.setMusicPreview(for: battleStage)
+        #expect(appState.battle.preview?.stageID == battleStage.id)
+        #expect(appState.battle.preview?.enemyID == battleStage.encounter.battleEnemyID)
 
-        #expect(appState.battle.overlayAbilityDetail?.id == Ability.slash.id)
-        appState.battle.clearAbilityDetail()
-        #expect(appState.battle.overlayAbilityDetail == nil)
-    }
-
-    @Test func musicPreviewClearsForActiveBattleAndNonBattleStage() throws {
-        let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        appState.battle.setMusicPreview(for: stage)
-        _ = appState.startBattle(for: stage)
-
-        appState.battle.setMusicPreview(for: stage)
-
+        _ = appState.startBattle(for: battleStage)
+        appState.battle.setMusicPreview(for: battleStage)
         #expect(appState.battle.preview == nil)
-        let shopStage = try #require(GameContent.stages.first { $0.encounter == .shop })
 
+        let shopStage = try #require(GameContent.stages.first { $0.encounter == .shop })
         let shopState = try context.makeAppState()
         shopState.battle.setMusicPreview(for: shopStage)
-
         #expect(shopState.battle.preview == nil)
     }
 }

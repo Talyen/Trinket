@@ -73,64 +73,49 @@ struct AppStateTests {
         #expect(itemID == "shortsword-basic")
     }
 
-    @Test func battleLaunchScreensStartOnPlayWithExpectedState() throws {
+    @Test(arguments: [
+        "battle",
+        "battle-victory",
+        "shop",
+        "mystery",
+        "options"
+    ])
+    func launchScreensRouteToExpectedPlayOrOptionsState(screen: String) throws {
+        var arguments = ["-launch-screen", screen]
+        if screen == "shop" {
+            arguments = ["-reset-state", "-seed-test-progress"] + arguments
+        } else if screen == "mystery" {
+            arguments = ["-reset-state"] + arguments
+        }
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
+            environment: context.makeEnvironment(arguments: arguments)
         )
 
-        #expect(state.selectedTab == .play)
-        let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
-    }
-
-    @Test func battleVictoryLaunchScreenShowsVictoryChrome() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle-victory"])
-        )
-
-        let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
-        #expect(state.battle.isShowingVictory)
-        #expect(state.battle.victorySummary != nil)
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func shopLaunchScreenOpensMerchantShop() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: [
-                "-reset-state",
-                "-seed-test-progress",
-                "-launch-screen",
-                "shop"
-            ])
-        )
-
-        let session = try #require(state.activeShopEncounter)
-        #expect(session.stage.id == "chapter-2-stage-4")
-        #expect(!(session.offers.isEmpty))
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func mysteryLaunchScreenOpensRecruitEncounter() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: [
-                "-reset-state",
-                "-launch-screen",
-                "mystery"
-            ])
-        )
-
-        let session = try #require(state.activeMysteryEncounter)
-        #expect(session.stage.id == "chapter-1-stage-2")
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func optionsLaunchScreenDefaultsToOptionsTab() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-launch-screen", "options"])
-        )
-
-        #expect(state.selectedTab == .options)
+        switch screen {
+        case "battle":
+            #expect(state.selectedTab == .play)
+            let activeBattle = try #require(state.battle.activeBattle)
+            #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
+        case "battle-victory":
+            let activeBattle = try #require(state.battle.activeBattle)
+            #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
+            #expect(state.battle.isShowingVictory)
+            #expect(state.battle.victorySummary != nil)
+            #expect(state.selectedTab == .play)
+        case "shop":
+            let session = try #require(state.activeShopEncounter)
+            #expect(session.stage.id == "chapter-2-stage-4")
+            #expect(!(session.offers.isEmpty))
+            #expect(state.selectedTab == .play)
+        case "mystery":
+            let session = try #require(state.activeMysteryEncounter)
+            #expect(session.stage.id == "chapter-1-stage-2")
+            #expect(state.selectedTab == .play)
+        case "options":
+            #expect(state.selectedTab == .options)
+        default:
+            Issue.record("Unexpected launch screen \(screen)")
+        }
     }
 
     @Test func resetStateWipesPersistedSave() throws {
