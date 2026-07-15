@@ -102,7 +102,18 @@ public enum StageCompletion {
         save: inout PlayerSave,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
+        // Stage rewards claim once. Mid-battle gold still banks on claimed-stage
+        // replays / auto-complete so resourceGain loot is not silently dropped.
         guard !save.journey.hasClaimedRewards(for: stage) else {
+            if battleEarnedGold > 0 {
+                save.roster.grantGold(
+                    resolvedGoldReward(
+                        stageGold: 0,
+                        battleEarnedGold: battleEarnedGold,
+                        homestead: save.homestead
+                    )
+                )
+            }
             return
         }
 
