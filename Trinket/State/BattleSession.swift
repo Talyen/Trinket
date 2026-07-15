@@ -111,7 +111,7 @@ final class BattleSession {
     /// Retreat is closed once the fight is decided, including the spectacle hold
     /// before victory/defeat chrome appears.
     var canRetreat: Bool {
-        activeBattle != nil && outcome == nil
+        activeBattle != nil && outcome == nil && !isShowingVictory && !isShowingDefeat
     }
 
     var hasPlayableCard: Bool {
