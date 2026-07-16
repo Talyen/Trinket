@@ -14,10 +14,10 @@ Run the exclusive matrix:
 ./Scripts/performance.sh
 ```
 
-The runner takes a repository-wide performance lock, limits Simulator UI concurrency to one, uses an isolated simulator/DerivedData tenant, and runs five iterations of every scenario. It includes a native cold-launch metric, core app journeys, and the full-fidelity Battle matrix. Override only for local iteration:
+The runner takes a repository-wide performance lock, limits Simulator UI concurrency to one, uses an isolated simulator/DerivedData tenant, and runs one iteration of every scenario by default. Bump repetitions when calibrating baselines or chasing noisy medians:
 
 ```sh
-TRINKET_PERFORMANCE_REPETITIONS=1 ./Scripts/performance.sh
+TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 ```
 
 Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
@@ -102,12 +102,12 @@ With only hundreds of frames, the 0.1% low is effectively the single worst deliv
 
 1. Reproduce the exact failing scenario with the same Xcode, runtime, and Simulator/device.
 2. Check the raw per-iteration spread before treating a median movement as causal.
-3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, feedback-raster builds, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback. Scenario completion metadata includes bounded raster-pool entries, estimated bytes, hits, builds, and evictions.
+3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, chip publish/flush/host-apply, feedback-raster builds, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback. Scenario completion metadata includes bounded raster-pool entries, estimated bytes, hits, builds, and evictions.
 4. Identify an app-attributed stack or rendering phase. Simulator scheduling noise alone is not an app regression.
 5. Make one hypothesis-driven change without changing visible Battle behavior.
 6. Re-run the same scenario matrix and compare native hitch data, raw reports, and the calibrated reference.
 
-Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips, continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources.
+Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss.
 
 ## Physical-device and production lanes
 

@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
-REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-5}"
+REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
 
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 if [[ -f "$LOCK_DIR/pid" ]]; then

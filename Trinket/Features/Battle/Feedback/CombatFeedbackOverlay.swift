@@ -1,31 +1,11 @@
 import SwiftUI
 
-struct CombatFeedbackOverlay: View {
-    let items: [CombatFeedbackItem]
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
-
-    var body: some View {
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(from: groups).first
-        CombatFeedbackRasterSlot(
-            canvasItem: canvasItem,
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-        .frame(maxWidth: .infinity)
-        .allowsHitTesting(false)
-        .battleFramePacingSignpost(
-            BattleFramePacingSignposts.Name.combatFeedback,
-            isActive: !items.isEmpty
-        )
-    }
-}
-
+/// Policy helpers for combat feedback canvas labels. Presentation is owned by
+/// `CombatFeedbackChipBridge` + always-mounted UIKit hosts.
 enum CombatFeedbackOverlayPolicy {
-    /// A combatant only has four readable feedback lanes. Keeping older action groups
-    /// alive underneath the newest group multiplies independently animated text layers
-    /// without presenting additional readable information.
+    /// A combatant only has readable feedback lanes for the newest action.
+    /// Keeping older action groups alive underneath multiplies independently
+    /// animated text layers without presenting additional readable information.
     static let maxSimultaneousActionGroups = 1
 
     static func visibleActionGroups(from visible: [CombatFeedbackItem]) -> [CombatFeedbackActionGroup] {
@@ -43,18 +23,14 @@ enum CombatFeedbackOverlayPolicy {
         }
     }
 
+    /// One canvas chip per distinct feedback item. Same-kind amounts are already
+    /// summed in `CombatFeedbackPresenter.consolidate` — do not collapse different
+    /// kinds into a single "+N Effects" label.
     static func canvasItems(from groups: [CombatFeedbackActionGroup]) -> [CombatFeedbackCanvasItem] {
-        groups.compactMap { group in
-            guard let headline = group.items.first else { return nil }
-            let additionalCount = max(0, headline.groupResultCount - 1)
-            let text: String
-            if additionalCount == 0 {
-                text = headline.text
-            } else {
-                let suffix = additionalCount == 1 ? "+1 Effect" : "+\(additionalCount) Effects"
-                text = "\(headline.text)  \(suffix)"
-            }
-            return CombatFeedbackCanvasItem(item: headline, text: text)
+        groups.flatMap { group in
+            group.items
+                .sorted { $0.presentationIndex < $1.presentationIndex }
+                .map { CombatFeedbackCanvasItem(item: $0, label: $0.label) }
         }
     }
 }

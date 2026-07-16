@@ -56,24 +56,21 @@ struct BattleView: View {
                 )
             }
             .onAppear {
-                CombatFeedbackRasterPool.shared.prewarmInfrastructure(
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale
-                )
+                prewarmBattlePresentationEffects()
+                installChipBridge()
             }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
                 castingCards = []
                 showCastEffectsPrewarm = true
-                CombatFeedbackRasterPool.shared.removeAll()
+                CombatFeedbackRasterPool.shared.removeAllIncludingAtlas()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
-                CombatFeedbackRasterPool.shared.prewarmInfrastructure(
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale
-                )
+                prewarmBattlePresentationEffects()
+                installChipBridge()
             }
             .onDisappear {
-                CombatFeedbackRasterPool.shared.removeAll()
+                appState.battle.onFeedbackItemsChanged = nil
+                CombatFeedbackRasterPool.shared.removeAllIncludingAtlas()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
             }
     }
@@ -381,5 +378,25 @@ struct BattleView: View {
             guard generation == handInteractionGeneration else { return }
             suppressCombatantTaps = false
         }
+    }
+}
+
+private extension BattleView {
+    func installChipBridge() {
+        appState.battle.onFeedbackItemsChanged = { items in
+            CombatFeedbackChipBridge.publish(items: items)
+        }
+    }
+
+    func prewarmBattlePresentationEffects() {
+        // Detached CPU bake of dissolve masks; filter/Canvas still get a
+        // one-shot commit via CardCastEffectsPrewarmView when enabled.
+        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
+            CardDissolveTexture.prewarm()
+        }
+        CombatFeedbackRasterPool.shared.prewarmInfrastructure(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
     }
 }

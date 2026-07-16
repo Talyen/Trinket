@@ -203,6 +203,8 @@ extension BattleSession {
             }
             deferredFeedbackEvents = nonMilestone
             beginCinematic(from: ultimate, at: date)
+            // Prune may have suppressed its publish; clear expired chips once.
+            noteFeedbackPresentationChanged()
             return
         }
 
@@ -420,9 +422,6 @@ extension BattleSession {
 
     func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
-        // The opening draw is immediate; the remaining battle clips are prepared
-        // incrementally so battle activation never decodes the whole catalog in one frame.
-        sfxPlayer?.warm([SFXID.abilityDraw], concurrentPlayerCount: 2)
         state = BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,
@@ -440,14 +439,24 @@ extension BattleSession {
         overlayAbilityDetail = nil
         isShowingBattleLog = false
         playSFX(SFXID.abilityDraw) // opening hand
-        prepareBattlePresentation(
-            heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
-            companionUltimateID: configuration.companion.combatant.abilityLoadout.ultimate?.id
-        )
+        // Keep activation off the hitch-critical frame: voice warm + cinematic
+        // preload continue on subsequent run-loop turns.
+        let heroUltimateID = configuration.hero.combatant.abilityLoadout.ultimate?.id
+        let companionUltimateID = configuration.companion.combatant.abilityLoadout.ultimate?.id
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            sfxPlayer?.warm([SFXID.abilityDraw], concurrentPlayerCount: 2)
+            prepareBattlePresentation(
+                heroUltimateID: heroUltimateID,
+                companionUltimateID: companionUltimateID
+            )
+        }
     }
 
     func clearRunState() {
         cancelPendingAutoEnd()
+        pendingBattlePrewarmTask?.cancel()
+        pendingBattlePrewarmTask = nil
         onTurnAutoEnded = nil
         autoEndJourney = nil
         autoEndHomestead = nil

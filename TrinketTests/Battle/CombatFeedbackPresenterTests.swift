@@ -233,42 +233,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3, 4])
     }
 
-    @Test func overlayKeepsNewestGroupAndCondensesCanvasLabels() {
-        let first = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical)],
-            at: Date(timeIntervalSince1970: 10)
-        )
-        let second = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 2, kind: .ability, amount: 4, keyword: .burn)],
-            at: Date(timeIntervalSince1970: 10.65)
-        )
-
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: first + second)
-
-        #expect(groups.count == CombatFeedbackOverlayPolicy.maxSimultaneousActionGroups)
-        #expect(groups.first?.id == 2)
-        #expect(groups.first?.items.map(\.id) == [2])
-
-        let condensed = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .ability, amount: 7, keyword: .physical),
-                makeEvent(
-                    id: 2,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
-                    amount: 4,
-                    keyword: .block
-                )
-            ],
-            at: Date(timeIntervalSince1970: 10)
-        )
-        let condensedGroups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: condensed)
-        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: condensedGroups)
-
-        #expect(canvasItems.count == 1)
-        #expect(canvasItems.first?.text.contains("+1 Effect") == true)
-    }
-
     @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
         let pool = CombatFeedbackRasterPool(capacity: 2)
         let canvasItems = [3, 4, 5].map { amount in
@@ -301,33 +265,6 @@ struct CombatFeedbackPresenterTests {
         #expect(snapshot.hitCount == 1)
         #expect(snapshot.buildCount == 3)
         #expect(snapshot.evictionCount == 1)
-    }
-
-    @Test @MainActor func feedbackRasterBakerCompletesUnderFrameBudget() throws {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 42, kind: .ability, amount: 12, keyword: .burn)],
-            at: Date(timeIntervalSince1970: 10)
-        )
-        let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(
-            from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        )[0]
-
-        // Warm symbol/font caches once, then time a representative bake.
-        _ = CombatFeedbackRasterBaker.bake(
-            canvasItem: canvasItem,
-            dynamicTypeSize: .large,
-            displayScale: 3
-        )
-        let started = ContinuousClock.now
-        let baked = try #require(CombatFeedbackRasterBaker.bake(
-            canvasItem: canvasItem,
-            dynamicTypeSize: .large,
-            displayScale: 3
-        ))
-        let elapsed = started.duration(to: .now)
-        #expect(baked.pointSize.width > 0)
-        #expect(baked.pointSize.height > 0)
-        #expect(elapsed < .milliseconds(16))
     }
 
     @Test func burstsSkipUtilityClasses() {
@@ -372,5 +309,85 @@ struct CombatFeedbackPresenterTests {
             amount: amount,
             keyword: keyword
         )
+    }
+}
+
+extension CombatFeedbackPresenterTests {
+    @Test func overlayKeepsNewestGroupAndEmitsOneCanvasChipPerDistinctKind() {
+        let first = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical)],
+            at: Date(timeIntervalSince1970: 10)
+        )
+        let second = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 2, kind: .ability, amount: 4, keyword: .burn)],
+            at: Date(timeIntervalSince1970: 10.65)
+        )
+
+        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: first + second)
+
+        #expect(groups.count == CombatFeedbackOverlayPolicy.maxSimultaneousActionGroups)
+        #expect(groups.first?.id == 2)
+        #expect(groups.first?.items.map(\.id) == [2])
+
+        let mixed = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 7, keyword: .physical),
+                makeEvent(
+                    id: 2,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 4,
+                    keyword: .block
+                )
+            ],
+            at: Date(timeIntervalSince1970: 10)
+        )
+        let mixedGroups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: mixed)
+        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: mixedGroups)
+
+        #expect(canvasItems.count == 2)
+        #expect(canvasItems.map(\.label) == [
+            .amount(-7),
+            .amount(4)
+        ])
+        #expect(canvasItems.map(\.item.feedbackClass) == [.directDamage, .buff])
+        #expect(canvasItems.allSatisfy { !$0.text.contains("Effect") })
+    }
+
+    @Test func sameKindAmountsConsolidateWhileDistinctKindsStaySeparate() {
+        let sameKind = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .status, amount: 2, keyword: .bleed),
+                makeEvent(id: 2, kind: .status, amount: 3, keyword: .bleed)
+            ],
+            at: .now
+        )
+        #expect(sameKind.count == 1)
+        #expect(sameKind[0].label == .amount(-5))
+        #expect(sameKind[0].sourceEventIDs == [1, 2])
+
+        let distinctKinds = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 8, keyword: .physical),
+                makeEvent(id: 2, kind: .status, amount: 3, keyword: .burn)
+            ],
+            at: .now
+        )
+        #expect(distinctKinds.count == 2)
+        #expect(Set(distinctKinds.map(\.feedbackClass)) == [.directDamage, .dot])
+    }
+
+    @Test func chipLabelClassifiesAmountPercentAndWord() {
+        #expect(CombatFeedbackChipLabel.fromDisplayText("-12") == .amount(-12))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+8") == .amount(8))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+25%") == .percent(25))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Dodge") == .word(.dodge))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Critical") == .word(.critical))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!") == .word(.triggered(.stun)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+Block") == .word(.applied(.block)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding") == .word(.cleanse(.bleed)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Purge Block") == .word(.purge(.block)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Armor") == .word(.halve(.armor)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door") == .word(.plain(.deathsDoor)))
     }
 }

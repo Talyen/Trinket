@@ -6,6 +6,9 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var localSelectedTab: AppTab = .play
     @State private var didAcknowledgePersistenceRecovery = false
+    /// Mount tab roots on first visit so Play launch does not construct
+    /// Collection / Homestead / Options chrome on the cold frame.
+    @State private var mountedTabs: Set<AppTab> = [.play]
 
     var body: some View {
         tabRoot(selection: battleLockedSelection)
@@ -41,9 +44,11 @@ struct ContentView: View {
                 } else {
                     localSelectedTab = appState.selectedTab
                 }
+                mountedTabs.insert(localSelectedTab)
                 appState.reconcileShellState(.appeared, scenePhase: scenePhase)
             }
             .onChange(of: localSelectedTab) { _, newTab in
+                mountedTabs.insert(newTab)
                 guard appState.battle.activeBattle == nil || newTab == .play else {
                     localSelectedTab = .play
                     return
@@ -51,6 +56,7 @@ struct ContentView: View {
                 appState.selectedTab = newTab
             }
             .onChange(of: appState.selectedTab) { _, newTab in
+                mountedTabs.insert(newTab)
                 guard appState.battle.activeBattle == nil || newTab == .play else {
                     appState.selectedTab = .play
                     localSelectedTab = .play
@@ -84,31 +90,50 @@ struct ContentView: View {
     }
 
     private func tabRoot(selection: Binding<AppTab>) -> some View {
-        TabView(selection: selection) {
+        let isBattleActive = appState.battle.activeBattle != nil
+        return TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
-                    .battleTabBarVisibility(appState.battle.activeBattle != nil)
+                    .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
-                NavigationStack {
-                    CollectionView()
+                Group {
+                    if mountedTabs.contains(.collection) {
+                        NavigationStack {
+                            CollectionView()
+                        }
+                    } else {
+                        Color.clear
+                    }
                 }
-                .battleTabBarVisibility(appState.battle.activeBattle != nil)
+                .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
-                NavigationStack {
-                    HomesteadView()
+                Group {
+                    if mountedTabs.contains(.homestead) {
+                        NavigationStack {
+                            HomesteadView()
+                        }
+                    } else {
+                        Color.clear
+                    }
                 }
-                .battleTabBarVisibility(appState.battle.activeBattle != nil)
+                .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
-                NavigationStack {
-                    OptionsView()
+                Group {
+                    if mountedTabs.contains(.options) {
+                        NavigationStack {
+                            OptionsView()
+                        }
+                    } else {
+                        Color.clear
+                    }
                 }
-                .battleTabBarVisibility(appState.battle.activeBattle != nil)
+                .battleTabBarVisibility(isBattleActive)
             }
         }
     }
@@ -118,6 +143,7 @@ struct ContentView: View {
             get: { localSelectedTab },
             set: { newTab in
                 guard appState.battle.activeBattle == nil || newTab == .play else { return }
+                mountedTabs.insert(newTab)
                 localSelectedTab = newTab
             }
         )

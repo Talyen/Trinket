@@ -5,69 +5,15 @@ import TrinketDesignSystem
 
 struct CombatFeedbackCanvasItem: Identifiable {
     let item: CombatFeedbackItem
-    let text: String
+    let label: CombatFeedbackChipLabel
 
     var id: Int {
         item.id
     }
-}
 
-/// A stable slot per combatant pane. Cache hits stay on the transform-only path.
-/// Cache misses retry once per display refresh under a global bake budget so three
-/// panes cannot serialize three cold bakes into one severe stall.
-struct CombatFeedbackRasterSlot: View {
-    let canvasItem: CombatFeedbackCanvasItem?
-    let dynamicTypeSize: DynamicTypeSize
-    let displayScale: CGFloat
-
-    var body: some View {
-        // Keep the clock running while a canvas item exists so a budgeted miss can
-        // retry on the next refresh instead of stalling forever with a nil raster.
-        TimelineView(.animation(paused: canvasItem == nil)) { timeline in
-            let raster = canvasItem.flatMap { item in
-                CombatFeedbackRasterPool.shared.cachedRaster(
-                    for: item,
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale
-                ) ?? CombatFeedbackRasterPool.shared.prepare(
-                    for: item,
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale,
-                    useFrameBudget: true
-                )
-            }
-            ZStack {
-                if let canvasItem, let raster {
-                    let item = canvasItem.item
-                    let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
-                    let state = CombatFeedbackMotionSampler.state(
-                        for: item,
-                        recipe: recipe,
-                        at: timeline.date
-                    )
-                    Image(
-                        decorative: raster.image,
-                        scale: raster.displayScale,
-                        orientation: .up
-                    )
-                    .resizable()
-                    .frame(width: raster.pointSize.width, height: raster.pointSize.height)
-                    .opacity(state.opacity)
-                    .scaleEffect(state.scale)
-                    .rotationEffect(.degrees(state.rotation))
-                    .offset(
-                        x: state.horizontalOffset + CombatFeedbackLayout.horizontalOffset(
-                            seed: item.spawnSeed,
-                            jitter: recipe.horizontalJitter
-                        ),
-                        y: state.verticalOffset
-                    )
-                } else {
-                    Color.clear
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
+    /// Derived for tests and debug tooling.
+    var text: String {
+        label.displayString
     }
 }
 

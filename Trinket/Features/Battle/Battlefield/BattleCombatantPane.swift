@@ -185,17 +185,23 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 }
 
 private struct CombatantFeedbackLane: View {
-    @Environment(AppState.self) private var appState
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
     let combatantID: String
     let bottomInset: CGFloat
 
     var body: some View {
-        // swiftlint:disable:next redundant_discardable_let
-        let _ = appState.battle.feedbackEpoch
-        CombatFeedbackOverlay(items: appState.battle.feedbackItems(for: combatantID))
-            .padding(.horizontal, 8)
-            .padding(.bottom, bottomInset)
-            .padding(.top, 8)
+        // Always-mounted UIKit host; chip publishes arrive via CombatFeedbackChipBridge
+        // so chip publishes do not rebuild this lane or BattleView chrome.
+        CombatFeedbackRasterSlot(
+            combatantID: combatantID,
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+        .padding(.horizontal, 8)
+        .padding(.bottom, bottomInset)
+        .padding(.top, 8)
+        .allowsHitTesting(false)
     }
 }
 
@@ -215,8 +221,6 @@ private struct CombatantSkillCalloutLane: View {
     let combatantID: String
 
     var body: some View {
-        // swiftlint:disable:next redundant_discardable_let
-        let _ = appState.battle.feedbackEpoch
         if let callout = appState.battle.activeSkillCallout,
            callout.actorID == combatantID {
             SkillCalloutView(callout: callout)

@@ -62,6 +62,9 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     titleOpacity: min(max((offsetY - threshold) / 32, 0), 1)
                 )
             } action: { _, newPresentation in
+                // Scroll geometry fires every frame; skip no-op writes so hero
+                // chrome does not invalidate when values are unchanged.
+                guard presentation != newPresentation else { return }
                 presentation = newPresentation
             }
         }

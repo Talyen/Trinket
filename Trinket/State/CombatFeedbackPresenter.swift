@@ -3,42 +3,6 @@ import Foundation
 import TrinketCore
 import TrinketDesignSystem
 
-/// View-facing combat feedback item produced from one or more `ActionEvent`s.
-struct CombatFeedbackItem: Identifiable, Equatable {
-    let id: Int
-    let sourceEventIDs: [Int]
-    let actionGroupID: Int
-    let presentationIndex: Int
-    let groupResultCount: Int
-    let targetID: String
-    let feedbackClass: CombatFeedbackClass
-    let keyword: Keyword
-    let text: String
-    let secondaryText: String?
-    let spawnSeed: Int
-    let lifetime: TimeInterval
-    let availableAt: Date
-    let expiresAt: Date
-    let reactionKind: CombatantHitReactionKind
-}
-
-/// Card hit-reaction trigger published alongside feedback items.
-struct CombatantHitReaction: Equatable {
-    let id: Int
-    let kind: CombatantHitReactionKind
-    let keyword: Keyword
-}
-
-/// Keyword particle burst request for a combatant pane.
-struct KeywordBurstRequest: Identifiable, Equatable {
-    let id: Int
-    let keyword: Keyword
-    let particleCount: Int
-    let seed: Int
-    let availableAt: Date
-    let expiresAt: Date
-}
-
 /// Pure presenter: engine events → classified feedback items.
 enum CombatFeedbackPresenter {
     static func makeItems(
@@ -47,7 +11,7 @@ enum CombatFeedbackPresenter {
         stagger: TimeInterval = 0
     ) -> [CombatFeedbackItem] {
         let sources = consolidate(mergeCriticals(in: filterDisplayable(events)))
-        let prepared = sources.map(prepare)
+        let prepared = sources.compactMap(prepare)
         var targetOrder: [String] = []
         var grouped: [String: [PreparedEvent]] = [:]
         for item in prepared {
@@ -59,8 +23,8 @@ enum CombatFeedbackPresenter {
 
         return targetOrder.enumerated().flatMap { groupIndex, targetID -> [CombatFeedbackItem] in
             let sorted = (grouped[targetID] ?? []).sorted { lhs, rhs in
-                let lhsPriority = displayPriority(for: lhs.feedbackClass)
-                let rhsPriority = displayPriority(for: rhs.feedbackClass)
+                let lhsPriority = CombatFeedbackClassification.displayPriority(for: lhs.feedbackClass)
+                let rhsPriority = CombatFeedbackClassification.displayPriority(for: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
                     return lhs.originalOrder < rhs.originalOrder
                 }
@@ -128,7 +92,7 @@ enum CombatFeedbackPresenter {
         let targetID: String
         let feedbackClass: CombatFeedbackClass
         let keyword: Keyword
-        let text: String
+        let label: CombatFeedbackChipLabel
         let secondaryText: String?
         let reactionKind: CombatantHitReactionKind
     }
@@ -301,10 +265,16 @@ enum CombatFeedbackPresenter {
         }
     }
 
-    private static func prepare(_ source: PreparedSource) -> PreparedEvent {
+    private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
         let event = source.event
         let display = ActionEventFormatter.display(for: event)
-        let feedbackClass = source.forceCritical ? .critical : classify(event, display: display)
+        let feedbackClass = source.forceCritical
+            ? .critical
+            : CombatFeedbackClassification.classify(event, display: display)
+        let floatingText = Self.floatingText(from: display)
+        guard let label = CombatFeedbackChipLabel.fromDisplayText(floatingText) else {
+            return nil
+        }
         return PreparedEvent(
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
@@ -312,9 +282,9 @@ enum CombatFeedbackPresenter {
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: display.keyword,
-            text: floatingText(from: display),
+            label: label,
             secondaryText: display.secondaryText,
-            reactionKind: reactionKind(for: feedbackClass)
+            reactionKind: CombatFeedbackClassification.reactionKind(for: feedbackClass)
         )
     }
 
@@ -347,7 +317,7 @@ enum CombatFeedbackPresenter {
             targetID: prepared.targetID,
             feedbackClass: prepared.feedbackClass,
             keyword: prepared.keyword,
-            text: prepared.text,
+            label: prepared.label,
             secondaryText: prepared.secondaryText,
             spawnSeed: prepared.id,
             lifetime: recipe.lifetime,
@@ -355,73 +325,5 @@ enum CombatFeedbackPresenter {
             expiresAt: expiresAt,
             reactionKind: prepared.reactionKind
         )
-    }
-
-    private static func displayPriority(for feedbackClass: CombatFeedbackClass) -> Int {
-        switch feedbackClass {
-        case .critical: 0
-        case .deathsDoor: 1
-        case .directDamage: 2
-        case .heal: 3
-        case .block, .dodge, .control: 4
-        case .dot: 5
-        case .buff, .resource: 6
-        }
-    }
-
-    private static func classify(
-        _ event: ActionEvent,
-        display: ActionEventDisplay
-    ) -> CombatFeedbackClass {
-        switch event.kind {
-        case .status:
-            return .dot
-        case .ability:
-            return .directDamage
-        case .milestone:
-            return .buff
-        case .effect:
-            break
-        }
-
-        switch display.emphasis {
-        case .heal:
-            return .heal
-        case .resourceGain:
-            return .resource
-        case .shieldAbsorbed:
-            return .block
-        case .dodge:
-            return .dodge
-        case .control:
-            return .control
-        case .deathsDoor:
-            return .deathsDoor
-        case .status:
-            return .dot
-        case .damage:
-            return .directDamage
-        case .buff, .cleanse, .purge, .generic:
-            return .buff
-        }
-    }
-
-    private static func reactionKind(for feedbackClass: CombatFeedbackClass) -> CombatantHitReactionKind {
-        switch feedbackClass {
-        case .directDamage:
-            .damage
-        case .dot:
-            .none
-        case .critical:
-            .critical
-        case .block:
-            .block
-        case .heal:
-            .heal
-        case .dodge:
-            .dodge
-        case .control, .buff, .resource, .deathsDoor:
-            .none
-        }
     }
 }

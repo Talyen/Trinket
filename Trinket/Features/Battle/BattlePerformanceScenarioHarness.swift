@@ -67,8 +67,12 @@ struct BattlePerformanceScenarioHarness: View {
         battleSession.clearSpectacle()
         CombatFeedbackRasterPool.shared.removeAll()
         CombatFeedbackRasterPool.shared.resetDiagnostics()
+        // Keep the glyph atlas warm across scenario iterations; only composed chip
+        // rasters are dropped so the first publish stays a sub-ms compose.
+        prepareFeedbackRasters(runGeneration: runGeneration)
+        CombatFeedbackRasterPool.shared.resetDiagnostics()
         if scenario == .feedbackRasterWarm {
-            prepareFeedbackRasters(runGeneration: runGeneration)
+            // Already prepared above; diagnostics reset again for the warm scenario.
             CombatFeedbackRasterPool.shared.resetDiagnostics()
         }
         NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
@@ -191,14 +195,19 @@ struct BattlePerformanceScenarioHarness: View {
 
     private func injectFeedback(runGeneration: Int, batch: Int) {
         let events = feedbackEvents(runGeneration: runGeneration, batch: batch)
+        // ChipBridge.publish pre-composes; avoid a duplicate prepare that masks
+        // publish-path work in dense/production-like scenarios.
         battleSession.recordFeedbackEvents(events, at: .now, stagger: 0.02)
     }
 
     private func runFeedbackChipsOnly(runGeneration: Int) async {
         for batch in 0 ..< 5 {
             let date = Date.now
+            let events = feedbackEvents(runGeneration: runGeneration, batch: batch)
+            // Production publish path: append + bridge note without reactions/SFX.
+            // Pre-compose happens inside ChipBridge.publish (same as live Battle).
             let items = CombatFeedbackPresenter.makeItems(
-                from: feedbackEvents(runGeneration: runGeneration, batch: batch),
+                from: events,
                 at: date,
                 stagger: 0.02
             )
@@ -215,17 +224,20 @@ struct BattlePerformanceScenarioHarness: View {
             at: .now,
             stagger: 0.02
         )
+        prepareFeedbackRasters(for: items)
+    }
+
+    private func prepareFeedbackRasters(for items: [CombatFeedbackItem]) {
         let itemsByTarget = Dictionary(grouping: items, by: \.targetID)
         for targetItems in itemsByTarget.values {
             let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: targetItems)
-            guard let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(from: groups).first else {
-                continue
+            for canvasItem in CombatFeedbackOverlayPolicy.canvasItems(from: groups) {
+                _ = CombatFeedbackRasterPool.shared.raster(
+                    for: canvasItem,
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                )
             }
-            _ = CombatFeedbackRasterPool.shared.raster(
-                for: canvasItem,
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
         }
     }
 

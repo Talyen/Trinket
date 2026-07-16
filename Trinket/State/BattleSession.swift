@@ -19,12 +19,15 @@ final class BattleSession {
     var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     var isShowingBattleLog = false
-    /// Observation fences for combat presentation lanes. Mutating ignored feedback /
-    /// burst storage bumps the matching epoch so only the lanes that read it invalidate.
-    private(set) var feedbackEpoch = 0
+    /// Observation fences for combat presentation lanes. Burst storage is ignored;
+    /// chip publishes go through `onFeedbackItemsChanged` (UIKit bridge).
     private(set) var burstEpoch = 0
     @ObservationIgnored
     var activeFeedbackItems: [CombatFeedbackItem] = []
+    /// Optional UIKit chip-bridge hook. Feature chrome installs this so chip publishes
+    /// update always-mounted hosts without invalidating SwiftUI battle chrome.
+    @ObservationIgnored
+    var onFeedbackItemsChanged: (([CombatFeedbackItem]) -> Void)?
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
@@ -55,7 +58,9 @@ final class BattleSession {
 
     var state: BattleState?
 
+    @ObservationIgnored
     var feedbackEventRecordedAt: [Int: Date] = [:]
+    @ObservationIgnored
     var presentedFeedbackIDs: Set<Int> = []
     var presentationHoldCount = 0
     var softHoldUntil: Date?
@@ -196,7 +201,7 @@ final class BattleSession {
     }
 
     func noteFeedbackPresentationChanged() {
-        feedbackEpoch &+= 1
+        onFeedbackItemsChanged?(activeFeedbackItems)
     }
 
     func noteBurstPresentationChanged() {
@@ -204,8 +209,8 @@ final class BattleSession {
     }
 
     func noteAllFeedbackPresentationChanged() {
-        feedbackEpoch &+= 1
         burstEpoch &+= 1
+        onFeedbackItemsChanged?(activeFeedbackItems)
     }
 
     func removeFeedbackEvent(_ id: Int, noteChange: Bool = true) {
@@ -229,7 +234,7 @@ final class BattleSession {
         presentedFeedbackIDs.remove(id)
     }
 
-    func pruneExpiredFeedback(at date: Date = .now) {
+    func pruneExpiredFeedback(at date: Date = .now, notifyPresentation: Bool = true) {
         applyImmediatePresentation(for: activeFeedbackItems, at: date)
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
@@ -257,7 +262,7 @@ final class BattleSession {
                 prunedBursts = true
             }
         }
-        if removedItems {
+        if removedItems, notifyPresentation {
             noteFeedbackPresentationChanged()
         }
         if prunedBursts {
@@ -315,13 +320,17 @@ final class BattleSession {
         homestead: PlayerHomesteadState
     ) -> Int? {
         cancelPendingAutoEnd()
-        pruneExpiredFeedback(at: date)
+        pruneExpiredFeedback(at: date, notifyPresentation: false)
         autoEndJourney = journey
         autoEndHomestead = homestead
         guard activeCinematic == nil,
               !isShowingVictory,
               !isShowingDefeat,
-              var battleState = state else { return nil }
+              var battleState = state else {
+            // No new events — still publish if prune dropped expired chips.
+            noteFeedbackPresentationChanged()
+            return nil
+        }
 
         do {
             let events = try battleState.playCard(cardID: cardID, rebuildLog: false)
@@ -333,6 +342,7 @@ final class BattleSession {
             }
             return earnedGold
         } catch {
+            noteFeedbackPresentationChanged()
             playSFX(SFXID.uiDeny)
             return nil
         }
@@ -347,10 +357,13 @@ final class BattleSession {
         homestead: PlayerHomesteadState
     ) -> Int? {
         cancelPendingAutoEnd()
-        pruneExpiredFeedback(at: date)
+        pruneExpiredFeedback(at: date, notifyPresentation: false)
         autoEndJourney = journey
         autoEndHomestead = homestead
-        guard canEndTurn, var battleState = state else { return nil }
+        guard canEndTurn, var battleState = state else {
+            noteFeedbackPresentationChanged()
+            return nil
+        }
 
         BattleFramePacingSignposts.event(
             BattleFramePacingSignposts.Name.turnTransition,

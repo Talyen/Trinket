@@ -131,7 +131,9 @@ struct CombatSFXMapperTests {
         text: String,
         secondary: String? = nil
     ) -> CombatFeedbackItem {
-        CombatFeedbackItem(
+        let label = CombatFeedbackChipLabel.fromDisplayText(text)
+            ?? .word(.plain(keyword))
+        return CombatFeedbackItem(
             id: id,
             sourceEventIDs: [id],
             actionGroupID: id,
@@ -140,7 +142,7 @@ struct CombatSFXMapperTests {
             targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,
-            text: text,
+            label: label,
             secondaryText: secondary,
             spawnSeed: id,
             lifetime: 0.8,

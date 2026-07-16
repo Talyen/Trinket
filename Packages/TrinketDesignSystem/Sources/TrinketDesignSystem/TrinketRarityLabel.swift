@@ -48,8 +48,14 @@ public struct TrinketRarityLabel: View {
             )
             .shadow(color: TrinketDesign.Colors.arcane.opacity(0.62), radius: 6)
             .onAppear {
-                withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) {
-                    shinePhase = true
+                // Defer shine so Collection/Homestead first paint is not stacked
+                // with every premium label's animation commit on the same frame.
+                Task { @MainActor in
+                    await Task.yield()
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) {
+                        shinePhase = true
+                    }
                 }
             }
             .onDisappear {
