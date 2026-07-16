@@ -23,7 +23,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         rawValue
     }
 
-    public enum Category: String, CaseIterable {
+    public enum Category: String, CaseIterable, Hashable, Sendable {
         case damageType = "Damage Type"
         case mitigation = "Mitigation"
         case restoration = "Restoration"
