@@ -110,7 +110,7 @@ struct LabyrinthMapClusterSection: View {
         let style = biome?.keywordBias.visualStyle
 
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 Text(biome?.title ?? "Unknown Biome")
                     .trinketTypography(.cardTitle)
                 if let epithet = biome?.epithet {

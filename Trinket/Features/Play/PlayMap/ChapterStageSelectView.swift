@@ -38,7 +38,7 @@ struct ChapterStageSelectView: View {
                 if let pendingNextChapter {
                     chapterAdvanceButton(to: pendingNextChapter)
                         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .padding(.top, 8)
+                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
                 }
             }
             .padding(.bottom, 92)
@@ -134,7 +134,7 @@ private struct ChapterJourneyHero: View {
                     )
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.bottom, 16)
+            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
         }
     }
 }

@@ -30,7 +30,7 @@ struct ItemCard: View {
                             .lineLimit(1)
                     }
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
                 .trinketCardLabelSpace(reservesLabelSpace)
             }
         }

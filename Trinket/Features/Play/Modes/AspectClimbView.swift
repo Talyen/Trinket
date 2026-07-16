@@ -77,7 +77,7 @@ struct AspectClimbView: View {
                         .trinketTypography(.caption)
                         .foregroundStyle(.secondary)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
 
                 LazyVStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
                     ForEach(floors) { floor in

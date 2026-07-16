@@ -90,7 +90,7 @@ final class CombatFeedbackRasterPool {
                 radius: 0,
                 y: 1.5
             )
-            .padding(.horizontal, 4)
+            .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
             .padding(.vertical, 5)
             .fixedSize()
             .environment(\.dynamicTypeSize, dynamicTypeSize)

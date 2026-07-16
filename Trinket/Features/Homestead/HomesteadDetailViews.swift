@@ -295,7 +295,7 @@ struct HomesteadTierCostLabel: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             ForEach(cost) { amount in
                 HStack(spacing: 3) {
                     HomesteadResourceArtwork(resource: amount.resource)

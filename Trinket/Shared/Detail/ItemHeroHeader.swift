@@ -29,7 +29,7 @@ struct ItemHeroHeader: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             Text(item.rarity.label.uppercased())
                 .trinketTypography(.eyebrow)
                 .trinketOnArtText(.eyebrow)

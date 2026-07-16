@@ -26,7 +26,7 @@ struct CombatantCard: View {
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
                     .trinketCardLabelSpace()
             }
         }

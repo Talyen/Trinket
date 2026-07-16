@@ -29,7 +29,7 @@ struct CombatantHeroHeader: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             Text(combatant.role.rawValue.uppercased())
                 .trinketTypography(.eyebrow)
                 .trinketOnArtText(.eyebrow)

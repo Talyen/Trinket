@@ -173,7 +173,7 @@ struct LabyrinthMapView: View {
                 }
             }
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
     }
 
     private var focusedCluster: LabyrinthCluster? {
