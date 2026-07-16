@@ -97,7 +97,9 @@ struct MarkedHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .marked = $0 { return true }
+            if case .marked = $0 {
+                return true
+            }
             return false
         }
         context.appendEffect(.marked(bonus, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
@@ -235,7 +237,9 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .damageKeywordOverride = $0 { return true }
+            if case .damageKeywordOverride = $0 {
+                return true
+            }
             return false
         }
         context.appendEffect(

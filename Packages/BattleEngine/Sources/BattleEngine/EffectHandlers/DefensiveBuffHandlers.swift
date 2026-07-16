@@ -90,7 +90,9 @@ struct LeechHandler: BattleEffectHandler {
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .leech = $0 { return true }
+            if case .leech = $0 {
+                return true
+            }
             return false
         }
         context.appendEffect(
@@ -132,7 +134,9 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .nextHolyStrike = $0 { return true }
+            if case .nextHolyStrike = $0 {
+                return true
+            }
             return false
         }
         context.appendEffect(

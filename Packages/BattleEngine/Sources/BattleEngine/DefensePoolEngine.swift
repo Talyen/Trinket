@@ -104,8 +104,8 @@ package enum DefensePoolEngine {
         var effects = context.roster.activeEffects(for: target)
         if let index = effects.firstIndex(where: { pool.matches($0.effect) }),
            let updated = pool.withAmount(
-            effects[index].effect,
-            amount: (pool.points(in: effects[index].effect) ?? 0) + amount
+               effects[index].effect,
+               amount: (pool.points(in: effects[index].effect) ?? 0) + amount
            ) {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
