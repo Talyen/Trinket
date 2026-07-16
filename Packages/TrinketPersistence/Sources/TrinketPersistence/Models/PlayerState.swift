@@ -260,24 +260,26 @@ public struct PlayerRosterState: Equatable, Sendable {
         }
     }
 
-    /// Unlocks a hero by catalog id. Returns `true` when newly unlocked.
     @discardableResult
     public mutating func unlockHero(id heroID: String) -> Bool {
-        guard GameContent.heroes.contains(where: { $0.id == heroID }) else { return false }
-        let inserted = unlockedHeroIDs.insert(heroID).inserted
-        if progressions[heroID] == nil {
-            progressions[heroID] = .initial
-        }
-        return inserted
+        unlock(id: heroID, catalog: GameContent.heroes, into: &unlockedHeroIDs)
     }
 
-    /// Unlocks a companion by catalog id. Returns `true` when newly unlocked.
     @discardableResult
     public mutating func unlockCompanion(id companionID: String) -> Bool {
-        guard GameContent.companions.contains(where: { $0.id == companionID }) else { return false }
-        let inserted = unlockedCompanionIDs.insert(companionID).inserted
-        if progressions[companionID] == nil {
-            progressions[companionID] = .initial
+        unlock(id: companionID, catalog: GameContent.companions, into: &unlockedCompanionIDs)
+    }
+
+    @discardableResult
+    private mutating func unlock(
+        id combatantID: String,
+        catalog: [Combatant],
+        into unlockedIDs: inout Set<String>
+    ) -> Bool {
+        guard catalog.contains(where: { $0.id == combatantID }) else { return false }
+        let inserted = unlockedIDs.insert(combatantID).inserted
+        if progressions[combatantID] == nil {
+            progressions[combatantID] = .initial
         }
         return inserted
     }
