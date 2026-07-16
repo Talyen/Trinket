@@ -30,37 +30,22 @@ struct StageRewardTests {
         )
     }
 
-    @Test func completingStageGrantsBattleGoldWithStageRewards() throws {
-        var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.complete(
-            firstStage,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: 4,
-            in: GameContent.chapters,
-            save: &save
-        )
-
-        try #expect(save.roster.gold == firstStage.rewards.gold + 4)
-    }
-
     @Test func completingStageGrantsGoldXPAndItems() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         var save = makeSave()
+        let battleEarnedGold = 4
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
             companion: companion,
+            battleEarnedGold: battleEarnedGold,
             in: GameContent.chapters,
             save: &save
         )
 
-        try #expect(save.roster.gold == firstStage.rewards.gold)
+        try #expect(save.roster.gold == firstStage.rewards.gold + battleEarnedGold)
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let companionLevel = PlayerRosterState.initial.progression(for: companion).level

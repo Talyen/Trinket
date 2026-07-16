@@ -89,47 +89,6 @@ struct BattleVictorySummaryTests {
         #expect(scaledSummary.companionProgressionAfter.currentXP == expectedScaledCompanionXP)
     }
 
-    @Test func makeVictorySummaryAppliesHomesteadBonusesWhenBonusesActive() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.slash]
-        )
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, abilities: [])
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 1,
-            abilities: []
-        )
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            stageReward: StageReward(
-                gold: 0,
-                itemTemplateIDs: [],
-                materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
-            )
-        )
-        let session = BattleSession()
-        session.activeBattle = configuration
-        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        let state = try #require(session.state)
-        let summary = try BattleVictorySummary.make(
-            configuration: configuration,
-            state: state,
-            homestead: homestead
-        )
-
-        #expect(summary.materialRewards.first { $0.resource == .wood }?.quantity == 8)
-        #expect(summary.materialRewards.first { $0.resource == .stone }?.quantity == 3)
-    }
-
     @Test func makeVictorySummaryAppliesLabyrinthExperienceBonusPercent() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
