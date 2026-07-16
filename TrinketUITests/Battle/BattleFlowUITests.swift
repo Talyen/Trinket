@@ -2,14 +2,14 @@ import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
     /// Mid-battle interactions: enter via Play map and assert turn-based chrome stays visible.
-    func testMidBattleCombatantDetailAndHandChrome() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testMidBattleCombatantDetailAndHandChrome() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
-        // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
+        // If Stage 1-1 already resolved, mid-battle chrome is gone — skip rather than false-green.
         if battle.waitForMidBattleOrVictory() {
-            return
+            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
         }
 
         // Ranger is the card we open; Wolf may already be downed / off-layout mid-fight.
@@ -31,7 +31,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet()
 
         if battle.victory.waitForExistence(timeout: 1) {
-            return
+            throw XCTSkip("Battle resolved during mid-battle assertions; covered by victory test")
         }
 
         battle.assertPresented()
@@ -43,13 +43,13 @@ final class BattleFlowUITests: TrinketUITestCase {
 
     /// Hand drag onto a combatant must not open details; tap still works after.
     /// Kept out of smoke: mid-battle interactions enter via Play map, not `-launch-screen battle`.
-    func testHandDragReleaseOnCombatantDoesNotOpenDetail() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testHandDragReleaseOnCombatantDoesNotOpenDetail() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
         if battle.waitForMidBattleOrVictory() {
-            return
+            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
         }
 
         battle.assertActive()
@@ -68,7 +68,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
 
         if battle.victory.waitForExistence(timeout: 1) {
-            return
+            throw XCTSkip("Battle resolved during hand-drag assertions; covered by victory test")
         }
 
         battle.openCombatantCard(named: "Ranger")
@@ -104,14 +104,14 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.combatLog)
     }
 
-    func testRetreatRestoresPlayNavigation() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testRetreatRestoresPlayNavigation() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
-        // Stage 1-1 can resolve before retreat is reachable — defer to the victory test.
+        // Stage 1-1 can resolve before retreat is reachable — skip rather than false-green.
         if battle.waitForMidBattleOrVictory() {
-            return
+            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
         }
 
         battle.assertActive()
