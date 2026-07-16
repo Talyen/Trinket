@@ -43,15 +43,19 @@ final class PreparedArtworkCache {
 
         let allNames = Self.allPresentationImageNames
         let priority = Set(priorityImageNames)
-        let orderedNames = allNames.filter { !priority.contains($0) }
-            + allNames.filter { priority.contains($0) }
+        let priorityOrdered = allNames.filter { priority.contains($0) }
+        let deferredOrdered = allNames.filter { !priority.contains($0) }
+        let orderedNames = priorityOrdered + deferredOrdered
         totalCount = max(orderedNames.count, 1)
         completedCount = 0
 
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
-            await decode(orderedNames)
+            // Unblock interactive UI after the critical path; keep decoding the rest
+            // so later screens still hit the warm cache without stalling launch.
+            await decode(priorityOrdered)
             isLaunchWarmupComplete = true
+            await decode(deferredOrdered)
             warmupTask = nil
         }
         warmupTask = task
