@@ -4,6 +4,7 @@ import TrinketCore
 package extension BattleState {
     mutating func nextEvent(
         kind: ActionEvent.Kind,
+        actionID: Int? = nil,
         effectKind: ActionEvent.EffectKind? = nil,
         actorID: String = "",
         actorName: String,
@@ -14,11 +15,13 @@ package extension BattleState {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
-        milestone: ActionEvent.Milestone? = nil
+        milestone: ActionEvent.Milestone? = nil,
+        isCritical: Bool = false
     ) -> ActionEvent {
         nextEventID += 1
         let event = ActionEvent(
             id: nextEventID,
+            actionID: actionID ?? (actionCount + 1),
             kind: kind,
             effectKind: effectKind,
             actorID: actorID,
@@ -31,7 +34,8 @@ package extension BattleState {
             amount: amount,
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
-            milestone: milestone
+            milestone: milestone,
+            isCritical: isCritical
         )
         if tracksEvents {
             events.append(event)

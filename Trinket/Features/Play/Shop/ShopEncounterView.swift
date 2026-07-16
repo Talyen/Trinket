@@ -35,14 +35,6 @@ struct ShopEncounterView: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterGreeting)
 
-                        if let purchasedName = session.lastPurchasedItemName {
-                            Text("Purchased \(purchasedName)")
-                                .trinketTypography(.badge)
-                                .foregroundStyle(Keyword.gold.visualStyle.color)
-                                .accessibilityIdentifier(AccessibilityID.Shop.purchaseConfirmation)
-                                .transition(.opacity)
-                        }
-
                         if let errorMessage = session.lastPurchaseError {
                             Text(errorMessage)
                                 .trinketTypography(.badge)
@@ -192,7 +184,7 @@ struct ShopEncounterView: View {
                     .monospacedDigit()
             }
         }
-        .trinketTypography(.badge)
+        .trinketTypography(.button)
         .foregroundStyle(canBuy ? Keyword.gold.visualStyle.color : .secondary)
         .trinketGlassChip(.emphasis)
     }

@@ -96,8 +96,8 @@ extension AppState {
             return false
         }
 
-        if let purchasedItem {
-            session.markPurchaseFinished(offerID: offerID, itemName: purchasedItem.displayName)
+        if purchasedItem != nil {
+            session.markPurchaseFinished(offerID: offerID)
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
         }

@@ -31,6 +31,10 @@ public struct CombatOutcome: Equatable {
         max(0, healthDelta)
     }
 
+    public var isCritical: Bool {
+        flags.contains(.critical)
+    }
+
     /// Alias retained while callers migrate from tuple returns.
     public var damageEvents: [ActionEvent] {
         events
@@ -39,6 +43,7 @@ public struct CombatOutcome: Equatable {
 
 /// Semantic markers for combat mutations. Populated from pipeline state and events.
 public enum CombatFlag: Hashable, Sendable {
+    case critical
     case dodged
     case shieldAbsorbed
     case leeched
@@ -48,6 +53,9 @@ public enum CombatFlag: Hashable, Sendable {
 extension CombatOutcome {
     static func fromDamage(state: DamageResolutionState) -> CombatOutcome {
         var flags: Set<CombatFlag> = []
+        if state.isCritical {
+            flags.insert(.critical)
+        }
         if state.isDodged {
             flags.insert(.dodged)
         }

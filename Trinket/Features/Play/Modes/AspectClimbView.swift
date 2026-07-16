@@ -10,12 +10,6 @@ struct AspectClimbView: View {
     @State private var scrollTarget: String?
 
     let aspectID: AspectID
-    let onBattleStart: () -> Void
-
-    init(aspectID: AspectID, onBattleStart: @escaping () -> Void = {}) {
-        self.aspectID = aspectID
-        self.onBattleStart = onBattleStart
-    }
 
     private var aspect: AspectDefinition? {
         GameContent.aspect(id: aspectID)
@@ -55,9 +49,20 @@ struct AspectClimbView: View {
         }
         .onAppear {
             scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: activeFloorNumber)?.id
+            prepareActiveFloorBattle()
         }
         .onChange(of: activeFloorNumber) { _, newValue in
             scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: newValue)?.id
+            prepareActiveFloorBattle()
+        }
+        .onChange(of: appState.roster) { _, _ in
+            prepareActiveFloorBattle()
+        }
+        .onChange(of: appState.inventory) { _, _ in
+            prepareActiveFloorBattle()
+        }
+        .onChange(of: appState.homestead) { _, _ in
+            prepareActiveFloorBattle()
         }
     }
 
@@ -161,8 +166,6 @@ struct AspectClimbView: View {
         Button {
             if let message = appState.startAspectBattle(for: floor) {
                 floorMessage = message
-            } else {
-                onBattleStart()
             }
         } label: {
             Text("Begin Floor")
@@ -183,5 +186,13 @@ struct AspectClimbView: View {
                     aspect: aspect
                 ).isReady
         )
+    }
+
+    private func prepareActiveFloorBattle() {
+        guard let floor = GameContent.aspectFloor(
+            aspectID: aspectID,
+            floor: activeFloorNumber
+        ) else { return }
+        appState.prepareAspectBattle(for: floor)
     }
 }

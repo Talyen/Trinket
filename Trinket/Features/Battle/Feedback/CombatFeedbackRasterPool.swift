@@ -203,6 +203,16 @@ final class CombatFeedbackRasterPool {
         )
     }
 
+    func prewarmInfrastructureAndWait(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) async {
+        await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+    }
+
     func removeAll() {
         pendingPacedPrepareTask?.cancel()
         pendingPacedPrepareTask = nil

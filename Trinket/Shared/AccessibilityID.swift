@@ -153,7 +153,6 @@ enum AccessibilityID {
         static let encounterGreeting = "Shop Encounter Greeting"
         static let encounterArt = "Shop Encounter Art"
         static let goldBalance = "Shop Gold Balance"
-        static let purchaseConfirmation = "Shop Purchase Confirmation"
         static let leaveButton = "Shop Leave Button"
         static let leaveFailure = "Shop Leave Failure"
         static let detailBuyButton = "Shop Detail Buy Button"

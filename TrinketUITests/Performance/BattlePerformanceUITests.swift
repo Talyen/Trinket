@@ -76,45 +76,24 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         XCTAssertTrue(metrics.waitForExistence(timeout: Self.defaultTimeout))
 
-        let options = XCTMeasureOptions()
-        options.iterationCount = 1
-        var capturedReports: [FramePacingReport] = []
-        var capturedStatuses: [String] = []
-        measure(
-            metrics: [XCTHitchMetric(application: app)],
-            options: options
-        ) {
-            tapWhenReady(start)
-            RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
-            capturedStatuses.append(status.value as? String ?? "")
-            if let payload = metrics.value as? String,
-               let report = FramePacingReport.parseAccessibilityValue(payload) {
-                capturedReports.append(report)
-            }
+        tapWhenReady(start)
+        RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
+        let rasterStatus = status.value as? String ?? ""
+        XCTAssertTrue(
+            rasterStatus.hasPrefix("complete:\(scenario):"),
+            "Scenario did not complete: \(rasterStatus)"
+        )
+        guard let payload = metrics.value as? String,
+              let report = FramePacingReport.parseAccessibilityValue(payload) else {
+            XCTFail("No measured frame report was captured for \(scenario)")
+            return
         }
-
-        // XCTest may invoke the block once for calibration before its measured iteration.
-        XCTAssertFalse(capturedReports.isEmpty)
-        XCTAssertEqual(capturedStatuses.count, capturedReports.count)
-        for (index, statusValue) in capturedStatuses.enumerated() {
-            XCTAssertTrue(
-                statusValue.hasPrefix("complete:\(scenario):"),
-                "Scenario iteration \(index + 1) did not complete: \(statusValue)"
-            )
-        }
-        for (index, report) in capturedReports.enumerated() {
-            XCTAssertGreaterThanOrEqual(
-                report.sampleCount,
-                120,
-                "Sampler did not capture enough delivered frames: \(report.accessibilityValue)"
-            )
-            record(
-                report: report,
-                scenario: scenario,
-                iteration: index + 1,
-                rasterStatus: capturedStatuses[index]
-            )
-        }
+        XCTAssertGreaterThanOrEqual(
+            report.sampleCount,
+            120,
+            "Sampler did not capture enough delivered frames: \(report.accessibilityValue)"
+        )
+        record(report: report, scenario: scenario, iteration: 1, rasterStatus: rasterStatus)
     }
 
     private func record(

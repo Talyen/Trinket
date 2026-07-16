@@ -1,13 +1,13 @@
 import SwiftUI
 import TrinketDesignSystem
 
-/// Delivers chip updates to always-mounted UIKit hosts without requiring those
-/// hosts to observe `feedbackEpoch` — the publish frame stays off SwiftUI chrome.
+/// Incremental event-delta bridge to always-mounted UIKit hosts. Inserts and
+/// expirations touch only the affected target instead of rebuilding battle snapshots.
 @MainActor
 enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
-    private static var latestItems: [CombatFeedbackItem] = []
-    private static var pendingStaggerTask: Task<Void, Never>?
+    private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
+    private static var pendingAvailabilityTask: Task<Void, Never>?
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
@@ -16,8 +16,6 @@ enum CombatFeedbackChipBridge {
         let displayScale: CGFloat
     }
 
-    /// Registers a host. Refreshes only on first attach or when presentation
-    /// metadata changes — HP-driven `updateUIView` churn must not re-flush.
     static func register(
         _ view: CombatFeedbackRasterUIView,
         combatantID: String,
@@ -37,15 +35,16 @@ enum CombatFeedbackChipBridge {
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )
-        guard metadataChanged else { return }
-        refresh(hostKey: key)
+        if metadataChanged {
+            refresh(hostKey: key)
+        }
     }
 
     static func unregister(_ view: CombatFeedbackRasterUIView) {
         hosts.removeValue(forKey: ObjectIdentifier(view))
     }
 
-    static func publish(items: [CombatFeedbackItem]) {
+    static func publish(_ update: CombatFeedbackUpdate) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipPublish
         )
@@ -55,75 +54,89 @@ enum CombatFeedbackChipBridge {
                 intervalState
             )
         }
-        latestItems = items
-        prepareImminentRasters(for: items)
-        flushRelevantHosts()
-        scheduleStaggeredRefresh(for: items)
-    }
 
-    /// Composes the currently visible due chip for each host, then paces
-    /// staggered future groups across display-link ticks.
-    private static func prepareImminentRasters(for items: [CombatFeedbackItem]) {
-        guard !items.isEmpty else { return }
-        let now = Date()
-        var preparedHostKeys = Set<String>()
-        for entry in hosts.values {
-            guard entry.view != nil else { continue }
-            let hostKey = "\(entry.combatantID)|\(entry.dynamicTypeSize)|\(entry.displayScale)"
-            guard preparedHostKeys.insert(hostKey).inserted else { continue }
-
-            let forTarget = items.filter { $0.targetID == entry.combatantID }
-            guard !forTarget.isEmpty else { continue }
-
-            let due = forTarget.filter { $0.availableAt <= now }
-            if !due.isEmpty {
-                let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: due)
-                for canvasItem in CombatFeedbackOverlayPolicy.canvasItems(from: groups) {
-                    _ = CombatFeedbackRasterPool.shared.prepare(
-                        for: canvasItem,
-                        dynamicTypeSize: entry.dynamicTypeSize,
-                        displayScale: entry.displayScale
-                    )
+        var affectedTargets = Set<String>()
+        var inserted: [CombatFeedbackItem] = []
+        switch update {
+        case let .insert(items):
+            inserted = items
+            for item in items {
+                itemsByTarget[item.targetID, default: [:]][item.id] = item
+                affectedTargets.insert(item.targetID)
+            }
+        case let .remove(ids):
+            for targetID in Array(itemsByTarget.keys) {
+                let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }
+                if !removed.isEmpty {
+                    affectedTargets.insert(targetID)
+                }
+                if itemsByTarget[targetID]?.isEmpty == true {
+                    itemsByTarget.removeValue(forKey: targetID)
                 }
             }
-
-            let upcoming = forTarget.filter { $0.availableAt > now }
-            if !upcoming.isEmpty {
-                CombatFeedbackRasterPool.shared.prepareAll(
-                    for: upcoming,
-                    dynamicTypeSize: entry.dynamicTypeSize,
-                    displayScale: entry.displayScale,
-                    useFrameBudget: true
-                )
+        case let .replace(items):
+            affectedTargets = Set(itemsByTarget.keys).union(items.map(\.targetID))
+            itemsByTarget = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
+                Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
             }
+            inserted = items
+        case .reset:
+            affectedTargets = Set(itemsByTarget.keys)
+            itemsByTarget.removeAll(keepingCapacity: true)
+        }
+
+        prepareRasters(for: inserted)
+        refreshHosts(for: affectedTargets)
+        scheduleAvailabilityRefreshes()
+    }
+
+    private static func prepareRasters(for items: [CombatFeedbackItem]) {
+        guard !items.isEmpty else { return }
+        var preparedHostKeys = Set<String>()
+        for entry in hosts.values where entry.view != nil {
+            let hostKey = "\(entry.combatantID)|\(entry.dynamicTypeSize)|\(entry.displayScale)"
+            guard preparedHostKeys.insert(hostKey).inserted else { continue }
+            let targetItems = items.filter { $0.targetID == entry.combatantID }
+            guard !targetItems.isEmpty else { continue }
+            CombatFeedbackRasterPool.shared.prepareAll(
+                for: targetItems,
+                dynamicTypeSize: entry.dynamicTypeSize,
+                displayScale: entry.displayScale,
+                useFrameBudget: targetItems.contains { $0.availableAt > Date.now }
+            )
         }
     }
 
-    private static func scheduleStaggeredRefresh(for items: [CombatFeedbackItem]) {
-        pendingStaggerTask?.cancel()
+    private static func scheduleAvailabilityRefreshes() {
+        pendingAvailabilityTask?.cancel()
         let now = Date()
-        let futureDates = Set(
-            items.compactMap { item -> Date? in
-                item.availableAt > now ? item.availableAt : nil
-            }
-        ).sorted()
-        guard !futureDates.isEmpty else { return }
-        pendingStaggerTask = Task { @MainActor in
-            for date in futureDates {
+        let dates = Set(itemsByTarget.values.flatMap(\.values).compactMap { item in
+            item.availableAt > now ? item.availableAt : nil
+        }).sorted()
+        guard !dates.isEmpty else {
+            pendingAvailabilityTask = nil
+            return
+        }
+        pendingAvailabilityTask = Task { @MainActor in
+            for date in dates {
                 let delay = date.timeIntervalSinceNow
                 if delay > 0 {
                     try? await Task.sleep(for: .seconds(delay))
                 }
                 guard !Task.isCancelled else { return }
-                flushRelevantHosts()
+                let targets = Set(itemsByTarget.compactMap { targetID, items in
+                    items.values.contains { $0.availableAt <= date && date < $0.expiresAt }
+                        ? targetID
+                        : nil
+                })
+                refreshHosts(for: targets)
             }
-            pendingStaggerTask = nil
+            pendingAvailabilityTask = nil
         }
     }
 
-    /// Refreshes hosts that either have active/expiring items or are currently
-    /// presenting a chip (so expiry clears without waking idle panes).
-    private static func flushRelevantHosts() {
+    private static func refreshHosts(for targetIDs: Set<String>) {
+        guard !targetIDs.isEmpty else { return }
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipFlush
         )
@@ -133,18 +146,7 @@ enum CombatFeedbackChipBridge {
                 intervalState
             )
         }
-        let now = Date()
-        let activeTargetIDs = Set(
-            latestItems.lazy
-                .filter { now < $0.expiresAt }
-                .map(\.targetID)
-        )
-        for key in Array(hosts.keys) {
-            guard let entry = hosts[key] else { continue }
-            let presenting = entry.view?.isPresenting == true
-            guard activeTargetIDs.contains(entry.combatantID) || presenting else {
-                continue
-            }
+        for key in Array(hosts.keys) where hosts[key].map({ targetIDs.contains($0.combatantID) }) == true {
             refresh(hostKey: key)
         }
     }
@@ -156,33 +158,37 @@ enum CombatFeedbackChipBridge {
             return
         }
         let now = Date()
-        let visible = latestItems.filter { item in
-            item.targetID == entry.combatantID
-                && now >= item.availableAt
-                && now < item.expiresAt
+        let targetItems = itemsByTarget[entry.combatantID] ?? [:]
+        let visible = targetItems.values.filter { item in
+            now >= item.availableAt && now < item.expiresAt
         }
-        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: visible)
-        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: groups)
-        let chips: [(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster?)] =
-            canvasItems.map { canvasItem in
-                if CombatFeedbackRasterPool.shared.cachedRaster(
-                    for: canvasItem,
-                    dynamicTypeSize: entry.dynamicTypeSize,
-                    displayScale: entry.displayScale
-                ) == nil {
-                    _ = CombatFeedbackRasterPool.shared.prepare(
-                        for: canvasItem,
-                        dynamicTypeSize: entry.dynamicTypeSize,
-                        displayScale: entry.displayScale
-                    )
-                }
-                let raster = CombatFeedbackRasterPool.shared.cachedRaster(
+        let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: visible.sorted {
+            if $0.availableAt == $1.availableAt {
+                return $0.id < $1.id
+            }
+            return $0.availableAt < $1.availableAt
+        })
+        let chips = CombatFeedbackOverlayPolicy.canvasItems(from: groups).map { canvasItem in
+            if CombatFeedbackRasterPool.shared.cachedRaster(
+                for: canvasItem,
+                dynamicTypeSize: entry.dynamicTypeSize,
+                displayScale: entry.displayScale
+            ) == nil {
+                _ = CombatFeedbackRasterPool.shared.prepare(
                     for: canvasItem,
                     dynamicTypeSize: entry.dynamicTypeSize,
                     displayScale: entry.displayScale
                 )
-                return (canvasItem, raster)
             }
+            return (
+                canvasItem,
+                CombatFeedbackRasterPool.shared.cachedRaster(
+                    for: canvasItem,
+                    dynamicTypeSize: entry.dynamicTypeSize,
+                    displayScale: entry.displayScale
+                )
+            )
+        }
         view.apply(chips: chips)
     }
 }

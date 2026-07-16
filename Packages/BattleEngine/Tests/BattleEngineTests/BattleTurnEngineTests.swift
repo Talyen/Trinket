@@ -135,6 +135,99 @@ struct BattleTurnEngineTests {
         #expect(abilityEvent.abilityTier == Ability.slash.tier)
     }
 
+    @Test func mixedDamageComponentsEmitExactFeedbackEventsAndOneLogSummary() {
+        let ability = Ability(
+            id: "mixed-strike",
+            name: "Mixed Strike",
+            tier: .basic,
+            damageComponents: [
+                DamageComponent(2, keyword: .physical),
+                DamageComponent(2, keyword: .burn)
+            ]
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 1,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: hero,
+            matchup: matchup,
+            context: &context
+        )
+
+        let components = events.filter { $0.kind == .abilityDamage }
+        #expect(components.count == 2)
+        #expect(components.map(\.keyword) == [.physical, .burn])
+        #expect(components.allSatisfy { $0.amount > 0 })
+        #expect(Set(components.map(\.actionID)).count == 1)
+        #expect(events.count { $0.kind == .ability } == 1)
+        #expect(BattleLogReducer.entries(from: events, matchup: matchup).count == 1)
+    }
+
+    @Test func criticalMetadataBelongsToExactDamageComponent() throws {
+        let ability = Ability(
+            id: "critical-strike",
+            name: "Critical Strike",
+            tier: .basic,
+            directDamage: 3,
+            guaranteedCriticalIfEnemyBuffed: true
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(
+                    combatant: enemy,
+                    initialActiveEffects: [
+                        ActiveEffect(id: 1, effect: .mitigation(.armor, 1), remainingTicks: 2)
+                    ]
+                )
+            ),
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 1,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: hero,
+            matchup: matchup,
+            context: &context
+        )
+
+        let component = try #require(events.first { $0.kind == .abilityDamage })
+        #expect(component.isCritical)
+        #expect(!events.contains { $0.effectKind != nil && $0.abilityName == "Critical" })
+    }
+
     @Test(arguments: [true, false])
     func performAbilityAfterLethalHitSkipsCorpseEffectsButStillGrantsGold(grantGold: Bool) throws {
         let ability = Ability(

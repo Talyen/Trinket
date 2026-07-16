@@ -36,6 +36,12 @@ enum CardDissolveTexture {
     /// Discrete dissolve steps — enough for a smooth wipe without unique masks per frame.
     private static let progressSteps = 40
     private static let cache = TextureCache()
+    private static let prewarmState = Mutex(PrewarmState())
+
+    private struct PrewarmState {
+        var tasks: [NoiseCacheKey: Task<Void, Never>] = [:]
+        var prepared: Set<NoiseCacheKey> = []
+    }
 
     private struct NoiseCacheKey: Hashable {
         let edgeDepthWeight: Int
@@ -152,24 +158,67 @@ enum CardDissolveTexture {
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1
     ) {
-        // Concurrency-Safety: Task.detached escapes caller isolation (often
-        // @MainActor `.task`) so CPU baking does not hitch battle chrome.
-        // TextureCache is Mutex-backed and Sendable across concurrent readers.
-        Task.detached(priority: .userInitiated) {
-            _ = noiseImage(
-                edgeDepthWeight: edgeDepthWeight,
-                noiseWeight: noiseWeight,
-                cellSize: cellSize
-            )
-            for step in 0 ... progressSteps {
-                let progress = CGFloat(step) / CGFloat(progressSteps)
-                _ = thresholdMaskImage(
-                    progress: progress,
+        _ = prewarmTask(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: cellSize
+        )
+    }
+
+    static func prepare(
+        edgeDepthWeight: CGFloat = 0.86,
+        noiseWeight: CGFloat = 0.18,
+        cellSize: Int = 1
+    ) async {
+        guard let task = prewarmTask(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: cellSize
+        ) else { return }
+        await task.value
+    }
+
+    private static func prewarmTask(
+        edgeDepthWeight: CGFloat,
+        noiseWeight: CGFloat,
+        cellSize: Int
+    ) -> Task<Void, Never>? {
+        let key = NoiseCacheKey(
+            edgeDepthWeight: quantize(edgeDepthWeight),
+            noiseWeight: quantize(noiseWeight),
+            cellSize: max(1, min(cellSize, 16))
+        )
+        return prewarmState.withLock { state in
+            if state.prepared.contains(key) {
+                return nil
+            }
+            if let task = state.tasks[key] {
+                return task
+            }
+            // Concurrency-Safety: detached CPU baking cannot block the caller's
+            // actor. The cache is Mutex-backed and safe for concurrent reads.
+            let task = Task.detached(priority: .userInitiated) {
+                _ = noiseImage(
                     edgeDepthWeight: edgeDepthWeight,
                     noiseWeight: noiseWeight,
                     cellSize: cellSize
                 )
+                for step in 0 ... progressSteps {
+                    let progress = CGFloat(step) / CGFloat(progressSteps)
+                    _ = thresholdMaskImage(
+                        progress: progress,
+                        edgeDepthWeight: edgeDepthWeight,
+                        noiseWeight: noiseWeight,
+                        cellSize: cellSize
+                    )
+                }
+                prewarmState.withLock { state in
+                    state.tasks.removeValue(forKey: key)
+                    state.prepared.insert(key)
+                }
             }
+            state.tasks[key] = task
+            return task
         }
     }
 
@@ -247,11 +296,17 @@ enum CardDissolveTexture {
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         let brightness = Double(thresholdMidpoint) - Double(progress)
         let contrast = max(Double(thresholdContrast), 1)
-        for index in 0 ..< (width * height) {
-            let normalized = Double(noise[index]) / 255.0
+        // The threshold transform depends only on the source byte and this step's
+        // constants. Resolve its 256 possible outputs once instead of repeating
+        // floating-point brightness/contrast arithmetic for every pixel.
+        let alphaByNoise = (0 ... 255).map { byte -> UInt8 in
+            let normalized = Double(byte) / 255.0
             let brightened = normalized + brightness
             let contrasted = (brightened - 0.5) * contrast + 0.5
-            let alpha = UInt8(clamping: Int((min(max(contrasted, 0), 1) * 255).rounded()))
+            return UInt8(clamping: Int((min(max(contrasted, 0), 1) * 255).rounded()))
+        }
+        for index in 0 ..< (width * height) {
+            let alpha = alphaByNoise[Int(noise[index])]
             let offset = index * 4
             rgba[offset] = 255
             rgba[offset + 1] = 255

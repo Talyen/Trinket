@@ -4,6 +4,8 @@ import TrinketCore
 /// Closed vocabulary for combat floating chips. The glyph atlas and composer only
 /// accept these shapes — never free-form strings on the display-link path.
 enum CombatFeedbackChipLabel: Hashable {
+    static let numericAtlasFragments = ["+", "-", "%"] + (0 ... 9).map(String.init)
+
     /// Signed numeric chip such as `-12` or `+8`.
     case amount(Int)
     /// Signed percent chip such as `+25%`.
@@ -19,6 +21,17 @@ enum CombatFeedbackChipLabel: Hashable {
             Self.formatPercent(value)
         case let .word(word):
             word.displayString
+        }
+    }
+
+    /// Atlas fragments needed to render this label. Numeric chips use the complete
+    /// prewarmed sign/digit alphabet, so values of any size never trigger a raster miss.
+    var atlasFragments: [String] {
+        switch self {
+        case .amount, .percent:
+            displayString.map(String.init)
+        case let .word(word):
+            [word.displayString]
         }
     }
 

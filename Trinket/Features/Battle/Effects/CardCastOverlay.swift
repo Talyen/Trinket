@@ -1,6 +1,30 @@
+import Observation
 import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
+
+@MainActor
+@Observable
+final class BattleCastPresentationState {
+    private(set) var requests: [CardActivationRequest] = []
+
+    func append(_ request: CardActivationRequest, enforceProductionCap: Bool = true) {
+        requests.append(request)
+        guard enforceProductionCap else { return }
+        let maximum = TrinketMotion.Battle.maxConcurrentCardCasts
+        if requests.count > maximum {
+            requests.removeFirst(requests.count - maximum)
+        }
+    }
+
+    func remove(id: UUID) {
+        requests.removeAll { $0.id == id }
+    }
+
+    func reset() {
+        requests.removeAll(keepingCapacity: true)
+    }
+}
 
 struct CardActivationRequest: Equatable, Identifiable {
     let id: UUID
@@ -139,6 +163,18 @@ struct CardCastEffectsLayer: View {
             perspective: request.perspective
         )
         .position(x: request.center.x, y: request.center.y)
+    }
+}
+
+/// Observation boundary for the cast request collection. Inserts and expirations
+/// invalidate only this overlay rather than the battlefield, hand, and toolbar.
+struct CardCastPresentationLane: View {
+    let presentation: BattleCastPresentationState
+
+    var body: some View {
+        CardCastEffectsLayer(requests: presentation.requests) { requestID in
+            presentation.remove(id: requestID)
+        }
     }
 }
 
@@ -285,6 +321,9 @@ struct BattleDissolveEffect<Content: View>: View {
             .frame(width: size.width + 180, height: size.height + 180)
         }
         .frame(width: size.width, height: size.height)
+        // Rasterize the face mask and particle canvas once before applying the
+        // outer cast transform. Without this boundary SwiftUI composites every
+        // child independently, which is substantially more expensive under overlap.
         .compositingGroup()
     }
 }

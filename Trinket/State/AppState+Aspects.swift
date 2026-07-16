@@ -56,6 +56,29 @@ extension AppState {
         return nil
     }
 
+    func prepareAspectBattle(for floor: AspectFloor) {
+        guard battle.activeBattle == nil,
+              let aspect = GameContent.aspect(id: floor.aspectID),
+              AspectUnlock.isUnlocked(aspect, progress: aspects),
+              aspects.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue),
+              AspectAttunement.evaluate(
+                  hero: roster.activeHero,
+                  companion: roster.activeCompanion,
+                  aspect: aspect
+              ).isReady,
+              let encounter = ActiveBattleConfiguration.resolvedAspectEncounter(for: floor)
+        else { return }
+
+        battle.prepareBattleRun(makeBattleConfiguration(
+            resumeToken: .aspect(aspectID: floor.aspectID, floor: floor.floor),
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: floor.rewards
+        ))
+    }
+
     @discardableResult
     func completeAspectFloor(
         _ floor: AspectFloor,

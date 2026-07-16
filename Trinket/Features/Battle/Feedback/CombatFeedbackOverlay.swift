@@ -3,11 +3,6 @@ import SwiftUI
 /// Policy helpers for combat feedback canvas labels. Presentation is owned by
 /// `CombatFeedbackChipBridge` + always-mounted UIKit hosts.
 enum CombatFeedbackOverlayPolicy {
-    /// A combatant only has readable feedback lanes for the newest action.
-    /// Keeping older action groups alive underneath multiplies independently
-    /// animated text layers without presenting additional readable information.
-    static let maxSimultaneousActionGroups = 1
-
     static func visibleActionGroups(from visible: [CombatFeedbackItem]) -> [CombatFeedbackActionGroup] {
         var order: [Int] = []
         var grouped: [Int: [CombatFeedbackItem]] = [:]
@@ -17,7 +12,7 @@ enum CombatFeedbackOverlayPolicy {
             }
             grouped[item.actionGroupID, default: []].append(item)
         }
-        return order.suffix(maxSimultaneousActionGroups).compactMap { id in
+        return order.compactMap { id in
             guard let items = grouped[id] else { return nil }
             return CombatFeedbackActionGroup(id: id, items: items)
         }

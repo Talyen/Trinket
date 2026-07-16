@@ -13,7 +13,7 @@ struct PreparedArtworkCacheTests {
         #expect(plan.deferredNames == ["a", "b", "c"])
     }
 
-    @Test func prepareAllMarksLaunchCompleteAfterPriorityBeforeDeferredFinishes() async {
+    @Test func prepareAllMarksLaunchCompleteOnlyAfterCompleteCatalogFinishes() async {
         let deferredGate = DeferredDecodeGate()
         let cache = PreparedArtworkCache.makeForTesting(
             catalogNames: ["priority-a", "priority-b", "deferred-a", "deferred-b"]
@@ -28,23 +28,18 @@ struct PreparedArtworkCacheTests {
             await cache.prepareAll(priorityImageNames: ["priority-a", "priority-b"])
         }
 
-        var unblocked = false
-        for _ in 0 ..< 400 {
-            if cache.isLaunchWarmupComplete {
-                unblocked = true
-                break
-            }
+        for _ in 0 ..< 400 where cache.completedCount < 2 {
             try? await Task.sleep(for: .milliseconds(5))
         }
 
-        #expect(unblocked)
-        #expect(cache.isLaunchWarmupComplete)
+        #expect(!cache.isLaunchWarmupComplete)
         #expect(!cache.isDeferredWarmupComplete)
         #expect(cache.completedCount == 2)
 
         await deferredGate.open()
         await prepareTask.value
 
+        #expect(cache.isLaunchWarmupComplete)
         #expect(cache.isDeferredWarmupComplete)
         #expect(cache.completedCount == 4)
     }

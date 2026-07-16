@@ -12,7 +12,6 @@ private let trinketAppLogger = Logger(
 struct TrinketApp: App {
     @State private var appState: AppState?
     @State private var bootstrapFailureMessage: String?
-    @State private var artworkCache = PreparedArtworkCache.shared
 
     init() {
         do {
@@ -45,17 +44,10 @@ struct TrinketApp: App {
     var body: some Scene {
         WindowGroup {
             if let appState {
-                Group {
-                    if artworkCache.isLaunchWarmupComplete {
-                        ContentView()
-                    } else {
-                        LaunchWarmupView(progress: artworkCache.progress)
-                    }
-                }
-                .environment(appState)
-                .task {
-                    await artworkCache.prepareAll(priorityImageNames: priorityImageNames(for: appState))
-                }
+                PreparedAppRoot(
+                    appState: appState,
+                    priorityImageNames: priorityImageNames(for: appState)
+                )
             } else {
                 AppBootstrapFailureView(
                     message: bootstrapFailureMessage
@@ -78,5 +70,57 @@ struct TrinketApp: App {
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
         return activeParty + enemyNames
+    }
+}
+
+private struct PreparedAppRoot: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
+    @State private var artworkCache = PreparedArtworkCache.shared
+    @State private var isResourcePreparationComplete = false
+    @State private var areCastEffectsPrepared = false
+
+    let appState: AppState
+    let priorityImageNames: [String]
+
+    var body: some View {
+        Group {
+            if isPreparationComplete {
+                ContentView()
+            } else {
+                ZStack {
+                    LaunchWarmupView(progress: artworkCache.progress)
+                    if shouldPrepareCastEffects, !areCastEffectsPrepared {
+                        CardCastEffectsPrewarmView {
+                            areCastEffectsPrepared = true
+                        }
+                    }
+                }
+            }
+        }
+        .environment(appState)
+        .task {
+            guard !isResourcePreparationComplete else { return }
+            appState.prepareLaunchPerformanceResources()
+            await BattlePresentationWarmup.prepareForLaunch(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+            await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+            guard !Task.isCancelled else { return }
+            if let stageID = appState.journey.activeStageID,
+               let stage = GameContent.stage(id: stageID) {
+                appState.prepareBattle(for: stage)
+            }
+            isResourcePreparationComplete = true
+        }
+    }
+
+    private var shouldPrepareCastEffects: Bool {
+        AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold
+    }
+
+    private var isPreparationComplete: Bool {
+        isResourcePreparationComplete && (areCastEffectsPrepared || !shouldPrepareCastEffects)
     }
 }

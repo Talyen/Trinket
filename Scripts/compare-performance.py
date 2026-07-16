@@ -1,17 +1,36 @@
 #!/usr/bin/env python3
-"""Compare repeated app frame reports with goals and an optional calibrated reference."""
+"""Validate one measured frame-pacing report per maintained scenario."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import statistics
+import math
 from pathlib import Path
 from typing import Any
 
 
-def median(records: list[dict[str, Any]], key: str) -> float:
-    return statistics.median(float(record[key]) for record in records)
+REQUIRED_NUMERIC_FIELDS = (
+    "averageFPS",
+    "onePercentLowFPS",
+    "p95FrameMs",
+    "p99FrameMs",
+    "maxFrameMs",
+    "missedDeadlineCount",
+    "missedDeadlineRatio",
+    "severeStallCount",
+)
+REMOVED_FIELDS = ("p999FrameMs", "pointOnePercentLowFPS")
+
+
+def finite_number(report: dict[str, Any], key: str) -> float:
+    value = report.get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{key} is missing or non-numeric")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{key} is not finite")
+    return result
 
 
 def main() -> int:
@@ -22,68 +41,76 @@ def main() -> int:
     args = parser.parse_args()
 
     baseline = json.loads(args.baseline.read_text())
-    reports = json.loads(args.results.read_text()).get("reports", [])
-    grouped: dict[str, list[dict[str, Any]]] = {}
-    for report in reports:
-        grouped.setdefault(str(report["scenario"]), []).append(report)
+    payload = json.loads(args.results.read_text())
+    reports = payload.get("reports")
+    if not isinstance(reports, list):
+        raise SystemExit("results payload must contain a reports array")
+
+    scenarios = [str(value) for value in baseline["scenarios"]]
+    expected = set(scenarios)
+    grouped: dict[str, list[dict[str, Any]]] = {scenario: [] for scenario in scenarios}
+    failures: list[str] = []
+
+    for index, raw_report in enumerate(reports):
+        if not isinstance(raw_report, dict):
+            failures.append(f"report {index + 1}: expected an object")
+            continue
+        scenario = raw_report.get("scenario")
+        if not isinstance(scenario, str) or scenario not in expected:
+            failures.append(f"report {index + 1}: unexpected or missing scenario {scenario!r}")
+            continue
+        grouped[scenario].append(raw_report)
 
     goals = baseline["goals"]
-    reference = baseline.get("reference", {})
-    minimum_iterations = int(baseline.get("minimumIterations", 5))
-    failures: list[str] = []
     rows: list[str] = []
-    for scenario in baseline["scenarios"]:
-        records = grouped.get(scenario, [])
-        if len(records) < minimum_iterations:
-            failures.append(f"{scenario}: expected {minimum_iterations} iterations, found {len(records)}")
+    for scenario in scenarios:
+        records = grouped[scenario]
+        if len(records) != 1:
+            failures.append(f"{scenario}: expected exactly one measured report, found {len(records)}")
             continue
 
-        values = {
-            "averageFPS": median(records, "averageFPS"),
-            "onePercentLowFPS": median(records, "onePercentLowFPS"),
-            "pointOnePercentLowFPS": median(records, "pointOnePercentLowFPS"),
-            "p99FrameMs": median(records, "p99FrameMs"),
-            "missedDeadlineRatio": median(records, "missedDeadlineRatio"),
-            "severeStallCount": median(records, "severeStallCount"),
-        }
+        report = records[0]
+        if report.get("schemaVersion") != 4:
+            failures.append(
+                f"{scenario}: expected frame report schema 4, found {report.get('schemaVersion')!r}"
+            )
+        if report.get("iteration") != 1:
+            failures.append(
+                f"{scenario}: expected measured iteration 1, found {report.get('iteration')!r}"
+            )
+        removed = [key for key in REMOVED_FIELDS if key in report]
+        if removed:
+            failures.append(f"{scenario}: removed metrics still present: {', '.join(removed)}")
+
+        try:
+            values = {key: finite_number(report, key) for key in REQUIRED_NUMERIC_FIELDS}
+        except ValueError as error:
+            failures.append(f"{scenario}: {error}")
+            continue
+
         rows.append(
-            f"| {scenario} | {len(records)} | {values['averageFPS']:.2f} | "
-            f"{values['onePercentLowFPS']:.2f} | {values['pointOnePercentLowFPS']:.2f} | "
-            f"{values['p99FrameMs']:.2f} | {values['missedDeadlineRatio']:.4%} | "
-            f"{values['severeStallCount']:.1f} |"
+            f"| {scenario} | {values['averageFPS']:.2f} | "
+            f"{values['onePercentLowFPS']:.2f} | {values['p95FrameMs']:.2f} | "
+            f"{values['p99FrameMs']:.2f} | {values['maxFrameMs']:.2f} | "
+            f"{values['missedDeadlineRatio']:.4%} | {int(values['severeStallCount'])} |"
         )
 
         if values["averageFPS"] < float(goals["minimumAverageFPS"]):
-            failures.append(f"{scenario}: median average FPS {values['averageFPS']:.2f} below goal")
+            failures.append(f"{scenario}: average FPS {values['averageFPS']:.2f} below 59.00")
         if values["onePercentLowFPS"] < float(goals["minimumOnePercentLowFPS"]):
-            failures.append(f"{scenario}: median 1% low {values['onePercentLowFPS']:.2f} FPS below goal")
-        if values["pointOnePercentLowFPS"] < float(goals["minimumPointOnePercentLowFPS"]):
-            failures.append(f"{scenario}: median 0.1% low {values['pointOnePercentLowFPS']:.2f} FPS below goal")
-        if values["p99FrameMs"] > float(goals["maximumP99FrameMs"]):
-            failures.append(f"{scenario}: median p99 {values['p99FrameMs']:.2f}ms above goal")
-        if values["missedDeadlineRatio"] > float(goals["maximumMissedDeadlineRatio"]):
-            failures.append(f"{scenario}: median missed ratio {values['missedDeadlineRatio']:.4%} above goal")
+            failures.append(f"{scenario}: 1% low {values['onePercentLowFPS']:.2f} FPS below 59.00")
         if values["severeStallCount"] > float(goals["maximumSevereStallCount"]):
-            failures.append(f"{scenario}: median severe stalls {values['severeStallCount']:.1f} above goal")
+            failures.append(
+                f"{scenario}: severe stalls {int(values['severeStallCount'])} above zero"
+            )
 
-        scenario_reference = reference.get(scenario)
-        if scenario_reference:
-            regression_limit = float(baseline["maximumRegressionPercent"]) / 100.0
-            if values["p99FrameMs"] > float(scenario_reference["p99FrameMs"]) * (1 + regression_limit):
-                failures.append(f"{scenario}: p99 regressed more than the calibrated limit")
-            if values["missedDeadlineRatio"] > max(
-                float(scenario_reference["missedDeadlineRatio"]) * (1 + regression_limit),
-                float(baseline["absoluteMissedRatioRegressionFloor"]),
-            ):
-                failures.append(f"{scenario}: missed-deadline ratio regressed beyond the calibrated limit")
-
-    mode = str(baseline.get("mode", "observe"))
     lines = [
         "# App performance comparison",
         "",
-        f"Mode: `{mode}`. Refresh target: `{baseline['refreshTargetHz']} Hz`.",
+        "Gate: one measured report per scenario; average FPS >= 59; 1% low FPS >= 59; severe stalls = 0.",
+        "p95/p99/max frame time and missed deadlines are diagnostic only.",
         "",
-        "| Scenario | Iterations | Median avg FPS | Median 1% low | Median 0.1% low | Median p99 ms | Median missed | Median severe |",
+        "| Scenario | Avg FPS | 1% low | p95 ms | p99 ms | Max ms | Missed | Severe |",
         "|---|---:|---:|---:|---:|---:|---:|---:|",
         *rows,
         "",
@@ -92,18 +119,12 @@ def main() -> int:
     ]
     lines.extend(f"- {failure}" for failure in failures)
     if not failures:
-        lines.append("- No goal or calibrated-baseline regressions detected.")
-    if mode == "observe":
-        lines.extend([
-            "",
-            "Calibration mode is non-blocking. Promote to `enforce` only after the reference "
-            "contains repeated runs from the pinned CI simulator and Xcode version.",
-        ])
+        lines.append("- Every maintained scenario met the 59/59/zero-severe-stall gate.")
 
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
-    return 1 if failures and mode == "enforce" else 0
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

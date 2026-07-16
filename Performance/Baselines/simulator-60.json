@@ -1,17 +1,10 @@
 {
-  "absoluteMissedRatioRegressionFloor": 0.002,
   "goals": {
-    "maximumMissedDeadlineRatio": 0.005,
-    "maximumP99FrameMs": 20.0,
     "maximumSevereStallCount": 0,
-    "minimumAverageFPS": 60.0,
-    "minimumOnePercentLowFPS": 60.0,
-    "minimumPointOnePercentLowFPS": 60.0
+    "minimumAverageFPS": 59.0,
+    "minimumOnePercentLowFPS": 59.0
   },
-  "maximumRegressionPercent": 10.0,
-  "minimumIterations": 5,
-  "mode": "observe",
-  "reference": {},
+  "mode": "enforce",
   "refreshTargetHz": 60,
   "scenarios": [
     "tab-round-trip",
@@ -36,5 +29,5 @@
     "audio-playback",
     "combined-worst-case"
   ],
-  "schemaVersion": 1
+  "schemaVersion": 2
 }

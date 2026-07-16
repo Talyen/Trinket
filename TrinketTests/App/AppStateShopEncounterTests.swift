@@ -52,7 +52,6 @@ struct AppStateShopEncounterTests {
             #expect(state.roster.gold == 0)
             #expect(state.inventory.items.count == itemsBefore + 1)
             #expect(state.activeShopEncounter?.purchaseCount == 1)
-            #expect(state.activeShopEncounter?.lastPurchasedItemName == offer.item.displayName)
             #expect(state.activeShopEncounter?.isSoldOut(offer.id) == true)
         } else {
             #expect(state.roster.gold == goldBefore)

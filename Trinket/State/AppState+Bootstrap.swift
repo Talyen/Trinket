@@ -4,6 +4,15 @@ import TrinketContent
 import TrinketPersistence
 
 extension AppState {
+    /// Completes fixed battle-resource setup while the launch preparation screen is
+    /// visible. Navigation and the first combat action therefore never inherit it.
+    func prepareLaunchPerformanceResources() {
+        sfxPlayer.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
+        for abilityID in UltimateCinematicCatalog.referencesByAbilityID.keys {
+            BattleCinematicPlayer.shared.warm(abilityID: abilityID)
+        }
+    }
+
     struct BootstrapDependencies {
         let playerSave: PlayerSaveStore
         let shellSession: PlayerShellSessionStore

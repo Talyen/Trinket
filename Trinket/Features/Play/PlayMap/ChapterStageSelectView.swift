@@ -5,6 +5,8 @@ import TrinketDesignSystem
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
@@ -54,6 +56,11 @@ struct ChapterStageSelectView: View {
         }
         .onAppear {
             updateMusicPreview()
+            prepareActiveBattleRun()
+            BattlePresentationWarmup.prepare(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
             appState.battle.prepareBattlePresentation(
                 heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
                 companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
@@ -61,10 +68,27 @@ struct ChapterStageSelectView: View {
         }
         .onChange(of: appState.journey) { _, _ in
             updateMusicPreview()
+            prepareActiveBattleRun()
+        }
+        .onChange(of: appState.roster) { _, _ in
+            prepareActiveBattleRun()
+        }
+        .onChange(of: appState.inventory) { _, _ in
+            prepareActiveBattleRun()
+        }
+        .onChange(of: appState.homestead) { _, _ in
+            prepareActiveBattleRun()
         }
         .onDisappear {
             appState.battle.setMusicPreview(for: nil)
         }
+    }
+
+    private func prepareActiveBattleRun() {
+        guard let stageID = appState.journey.activeStageID,
+              let stage = GameContent.stage(id: stageID),
+              stage.encounter.battleEnemyID != nil else { return }
+        appState.prepareBattle(for: stage)
     }
 
     private var stageRows: [ChapterStageRowPresentation] {

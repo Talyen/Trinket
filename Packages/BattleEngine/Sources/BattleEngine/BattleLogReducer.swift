@@ -40,6 +40,8 @@ public enum BattleLogReducer {
                 targetName: event.targetName,
                 appliedEffectSummaries: event.appliedEffectSummaries
             )
+        case .abilityDamage:
+            return nil
         case .status:
             guard event.amount > 0 else { return nil }
             return "\(event.targetName) takes \(event.amount) \(event.keyword.rawValue) damage."

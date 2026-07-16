@@ -128,6 +128,7 @@ package extension DamagePipeline {
             let event = thornsEvents[lastIndex]
             thornsEvents[lastIndex] = ActionEvent(
                 id: event.id,
+                actionID: event.actionID,
                 kind: event.kind,
                 effectKind: .thornsTriggered,
                 actorID: state.combatant.id,
@@ -140,7 +141,8 @@ package extension DamagePipeline {
                 amount: event.amount,
                 keyword: event.keyword,
                 appliedEffectSummaries: event.appliedEffectSummaries,
-                milestone: event.milestone
+                milestone: event.milestone,
+                isCritical: event.isCritical
             )
         } else if outcome.healthLost > 0 {
             thornsEvents.append(context.nextEvent(

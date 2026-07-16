@@ -4,7 +4,7 @@ Use this for measured frame-pacing, memory, battery, or lifecycle regressions. S
 
 ## App frame-pacing contract
 
-The current automated target is the 60 Hz Simulator lane. The player-facing objective is sustained 60 FPS, including the 1% and 0.1% lows, with no visible hitches across core navigation and Battle. A future physical-device lane will use the same refresh-normalized reports at 120 Hz; physical ProMotion evidence, not Simulator extrapolation, decides that goal.
+The current automated target is the 60 Hz Simulator lane. Every maintained scenario must average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. A future physical-device lane will use the same refresh-normalized reports at 120 Hz; physical ProMotion evidence, not Simulator extrapolation, decides that goal.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, replace, shorten, or mute Battle work. Full card dissolve, Canvas particles, keyword bursts, Ultimate cinematics, haptics configuration, and SFX execution remain on the production paths during measurement.
 
@@ -14,18 +14,14 @@ Run the exclusive matrix:
 ./Scripts/performance.sh
 ```
 
-The runner takes a repository-wide performance lock, limits Simulator UI concurrency to one, uses an isolated simulator/DerivedData tenant, and runs one iteration of every scenario by default. Bump repetitions when calibrating baselines or chasing noisy medians:
-
-```sh
-TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
-```
+The runner takes a repository-wide performance lock, limits Simulator UI concurrency to one, uses an isolated simulator/DerivedData tenant, and records exactly one measured report for every scenario.
 
 Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
 
 - `TestResults/`: xcresult, native `XCTHitchMetric`, logs, and JSON attachments.
-- `reports.json`: raw custom display-link reports, one per scenario iteration.
-- `environment.json`: Xcode, host, commit, dirty-state, and repetition metadata.
-- `summary.md`: medians, goal misses, and calibrated-baseline regression findings.
+- `reports.json`: one raw custom display-link report per scenario.
+- `environment.json`: Xcode, host, commit, and dirty-state metadata.
+- `summary.md`: gate results plus nonblocking frame-time and missed-deadline diagnostics.
 
 ## Coverage inventory
 
@@ -73,7 +69,7 @@ Every scenario drives the normal Battle SwiftUI and `BattleSession` presentation
 
 The scenario launch argument changes stimulus only: `-battle-performance-scenario <name>`. It is DEBUG-only UI tooling and is not a gameplay mode.
 
-The display-link sampler discards 0.75 seconds after every reset so cadence can stabilize. All deterministic stimulus must begin after that warmup. Otherwise an immediate cold transition or cast is absent from the custom 1%/0.1% report even though the native hitch metric may still observe it.
+The display-link sampler discards 0.75 seconds after every reset so cadence can stabilize. All deterministic stimulus must begin after that warmup. Otherwise an immediate cold transition or cast is absent from the custom 1% report even though the native hitch metric may still observe it.
 
 ## Signals and acceptance
 
@@ -83,25 +79,18 @@ The display-link sampler discards 0.75 seconds after every reset so cadence can 
 |---|---|
 | `expectedFPS` | Refresh cadence observed from `CADisplayLink.targetTimestamp` |
 | `averageFPS` | Secondary throughput signal; not a guarantee of smoothness |
-| `p95FrameMs`, `p99FrameMs`, `p999FrameMs` | Long-tail delivered-frame durations |
-| `onePercentLowFPS`, `pointOnePercentLowFPS` | Average delivered FPS across the slowest 1% and 0.1% of frames |
+| `p95FrameMs`, `p99FrameMs` | Diagnostic long-tail delivered-frame durations |
+| `onePercentLowFPS` | Average delivered FPS across the slowest 1% of frames |
 | `missedDeadlineCount` / ratio | Intervals at least 1.5 observed display periods |
 | `estimatedMissedFrameCount` | Estimated presentation opportunities lost across long intervals |
 | `severeStallCount` | Intervals at least three observed display periods |
 
-Do not describe an average as a “60 FPS floor.” A run can average 60 and still hitch. The 60 Hz goals in `Performance/Baselines/simulator-60.json` are median average, 1% low, and 0.1% low ≥60 FPS, median p99 ≤20 ms, median missed-deadline ratio ≤0.5%, and zero median severe stalls. These are currently `observe`-only until the pinned nightly Simulator/Xcode combination has enough clean repeated runs. Then:
-
-1. Populate each scenario's calibrated reference from repeated clean nightly runs.
-2. Confirm variance is low enough that a 10% regression boundary is meaningful.
-3. Change baseline mode to `enforce` and remove `continue-on-error` from the nightly job.
-4. Add a path-scoped PR lane only after the nightly gate is stable.
-
-With only hundreds of frames, the 0.1% low is effectively the single worst delivered frame. Keep it as a strict stability signal, but interpret it together with native hitches, severe stalls, and medians across repeated runs rather than as a statistically rich percentile.
+Do not describe an average as a “60 FPS floor.” A run can average 60 and still hitch. The enforced 60 Hz goals in `Performance/Baselines/simulator-60.json` are average FPS ≥59, 1% low FPS ≥59, and zero severe stalls for each single measured scenario report. p95/p99 frame times and missed-deadline measurements remain visible diagnostics but do not fail the gate.
 
 ## Investigation loop
 
 1. Reproduce the exact failing scenario with the same Xcode, runtime, and Simulator/device.
-2. Check the raw per-iteration spread before treating a median movement as causal.
+2. Compare the single report with its native hitch trace and app-attributed signposts before treating movement as causal.
 3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, chip publish/flush/host-apply, feedback-raster builds, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback. Scenario completion metadata includes bounded raster-pool entries, estimated bytes, hits, builds, and evictions.
 4. Identify an app-attributed stack or rendering phase. Simulator scheduling noise alone is not an app regression.
 5. Make one hypothesis-driven change without changing visible Battle behavior.

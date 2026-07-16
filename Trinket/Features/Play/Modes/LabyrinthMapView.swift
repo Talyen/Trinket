@@ -10,12 +10,6 @@ struct LabyrinthMapView: View {
     @State private var nodeMessage: StageMapMessage?
     @State private var selectedModifier: LabyrinthModifierDefinition?
 
-    let onBattleStart: () -> Void
-
-    init(onBattleStart: @escaping () -> Void = {}) {
-        self.onBattleStart = onBattleStart
-    }
-
     private var state: PlayerLabyrinthState {
         appState.labyrinth
     }
@@ -52,6 +46,19 @@ struct LabyrinthMapView: View {
             if !state.hasMap {
                 _ = appState.enterLabyrinth()
             }
+            appState.prepareReachableLabyrinthBattles()
+        }
+        .onChange(of: appState.labyrinth) { _, _ in
+            appState.prepareReachableLabyrinthBattles()
+        }
+        .onChange(of: appState.roster) { _, _ in
+            appState.prepareReachableLabyrinthBattles()
+        }
+        .onChange(of: appState.inventory) { _, _ in
+            appState.prepareReachableLabyrinthBattles()
+        }
+        .onChange(of: appState.homestead) { _, _ in
+            appState.prepareReachableLabyrinthBattles()
         }
         .sheet(item: $selectedModifier) { modifier in
             NavigationStack {
@@ -107,7 +114,6 @@ struct LabyrinthMapView: View {
                         cluster: cluster,
                         state: state,
                         onSelectModifier: { selectedModifier = $0 },
-                        onBattleStart: onBattleStart,
                         onNodeMessage: { nodeMessage = $0 }
                     )
                 }

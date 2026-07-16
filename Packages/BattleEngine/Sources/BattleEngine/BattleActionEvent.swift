@@ -8,6 +8,7 @@ import TrinketCore
 public struct ActionEvent: Identifiable, Equatable {
     public enum Kind: Equatable {
         case ability
+        case abilityDamage
         case status
         case effect
         case milestone
@@ -33,7 +34,6 @@ public struct ActionEvent: Identifiable, Equatable {
         case cleanseApplied
         case purgeApplied
         case dodgeApplied
-        case criticalApplied
         case leechApplied
         case mitigationHalved
         case deathsDoorTriggered
@@ -51,6 +51,8 @@ public struct ActionEvent: Identifiable, Equatable {
     }
 
     public let id: Int
+    /// Stable correlation for every event emitted while resolving one action.
+    public let actionID: Int
     public let kind: Kind
     public let effectKind: EffectKind?
     public let actorID: String
@@ -64,9 +66,12 @@ public struct ActionEvent: Identifiable, Equatable {
     public let keyword: Keyword
     public let appliedEffectSummaries: [String]
     public let milestone: Milestone?
+    /// Exact critical attribution for resolved ability-damage components.
+    public let isCritical: Bool
 
     public init(
         id: Int,
+        actionID: Int = 0,
         kind: Kind,
         effectKind: EffectKind? = nil,
         actorID: String = "",
@@ -79,9 +84,11 @@ public struct ActionEvent: Identifiable, Equatable {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
-        milestone: Milestone? = nil
+        milestone: Milestone? = nil,
+        isCritical: Bool = false
     ) {
         self.id = id
+        self.actionID = actionID
         self.kind = kind
         self.effectKind = effectKind
         self.actorID = actorID
@@ -95,6 +102,7 @@ public struct ActionEvent: Identifiable, Equatable {
         self.keyword = keyword
         self.appliedEffectSummaries = appliedEffectSummaries
         self.milestone = milestone
+        self.isCritical = isCritical
     }
 
     public var damage: Int {

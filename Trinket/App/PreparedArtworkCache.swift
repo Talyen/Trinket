@@ -3,7 +3,8 @@ import SwiftUI
 import TrinketContent
 import UIKit
 
-/// Ordered launch warmup buckets: priority assets unblock UI; deferred assets fill the cache.
+/// Ordered launch warmup buckets: priority assets decode first, followed by the
+/// remainder of the catalog before interactive content is presented.
 struct LaunchArtworkWarmupPlan: Equatable {
     let priorityNames: [String]
     let deferredNames: [String]
@@ -19,9 +20,9 @@ struct LaunchArtworkWarmupPlan: Equatable {
     }
 }
 
-/// Decodes catalog artwork before interactive UI appears. The cache is deliberately
-/// cost-bounded: the launch pass warms priority assets first so UI can appear, then
-/// continues decoding the rest without risking an unbounded decoded-image footprint.
+/// App-wide eager artwork preparation. The launch completion contract means the
+/// entire presentation catalog is decoded, so navigation and combat never inherit
+/// background preparation work from launch.
 @MainActor
 @Observable
 final class PreparedArtworkCache {
@@ -31,11 +32,17 @@ final class PreparedArtworkCache {
     private(set) var totalCount = 1
     private(set) var isLaunchWarmupComplete = false
 
-    /// True once deferred catalog decode has finished (or there was nothing deferred).
+    /// True once the complete catalog decode has finished.
     private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
-    @ObservationIgnored private var warmupTask: Task<Void, Never>?
+    /// Launch-critical bitmaps are a deliberately small strong set. Keeping them
+    /// outside NSCache prevents the full-catalog warmup from evicting the exact
+    /// images needed by the first interactive transitions.
+    @ObservationIgnored private var pinnedImages: [String: UIImage] = [:]
+    @ObservationIgnored private var pinnedNames: Set<String> = []
+    @ObservationIgnored private var launchWarmupTask: Task<Void, Never>?
+    @ObservationIgnored private var decodedNames: Set<String> = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeBox: DecodeBox
 
@@ -47,7 +54,8 @@ final class PreparedArtworkCache {
 
     private init(
         catalogNamesProvider: @escaping () -> [String],
-        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork
+        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork,
+        deferredWarmupDelay _: Duration
     ) {
         self.catalogNamesProvider = catalogNamesProvider
         decodeBox = DecodeBox(decodeHandler)
@@ -67,7 +75,8 @@ final class PreparedArtworkCache {
     ) -> PreparedArtworkCache {
         PreparedArtworkCache(
             catalogNamesProvider: { catalogNames },
-            decodeHandler: decode
+            decodeHandler: decode,
+            deferredWarmupDelay: .zero
         )
     }
 
@@ -76,15 +85,15 @@ final class PreparedArtworkCache {
     }
 
     func image(named name: String) -> UIImage? {
-        images.object(forKey: name as NSString)
+        pinnedImages[name] ?? images.object(forKey: name as NSString)
     }
 
     func prepareAll(priorityImageNames: [String]) async {
-        if isLaunchWarmupComplete, isDeferredWarmupComplete {
+        if isLaunchWarmupComplete {
             return
         }
-        if let warmupTask {
-            await warmupTask.value
+        if let launchWarmupTask {
+            await launchWarmupTask.value
             return
         }
 
@@ -95,45 +104,61 @@ final class PreparedArtworkCache {
         totalCount = max(plan.priorityNames.count + plan.deferredNames.count, 1)
         completedCount = 0
         isDeferredWarmupComplete = false
+        pinnedNames.formUnion(plan.priorityNames)
 
-        let task = Task { @MainActor [weak self] in
+        let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
-            // Unblock interactive UI after the critical path; keep decoding the rest
-            // so later screens still hit the warm cache without stalling launch.
-            await decode(plan.priorityNames)
-            isLaunchWarmupComplete = true
-            await decode(plan.deferredNames)
+            await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            guard !Task.isCancelled else { return }
+            await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
+            guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
-            warmupTask = nil
+            isLaunchWarmupComplete = true
+            completedCount = totalCount
+            launchWarmupTask = nil
         }
-        warmupTask = task
+        launchWarmupTask = task
         await task.value
     }
 
-    private func decode(_ imageNames: [String]) async {
+    private func decode(
+        _ imageNames: [String],
+        maximumConcurrency: Int,
+        countsTowardLaunch: Bool
+    ) async {
         let decoder = decodeBox
         await withTaskGroup(of: PreparedArtwork.self) { group in
-            var iterator = imageNames.makeIterator()
-            let maximumConcurrentDecodes = 4
+            var iterator = imageNames.filter { !decodedNames.contains($0) }.makeIterator()
 
-            for _ in 0 ..< maximumConcurrentDecodes {
+            for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
                 group.addTask { await decoder.decode(name) }
             }
 
             while let prepared = await group.next() {
+                guard !Task.isCancelled else {
+                    group.cancelAll()
+                    return
+                }
                 if let image = prepared.image {
                     images.setObject(
                         image,
                         forKey: prepared.name as NSString,
                         cost: Self.decodedCost(of: image)
                     )
+                    if pinnedNames.contains(prepared.name) {
+                        pinnedImages[prepared.name] = image
+                    }
                 }
-                completedCount += 1
+                decodedNames.insert(prepared.name)
+                if countsTowardLaunch {
+                    completedCount += 1
+                }
 
                 if let name = iterator.next() {
                     group.addTask { await decoder.decode(name) }
                 }
+                await Task.yield()
             }
         }
     }

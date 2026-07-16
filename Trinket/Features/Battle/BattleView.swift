@@ -9,8 +9,7 @@ struct BattleView: View {
     @Environment(\.displayScale) private var displayScale
     @State private var persistFailureMessage: StageMapMessage?
     @State private var cardPlayFeedbackToken = 0
-    @State private var castingCards: [CardActivationRequest] = []
-    @State private var showCastEffectsPrewarm = true
+    @State private var castPresentation = BattleCastPresentationState()
     @State private var performanceForcedDrag: (cardID: Int, translation: CGSize)?
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
@@ -26,13 +25,14 @@ struct BattleView: View {
 
     var body: some View {
         @Bindable var battleSession = appState.battle
-        if let battleState = battleSession.state {
-            bodyContent(battleSession: battleSession, battleState: battleState)
+        let presentation = battleSession.presentation
+        if presentation.configurationID == configuration.id {
+            bodyContent(battleSession: battleSession)
         }
     }
 
-    private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
-        outcomeContent(battleSession: battleSession, battleState: battleState)
+    private func bodyContent(battleSession: BattleSession) -> some View {
+        outcomeContent(battleSession: battleSession)
             .trinketScreenBackground()
             .navigationTitle(battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
@@ -61,16 +61,15 @@ struct BattleView: View {
             }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
-                castingCards = []
-                showCastEffectsPrewarm = true
-                CombatFeedbackRasterPool.shared.removeAllIncludingAtlas()
+                castPresentation.reset()
+                CombatFeedbackRasterPool.shared.removeAll()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
                 prewarmBattlePresentationEffects()
                 installChipBridge()
             }
             .onDisappear {
                 appState.battle.onFeedbackItemsChanged = nil
-                CombatFeedbackRasterPool.shared.removeAllIncludingAtlas()
+                CombatFeedbackRasterPool.shared.removeAll()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
             }
     }
@@ -101,10 +100,10 @@ struct BattleView: View {
     }
 
     @ViewBuilder
-    private func outcomeContent(battleSession: BattleSession, battleState: BattleState) -> some View {
+    private func outcomeContent(battleSession: BattleSession) -> some View {
         if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
             VictoryView(
-                enemyName: battleState.enemy.name,
+                enemyName: configuration.enemy?.name ?? "Enemy",
                 summary: victorySummary,
                 primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
                 onPrimaryAction: {
@@ -130,7 +129,7 @@ struct BattleView: View {
         } else if battleSession.isShowingDefeat {
             if let labyrinthNodeID = configuration.labyrinthNodeID {
                 DefeatView(
-                    enemyName: battleState.enemy.name,
+                    enemyName: configuration.enemy?.name ?? "Enemy",
                     infoTitle: "The Path Holds",
                     infoMessage: "Try again or take another way. The Labyrinth remembers.",
                     primaryButtonTitle: "Return to Map",
@@ -141,14 +140,14 @@ struct BattleView: View {
                 )
             } else {
                 DefeatView(
-                    enemyName: battleState.enemy.name,
+                    enemyName: configuration.enemy?.name ?? "Enemy",
                     onPrimaryAction: {
                         appState.restartActiveBattle()
                     }
                 )
             }
         } else {
-            battlefield(battleSession: battleSession, battleState: battleState)
+            battlefield(battleSession: battleSession)
         }
     }
 
@@ -156,50 +155,42 @@ struct BattleView: View {
         configuration.hasProgressionRewards
     }
 
-    private func battlefield(battleSession: BattleSession, battleState: BattleState) -> some View {
+    private func battlefield(battleSession: BattleSession) -> some View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
             ZStack(alignment: .bottom) {
                 BattlefieldView(
                     layout: layout,
-                    enemyPane: combatantPane(
-                        for: battleState.enemy,
-                        health: battleState.health(of: battleState.enemy),
-                        battleState: battleState
-                    ),
-                    heroPane: combatantPane(
-                        for: battleState.hero,
-                        health: battleState.health(of: battleState.hero),
-                        battleState: battleState
-                    ),
-                    companionPane: combatantPane(
-                        for: battleState.companion,
-                        health: battleState.health(of: battleState.companion),
-                        battleState: battleState
-                    )
+                    enemyPane: projectedCombatantPane(.enemy),
+                    heroPane: projectedCombatantPane(.hero),
+                    companionPane: projectedCombatantPane(.companion)
                 )
                 .allowsHitTesting(!suppressCombatantTaps)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                battleHand(
-                    battleSession: battleSession,
-                    battleSize: geometry.size
-                )
-
-                if showCastEffectsPrewarm,
-                   AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-                    CardCastEffectsPrewarmView {
-                        showCastEffectsPrewarm = false
+                BattleHandProjectionLane(
+                    presentation: battleSession.presentation,
+                    battleSize: geometry.size,
+                    forcedDrag: $performanceForcedDrag,
+                    onPlay: playCard(_:request:),
+                    onInteractionChanged: updateCombatantTapSuppression(_:),
+                    onReady: {
+                        wireAutoEndTurn(battleSession)
+                        battleSession.considerAutoEndTurn(
+                            journey: appState.journey,
+                            homestead: appState.homestead
+                        )
                     }
-                }
+                )
+                .frame(height: BattleCardGridLayout.handReservedHeight)
+                .offset(y: -BattleHandLayout.bottomRise)
+                .zIndex(1)
 
-                CardCastEffectsLayer(requests: castingCards) { requestID in
-                    castingCards.removeAll { $0.id == requestID }
-                }
-                .zIndex(3)
+                CardCastPresentationLane(presentation: castPresentation)
+                    .zIndex(3)
 
-                cinematicOverlay(for: battleSession)
+                BattleCinematicLane(namespace: cinematicNamespace)
                     .zIndex(10)
 
                 #if DEBUG
@@ -209,7 +200,7 @@ struct BattleView: View {
                         appState: appState,
                         battleSession: battleSession,
                         battleSize: geometry.size,
-                        castingCards: $castingCards,
+                        castPresentation: castPresentation,
                         forcedDrag: $performanceForcedDrag
                     )
                     .zIndex(20)
@@ -221,70 +212,16 @@ struct BattleView: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
-    private func battleHand(
-        battleSession: BattleSession,
-        battleSize: CGSize
-    ) -> some View {
-        BattleHandView(
-            cards: battleSession.hand,
-            isPlayable: { battleSession.isCardPlayable($0) },
-            onTap: { card in
-                battleSession.presentAbilityDetail(card.ability)
-            },
-            onPlay: { card, request in
-                BattleFramePacingSignposts.event(
-                    BattleFramePacingSignposts.Name.cardCommit,
-                    detail: "card=\(card.id) ability=\(card.ability.id) owner=\(card.owner)"
-                )
-                let didPlay = playCard(cardID: card.id)
-                guard didPlay else { return false }
-                castingCards.append(request)
-                let maxCasts = TrinketMotion.Battle.maxConcurrentCardCasts
-                if castingCards.count > maxCasts {
-                    castingCards.removeFirst(castingCards.count - maxCasts)
-                }
-                cardPlayFeedbackToken &+= 1
-                return true
-            },
-            hapticsEnabled: appState.options.hapticsEnabled,
-            battleFrame: CGRect(origin: .zero, size: battleSize),
-            configuration: .init(),
-            forcedDragTranslation: performanceForcedDrag,
-            onCardInteractionChanged: updateCombatantTapSuppression(_:)
+    private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
+        BattleFramePacingSignposts.event(
+            BattleFramePacingSignposts.Name.cardCommit,
+            detail: "card=\(card.id) ability=\(card.ability.id) owner=\(card.owner)"
         )
-        .frame(height: BattleCardGridLayout.handReservedHeight)
-        .offset(y: -BattleHandLayout.bottomRise)
-        .zIndex(1)
-        .onAppear {
-            wireAutoEndTurn(battleSession)
-            battleSession.considerAutoEndTurn(
-                journey: appState.journey,
-                homestead: appState.homestead
-            )
-        }
-    }
-
-    @ViewBuilder
-    private func cinematicOverlay(for battleSession: BattleSession) -> some View {
-        if let cinematic = battleSession.activeCinematic {
-            UltimateCinematicOverlay(
-                cinematic: cinematic,
-                canSkip: appState.options.canSkipUltimateCinematic(),
-                effectsVolume: appState.options.effectsVolume,
-                namespace: cinematicNamespace,
-                onPlaying: { battleSession.markCinematicPlaying() },
-                onRequestSkip: { battleSession.requestSkipCinematic() },
-                onAutoFinish: { cinematicID in
-                    battleSession.beginCinematicCollapse(expectedID: cinematicID)
-                },
-                onCollapseFinished: { cinematicID in
-                    battleSession.completeCinematicCollapse(expectedID: cinematicID)
-                }
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.opacity)
-            .zIndex(10)
-        }
+        let didPlay = playCard(cardID: card.id)
+        guard didPlay else { return false }
+        castPresentation.append(request)
+        cardPlayFeedbackToken &+= 1
+        return true
     }
 
     private func playCard(cardID: Int) -> Bool {
@@ -336,25 +273,21 @@ struct BattleView: View {
         }
     }
 
-    private func combatantPane(
-        for combatant: Combatant,
-        health: Int,
-        battleState: BattleState
-    ) -> BattleCombatantPane {
-        BattleCombatantPane(
-            combatant: combatant,
-            health: health,
-            maxHealth: battleState.maxHealth(of: combatant),
-            mana: battleState.mana(of: combatant),
-            maxMana: battleState.maxMana(of: combatant),
+    private func projectedCombatantPane(
+        _ role: BattleCombatantProjectionPane.Role
+    ) -> BattleCombatantProjectionPane {
+        BattleCombatantProjectionPane(
+            presentation: appState.battle.presentation,
+            role: role,
             hapticsEnabled: appState.options.hapticsEnabled,
             cinematicNamespace: cinematicNamespace,
-            onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
+            onCombatantTap: showDetails(for:)
         )
     }
 
-    private func showDetails(for combatant: Combatant, battleState: BattleState) {
-        guard !suppressCombatantTaps else { return }
+    private func showDetails(for combatant: Combatant) {
+        guard !suppressCombatantTaps,
+              let battleState = appState.battle.state else { return }
         appState.battle.presentCombatantDetail(
             CombatantCardDetail.battleSnapshot(
                 configuration: configuration,
@@ -381,20 +314,152 @@ struct BattleView: View {
     }
 }
 
+private struct BattleCombatantProjectionPane: View {
+    enum Role {
+        case hero
+        case companion
+        case enemy
+    }
+
+    let presentation: BattlePresentationState
+    let role: Role
+    let hapticsEnabled: Bool
+    let cinematicNamespace: Namespace.ID
+    let onCombatantTap: (Combatant) -> Void
+
+    private var snapshot: BattleCombatantPresentation? {
+        switch role {
+        case .hero:
+            presentation.hero
+        case .companion:
+            presentation.companion
+        case .enemy:
+            presentation.enemy
+        }
+    }
+
+    var body: some View {
+        if let snapshot {
+            BattleCombatantPane(
+                combatant: snapshot.combatant,
+                health: snapshot.health,
+                maxHealth: snapshot.maxHealth,
+                mana: snapshot.mana,
+                maxMana: snapshot.maxMana,
+                hapticsEnabled: hapticsEnabled,
+                cinematicNamespace: cinematicNamespace,
+                onCombatantTap: { onCombatantTap(snapshot.combatant) }
+            )
+        }
+    }
+}
+
+/// Hand observation is isolated from combatant projections. Drawing or spending a
+/// card updates this lane without rebuilding the static battlefield hierarchy.
+private struct BattleHandProjectionLane: View {
+    @Environment(AppState.self) private var appState
+
+    let presentation: BattlePresentationState
+    let battleSize: CGSize
+    @Binding var forcedDrag: (cardID: Int, translation: CGSize)?
+    let onPlay: (BattleCard, CardActivationRequest) -> Bool
+    let onInteractionChanged: (Bool) -> Void
+    let onReady: () -> Void
+
+    var body: some View {
+        let battleSession = appState.battle
+        BattleHandView(
+            cards: presentation.hand,
+            isPlayable: { battleSession.isCardPlayable($0) },
+            onTap: { card in
+                battleSession.presentAbilityDetail(card.ability)
+            },
+            onPlay: onPlay,
+            hapticsEnabled: appState.options.hapticsEnabled,
+            battleFrame: CGRect(origin: .zero, size: battleSize),
+            configuration: .init(),
+            forcedDragTranslation: forcedDrag,
+            onCardInteractionChanged: onInteractionChanged
+        )
+        .onAppear(perform: onReady)
+    }
+}
+
+/// Keeps cinematic observation out of `BattleView.body`. Phase changes can now
+/// insert/update the full-screen overlay without rebuilding the battlefield, hand,
+/// toolbar, and always-mounted feedback hosts behind it.
+private struct BattleCinematicLane: View {
+    @Environment(AppState.self) private var appState
+    let namespace: Namespace.ID
+
+    var body: some View {
+        let battleSession = appState.battle
+        if let cinematic = battleSession.activeCinematic {
+            UltimateCinematicOverlay(
+                cinematic: cinematic,
+                canSkip: appState.options.canSkipUltimateCinematic(),
+                effectsVolume: appState.options.effectsVolume,
+                namespace: namespace,
+                onPlaying: { battleSession.markCinematicPlaying() },
+                onRequestSkip: { battleSession.requestSkipCinematic() },
+                onAutoFinish: { cinematicID in
+                    battleSession.beginCinematicCollapse(expectedID: cinematicID)
+                },
+                onCollapseFinished: { cinematicID in
+                    battleSession.completeCinematicCollapse(expectedID: cinematicID)
+                }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
+        }
+    }
+}
+
 private extension BattleView {
     func installChipBridge() {
-        appState.battle.onFeedbackItemsChanged = { items in
-            CombatFeedbackChipBridge.publish(items: items)
+        appState.battle.onFeedbackItemsChanged = { update in
+            CombatFeedbackChipBridge.publish(update)
         }
     }
 
     func prewarmBattlePresentationEffects() {
-        // Detached CPU bake of dissolve masks; filter/Canvas still get a
-        // one-shot commit via CardCastEffectsPrewarmView when enabled.
+        BattlePresentationWarmup.prepare(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+    }
+}
+
+@MainActor
+enum BattlePresentationWarmup {
+    private static var preparedEffectsKey: String?
+
+    static func prepare(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) {
+        let key = "\(dynamicTypeSize)|\(Int((displayScale * 100).rounded()))"
+        guard preparedEffectsKey != key else { return }
+        preparedEffectsKey = key
         if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
             CardDissolveTexture.prewarm()
         }
         CombatFeedbackRasterPool.shared.prewarmInfrastructure(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+    }
+
+    static func prepareForLaunch(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) async {
+        let key = "\(dynamicTypeSize)|\(Int((displayScale * 100).rounded()))"
+        preparedEffectsKey = key
+        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
+            await CardDissolveTexture.prepare()
+        }
+        await CombatFeedbackRasterPool.shared.prewarmInfrastructureAndWait(
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )

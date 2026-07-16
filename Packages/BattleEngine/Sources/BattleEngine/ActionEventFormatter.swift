@@ -36,7 +36,7 @@ public enum ActionEventFormatter {
     /// Returns the display model for `event`. Pure function.
     public static func display(for event: ActionEvent) -> ActionEventDisplay {
         switch event.kind {
-        case .ability:
+        case .ability, .abilityDamage:
             amountDisplay(emphasis: .damage, event: event, prefix: "-")
         case .status:
             ActionEventDisplay(
@@ -108,13 +108,6 @@ public enum ActionEventFormatter {
             mitigationHalvedDisplay(for: event)
         case .dodgeApplied:
             dodgeDisplay(for: event)
-        case .criticalApplied:
-            ActionEventDisplay(
-                emphasis: .damage,
-                keyword: event.keyword,
-                text: "Critical",
-                secondaryText: nil
-            )
         case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
              .damageKeywordOverrideApplied, .nextHolyStrikeApplied:
             signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")

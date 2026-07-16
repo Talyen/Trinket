@@ -12,25 +12,33 @@ struct PlayView: View {
     var body: some View {
         @Bindable var battle = appState.battle
 
-        // Keep the Play stack explicit so Explore's temporary sub-modes have a
-        // stable hierarchy and normal tab entry always returns to the chooser.
-        NavigationStack(path: $navigationPath) {
-            Group {
-                if let configuration = battle.activeBattle {
-                    // Battle stays in-tab, preserving its existing shell and
-                    // immediate return token while the mode stack is hidden.
-                    BattleView(configuration: configuration)
-                        .id(configuration.id)
-                } else {
-                    PlayModeHubView(
-                        onOpenCampaign: { openMode(.campaign) },
-                        onOpenExplore: { openMode(.explore) }
-                    )
+        ZStack {
+            // Keep the browsing stack mounted while battle is active. Replacing the
+            // entire native stack made AttributeGraph tear down the stage tree while
+            // constructing battle, concentrating both layouts in one launch frame.
+            NavigationStack(path: $navigationPath) {
+                PlayModeHubView(
+                    onOpenCampaign: { openMode(.campaign) },
+                    onOpenExplore: { openMode(.explore) }
+                )
+                .navigationDestination(for: PlayLaunchDestination.self) { destination in
+                    destinationView(for: destination)
                 }
             }
-            .navigationDestination(for: PlayLaunchDestination.self) { destination in
-                destinationView(for: destination)
+
+            // The stack itself is stable; activation inserts only prepared battle
+            // content. No custom navigation controller or transition is involved.
+            NavigationStack {
+                if let configuration = battle.activeBattle {
+                    BattleView(configuration: configuration)
+                } else {
+                    Color.clear
+                        .accessibilityHidden(true)
+                }
             }
+            .opacity(battle.activeBattle == nil ? 0 : 1)
+            .allowsHitTesting(battle.activeBattle != nil)
+            .accessibilityHidden(battle.activeBattle == nil)
         }
         .onAppear {
             restorePlayDestinationIfNeeded()
@@ -113,11 +121,11 @@ struct PlayView: View {
         case .explore:
             ExploreHubView()
         case .aspectsHub:
-            AspectsHubView(onBattleStart: refreshBattlePresentation)
+            AspectsHubView()
         case .labyrinthMap:
-            LabyrinthMapView(onBattleStart: refreshBattlePresentation)
+            LabyrinthMapView()
         case let .aspectClimb(aspectID):
-            AspectClimbView(aspectID: aspectID, onBattleStart: refreshBattlePresentation)
+            AspectClimbView(aspectID: aspectID)
         }
     }
 
@@ -182,16 +190,8 @@ struct PlayView: View {
             appState.noteMapScrollFocus(stage.id)
             if let message = appState.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
-            } else if stage.encounter.battleEnemyID != nil {
-                refreshBattlePresentation()
             }
         }
-    }
-
-    private func refreshBattlePresentation() {
-        // The active battle replaces the route. The persisted resume token is
-        // consumed when the battle ends, rebuilding the complete hierarchy.
-        navigationPath.removeAll()
     }
 
     private func showEnemyDetails(for stage: Stage) {

@@ -6,9 +6,6 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var localSelectedTab: AppTab = .play
     @State private var didAcknowledgePersistenceRecovery = false
-    /// Mount tab roots on first visit so Play launch does not construct
-    /// Collection / Homestead / Options chrome on the cold frame.
-    @State private var mountedTabs: Set<AppTab> = [.play]
 
     var body: some View {
         tabRoot(selection: battleLockedSelection)
@@ -44,11 +41,9 @@ struct ContentView: View {
                 } else {
                     localSelectedTab = appState.selectedTab
                 }
-                mountedTabs.insert(localSelectedTab)
                 appState.reconcileShellState(.appeared, scenePhase: scenePhase)
             }
             .onChange(of: localSelectedTab) { _, newTab in
-                mountedTabs.insert(newTab)
                 guard appState.battle.activeBattle == nil || newTab == .play else {
                     localSelectedTab = .play
                     return
@@ -56,7 +51,6 @@ struct ContentView: View {
                 appState.selectedTab = newTab
             }
             .onChange(of: appState.selectedTab) { _, newTab in
-                mountedTabs.insert(newTab)
                 guard appState.battle.activeBattle == nil || newTab == .play else {
                     appState.selectedTab = .play
                     localSelectedTab = .play
@@ -94,48 +88,27 @@ struct ContentView: View {
         return TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
-                    .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
-                Group {
-                    if mountedTabs.contains(.collection) {
-                        NavigationStack {
-                            CollectionView()
-                        }
-                    } else {
-                        Color.clear
-                    }
+                NavigationStack {
+                    CollectionView()
                 }
-                .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
-                Group {
-                    if mountedTabs.contains(.homestead) {
-                        NavigationStack {
-                            HomesteadView()
-                        }
-                    } else {
-                        Color.clear
-                    }
+                NavigationStack {
+                    HomesteadView()
                 }
-                .battleTabBarVisibility(isBattleActive)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
-                Group {
-                    if mountedTabs.contains(.options) {
-                        NavigationStack {
-                            OptionsView()
-                        }
-                    } else {
-                        Color.clear
-                    }
+                NavigationStack {
+                    OptionsView()
                 }
-                .battleTabBarVisibility(isBattleActive)
             }
         }
+        .toolbarVisibility(isBattleActive ? .hidden : .automatic, for: .tabBar)
     }
 
     private var battleLockedSelection: Binding<AppTab> {
@@ -143,15 +116,8 @@ struct ContentView: View {
             get: { localSelectedTab },
             set: { newTab in
                 guard appState.battle.activeBattle == nil || newTab == .play else { return }
-                mountedTabs.insert(newTab)
                 localSelectedTab = newTab
             }
         )
-    }
-}
-
-private extension View {
-    func battleTabBarVisibility(_ isBattleActive: Bool) -> some View {
-        toolbarVisibility(isBattleActive ? .hidden : .automatic, for: .tabBar)
     }
 }

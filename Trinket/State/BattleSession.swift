@@ -27,7 +27,7 @@ final class BattleSession {
     /// Optional UIKit chip-bridge hook. Feature chrome installs this so chip publishes
     /// update always-mounted hosts without invalidating SwiftUI battle chrome.
     @ObservationIgnored
-    var onFeedbackItemsChanged: (([CombatFeedbackItem]) -> Void)?
+    var onFeedbackItemsChanged: ((CombatFeedbackUpdate) -> Void)?
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
@@ -56,7 +56,11 @@ final class BattleSession {
         }
     }
 
+    /// Authoritative simulation value. UI observes `presentation` instead, avoiding
+    /// app-wide invalidation when log/event internals change.
+    @ObservationIgnored
     var state: BattleState?
+    let presentation = BattlePresentationState()
 
     @ObservationIgnored
     var feedbackEventRecordedAt: [Int: Date] = [:]
@@ -77,7 +81,14 @@ final class BattleSession {
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
-    var pendingBattlePrewarmTask: Task<Void, Never>?
+    var preparedBattleRunsByToken: [ActiveBattleResumeToken: PreparedBattleRun] = [:]
+    @ObservationIgnored
+    var pendingPreparedRun: PreparedBattleRun?
+
+    var preparedBattleRun: PreparedBattleRun? {
+        preparedBattleRunsByToken.values.first
+    }
+
     @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
@@ -111,7 +122,7 @@ final class BattleSession {
     }
 
     var hand: [BattleCard] {
-        state?.hand.cards ?? []
+        presentation.hand
     }
 
     var canEndTurn: Bool {
@@ -124,7 +135,7 @@ final class BattleSession {
     /// Retreat is closed once the fight is decided, including the spectacle hold
     /// before victory/defeat chrome appears.
     var canRetreat: Bool {
-        activeBattle != nil && outcome == nil && !isShowingVictory && !isShowingDefeat
+        activeBattle != nil && !presentation.isBattleOver && !isShowingVictory && !isShowingDefeat
     }
 
     var hasPlayableCard: Bool {
@@ -183,9 +194,15 @@ final class BattleSession {
     func clearOutcomePresentation() {
         pendingOutcomePresentationTask?.cancel()
         pendingOutcomePresentationTask = nil
-        isShowingVictory = false
-        isShowingDefeat = false
-        victorySummary = nil
+        if isShowingVictory {
+            isShowingVictory = false
+        }
+        if isShowingDefeat {
+            isShowingDefeat = false
+        }
+        if victorySummary != nil {
+            victorySummary = nil
+        }
     }
 
     func feedbackItems(for targetID: String, at date: Date = .now) -> [CombatFeedbackItem] {
@@ -201,16 +218,16 @@ final class BattleSession {
     }
 
     func noteFeedbackPresentationChanged() {
-        onFeedbackItemsChanged?(activeFeedbackItems)
+        onFeedbackItemsChanged?(.replace(activeFeedbackItems))
     }
 
     func noteBurstPresentationChanged() {
         burstEpoch &+= 1
     }
 
-    func noteAllFeedbackPresentationChanged() {
+    func resetFeedbackPresentation() {
         burstEpoch &+= 1
-        onFeedbackItemsChanged?(activeFeedbackItems)
+        onFeedbackItemsChanged?(.reset)
     }
 
     func removeFeedbackEvent(_ id: Int, noteChange: Bool = true) {
@@ -226,7 +243,7 @@ final class BattleSession {
                 presentedFeedbackIDs.remove(sourceEventID)
             }
             if noteChange {
-                noteFeedbackPresentationChanged()
+                onFeedbackItemsChanged?(.remove([item.id]))
             }
             return
         }
@@ -239,12 +256,12 @@ final class BattleSession {
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
         }
-        var removedItems = false
+        var removedItemIDs: Set<Int> = []
         for eventID in expiredItemIDs {
             let beforeCount = activeFeedbackItems.count
             removeFeedbackEvent(eventID, noteChange: false)
             if activeFeedbackItems.count != beforeCount {
-                removedItems = true
+                removedItemIDs.insert(eventID)
             }
         }
         let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
@@ -262,8 +279,8 @@ final class BattleSession {
                 prunedBursts = true
             }
         }
-        if removedItems, notifyPresentation {
-            noteFeedbackPresentationChanged()
+        if !removedItemIDs.isEmpty, notifyPresentation {
+            onFeedbackItemsChanged?(.remove(removedItemIDs))
         }
         if prunedBursts {
             noteBurstPresentationChanged()
@@ -279,25 +296,14 @@ final class BattleSession {
         self.state = state
     }
 
-    /// Spreads decoder/player setup across run-loop turns before battle interaction.
-    /// Repeated calls are cheap because `SFXPlayer.warm` skips prepared voices.
+    /// Eagerly prepares battle audio before activation. Repeated calls are cheap
+    /// because both caches skip already-prepared resources.
     func prepareBattlePresentation(heroUltimateID: String?, companionUltimateID: String?) {
-        guard pendingBattlePrewarmTask == nil else { return }
-
-        pendingBattlePrewarmTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            for id in SFXID.battlePrewarmIDs {
-                guard !Task.isCancelled else { return }
-                sfxPlayer?.warm([id], concurrentPlayerCount: 2)
-                try? await Task.sleep(for: .milliseconds(8))
-            }
-            guard !Task.isCancelled else { return }
-            BattleCinematicPlayer.shared.warmLoadout(
-                heroUltimateID: heroUltimateID,
-                companionUltimateID: companionUltimateID
-            )
-            pendingBattlePrewarmTask = nil
-        }
+        sfxPlayer?.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
+        BattleCinematicPlayer.shared.warmLoadout(
+            heroUltimateID: heroUltimateID,
+            companionUltimateID: companionUltimateID
+        )
     }
 
     func syncLogForDisplay() {
@@ -334,7 +340,7 @@ final class BattleSession {
 
         do {
             let events = try battleState.playCard(cardID: cardID, rebuildLog: false)
-            state = battleState
+            installBattleState(battleState)
             presentResolvedEvents(events, at: date)
             let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
             if earnedGold == nil {
@@ -370,7 +376,7 @@ final class BattleSession {
             detail: "phase=begin hand=\(battleState.hand.count)"
         )
         let events = battleState.endTurn(rebuildLog: false)
-        state = battleState
+        installBattleState(battleState)
         BattleFramePacingSignposts.event(
             BattleFramePacingSignposts.Name.turnTransition,
             detail: "phase=resolved events=\(events.count) hand=\(battleState.hand.count)"

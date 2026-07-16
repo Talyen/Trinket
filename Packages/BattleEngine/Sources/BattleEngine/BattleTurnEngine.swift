@@ -140,11 +140,23 @@ public enum BattleTurnEngine {
 }
 
 extension BattleTurnEngine {
+    private struct ResolvedDamageComponent {
+        let sourceEventID: Int
+        let targetID: String
+        let healthLost: Int
+        let keyword: Keyword
+        let isCritical: Bool
+    }
+
     private struct DamageComponentOutcome {
         let events: [ActionEvent]
+        let resolvedComponents: [ResolvedDamageComponent]
         let pairedDirectDamage: [(Keyword, Int)]
-        let totalDealtToAbilityTarget: Int
         let logDamageKeyword: Keyword?
+
+        var totalDealtToAbilityTarget: Int {
+            resolvedComponents.reduce(0) { $0 + $1.healthLost }
+        }
     }
 
     // swiftlint:disable:next function_body_length
@@ -156,7 +168,7 @@ extension BattleTurnEngine {
         context: inout BattleEngineContext
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
-        var totalDealtToAbilityTarget = 0
+        var resolvedComponents: [ResolvedDamageComponent] = []
         var pairedDirectDamage: [(Keyword, Int)] = []
         var logDamageKeyword: Keyword?
         let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
@@ -222,6 +234,28 @@ extension BattleTurnEngine {
             let dealt = damageOutcome.healthLost
             let damageEvents = damageOutcome.events
             events.append(contentsOf: damageEvents)
+            if component.target == .abilityTarget {
+                let componentEvent = context.nextEvent(
+                    kind: .abilityDamage,
+                    actorID: actor.id,
+                    actorName: actor.name,
+                    abilityID: ability.id,
+                    abilityName: ability.name,
+                    abilityTier: ability.tier,
+                    target: damageTarget,
+                    amount: dealt,
+                    keyword: damageKeyword,
+                    isCritical: damageOutcome.flags.contains(.critical)
+                )
+                events.append(componentEvent)
+                resolvedComponents.append(ResolvedDamageComponent(
+                    sourceEventID: componentEvent.id,
+                    targetID: damageTarget.id,
+                    healthLost: dealt,
+                    keyword: damageKeyword,
+                    isCritical: componentEvent.isCritical
+                ))
+            }
 
             if shouldConsumeNextHolyStrike {
                 removeNextHolyStrike(for: actor, in: &context)
@@ -246,15 +280,12 @@ extension BattleTurnEngine {
                 }
                 pairedDirectDamage.append((damageKeyword, pairedAmount))
             }
-            if component.target == .abilityTarget {
-                totalDealtToAbilityTarget += dealt
-            }
         }
 
         return DamageComponentOutcome(
             events: events,
+            resolvedComponents: resolvedComponents,
             pairedDirectDamage: pairedDirectDamage,
-            totalDealtToAbilityTarget: totalDealtToAbilityTarget,
             logDamageKeyword: logDamageKeyword
         )
     }

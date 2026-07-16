@@ -13,6 +13,22 @@ struct AppStatePlayFlowTests {
         context = try AppTestContext()
     }
 
+    @Test func preparedJourneyBattleActivatesPrebuiltConfigurationAndState() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        state.prepareBattle(for: stage)
+        let preparedID = try #require(state.battle.preparedBattleRun?.configuration.id)
+
+        #expect(state.startBattle(for: stage) == nil)
+
+        #expect(state.battle.activeBattle?.id == preparedID)
+        #expect(state.battle.state != nil)
+        #expect(state.battle.presentation.configurationID == preparedID)
+        #expect(state.battle.presentation.isReady)
+        #expect(state.battle.presentation.hand == state.battle.state?.hand.cards)
+        #expect(state.battle.preparedBattleRun == nil)
+    }
+
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)

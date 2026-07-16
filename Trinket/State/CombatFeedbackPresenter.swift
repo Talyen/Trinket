@@ -10,7 +10,9 @@ enum CombatFeedbackPresenter {
         at date: Date,
         stagger: TimeInterval = 0
     ) -> [CombatFeedbackItem] {
-        let sources = consolidate(mergeCriticals(in: filterDisplayable(events)))
+        let sources = consolidate(filterDisplayable(events).enumerated().map { order, event in
+            PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
+        })
         let prepared = sources.compactMap(prepare)
         var targetOrder: [String] = []
         var grouped: [String: [PreparedEvent]] = [:]
@@ -30,7 +32,7 @@ enum CombatFeedbackPresenter {
                 }
                 return lhsPriority < rhsPriority
             }
-            guard let actionGroupID = sorted.flatMap(\.sourceEventIDs).min() else { return [] }
+            guard let actionGroupID = sorted.first?.actionID else { return [] }
             let availableAt = date.addingTimeInterval(TimeInterval(groupIndex) * stagger)
             let groupLifetime = sorted
                 .map { TrinketMotion.Battle.chip(for: $0.feedbackClass).lifetime }
@@ -80,7 +82,6 @@ enum CombatFeedbackPresenter {
 
     private struct PreparedSource: Equatable {
         var event: ActionEvent
-        var forceCritical: Bool
         var sourceEventIDs: [Int]
         let originalOrder: Int
     }
@@ -89,6 +90,7 @@ enum CombatFeedbackPresenter {
         let id: Int
         let sourceEventIDs: [Int]
         let originalOrder: Int
+        let actionID: Int
         let targetID: String
         let feedbackClass: CombatFeedbackClass
         let keyword: Keyword
@@ -99,7 +101,7 @@ enum CombatFeedbackPresenter {
 
     private struct AggregationKey: Equatable {
         enum Family: Equatable {
-            case ability
+            case abilityDamage
             case status
             case effect(ActionEvent.EffectKind)
         }
@@ -107,77 +109,20 @@ enum CombatFeedbackPresenter {
         let targetID: String
         let keyword: Keyword
         let family: Family
+        let isCritical: Bool
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         events.filter { event in
             guard event.kind != .milestone else { return false }
-            if event.kind == .ability, event.amount == 0 {
+            if event.kind == .ability {
+                return false
+            }
+            if event.kind == .abilityDamage, event.amount == 0 {
                 return false
             }
             return true
         }
-    }
-
-    private static func mergeCriticals(in events: [ActionEvent]) -> [PreparedSource] {
-        let criticalsByTarget = Dictionary(grouping: events.filter {
-            $0.effectKind == .criticalApplied
-        }, by: \.targetID)
-        var consumedCriticalIDs: Set<Int> = []
-
-        // Prefer the primary ability damage chip over same-batch side chips
-        // (Marked consume, thorns) so a crit on a Marked foe highlights the hit.
-        var reservedCriticalByEventID: [Int: ActionEvent] = [:]
-        for event in events where isPreferredCriticalMergeTarget(event) {
-            guard let critical = criticalsByTarget[event.targetID]?.first(where: {
-                !consumedCriticalIDs.contains($0.id)
-            }) else { continue }
-            consumedCriticalIDs.insert(critical.id)
-            reservedCriticalByEventID[event.id] = critical
-        }
-
-        var result: [PreparedSource] = []
-        for (originalOrder, event) in events.enumerated() {
-            if event.effectKind == .criticalApplied {
-                // Prefer merging into the damage chip; drop orphan labels when a damage event exists.
-                if events.contains(where: { isDamageChipCandidate($0) && $0.targetID == event.targetID }) {
-                    continue
-                }
-                result.append(PreparedSource(
-                    event: event,
-                    forceCritical: false,
-                    sourceEventIDs: [event.id],
-                    originalOrder: originalOrder
-                ))
-                continue
-            }
-
-            var sourceEventIDs = [event.id]
-            var forceCritical = false
-            if let reserved = reservedCriticalByEventID[event.id] {
-                sourceEventIDs.append(reserved.id)
-                forceCritical = true
-            } else if isDamageChipCandidate(event),
-                      let critical = criticalsByTarget[event.targetID]?.first(where: {
-                          !consumedCriticalIDs.contains($0.id)
-                      }) {
-                consumedCriticalIDs.insert(critical.id)
-                sourceEventIDs.append(critical.id)
-                forceCritical = true
-            }
-            result.append(PreparedSource(
-                event: event,
-                forceCritical: forceCritical,
-                sourceEventIDs: sourceEventIDs,
-                originalOrder: originalOrder
-            ))
-        }
-
-        return result
-    }
-
-    private static func isPreferredCriticalMergeTarget(_ event: ActionEvent) -> Bool {
-        event.kind == .ability && event.amount > 0
     }
 
     private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {
@@ -196,7 +141,6 @@ enum CombatFeedbackPresenter {
                         in: existing.event,
                         with: existing.event.amount + source.event.amount
                     ),
-                    forceCritical: existing.forceCritical || source.forceCritical,
                     sourceEventIDs: existing.sourceEventIDs + source.sourceEventIDs,
                     originalOrder: min(existing.originalOrder, source.originalOrder)
                 )
@@ -210,8 +154,10 @@ enum CombatFeedbackPresenter {
     private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
         let family: AggregationKey.Family
         switch event.kind {
+        case .abilityDamage:
+            family = .abilityDamage
         case .ability:
-            family = .ability
+            return nil
         case .status:
             family = .status
         case .effect:
@@ -220,13 +166,19 @@ enum CombatFeedbackPresenter {
         case .milestone:
             return nil
         }
-        return AggregationKey(targetID: event.targetID, keyword: event.keyword, family: family)
+        return AggregationKey(
+            targetID: event.targetID,
+            keyword: event.keyword,
+            family: family,
+            isCritical: event.isCritical
+        )
     }
 
     private static func isAdditive(_ effectKind: ActionEvent.EffectKind) -> Bool {
         switch effectKind {
-        case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldAbsorbed,
-             .thornsTriggered, .markedConsumed, .manaShieldTriggered:
+        case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldApplied,
+             .mitigationApplied, .shieldAbsorbed, .thornsTriggered, .markedConsumed,
+             .manaShieldTriggered:
             true
         default:
             false
@@ -236,6 +188,7 @@ enum CombatFeedbackPresenter {
     private static func replacingAmount(in event: ActionEvent, with amount: Int) -> ActionEvent {
         ActionEvent(
             id: event.id,
+            actionID: event.actionID,
             kind: event.kind,
             effectKind: event.effectKind,
             actorID: event.actorID,
@@ -248,27 +201,15 @@ enum CombatFeedbackPresenter {
             amount: amount,
             keyword: event.keyword,
             appliedEffectSummaries: event.appliedEffectSummaries,
-            milestone: event.milestone
+            milestone: event.milestone,
+            isCritical: event.isCritical
         )
-    }
-
-    private static func isDamageChipCandidate(_ event: ActionEvent) -> Bool {
-        if event.kind == .ability, event.amount > 0 {
-            return true
-        }
-        guard event.kind == .effect else { return false }
-        switch event.effectKind {
-        case .thornsTriggered, .markedConsumed:
-            return event.amount > 0
-        default:
-            return false
-        }
     }
 
     private static func prepare(_ source: PreparedSource) -> PreparedEvent? {
         let event = source.event
         let display = ActionEventFormatter.display(for: event)
-        let feedbackClass = source.forceCritical
+        let feedbackClass = event.isCritical
             ? .critical
             : CombatFeedbackClassification.classify(event, display: display)
         let floatingText = Self.floatingText(from: display)
@@ -279,6 +220,7 @@ enum CombatFeedbackPresenter {
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
             originalOrder: source.originalOrder,
+            actionID: event.actionID,
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: display.keyword,

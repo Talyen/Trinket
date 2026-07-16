@@ -26,15 +26,15 @@ public enum ArtworkBlend: Equatable, Sendable {
 
 enum ArtworkBlendRecipe {
     static let perimeterEdgeOpacity = 1.0
-    static let perimeterShoulderOpacity = 0.42
-    static let perimeterShoulderLocation = 0.08
-    static let perimeterInnerLocation = 0.18
+    static let perimeterShoulderOpacity = 0.30
+    static let perimeterShoulderLocation = 0.06
+    static let perimeterInnerLocation = 0.13
 
-    static let bottomClearLocation = 0.52
-    static let bottomShoulderLocation = 0.7
-    static let bottomShoulderOpacity = 0.38
-    static let bottomNearEdgeLocation = 0.86
-    static let bottomNearEdgeOpacity = 0.84
+    static let bottomClearLocation = 0.60
+    static let bottomShoulderLocation = 0.76
+    static let bottomShoulderOpacity = 0.30
+    static let bottomNearEdgeLocation = 0.90
+    static let bottomNearEdgeOpacity = 0.78
 }
 
 private struct ArtworkBlendModifier: ViewModifier {

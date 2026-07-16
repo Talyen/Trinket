@@ -7,12 +7,6 @@ import TrinketPersistence
 struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
 
-    let onBattleStart: () -> Void
-
-    init(onBattleStart: @escaping () -> Void = {}) {
-        self.onBattleStart = onBattleStart
-    }
-
     var body: some View {
         List {
             Section {
@@ -42,7 +36,7 @@ struct AspectsHubView: View {
 
         if unlocked {
             NavigationLink {
-                AspectClimbView(aspectID: aspect.id, onBattleStart: onBattleStart)
+                AspectClimbView(aspectID: aspect.id)
             } label: {
                 aspectLabel(aspect, style: style, trailing: floorLabel(cleared: cleared, floorCount: aspect.floorCount))
             }

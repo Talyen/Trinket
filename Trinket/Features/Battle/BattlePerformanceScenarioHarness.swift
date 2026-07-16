@@ -11,7 +11,7 @@ struct BattlePerformanceScenarioHarness: View {
     let appState: AppState
     let battleSession: BattleSession
     let battleSize: CGSize
-    @Binding var castingCards: [CardActivationRequest]
+    let castPresentation: BattleCastPresentationState
     @Binding var forcedDrag: (cardID: Int, translation: CGSize)?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
@@ -62,7 +62,7 @@ struct BattlePerformanceScenarioHarness: View {
         let runGeneration = generation
         status = "running"
         forcedDrag = nil
-        castingCards = []
+        castPresentation.reset()
         battleSession.clearFeedback()
         battleSession.clearSpectacle()
         CombatFeedbackRasterPool.shared.removeAll()
@@ -170,7 +170,7 @@ struct BattlePerformanceScenarioHarness: View {
             BattleFramePacingSignposts.Name.cardCommit,
             detail: "scenario=\(scenario.rawValue) card=\(card.id) ability=\(card.ability.id)"
         )
-        castingCards.append(CardActivationRequest(
+        castPresentation.append(CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
             center: CGPoint(x: battleSize.width / 2, y: battleSize.height * 0.78),
             size: CGSize(width: min(132, battleSize.width * 0.34), height: min(184, battleSize.width * 0.47)),
@@ -178,12 +178,7 @@ struct BattlePerformanceScenarioHarness: View {
             verticalTilt: 0,
             scale: 1,
             keywords: card.ability.keywords
-        ))
-        guard enforceProductionCap else { return }
-        let maxCasts = TrinketMotion.Battle.maxConcurrentCardCasts
-        if castingCards.count > maxCasts {
-            castingCards.removeFirst(castingCards.count - maxCasts)
-        }
+        ), enforceProductionCap: enforceProductionCap)
     }
 
     private func runDenseFeedback(runGeneration: Int) async {
@@ -213,7 +208,7 @@ struct BattlePerformanceScenarioHarness: View {
             )
             battleSession.activeFeedbackItems.append(contentsOf: items)
             battleSession.scheduleFeedbackPruneIfNeeded(at: date)
-            battleSession.noteFeedbackPresentationChanged()
+            battleSession.onFeedbackItemsChanged?(.insert(items))
             try? await Task.sleep(for: .milliseconds(650))
         }
     }
@@ -286,7 +281,7 @@ struct BattlePerformanceScenarioHarness: View {
             let target = targets[index % targets.count]
             return ActionEvent(
                 id: baseID + index,
-                kind: index.isMultiple(of: 3) ? .effect : .ability,
+                kind: index.isMultiple(of: 3) ? .effect : .abilityDamage,
                 effectKind: index.isMultiple(of: 3) ? .shieldApplied : nil,
                 actorID: state.hero.id,
                 actorName: state.hero.name,

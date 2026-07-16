@@ -80,7 +80,7 @@ struct OptionsView: View {
             } header: {
                 Text("Developer")
             } footer: {
-                Text("FPS overlay (avg / 1% / 0.1% lows) and Unlock All are Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1.")
+                Text("FPS overlay (average / 1% low) and Unlock All are Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1.")
             }
             #endif
         }

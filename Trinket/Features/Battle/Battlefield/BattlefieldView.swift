@@ -2,11 +2,11 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-struct BattlefieldView: View {
+struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: View {
     let layout: BattleCardGridLayout.Metrics
-    let enemyPane: BattleCombatantPane
-    let heroPane: BattleCombatantPane
-    let companionPane: BattleCombatantPane
+    let enemyPane: EnemyPane
+    let heroPane: HeroPane
+    let companionPane: CompanionPane
 
     var body: some View {
         VStack(spacing: layout.cardSpacing) {
@@ -20,7 +20,7 @@ struct BattlefieldView: View {
         .frame(maxWidth: .infinity, alignment: .top)
     }
 
-    private func sizedPane(_ pane: BattleCombatantPane, size: CGSize) -> some View {
+    private func sizedPane(_ pane: some View, size: CGSize) -> some View {
         pane
             .frame(width: size.width, height: size.height)
             .clipShape(TrinketDesign.cardShape)

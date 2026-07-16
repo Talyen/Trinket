@@ -26,6 +26,15 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     }
 }
 
+/// Incremental battle-to-renderer contract. Normal combat uses insert/remove;
+/// replace is reserved for diagnostics that directly seed presentation state.
+enum CombatFeedbackUpdate {
+    case insert([CombatFeedbackItem])
+    case remove(Set<Int>)
+    case replace([CombatFeedbackItem])
+    case reset
+}
+
 /// Card hit-reaction trigger published alongside feedback items.
 struct CombatantHitReaction: Equatable {
     let id: Int

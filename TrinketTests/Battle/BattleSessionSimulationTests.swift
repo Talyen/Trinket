@@ -99,6 +99,26 @@ struct BattleSessionSimulationTests {
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
 
+    @Test func presentationProjectionTracksSimulationWithoutExposingLogStorage() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let configurationID = try #require(session.activeBattle?.id)
+        let initialEnemyHealth = try #require(session.presentation.enemy?.health)
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
+
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+
+        let state = try #require(session.state)
+        #expect(session.presentation.configurationID == configurationID)
+        #expect(session.presentation.hand == state.hand.cards)
+        #expect(session.presentation.enemy?.health == state.health(of: state.enemy))
+        #expect((session.presentation.enemy?.health ?? initialEnemyHealth) <= initialEnemyHealth)
+
+        session.endBattle()
+
+        #expect(!session.presentation.isReady)
+        #expect(session.presentation.hand.isEmpty)
+    }
+
     @Test func endTurnExcludesMilestonesFromFeedbackWhenBattleEnds() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])

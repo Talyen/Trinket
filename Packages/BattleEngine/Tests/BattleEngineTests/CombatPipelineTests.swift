@@ -247,17 +247,18 @@ struct CombatPipelineTests {
     @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
-        let (lost, events) = context.applyTestDamage(
-            5,
-            to: context.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: "source",
-            applyDodge: false,
-            abilityCriticalChanceBonus: 1.0
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: 5,
+                target: context.roster.enemy.combatant,
+                keyword: .physical,
+                sourceActorID: "source",
+                options: DamageOptions(applyDodge: false, abilityCriticalChanceBonus: 1.0)
+            )
         )
 
-        try #expect(events.contains { $0.effectKind == .criticalApplied })
-        try #expect(lost == 0, "Crit should multiply before shields absorb the final amount")
+        try #expect(outcome.isCritical)
+        try #expect(outcome.healthLost == 0, "Crit should multiply before shields absorb the final amount")
         let remainingBuffer = context.roster.enemy.activeEffects.compactMap { active -> Int? in
             guard case let .shield(_, buffer) = active.effect else { return nil }
             return buffer
@@ -270,15 +271,19 @@ struct CombatPipelineTests {
         // Seed whose first crit roll is in the 0.75...1.0 band that the soft cap
         // would reject — guaranteed path must still crit.
         var context = makeContext(targetEffects: [armor], seed: 1)
-        let (_, events) = context.applyTestDamage(
-            5,
-            to: context.roster.enemy.combatant,
-            keyword: .holy,
-            sourceActorID: "source",
-            applyDodge: false,
-            guaranteedCriticalIfEnemyBuffed: true
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: 5,
+                target: context.roster.enemy.combatant,
+                keyword: .holy,
+                sourceActorID: "source",
+                options: DamageOptions(
+                    applyDodge: false,
+                    guaranteedCriticalIfEnemyBuffed: true
+                )
+            )
         )
-        try #expect(events.contains { $0.effectKind == .criticalApplied })
+        try #expect(outcome.isCritical)
     }
 
     // MARK: - Pipeline ordering

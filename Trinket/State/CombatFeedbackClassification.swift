@@ -21,7 +21,7 @@ enum CombatFeedbackClassification {
         switch event.kind {
         case .status:
             return .dot
-        case .ability:
+        case .ability, .abilityDamage:
             return .directDamage
         case .milestone:
             return .buff

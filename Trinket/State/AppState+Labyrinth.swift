@@ -168,6 +168,39 @@ extension AppState {
         return nil
     }
 
+    func prepareReachableLabyrinthBattles() {
+        guard battle.activeBattle == nil else { return }
+        for nodeID in labyrinth.reachableNodeIDs() {
+            prepareLabyrinthBattle(nodeID: nodeID)
+        }
+    }
+
+    private func prepareLabyrinthBattle(nodeID: String) {
+        guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
+        let effects = labyrinth.effects(for: nodeID)
+        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(
+            for: node,
+            effects: effects
+        ) else { return }
+
+        let pendingRewardItem = LabyrinthCompletion.pendingCombatRewardItem(
+            for: node,
+            effects: effects,
+            worldSeed: labyrinth.worldSeed,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+        )
+        battle.prepareBattleRun(makeBattleConfiguration(
+            resumeToken: .labyrinth(nodeID: nodeID),
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: LabyrinthCompletion.rewards(for: node, effects: effects),
+            experienceBonusPercent: effects.xpPercent,
+            pendingRewardItem: pendingRewardItem
+        ))
+    }
+
     @discardableResult
     func completeLabyrinthNode(
         nodeID: String,

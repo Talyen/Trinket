@@ -4,16 +4,14 @@ import Foundation
 /// XCTest's native hitch metric remains the authoritative render-pipeline measurement;
 /// this report supplies raw, scenario-addressable diagnostics.
 struct FramePacingReport: Equatable, Sendable {
-    static let schemaVersion = 3
+    static let schemaVersion = 4
 
     var sampleCount: Int
     var expectedFPS: Double
     var averageFPS: Double
     var p95FrameMs: Double
     var p99FrameMs: Double
-    var p999FrameMs: Double
     var onePercentLowFPS: Double
-    var pointOnePercentLowFPS: Double
     var maxFrameMs: Double
     var missedDeadlineCount: Int
     var estimatedMissedFrameCount: Int
@@ -26,9 +24,7 @@ struct FramePacingReport: Equatable, Sendable {
         averageFPS: 0,
         p95FrameMs: 0,
         p99FrameMs: 0,
-        p999FrameMs: 0,
         onePercentLowFPS: 0,
-        pointOnePercentLowFPS: 0,
         maxFrameMs: 0,
         missedDeadlineCount: 0,
         estimatedMissedFrameCount: 0,
@@ -39,16 +35,14 @@ struct FramePacingReport: Equatable, Sendable {
     /// Compact machine-readable payload fetched once after a UI performance scenario.
     var accessibilityValue: String {
         String(
-            format: "schema=%d;samples=%d;expectedFPS=%.2f;avgFPS=%.2f;p95Ms=%.2f;p99Ms=%.2f;p999Ms=%.2f;oneLowFPS=%.2f;pointOneLowFPS=%.2f;maxMs=%.2f;missed=%d;estimatedMissed=%d;severe=%d;missedRatio=%.5f",
+            format: "schema=%d;samples=%d;expectedFPS=%.2f;avgFPS=%.2f;p95Ms=%.2f;p99Ms=%.2f;oneLowFPS=%.2f;maxMs=%.2f;missed=%d;estimatedMissed=%d;severe=%d;missedRatio=%.5f",
             Self.schemaVersion,
             sampleCount,
             expectedFPS,
             averageFPS,
             p95FrameMs,
             p99FrameMs,
-            p999FrameMs,
             onePercentLowFPS,
-            pointOnePercentLowFPS,
             maxFrameMs,
             missedDeadlineCount,
             estimatedMissedFrameCount,
@@ -71,9 +65,7 @@ struct FramePacingReport: Equatable, Sendable {
             let averageFPS = map["avgFPS"].flatMap(Double.init),
             let p95FrameMs = map["p95Ms"].flatMap(Double.init),
             let p99FrameMs = map["p99Ms"].flatMap(Double.init),
-            let p999FrameMs = map["p999Ms"].flatMap(Double.init),
             let onePercentLowFPS = map["oneLowFPS"].flatMap(Double.init),
-            let pointOnePercentLowFPS = map["pointOneLowFPS"].flatMap(Double.init),
             let maxFrameMs = map["maxMs"].flatMap(Double.init),
             let missedDeadlineCount = map["missed"].flatMap(Int.init),
             let estimatedMissedFrameCount = map["estimatedMissed"].flatMap(Int.init),
@@ -87,9 +79,7 @@ struct FramePacingReport: Equatable, Sendable {
             averageFPS: averageFPS,
             p95FrameMs: p95FrameMs,
             p99FrameMs: p99FrameMs,
-            p999FrameMs: p999FrameMs,
             onePercentLowFPS: onePercentLowFPS,
-            pointOnePercentLowFPS: pointOnePercentLowFPS,
             maxFrameMs: maxFrameMs,
             missedDeadlineCount: missedDeadlineCount,
             estimatedMissedFrameCount: estimatedMissedFrameCount,
@@ -134,9 +124,7 @@ enum FramePacingAnalyzer {
             averageFPS: 1.0 / averageDuration,
             p95FrameMs: percentile(sorted, fraction: 0.95) * 1000,
             p99FrameMs: percentile(sorted, fraction: 0.99) * 1000,
-            p999FrameMs: percentile(sorted, fraction: 0.999) * 1000,
             onePercentLowFPS: lowFPS(sorted, worstFraction: 0.01),
-            pointOnePercentLowFPS: lowFPS(sorted, worstFraction: 0.001),
             maxFrameMs: (sorted.last ?? 0) * 1000,
             missedDeadlineCount: missedDeadlineCount,
             estimatedMissedFrameCount: estimatedMissedFrameCount,

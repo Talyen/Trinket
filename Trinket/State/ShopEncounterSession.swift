@@ -19,7 +19,6 @@ final class ShopEncounterSession: Identifiable {
     let visitToken: String
     private(set) var purchasedOfferIDs: Set<String> = []
     private(set) var purchaseCount = 0
-    private(set) var lastPurchasedItemName: String?
     private(set) var lastPurchaseError: String?
     private(set) var leaveFailureMessage: String?
     private(set) var isPurchasing = false
@@ -47,11 +46,10 @@ final class ShopEncounterSession: Identifiable {
         lastPurchaseError = nil
     }
 
-    func markPurchaseFinished(offerID: String, itemName: String) {
+    func markPurchaseFinished(offerID: String) {
         isPurchasing = false
         purchasedOfferIDs.insert(offerID)
         purchaseCount += 1
-        lastPurchasedItemName = itemName
         lastPurchaseError = nil
     }
 

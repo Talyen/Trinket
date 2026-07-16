@@ -51,27 +51,33 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 }
 
 final class CombatFeedbackRasterUIView: UIView {
-    private struct ChipLayer {
+    private final class ChipLayer {
         let imageView: UIImageView
         var canvasItem: CombatFeedbackCanvasItem
-        var recipe: CombatFeedbackMotionRecipe
-        var jitter: CGFloat
-        var laneOffset: CGFloat
-        var rasterIdentity: ObjectIdentifier?
+        let rasterIdentity: ObjectIdentifier
+
+        init(
+            imageView: UIImageView,
+            canvasItem: CombatFeedbackCanvasItem,
+            rasterIdentity: ObjectIdentifier
+        ) {
+            self.imageView = imageView
+            self.canvasItem = canvasItem
+            self.rasterIdentity = rasterIdentity
+        }
     }
 
-    private var displayLink: CADisplayLink?
-    private var layers: [ChipLayer] = []
-    private var presentedCanvasIDs: [Int] = []
+    private var layersByID: [Int: ChipLayer] = [:]
+    private var reusableImageViews: [UIImageView] = []
 
     /// True while any chip is mounted (used by the bridge flush filter).
     var isPresenting: Bool {
-        !layers.isEmpty
+        !layersByID.isEmpty
     }
 
     /// First presented canvas item, if any (compat for single-chip diagnostics).
     var canvasItem: CombatFeedbackCanvasItem? {
-        layers.first?.canvasItem
+        layersByID.values.first?.canvasItem
     }
 
     override init(frame: CGRect) {
@@ -83,13 +89,6 @@ final class CombatFeedbackRasterUIView: UIView {
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    override func willMove(toWindow newWindow: UIWindow?) {
-        super.willMove(toWindow: newWindow)
-        if newWindow == nil {
-            stopDisplayLink()
-        }
     }
 
     @MainActor
@@ -104,115 +103,121 @@ final class CombatFeedbackRasterUIView: UIView {
             )
         }
 
-        let nextIDs = chips.map(\.canvasItem.id)
-        guard nextIDs != presentedCanvasIDs else {
-            for index in chips.indices where index < layers.count {
-                layers[index].canvasItem = chips[index].canvasItem
-            }
-            return
-        }
-        presentedCanvasIDs = nextIDs
-
         let validChips = chips.compactMap { chip -> (CombatFeedbackCanvasItem, CombatFeedbackRaster)? in
             guard let raster = chip.raster else { return nil }
             return (chip.canvasItem, raster)
         }
-        guard !validChips.isEmpty else {
-            clearLayers()
-            stopDisplayLink()
-            return
+        let nextIDs = Set(validChips.map(\.0.id))
+        for id in Array(layersByID.keys) where !nextIDs.contains(id) {
+            recycleLayer(id: id)
         }
 
-        rebuildLayers(from: validChips)
-        if displayLink == nil {
-            startDisplayLink()
+        for (canvasItem, raster) in validChips {
+            if let existing = layersByID[canvasItem.id],
+               existing.rasterIdentity == ObjectIdentifier(raster) {
+                existing.canvasItem = canvasItem
+                continue
+            }
+            recycleLayer(id: canvasItem.id)
+            insert(canvasItem: canvasItem, raster: raster)
         }
-        tick()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        for layer in layers {
+        for layer in layersByID.values {
             layer.imageView.center = CGPoint(x: bounds.midX, y: bounds.midY)
         }
     }
 
-    private func rebuildLayers(from chips: [(CombatFeedbackCanvasItem, CombatFeedbackRaster)]) {
-        clearLayers()
-        for (canvasItem, raster) in chips {
-            let imageView = UIImageView()
-            imageView.contentMode = .scaleToFill
-            imageView.isUserInteractionEnabled = false
-            imageView.image = UIImage(
-                cgImage: raster.image,
-                scale: raster.displayScale,
-                orientation: .up
-            )
-            imageView.bounds = CGRect(origin: .zero, size: raster.pointSize)
-            imageView.center = CGPoint(x: bounds.midX, y: bounds.midY)
-            addSubview(imageView)
+    private func insert(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster) {
+        let imageView = reusableImageViews.popLast() ?? makeImageView()
+        imageView.image = UIImage(cgImage: raster.image, scale: raster.displayScale, orientation: .up)
+        imageView.bounds = CGRect(origin: .zero, size: raster.pointSize)
+        imageView.center = CGPoint(x: bounds.midX, y: bounds.midY)
+        addSubview(imageView)
 
-            let recipe = TrinketMotion.Battle.chip(for: canvasItem.item.feedbackClass)
-            let jitter = CombatFeedbackLayout.horizontalOffset(
-                seed: canvasItem.item.spawnSeed,
-                jitter: recipe.horizontalJitter
-            )
-            let laneOffset = CombatFeedbackLayout.presentationOffset(
-                index: canvasItem.item.presentationIndex
-            )
-            layers.append(ChipLayer(
-                imageView: imageView,
-                canvasItem: canvasItem,
-                recipe: recipe,
-                jitter: jitter,
-                laneOffset: laneOffset,
-                rasterIdentity: ObjectIdentifier(raster)
-            ))
-        }
+        layersByID[canvasItem.id] = ChipLayer(
+            imageView: imageView,
+            canvasItem: canvasItem,
+            rasterIdentity: ObjectIdentifier(raster)
+        )
+        installCompositorAnimation(on: imageView, for: canvasItem)
     }
 
-    private func clearLayers() {
-        for layer in layers {
-            layer.imageView.removeFromSuperview()
-        }
-        layers.removeAll(keepingCapacity: true)
-        presentedCanvasIDs = []
+    private func makeImageView() -> UIImageView {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleToFill
+        imageView.isUserInteractionEnabled = false
+        return imageView
     }
 
-    private func startDisplayLink() {
-        stopDisplayLink()
-        let link = CADisplayLink(target: self, selector: #selector(handleDisplayLink))
-        link.add(to: .main, forMode: .common)
-        displayLink = link
+    private func recycleLayer(id: Int) {
+        guard let layer = layersByID.removeValue(forKey: id) else { return }
+        layer.imageView.layer.removeAllAnimations()
+        layer.imageView.removeFromSuperview()
+        layer.imageView.image = nil
+        layer.imageView.alpha = 1
+        layer.imageView.transform = .identity
+        reusableImageViews.append(layer.imageView)
     }
 
-    private func stopDisplayLink() {
-        displayLink?.invalidate()
-        displayLink = nil
-    }
-
-    @objc private func handleDisplayLink() {
-        tick()
-    }
-
-    private func tick() {
-        guard !layers.isEmpty else { return }
+    private func installCompositorAnimation(
+        on imageView: UIImageView,
+        for canvasItem: CombatFeedbackCanvasItem
+    ) {
+        let item = canvasItem.item
+        let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
         let now = Date()
-        for layer in layers {
-            let item = layer.canvasItem.item
+        let elapsed = max(0, now.timeIntervalSince(item.availableAt))
+        let duration = max(0.001, item.expiresAt.timeIntervalSince(now))
+        let initialProgress = min(1, elapsed / max(item.lifetime, 0.001))
+        let jitter = CombatFeedbackLayout.horizontalOffset(
+            seed: item.spawnSeed,
+            jitter: recipe.horizontalJitter
+        )
+        let laneOffset = CombatFeedbackLayout.presentationOffset(index: item.presentationIndex)
+        let sampleCount = 20
+        var transforms: [NSValue] = []
+        var opacities: [NSNumber] = []
+        var keyTimes: [NSNumber] = []
+
+        for index in 0 ... sampleCount {
+            let localProgress = Double(index) / Double(sampleCount)
+            let sampleDate = item.availableAt.addingTimeInterval(
+                item.lifetime * (initialProgress + (1 - initialProgress) * localProgress)
+            )
             let state = CombatFeedbackMotionSampler.state(
                 for: item,
-                recipe: layer.recipe,
-                at: now
+                recipe: recipe,
+                at: sampleDate
             )
-            layer.imageView.alpha = state.opacity
-            layer.imageView.transform = CGAffineTransform.identity
+            let transform = CGAffineTransform.identity
                 .translatedBy(
-                    x: state.horizontalOffset + layer.jitter,
-                    y: state.verticalOffset + layer.laneOffset
+                    x: state.horizontalOffset + jitter,
+                    y: state.verticalOffset + laneOffset
                 )
                 .rotated(by: CGFloat(state.rotation * .pi / 180))
                 .scaledBy(x: state.scale, y: state.scale)
+            transforms.append(NSValue(caTransform3D: CATransform3DMakeAffineTransform(transform)))
+            opacities.append(NSNumber(value: state.opacity))
+            keyTimes.append(NSNumber(value: localProgress))
         }
+
+        let transformAnimation = CAKeyframeAnimation(keyPath: "transform")
+        transformAnimation.values = transforms
+        transformAnimation.keyTimes = keyTimes
+        let opacityAnimation = CAKeyframeAnimation(keyPath: "opacity")
+        opacityAnimation.values = opacities
+        opacityAnimation.keyTimes = keyTimes
+        let group = CAAnimationGroup()
+        group.animations = [transformAnimation, opacityAnimation]
+        group.duration = duration
+        group.timingFunction = CAMediaTimingFunction(name: .linear)
+        group.isRemovedOnCompletion = true
+
+        imageView.layer.transform = transforms.last?.caTransform3DValue ?? CATransform3DIdentity
+        imageView.layer.opacity = opacities.last?.floatValue ?? 0
+        imageView.layer.add(group, forKey: "combat-feedback")
     }
 }

@@ -41,7 +41,13 @@ final class ShopFlowUITests: TrinketUITestCase {
             let buyButton = buyButtons.element(boundBy: index)
             if buyButton.exists, buyButton.isHittable, buyButton.isEnabled {
                 buyButton.tap()
-                assertExists(AccessibilityID.Shop.purchaseConfirmation)
+                XCTAssertEqual(
+                    app.staticTexts.matching(
+                        NSPredicate(format: "label BEGINSWITH %@", "Purchased ")
+                    ).count,
+                    0,
+                    "Purchases should not display a confirmation text label"
+                )
                 purchased = true
                 break
             }

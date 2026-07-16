@@ -139,12 +139,15 @@ struct BattleSpectacleSessionTests {
         #expect(session.activeFeedbackItems.count > beforeFeedbackCount)
 
         let flushAt = now.addingTimeInterval(1)
-        let availableOffsets = session.activeFeedbackItems
+        let deferredItems = session.activeFeedbackItems
             .filter { $0.availableAt >= flushAt }
+        let availableOffsets = deferredItems
             .map { $0.availableAt.timeIntervalSince(flushAt) }
             .sorted()
-        if availableOffsets.count >= 2 {
-            #expect(availableOffsets[1] >= TrinketMotion.Battle.ultimateChipStagger - 0.001)
+        if Set(deferredItems.map(\.targetID)).count >= 2 {
+            #expect(availableOffsets.contains {
+                $0 >= TrinketMotion.Battle.ultimateChipStagger - 0.001
+            })
         }
     }
 

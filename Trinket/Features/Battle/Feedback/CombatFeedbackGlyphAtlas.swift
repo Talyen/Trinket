@@ -12,12 +12,66 @@ final class CombatFeedbackGlyphAtlas {
     static let shared = CombatFeedbackGlyphAtlas()
 
     struct Face: Hashable {
-        let feedbackClass: CombatFeedbackClass
+        enum Typography: Hashable, CaseIterable {
+            case directDamage
+            case critical
+            case dot
+            case heal
+            case utilityBold
+            case utilitySemibold
+            case deathsDoor
+
+            init(feedbackClass: CombatFeedbackClass) {
+                switch feedbackClass {
+                case .directDamage: self = .directDamage
+                case .critical: self = .critical
+                case .dot: self = .dot
+                case .heal: self = .heal
+                case .block, .dodge, .control, .resource: self = .utilityBold
+                case .buff: self = .utilitySemibold
+                case .deathsDoor: self = .deathsDoor
+                }
+            }
+
+            var representativeClass: CombatFeedbackClass {
+                switch self {
+                case .directDamage: .directDamage
+                case .critical: .critical
+                case .dot: .dot
+                case .heal: .heal
+                case .utilityBold: .block
+                case .utilitySemibold: .buff
+                case .deathsDoor: .deathsDoor
+                }
+            }
+        }
+
+        let typography: Typography
         let dynamicTypeSize: DynamicTypeSize
         let displayScaleHundredths: Int
+
+        init(
+            feedbackClass: CombatFeedbackClass,
+            dynamicTypeSize: DynamicTypeSize,
+            displayScaleHundredths: Int
+        ) {
+            typography = Typography(feedbackClass: feedbackClass)
+            self.dynamicTypeSize = dynamicTypeSize
+            self.displayScaleHundredths = displayScaleHundredths
+        }
+
+        init(
+            typography: Typography,
+            dynamicTypeSize: DynamicTypeSize,
+            displayScaleHundredths: Int
+        ) {
+            self.typography = typography
+            self.dynamicTypeSize = dynamicTypeSize
+            self.displayScaleHundredths = displayScaleHundredths
+        }
     }
 
-    struct Glyph {
+    struct Glyph: @unchecked Sendable {
         let image: CGImage
         let width: CGFloat
         let height: CGFloat
@@ -27,14 +81,24 @@ final class CombatFeedbackGlyphAtlas {
     private var fragments: [FragmentKey: Glyph] = [:]
     private var pendingPrewarmTask: Task<Void, Never>?
 
-    private struct SymbolKey: Hashable {
+    struct SymbolKey: Hashable {
         let face: Face
         let symbolName: String
     }
 
-    private struct FragmentKey: Hashable {
+    struct FragmentKey: Hashable {
         let face: Face
         let text: String
+    }
+
+    enum PreparedGlyph: @unchecked Sendable {
+        case symbol(SymbolKey, Glyph)
+        case fragment(FragmentKey, Glyph)
+    }
+
+    enum PrewarmRequest {
+        case symbol(SymbolKey, CombatFeedbackMotionRecipe)
+        case fragment(FragmentKey, CombatFeedbackMotionRecipe)
     }
 
     func removeAll() {
@@ -53,7 +117,7 @@ final class CombatFeedbackGlyphAtlas {
         if let glyph = symbols[key] {
             return glyph
         }
-        guard let glyph = bakeSymbol(named: symbolName, face: face, recipe: recipe) else {
+        guard let glyph = Self.bakeSymbol(named: symbolName, face: face, recipe: recipe) else {
             return nil
         }
         symbols[key] = glyph
@@ -69,91 +133,153 @@ final class CombatFeedbackGlyphAtlas {
         if let glyph = fragments[key] {
             return glyph
         }
-        guard let glyph = bakeFragment(text, face: face, recipe: recipe) else {
+        guard let glyph = Self.bakeFragment(text, face: face, recipe: recipe) else {
             return nil
         }
         fragments[key] = glyph
         return glyph
     }
 
-    /// Spreads atlas baking across display-link turns so Stage Select → Battle stays smooth.
+    /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
+    /// image renderers are safe for background bitmap construction; only the final
+    /// dictionary publication returns to the actor that owns the battle-scoped cache.
     func prepareBattlePresentation(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) {
-        pendingPrewarmTask?.cancel()
-        let scale = max(1, displayScale)
-        pendingPrewarmTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            await prewarmPaced(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: scale
-            )
-            pendingPrewarmTask = nil
-        }
+        _ = startBattlePresentationPreparation(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
     }
 
-    private func prewarmPaced(
+    func prepareBattlePresentationAndWait(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) async {
-        let scaleHundredths = Int((displayScale * 100).rounded())
-        var workItems = 0
-        let yieldEvery = 16
+        let task = startBattlePresentationPreparation(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+        await task.value
+    }
 
-        func yieldIfNeeded() async {
-            workItems += 1
-            if workItems % yieldEvery == 0 {
-                await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
-            }
+    private func startBattlePresentationPreparation(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) -> Task<Void, Never> {
+        if let pendingPrewarmTask {
+            return pendingPrewarmTask
         }
-
-        let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName))
-        let wordStrings = CombatFeedbackChipWord.allAtlasCases.map(\.displayString)
-        // Common combat amounts stay warm; rare values bake on first miss into the atlas.
-        let commonAmounts = Array((-40 ... -1)) + Array(1 ... 30)
-        let commonPercents = [5, 10, 15, 20, 25, 50]
-
-        for feedbackClass in CombatFeedbackClass.allCases {
+        let scale = max(1, displayScale)
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let requests = prewarmRequests(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: scale
+            )
+            let prepared = await Task.detached(priority: .utility) {
+                Self.bake(requests)
+            }.value
             guard !Task.isCancelled else { return }
+            for glyph in prepared {
+                switch glyph {
+                case let .symbol(key, value):
+                    symbols[key] = value
+                case let .fragment(key, value):
+                    fragments[key] = value
+                }
+            }
+            pendingPrewarmTask = nil
+        }
+        pendingPrewarmTask = task
+        return task
+    }
+
+    private func prewarmRequests(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) -> [PrewarmRequest] {
+        let scaleHundredths = Int((displayScale * 100).rounded())
+        let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName))
+        // Every integer label can be assembled from this complete alphabet. This is
+        // both cheaper and more complete than eagerly rasterizing an arbitrary range.
+        let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
+        var requests: [PrewarmRequest] = []
+
+        for typography in Face.Typography.allCases {
+            let feedbackClass = typography.representativeClass
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
             let face = Face(
-                feedbackClass: feedbackClass,
+                typography: typography,
                 dynamicTypeSize: dynamicTypeSize,
                 displayScaleHundredths: scaleHundredths
             )
             for symbolName in symbolNames {
-                _ = symbol(named: symbolName, face: face, recipe: recipe)
-                await yieldIfNeeded()
-                guard !Task.isCancelled else { return }
+                let key = SymbolKey(face: face, symbolName: symbolName)
+                if symbols[key] == nil {
+                    requests.append(.symbol(key, recipe))
+                }
             }
-            for amount in commonAmounts {
-                _ = fragment(
-                    CombatFeedbackChipLabel.formatAmount(amount),
-                    face: face,
-                    recipe: recipe
-                )
-                await yieldIfNeeded()
-                guard !Task.isCancelled else { return }
+            for fragment in numericFragments {
+                let key = FragmentKey(face: face, text: fragment)
+                if fragments[key] == nil {
+                    requests.append(.fragment(key, recipe))
+                }
             }
-            for percent in commonPercents {
-                _ = fragment(
-                    CombatFeedbackChipLabel.formatPercent(percent),
-                    face: face,
-                    recipe: recipe
-                )
-                await yieldIfNeeded()
-                guard !Task.isCancelled else { return }
+            for word in Self.wordAtlasCases(for: typography).map(\.displayString) {
+                let key = FragmentKey(face: face, text: word)
+                if fragments[key] == nil {
+                    requests.append(.fragment(key, recipe))
+                }
             }
-            for word in wordStrings {
-                _ = fragment(word, face: face, recipe: recipe)
-                await yieldIfNeeded()
-                guard !Task.isCancelled else { return }
+        }
+        return requests
+    }
+
+    /// Exhaustive word vocabulary by actual formatter/classification output.
+    /// Damage, DoT, heal, block, and resource labels are numeric and therefore
+    /// completely covered by `numericAtlasFragments`.
+    nonisolated static func wordAtlasCases(
+        for typography: Face.Typography
+    ) -> [CombatFeedbackChipWord] {
+        switch typography {
+        case .directDamage, .critical, .dot, .heal:
+            []
+        case .utilityBold:
+            CombatFeedbackChipWord.allAtlasCases.filter { word in
+                switch word {
+                case .dodge, .plain, .applied, .triggered: true
+                case .critical, .cleanse, .purge, .halve: false
+                }
+            }
+        case .utilitySemibold:
+            CombatFeedbackChipWord.allAtlasCases.filter { word in
+                switch word {
+                case .plain, .cleanse, .purge, .halve: true
+                case .dodge, .critical, .applied, .triggered: false
+                }
+            }
+        case .deathsDoor:
+            [.plain(.deathsDoor)]
+        }
+    }
+
+    nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
+        requests.compactMap { request in
+            guard !Task.isCancelled else { return nil }
+            switch request {
+            case let .symbol(key, recipe):
+                return bakeSymbol(named: key.symbolName, face: key.face, recipe: recipe)
+                    .map { .symbol(key, $0) }
+            case let .fragment(key, recipe):
+                return bakeFragment(key.text, face: key.face, recipe: recipe)
+                    .map { .fragment(key, $0) }
             }
         }
     }
 
-    private func bakeSymbol(
+    nonisolated static func bakeSymbol(
         named symbolName: String,
         face: Face,
         recipe: CombatFeedbackMotionRecipe
@@ -172,7 +298,7 @@ final class CombatFeedbackGlyphAtlas {
         return rasterize(image: image, displayScaleHundredths: face.displayScaleHundredths)
     }
 
-    private func bakeFragment(
+    nonisolated static func bakeFragment(
         _ text: String,
         face: Face,
         recipe: CombatFeedbackMotionRecipe
@@ -205,7 +331,7 @@ final class CombatFeedbackGlyphAtlas {
         return Glyph(image: cgImage, width: width > 0 ? pointSize.width : width, height: pointSize.height)
     }
 
-    private func rasterize(
+    nonisolated static func rasterize(
         image: UIImage,
         displayScaleHundredths: Int
     ) -> Glyph? {

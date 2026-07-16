@@ -9,8 +9,9 @@ struct CombatFeedbackPresenterTests {
     @Test func filtersMergesAndSumsDamageChips() {
         let filtered = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 0, keyword: .physical),
-                makeEvent(id: 2, kind: .ability, amount: 5, keyword: .physical)
+                makeEvent(id: 1, kind: .ability, amount: 5, keyword: .physical),
+                makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .physical),
+                makeEvent(id: 3, kind: .abilityDamage, amount: 0, keyword: .physical)
             ],
             at: Date(timeIntervalSince1970: 100)
         )
@@ -18,25 +19,24 @@ struct CombatFeedbackPresenterTests {
         #expect(filtered[0].id == 2)
         #expect(filtered[0].feedbackClass == .directDamage)
 
-        let merged = CombatFeedbackPresenter.makeItems(
+        let critical = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 10, kind: .ability, amount: 12, keyword: .physical),
                 makeEvent(
-                    id: 11,
-                    kind: .effect,
-                    effectKind: .criticalApplied,
-                    amount: 0,
-                    keyword: .physical
+                    id: 10,
+                    kind: .abilityDamage,
+                    amount: 12,
+                    keyword: .physical,
+                    isCritical: true
                 )
             ],
             at: Date(timeIntervalSince1970: 100)
         )
-        #expect(merged.count == 1)
-        #expect(merged[0].feedbackClass == .critical)
-        #expect(merged[0].text.contains("12"))
-        #expect(merged[0].secondaryText == nil)
-        #expect(merged[0].reactionKind == .critical)
-        #expect(merged[0].sourceEventIDs == [10, 11])
+        #expect(critical.count == 1)
+        #expect(critical[0].feedbackClass == .critical)
+        #expect(critical[0].text.contains("12"))
+        #expect(critical[0].secondaryText == nil)
+        #expect(critical[0].reactionKind == .critical)
+        #expect(critical[0].sourceEventIDs == [10])
 
         let statusItems = CombatFeedbackPresenter.makeItems(
             from: [
@@ -51,8 +51,8 @@ struct CombatFeedbackPresenterTests {
 
         let abilityItems = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .physical),
-                makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical)
+                makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .physical),
+                makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .physical)
             ],
             at: .now
         )
@@ -60,16 +60,39 @@ struct CombatFeedbackPresenterTests {
         #expect(abilityItems[0].text == "-6")
     }
 
-    @Test func prefersAbilityChipOverMarkedConsumeWhenMergingCritical() {
-        // Pipeline order: criticalApplied → markedConsumed → ability damage.
+    @Test func consolidatesMatchingShieldEffects() {
+        let shields = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 7,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 2,
+                    keyword: .block
+                ),
+                makeEvent(
+                    id: 8,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 3,
+                    keyword: .block
+                )
+            ],
+            at: .now
+        )
+        #expect(shields.count == 1)
+        #expect(shields[0].text == "+5")
+    }
+
+    @Test func keepsCriticalDamageSeparateFromNoncriticalDamageAndMarkedConsume() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(
                     id: 20,
-                    kind: .effect,
-                    effectKind: .criticalApplied,
-                    amount: 0,
-                    keyword: .physical
+                    kind: .abilityDamage,
+                    amount: 12,
+                    keyword: .physical,
+                    isCritical: true
                 ),
                 makeEvent(
                     id: 21,
@@ -78,14 +101,17 @@ struct CombatFeedbackPresenterTests {
                     amount: 3,
                     keyword: .physical
                 ),
-                makeEvent(id: 22, kind: .ability, amount: 12, keyword: .physical)
+                makeEvent(id: 22, kind: .abilityDamage, amount: 4, keyword: .physical)
             ],
             at: Date(timeIntervalSince1970: 100)
         )
+        let critical = items.first { $0.sourceEventIDs.contains(20) }
         let ability = items.first { $0.sourceEventIDs.contains(22) }
         let marked = items.first { $0.sourceEventIDs.contains(21) }
-        #expect(ability?.feedbackClass == .critical)
-        #expect(ability?.sourceEventIDs == [22, 20])
+        #expect(critical?.feedbackClass == .critical)
+        #expect(critical?.sourceEventIDs == [20])
+        #expect(ability?.feedbackClass == .directDamage)
+        #expect(ability?.sourceEventIDs == [22])
         #expect(marked?.feedbackClass == .directDamage)
         #expect(marked?.sourceEventIDs == [21])
     }
@@ -118,8 +144,8 @@ struct CombatFeedbackPresenterTests {
         let now = Date(timeIntervalSince1970: 1000)
         let sharedGroup = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
-                makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed)
+                makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical),
+                makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed, actionID: 1)
             ],
             at: now,
             stagger: 0.055
@@ -130,10 +156,10 @@ struct CombatFeedbackPresenterTests {
 
         let staggered = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
+                makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical),
                 makeEvent(
                     id: 2,
-                    kind: .ability,
+                    kind: .abilityDamage,
                     amount: 4,
                     keyword: .physical,
                     targetID: "hero"
@@ -187,7 +213,7 @@ struct CombatFeedbackPresenterTests {
 
         let directAndStatus = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 2, keyword: .bleed),
+                makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .bleed),
                 makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed)
             ],
             at: .now
@@ -222,7 +248,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 1,
                     keyword: .stun
                 ),
-                makeEvent(id: 5, kind: .ability, amount: 8, keyword: .physical)
+                makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical)
             ],
             at: .now
         )
@@ -237,7 +263,7 @@ struct CombatFeedbackPresenterTests {
         let pool = CombatFeedbackRasterPool(capacity: 2)
         let canvasItems = [3, 4, 5].map { amount in
             let items = CombatFeedbackPresenter.makeItems(
-                from: [makeEvent(id: amount, kind: .ability, amount: amount, keyword: .physical)],
+                from: [makeEvent(id: amount, kind: .abilityDamage, amount: amount, keyword: .physical)],
                 at: Date(timeIntervalSince1970: 10)
             )
             return CombatFeedbackOverlayPolicy.canvasItems(
@@ -278,7 +304,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 0,
                     keyword: .dodge
                 ),
-                makeEvent(id: 2, kind: .ability, amount: 5, keyword: .burn)
+                makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .burn)
             ],
             at: now
         )
@@ -294,10 +320,13 @@ struct CombatFeedbackPresenterTests {
         effectKind: ActionEvent.EffectKind? = nil,
         amount: Int,
         keyword: Keyword,
-        targetID: String = "enemy"
+        targetID: String = "enemy",
+        isCritical: Bool = false,
+        actionID: Int? = nil
     ) -> ActionEvent {
         ActionEvent(
             id: id,
+            actionID: actionID ?? id,
             kind: kind,
             effectKind: effectKind,
             actorID: "hero",
@@ -307,31 +336,31 @@ struct CombatFeedbackPresenterTests {
             targetID: targetID,
             targetName: targetID.capitalized,
             amount: amount,
-            keyword: keyword
+            keyword: keyword,
+            isCritical: isCritical
         )
     }
 }
 
 extension CombatFeedbackPresenterTests {
-    @Test func overlayKeepsNewestGroupAndEmitsOneCanvasChipPerDistinctKind() {
+    @Test func overlayKeepsAllGroupsAndEmitsOneCanvasChipPerDistinctKind() {
         let first = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical)],
+            from: [makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical)],
             at: Date(timeIntervalSince1970: 10)
         )
         let second = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 2, kind: .ability, amount: 4, keyword: .burn)],
+            from: [makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .burn)],
             at: Date(timeIntervalSince1970: 10.65)
         )
 
         let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: first + second)
 
-        #expect(groups.count == CombatFeedbackOverlayPolicy.maxSimultaneousActionGroups)
-        #expect(groups.first?.id == 2)
-        #expect(groups.first?.items.map(\.id) == [2])
+        #expect(groups.map(\.id) == [1, 2])
+        #expect(groups.flatMap(\.items).map(\.id) == [1, 2])
 
         let mixed = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 7, keyword: .physical),
+                makeEvent(id: 1, kind: .abilityDamage, amount: 7, keyword: .physical),
                 makeEvent(
                     id: 2,
                     kind: .effect,
@@ -368,7 +397,7 @@ extension CombatFeedbackPresenterTests {
 
         let distinctKinds = CombatFeedbackPresenter.makeItems(
             from: [
-                makeEvent(id: 1, kind: .ability, amount: 8, keyword: .physical),
+                makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical),
                 makeEvent(id: 2, kind: .status, amount: 3, keyword: .burn)
             ],
             at: .now

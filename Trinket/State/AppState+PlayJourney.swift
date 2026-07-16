@@ -131,6 +131,15 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
+        if battle.activatePreparedJourneyBattle(
+            stageID: stage.id,
+            heroID: roster.activeHero.id,
+            companionID: roster.activeCompanion.id,
+            enemyID: encounter.combatant.id
+        ) {
+            return nil
+        }
+
         activateBattle(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
@@ -140,6 +149,21 @@ extension AppState {
             stageReward: stage.rewards
         )
         return nil
+    }
+
+    func prepareBattle(for stage: Stage) {
+        guard battle.activeBattle == nil,
+              let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage)
+        else { return }
+        let configuration = makeBattleConfiguration(
+            resumeToken: .journey(stageID: stage.id),
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: stage.rewards
+        )
+        battle.prepareBattleRun(configuration)
     }
 
     func restartActiveBattle() {
@@ -174,7 +198,38 @@ extension AppState {
         pendingRewardItem: InventoryItem? = nil
     ) {
         battle.preview = nil
-        battle.activeBattle = ActiveBattleConfiguration.make(
+        if let resumeToken,
+           battle.activatePreparedBattle(
+               resumeToken: resumeToken,
+               heroID: hero.id,
+               companionID: companion.id,
+               enemyID: enemy?.id
+           ) {
+            return
+        }
+        battle.activeBattle = makeBattleConfiguration(
+            resumeToken: resumeToken,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward,
+            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: pendingRewardItem
+        )
+    }
+
+    func makeBattleConfiguration(
+        resumeToken: ActiveBattleResumeToken?,
+        hero: Combatant,
+        companion: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        stageReward: StageReward?,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
             resumeToken: resumeToken,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,

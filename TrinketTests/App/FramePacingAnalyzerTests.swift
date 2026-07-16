@@ -20,9 +20,7 @@ struct FramePacingAnalyzerTests {
         #expect(report.severeStallCount == 0)
         #expect(report.missedDeadlineRatio == 0)
         #expect(abs(report.p99FrameMs - (1000.0 / 60.0)) < 0.01)
-        #expect(abs(report.p999FrameMs - (1000.0 / 60.0)) < 0.01)
         #expect(abs(report.onePercentLowFPS - 60) < 0.01)
-        #expect(abs(report.pointOnePercentLowFPS - 60) < 0.01)
     }
 
     @Test func missedFramesAndSevereStallsAreRefreshNormalized() {
@@ -42,9 +40,7 @@ struct FramePacingAnalyzerTests {
         #expect(abs(report.missedDeadlineRatio - 0.01) < 0.000_01)
         #expect(abs(report.maxFrameMs - (4000.0 / 120.0)) < 0.01)
         #expect(report.p99FrameMs >= (2000.0 / 120.0) - 0.01)
-        #expect(report.p999FrameMs >= (4000.0 / 120.0) - 0.01)
         #expect(report.onePercentLowFPS < 120)
-        #expect(report.pointOnePercentLowFPS < report.onePercentLowFPS)
     }
 
     @Test func subHalfPeriodJitterDoesNotCountAsADeadlineMiss() {
@@ -65,9 +61,7 @@ struct FramePacingAnalyzerTests {
             averageFPS: 59.4,
             p95FrameMs: 16.9,
             p99FrameMs: 22.5,
-            p999FrameMs: 31.2,
             onePercentLowFPS: 48.4,
-            pointOnePercentLowFPS: 32.1,
             maxFrameMs: 35.1,
             missedDeadlineCount: 2,
             estimatedMissedFrameCount: 2,
@@ -83,9 +77,7 @@ struct FramePacingAnalyzerTests {
         #expect(parsed?.severeStallCount == 0)
         #expect(abs((parsed?.averageFPS ?? 0) - 59.4) < 0.01)
         #expect(abs((parsed?.p99FrameMs ?? 0) - 22.5) < 0.01)
-        #expect(abs((parsed?.p999FrameMs ?? 0) - 31.2) < 0.01)
         #expect(abs((parsed?.onePercentLowFPS ?? 0) - 48.4) < 0.01)
-        #expect(abs((parsed?.pointOnePercentLowFPS ?? 0) - 32.1) < 0.01)
         #expect(abs((parsed?.missedDeadlineRatio ?? 0) - (2.0 / 600.0)) < 0.000_01)
     }
 }

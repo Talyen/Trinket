@@ -35,8 +35,11 @@ struct DebugFPSOverlayModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.overlay {
             if runSampler {
-                FramePacingOverlayHost(showVisualBadge: showVisualBadge)
-                    .allowsHitTesting(enableFrameMetrics)
+                FramePacingOverlayHost(
+                    showVisualBadge: showVisualBadge,
+                    measurementMode: enableFrameMetrics
+                )
+                .allowsHitTesting(enableFrameMetrics)
             }
         }
     }
@@ -49,7 +52,12 @@ enum DebugRuntime {
 }
 
 private struct FramePacingOverlayHost: View {
+    /// Kept slightly inside the UI test's 7.2-second window so publication is
+    /// complete before XCTest reads the frozen accessibility value.
+    private static let measurementSnapshotDelay: Duration = .seconds(7)
+
     let showVisualBadge: Bool
+    let measurementMode: Bool
 
     @State private var report = FramePacingReport.empty
     @State private var monitor = FramePacingMonitor()
@@ -72,24 +80,11 @@ private struct FramePacingOverlayHost: View {
                 .frame(width: 1, height: 1)
                 .accessibilityLabel("Frame Metrics")
 
-            HStack {
-                Spacer()
-                Button {
-                    resetMeasurement()
-                } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                        .foregroundStyle(.clear)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(AccessibilityID.Debug.frameMetricsReset)
-                Spacer()
-            }
+            measurementControls
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
-            monitor.start { report = $0 }
+            monitor.start(publishesAutomatically: !measurementMode) { report = $0 }
         }
         .onReceive(NotificationCenter.default.publisher(for: FramePacingMeasurementControl.reset)) { _ in
             resetMeasurement()
@@ -99,9 +94,30 @@ private struct FramePacingOverlayHost: View {
         }
     }
 
+    private var measurementControls: some View {
+        HStack {
+            Spacer()
+            Button {
+                resetMeasurement()
+            } label: {
+                Image(systemName: "arrow.counterclockwise")
+                    .foregroundStyle(.clear)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Debug.frameMetricsReset)
+
+            Spacer()
+        }
+    }
+
     private func resetMeasurement() {
         report = .empty
         monitor.resetMeasurement()
+        if measurementMode {
+            monitor.scheduleSnapshot(after: Self.measurementSnapshotDelay)
+        }
     }
 }
 
@@ -112,12 +128,8 @@ private struct FramePacingBadge: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(String(format: "%.0f / %.0f FPS", report.averageFPS, report.expectedFPS))
                 .font(.system(.caption2, design: .monospaced).weight(.bold))
-            Text(String(
-                format: "1%% %.1f · 0.1%% %.1f FPS",
-                report.onePercentLowFPS,
-                report.pointOnePercentLowFPS
-            ))
-            Text(String(format: "p95 %.1f · p99 %.1f · p999 %.1f ms", report.p95FrameMs, report.p99FrameMs, report.p999FrameMs))
+            Text(String(format: "1%% %.1f FPS", report.onePercentLowFPS))
+            Text(String(format: "p95 %.1f · p99 %.1f ms", report.p95FrameMs, report.p99FrameMs))
                 .font(.system(.caption2, design: .monospaced))
             if report.missedDeadlineCount > 0 || report.severeStallCount > 0 {
                 Text(String(
@@ -159,11 +171,17 @@ private final class FramePacingMonitor: NSObject {
     private var nextWriteIndex = 0
     private var sampleCount = 0
     private var analysisTask: Task<Void, Never>?
+    private var scheduledSnapshotTask: Task<Void, Never>?
     private var handler: ((FramePacingReport) -> Void)?
+    private var publishesAutomatically = true
 
-    func start(onUpdate: @escaping (FramePacingReport) -> Void) {
+    func start(
+        publishesAutomatically: Bool = true,
+        onUpdate: @escaping (FramePacingReport) -> Void
+    ) {
         stop()
         handler = onUpdate
+        self.publishesAutomatically = publishesAutomatically
         let link = CADisplayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
@@ -172,6 +190,9 @@ private final class FramePacingMonitor: NSObject {
     func resetMeasurement() {
         analysisTask?.cancel()
         analysisTask = nil
+        scheduledSnapshotTask?.cancel()
+        scheduledSnapshotTask = nil
+        displayLink?.isPaused = false
         previousTimestamp = 0
         startTimestamp = 0
         lastPublishTimestamp = 0
@@ -185,6 +206,23 @@ private final class FramePacingMonitor: NSObject {
         displayLink = nil
         handler = nil
         resetMeasurement()
+    }
+
+    /// Freezes collection before reporting so the diagnostic publication cannot
+    /// contaminate the interval set it is reporting.
+    func snapshotMeasurement() {
+        displayLink?.isPaused = true
+        publishReport()
+    }
+
+    func scheduleSnapshot(after delay: Duration) {
+        scheduledSnapshotTask?.cancel()
+        scheduledSnapshotTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: delay)
+            guard let self, !Task.isCancelled else { return }
+            snapshotMeasurement()
+            scheduledSnapshotTask = nil
+        }
     }
 
     @objc private func step(_ link: CADisplayLink) {
@@ -211,7 +249,8 @@ private final class FramePacingMonitor: NSObject {
             sampleCount = min(sampleCount + 1, Self.capacity)
         }
 
-        guard timestamp - lastPublishTimestamp >= Self.publishInterval else { return }
+        guard publishesAutomatically,
+              timestamp - lastPublishTimestamp >= Self.publishInterval else { return }
         lastPublishTimestamp = timestamp
         publishReport()
     }

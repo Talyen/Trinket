@@ -181,15 +181,7 @@ elif [[ "$MODE" == "performance" ]]; then
   fi
   echo "Running the dedicated app performance scenario matrix..."
   ensure_test_simulator_logged
-  performance_repetitions="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
-  if [[ ! "$performance_repetitions" =~ ^[0-9]+$ ]] || (( performance_repetitions < 1 )); then
-    echo "TRINKET_PERFORMANCE_REPETITIONS must be a positive integer." >&2
-    exit 1
-  fi
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
-  if (( performance_repetitions > 1 )); then
-    PARALLEL_FLAGS+=(-test-iterations "$performance_repetitions")
-  fi
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then

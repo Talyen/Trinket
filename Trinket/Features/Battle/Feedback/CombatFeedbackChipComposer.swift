@@ -116,14 +116,19 @@ enum CombatFeedbackChipComposer {
         recipe: CombatFeedbackMotionRecipe,
         atlas: CombatFeedbackGlyphAtlas
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
-        guard let glyph = atlas.fragment(
-            label.displayString,
-            face: face,
-            recipe: recipe
-        ) else {
-            return nil
+        var glyphs: [CombatFeedbackGlyphAtlas.Glyph] = []
+        glyphs.reserveCapacity(label.atlasFragments.count)
+        for fragment in label.atlasFragments {
+            guard let glyph = atlas.fragment(
+                fragment,
+                face: face,
+                recipe: recipe
+            ) else {
+                return nil
+            }
+            glyphs.append(glyph)
         }
-        return [glyph]
+        return glyphs
     }
 
     private static func draw(

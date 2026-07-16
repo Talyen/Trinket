@@ -30,7 +30,9 @@ extension BattleSession {
         activeCinematic = nil
         presentationHoldCount = max(0, presentationHoldCount - 1)
         let deferred = deferredFeedbackEvents
-        deferredFeedbackEvents = []
+        if !deferredFeedbackEvents.isEmpty {
+            deferredFeedbackEvents = []
+        }
         recordFeedbackEvents(deferred, at: date, stagger: TrinketMotion.Battle.ultimateChipStagger)
         presentDeferredOutcomeIfNeeded(at: date)
     }
@@ -279,10 +281,10 @@ extension BattleSession {
 
         let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
         activeFeedbackItems.append(contentsOf: items)
+        onFeedbackItemsChanged?(.insert(items))
         applyImmediatePresentation(for: items, at: date)
         scheduleFeedbackPresentation(for: items, at: date)
         scheduleFeedbackPruneIfNeeded(at: date)
-        noteFeedbackPresentationChanged()
     }
 
     /// Applies delayed haptics, SFX, hit reactions, and particle requests on the
@@ -364,6 +366,10 @@ extension BattleSession {
     }
 
     func clearFeedback() {
+        let hadPublishedPresentation = !activeFeedbackItems.isEmpty
+            || !hitReactionsByTargetID.isEmpty
+            || !keywordBurstsByTargetID.isEmpty
+            || !presentedFeedbackIDs.isEmpty
         pendingFeedbackPruneTask?.cancel()
         pendingFeedbackPruneTask = nil
         for task in pendingFeedbackPresentationTasks.values {
@@ -372,18 +378,30 @@ extension BattleSession {
         pendingFeedbackPresentationTasks = [:]
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]
-        hitReactionsByTargetID = [:]
+        if !hitReactionsByTargetID.isEmpty {
+            hitReactionsByTargetID = [:]
+        }
         keywordBurstsByTargetID = [:]
         presentedFeedbackIDs = []
-        noteAllFeedbackPresentationChanged()
+        if hadPublishedPresentation {
+            resetFeedbackPresentation()
+        }
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
-        activeSkillCallout = nil
-        activeCinematic = nil
+        if activeSkillCallout != nil {
+            activeSkillCallout = nil
+        }
+        if activeCinematic != nil {
+            activeCinematic = nil
+        }
         deferredFeedbackEvents = []
-        softHoldUntil = nil
-        actorsWhoPresentedUltimateThisBattle = []
+        if softHoldUntil != nil {
+            softHoldUntil = nil
+        }
+        if !actorsWhoPresentedUltimateThisBattle.isEmpty {
+            actorsWhoPresentedUltimateThisBattle = []
+        }
         if releaseCinematicPlayers {
             BattleCinematicPlayer.shared.releaseAll()
         }
@@ -422,7 +440,35 @@ extension BattleSession {
 
     func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
-        state = BattleState(
+        if let pendingPreparedRun,
+           pendingPreparedRun.configuration.id == configuration.id {
+            state = pendingPreparedRun.state
+            presentation.install(pendingPreparedRun.presentation)
+            self.pendingPreparedRun = nil
+        } else {
+            installBattleState(
+                Self.makeBattleState(from: configuration),
+                configurationID: configuration.id
+            )
+        }
+        preparedBattleRunsByToken.removeAll(keepingCapacity: true)
+        clearFeedback()
+        clearSpectacle(releaseCinematicPlayers: false)
+        clearOutcomePresentation()
+        if overlayCombatantDetail != nil {
+            overlayCombatantDetail = nil
+        }
+        if overlayAbilityDetail != nil {
+            overlayAbilityDetail = nil
+        }
+        if isShowingBattleLog {
+            isShowingBattleLog = false
+        }
+        playSFX(SFXID.abilityDraw) // opening hand
+    }
+
+    static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
+        BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,
             enemy: configuration.enemy,
@@ -432,35 +478,17 @@ extension BattleSession {
             rngSeed: configuration.rngSeed,
             tracksLog: false
         )
-        clearFeedback()
-        clearSpectacle(releaseCinematicPlayers: false)
-        clearOutcomePresentation()
-        overlayCombatantDetail = nil
-        overlayAbilityDetail = nil
-        isShowingBattleLog = false
-        playSFX(SFXID.abilityDraw) // opening hand
-        // Keep activation off the hitch-critical frame: voice warm + cinematic
-        // preload continue on subsequent run-loop turns.
-        let heroUltimateID = configuration.hero.combatant.abilityLoadout.ultimate?.id
-        let companionUltimateID = configuration.companion.combatant.abilityLoadout.ultimate?.id
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            sfxPlayer?.warm([SFXID.abilityDraw], concurrentPlayerCount: 2)
-            prepareBattlePresentation(
-                heroUltimateID: heroUltimateID,
-                companionUltimateID: companionUltimateID
-            )
-        }
     }
 
     func clearRunState() {
         cancelPendingAutoEnd()
-        pendingBattlePrewarmTask?.cancel()
-        pendingBattlePrewarmTask = nil
+        preparedBattleRunsByToken.removeAll(keepingCapacity: true)
+        pendingPreparedRun = nil
         onTurnAutoEnded = nil
         autoEndJourney = nil
         autoEndHomestead = nil
         state = nil
+        presentation.clear()
         clearFeedback()
         clearSpectacle()
         clearOutcomePresentation()

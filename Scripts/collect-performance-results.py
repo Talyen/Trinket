@@ -18,6 +18,7 @@ def main() -> int:
 
     records: list[dict[str, object]] = []
     seen: set[str] = set()
+    malformed: list[str] = []
     for path in sorted(args.results_dir.rglob("*.log")):
         for line in path.read_text(errors="replace").splitlines():
             marker_index = line.find(MARKER)
@@ -27,6 +28,10 @@ def main() -> int:
             try:
                 record = json.loads(payload)
             except json.JSONDecodeError:
+                malformed.append(f"{path}: invalid JSON after performance marker")
+                continue
+            if not isinstance(record, dict):
+                malformed.append(f"{path}: performance payload is not an object")
                 continue
             key = json.dumps(record, sort_keys=True)
             if key in seen:
@@ -39,7 +44,9 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps({"reports": records}, indent=2, sort_keys=True) + "\n")
     print(f"Collected {len(records)} app performance reports into {args.output}")
-    return 0 if records else 1
+    for error in malformed:
+        print(error)
+    return 0 if records and not malformed else 1
 
 
 if __name__ == "__main__":
