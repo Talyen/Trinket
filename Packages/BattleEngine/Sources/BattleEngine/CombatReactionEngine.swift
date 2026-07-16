@@ -227,7 +227,7 @@ package extension CombatReactionEngine {
         guard profile.blockBrokenArmorFlat > 0 else { return [] }
 
         let amount = profile.blockBrokenArmorFlat + profile.armorGainedBonus
-        DefensePoolEngine.addArmor(amount, to: target, in: &context)
+        DefensePoolEngine.add(amount, pool: .armor, to: target, in: &context)
         return [context.nextEvent(
             kind: .effect,
             effectKind: .mitigationApplied,
@@ -436,7 +436,7 @@ package extension CombatReactionEngine {
             sourceID: source.id
         )
         guard case let .shield(keyword, buffer) = adjusted else { return [] }
-        DefensePoolEngine.addBlock(buffer, to: target, keyword: keyword, in: &context)
+        DefensePoolEngine.add(buffer, pool: .block, to: target, keyword: keyword, in: &context)
         var events = [context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,

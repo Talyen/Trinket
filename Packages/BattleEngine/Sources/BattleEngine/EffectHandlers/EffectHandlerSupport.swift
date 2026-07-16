@@ -62,3 +62,16 @@ enum TimedBuffSummary {
         }.min() ?? 0
     }
 }
+
+enum ActiveEffectMutation {
+    /// Drops every active effect on `target` whose `Effect` matches `matches`.
+    static func removeMatching(
+        from target: Combatant,
+        in context: inout BattleEngineContext,
+        where matches: (Effect) -> Bool
+    ) {
+        var effects = context.roster.activeEffects(for: target)
+        effects.removeAll { matches($0.effect) }
+        context.roster.setActiveEffects(effects, for: target)
+    }
+}

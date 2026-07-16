@@ -142,7 +142,7 @@ package extension DamagePipeline {
             profile: profile,
             in: context
         )
-        let poolArmor = DefensePoolEngine.armorPoints(in: effects)
+        let poolArmor = DefensePoolEngine.points(in: effects, pool: .armor)
         let maxReduction = state.remaining / 2
         let reduction = min(effective, maxReduction)
         if reduction > 0 {
@@ -154,7 +154,7 @@ package extension DamagePipeline {
         // due to zero effective armor — only when there is a pool or passive to track).
         // Spec: Armor decays by 1 for each instance of damage taken.
         if poolArmor > 0 {
-            DefensePoolEngine.setArmor(poolArmor - 1, on: state.combatant, in: &context)
+            DefensePoolEngine.set(poolArmor - 1, pool: .armor, on: state.combatant, in: &context)
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         } else if effective > 0 {
             // Passive/Toughness-only effective armor still "takes" the hit; nothing to decay.
