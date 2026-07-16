@@ -262,12 +262,18 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     @discardableResult
     public mutating func unlockHero(id heroID: String) -> Bool {
-        unlock(id: heroID, catalog: GameContent.heroes, into: &unlockedHeroIDs)
+        var ids = unlockedHeroIDs
+        let result = unlock(id: heroID, catalog: GameContent.heroes, into: &ids)
+        unlockedHeroIDs = ids
+        return result
     }
 
     @discardableResult
     public mutating func unlockCompanion(id companionID: String) -> Bool {
-        unlock(id: companionID, catalog: GameContent.companions, into: &unlockedCompanionIDs)
+        var ids = unlockedCompanionIDs
+        let result = unlock(id: companionID, catalog: GameContent.companions, into: &ids)
+        unlockedCompanionIDs = ids
+        return result
     }
 
     @discardableResult

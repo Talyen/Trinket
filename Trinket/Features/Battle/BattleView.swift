@@ -169,20 +169,17 @@ struct BattleView: View {
                     enemyPane: combatantPane(
                         for: battleState.enemy,
                         health: battleState.health(of: battleState.enemy),
-                        battleState: battleState,
-                        battleSession: battleSession
+                        battleState: battleState
                     ),
                     heroPane: combatantPane(
                         for: battleState.hero,
                         health: battleState.health(of: battleState.hero),
-                        battleState: battleState,
-                        battleSession: battleSession
+                        battleState: battleState
                     ),
                     companionPane: combatantPane(
                         for: battleState.companion,
                         health: battleState.health(of: battleState.companion),
-                        battleState: battleState,
-                        battleSession: battleSession
+                        battleState: battleState
                     )
                 )
                 .allowsHitTesting(!suppressCombatantTaps)
@@ -345,8 +342,7 @@ struct BattleView: View {
     private func combatantPane(
         for combatant: Combatant,
         health: Int,
-        battleState: BattleState,
-        battleSession: BattleSession
+        battleState: BattleState
     ) -> BattleCombatantPane {
         BattleCombatantPane(
             combatant: combatant,
@@ -381,9 +377,7 @@ struct BattleView: View {
 
         let generation = handInteractionGeneration
         Task { @MainActor in
-            try? await Task.sleep(
-                for: .seconds(BattleHandLayout.combatantTapSuppressionGrace)
-            )
+            try? await Task.sleep(for: .seconds(BattleHandLayout.combatantTapSuppressionGrace))
             guard generation == handInteractionGeneration else { return }
             suppressCombatantTaps = false
         }
