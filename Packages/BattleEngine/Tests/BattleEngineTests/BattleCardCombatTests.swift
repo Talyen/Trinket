@@ -133,7 +133,9 @@ struct BattleCardCombatTests {
 
         try #expect(battle.health(of: battle.hero) == 48)
         let shield = battle.activeEffects(of: battle.hero).first {
-            if case .shield = $0.effect { return true }
+            if case .shield = $0.effect {
+                return true
+            }
             return false
         }
         guard case let .shield(_, buffer) = shield?.effect else {
