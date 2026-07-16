@@ -38,6 +38,35 @@ struct CombatFeedbackPresenterTests {
         #expect(merged[0].reactionKind == .critical)
         #expect(merged[0].sourceEventIDs == [10, 11])
 
+        // Pipeline order: criticalApplied → markedConsumed → ability damage.
+        // Crit must bind to the ability hit, not the Marked side chip.
+        let markedCrit = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 20,
+                    kind: .effect,
+                    effectKind: .criticalApplied,
+                    amount: 0,
+                    keyword: .physical
+                ),
+                makeEvent(
+                    id: 21,
+                    kind: .effect,
+                    effectKind: .markedConsumed,
+                    amount: 3,
+                    keyword: .physical
+                ),
+                makeEvent(id: 22, kind: .ability, amount: 12, keyword: .physical)
+            ],
+            at: Date(timeIntervalSince1970: 100)
+        )
+        let ability = markedCrit.first { $0.sourceEventIDs.contains(22) }
+        let marked = markedCrit.first { $0.sourceEventIDs.contains(21) }
+        #expect(ability?.feedbackClass == .critical)
+        #expect(ability?.sourceEventIDs == [22, 20])
+        #expect(marked?.feedbackClass == .directDamage)
+        #expect(marked?.sourceEventIDs == [21])
+
         let statusItems = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),

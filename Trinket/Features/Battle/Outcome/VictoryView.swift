@@ -47,6 +47,11 @@ struct VictoryView: View {
         .onDisappear {
             revealTask?.cancel()
             revealTask = nil
+            // Cancel without completion left Loot All / Continue locked when
+            // @State survived (same class as ExperienceBar onDisappear snap).
+            if hasStartedRewardSequence {
+                finishRewardSequence()
+            }
         }
     }
 
@@ -197,10 +202,17 @@ struct VictoryView: View {
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
-                isSequenceComplete = true
+                finishRewardSequence()
             }
             revealTask = nil
         }
+    }
+
+    private func finishRewardSequence() {
+        guard !isSequenceComplete else { return }
+        visibleWalletRewardCount = walletRewardCount
+        areItemsVisible = true
+        isSequenceComplete = true
     }
 
     private var walletRewardCount: Int {
