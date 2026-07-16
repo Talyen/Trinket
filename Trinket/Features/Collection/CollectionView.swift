@@ -149,7 +149,7 @@ struct CollectionView: View {
     }
 
     private func collectionCategoryHeader(title: String) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
             Text(title)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)

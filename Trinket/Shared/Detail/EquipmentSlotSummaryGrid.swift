@@ -11,7 +11,7 @@ struct EquipmentSlotSummaryGrid: View {
     let onSelect: ((ItemSlot) -> Void)?
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(role.equipmentSlots) { slot in
                 if let onSelect, !isLocked(slot) {
                     Button {

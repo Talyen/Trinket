@@ -92,11 +92,9 @@ private struct HandMotionPlayground: View {
                 if copiedBannerVisible {
                     Text("Copied parameter dump")
                         .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
                         .trinketGlassChip()
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                        .padding(.top, 16)
+                        .padding(.top, TrinketDesign.Metrics.largeSpacing)
                         .transition(.opacity)
                 }
             }
@@ -127,7 +125,7 @@ private struct HandMotionPlayground: View {
                     .frame(height: 1)
                     .padding(.bottom, BattleCardGridLayout.handReservedHeight + configuration.bottomRise)
             }
-            .padding(.top, 24)
+            .padding(.top, TrinketDesign.Metrics.extraLargeSpacing)
         }
     }
 
@@ -166,7 +164,7 @@ private struct HandMotionPlayground: View {
             Text(label)
                 .font(.caption2.monospaced())
                 .foregroundStyle(color)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, TrinketDesign.Metrics.denseSpacing)
                 .padding(.vertical, 2)
                 .background(TrinketDesign.Colors.elevated.opacity(0.9), in: Capsule())
             Rectangle()
@@ -228,8 +226,8 @@ private struct HandMotionPlayground: View {
 
             Text("Release pose")
                 .font(.caption2.weight(.semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, TrinketDesign.Metrics.chipCompactPaddingHorizontal)
+                .padding(.vertical, TrinketDesign.Metrics.chipCompactPaddingVertical)
                 .background(TrinketDesign.Colors.warning.opacity(0.85), in: Capsule())
                 .position(x: request.center.x, y: request.center.y - request.size.height * 0.55)
         }
@@ -555,7 +553,7 @@ private struct HandMotionPlayground: View {
         response: Binding<Double>,
         damping: Binding<Double>
     ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
             parameterSlider(

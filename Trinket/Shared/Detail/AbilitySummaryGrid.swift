@@ -13,7 +13,7 @@ struct AbilitySummaryGrid: View {
     var onSelectTier: ((AbilityTier) -> Void)?
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(AbilityTier.allCases) { tier in
                 if allowsEditing, !isLocked(tier) {
                     Button {

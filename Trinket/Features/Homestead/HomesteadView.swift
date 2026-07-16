@@ -22,7 +22,7 @@ struct HomesteadView: View {
         ) { baseHeight, overscroll in
             HomesteadOverviewHero(baseHeight: baseHeight, overscroll: overscroll)
         } bodyContent: {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
@@ -35,8 +35,8 @@ struct HomesteadView: View {
                     )
                 }
             }
-            .padding(.top, 10)
-            .padding(.bottom, 112)
+            .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.tabBarContentClearance)
         }
         .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
             HomesteadNodeDetailView(definition: definition)
@@ -76,7 +76,7 @@ struct HomesteadOverviewHero: View {
                 .trinketTypography(.screenDisplay)
                 .trinketOnArtText(.title)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, 14)
+                .padding(.bottom, TrinketDesign.Metrics.snugSpacing)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
     }

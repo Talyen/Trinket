@@ -56,7 +56,7 @@ private struct ChapterStageRow: View {
     }
 
     private var compactRowLabel: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             EncounterArtwork(stage: presentation.stage)
                 // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps the five-stage path compact.
                 .frame(width: 74, height: 55.5)

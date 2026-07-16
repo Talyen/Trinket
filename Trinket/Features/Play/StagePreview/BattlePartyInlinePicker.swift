@@ -209,7 +209,7 @@ struct BattleCombatantPickerSheet: View {
             selectionFeedbackTrigger += 1
             dismiss()
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: TrinketDesign.Metrics.denseSpacing) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(maxWidth: .infinity)
                     // UIStyleCheck: allow - Compact picker thumbnails use a fixed visual height.

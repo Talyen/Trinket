@@ -10,8 +10,8 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private let bodyTopPadding: CGFloat = 10
-    private let bodyStackSpacing: CGFloat = 18
+    private let bodyTopPadding = TrinketDesign.Metrics.sectionHeaderSpacing
+    private let bodyStackSpacing = TrinketDesign.Metrics.homesteadBodySpacing
 
     private var homestead: PlayerHomesteadState {
         appState.homestead
@@ -87,7 +87,7 @@ struct HomesteadDetailHero: View {
                 .lineLimit(2)
                 .trinketOnArtText(.title)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, 14)
+                .padding(.bottom, TrinketDesign.Metrics.snugSpacing)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
     }
@@ -176,7 +176,7 @@ struct HomesteadTierNode: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.snugSpacing) {
             VerticalPathRail(
                 minHeight: 72,
                 connectorBefore: connectors.before,
@@ -201,7 +201,7 @@ struct HomesteadTierNode: View {
                     HomesteadTierCostLabel(cost: tier.cost, status: status)
                 }
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, TrinketDesign.Metrics.sectionHeaderSpacing)
 
             Spacer(minLength: 0)
         }

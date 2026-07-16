@@ -67,7 +67,7 @@ public struct ExperienceBar: View {
                     }
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
                     Text(combatantName)
                         .trinketTypography(.cardLabel)
@@ -76,7 +76,7 @@ public struct ExperienceBar: View {
                         Text("Level \(burstLevel)!")
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                            .padding(.horizontal, 6)
+                            .padding(.horizontal, TrinketDesign.Metrics.denseSpacing)
                             .padding(.vertical, 2)
                             .background(TrinketDesign.Colors.progression, in: Capsule())
                             .transition(.scale.combined(with: .opacity))
