@@ -190,7 +190,8 @@ private struct CombatantFeedbackLane: View {
     let bottomInset: CGFloat
 
     var body: some View {
-        _ = appState.battle.feedbackEpoch
+        // swiftlint:disable:next redundant_discardable_let
+        let _ = appState.battle.feedbackEpoch
         CombatFeedbackOverlay(items: appState.battle.feedbackItems(for: combatantID))
             .padding(.horizontal, 8)
             .padding(.bottom, bottomInset)
@@ -203,7 +204,8 @@ private struct CombatantKeywordBurstLane: View {
     let combatantID: String
 
     var body: some View {
-        _ = appState.battle.burstEpoch
+        // swiftlint:disable:next redundant_discardable_let
+        let _ = appState.battle.burstEpoch
         KeywordBurstLayer(requests: appState.battle.keywordBursts(for: combatantID))
     }
 }
@@ -213,7 +215,8 @@ private struct CombatantSkillCalloutLane: View {
     let combatantID: String
 
     var body: some View {
-        _ = appState.battle.feedbackEpoch
+        // swiftlint:disable:next redundant_discardable_let
+        let _ = appState.battle.feedbackEpoch
         if let callout = appState.battle.activeSkillCallout,
            callout.actorID == combatantID {
             SkillCalloutView(callout: callout)
