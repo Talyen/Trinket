@@ -128,10 +128,10 @@ final class PlayMapUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"))
         button(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear")).tap()
 
-        let beginFloor = app.buttons["Begin Floor"]
-        XCTAssertTrue(beginFloor.waitForExistence(timeout: Self.defaultTimeout))
-        XCTAssertTrue(beginFloor.isEnabled)
-        beginFloor.tap()
+        let beginFloor = AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1)
+        assertButtonExists(beginFloor)
+        XCTAssertTrue(button(beginFloor).isEnabled)
+        tapButton(beginFloor)
 
         battle.assertPresented(timeout: 8)
     }
@@ -141,12 +141,14 @@ final class PlayMapUITests: TrinketUITestCase {
         launchApp(arguments: chapterOneCompleteArgs + TestLaunchArg.screen("labyrinth"))
 
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let fight = app.buttons["Fight"].firstMatch
-        XCTAssertTrue(fight.waitForExistence(timeout: Self.defaultTimeout), "Labyrinth combat CTA not found")
+        let combatActions = app.buttons.matching(
+            NSPredicate(format: "identifier ENDSWITH %@", " labyrinth combat action")
+        )
+        XCTAssertGreaterThan(combatActions.count, 0, "Labyrinth combat CTA not found")
         assertExists(AccessibilityID.Play.battlePartyHeroControl)
         assertExists(AccessibilityID.Play.battlePartyCompanionControl)
 
-        fight.tap()
+        combatActions.element(boundBy: 0).tap()
 
         battle.assertPresented(timeout: 8)
     }

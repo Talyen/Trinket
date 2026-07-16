@@ -319,32 +319,12 @@ class TrinketUITestCase: XCTestCase {
         file _: StaticString = #file,
         line _: UInt = #line
     ) {
-        for _ in 0 ..< maxAttempts {
-            if element.exists, !requireHittable || element.isHittable {
-                return
-            }
-            if swipingUp {
-                dragScroll(fromY: 0.90, toY: 0.35)
-            } else {
-                dragScroll(fromY: 0.35, toY: 0.90)
-            }
-            _ = element.waitForExistence(timeout: 0.15)
-        }
-    }
-
-    private func scrollContainer() -> XCUIElement {
-        let playScreen = app.descendants(matching: .any)[AccessibilityID.Screen.play]
-        if playScreen.exists {
-            return playScreen
-        }
-        return app
-    }
-
-    private func dragScroll(fromY: CGFloat, toY: CGFloat) {
-        let container = scrollContainer()
-        let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
-        let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
-        start.press(forDuration: 0.05, thenDragTo: end)
+        app.scrollUntilVisible(
+            element,
+            swipingUp: swipingUp,
+            maxAttempts: maxAttempts,
+            requireHittable: requireHittable
+        )
     }
 
     func dismissSheet() {
@@ -388,5 +368,42 @@ class TrinketUITestCase: XCTestCase {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+}
+
+extension XCUIApplication {
+    /// Shared scroll hunt used by page objects and `TrinketUITestCase` helpers.
+    func scrollUntilVisible(
+        _ element: XCUIElement,
+        swipingUp: Bool,
+        maxAttempts: Int = 6,
+        requireHittable: Bool = false
+    ) {
+        for _ in 0 ..< maxAttempts {
+            if element.exists, !requireHittable || element.isHittable {
+                return
+            }
+            if swipingUp {
+                dragScroll(fromY: 0.90, toY: 0.35)
+            } else {
+                dragScroll(fromY: 0.35, toY: 0.90)
+            }
+            _ = element.waitForExistence(timeout: 0.15)
+        }
+    }
+
+    private func scrollContainer() -> XCUIElement {
+        let playScreen = descendants(matching: .any)[AccessibilityID.Screen.play]
+        if playScreen.exists {
+            return playScreen
+        }
+        return self
+    }
+
+    private func dragScroll(fromY: CGFloat, toY: CGFloat) {
+        let container = scrollContainer()
+        let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
+        let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 }
