@@ -93,8 +93,6 @@ struct ActiveBattleConfigurationTests {
         let pendingItem = try #require(configuration.pendingRewardItem)
 
         #expect(configuration.rewardItems == [pendingItem])
-        #expect(configuration.rewardItems[0].rarity == pendingItem.rarity)
-        #expect(configuration.rewardItems[0].affixes == pendingItem.affixes)
     }
 
     @Test func makePreservesJourneyScaledEnemyStats() throws {
