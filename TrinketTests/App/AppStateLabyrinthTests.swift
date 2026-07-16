@@ -141,6 +141,47 @@ struct AppStateLabyrinthTests {
     }
     #endif
 
+    @Test func labyrinthMysteryRecruitClearsNodeOnUnlockSoRelaunchCannotDoubleGrant() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        _ = state.enterLabyrinth()
+        let mysteryNodeID = try #require(firstReachableNodeID(of: .mystery, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: mysteryNodeID) == nil)
+        let session = try #require(state.activeMysteryEncounter)
+        #expect(session.labyrinthNodeID == mysteryNodeID)
+        let event = session.event
+        guard let unlockID = event.unlockCombatantID else {
+            // Non-recruit mystery: resolve still completes in-transaction; skip double-grant probe.
+            #expect(state.resolveActiveMysteryChoice())
+            #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
+            return
+        }
+
+        let unlockedBefore = state.roster.isCombatantUnlocked(id: unlockID)
+        #expect(!unlockedBefore)
+        #expect(state.resolveActiveMysteryChoice(choiceID: event.choices.first?.id))
+        #expect(state.roster.isCombatantUnlocked(id: unlockID))
+        #expect(state.activeMysteryEncounter?.phase == .revealing)
+        // Labyrinth recruits clear the node with the unlock so kill/relaunch cannot re-roll.
+        #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
+
+        let unlockedCountAfterFirst = state.roster.unlockedHeroIDs.count
+            + state.roster.unlockedCompanionIDs.count
+
+        // Simulate app kill before Recruit confirm: session is gone, save remains.
+        let relaunched = try context.makeAppState(playerSave: playerSave)
+        #expect(relaunched.activeMysteryEncounter == nil)
+        #expect(relaunched.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
+        #expect(relaunched.roster.isCombatantUnlocked(id: unlockID))
+        let blocked = relaunched.handleLabyrinthNodeAction(nodeID: mysteryNodeID)
+        #expect(blocked != nil)
+        #expect(relaunched.activeMysteryEncounter == nil)
+        let unlockedCountAfterRelaunch = relaunched.roster.unlockedHeroIDs.count
+            + relaunched.roster.unlockedCompanionIDs.count
+        #expect(unlockedCountAfterRelaunch == unlockedCountAfterFirst)
+    }
+
     @Test func labyrinthShopDismissDoesNotClearNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         _ = state.enterLabyrinth()

@@ -47,6 +47,7 @@ public enum BattleCardCombatEngine {
             context: &context,
             spendMana: false
         )
+        discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
         if context.isBattleOver {
@@ -110,6 +111,7 @@ public enum BattleCardCombatEngine {
         }
 
         // Draw for next player turn
+        discardDefeatedOwnerCards(context: &context)
         drawCardsBalanced(heroCount: 1, companionCount: 1, context: &context)
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
@@ -230,9 +232,35 @@ public enum BattleCardCombatEngine {
         }
     }
 
+    /// Returns defeated-owner cards from hand/buffer to their decks so dead
+    /// companion/hero cards cannot permanently fill hand slots.
+    private static func discardDefeatedOwnerCards(context: inout BattleEngineContext) {
+        let survivingHand = context.hand.cards.filter { context.roster[$0.owner].isAlive }
+        for card in context.hand.cards where !context.roster[card.owner].isAlive {
+            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+        }
+        context.hand = BattleHand(cards: survivingHand)
+
+        var survivingBuffer = BattleHandBuffer()
+        for card in context.handBuffer.cards {
+            if context.roster[card.owner].isAlive {
+                survivingBuffer.enqueue(card)
+            } else {
+                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+            }
+        }
+        context.handBuffer = survivingBuffer
+    }
+
     /// Moves buffered cards into the hand in FIFO order until the hand is full.
+    /// Skips defeated-owner cards (defensive; callers also purge before promote).
     private static func promoteFromBuffer(context: inout BattleEngineContext) {
-        while !context.hand.isFull, let card = context.handBuffer.dequeue() {
+        while !context.hand.isFull {
+            guard let card = context.handBuffer.dequeue() else { return }
+            guard context.roster[card.owner].isAlive else {
+                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+                continue
+            }
             context.hand.append(card)
         }
     }

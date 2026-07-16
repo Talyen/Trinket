@@ -223,8 +223,16 @@ extension AppState {
                     save: &save,
                     using: &randomNumberGenerator
                 )
-                // Recruit unlocks reveal first; complete only after the player confirms.
-                guard applyResult.unlockedCombatantIDs.isEmpty else { return }
+                if !applyResult.unlockedCombatantIDs.isEmpty {
+                    // Journey recruits delay completion for the reveal ceremony; authored
+                    // reopen safety auto-completes if already unlocked. Labyrinth mystery
+                    // events are re-rolled from the unlocked roster, so complete the node
+                    // with the unlock to prevent kill/relaunch double-recruits.
+                    if session.labyrinthNodeID != nil {
+                        resultingJourney = completeMysteryProgress(session: session, save: &save)
+                    }
+                    return
+                }
                 // Choose-item presents candidates next; grant + complete on selection.
                 guard applyResult.chooseItemCandidates.isEmpty else { return }
                 resultingJourney = completeMysteryProgress(session: session, save: &save)
