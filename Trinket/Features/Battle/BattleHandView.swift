@@ -277,7 +277,9 @@ struct BattleAbilityCardView: View {
             .onDisappear {
                 onInteractionChanged(false)
             }
+            .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
+            .accessibilityLabel(card.ability.name)
     }
 
     private var activeOffset: CGSize {
@@ -455,6 +457,9 @@ struct BattleAbilityCardFace: View {
                 Image.preparedAsset(named: artworkName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    // UIImage-backed prepared art otherwise becomes multiple a11y hits
+                    // under the hand container identifier and breaks XCUITest queries.
+                    .accessibilityHidden(true)
             } else {
                 ZStack {
                     TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18)

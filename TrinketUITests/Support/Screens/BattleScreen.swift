@@ -4,7 +4,9 @@ struct BattleScreen {
     let app: XCUIApplication
 
     var hand: XCUIElement {
-        app.descendants(matching: .any)[AccessibilityID.Battle.hand]
+        app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.Battle.hand)
+            .firstMatch
     }
 
     var victory: XCUIElement {
@@ -35,7 +37,9 @@ struct BattleScreen {
         line: UInt = #line
     ) {
         // Active combat shows the hand; outcome screens show Victory chrome.
-        let handChrome = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
+        let handChrome = app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.Battle.hand)
+            .firstMatch
         if handChrome.waitForExistence(timeout: timeout) {
             return
         }
@@ -52,7 +56,9 @@ struct BattleScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        let handChrome = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
+        let handChrome = app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.Battle.hand)
+            .firstMatch
         XCTAssertTrue(
             handChrome.waitForExistence(timeout: timeout),
             "Battle hand chrome not found",

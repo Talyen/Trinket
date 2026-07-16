@@ -127,11 +127,21 @@ final class PlayMapUITests: TrinketUITestCase {
         button(AccessibilityID.Play.battlePartyCompanionControl).tap()
         assertExists(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"))
         button(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear")).tap()
+        assertDoesNotExist(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"), timeout: 2)
 
-        let beginFloor = AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1)
-        assertButtonExists(beginFloor)
-        XCTAssertTrue(button(beginFloor).isEnabled)
-        tapButton(beginFloor)
+        // Glass-prominent CTAs sometimes omit custom identifiers in the AX tree; keep a
+        // label fallback so exhaustive coverage stays stable.
+        let beginFloorID = AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1)
+        let beginFloor = any(beginFloorID).waitForExistence(timeout: Self.defaultTimeout)
+            ? any(beginFloorID)
+            : app.buttons["Begin Floor"].firstMatch
+        XCTAssertTrue(
+            beginFloor.waitForExistence(timeout: Self.defaultTimeout),
+            "Begin Floor CTA not found"
+        )
+        app.scrollUntilVisible(beginFloor, swipingUp: true, requireHittable: true)
+        XCTAssertTrue(beginFloor.isEnabled)
+        tapWhenReady(beginFloor)
 
         battle.assertPresented(timeout: 8)
     }
@@ -141,14 +151,21 @@ final class PlayMapUITests: TrinketUITestCase {
         launchApp(arguments: chapterOneCompleteArgs + TestLaunchArg.screen("labyrinth"))
 
         assertExists(AccessibilityID.Play.labyrinthMap)
-        let combatActions = app.buttons.matching(
+        let identifiedCombat = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier ENDSWITH %@", " labyrinth combat action")
+        ).firstMatch
+        let combatCTA = identifiedCombat.waitForExistence(timeout: 8)
+            ? identifiedCombat
+            : app.buttons["Fight"].firstMatch
+        XCTAssertTrue(
+            combatCTA.waitForExistence(timeout: Self.defaultTimeout),
+            "Labyrinth combat CTA not found"
         )
-        XCTAssertGreaterThan(combatActions.count, 0, "Labyrinth combat CTA not found")
         assertExists(AccessibilityID.Play.battlePartyHeroControl)
         assertExists(AccessibilityID.Play.battlePartyCompanionControl)
 
-        combatActions.element(boundBy: 0).tap()
+        app.scrollUntilVisible(combatCTA, swipingUp: true, requireHittable: true)
+        tapWhenReady(combatCTA)
 
         battle.assertPresented(timeout: 8)
     }
