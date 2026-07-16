@@ -105,9 +105,10 @@ struct BattleRosterTests {
 
     // MARK: - Defeat flags
 
-    @Test func isPartyDefeatedRequiresBothDown() throws {
+    @Test func defeatFlagsCoverPartyAndEnemy() throws {
         var roster = makeRoster()
         try #expect(!(roster.isPartyDefeated))
+        try #expect(!(roster.isEnemyDefeated))
 
         var hero = roster.hero
         hero.takeRawDamage(999)
@@ -118,11 +119,6 @@ struct BattleRosterTests {
         companion.takeRawDamage(999)
         roster.update(companion)
         try #expect(roster.isPartyDefeated)
-    }
-
-    @Test func isEnemyDefeated() throws {
-        var roster = makeRoster()
-        try #expect(!(roster.isEnemyDefeated))
 
         var enemy = roster.enemy
         enemy.takeRawDamage(999)

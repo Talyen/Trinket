@@ -78,12 +78,11 @@ struct JourneyMapPresentationTests {
         #expect(gateChapter.number == 2)
     }
 
-    @Test func completedChapterScrollsToLastStageWhileAwaitingAdvance() {
+    @Test func scrollTargetStaysOnClearedChapterUntilAdvance() {
         var progress = JourneyProgressState.initial
-        progress.completedStageIDs = Set(chapter.stages.map(\.id))
-        progress.activeStageID = nil
-        progress.activeChapterID = chapter.id
-        progress.lastCompletedStageID = chapter.stages.last?.id
+        for stage in chapter.stages {
+            progress.complete(stage, in: GameContent.chapters)
+        }
 
         let rows = JourneyMapPresentation.chapterRows(
             chapters: GameContent.chapters,
@@ -96,6 +95,7 @@ struct JourneyMapPresentationTests {
             chapters: GameContent.chapters
         )
 
+        #expect(progress.activeStageID == nil)
         #expect(scrollTargetID == chapter.stages.last?.id)
         #expect(rows.contains { row in
             if case let .chapterGate(gate) = row {
@@ -103,22 +103,6 @@ struct JourneyMapPresentationTests {
             }
             return false
         })
-    }
-
-    @Test func scrollTargetStaysOnClearedChapterUntilAdvance() {
-        var progress = JourneyProgressState.initial
-        for stage in chapter.stages {
-            progress.complete(stage, in: GameContent.chapters)
-        }
-
-        let scrollTargetID = JourneyMapPresentation.scrollFocusID(
-            for: progress,
-            chapter: chapter,
-            chapters: GameContent.chapters
-        )
-
-        #expect(progress.activeStageID == nil)
-        #expect(scrollTargetID == "chapter-1-stage-5")
 
         let advanced = progress.advanceToNextChapter()
         #expect(advanced)

@@ -45,13 +45,6 @@ struct AppStateSessionPersistenceTests {
         #expect(try makeState().selectedTab == .play)
     }
 
-    @Test func mapScrollStageIDPersistsOnChange() throws {
-        let state = try makeState()
-        state.mapScrollStageID = "chapter-3-gate"
-
-        #expect(try makeState().mapScrollStageID == "chapter-3-gate")
-    }
-
     @Test func noteMapScrollFocusPersistsPublishesAndBumpsRevision() throws {
         let state = try makeState()
 
@@ -64,5 +57,9 @@ struct AppStateSessionPersistenceTests {
         state.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.mapScrollFocus == MapScrollFocus(stageID: "chapter-1-stage-2", revision: 2))
+
+        // Direct setter shares the same persistence write-through.
+        state.mapScrollStageID = "chapter-3-gate"
+        #expect(try makeState().mapScrollStageID == "chapter-3-gate")
     }
 }

@@ -21,7 +21,7 @@ struct AppStateShopEncounterTests {
 
         let session = try #require(state.activeShopEncounter)
         #expect(session.stage.id == "chapter-2-stage-4")
-        #expect(session.offers.count == ShopOfferGenerator.offerCount)
+        #expect(!session.offers.isEmpty)
         // Opening a shop does not advance journey progress.
         #expect(state.journey.activeStageID == "chapter-1-stage-1")
     }

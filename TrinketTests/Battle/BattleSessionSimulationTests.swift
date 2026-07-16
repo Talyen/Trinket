@@ -173,24 +173,11 @@ struct BattleSessionSimulationTests {
             stagger: 0
         )
         let item = try #require(session.activeFeedbackItems.first)
+        session.pruneExpiredFeedback(at: item.availableAt)
+        #expect(session.activeFeedbackItems.contains { $0.id == item.id })
         session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.01))
         #expect(session.activeFeedbackItems.isEmpty)
         #expect(session.feedbackEventRecordedAt.isEmpty)
-    }
-
-    @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
-
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
-        let item = try #require(session.activeFeedbackItems.first)
-        let now = item.availableAt
-
-        session.pruneExpiredFeedback(at: now)
-        #expect(session.activeFeedbackItems.contains { $0.id == item.id })
-
-        session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.1))
-        #expect(session.activeFeedbackItems.allSatisfy { $0.id != item.id })
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {

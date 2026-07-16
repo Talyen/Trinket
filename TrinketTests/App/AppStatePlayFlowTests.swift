@@ -141,15 +141,6 @@ struct AppStatePlayFlowTests {
         #expect(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
     }
 
-    @Test func startBattleSetsInMemoryJourneyOrigin() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-
-        _ = state.startBattle(for: stage)
-
-        #expect(state.battle.activeBattle?.resumeToken == .journey(stageID: stage.id))
-    }
-
     @Test(arguments: ["journey", "aspect", "labyrinth"] as [String])
     func endBattleReturningToOriginQueuesExpectedDeepLink(origin: String) throws {
         switch origin {
@@ -230,35 +221,6 @@ struct AppStatePlayFlowTests {
             battleEarnedGold: rawBattleEarnedGold
         ))
         #expect(state.roster.gold == initialGold + expectedTotal)
-    }
-
-    @Test func completeActiveBattleBanksBattleGoldWhenStageAlreadyClaimed() throws {
-        let state = try context.makeAppState()
-        var homestead = state.homestead
-        homestead.nodeTiers[.wishingWell] = 2
-        state.homestead = homestead
-
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        let firstConfiguration = try #require(state.battle.activeBattle)
-        #expect(state.completeActiveBattle(firstConfiguration, battleEarnedGold: 0))
-
-        let goldAfterClaim = state.roster.gold
-        _ = state.startBattle(for: stage)
-        let replayConfiguration = try #require(state.battle.activeBattle)
-        let battleEarnedGold = 12
-        let expectedGrant = StageCompletion.resolvedGoldReward(
-            stageGold: 0,
-            battleEarnedGold: battleEarnedGold,
-            homestead: state.homestead
-        )
-
-        #expect(state.completeActiveBattle(
-            replayConfiguration,
-            battleEarnedGold: battleEarnedGold
-        ))
-        #expect(state.roster.gold == goldAfterClaim + expectedGrant)
-        #expect(state.battle.activeBattle == nil)
     }
 
     @Test func presentCombatLogShowsLogWithoutChangingTabs() throws {

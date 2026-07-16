@@ -4,21 +4,22 @@ import Testing
 struct AppEnvironmentTests {
     private static let emptyEnvironment: [String: String] = [:]
 
-    @Test(arguments: AppTab.allCases)
-    func selectedTabParsesKnownTabs(tab: AppTab) {
-        let env = Self.parse(arguments: ["-selectedTab", tab.rawValue])
-        #expect(env.launchTab == tab)
-    }
+    private static let selectedTabCases: [(String, AppTab?)] =
+        AppTab.allCases.map { ($0.rawValue, $0) } + [
+            ("heroes", .collection),
+            ("companions", .collection),
+            ("inventory", .collection),
+            ("search", .collection),
+            ("Heroes", .collection),
+            ("COMPANIONS", .collection),
+            ("SEARCH", .collection),
+            ("not-a-tab", nil)
+        ]
 
-    @Test(arguments: ["heroes", "companions", "inventory", "search", "Heroes", "COMPANIONS", "SEARCH"])
-    func collectionTabAliasesMapToCollection(alias: String) {
-        let env = Self.parse(arguments: ["-selectedTab", alias])
-        #expect(env.launchTab == .collection, "Expected alias '\(alias)' to map to collection")
-    }
-
-    @Test func invalidSelectedTabReturnsNil() {
-        let env = Self.parse(arguments: ["-selectedTab", "not-a-tab"])
-        #expect(env.launchTab == nil)
+    @Test(arguments: selectedTabCases)
+    func selectedTabParsesKnownTabsAliasesAndInvalidInput(rawValue: String, expected: AppTab?) {
+        let env = Self.parse(arguments: ["-selectedTab", rawValue])
+        #expect(env.launchTab == expected)
     }
 
     @Test func launchScreenParsingCoversDetailsModesAndBoundaries() {

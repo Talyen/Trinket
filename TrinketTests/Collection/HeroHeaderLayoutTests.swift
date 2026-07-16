@@ -3,9 +3,9 @@ import Testing
 @testable import Trinket
 
 struct HeroHeaderLayoutTests {
-    // MARK: - Header height (3:4 of width, minimum 300)
+    // MARK: - Header height policies
 
-    @Test func headerHeightUsesThreeToFourAspectWithMinimumFloor() {
+    @Test func headerHeightsCoverAspectFloorAndCinematicDensity() {
         #expect(HeroHeaderLayout.headerHeight(forWidth: 100) == 300)
         #expect(HeroHeaderLayout.headerHeight(forWidth: 225) == 300)
 
@@ -16,9 +16,7 @@ struct HeroHeaderLayoutTests {
         let aspectWidth: CGFloat = 390
         let aspectHeight = HeroHeaderLayout.headerHeight(forWidth: aspectWidth)
         #expect(abs(aspectHeight / aspectWidth - (4.0 / 3.0)) < 0.001)
-    }
 
-    @Test func cinematicHeightIsDenserThanStandardAndClamped() {
         let narrow = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 320)
         let mid = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 390)
         let wide = HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 500)
