@@ -128,7 +128,9 @@ struct DamagePipelineTests {
         try #expect(outcome.healthLost == 2)
         try #expect(context.roster.health(for: hero) == healthBefore - 2)
         let shield = context.roster.activeEffects(for: hero).first {
-            if case .shield = $0.effect { return true }
+            if case .shield = $0.effect {
+                return true
+            }
             return false
         }
         guard case let .shield(_, buffer) = shield?.effect else {
