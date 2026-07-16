@@ -160,7 +160,7 @@ struct StageMapMetaLine: View {
     var showsEncounterIcon = false
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             Text(stage.mapLabel)
             Text("·")
 

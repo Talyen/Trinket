@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct VolumeOptionRow: View {
     let title: String
@@ -25,7 +26,7 @@ struct VolumeOptionRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             HStack {
                 Label {
                     Text(title)

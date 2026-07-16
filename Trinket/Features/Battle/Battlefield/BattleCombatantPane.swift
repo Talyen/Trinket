@@ -36,9 +36,9 @@ struct BattleCombatantPane: View {
                     KeywordBurstLayer(requests: keywordBursts)
 
                     CombatFeedbackOverlay(items: items)
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, resourceBarsReservedHeight + 8)
-                        .padding(.top, 8)
+                        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
+                        .padding(.bottom, resourceBarsReservedHeight + TrinketDesign.Metrics.smallSpacing)
+                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
 
                     if let skillCallout {
                         SkillCalloutView(callout: skillCallout)

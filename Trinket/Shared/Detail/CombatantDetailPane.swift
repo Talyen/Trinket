@@ -123,7 +123,7 @@ struct CombatantDetailPane: View {
                     allowsEditing: allowsEditing,
                     onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil
                 )
-                .padding(.vertical, 4)
+                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
             }
 
             DetailSection("Items") {
@@ -133,7 +133,7 @@ struct CombatantDetailPane: View {
                     inventoryState: inventoryState,
                     onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
                 )
-                .padding(.vertical, 4)
+                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
             }
         }
         // Sub-picker navigation — declared here so they land at the root of whichever

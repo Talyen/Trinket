@@ -39,7 +39,7 @@ struct SkillCalloutView: View {
         let ability = AbilityCatalog.ability(id: callout.abilityID)
         let style = callout.keyword.visualStyle
 
-        return VStack(spacing: 4) {
+        return VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {

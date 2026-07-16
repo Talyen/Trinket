@@ -28,7 +28,7 @@ struct EmptyAbilitySlotCard: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
     }
@@ -68,7 +68,7 @@ struct EmptyItemSlotCard: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
     }

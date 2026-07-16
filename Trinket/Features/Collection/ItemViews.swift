@@ -212,7 +212,7 @@ struct ItemDetailView: View {
                 .disabled(!canAfford || isPurchaseDisabled)
                 .accessibilityIdentifier(AccessibilityID.Shop.detailBuyButton)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, 12)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
             }
         }
     }
