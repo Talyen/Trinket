@@ -111,6 +111,52 @@ struct MysteryEventCatalogTests {
         try #expect(GameContent.branchingMysteryEvents.contains(unlockedPick))
     }
 
+    @Test func resolveMysteryEncounterEventKeepsAuthoredRecruitAuthoritative() throws {
+        let recruit = try #require(RecruitMysteryEventPool.event(matching: "recruit-bear"))
+        var rng = SeededRandomNumberGenerator(seed: 11)
+
+        let present = GameContent.resolveMysteryEncounterEvent(
+            authored: recruit,
+            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
+            using: &rng
+        )
+        try #expect(present == recruit)
+
+        let unavailable = GameContent.resolveMysteryEncounterEvent(
+            authored: recruit,
+            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"],
+            using: &rng
+        )
+        try #expect(unavailable == nil)
+    }
+
+    @Test func resolveMysteryEncounterEventPicksEligibleWhenUnauthored() throws {
+        var lockedRNG = SeededRandomNumberGenerator(seed: 19)
+        let lockedPick = try #require(
+            GameContent.resolveMysteryEncounterEvent(
+                authored: nil,
+                unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+                unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
+                using: &lockedRNG
+            )
+        )
+        try #expect(lockedPick.isRecruit)
+
+        var unlockedRNG = SeededRandomNumberGenerator(seed: 23)
+        let unlockedPick = try #require(
+            GameContent.resolveMysteryEncounterEvent(
+                authored: nil,
+                unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+                unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
+                using: &unlockedRNG
+            )
+        )
+        try #expect(!unlockedPick.isRecruit)
+        try #expect(GameContent.branchingMysteryEvents.contains(unlockedPick))
+    }
+
     @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
         let knownBaseIDs = Set(GameContent.itemBaseTypes.map(\.id))
         for event in GameContent.mysteryEvents {

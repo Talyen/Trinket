@@ -144,8 +144,10 @@ extension AppState {
             var randomNumberGenerator = SeededRandomNumberGenerator(
                 seed: GameContent.stableSeed(for: "labyrinth-mystery-\(labyrinthNodeID)")
             )
-            guard let picked = pickMysteryEvent(
+            guard let picked = GameContent.resolveMysteryEncounterEvent(
                 authored: nil,
+                unlockedHeroIDs: roster.unlockedHeroIDs,
+                unlockedCompanionIDs: roster.unlockedCompanionIDs,
                 using: &randomNumberGenerator
             ) else {
                 return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
@@ -156,26 +158,16 @@ extension AppState {
                 encounter: .mysteryEvent(eventID: event.id)
             )
         } else if let stage {
-            // Authored stage and forced events are authoritative; only fallback picks may substitute duplicates.
-            var pickRNG = SystemRandomNumberGenerator()
-            let authoredEvent = forcedEventID.flatMap { RecruitMysteryEventPool.event(matching: $0) }
+            let authoredEvent = forcedEventID.flatMap { GameContent.mysteryEvent(matching: $0) }
                 ?? stage.mysteryEvent
-            var picked = authoredEvent
-                ?? GameContent.pickEligibleMysteryEvent(
-                    unlockedHeroIDs: roster.unlockedHeroIDs,
-                    unlockedCompanionIDs: roster.unlockedCompanionIDs,
-                    using: &pickRNG
-                )
-            if let authoredEvent {
-                if let combatantID = authoredEvent.unlockCombatantID,
-                   roster.isCombatantUnlocked(id: combatantID) {
-                    return completeStageOrPersistFailure(stage)
-                }
-            } else {
-                var substituteRNG = SystemRandomNumberGenerator()
-                guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
-                    return completeStageOrPersistFailure(stage)
-                }
+            var pickRNG = SystemRandomNumberGenerator()
+            guard let picked = GameContent.resolveMysteryEncounterEvent(
+                authored: authoredEvent,
+                unlockedHeroIDs: roster.unlockedHeroIDs,
+                unlockedCompanionIDs: roster.unlockedCompanionIDs,
+                using: &pickRNG
+            ) else {
+                return completeStageOrPersistFailure(stage)
             }
             event = picked
             sessionStage = stage
@@ -372,41 +364,5 @@ extension AppState {
             encounter: encounter,
             rewards: .empty
         )
-    }
-
-    private func pickMysteryEvent(
-        authored: MysteryEvent?,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> MysteryEvent? {
-        var event = authored ?? GameContent.pickEligibleMysteryEvent(
-            unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs,
-            using: &randomNumberGenerator
-        )
-        guard resolveRecruitSubstitution(event: &event, using: &randomNumberGenerator) else {
-            return nil
-        }
-        return event
-    }
-
-    /// Returns `false` when the recruit is already unlocked and no substitute remains.
-    private func resolveRecruitSubstitution(
-        event: inout MysteryEvent,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> Bool {
-        guard let combatantID = event.unlockCombatantID,
-              roster.isCombatantUnlocked(id: combatantID)
-        else {
-            return true
-        }
-        let eligible = RecruitMysteryEventPool.eligible(
-            unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs
-        ).filter { $0.id != event.id }
-        guard let substitute = eligible.randomElement(using: &randomNumberGenerator) else {
-            return false
-        }
-        event = substitute
-        return true
     }
 }
