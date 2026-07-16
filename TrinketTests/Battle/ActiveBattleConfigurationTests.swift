@@ -97,16 +97,6 @@ struct ActiveBattleConfigurationTests {
         #expect(configuration.rewardItems[0].affixes == pendingItem.affixes)
     }
 
-    @Test func resolvedEncounterScalesEnemyToJourneyLevel() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
-        let chapter = try #require(GameContent.chapters.first { $0.id == stage.chapterID })
-        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-
-        #expect(encounter.level == expectedLevel)
-        #expect(encounter.combatant.id == stage.encounter.battleEnemyID)
-    }
-
     @Test func makePreservesJourneyScaledEnemyStats() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter {
@@ -117,7 +107,10 @@ struct ActiveBattleConfigurationTests {
         }
         let stage = try #require(battleStages.last)
         let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        #expect(encounter.level == expectedLevel)
         #expect(encounter.level > 1)
+        #expect(encounter.combatant.id == stage.encounter.battleEnemyID)
 
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })

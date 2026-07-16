@@ -4,9 +4,18 @@ import TrinketDesignSystem
 @testable import Trinket
 
 struct BattleCardGridLayoutTests {
-    @Test func compactScreensScaleWithoutNegativeSizes() {
-        let containerSize = CGSize(width: 320, height: 410)
+    @Test(arguments: [
+        CGSize(width: 320, height: 410),
+        CGSize(width: 320, height: 40)
+    ])
+    func compactAndVeryShortScreensKeepNonNegativeCardSizes(containerSize: CGSize) {
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
+
+        if containerSize.height <= 40 {
+            #expect(metrics.partySize == .zero)
+            #expect(metrics.enemySize == .zero)
+            return
+        }
 
         #expect(metrics.handReservedHeight == BattleCardGridLayout.handReservedHeight)
         #expect(metrics.enemySize.width <= containerSize.width * BattleCardGridLayout.combatantScale + 0.001)
@@ -15,13 +24,6 @@ struct BattleCardGridLayoutTests {
         #expect(metrics.partySize.width >= 0)
         #expect(metrics.partySize.height >= 0)
         assertRelationships(metrics, in: containerSize)
-    }
-
-    @Test func veryShortScreensKeepNonNegativeCardSizes() {
-        let metrics = BattleCardGridLayout.metrics(in: CGSize(width: 320, height: 40))
-
-        #expect(metrics.partySize == .zero)
-        #expect(metrics.enemySize == .zero)
     }
 
     private func assertRelationships(
@@ -260,5 +262,4 @@ struct BattleHandLayoutTests {
             translation: CGSize(width: 5, height: -5)
         ))
     }
-
 }

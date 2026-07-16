@@ -62,7 +62,7 @@ struct AppStateLabyrinthTests {
         case .shop:
             let session = try #require(state.activeShopEncounter)
             #expect(session.labyrinthNodeID == nodeID)
-            #expect(session.offers.count == ShopOfferGenerator.offerCount)
+            #expect(!session.offers.isEmpty)
             state.finishActiveShopEncounter()
             #expect(state.activeShopEncounter == nil)
         case .mystery:

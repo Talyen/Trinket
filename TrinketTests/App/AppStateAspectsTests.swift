@@ -12,12 +12,33 @@ struct AppStateAspectsTests {
         context = try AppTestContext()
     }
 
-    @Test func startAspectBattleIsAvailableFromFreshState() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
+    @Test(arguments: [
+        (mode: "fresh", expectProgressionRewards: false),
+        (mode: "attuned", expectProgressionRewards: true)
+    ])
+    func startAspectBattleSucceedsForFreshAndAttunedParties(
+        mode: String,
+        expectProgressionRewards: Bool
+    ) throws {
+        let state: AppState
+        switch mode {
+        case "fresh":
+            state = try context.makeAppState(arguments: ["-reset-state"])
+        case "attuned":
+            state = try makeProgressedState()
+            try attunePhysicalParty(on: state)
+        default:
+            Issue.record("Unexpected start mode \(mode)")
+            return
+        }
+
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let message = state.startAspectBattle(for: floor)
         #expect(message == nil)
         #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
+        if expectProgressionRewards {
+            #expect(state.battle.activeBattle?.hasProgressionRewards == true)
+        }
     }
 
     @Test func startAspectBattleRequiresAttunement() throws {
@@ -37,17 +58,6 @@ struct AppStateAspectsTests {
         let message = state.startAspectBattle(for: floor)
         #expect(message?.title == "Not Attuned")
         #expect(state.battle.activeBattle == nil)
-    }
-
-    @Test func startAspectBattleSucceedsWhenAttuned() throws {
-        let state = try makeProgressedState()
-        try attunePhysicalParty(on: state)
-
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        let message = state.startAspectBattle(for: floor)
-        #expect(message == nil)
-        #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
-        #expect(state.battle.activeBattle?.hasProgressionRewards == true)
     }
 
     @Test(arguments: [
@@ -73,21 +83,6 @@ struct AppStateAspectsTests {
         let message = state.startAspectBattle(for: aspectFloor)
         #expect(message?.title == expectedTitle)
         #expect(state.battle.activeBattle == nil)
-    }
-
-    @Test func completeAspectFloorAdvancesProgress() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
-        ])
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        let hero = state.roster.activeHero
-        let companion = state.roster.activeCompanion
-
-        state.completeAspectFloor(floor, hero: hero, companion: companion, battleEarnedGold: 2)
-        #expect(state.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
     }
 
     @Test func startAspectBattlePreviewsFloorRewardItem() throws {

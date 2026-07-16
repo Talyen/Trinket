@@ -150,21 +150,24 @@ struct AppStateTests {
         #expect(state.inventory == .testSeed)
     }
 
-    @Test func completedStagesAdvanceJourneyAndMarkRewardsClaimed() throws {
+    @Test(arguments: [
+        (stageIDs: "chapter-1-stage-1", known: true),
+        (stageIDs: "missing-stage", known: false)
+    ])
+    func completedStagesLaunchArgAdvancesKnownIDsAndIgnoresUnknown(
+        stageIDs: String,
+        known: Bool
+    ) throws {
         let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-completed-stages", "chapter-1-stage-1"])
+            environment: context.makeEnvironment(arguments: ["-completed-stages", stageIDs])
         )
 
-        #expect(state.journey.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
-    }
-
-    @Test func unknownCompletedStageIDsAreIgnored() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-completed-stages", "missing-stage"])
-        )
-
-        #expect(state.journey == .initial)
+        if known {
+            #expect(state.journey.activeStageID == "chapter-1-stage-2")
+            #expect(state.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
+        } else {
+            #expect(state.journey == .initial)
+        }
     }
 
     @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() throws {
