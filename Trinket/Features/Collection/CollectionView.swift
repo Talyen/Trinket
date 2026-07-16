@@ -154,7 +154,7 @@ struct CollectionView: View {
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
             Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
+                .trinketTypography(.footnote)
                 .foregroundStyle(.secondary)
             Spacer()
         }

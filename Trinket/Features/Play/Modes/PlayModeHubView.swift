@@ -151,7 +151,7 @@ private struct PlayModeArtworkCard: View {
                     HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
                         if let symbolName = mode.symbolName {
                             Image(systemName: symbolName)
-                                .font(.caption.weight(.bold))
+                                .trinketTypography(.eyebrow)
                         }
 
                         Text(subtitle)

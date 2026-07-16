@@ -114,7 +114,7 @@ struct CurrentStageCard: View {
             isPartyPickerPresented = true
         } label: {
             Image(systemName: "person.2.fill")
-                .font(.body.weight(.semibold))
+                .trinketTypography(.button)
                 .foregroundStyle(.primary)
                 // UIStyleCheck: allow - Compact party icon beside the primary CTA without chip chrome.
                 .frame(minWidth: 44, minHeight: 44)

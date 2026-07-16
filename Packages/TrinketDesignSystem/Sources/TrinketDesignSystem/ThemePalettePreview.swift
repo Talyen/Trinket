@@ -61,7 +61,7 @@ private struct ThemePaletteGallery: View {
                 ForEach(semanticColors, id: \.0) { name, color in
                     HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                         Circle().fill(color).frame(width: 22, height: 22)
-                        Text(name).font(.caption)
+                        Text(name).trinketTypography(.caption)
                         Spacer(minLength: 0)
                     }
                 }

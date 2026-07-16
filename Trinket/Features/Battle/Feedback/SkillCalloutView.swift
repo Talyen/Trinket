@@ -53,7 +53,7 @@ struct SkillCalloutView: View {
                             TrinketDesign.cardShape
                                 .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.22))
                             Image(systemName: callout.keyword.visualStyle.symbolName)
-                                .font(.title2.weight(.semibold))
+                                .trinketTypography(.sectionTitle)
                                 .foregroundStyle(style.color)
                         }
                     }
