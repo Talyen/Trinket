@@ -73,21 +73,13 @@ public struct AbilityChoices: Hashable, Sendable {
             ultimate: ultimates.first
         )
         let selectedLoadout = selected ?? defaultLoadout
-        if fillsMissingSelections {
-            self.selected = AbilityChoices.resolvedLoadout(
-                selectedLoadout,
-                basics: basics,
-                skills: skills,
-                ultimates: ultimates
-            )
-        } else {
-            self.selected = AbilityChoices.resolvedLoadoutPreservingEmptyTiers(
-                selectedLoadout,
-                basics: basics,
-                skills: skills,
-                ultimates: ultimates
-            )
-        }
+        self.selected = AbilityChoices.resolvedLoadout(
+            selectedLoadout,
+            basics: basics,
+            skills: skills,
+            ultimates: ultimates,
+            fillsMissingSelections: fillsMissingSelections
+        )
     }
 
     public init(abilities: [Ability]) {
@@ -132,38 +124,24 @@ public struct AbilityChoices: Hashable, Sendable {
         _ loadout: AbilityLoadout,
         basics: [Ability],
         skills: [Ability],
-        ultimates: [Ability]
+        ultimates: [Ability],
+        fillsMissingSelections: Bool
     ) -> AbilityLoadout {
         AbilityLoadout(
-            basic: selectedAbility(loadout.basic, in: basics),
-            skill: selectedAbility(loadout.skill, in: skills),
-            ultimate: selectedAbility(loadout.ultimate, in: ultimates)
+            basic: selectedAbility(loadout.basic, in: basics, fillIfMissing: fillsMissingSelections),
+            skill: selectedAbility(loadout.skill, in: skills, fillIfMissing: fillsMissingSelections),
+            ultimate: selectedAbility(loadout.ultimate, in: ultimates, fillIfMissing: fillsMissingSelections)
         )
     }
 
-    private static func resolvedLoadoutPreservingEmptyTiers(
-        _ loadout: AbilityLoadout,
-        basics: [Ability],
-        skills: [Ability],
-        ultimates: [Ability]
-    ) -> AbilityLoadout {
-        AbilityLoadout(
-            basic: selectedAbilityIfPresent(loadout.basic, in: basics),
-            skill: selectedAbilityIfPresent(loadout.skill, in: skills),
-            ultimate: selectedAbilityIfPresent(loadout.ultimate, in: ultimates)
-        )
-    }
-
-    private static func selectedAbility(_ ability: Ability?, in choices: [Ability]) -> Ability? {
+    private static func selectedAbility(
+        _ ability: Ability?,
+        in choices: [Ability],
+        fillIfMissing: Bool
+    ) -> Ability? {
         guard let ability else {
-            return choices.first
+            return fillIfMissing ? choices.first : nil
         }
-
-        return choices.first { $0.id == ability.id } ?? choices.first
-    }
-
-    private static func selectedAbilityIfPresent(_ ability: Ability?, in choices: [Ability]) -> Ability? {
-        guard let ability else { return nil }
         return choices.first { $0.id == ability.id } ?? choices.first
     }
 }

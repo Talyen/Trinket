@@ -16,10 +16,7 @@ public enum EffectPresentation {
         if let phrase = restorationPhrase(for: effect) {
             return phrase
         }
-        if let phrase = cleansePhrase(for: effect) {
-            return phrase
-        }
-        if let phrase = purgePhrase(for: effect) {
+        if let phrase = cleanseOrPurgePhrase(for: effect) {
             return phrase
         }
         if let phrase = mitigationPhrase(for: effect) {
@@ -149,7 +146,7 @@ public enum EffectPresentation {
         }
     }
 
-    private static func cleansePhrase(for effect: Effect) -> String? {
+    private static func cleanseOrPurgePhrase(for effect: Effect) -> String? {
         switch effect {
         case let .cleanse(keyword?):
             "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
@@ -157,13 +154,6 @@ public enum EffectPresentation {
             "cleanse all debuffs"
         case .cleanseRandom:
             "cleanse a random debuff"
-        default:
-            nil
-        }
-    }
-
-    private static func purgePhrase(for effect: Effect) -> String? {
-        switch effect {
         case let .purge(keyword?):
             "purge \(keyword.rawValue)"
         case .purge(nil):

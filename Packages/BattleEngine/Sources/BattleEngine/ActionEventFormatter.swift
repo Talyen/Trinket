@@ -89,9 +89,19 @@ public enum ActionEventFormatter {
         case .controlActionSkipped, .controlApplied, .controlTriggered:
             controlDisplay(for: effectKind, event: event)
         case .cleanseApplied:
-            cleanseDisplay(for: event)
+            ActionEventDisplay(
+                emphasis: .cleanse,
+                keyword: event.keyword,
+                text: "Cleanse \(event.keyword.statusAlias ?? event.keyword.rawValue)",
+                secondaryText: nil
+            )
         case .purgeApplied:
-            purgeDisplay(for: event)
+            ActionEventDisplay(
+                emphasis: .purge,
+                keyword: event.keyword,
+                text: "Purge \(event.keyword.rawValue)",
+                secondaryText: nil
+            )
         case .leechApplied:
             leechAppliedDisplay(for: event)
         case .mitigationHalved:
@@ -179,24 +189,6 @@ public enum ActionEventFormatter {
                 secondaryText: nil
             )
         }
-    }
-
-    private static func cleanseDisplay(for event: ActionEvent) -> ActionEventDisplay {
-        ActionEventDisplay(
-            emphasis: .cleanse,
-            keyword: event.keyword,
-            text: "Cleanse \(event.keyword.statusAlias ?? event.keyword.rawValue)",
-            secondaryText: nil
-        )
-    }
-
-    private static func purgeDisplay(for event: ActionEvent) -> ActionEventDisplay {
-        ActionEventDisplay(
-            emphasis: .purge,
-            keyword: event.keyword,
-            text: "Purge \(event.keyword.rawValue)",
-            secondaryText: nil
-        )
     }
 
     private static func leechAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {
