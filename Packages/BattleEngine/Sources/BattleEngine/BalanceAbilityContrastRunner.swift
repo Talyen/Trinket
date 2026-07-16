@@ -80,19 +80,11 @@ enum BalanceAbilityContrastRunner {
             pairSeed: pairSeed,
             using: &rng
         )
-        return (
-            BattleSimulator.run(
-                matchup: setup.withEntity,
-                policy: policy,
-                maxRounds: context.config.maxRounds,
-                maxActions: context.config.maxActions
-            ).isVictory,
-            BattleSimulator.run(
-                matchup: setup.withBaseline,
-                policy: policy,
-                maxRounds: context.config.maxRounds,
-                maxActions: context.config.maxActions
-            ).isVictory
+        return BalanceContrastSupport.runEntityBaselinePair(
+            matchups: setup,
+            policy: policy,
+            maxRounds: context.config.maxRounds,
+            maxActions: context.config.maxActions
         )
     }
 

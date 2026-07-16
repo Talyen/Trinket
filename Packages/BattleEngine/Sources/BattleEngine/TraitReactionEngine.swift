@@ -9,7 +9,48 @@ package enum TraitReactionEngine {
         target: Combatant,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
-        let amount = context.modifiers(for: source.id).cleanseBonusHeal
+        resolveBonusHeal(
+            amount: context.modifiers(for: source.id).cleanseBonusHeal,
+            source: source,
+            target: target,
+            in: &context
+        )
+    }
+
+    package static func healSelfAfterGoldGain(
+        source: Combatant,
+        in context: inout BattleEngineContext
+    ) -> CombatOutcome {
+        resolveBonusHeal(
+            amount: context.modifiers(for: source.id).gainGoldBonusHealSelf,
+            source: source,
+            target: source,
+            in: &context
+        )
+    }
+
+    package static func healHeroAfterRestore(
+        source: Combatant,
+        hero: Combatant,
+        in context: inout BattleEngineContext
+    ) -> CombatOutcome {
+        guard source.id != hero.id else { return .empty }
+        return resolveBonusHeal(
+            amount: context.modifiers(for: source.id).restoreHealthAlsoHealHero,
+            source: source,
+            target: hero,
+            in: &context,
+            suppressTraitReactions: true
+        )
+    }
+
+    private static func resolveBonusHeal(
+        amount: Int,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleEngineContext,
+        suppressTraitReactions: Bool = false
+    ) -> CombatOutcome {
         guard amount > 0 else { return .empty }
         return HealingEngine.resolveHeal(
             HealRequest(
@@ -21,53 +62,8 @@ package enum TraitReactionEngine {
                     abilityName: source.traitDisplayName(in: context),
                     keyword: .health,
                     displayAmount: amount
-                )
-            ),
-            in: &context
-        )
-    }
-
-    package static func healSelfAfterGoldGain(
-        source: Combatant,
-        in context: inout BattleEngineContext
-    ) -> CombatOutcome {
-        let amount = context.modifiers(for: source.id).gainGoldBonusHealSelf
-        guard amount > 0 else { return .empty }
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: amount,
-                target: source,
-                sourceActorID: source.id,
-                logAs: .instantHeal(
-                    actorName: source.name,
-                    abilityName: source.traitDisplayName(in: context),
-                    keyword: .health,
-                    displayAmount: amount
-                )
-            ),
-            in: &context
-        )
-    }
-
-    package static func healHeroAfterRestore(
-        source: Combatant,
-        hero: Combatant,
-        in context: inout BattleEngineContext
-    ) -> CombatOutcome {
-        let amount = context.modifiers(for: source.id).restoreHealthAlsoHealHero
-        guard amount > 0, source.id != hero.id else { return .empty }
-        return HealingEngine.resolveHeal(
-            HealRequest(
-                amount: amount,
-                target: hero,
-                sourceActorID: source.id,
-                logAs: .instantHeal(
-                    actorName: source.name,
-                    abilityName: source.traitDisplayName(in: context),
-                    keyword: .health,
-                    displayAmount: amount
                 ),
-                suppressTraitReactions: true
+                suppressTraitReactions: suppressTraitReactions
             ),
             in: &context
         )
