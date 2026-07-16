@@ -265,6 +265,22 @@ struct CombatPipelineTests {
         try #expect(remainingBuffer == 10, "5 damage crit to 10 should consume 10 shield")
     }
 
+    @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {
+        let armor = ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 6)
+        // Seed whose first crit roll is in the 0.75...1.0 band that the soft cap
+        // would reject — guaranteed path must still crit.
+        var context = makeContext(targetEffects: [armor], seed: 1)
+        let (_, events) = context.applyTestDamage(
+            5,
+            to: context.roster.enemy.combatant,
+            keyword: .holy,
+            sourceActorID: "source",
+            applyDodge: false,
+            guaranteedCriticalIfEnemyBuffed: true
+        )
+        try #expect(events.contains { $0.effectKind == .criticalApplied })
+    }
+
     // MARK: - Pipeline ordering
 
     @Test func thornsRetaliationDoesNotRecurse() throws {

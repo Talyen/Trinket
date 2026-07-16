@@ -65,14 +65,25 @@ package extension DamagePipeline {
             }
         }
 
+        // Guaranteed crits bypass the 0.75 soft cap and the RNG roll so
+        // "always Criticals if the enemy has a buff" is actually always.
         if state.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
-            chance = 1.0
+            applyCritical(to: &state, actor: actor, damageKeyword: damageKeyword, context: &context)
+            return
         }
 
         chance = min(0.75, chance)
         guard Double.random(in: 0 ... 1, using: &context.rng) < chance else { return }
+        applyCritical(to: &state, actor: actor, damageKeyword: damageKeyword, context: &context)
+    }
 
+    private static func applyCritical(
+        to state: inout DamageResolutionState,
+        actor: CombatantRuntime,
+        damageKeyword: Keyword,
+        context: inout BattleEngineContext
+    ) {
         state.isCritical = true
         state.damageEvents.append(context.nextEvent(
             kind: .effect,

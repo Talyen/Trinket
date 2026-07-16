@@ -13,7 +13,8 @@ extension BattleEngineContext {
         applyItemBonus: Bool = true,
         applyDodge: Bool = true,
         isRetaliation: Bool = false,
-        abilityCriticalChanceBonus: Double = 0
+        abilityCriticalChanceBonus: Double = 0,
+        guaranteedCriticalIfEnemyBuffed: Bool = false
     ) -> (healthLost: Int, events: [ActionEvent]) {
         let outcome = resolveDamage(
             DamageRequest(
@@ -26,6 +27,7 @@ extension BattleEngineContext {
                     applyItemBonus: applyItemBonus,
                     applyDodge: applyDodge,
                     abilityCriticalChanceBonus: abilityCriticalChanceBonus,
+                    guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
                     isRetaliation: isRetaliation
                 )
             )
