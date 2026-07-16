@@ -14,15 +14,22 @@ struct CardDissolveTextureTests {
         #expect(cached.width == 192)
     }
 
-    @Test func prewarmCompletesWithoutNestedLock() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+    @Test func prewarmCompletesWithoutNestedLock() async throws {
+        // Regression: concurrent prewarm + sync bake must not deadlock on the
+        // shared Mutex. Completing with live masks is the semantic assert.
+        let images = await withCheckedContinuation { (continuation: CheckedContinuation<(CGImage?, CGImage?), Never>) in
             Task.detached(priority: .userInitiated) {
                 CardDissolveTexture.prewarm()
-                // prewarm itself is async; exercise a sync bake after kicking it off.
-                _ = CardDissolveTexture.thresholdMaskImage(progress: 0.2)
-                _ = CardDissolveTexture.thresholdMaskImage(progress: 0.8)
-                continuation.resume()
+                let low = CardDissolveTexture.thresholdMaskImage(progress: 0.2)
+                let high = CardDissolveTexture.thresholdMaskImage(progress: 0.8)
+                continuation.resume(returning: (low, high))
             }
         }
+        let low = try #require(images.0)
+        let high = try #require(images.1)
+        #expect(low.width == 192)
+        #expect(low.height == 256)
+        #expect(high.width == 192)
+        #expect(high.height == 256)
     }
 }

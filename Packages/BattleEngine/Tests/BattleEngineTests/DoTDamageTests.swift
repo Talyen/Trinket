@@ -13,28 +13,13 @@ struct DoTDamageTests {
     private func makeContext(
         sourceStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = 1772
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleEngineContext {
-        let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
-        let source = CombatantFixtures.combatant(
-            id: "source", role: .hero, maxHealth: 50, primaryStats: sourceStats
-        )
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
-        )
-        return BattleEngineContext(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
+        BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 100,
+            sourcePrimaryStats: sourceStats,
             heroModifiers: heroModifiers,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+            seed: seed
         )
     }
 
