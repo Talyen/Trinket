@@ -53,9 +53,15 @@ public enum TrinketDesign {
 
     public enum Metrics {
         public static let extraSmallSpacing: CGFloat = 4
+        /// Dense chrome / wallet / chip-adjacent gaps between extraSmall and small.
+        public static let denseSpacing: CGFloat = 6
         public static let smallSpacing: CGFloat = 8
         public static let mediumSpacing: CGFloat = 12
+        /// Between medium and large — on-art hero title inset and path-row chrome.
+        public static let snugSpacing: CGFloat = 14
         public static let largeSpacing: CGFloat = 16
+        /// Homestead overview/detail body stack (wallet → sections).
+        public static let homesteadBodySpacing: CGFloat = 18
         public static let extraLargeSpacing: CGFloat = 24
         /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
@@ -71,15 +77,19 @@ public enum TrinketDesign {
         public static let collectionShelfHorizontalMargin: CGFloat = contentMargin
         public static let collectionShelfCardSpacing: CGFloat = 16
         public static let collectionShelfPeekRatio: CGFloat = 0.08
+        /// Scroll bottom inset so Homestead content clears the floating tab bar.
+        public static let tabBarContentClearance: CGFloat = 112
+        /// Tighter tab-bar clearance for chapter stage-select path scroll.
+        public static let compactTabBarContentClearance: CGFloat = 92
 
         /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
         public static let chipPaddingHorizontal: CGFloat = 10
-        public static let chipPaddingVertical: CGFloat = 6
+        public static let chipPaddingVertical: CGFloat = denseSpacing
         public static let chipCompactPaddingHorizontal: CGFloat = 8
         public static let chipCompactPaddingVertical: CGFloat = 4
-        public static let chipEmphasisPaddingHorizontal: CGFloat = 14
+        public static let chipEmphasisPaddingHorizontal: CGFloat = snugSpacing
         public static let chipEmphasisPaddingVertical: CGFloat = 9
-        public static let chipUtilityPaddingHorizontal: CGFloat = 6
+        public static let chipUtilityPaddingHorizontal: CGFloat = denseSpacing
         public static let chipUtilityPaddingVertical: CGFloat = 3
 
         public static let collectionGridMinimum: CGFloat = 150

@@ -132,7 +132,7 @@ struct ShopEncounterView: View {
     }
 
     private var goldWallet: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
             Image(systemName: Keyword.gold.visualStyle.symbolName)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Keyword.gold.visualStyle.color)

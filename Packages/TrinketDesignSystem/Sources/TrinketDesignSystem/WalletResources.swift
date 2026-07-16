@@ -20,10 +20,10 @@ public struct TrinketWalletGrid<Content: View>: View {
     }
 
     public var body: some View {
-        LazyVGrid(columns: columns, spacing: 6) {
+        LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.denseSpacing) {
             content
         }
-        .padding(6)
+        .padding(TrinketDesign.Metrics.denseSpacing)
         .trinketMaterial(.homesteadFooter)
     }
 }

@@ -41,7 +41,7 @@ struct ChapterStageSelectView: View {
                         .padding(.top, TrinketDesign.Metrics.smallSpacing)
                 }
             }
-            .padding(.bottom, 92)
+            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
         .overlay(alignment: .topLeading) {
@@ -121,7 +121,7 @@ private struct ChapterJourneyHero: View {
                 chapter.theme.tint
             }
         } overlay: {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
                 Text("Chapter \(chapter.number)".uppercased())
                     .trinketTypography(.eyebrow)
                     .trinketOnArtText(.eyebrow)

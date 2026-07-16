@@ -92,7 +92,7 @@ struct HomesteadProjectRow: View {
                     .frame(width: 22, height: 22)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, TrinketDesign.Metrics.denseSpacing)
     }
 
     private var effectLine: String {
