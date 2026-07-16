@@ -35,12 +35,16 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     var stageID: String? {
-        if case let .journey(stageID) = resumeToken { return stageID }
+        if case let .journey(stageID) = resumeToken {
+            return stageID
+        }
         return nil
     }
 
     var labyrinthNodeID: String? {
-        if case let .labyrinth(nodeID) = resumeToken { return nodeID }
+        if case let .labyrinth(nodeID) = resumeToken {
+            return nodeID
+        }
         return nil
     }
 
