@@ -13,7 +13,7 @@ struct HomesteadStateTests {
         BuildSpendCase.wheatFieldMaterialsOnly,
         .herbGardenMaterialsAndGold
     ])
-    func buildOrUpgradeSpendsRequiredCosts(caseKind: BuildSpendCase) throws {
+    private func buildOrUpgradeSpendsRequiredCosts(caseKind: BuildSpendCase) throws {
         switch caseKind {
         case .wheatFieldMaterialsOnly:
             let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
