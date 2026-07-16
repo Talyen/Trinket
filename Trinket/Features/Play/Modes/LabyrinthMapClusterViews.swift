@@ -247,6 +247,11 @@ struct LabyrinthMapNodeCard: View {
                 .trinketPrimaryActionButton()
                 .tint(tint ?? TrinketDesign.Colors.accent)
                 .disabled(appState.battle.activeBattle != nil)
+                .accessibilityIdentifier(
+                    type.isCombat
+                        ? AccessibilityID.Play.labyrinthCombatAction(node.id)
+                        : AccessibilityID.Play.labyrinthNodeAction(node.id)
+                )
             }
         }
         .trinketSurface(node.isCleared ? .secondary : .elevated)

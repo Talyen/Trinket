@@ -32,7 +32,6 @@ final class ShopFlowUITests: TrinketUITestCase {
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         dismissSheet()
-        _ = button(AccessibilityID.Shop.leaveButton).waitForExistence(timeout: Self.defaultTimeout)
 
         let buyButtons = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "Buy ")

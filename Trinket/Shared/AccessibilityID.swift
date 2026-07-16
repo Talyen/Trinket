@@ -84,6 +84,10 @@ enum AccessibilityID {
             "Aspect \(aspectID) Floor \(floor)"
         }
 
+        static func aspectBeginFloor(_ aspectID: String, floor: Int) -> String {
+            "Aspect \(aspectID) Begin Floor \(floor)"
+        }
+
         static let labyrinthModeCard = "Labyrinth Mode Card"
         static let labyrinthMap = "Labyrinth Map"
         static let labyrinthAtlas = "Labyrinth Atlas"
@@ -102,6 +106,16 @@ enum AccessibilityID {
 
         static func labyrinthNode(_ nodeID: String) -> String {
             "Labyrinth Node \(nodeID)"
+        }
+
+        /// Primary node CTA (Fight / Visit / Rest / …). Prefer this over visible labels.
+        static func labyrinthNodeAction(_ nodeID: String) -> String {
+            "\(nodeID) labyrinth action"
+        }
+
+        /// Combat-only node CTA (Fight / Retry). Exhaustive battles should match this suffix.
+        static func labyrinthCombatAction(_ nodeID: String) -> String {
+            "\(nodeID) labyrinth combat action"
         }
 
         static func labyrinthModifier(_ modifierID: String) -> String {

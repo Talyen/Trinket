@@ -178,5 +178,8 @@ struct AspectClimbView: View {
                     aspect: aspect
                 ).isReady
         )
+        .accessibilityIdentifier(
+            AccessibilityID.Play.aspectBeginFloor(aspect.id.rawValue, floor: floor.floor)
+        )
     }
 }

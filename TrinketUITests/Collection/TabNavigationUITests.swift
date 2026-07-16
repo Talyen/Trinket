@@ -18,7 +18,12 @@ final class TabNavigationUITests: TrinketUITestCase {
         button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
         button(AccessibilityID.LoadoutPicker.selectAbility("block")).tap()
-        assertExists("Block")
+        let basicSlot = button(AccessibilityID.Equipment.basicAbilitySlot)
+        assertExists(basicSlot)
+        XCTAssertTrue(
+            basicSlot.label.localizedCaseInsensitiveContains("Block"),
+            "Equipped Basic ability name should remain visible on the slot label"
+        )
 
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityCandidate("block"))
@@ -38,8 +43,12 @@ final class TabNavigationUITests: TrinketUITestCase {
         button(AccessibilityID.LoadoutPicker.equipItem("crossbow-basic")).tap()
 
         // Equip must persist on the detail slot (not only dismiss the picker).
-        assertButtonExists(AccessibilityID.Equipment.weaponSlot)
-        assertExists("Crossbow")
+        let weaponSlot = button(AccessibilityID.Equipment.weaponSlot)
+        assertExists(weaponSlot)
+        XCTAssertTrue(
+            weaponSlot.label.localizedCaseInsensitiveContains("Crossbow"),
+            "Equipped weapon name should remain visible on the slot label"
+        )
 
         button(AccessibilityID.Equipment.weaponSlot).tap()
         assertExists(AccessibilityID.LoadoutPicker.itemCandidate("crossbow-basic"))
