@@ -76,12 +76,12 @@ struct HomesteadProjectRow: View {
 
             if showsNavigationChevron {
                 Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
+                    .trinketTypography(.footnote)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
             } else {
                 Image(systemName: status.statusSymbolName)
-                    .font(.body.weight(.semibold))
+                    .trinketTypography(.button)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
                     .symbolEffect(

@@ -76,7 +76,7 @@ private struct ChapterStageRow: View {
 
             if presentation.isCompleted {
                 Image(systemName: "checkmark")
-                    .font(.headline.weight(.bold))
+                    .trinketTypography(.navigation)
                     .foregroundStyle(TrinketDesign.Colors.success)
             }
         }

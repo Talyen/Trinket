@@ -164,7 +164,7 @@ struct MysteryEncounterView: View {
                 .aspectRatio(4.0 / 3.0, contentMode: .fit)
                 .overlay {
                     Image(systemName: "sparkles")
-                        .font(.largeTitle.weight(.semibold))
+                        .trinketTypography(.screenTitle)
                         .foregroundStyle(TrinketDesign.Colors.encounterEvent)
                 }
                 .frame(maxWidth: .infinity)

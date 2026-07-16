@@ -78,7 +78,7 @@ struct InventoryGridView: View {
                     }
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease")
-                        .font(.body.weight(selectedFilter != .all ? .semibold : .regular))
+                        .trinketTypography(selectedFilter != .all ? .button : .body)
                         .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.cardArtAccent : .primary)
                 }
 

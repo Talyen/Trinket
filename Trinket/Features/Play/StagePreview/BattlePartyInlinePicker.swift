@@ -125,7 +125,7 @@ struct BattlePartyInlinePicker: View {
                 Spacer(minLength: 2)
 
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.bold))
+                    .trinketTypography(.eyebrow)
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -222,8 +222,7 @@ struct BattleCombatantPickerSheet: View {
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    // UIStyleCheck: allow - Reserve label space so grid cards stay aligned.
-                    .frame(minHeight: 34)
+                    .trinketCardLabelSpace()
             }
             .padding(TrinketDesign.Metrics.smallSpacing)
             .frame(maxWidth: .infinity)

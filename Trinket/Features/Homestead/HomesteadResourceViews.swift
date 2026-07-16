@@ -34,7 +34,7 @@ struct HomesteadResourceArtwork: View {
 
         } else {
             Image(systemName: resource.symbolName)
-                .font(.body.weight(.semibold))
+                .trinketTypography(.button)
                 .foregroundStyle(resource.tint)
                 .symbolRenderingMode(.hierarchical)
         }

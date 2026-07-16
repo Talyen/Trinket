@@ -134,7 +134,7 @@ struct ShopEncounterView: View {
     private var goldWallet: some View {
         HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
             Image(systemName: Keyword.gold.visualStyle.symbolName)
-                .font(.caption.weight(.semibold))
+                .trinketTypography(.badge)
                 .foregroundStyle(Keyword.gold.visualStyle.color)
 
             Text("\(appState.roster.gold)")
