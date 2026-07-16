@@ -18,7 +18,7 @@ struct LabyrinthNodeEncounterSheet<Facts: View, Actions: View>: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
                 Text(intro)
                     .trinketTypography(.body)
                     .foregroundStyle(.secondary)

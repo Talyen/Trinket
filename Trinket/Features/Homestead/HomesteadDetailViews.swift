@@ -10,7 +10,7 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private let bodyTopPadding: CGFloat = 10
+    private let bodyTopPadding = TrinketDesign.Metrics.sectionHeaderSpacing
     private let bodyStackSpacing: CGFloat = 18
 
     private var homestead: PlayerHomesteadState {
@@ -201,7 +201,7 @@ struct HomesteadTierNode: View {
                     HomesteadTierCostLabel(cost: tier.cost, status: status)
                 }
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, TrinketDesign.Metrics.sectionHeaderSpacing)
 
             Spacer(minLength: 0)
         }

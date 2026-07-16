@@ -12,7 +12,7 @@ private enum HomesteadProjectRowMetrics {
         artworkHeight * artworkAspectRatio
     }
 
-    static let artworkTextSpacing: CGFloat = 12
+    static let artworkTextSpacing = TrinketDesign.Metrics.mediumSpacing
     static var dividerLeadingInset: CGFloat {
         artworkWidth + artworkTextSpacing
     }

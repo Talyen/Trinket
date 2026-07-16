@@ -43,7 +43,7 @@ struct BattleCombatantPane: View {
                     if let skillCallout {
                         SkillCalloutView(callout: skillCallout)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                            .padding(10)
+                            .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
                             .allowsHitTesting(false)
                     }
 

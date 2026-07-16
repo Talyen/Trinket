@@ -35,7 +35,7 @@ struct HomesteadView: View {
                     )
                 }
             }
-            .padding(.top, 10)
+            .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
             .padding(.bottom, 112)
         }
         .navigationDestination(for: HomesteadNodeDefinition.self) { definition in

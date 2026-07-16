@@ -44,7 +44,7 @@ struct LabyrinthCraftView: View {
                 } label: {
                     Text("Leave without forging")
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, TrinketDesign.Metrics.sectionHeaderSpacing)
                 }
                 .trinketQuietTapButtonStyle()
                 .foregroundStyle(.secondary)
