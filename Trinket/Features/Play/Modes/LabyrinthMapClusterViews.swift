@@ -244,14 +244,13 @@ struct LabyrinthMapNodeCard: View {
                     Text(node.failCount > 0 ? "Retry" : type.primaryActionTitle)
                         .frame(maxWidth: .infinity)
                 }
-                .trinketPrimaryActionButton()
-                .tint(tint ?? TrinketDesign.Colors.accent)
-                .disabled(appState.battle.activeBattle != nil)
-                .accessibilityIdentifier(
-                    type.isCombat
+                .trinketPrimaryActionButton(
+                    tint: tint ?? TrinketDesign.Colors.accent,
+                    accessibilityIdentifier: type.isCombat
                         ? AccessibilityID.Play.labyrinthCombatAction(node.id)
                         : AccessibilityID.Play.labyrinthNodeAction(node.id)
                 )
+                .disabled(appState.battle.activeBattle != nil)
             }
         }
         .trinketSurface(node.isCleared ? .secondary : .elevated)

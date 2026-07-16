@@ -22,6 +22,7 @@ struct CombatantArtwork: View {
                     .resizable()
                     .interpolation(interpolation)
                     .modifier(ArtFillModifier(variant: variant))
+                    .decorativePreparedArtwork()
 
             } else {
                 placeholderArt

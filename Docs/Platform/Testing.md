@@ -26,6 +26,11 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 - **Naming:** `@Test func behaviorWhenCondition()` — no `test` prefix required.
 - **Assertions:** `#expect`; `try #require` / `#require` to unwrap; `Issue.record` for unconditional failures.
 - **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants.
+  - If the argument type is a `private` nested enum/struct, the `@Test` function must also be
+    `private` (Swift rejects a more-visible method that exposes a private parameter type).
+  - Argument types used in `@Test(arguments:)` tuples must be `Sendable` (and usually
+    `Hashable` / `Equatable`). Nested types like `Keyword.Category` need the same
+    conformances even when the parent type already has them.
 - **Lifecycle:** Prefer `@Suite` on package tests. In `TrinketTests`, `struct …Tests` + `@Test` is fine. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
 - **Stores:** mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
@@ -45,8 +50,8 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
    - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
    - **Package-only** change → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
    - **App orchestration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>` (or full unit when cross-cutting)
-   - **Small UI feature** → only `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` for the closest affected screen or flow; use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
-   - **Cross-cutting UI** → run only the affected focused smoke classes during iteration. Global style, full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
+   - **Small UI feature** → `./Scripts/verify-changed.sh --isolate --paths <file...>` (style + closest focused smoke; package tests when packages are touched); use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
+   - **Cross-cutting UI** → run the affected focused smoke classes during iteration (still via path-scoped verify so style is included). Full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
 
 ## UI tests (summary)
 
@@ -55,5 +60,9 @@ Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan
 Battle frame pacing is not part of smoke. Run the exclusive repeated matrix with `./Scripts/performance.sh`; focused harness iteration can use `TRINKET_ISOLATE=1 TRINKET_PERFORMANCE_REPETITIONS=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records native `XCTHitchMetric` data and refresh-normalized raw deadline reports. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix. The Frame Metrics node is an explicit machine bridge used only by the performance plan (not VoiceOver product semantics).
+
+Glass primary CTAs (`trinketPrimaryActionButton`) must receive their `AccessibilityID` via the
+modifier’s `accessibilityIdentifier:` parameter. Identifiers applied before `.glassProminent`
+are dropped from the XCUITest tree; label fallbacks are a last resort only.
 
 Full layout, launch-arg catalog, speed rules, and mid-battle guidance: **`TrinketUITests/README.md`**.

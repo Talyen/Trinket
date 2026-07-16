@@ -21,6 +21,7 @@ struct ItemArtwork: View {
                     .resizable()
                     .interpolation(variant == .thumbnail ? .low : .medium)
                     .aspectRatio(contentMode: contentMode)
+                    .decorativePreparedArtwork()
             } else {
                 placeholderArt
             }

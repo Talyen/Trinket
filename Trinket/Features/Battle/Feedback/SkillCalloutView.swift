@@ -48,6 +48,7 @@ struct SkillCalloutView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .clipShape(TrinketDesign.cardShape)
+                            .decorativePreparedArtwork()
                     } else {
                         ZStack {
                             TrinketDesign.cardShape

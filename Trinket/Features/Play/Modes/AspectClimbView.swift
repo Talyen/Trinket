@@ -168,8 +168,13 @@ struct AspectClimbView: View {
             Text("Begin Floor")
                 .frame(maxWidth: .infinity)
         }
-        .trinketPrimaryActionButton()
-        .tint(tint)
+        .trinketPrimaryActionButton(
+            tint: tint,
+            accessibilityIdentifier: AccessibilityID.Play.aspectBeginFloor(
+                aspect.id.rawValue,
+                floor: floor.floor
+            )
+        )
         .disabled(
             appState.battle.activeBattle != nil
                 || !AspectAttunement.evaluate(
@@ -177,9 +182,6 @@ struct AspectClimbView: View {
                     companion: appState.roster.activeCompanion,
                     aspect: aspect
                 ).isReady
-        )
-        .accessibilityIdentifier(
-            AccessibilityID.Play.aspectBeginFloor(aspect.id.rawValue, floor: floor.floor)
         )
     }
 }

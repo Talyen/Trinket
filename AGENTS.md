@@ -49,7 +49,12 @@ Before handoff, run the path-scoped checks with isolation:
 
 Use `--dry-run` only when previewing an unfamiliar or potentially expensive route.
 
-- For a small UI feature confined to one screen or flow, run only the closest focused smoke target selected by the router (`TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`). Prefer `SmokeClass/testMethod` when one method directly owns the behavior. Do not run bare smoke, the full unit suite, `smoke-full`, exhaustive UI tests, or global style checks for that iteration; those belong to pre-push or CI gates.
+- For a small UI feature confined to one screen or flow, run the path-scoped plan from
+  `./Scripts/verify-changed.sh --isolate --paths <file...>` (always includes style for
+  Swift changes, plus package tests when a package is touched). Prefer
+  `SmokeClass/testMethod` when one method directly owns the behavior. Do not run bare
+  smoke, the full unit suite, `smoke-full`, or exhaustive UI tests for that iteration;
+  those belong to pre-push or CI gates.
 - If no existing smoke class closely covers the changed behavior, add or update one focused smoke test and run only that class. Do not use the unrelated Homestead canary as a substitute.
 
 If verification fails, follow `Docs/AgentContext/ci-diagnostics.md` and use its structured reports before opening raw logs.

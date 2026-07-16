@@ -457,9 +457,7 @@ struct BattleAbilityCardFace: View {
                 Image.preparedAsset(named: artworkName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    // UIImage-backed prepared art otherwise becomes multiple a11y hits
-                    // under the hand container identifier and breaks XCUITest queries.
-                    .accessibilityHidden(true)
+                    .decorativePreparedArtwork()
             } else {
                 ZStack {
                     TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18)

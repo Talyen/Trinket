@@ -13,11 +13,13 @@ struct EncounterArtwork: View {
                 Image.preparedAsset(named: combatantArt.thumbnailImageName ?? combatantArt.imageName)
                     .resizable()
                     .scaledToFill()
+                    .decorativePreparedArtwork()
 
             } else if let art = stage.encounterArtReference {
                 Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)
                     .resizable()
                     .scaledToFill()
+                    .decorativePreparedArtwork()
 
             } else {
                 stage.encounter.mapTint.opacity(0.14)

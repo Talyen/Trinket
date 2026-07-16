@@ -131,6 +131,7 @@ struct UltimateCinematicOverlay: View {
             Image.preparedAsset(named: artRef.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
+                .decorativePreparedArtwork()
         } else {
             ZStack {
                 cinematic.keyword.visualStyle.color.opacity(0.35)

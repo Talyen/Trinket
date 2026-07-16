@@ -80,10 +80,18 @@ if [[ "$MODE" == "style" ]]; then
     exit 1
   fi
 
-  ./Scripts/format.sh --lint
-  ./Scripts/lint.sh
-  ./Scripts/check-ui-style.sh
-  ./Scripts/check-platform-api-bans.sh
+  # Fail closed: every style subgate must succeed. Do not `exit 0` after a soft failure.
+  style_status=0
+  ./Scripts/format.sh --lint || style_status=$?
+  ./Scripts/lint.sh || style_status=$?
+  ./Scripts/check-ui-style.sh || style_status=$?
+  ./Scripts/check-platform-api-bans.sh || style_status=$?
+  ./Scripts/check-exclusivity-footguns.sh || style_status=$?
+  if [[ "$style_status" -ne 0 ]]; then
+    echo "Style gate failed (format / lint / UI style / platform API bans / exclusivity)." >&2
+    exit "$style_status"
+  fi
+  echo "Style gate passed."
   exit 0
 fi
 

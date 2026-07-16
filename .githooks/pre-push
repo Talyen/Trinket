@@ -26,6 +26,9 @@ echo "=== Pre-push: UI style guardrail ==="
 echo "=== Pre-push: platform API bans ==="
 ./Scripts/check-platform-api-bans.sh
 
+echo "=== Pre-push: exclusivity footguns ==="
+./Scripts/check-exclusivity-footguns.sh
+
 echo "=== Pre-push: regenerate content catalogs ==="
 # Prefer full generate when XcodeGen is available so pbxproj stays in sync.
 # Without XcodeGen, only regenerate catalogs (avoid Linux sync UUID churn).

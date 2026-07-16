@@ -34,6 +34,7 @@ struct AbilityHeroHeader: View {
                 .interpolation(.medium)
                 .aspectRatio(contentMode: .fill)
                 .clipped()
+                .decorativePreparedArtwork()
 
         } else {
             placeholderArt

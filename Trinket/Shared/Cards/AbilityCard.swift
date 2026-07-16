@@ -26,6 +26,7 @@ struct AbilityChoiceCard: View {
                             .aspectRatio(contentMode: .fill)
                             .trinketArtworkBlend(artworkBlend)
                             .clipShape(TrinketDesign.cardShape)
+                            .decorativePreparedArtwork()
 
                     } else {
                         ZStack {

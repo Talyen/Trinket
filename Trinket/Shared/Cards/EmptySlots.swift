@@ -54,6 +54,7 @@ struct EmptyItemSlotCard: View {
                             .resizable()
                             .scaledToFill()
                             .trinketArtworkBlend(artworkBlend)
+                            .decorativePreparedArtwork()
                     } else {
                         TrinketDesign.cardShape
                             .fill(TrinketDesign.Colors.surface)

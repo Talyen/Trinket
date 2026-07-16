@@ -67,6 +67,7 @@ struct HomesteadFocalArtwork: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: container.width, height: container.height)
+                .decorativePreparedArtwork()
                 .offset(x: offsetX, y: offsetY)
         }
         .clipped()

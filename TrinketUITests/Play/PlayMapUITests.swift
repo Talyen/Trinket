@@ -129,8 +129,8 @@ final class PlayMapUITests: TrinketUITestCase {
         button(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear")).tap()
         assertDoesNotExist(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"), timeout: 2)
 
-        // Glass-prominent CTAs sometimes omit custom identifiers in the AX tree; keep a
-        // label fallback so exhaustive coverage stays stable.
+        // Prefer the glass-CTA accessibility id (applied inside trinketPrimaryActionButton).
+        // Label fallback remains for older builds if the id is absent from the AX tree.
         let beginFloorID = AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1)
         let beginFloor = any(beginFloorID).waitForExistence(timeout: Self.defaultTimeout)
             ? any(beginFloorID)

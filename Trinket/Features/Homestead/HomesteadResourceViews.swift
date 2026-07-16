@@ -31,6 +31,7 @@ struct HomesteadResourceArtwork: View {
             Image.preparedAsset(named: art.imageName)
                 .resizable()
                 .scaledToFit()
+                .decorativePreparedArtwork()
 
         } else {
             Image(systemName: resource.symbolName)

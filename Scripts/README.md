@@ -192,7 +192,9 @@ Release and uploads App Store note artifacts.
 
 ## Style & lint ownership
 
-`./Scripts/test.sh style` runs four complementary checks. Do not blur their roles:
+`./Scripts/test.sh style` runs five complementary checks. Do not blur their roles.
+The style mode **fails closed**: any non-zero SwiftFormat / SwiftLint / UI style /
+platform-ban / exclusivity exit fails the gate (matching CI).
 
 | Tool | Config | Owns |
 |------|--------|------|
@@ -200,6 +202,7 @@ Release and uploads App Store note artifacts.
 | SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans |
 | UI style | `Scripts/check-ui-style.sh` | Product chrome **and colors** — glass/material/button styles, raw RGB/`UIColor`/`#colorLiteral`, SwiftUI system color literals, app-bundle/`Color("…")` names, and `.accentColor`; route through `TrinketDesign` |
 | Platform bans | `Scripts/check-platform-api-bans.sh` | `NavigationView` / `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` / `@ObservedObject` (SourceKit-free) |
+| Exclusivity | `Scripts/check-exclusivity-footguns.sh` | `inout` of `self.` / likely stored properties without a local copy (`ExclusivityCheck: allow`) |
 
 Pinned versions live in `Scripts/tool-versions.env`. Shared format/lint roots live in `Scripts/swift-source-dirs.env` (app, packages, package tests, `TrinketTestSupport`). Install with `./Scripts/ensure-ci-tools.sh`. Module layering is a separate gate: `./Scripts/check-module-boundaries.sh`.
 
@@ -264,6 +267,6 @@ git config core.hooksPath .githooks
 The repo includes:
 
 - `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
-- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + generate/assert (blocks push on drift)
+- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + generate/assert (blocks push on drift)
 
 Install pinned SwiftFormat/SwiftLint with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

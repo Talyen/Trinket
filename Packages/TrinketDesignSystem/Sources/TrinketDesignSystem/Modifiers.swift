@@ -86,14 +86,30 @@ struct PrimaryActionButtonModifier: ViewModifier {
     let controlSize: ControlSize
     let tint: Color
     let labelColor: Color
+    let accessibilityIdentifier: String?
 
     func body(content: Content) -> some View {
+        // Apply the test selector *after* `.glassProminent`. Identifiers attached before
+        // the glass style are dropped from the XCUITest tree (label remains, id does not).
         content
             .buttonStyle(.glassProminent)
             .tint(tint)
             .foregroundStyle(labelColor)
             .controlSize(controlSize)
             .buttonBorderShape(.roundedRectangle)
+            .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+    }
+}
+
+private struct OptionalAccessibilityIdentifierModifier: ViewModifier {
+    let identifier: String?
+
+    func body(content: Content) -> some View {
+        if let identifier {
+            content.accessibilityIdentifier(identifier)
+        } else {
+            content
+        }
     }
 }
 
@@ -167,12 +183,14 @@ public extension View {
     func trinketPrimaryActionButton(
         controlSize: ControlSize = .large,
         tint: Color = TrinketDesign.Colors.accent,
-        labelColor: Color = TrinketDesign.Colors.canvas
+        labelColor: Color = TrinketDesign.Colors.canvas,
+        accessibilityIdentifier: String? = nil
     ) -> some View {
         modifier(PrimaryActionButtonModifier(
             controlSize: controlSize,
             tint: tint,
-            labelColor: labelColor
+            labelColor: labelColor,
+            accessibilityIdentifier: accessibilityIdentifier
         ))
     }
 

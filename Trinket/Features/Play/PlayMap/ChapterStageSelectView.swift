@@ -120,6 +120,7 @@ private struct ChapterJourneyHero: View {
                 Image.preparedAsset(named: art.imageName)
                     .resizable()
                     .scaledToFill()
+                    .decorativePreparedArtwork()
 
             } else {
                 chapter.theme.tint

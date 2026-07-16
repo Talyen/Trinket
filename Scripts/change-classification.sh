@@ -111,6 +111,9 @@ trinket_classify_smoke_target() {
   local path="$1"
 
   case "$path" in
+    Trinket/Features/Battle/BattleHandView.swift|Trinket/App/PreparedArtworkCache.swift)
+      trinket_add_smoke_target SmokeBattleTests/testHandDragReleaseOnCombatantDoesNotOpenDetail
+      ;;
     Trinket/Features/Battle/*)
       trinket_add_smoke_target SmokeBattleTests
       ;;
@@ -209,6 +212,11 @@ trinket_classify_path() {
       TRINKET_AUTHORED_PATHS+=("$path")
       if [[ "$path" == Trinket/Audio/* ]]; then TRINKET_HAS_AUDIO=true; fi
       if [[ "$path" == Trinket/State/* || "$path" == Trinket/App/* || "$path" == Trinket/BattleShell/* ]]; then TRINKET_HAS_APP_STATE=true; fi
+      if [[ "$path" == Trinket/App/PreparedArtworkCache.swift ]]; then
+        TRINKET_NEEDS_SMOKE=true
+        TRINKET_HAS_FEATURE=true
+        trinket_classify_smoke_target "$path"
+      fi
       ;;
     Docs/*|*.md|Scripts/*|.github/*)
       TRINKET_HAS_DOCS_OR_TOOLS=true
@@ -317,14 +325,6 @@ trinket_add_agent_guides_for_path() {
 
 trinket_build_verification_plan() {
   TRINKET_VERIFICATION_COMMANDS=()
-  local feature_iteration=false
-  if [[ "$TRINKET_NEEDS_SMOKE" == true \
-    && "$TRINKET_NEEDS_CONTENT_GENERATION" == false \
-    && "$TRINKET_NEEDS_ASSET_GENERATION" == false \
-    && "$TRINKET_NEEDS_PROJECT_GENERATION" == false \
-    && ${#TRINKET_PACKAGES[@]} -eq 0 ]]; then
-    feature_iteration=true
-  fi
 
   if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
     trinket_add_command "./Scripts/generate.sh --assets"
@@ -338,13 +338,19 @@ trinket_build_verification_plan() {
       trinket_add_command "./Scripts/assert-generated-output.sh"
     fi
   fi
-  if [[ "$TRINKET_NEEDS_STYLE" == true && "$feature_iteration" == false ]]; then trinket_add_command "./Scripts/test.sh style"; fi
+  # Always run style when Swift changed — format/lint failures do not need a simulator.
+  # Package compile stays paired with touched packages (also no simulator required).
+  if [[ "$TRINKET_NEEDS_STYLE" == true ]]; then
+    trinket_add_command "./Scripts/test.sh style"
+  fi
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     for package in "${TRINKET_PACKAGES[@]}"; do
       trinket_add_command "./Scripts/test-package.sh $package"
     done
   fi
-  if [[ "$TRINKET_NEEDS_UNIT" == true && "$feature_iteration" == false ]]; then trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh unit"; fi
+  if [[ "$TRINKET_NEEDS_UNIT" == true ]]; then
+    trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh unit"
+  fi
   if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
     local smoke_target
     if (( ${#TRINKET_SMOKE_TARGETS[@]} > 0 )); then

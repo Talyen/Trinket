@@ -29,9 +29,10 @@ This card adds the CI/project-generation exceptions:
   (`TRINKET_MAX_CONCURRENT_UI`, default 2). Agent sim slots and UI slots are both
   fail-fast when full.
 - Use a filtered command for intentionally narrow work; an affected player flow needs
-  only `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` during feature iteration.
-  Bare `smoke` is the pre-push Homestead canary; global style, full unit, `smoke-full`,
-  and exhaustive UI suites remain pre-push or CI checks.
+  only the path-scoped plan from `verify-changed.sh` (style always when Swift changes;
+  package tests when packages are touched; focused smoke when UI changes). Bare `smoke`
+  is the pre-push Homestead canary; full unit, `smoke-full`, and exhaustive UI suites
+  remain pre-push or CI checks.
 - Use `--no-build` only after a matching successful build in the **same** DerivedData
   tenant; the wrappers reject stale inputs. Without Xcode 26/simulator, run the applicable
   generation, generated-output, boundary, style, and CI-gate checks and report skipped
@@ -43,3 +44,20 @@ When a test or CI invocation fails, load
 [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read
 `Scripts/README.md` for gate composition and `Docs/Platform/Testing.md` for test
 ownership.
+
+## Style gate (fail closed)
+
+`./Scripts/test.sh style` must fail when SwiftFormat lint, SwiftLint `--strict`,
+UI style, platform API bans, or exclusivity footguns fail. Do not treat a non-zero
+subgate as success.
+
+Path-scoped `verify-changed.sh` always includes style when Swift sources change, and
+always includes `test-package.sh` for each touched package — those failures never need
+a simulator.
+
+## Swift Testing compile checklist
+
+When adding `@Test(arguments:)` cases (see `Docs/Platform/Testing.md`):
+
+1. `private` argument types ⇒ `private` test function.
+2. Argument / tuple element types ⇒ `Sendable` (typically also `Hashable`).
