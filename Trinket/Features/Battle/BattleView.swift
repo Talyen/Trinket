@@ -5,6 +5,8 @@ import TrinketDesignSystem
 
 struct BattleView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
     @State private var persistFailureMessage: StageMapMessage?
     @State private var cardPlayFeedbackToken = 0
     @State private var castingCards: [CardActivationRequest] = []
@@ -53,12 +55,22 @@ struct BattleView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
+            .onAppear {
+                CombatFeedbackRasterPool.shared.prewarmInfrastructure(
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                )
+            }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
                 castingCards = []
                 showCastEffectsPrewarm = true
                 CombatFeedbackRasterPool.shared.removeAll()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
+                CombatFeedbackRasterPool.shared.prewarmInfrastructure(
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                )
             }
             .onDisappear {
                 CombatFeedbackRasterPool.shared.removeAll()
@@ -342,12 +354,6 @@ struct BattleView: View {
             maxHealth: battleState.maxHealth(of: combatant),
             mana: battleState.mana(of: combatant),
             maxMana: battleState.maxMana(of: combatant),
-            items: battleSession.feedbackItems(for: combatant.id),
-            hitReaction: battleSession.hitReactionsByTargetID[combatant.id],
-            keywordBursts: battleSession.keywordBursts(for: combatant.id),
-            skillCallout: battleSession.activeSkillCallout?.actorID == combatant.id
-                ? battleSession.activeSkillCallout
-                : nil,
             hapticsEnabled: appState.options.hapticsEnabled,
             cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }

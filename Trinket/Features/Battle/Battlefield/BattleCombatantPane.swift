@@ -10,15 +10,9 @@ struct BattleCombatantPane: View {
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
-    let items: [CombatFeedbackItem]
-    let hitReaction: CombatantHitReaction?
-    let keywordBursts: [KeywordBurstRequest]
-    let skillCallout: SkillCalloutPresentation?
     let hapticsEnabled: Bool
     let cinematicNamespace: Namespace.ID
     let onCombatantTap: () -> Void
-
-    @State private var latestReactionID = 0
 
     private var hasMana: Bool {
         maxMana > 0
@@ -28,24 +22,24 @@ struct BattleCombatantPane: View {
         Button(action: onCombatantTap) {
             ZStack(alignment: .bottom) {
                 ZStack {
-                    reactiveArtwork
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .trinketArtworkBlend(.perimeter(into: .canvas))
-                        .clipped()
-
-                    KeywordBurstLayer(requests: keywordBursts)
-
-                    CombatFeedbackOverlay(items: items)
-                        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-                        .padding(.bottom, resourceBarsReservedHeight + TrinketDesign.Metrics.smallSpacing)
-                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
-
-                    if let skillCallout {
-                        SkillCalloutView(callout: skillCallout)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                            .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
-                            .allowsHitTesting(false)
+                    CombatantHitReactionLane(
+                        combatantID: combatant.id,
+                        hapticsEnabled: hapticsEnabled
+                    ) {
+                        artworkPresentation
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .trinketArtworkBlend(.perimeter(into: .canvas))
+                    .clipped()
+
+                    // Isolated observation leaves: feedback / burst / reaction updates
+                    // must not rebuild static pane chrome or the rest of BattleView.
+                    CombatantKeywordBurstLane(combatantID: combatant.id)
+                    CombatantFeedbackLane(
+                        combatantID: combatant.id,
+                        bottomInset: resourceBarsReservedHeight + 8
+                    )
+                    CombatantSkillCalloutLane(combatantID: combatant.id)
 
                     // Invisible source for Ultimate matched-geometry expand from this card.
                     Color.clear
@@ -66,69 +60,7 @@ struct BattleCombatantPane: View {
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .trinketSensoryFeedback(
-            reactionFeedback,
-            trigger: hitReaction?.id ?? latestReactionID,
-            enabled: hapticsEnabled
-        )
-        .onChange(of: hitReaction?.id) { _, reactionID in
-            if let reactionID {
-                latestReactionID = reactionID
-            }
-        }
         .accessibilityIdentifier("\(combatant.name) card")
-    }
-
-    private var reactionFeedback: SensoryFeedback {
-        switch hitReaction?.kind {
-        case .some(.critical):
-            .impact(weight: .heavy)
-        case .some(.heal):
-            .success
-        case .some(.dodge):
-            .selection
-        case .some(.damage), .some(.block):
-            .impact(weight: .light)
-        case .some(.none), nil:
-            .impact(weight: .light)
-        }
-    }
-
-    @ViewBuilder
-    private var reactiveArtwork: some View {
-        let reactionID = hitReaction?.id ?? 0
-        let kind = hitReaction?.kind ?? .none
-        let recipe = TrinketMotion.Battle.cardReaction(for: kind)
-        let flashColor = hitReaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
-
-        KeyframeAnimator(
-            initialValue: CardReactionAnimationState(),
-            trigger: reactionID
-        ) { state in
-            artworkPresentation
-                .scaleEffect(state.scale)
-                .offset(x: state.offsetX)
-                .overlay {
-                    flashColor
-                        .opacity(state.flashOpacity)
-                        .allowsHitTesting(false)
-                }
-        } keyframes: { _ in
-            KeyframeTrack(\.scale) {
-                SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
-                SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
-            }
-            KeyframeTrack(\.offsetX) {
-                SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
-                SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
-            }
-            KeyframeTrack(\.flashOpacity) {
-                CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
-                CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
     }
 
     @ViewBuilder
@@ -174,6 +106,121 @@ struct BattleCombatantPane: View {
         .opacity(isDefeated ? 0 : 1)
         .animation(TrinketMotion.Battle.scrim, value: isDefeated)
         .allowsHitTesting(!isDefeated)
+    }
+}
+
+private struct CombatantHitReactionLane<Artwork: View>: View {
+    @Environment(AppState.self) private var appState
+    let combatantID: String
+    let hapticsEnabled: Bool
+    @ViewBuilder let artwork: () -> Artwork
+
+    @State private var latestReactionID = 0
+
+    private var hitReaction: CombatantHitReaction? {
+        appState.battle.hitReactionsByTargetID[combatantID]
+    }
+
+    var body: some View {
+        let reaction = hitReaction
+        let reactionID = reaction?.id ?? 0
+        let kind = reaction?.kind ?? .none
+        let recipe = TrinketMotion.Battle.cardReaction(for: kind)
+        let flashColor = reaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
+
+        KeyframeAnimator(
+            initialValue: CardReactionAnimationState(),
+            trigger: reactionID
+        ) { state in
+            artwork()
+                .scaleEffect(state.scale)
+                .offset(x: state.offsetX)
+                .overlay {
+                    flashColor
+                        .opacity(state.flashOpacity)
+                        .allowsHitTesting(false)
+                }
+        } keyframes: { _ in
+            KeyframeTrack(\.scale) {
+                SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
+                SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
+            }
+            KeyframeTrack(\.offsetX) {
+                SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
+                SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
+            }
+            KeyframeTrack(\.flashOpacity) {
+                CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
+                CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .trinketSensoryFeedback(
+            reactionFeedback(for: reaction?.kind),
+            trigger: reaction?.id ?? latestReactionID,
+            enabled: hapticsEnabled
+        )
+        .onChange(of: reaction?.id) { _, reactionID in
+            if let reactionID {
+                latestReactionID = reactionID
+            }
+        }
+    }
+
+    private func reactionFeedback(for kind: CombatantHitReactionKind?) -> SensoryFeedback {
+        switch kind {
+        case .some(.critical):
+            .impact(weight: .heavy)
+        case .some(.heal):
+            .success
+        case .some(.dodge):
+            .selection
+        case .some(.damage), .some(.block):
+            .impact(weight: .light)
+        case .some(.none), nil:
+            .impact(weight: .light)
+        }
+    }
+}
+
+private struct CombatantFeedbackLane: View {
+    @Environment(AppState.self) private var appState
+    let combatantID: String
+    let bottomInset: CGFloat
+
+    var body: some View {
+        let _ = appState.battle.feedbackEpoch
+        CombatFeedbackOverlay(items: appState.battle.feedbackItems(for: combatantID))
+            .padding(.horizontal, 8)
+            .padding(.bottom, bottomInset)
+            .padding(.top, 8)
+    }
+}
+
+private struct CombatantKeywordBurstLane: View {
+    @Environment(AppState.self) private var appState
+    let combatantID: String
+
+    var body: some View {
+        let _ = appState.battle.burstEpoch
+        KeywordBurstLayer(requests: appState.battle.keywordBursts(for: combatantID))
+    }
+}
+
+private struct CombatantSkillCalloutLane: View {
+    @Environment(AppState.self) private var appState
+    let combatantID: String
+
+    var body: some View {
+        let _ = appState.battle.feedbackEpoch
+        if let callout = appState.battle.activeSkillCallout,
+           callout.actorID == combatantID {
+            SkillCalloutView(callout: callout)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(10)
+                .allowsHitTesting(false)
+        }
     }
 }
 

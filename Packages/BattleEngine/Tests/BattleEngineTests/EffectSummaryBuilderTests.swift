@@ -19,7 +19,7 @@ struct EffectSummaryBuilderTests {
         .leech,
         .deathsDoor
     ])
-    func singleKeywordSummary(caseKind: SingleKeywordCase) throws {
+    private func singleKeywordSummary(caseKind: SingleKeywordCase) throws {
         let effects: [ActiveEffect]
         let expectedText: String
         let expectedKeyword: Keyword?

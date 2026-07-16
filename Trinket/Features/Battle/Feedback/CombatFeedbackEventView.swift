@@ -12,14 +12,30 @@ struct CombatFeedbackCanvasItem: Identifiable {
     }
 }
 
-/// A stable slot per combatant pane. The display-link path only transforms a prepared
-/// bitmap; glyph shaping, SF Symbol composition, color, and shadow happen on cache miss.
+/// A stable slot per combatant pane. Cache hits stay on the transform-only path.
+/// Cache misses retry once per display refresh under a global bake budget so three
+/// panes cannot serialize three cold bakes into one severe stall.
 struct CombatFeedbackRasterSlot: View {
     let canvasItem: CombatFeedbackCanvasItem?
-    let raster: CombatFeedbackRaster?
+    let dynamicTypeSize: DynamicTypeSize
+    let displayScale: CGFloat
 
     var body: some View {
-        TimelineView(.animation(paused: canvasItem == nil || raster == nil)) { timeline in
+        // Keep the clock running while a canvas item exists so a budgeted miss can
+        // retry on the next refresh instead of stalling forever with a nil raster.
+        TimelineView(.animation(paused: canvasItem == nil)) { timeline in
+            let raster = canvasItem.flatMap { item in
+                CombatFeedbackRasterPool.shared.cachedRaster(
+                    for: item,
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                ) ?? CombatFeedbackRasterPool.shared.prepare(
+                    for: item,
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale,
+                    useFrameBudget: true
+                )
+            }
             ZStack {
                 if let canvasItem, let raster {
                     let item = canvasItem.item

@@ -280,6 +280,7 @@ extension BattleSession {
         applyImmediatePresentation(for: items, at: date)
         scheduleFeedbackPresentation(for: items, at: date)
         scheduleFeedbackPruneIfNeeded(at: date)
+        noteFeedbackPresentationChanged()
     }
 
     /// Applies delayed haptics, SFX, hit reactions, and particle requests on the
@@ -343,6 +344,12 @@ extension BattleSession {
             }
             keywordBurstsByTargetID[targetID] = existing
         }
+        if !due.isEmpty {
+            // Reactions are tracked Observable properties; bursts sit behind burstEpoch.
+            if !bursts.isEmpty {
+                noteBurstPresentationChanged()
+            }
+        }
     }
 
     func playSFX(_ id: String) {
@@ -366,6 +373,7 @@ extension BattleSession {
         hitReactionsByTargetID = [:]
         keywordBurstsByTargetID = [:]
         presentedFeedbackIDs = []
+        noteAllFeedbackPresentationChanged()
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {

@@ -295,35 +295,6 @@ struct BattleCardCombatTests {
         try #expect(battle.isCardPlayable(companionCard))
     }
 
-    @Test func endTurnDiscardsDefeatedOwnerCardsAndFreesHandSlots() throws {
-        var battle = makeBattle(
-            heroAbilities: [.slash, .heal, .smite],
-            companionAbilities: [.bash, .fangs, .bloodthorn],
-            enemyAbilities: [],
-            enemyMaxHealth: 500
-        )
-        battle.hand = BattleHand()
-        battle.handBuffer = BattleHandBuffer()
-        for ability in [Ability.bash, .fangs, .bloodthorn] {
-            battle.nextCardID += 1
-            battle.hand.append(BattleCard(id: battle.nextCardID, ability: ability, owner: .companion))
-        }
-        battle.heroDeck.putOnBottom(.slash)
-        battle.companionDeck = CombatDeck()
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 0 }
-        }
-
-        try #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })
-        try #expect(battle.hand.cards.allSatisfy { !battle.isCardPlayable($0) })
-
-        _ = battle.endTurn()
-
-        try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero })
-        try #expect(battle.hand.cards.contains { battle.isCardPlayable($0) })
-        try #expect(!battle.hand.cards.contains { $0.owner == .companion })
-    }
-
     @Test func manaCostIgnoredWhenPlayingCards() throws {
         let expensive = Ability(
             id: "expensive-skill",

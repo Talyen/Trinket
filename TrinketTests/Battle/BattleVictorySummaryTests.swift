@@ -58,8 +58,18 @@ struct BattleVictorySummaryTests {
         #expect(summary.heroProgressionBefore.level == 2)
         #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
         #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
+    }
 
-        // Level-delta scaling: overleveled hero earns 0; underleveled companion still awards.
+    @Test func makeVictorySummaryScalesExperienceByCombatantLevel() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
+
         var scaledRoster = PlayerRosterState.freshStart
         scaledRoster.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
         scaledRoster.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)

@@ -8,20 +8,17 @@ struct CombatFeedbackOverlay: View {
     var body: some View {
         let groups = CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
         let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(from: groups).first
-        let raster = canvasItem.flatMap {
-            CombatFeedbackRasterPool.shared.raster(
-                for: $0,
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-        }
-        CombatFeedbackRasterSlot(canvasItem: canvasItem, raster: raster)
-            .frame(maxWidth: .infinity)
-            .allowsHitTesting(false)
-            .battleFramePacingSignpost(
-                BattleFramePacingSignposts.Name.combatFeedback,
-                isActive: !items.isEmpty
-            )
+        CombatFeedbackRasterSlot(
+            canvasItem: canvasItem,
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+        .frame(maxWidth: .infinity)
+        .allowsHitTesting(false)
+        .battleFramePacingSignpost(
+            BattleFramePacingSignposts.Name.combatFeedback,
+            isActive: !items.isEmpty
+        )
     }
 }
 

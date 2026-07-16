@@ -286,7 +286,7 @@ struct CombatFeedbackPresenterTests {
             dynamicTypeSize: .large,
             displayScale: 2
         ))
-        let reused = try #require(pool.raster(
+        let reused = try #require(pool.cachedRaster(
             for: canvasItems[0],
             dynamicTypeSize: .large,
             displayScale: 2
@@ -301,6 +301,33 @@ struct CombatFeedbackPresenterTests {
         #expect(snapshot.hitCount == 1)
         #expect(snapshot.buildCount == 3)
         #expect(snapshot.evictionCount == 1)
+    }
+
+    @Test @MainActor func feedbackRasterBakerCompletesUnderFrameBudget() throws {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [makeEvent(id: 42, kind: .ability, amount: 12, keyword: .burn)],
+            at: Date(timeIntervalSince1970: 10)
+        )
+        let canvasItem = CombatFeedbackOverlayPolicy.canvasItems(
+            from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
+        )[0]
+
+        // Warm symbol/font caches once, then time a representative bake.
+        _ = CombatFeedbackRasterBaker.bake(
+            canvasItem: canvasItem,
+            dynamicTypeSize: .large,
+            displayScale: 3
+        )
+        let started = ContinuousClock.now
+        let baked = try #require(CombatFeedbackRasterBaker.bake(
+            canvasItem: canvasItem,
+            dynamicTypeSize: .large,
+            displayScale: 3
+        ))
+        let elapsed = started.duration(to: .now)
+        #expect(baked.pointSize.width > 0)
+        #expect(baked.pointSize.height > 0)
+        #expect(elapsed < .milliseconds(16))
     }
 
     @Test func burstsSkipUtilityClasses() {

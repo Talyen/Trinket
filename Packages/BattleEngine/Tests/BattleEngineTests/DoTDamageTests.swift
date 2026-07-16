@@ -38,7 +38,7 @@ struct DoTDamageTests {
     }
 
     @Test(arguments: [TickBonusCase.intellectStat, .itemDamageDealt])
-    func resolveTickAppliesDamageBonuses(caseKind: TickBonusCase) throws {
+    private func resolveTickAppliesDamageBonuses(caseKind: TickBonusCase) throws {
         let context: BattleEngineContext
         let expectedHealthLost: Int
         switch caseKind {

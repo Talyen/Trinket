@@ -204,6 +204,7 @@ struct BattlePerformanceScenarioHarness: View {
             )
             battleSession.activeFeedbackItems.append(contentsOf: items)
             battleSession.scheduleFeedbackPruneIfNeeded(at: date)
+            battleSession.noteFeedbackPresentationChanged()
             try? await Task.sleep(for: .milliseconds(650))
         }
     }
@@ -259,6 +260,7 @@ struct BattlePerformanceScenarioHarness: View {
                     expiresAt: now.addingTimeInterval(0.45)
                 )]
             }
+            battleSession.noteBurstPresentationChanged()
             try? await Task.sleep(for: .milliseconds(650))
         }
     }

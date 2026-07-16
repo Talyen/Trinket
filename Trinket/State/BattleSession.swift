@@ -19,10 +19,16 @@ final class BattleSession {
     var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     var isShowingBattleLog = false
+    /// Observation fences for combat presentation lanes. Mutating ignored feedback /
+    /// burst storage bumps the matching epoch so only the lanes that read it invalidate.
+    private(set) var feedbackEpoch = 0
+    private(set) var burstEpoch = 0
+    @ObservationIgnored
     var activeFeedbackItems: [CombatFeedbackItem] = []
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
+    @ObservationIgnored
     var keywordBurstsByTargetID: [String: [KeywordBurstRequest]] = [:]
 
     /// Optional Options store for Ultimate skip policy. Injected by AppState when available.
@@ -189,7 +195,20 @@ final class BattleSession {
         }
     }
 
-    func removeFeedbackEvent(_ id: Int) {
+    func noteFeedbackPresentationChanged() {
+        feedbackEpoch &+= 1
+    }
+
+    func noteBurstPresentationChanged() {
+        burstEpoch &+= 1
+    }
+
+    func noteAllFeedbackPresentationChanged() {
+        feedbackEpoch &+= 1
+        burstEpoch &+= 1
+    }
+
+    func removeFeedbackEvent(_ id: Int, noteChange: Bool = true) {
         if let item = activeFeedbackItems.first(where: { $0.sourceEventIDs.contains(id) }) {
             let sourceEventIDs = Set(item.sourceEventIDs)
             keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == item.id }
@@ -200,6 +219,9 @@ final class BattleSession {
             for sourceEventID in sourceEventIDs {
                 feedbackEventRecordedAt.removeValue(forKey: sourceEventID)
                 presentedFeedbackIDs.remove(sourceEventID)
+            }
+            if noteChange {
+                noteFeedbackPresentationChanged()
             }
             return
         }
@@ -212,18 +234,34 @@ final class BattleSession {
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
         }
+        var removedItems = false
         for eventID in expiredItemIDs {
-            removeFeedbackEvent(eventID)
+            let beforeCount = activeFeedbackItems.count
+            removeFeedbackEvent(eventID, noteChange: false)
+            if activeFeedbackItems.count != beforeCount {
+                removedItems = true
+            }
         }
         let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
         let expiredRawIDs = feedbackEventRecordedAt.compactMap { eventID, recordedAt in
             date.timeIntervalSince(recordedAt) >= maxRawLifetime ? eventID : nil
         }
         for eventID in expiredRawIDs {
-            removeFeedbackEvent(eventID)
+            removeFeedbackEvent(eventID, noteChange: false)
         }
+        var prunedBursts = false
         for (targetID, bursts) in keywordBurstsByTargetID {
-            keywordBurstsByTargetID[targetID] = bursts.filter { date < $0.expiresAt }
+            let kept = bursts.filter { date < $0.expiresAt }
+            if kept.count != bursts.count {
+                keywordBurstsByTargetID[targetID] = kept
+                prunedBursts = true
+            }
+        }
+        if removedItems {
+            noteFeedbackPresentationChanged()
+        }
+        if prunedBursts {
+            noteBurstPresentationChanged()
         }
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
