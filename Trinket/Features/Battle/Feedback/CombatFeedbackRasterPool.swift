@@ -376,6 +376,7 @@ enum CombatFeedbackRasterBaker {
             recipe: recipe,
             dynamicTypeSize: dynamicTypeSize
         )
+        // UIStyleCheck: allow - CoreGraphics bake needs UIKit colors bridged from semantic SwiftUI roles.
         let tint = UIColor(style.color)
         let shadow = UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
 
