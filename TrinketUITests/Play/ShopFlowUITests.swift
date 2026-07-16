@@ -49,15 +49,10 @@ final class ShopFlowUITests: TrinketUITestCase {
         }
         XCTAssertTrue(purchased, "Expected at least one enabled shop Buy control")
 
-        // Offer grid can grow taller than the viewport; scroll the Leave button into view
-        // before tapping so a covered/off-screen element doesn't swallow the tap.
-        for _ in 0 ..< 6 {
-            let leaveButton = button(AccessibilityID.Shop.leaveButton)
-            if leaveButton.exists, leaveButton.isHittable {
-                break
-            }
-            app.swipeUp()
-        }
+        // Offer grid can grow taller than the viewport; scroll until Leave is hittable
+        // so a covered/off-screen element doesn't swallow the tap.
+        let leaveButton = button(AccessibilityID.Shop.leaveButton)
+        scrollUntilVisible(leaveButton, swipingUp: true, requireHittable: true)
         tapButton(AccessibilityID.Shop.leaveButton)
         play.openCampaign()
         assertButtonExists(AccessibilityID.Play.stageAction(chapter: 2, stage: 5))

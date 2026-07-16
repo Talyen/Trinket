@@ -71,6 +71,12 @@ enum TestLaunchArg {
         allForScreen("battle-victory", reset: reset)
     }
 
+    /// Play-map mid-battle exhaustive entry. Slower ticks keep combatant chrome
+    /// reachable while XCTest opens the campaign and asserts turn-based UI.
+    static func allForMidBattle() -> [String] {
+        replacingBattleTickInterval("3.0", in: testLaunchArgs)
+    }
+
     static func allForShop(reset: Bool = true) -> [String] {
         allForScreen("shop", reset: reset)
     }
@@ -271,14 +277,25 @@ class TrinketUITestCase: XCTestCase {
     func assertExistsAfterScroll(
         _ identifier: String,
         maxAttempts: Int = 6,
+        requireHittable: Bool = false,
         file: StaticString = #file,
         line: UInt = #line
     ) {
         let element = app.descendants(matching: .any)[identifier]
-        scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
+        scrollUntilVisible(
+            element,
+            swipingUp: true,
+            maxAttempts: maxAttempts,
+            requireHittable: requireHittable,
+            file: file,
+            line: line
+        )
         guard element.exists else {
             fail("Element '\(identifier)' not found after scroll", file: file, line: line)
             return
+        }
+        if requireHittable, !element.isHittable {
+            fail("Element '\(identifier)' not hittable after scroll", file: file, line: line)
         }
     }
 
@@ -292,14 +309,20 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
+    /// Scrolls until `element` exists (and optionally is hittable). Prefer this over
+    /// ad-hoc `swipeUp` loops when a control is in the hierarchy but covered/off-screen.
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
         maxAttempts: Int = 6,
+        requireHittable: Bool = false,
         file _: StaticString = #file,
         line _: UInt = #line
     ) {
-        for _ in 0 ..< maxAttempts where !element.exists {
+        for _ in 0 ..< maxAttempts {
+            if element.exists, !requireHittable || element.isHittable {
+                return
+            }
             if swipingUp {
                 dragScroll(fromY: 0.90, toY: 0.35)
             } else {

@@ -33,7 +33,24 @@ struct HomesteadScreen {
     }
 
     func openNode(named title: String) {
-        app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: title)].tap()
+        let node = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: title)]
+        // Cinematic overview hero pushes the first project rows below the fold on
+        // compact phones — scroll until the row is hittable before tapping.
+        for _ in 0 ..< 6 where !(node.exists && node.isHittable) {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.90))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+            start.press(forDuration: 0.05, thenDragTo: end)
+            _ = node.waitForExistence(timeout: 0.15)
+        }
+        XCTAssertTrue(
+            node.waitForExistence(timeout: TrinketUITestCase.defaultTimeout),
+            "Homestead node '\(title)' not found"
+        )
+        if node.isHittable {
+            node.tap()
+        } else {
+            node.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
     }
 
     func assertNodeDetail(
