@@ -96,13 +96,10 @@ struct MarkedHandler: BattleEffectHandler {
         guard case let .marked(bonus, durationTicks) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .marked = $0.effect {
-                return true
-            }; return false
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .marked = $0 { return true }
+            return false
         }
-        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(.marked(bonus, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
         let event = context.nextEvent(
             kind: .effect,
@@ -237,13 +234,10 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard case let .damageKeywordOverride(keyword, bonus, durationTicks) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .damageKeywordOverride = $0.effect {
-                return true
-            }; return false
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .damageKeywordOverride = $0 { return true }
+            return false
         }
-        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .damageKeywordOverride(keyword, bonus, durationTicks),
             to: target,

@@ -4,21 +4,74 @@ import TrinketCore
 
 /// Shared helpers for the pooled Block / Armor model.
 package enum DefensePoolEngine {
-    package static func blockPoints(in effects: [ActiveEffect]) -> Int {
-        effects.reduce(0) { sum, active in
-            if case let .shield(_, buffer) = active.effect {
-                return sum + buffer
+    /// Player-facing pool identity. Maps to `Effect.shield` / `Effect.mitigation`.
+    package enum Pool: Sendable {
+        case block
+        case armor
+
+        var effectKind: EffectKind {
+            switch self {
+            case .block: .shield
+            case .armor: .mitigation
             }
-            return sum
+        }
+
+        var appliedEffectKind: ActionEvent.EffectKind {
+            switch self {
+            case .block: .shieldApplied
+            case .armor: .mitigationApplied
+            }
+        }
+
+        fileprivate var defaultKeyword: Keyword {
+            switch self {
+            case .block: .block
+            case .armor: .armor
+            }
+        }
+
+        fileprivate func matches(_ effect: Effect) -> Bool {
+            switch (self, effect) {
+            case (.block, .shield), (.armor, .mitigation): true
+            default: false
+            }
+        }
+
+        fileprivate func points(in effect: Effect) -> Int? {
+            switch (self, effect) {
+            case let (.block, .shield(_, buffer)): buffer
+            case let (.armor, .mitigation(_, points)): points
+            default: nil
+            }
+        }
+
+        func decodeGain(_ effect: Effect) -> (keyword: Keyword, amount: Int)? {
+            switch (self, effect) {
+            case let (.block, .shield(keyword, amount)): (keyword, amount)
+            case let (.armor, .mitigation(keyword, amount)): (keyword, amount)
+            default: nil
+            }
+        }
+
+        fileprivate func makeEffect(keyword: Keyword, amount: Int) -> Effect {
+            switch self {
+            case .block: .shield(keyword, amount)
+            case .armor: .mitigation(keyword, amount)
+            }
+        }
+
+        fileprivate func withAmount(_ effect: Effect, amount: Int) -> Effect? {
+            switch (self, effect) {
+            case let (.block, .shield(keyword, _)): .shield(keyword, amount)
+            case let (.armor, .mitigation(keyword, _)): .mitigation(keyword, amount)
+            default: nil
+            }
         }
     }
 
-    package static func armorPoints(in effects: [ActiveEffect]) -> Int {
+    package static func points(in effects: [ActiveEffect], pool: Pool) -> Int {
         effects.reduce(0) { sum, active in
-            if case let .mitigation(_, points) = active.effect {
-                return sum + points
-            }
-            return sum
+            sum + (pool.points(in: active.effect) ?? 0)
         }
     }
 
@@ -28,7 +81,7 @@ package enum DefensePoolEngine {
         profile: CombatModifierProfile,
         in context: BattleEngineContext
     ) -> Int {
-        var points = armorPoints(in: effects) + profile.passiveArmorFlat
+        var points = Self.points(in: effects, pool: .armor) + profile.passiveArmorFlat
         points += combatant.primaryStats.armorEffectivenessBonus
         if let runtime = context.roster.runtime(for: combatant),
            runtime.mitigationShredUntilTick > context.tickCount {
@@ -40,89 +93,53 @@ package enum DefensePoolEngine {
         return max(0, points)
     }
 
-    package static func addBlock(
+    package static func add(
         _ amount: Int,
+        pool: Pool,
         to target: Combatant,
-        keyword: Keyword = .block,
+        keyword: Keyword? = nil,
         in context: inout BattleEngineContext
     ) {
         guard amount > 0 else { return }
         var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: {
-            if case .shield = $0.effect {
-                return true
-            }; return false
-        }),
-            case let .shield(existingKeyword, buffer) = effects[index].effect {
+        if let index = effects.firstIndex(where: { pool.matches($0.effect) }),
+           let updated = pool.withAmount(
+            effects[index].effect,
+            amount: (pool.points(in: effects[index].effect) ?? 0) + amount
+           ) {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
-                effect: .shield(existingKeyword, buffer + amount),
+                effect: updated,
                 remainingTicks: 0,
                 sourceActorID: effects[index].sourceActorID
             )
             context.roster.setActiveEffects(effects, for: target)
             return
         }
-        context.appendEffect(.shield(keyword, amount), to: target, sourceID: target.id, remainingTicks: 0)
+        context.appendEffect(
+            pool.makeEffect(keyword: keyword ?? pool.defaultKeyword, amount: amount),
+            to: target,
+            sourceID: target.id,
+            remainingTicks: 0
+        )
     }
 
-    package static func addArmor(
+    package static func set(
         _ amount: Int,
-        to target: Combatant,
-        keyword: Keyword = .armor,
+        pool: Pool,
+        on target: Combatant,
         in context: inout BattleEngineContext
     ) {
-        guard amount > 0 else { return }
         var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: {
-            if case .mitigation = $0.effect {
-                return true
-            }; return false
-        }),
-            case let .mitigation(existingKeyword, points) = effects[index].effect {
-            effects[index] = ActiveEffect(
-                id: effects[index].id,
-                effect: .mitigation(existingKeyword, points + amount),
-                remainingTicks: 0,
-                sourceActorID: effects[index].sourceActorID
+        effects.removeAll { pool.matches($0.effect) }
+        context.roster.setActiveEffects(effects, for: target)
+        if amount > 0 {
+            context.appendEffect(
+                pool.makeEffect(keyword: pool.defaultKeyword, amount: amount),
+                to: target,
+                sourceID: target.id,
+                remainingTicks: 0
             )
-            context.roster.setActiveEffects(effects, for: target)
-            return
-        }
-        context.appendEffect(.mitigation(keyword, amount), to: target, sourceID: target.id, remainingTicks: 0)
-    }
-
-    package static func setArmor(
-        _ amount: Int,
-        on target: Combatant,
-        in context: inout BattleEngineContext
-    ) {
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .mitigation = $0.effect {
-                return true
-            }; return false
-        }
-        context.roster.setActiveEffects(effects, for: target)
-        if amount > 0 {
-            context.appendEffect(.mitigation(.armor, amount), to: target, sourceID: target.id, remainingTicks: 0)
-        }
-    }
-
-    package static func setBlock(
-        _ amount: Int,
-        on target: Combatant,
-        in context: inout BattleEngineContext
-    ) {
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .shield = $0.effect {
-                return true
-            }; return false
-        }
-        context.roster.setActiveEffects(effects, for: target)
-        if amount > 0 {
-            context.appendEffect(.shield(.block, amount), to: target, sourceID: target.id, remainingTicks: 0)
         }
     }
 
@@ -131,8 +148,8 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleEngineContext
     ) {
-        let current = blockPoints(in: context.roster.activeEffects(for: target))
+        let current = points(in: context.roster.activeEffects(for: target), pool: .block)
         guard current > 0 else { return }
-        setBlock(current / 2, on: target, in: &context)
+        set(current / 2, pool: .block, on: target, in: &context)
     }
 }

@@ -4,40 +4,13 @@ import TrinketCore
 
 /// Shared handler for shield (block) and mitigation (armor) pool gains.
 struct DefensePoolBuffHandler: BattleEffectHandler {
-    enum Pool: Sendable {
-        case shield
-        case mitigation
-
-        var kind: EffectKind {
-            switch self {
-            case .shield: .shield
-            case .mitigation: .mitigation
-            }
-        }
-
-        var appliedEffectKind: ActionEvent.EffectKind {
-            switch self {
-            case .shield: .shieldApplied
-            case .mitigation: .mitigationApplied
-            }
-        }
-    }
-
-    let pool: Pool
+    let pool: DefensePoolEngine.Pool
     var kind: EffectKind {
-        pool.kind
+        pool.effectKind
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let total = stacks.reduce(0) { sum, active in
-            switch (pool, active.effect) {
-            case let (.shield, .shield(_, value)),
-                 let (.mitigation, .mitigation(_, value)):
-                sum + value
-            default:
-                sum
-            }
-        }
+        let total = DefensePoolEngine.points(in: stacks, pool: pool)
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total).")
     }
@@ -51,25 +24,11 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
-        let keyword: Keyword
-        let amount: Int
-        switch (pool, adjusted) {
-        case let (.shield, .shield(adjustedKeyword, adjustedAmount)):
-            keyword = adjustedKeyword
-            amount = adjustedAmount
-        case let (.mitigation, .mitigation(adjustedKeyword, adjustedAmount)):
-            keyword = adjustedKeyword
-            amount = adjustedAmount
-        default:
+        guard let gain = pool.decodeGain(adjusted) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
 
-        switch pool {
-        case .shield:
-            DefensePoolEngine.addBlock(amount, to: target, keyword: keyword, in: &context)
-        case .mitigation:
-            DefensePoolEngine.addArmor(amount, to: target, keyword: keyword, in: &context)
-        }
+        DefensePoolEngine.add(gain.amount, pool: pool, to: target, keyword: gain.keyword, in: &context)
 
         let event = context.nextEvent(
             kind: .effect,
@@ -77,14 +36,14 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: amount,
-            keyword: keyword
+            amount: gain.amount,
+            keyword: gain.keyword
         )
         var events = [event]
         switch pool {
-        case .shield:
+        case .block:
             events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
-        case .mitigation:
+        case .armor:
             events.append(contentsOf: CombatReactionEngine.afterArmorGained(by: target, in: &context))
         }
         return EffectApplyOutcome(events: events, didApply: true)
@@ -130,13 +89,10 @@ struct LeechHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .leech = $0.effect {
-                return true
-            }; return false
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .leech = $0 { return true }
+            return false
         }
-        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             to: target,
@@ -175,13 +131,10 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
         guard case .nextHolyStrike = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .nextHolyStrike = $0.effect {
-                return true
-            }; return false
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .nextHolyStrike = $0 { return true }
+            return false
         }
-        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .nextHolyStrike,
             to: target,
