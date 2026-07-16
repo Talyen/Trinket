@@ -60,6 +60,36 @@ struct CombatFeedbackPresenterTests {
         #expect(abilityItems[0].text == "-6")
     }
 
+    @Test func prefersAbilityChipOverMarkedConsumeWhenMergingCritical() {
+        // Pipeline order: criticalApplied → markedConsumed → ability damage.
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 20,
+                    kind: .effect,
+                    effectKind: .criticalApplied,
+                    amount: 0,
+                    keyword: .physical
+                ),
+                makeEvent(
+                    id: 21,
+                    kind: .effect,
+                    effectKind: .markedConsumed,
+                    amount: 3,
+                    keyword: .physical
+                ),
+                makeEvent(id: 22, kind: .ability, amount: 12, keyword: .physical)
+            ],
+            at: Date(timeIntervalSince1970: 100)
+        )
+        let ability = items.first { $0.sourceEventIDs.contains(22) }
+        let marked = items.first { $0.sourceEventIDs.contains(21) }
+        #expect(ability?.feedbackClass == .critical)
+        #expect(ability?.sourceEventIDs == [22, 20])
+        #expect(marked?.feedbackClass == .directDamage)
+        #expect(marked?.sourceEventIDs == [21])
+    }
+
     @Test func classifiesHealAndDodge() {
         let events = [
             makeEvent(

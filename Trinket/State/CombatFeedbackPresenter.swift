@@ -160,8 +160,19 @@ enum CombatFeedbackPresenter {
             $0.effectKind == .criticalApplied
         }, by: \.targetID)
         var consumedCriticalIDs: Set<Int> = []
-        var result: [PreparedSource] = []
 
+        // Prefer the primary ability damage chip over same-batch side chips
+        // (Marked consume, thorns) so a crit on a Marked foe highlights the hit.
+        var reservedCriticalByEventID: [Int: ActionEvent] = [:]
+        for event in events where isPreferredCriticalMergeTarget(event) {
+            guard let critical = criticalsByTarget[event.targetID]?.first(where: {
+                !consumedCriticalIDs.contains($0.id)
+            }) else { continue }
+            consumedCriticalIDs.insert(critical.id)
+            reservedCriticalByEventID[event.id] = critical
+        }
+
+        var result: [PreparedSource] = []
         for (originalOrder, event) in events.enumerated() {
             if event.effectKind == .criticalApplied {
                 // Prefer merging into the damage chip; drop orphan labels when a damage event exists.
@@ -179,10 +190,13 @@ enum CombatFeedbackPresenter {
 
             var sourceEventIDs = [event.id]
             var forceCritical = false
-            if isDamageChipCandidate(event),
-               let critical = criticalsByTarget[event.targetID]?.first(where: {
-                   !consumedCriticalIDs.contains($0.id)
-               }) {
+            if let reserved = reservedCriticalByEventID[event.id] {
+                sourceEventIDs.append(reserved.id)
+                forceCritical = true
+            } else if isDamageChipCandidate(event),
+                      let critical = criticalsByTarget[event.targetID]?.first(where: {
+                          !consumedCriticalIDs.contains($0.id)
+                      }) {
                 consumedCriticalIDs.insert(critical.id)
                 sourceEventIDs.append(critical.id)
                 forceCritical = true
@@ -196,6 +210,10 @@ enum CombatFeedbackPresenter {
         }
 
         return result
+    }
+
+    private static func isPreferredCriticalMergeTarget(_ event: ActionEvent) -> Bool {
+        event.kind == .ability && event.amount > 0
     }
 
     private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {
