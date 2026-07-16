@@ -171,4 +171,27 @@ enum BalanceContrastSupport {
         withBaseline.ownerGear = baselineOwnerGear
         return (buildMatchup(withEntity), buildMatchup(withBaseline))
     }
+
+    /// Runs the entity and baseline matchups with identical simulator limits.
+    static func runEntityBaselinePair(
+        matchups: (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup),
+        policy: GreedyHeuristicPolicy,
+        maxRounds: Int,
+        maxActions: Int
+    ) -> (entityWon: Bool, baselineWon: Bool) {
+        (
+            BattleSimulator.run(
+                matchup: matchups.withEntity,
+                policy: policy,
+                maxRounds: maxRounds,
+                maxActions: maxActions
+            ).isVictory,
+            BattleSimulator.run(
+                matchup: matchups.withBaseline,
+                policy: policy,
+                maxRounds: maxRounds,
+                maxActions: maxActions
+            ).isVictory
+        )
+    }
 }
