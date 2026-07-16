@@ -23,26 +23,8 @@ struct DamagePipelineTests {
         "ReactiveOnHit"
     ]
 
-    private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
-        let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
-        let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
-        )
-        return BattleEngineContext(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
+    private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleEngineContext {
+        BattleTestFixtures.makePipelineContext(seed: seed)
     }
 
     @Test func executedStepNamesMatchCanonicalOrderForFullHit() throws {
@@ -146,7 +128,9 @@ struct DamagePipelineTests {
         try #expect(outcome.healthLost == 2)
         try #expect(context.roster.health(for: hero) == healthBefore - 2)
         let shield = context.roster.activeEffects(for: hero).first {
-            if case .shield = $0.effect { return true }
+            if case .shield = $0.effect {
+                return true
+            }
             return false
         }
         guard case let .shield(_, buffer) = shield?.effect else {

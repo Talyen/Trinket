@@ -44,14 +44,20 @@ struct OptionsStoreTests {
         store.musicVolume = 0.25
         store.effectsVolume = 0.5
         store.hapticsEnabled = false
+        store.ultimateCinematicSkipPolicy = .never
 
         #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - 0.25) < 0.001)
         #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - 0.5) < 0.001)
         #expect(!(context.userDefaults.bool(forKey: "options.hapticsEnabled")))
+        #expect(
+            context.userDefaults.string(forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
+                == UltimateCinematicSkipPolicy.never.rawValue
+        )
 
         let reloaded = OptionsStore(defaults: context.userDefaults)
         #expect(abs((reloaded.musicVolume) - 0.25) < 0.001)
         #expect(abs((reloaded.effectsVolume) - 0.5) < 0.001)
         #expect(!reloaded.hapticsEnabled)
+        #expect(reloaded.ultimateCinematicSkipPolicy == .never)
     }
 }
