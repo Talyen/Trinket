@@ -20,7 +20,7 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
         assertButtonExists(AccessibilityID.Battle.continueButton)
         let rewardItemID = "chapter-1-stage-1-loot"
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 8)
     }
 
     /// Hand drag onto a combatant must not open details; tap still works after.

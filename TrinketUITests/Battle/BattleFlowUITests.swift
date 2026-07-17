@@ -93,7 +93,12 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(app.staticTexts["BASIC"])
         assertExists(app.staticTexts["Leather Armor"])
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
+        // Sheet + hero header art can take longer under exhaustive suite load than smoke.
+        XCTAssertTrue(
+            app.navigationBars["Leather Armor"].waitForExistence(timeout: 8),
+            "Reward item detail sheet did not present"
+        )
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 8)
         dismissSheet()
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
