@@ -39,21 +39,18 @@ struct EquipmentSlotSummaryGrid: View {
             EmptyItemSlotCard(
                 slot: slot,
                 lockLabel: slot.unlockLabel,
-                reservesLabelSpace: false,
-                artworkBlend: .perimeter(into: .surface)
+                reservesLabelSpace: false
             )
         } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
-                reservesLabelSpace: false,
-                artworkBlend: .perimeter(into: .surface)
+                reservesLabelSpace: false
             )
         } else {
             EmptyItemSlotCard(
                 slot: slot,
-                reservesLabelSpace: false,
-                artworkBlend: .perimeter(into: .surface)
+                reservesLabelSpace: false
             )
         }
     }

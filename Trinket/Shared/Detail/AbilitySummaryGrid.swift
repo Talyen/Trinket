@@ -39,8 +39,7 @@ struct AbilitySummaryGrid: View {
         if let ability = selectedAbility(for: tier) {
             AbilityChoiceCard(
                 ability: ability,
-                lockLabel: lockLabel(for: tier),
-                artworkBlend: .perimeter(into: .surface)
+                lockLabel: lockLabel(for: tier)
             )
         } else {
             EmptyAbilitySlotCard(tier: tier)

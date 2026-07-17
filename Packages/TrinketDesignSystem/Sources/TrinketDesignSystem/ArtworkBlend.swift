@@ -17,7 +17,8 @@ public enum ArtworkBlendDestination: CaseIterable, Equatable, Sendable {
     }
 }
 
-/// Optional edge treatments for integrating artwork with its containing surface.
+/// Optional bottom-edge blend for integrating artwork with its containing surface.
+/// The `perimeter` case is preserved for API compatibility but has no visual effect.
 public enum ArtworkBlend: Equatable, Sendable {
     case none
     case perimeter(into: ArtworkBlendDestination)
@@ -25,11 +26,10 @@ public enum ArtworkBlend: Equatable, Sendable {
 }
 
 enum ArtworkBlendRecipe {
-    /// Normalized distances measured inward from every treated artwork edge.
     static let edgeOpacity = 1.0
-    static let shoulderOpacity = 0.24
-    static let shoulderInset = 0.05
-    static let clearInset = 0.11
+    static let shoulderOpacity = 0.35
+    static let shoulderInset = 0.08
+    static let clearInset = 0.22
 }
 
 private struct ArtworkBlendModifier: ViewModifier {
@@ -37,56 +37,14 @@ private struct ArtworkBlendModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch blend {
-        case .none:
+        case .none, .perimeter:
             content
-
-        case let .perimeter(destination):
-            content.overlay {
-                PerimeterArtworkBlend(destination: destination)
-                    .allowsHitTesting(false)
-            }
-
         case let .bottom(destination):
             content.overlay {
                 BottomArtworkBlend(destination: destination)
                     .allowsHitTesting(false)
             }
         }
-    }
-}
-
-private struct PerimeterArtworkBlend: View {
-    let destination: ArtworkBlendDestination
-
-    var body: some View {
-        ZStack {
-            edgeGradient(startPoint: .leading, endPoint: .trailing)
-            edgeGradient(startPoint: .top, endPoint: .bottom)
-        }
-    }
-
-    private func edgeGradient(startPoint: UnitPoint, endPoint: UnitPoint) -> LinearGradient {
-        let color = destination.color
-        let recipe = ArtworkBlendRecipe.self
-
-        return LinearGradient(
-            stops: [
-                .init(color: color.opacity(recipe.edgeOpacity), location: 0),
-                .init(
-                    color: color.opacity(recipe.shoulderOpacity),
-                    location: recipe.shoulderInset
-                ),
-                .init(color: .clear, location: recipe.clearInset),
-                .init(color: .clear, location: 1 - recipe.clearInset),
-                .init(
-                    color: color.opacity(recipe.shoulderOpacity),
-                    location: 1 - recipe.shoulderInset
-                ),
-                .init(color: color.opacity(recipe.edgeOpacity), location: 1)
-            ],
-            startPoint: startPoint,
-            endPoint: endPoint
-        )
     }
 }
 

@@ -52,8 +52,7 @@ struct InventoryGridView: View {
                             } label: {
                                 ItemCard(
                                     item: item,
-                                    showsAffixCount: false,
-                                    artworkBlend: .perimeter(into: .surface)
+                                    showsAffixCount: false
                                 )
                             }
                             .trinketQuietTapButtonStyle()

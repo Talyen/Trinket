@@ -10,6 +10,9 @@ struct CardSurfaceModifier: ViewModifier {
             .background(palette.panelSurface, in: shape)
             .shadow(color: palette.shadow.color, radius: palette.shadow.radius, y: palette.shadow.y)
             .clipShape(shape)
+            .overlay {
+                shape.strokeBorder(palette.subtleStroke, lineWidth: 1)
+            }
     }
 }
 

@@ -71,8 +71,7 @@ struct CollectionView: View {
                                 ItemCard(
                                     item: item,
                                     showsAffixCount: false,
-                                    showsName: false,
-                                    artworkBlend: .perimeter(into: .surface)
+                                    showsName: false
                                 )
                                 .collectionShelfCardWidth()
                             }

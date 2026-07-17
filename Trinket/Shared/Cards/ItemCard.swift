@@ -9,7 +9,6 @@ struct ItemCard: View {
     var reservesLabelSpace: Bool = true
     /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
     var appliesCardSurface: Bool = true
-    var artworkBlend: ArtworkBlend = .none
     var isSelected = false
 
     var body: some View {
@@ -47,7 +46,6 @@ struct ItemCard: View {
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 ItemArtwork(item: item, variant: .thumbnail)
-                    .trinketArtworkBlend(artworkBlend)
                     .clipShape(TrinketDesign.cardShape)
             }
 

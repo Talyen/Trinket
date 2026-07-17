@@ -135,7 +135,6 @@ private struct PlayModeArtworkCard: View {
         ZStack(alignment: .bottomLeading) {
             if let art {
                 HomesteadFocalArtwork(art: art)
-                    .trinketArtworkBlend(.perimeter(into: .canvas))
 
             } else {
                 TrinketDesign.Colors.surface
@@ -166,8 +165,7 @@ private struct PlayModeArtworkCard: View {
         .aspectRatio(1.35, contentMode: .fit)
         .clipShape(TrinketDesign.cardShape)
         .overlay {
-            TrinketDesign.cardShape
-                .stroke(TrinketDesign.Colors.Overlay.paper.opacity(0.18), lineWidth: 1)
+            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
         }
         .shadow(
             color: TrinketDesign.Colors.Overlay.ink.opacity(0.42),

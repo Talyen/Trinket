@@ -21,40 +21,48 @@ struct BattleCombatantPane: View {
     var body: some View {
         Button(action: onCombatantTap) {
             ZStack(alignment: .bottom) {
-                ZStack {
-                    CombatantHitReactionLane(
-                        combatantID: combatant.id,
-                        hapticsEnabled: hapticsEnabled
-                    ) {
-                        artworkPresentation
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .trinketArtworkBlend(.perimeter(into: .canvas))
-
-                    // Isolated observation leaves: feedback / burst / reaction updates
-                    // must not rebuild static pane chrome or the rest of BattleView.
-                    CombatantKeywordBurstLane(combatantID: combatant.id)
-                    CombatantFeedbackLane(
-                        combatantID: combatant.id,
-                        bottomInset: resourceBarsReservedHeight + 8
-                    )
-                    CombatantSkillCalloutLane(combatantID: combatant.id)
-
-                    // Invisible source for Ultimate matched-geometry expand from this card.
-                    Color.clear
-                        .frame(width: 1, height: 1)
-                        .matchedGeometryEffect(
-                            id: "ultimate-source-\(combatant.id)",
-                            in: cinematicNamespace,
-                            isSource: true
-                        )
+                CombatantHitReactionLane(
+                    combatantID: combatant.id,
+                    hapticsEnabled: hapticsEnabled
+                ) {
+                    artworkPresentation
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                resourceBars
+                // Chrome stays masked to the card slot while the reaction portrait
+                // recoils/squashes beyond it with its rounded clip.
+                ZStack(alignment: .bottom) {
+                    ZStack {
+                        // Isolated observation leaves: feedback / burst / reaction
+                        // updates must not rebuild static pane chrome or BattleView.
+                        CombatantKeywordBurstLane(combatantID: combatant.id)
+                        CombatantFeedbackLane(
+                            combatantID: combatant.id,
+                            bottomInset: resourceBarsReservedHeight + 8
+                        )
+                        CombatantSkillCalloutLane(combatantID: combatant.id)
+
+                        // Invisible source for Ultimate matched-geometry expand from this card.
+                        Color.clear
+                            .frame(width: 1, height: 1)
+                            .matchedGeometryEffect(
+                                id: "ultimate-source-\(combatant.id)",
+                                in: cinematicNamespace,
+                                isSource: true
+                            )
+                    }
+
+                    resourceBars
+                }
+                .clipShape(TrinketDesign.cardShape)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+                    .opacity(isDefeated ? 0 : 1)
+            }
+            .animation(TrinketMotion.Battle.scrim, value: isDefeated)
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -115,10 +123,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
     @State private var latestReactionID = 0
 
-    private var artworkOverscanScale: CGFloat {
-        1.14
-    }
-
     private var hitReaction: CombatantHitReaction? {
         appState.battle.hitReactionsByTargetID[combatantID]
     }
@@ -153,16 +157,16 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             trigger: reactionID
         ) { state in
             artwork()
-                // Preserve hidden artwork beyond the card viewport so recoil and
-                // deformation do not expose the moving layer's rectangular edge.
-                .scaleEffect(artworkOverscanScale)
-                .scaleEffect(x: state.scaleX, y: state.scaleY)
-                .offset(x: state.offsetX, y: state.offsetY)
                 .overlay {
                     flashColor
                         .opacity(state.flashOpacity)
                         .allowsHitTesting(false)
                 }
+                // Mask travels with the portrait: recoil/squash can leave the
+                // card slot without exposing the artwork's rectangular edge.
+                .clipShape(TrinketDesign.cardShape)
+                .scaleEffect(x: state.scaleX, y: state.scaleY)
+                .offset(x: state.offsetX, y: state.offsetY)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
                 SpringKeyframe(

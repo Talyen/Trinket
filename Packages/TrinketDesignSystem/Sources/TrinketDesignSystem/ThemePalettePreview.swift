@@ -19,7 +19,6 @@ private struct ThemePaletteGallery: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraLargeSpacing) {
                 typography
                 surfaces
-                artworkBlends
                 colors
                 controls
                 materials
@@ -68,39 +67,6 @@ private struct ThemePaletteGallery: View {
             }
         }
         .trinketSurface(.secondary)
-    }
-
-    private var artworkBlends: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-            Text("Artwork Blends").trinketTypography(.sectionTitle)
-            HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                artworkBlendPreview("None", blend: .none)
-                artworkBlendPreview("Perimeter", blend: .perimeter(into: .surface))
-                artworkBlendPreview("Bottom", blend: .bottom(into: .canvas))
-            }
-        }
-    }
-
-    private func artworkBlendPreview(_ title: String, blend: ArtworkBlend) -> some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            LinearGradient(
-                colors: [
-                    TrinketDesign.Colors.accentEmphasized,
-                    TrinketDesign.Colors.informational,
-                    TrinketDesign.Colors.arcane
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .trinketArtworkBlend(blend)
-            .clipShape(TrinketDesign.cardShape)
-
-            Text(title)
-                .trinketTypography(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
     }
 
     private var controls: some View {

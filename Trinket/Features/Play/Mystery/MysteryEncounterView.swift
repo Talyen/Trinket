@@ -127,8 +127,7 @@ struct MysteryEncounterView: View {
                                     item: item,
                                     showsAffixCount: false,
                                     showsName: false,
-                                    appliesCardSurface: false,
-                                    artworkBlend: .perimeter(into: .canvas)
+                                    appliesCardSurface: false
                                 )
                                 Text(item.displayName)
                                     .trinketTypography(.badge)
@@ -154,7 +153,6 @@ struct MysteryEncounterView: View {
         if session.combatant != nil {
             EncounterArtwork(stage: recruitArtworkStage)
                 .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
-                .trinketArtworkBlend(.perimeter(into: .canvas))
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
 
@@ -234,7 +232,6 @@ struct MysteryEncounterView: View {
                 ZStack(alignment: .bottom) {
                     CombatantArtwork(combatant: combatant, variant: .hero)
                         .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                        .trinketArtworkBlend(.perimeter(into: .canvas))
                 }
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()

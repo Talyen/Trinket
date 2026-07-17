@@ -97,7 +97,6 @@ struct BattlePartyInlinePicker: View {
             HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(width: 38, height: 48)
-                    .trinketArtworkBlend(.perimeter(into: .surface))
                     .clipShape(TrinketDesign.cardShape)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -297,7 +296,6 @@ struct StageBattlePartyPickerSheet: View {
                 .overlay {
                     ZStack(alignment: .bottomLeading) {
                         CombatantArtwork(combatant: combatant, variant: .card)
-                            .trinketArtworkBlend(.perimeter(into: .surface))
 
                         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                             Text(slot.title)
@@ -359,7 +357,6 @@ private struct BattlePartyOptionsGrid: View {
                     } label: {
                         CombatantCard(
                             combatant: combatant,
-                            artworkBlend: .perimeter(into: .surface),
                             isSelected: selected
                         )
                         .opacity(eligible ? 1 : 0.4)

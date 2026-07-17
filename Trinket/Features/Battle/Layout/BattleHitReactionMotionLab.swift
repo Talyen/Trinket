@@ -100,7 +100,6 @@ private struct BattleHitReactionMotionLab: View {
                 )
                 .frame(maxWidth: 480)
                 .aspectRatio(4 / 3, contentMode: .fit)
-                .clipShape(TrinketDesign.cardShape)
                 .overlay {
                     TrinketDesign.cardShape
                         .stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
@@ -289,13 +288,14 @@ private struct HitReactionPreview: View {
 
         KeyframeAnimator(initialValue: HitReactionState(), trigger: trigger) { state in
             CombatantArtwork(combatant: combatant, variant: .battle)
-                .scaleEffect(x: state.scaleX, y: state.scaleY)
-                .offset(x: state.offsetX, y: state.offsetY)
                 .overlay {
                     keyword.visualStyle.color
                         .opacity(state.flashOpacity)
                         .allowsHitTesting(false)
                 }
+                .clipShape(TrinketDesign.cardShape)
+                .scaleEffect(x: state.scaleX, y: state.scaleY)
+                .offset(x: state.offsetX, y: state.offsetY)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
                 SpringKeyframe(impactScale.x, duration: impactDuration, spring: impactSpring)
@@ -318,8 +318,6 @@ private struct HitReactionPreview: View {
                 CubicKeyframe(0, duration: recoveryDuration)
             }
         }
-        .trinketArtworkBlend(.perimeter(into: .canvas))
-        .clipped()
     }
 }
 

@@ -25,6 +25,9 @@ struct CurrentStageCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .clipShape(TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+        }
         .accessibilityElement(children: .contain)
         .sheet(isPresented: $isPartyPickerPresented) {
             StageBattlePartyPickerSheet()
@@ -39,7 +42,6 @@ struct CurrentStageCard: View {
                 GeometryReader { geometry in
                     stageArt
                         .frame(width: geometry.size.width, height: geometry.size.height)
-                        .trinketArtworkBlend(.perimeter(into: .canvas))
                         .clipped()
                 }
             }

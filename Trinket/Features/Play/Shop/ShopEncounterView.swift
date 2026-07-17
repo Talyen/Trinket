@@ -116,7 +116,6 @@ struct ShopEncounterView: View {
     private var merchantArtwork: some View {
         EncounterArtwork(stage: session.stage)
             .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
-            .trinketArtworkBlend(.perimeter(into: .canvas))
             .clipShape(TrinketDesign.cardShape)
             .trinketCardSurface()
             .frame(maxWidth: .infinity)
@@ -150,8 +149,7 @@ struct ShopEncounterView: View {
                             item: offer.item,
                             showsAffixCount: false,
                             showsName: false,
-                            appliesCardSurface: false,
-                            artworkBlend: .perimeter(into: .canvas)
+                            appliesCardSurface: false
                         )
                     }
                     // UIStyleCheck: allow - Offer card opens item detail without button chrome.

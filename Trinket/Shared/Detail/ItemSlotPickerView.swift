@@ -44,7 +44,6 @@ struct ItemSlotPickerView: View {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
-                artworkBlend: .perimeter(into: .surface),
                 isSelected: isSelected
             )
         }

@@ -23,6 +23,5 @@ struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: Vi
     private func sizedPane(_ pane: some View, size: CGSize) -> some View {
         pane
             .frame(width: size.width, height: size.height)
-            .clipShape(TrinketDesign.cardShape)
     }
 }

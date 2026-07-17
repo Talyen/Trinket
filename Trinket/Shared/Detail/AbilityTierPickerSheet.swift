@@ -47,7 +47,6 @@ struct AbilityTierPickerSheet: View {
         } label: {
             AbilityChoiceCard(
                 ability: ability,
-                artworkBlend: .perimeter(into: .surface),
                 isSelected: isSelected
             )
         }

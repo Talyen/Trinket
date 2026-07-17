@@ -38,7 +38,6 @@ struct EmptyItemSlotCard: View {
     let slot: ItemSlot
     var lockLabel: String?
     var reservesLabelSpace: Bool = true
-    var artworkBlend: ArtworkBlend = .none
 
     private var isLocked: Bool {
         lockLabel != nil
@@ -53,7 +52,6 @@ struct EmptyItemSlotCard: View {
                         Image.preparedAsset(named: imageName)
                             .resizable()
                             .scaledToFill()
-                            .trinketArtworkBlend(artworkBlend)
                             .decorativePreparedArtwork()
                     } else {
                         TrinketDesign.cardShape
