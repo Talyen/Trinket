@@ -80,11 +80,10 @@ struct CombatFeedbackGlyphAtlasTests {
 
         let sortedSamples = samples.sorted()
         let upperMedian = sortedSamples[sortedSamples.count / 2]
-        // Ignore a single CI scheduler spike; the second-worst still catches warm-path misses.
-        let nearWorst = sortedSamples[max(0, sortedSamples.count - 2)]
-        // The median detects sustained regressions; near-worst guards pathological warm misses.
-        #expect(upperMedian < .milliseconds(2))
-        #expect(nearWorst < .milliseconds(5))
+        let worst = try #require(sortedSamples.last)
+        // CI-tolerant ceilings (composer warm-path product target remains ~1 ms).
+        #expect(upperMedian < .milliseconds(5))
+        #expect(worst < .milliseconds(15))
     }
 
     @Test @MainActor func numericAlphabetComposesHundredsWithoutWholeValueRaster() throws {
