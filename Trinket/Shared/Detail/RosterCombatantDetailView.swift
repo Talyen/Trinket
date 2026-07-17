@@ -12,17 +12,12 @@ struct RosterCombatantDetailView: View {
     let combatantID: String
     var hidesNavigationBar = false
 
-    var body: some View {
-        let catalog: [Combatant] = switch kind {
-        case .hero:
-            GameContent.heroes
-        case .companion:
-            GameContent.companions
-        }
+    /// Avoid re-scanning the catalog + configured roster on every parent invalidation.
+    @State private var resolvedCombatant: Combatant?
 
-        if let combatant = appState.roster
-            .configuredCombatants(catalog)
-            .first(where: { $0.id == combatantID }) {
+    var body: some View {
+        let combatant = resolvedCombatant ?? resolveCombatant()
+        if let combatant {
             CombatantDetailPane(
                 combatant: combatant,
                 progression: appState.roster.progression(for: combatant),
@@ -49,6 +44,11 @@ struct RosterCombatantDetailView: View {
                 allowsEditing: appState.roster.isUnlocked(combatant),
                 hidesNavigationBar: hidesNavigationBar
             )
+            .onAppear {
+                if resolvedCombatant == nil {
+                    resolvedCombatant = combatant
+                }
+            }
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Companion Not Found",
@@ -56,5 +56,17 @@ struct RosterCombatantDetailView: View {
             )
             .accessibilityIdentifier("Combatant Not Found")
         }
+    }
+
+    private func resolveCombatant() -> Combatant? {
+        let catalog: [Combatant] = switch kind {
+        case .hero:
+            GameContent.heroes
+        case .companion:
+            GameContent.companions
+        }
+        return appState.roster
+            .configuredCombatants(catalog)
+            .first(where: { $0.id == combatantID })
     }
 }

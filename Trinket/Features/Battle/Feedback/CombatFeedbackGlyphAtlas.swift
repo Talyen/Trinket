@@ -12,36 +12,24 @@ final class CombatFeedbackGlyphAtlas {
     static let shared = CombatFeedbackGlyphAtlas()
 
     struct Face: Hashable {
+        /// Two faces match the chip typography tiers (emphasis ≈34pt, normal ≈28pt).
         enum Typography: Hashable, CaseIterable {
-            case directDamage
-            case critical
-            case dot
-            case heal
-            case utilityBold
-            case utilitySemibold
-            case deathsDoor
+            case emphasis
+            case normal
 
             init(feedbackClass: CombatFeedbackClass) {
                 switch feedbackClass {
-                case .directDamage: self = .directDamage
-                case .critical: self = .critical
-                case .dot: self = .dot
-                case .heal: self = .heal
-                case .block, .dodge, .control, .resource: self = .utilityBold
-                case .buff: self = .utilitySemibold
-                case .deathsDoor: self = .deathsDoor
+                case .critical, .deathsDoor:
+                    self = .emphasis
+                case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
+                    self = .normal
                 }
             }
 
             var representativeClass: CombatFeedbackClass {
                 switch self {
-                case .directDamage: .directDamage
-                case .critical: .critical
-                case .dot: .dot
-                case .heal: .heal
-                case .utilityBold: .block
-                case .utilitySemibold: .buff
-                case .deathsDoor: .deathsDoor
+                case .emphasis: .critical
+                case .normal: .heal
                 }
             }
         }
@@ -247,24 +235,17 @@ final class CombatFeedbackGlyphAtlas {
         for typography: Face.Typography
     ) -> [CombatFeedbackChipWord] {
         switch typography {
-        case .directDamage, .critical, .dot, .heal:
-            []
-        case .utilityBold:
-            CombatFeedbackChipWord.allAtlasCases.filter { word in
-                switch word {
-                case .dodge, .plain, .applied, .triggered: true
-                case .critical, .cleanse, .purge, .halve, .status: false
-                }
-            }
-        case .utilitySemibold:
-            CombatFeedbackChipWord.allAtlasCases.filter { word in
-                switch word {
-                case .plain, .cleanse, .purge, .halve, .status: true
-                case .dodge, .critical, .applied, .triggered: false
-                }
-            }
-        case .deathsDoor:
+        case .emphasis:
             [.plain(.deathsDoor)]
+        case .normal:
+            CombatFeedbackChipWord.allAtlasCases.filter { word in
+                switch word {
+                case .critical, .plain(.deathsDoor):
+                    false
+                case .dodge, .plain, .applied, .triggered, .cleanse, .purge, .halve, .status:
+                    true
+                }
+            }
         }
     }
 

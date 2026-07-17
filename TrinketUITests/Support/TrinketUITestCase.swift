@@ -68,7 +68,30 @@ enum TestLaunchArg {
         return args
     }
 
-    private static func performanceArguments(from arguments: [String]) -> [String] {
+    static func allForVictoryPerformance(reset: Bool = true) -> [String] {
+        performanceArguments(from: allForBattleVictory(reset: reset))
+    }
+
+    static func allForMysteryPerformance(reset: Bool = true) -> [String] {
+        // Avoid seed-test-progress: seeded journeys can skip the mystery stage.
+        // Force a recruit event so resolve never no-ops into stage completion.
+        var args: [String] = []
+        if reset {
+            args += [
+                resetState,
+                disableCloudSync,
+                "-persist-save-immediately",
+                "-battle-tick-interval",
+                "1.0"
+            ]
+        }
+        args += screen("mystery")
+        args += completedStages(["chapter-1-stage-1"])
+        args += mysteryRecruit(eventID: "recruit-bear")
+        return performanceArguments(from: args)
+    }
+
+    static func performanceArguments(from arguments: [String]) -> [String] {
         var result = arguments
         // Performance runs exercise production audio. Cloud sync remains disabled because
         // unrelated network work would reduce local repeatability.

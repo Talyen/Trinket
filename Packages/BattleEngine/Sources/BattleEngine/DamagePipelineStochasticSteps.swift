@@ -52,6 +52,7 @@ package extension DamagePipeline {
         guard state.amount > 0,
               let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
+              damageKeyword.allowsCriticalHits,
               let actor = context.roster.combatant(for: sourceActorID)
         else { return }
 

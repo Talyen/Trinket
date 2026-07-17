@@ -72,7 +72,8 @@ public struct ExperienceBar: View {
 
                     if let experienceAward, experienceAward > 0, showsExperienceAward {
                         Text("+\(experienceAward) XP")
-                            .trinketTypography(.badge)
+                            .trinketTypography(.footnote)
+                            .fontWeight(.semibold)
                             .monospacedDigit()
                             .foregroundStyle(fillColor)
                             .transition(.opacity.combined(with: .scale(scale: 0.92)))
@@ -103,20 +104,13 @@ public struct ExperienceBar: View {
                 .frame(height: TrinketDesign.Metrics.statBarHeight)
 
                 HStack {
-                    HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-                        Text("Level \(displayedLevel)")
-
-                        if displayedLevel > pre.level {
-                            Image(systemName: "arrowshape.up.fill")
-                                .foregroundStyle(Keyword.gold.visualStyle.color)
-                        }
-                    }
+                    Text("Level \(displayedLevel)")
                     Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
                     Text("\(displayedXP) / \(displayedRequiredXP) XP")
                         .monospacedDigit()
                         .contentTransition(.numericText())
                 }
-                .trinketTypography(.caption)
+                .trinketTypography(.footnote)
                 .foregroundStyle(.secondary)
             }
         }

@@ -26,6 +26,16 @@ struct CollectionView: View {
                     ItemDetailView(item: item)
                 }
                 .trinketDetailSheet()
+                .appFramePacingSignpost(
+                    AppFramePacingSignposts.Name.sheetPresent,
+                    isActive: true
+                )
+                .onAppear {
+                    AppFramePacingSignposts.event(
+                        AppFramePacingSignposts.Name.sheetPresent,
+                        detail: "collectionItem=\(item.id)"
+                    )
+                }
             }
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {
@@ -35,6 +45,16 @@ struct CollectionView: View {
                     )
                 }
                 .trinketDetailSheet()
+                .appFramePacingSignpost(
+                    AppFramePacingSignposts.Name.sheetPresent,
+                    isActive: true
+                )
+                .onAppear {
+                    AppFramePacingSignposts.event(
+                        AppFramePacingSignposts.Name.sheetPresent,
+                        detail: "collectionCombatant=\(context.combatantID)"
+                    )
+                }
             }
     }
 

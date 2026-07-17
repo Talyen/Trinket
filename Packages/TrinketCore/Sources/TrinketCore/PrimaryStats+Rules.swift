@@ -17,9 +17,9 @@ public extension PrimaryStats {
     }
 
     /// Probability that an incoming attack is dodged. Capped at 75%.
-    /// Mirrors the prior `BattleState.dodgeChance(for:)` formula.
+    /// Scales with Agility at the same per-point rate as critical chance.
     var dodgeChance: Double {
-        min(0.75, 0.05 + Double(agility) * 0.005)
+        min(0.75, 0.05 + Double(agility) * 0.0025)
     }
 
     /// Flat Armor effectiveness bonus from Toughness. Mirrors the damage-stat
@@ -37,15 +37,16 @@ public extension PrimaryStats {
         return max(1, Int(ceil(baseThreshold * agilityResist)))
     }
 
-    /// Base critical-hit chance for damage of the given keyword, before ability
-    /// or item bonuses. Capped at 75%.
+    /// Base critical-hit chance for the given keyword, before ability or item
+    /// bonuses. Capped at 75%. Keywords that do not allow criticals return 0.
     func criticalChance(for keyword: Keyword) -> Double {
+        guard keyword.allowsCriticalHits else { return 0 }
         let statBonus: Double = switch keyword {
         case .physical, .bleed, .stun:
             Double(agility) * 0.0025
         case .burn, .freeze:
             Double(intellect) * 0.0025
-        case .poison, .holy, .nature:
+        case .poison, .holy, .nature, .health, .leech:
             Double(wisdom) * 0.0025
         default:
             0

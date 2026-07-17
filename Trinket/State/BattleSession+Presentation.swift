@@ -46,6 +46,7 @@ extension BattleSession {
                    stageID: activeBattle?.stageID,
                    journey: journey
                ) {
+                publishPartyCelebrateReactions(at: date)
                 onTurnAutoEnded?(state?.earnedGold ?? 0)
                 return
             }
@@ -91,6 +92,7 @@ extension BattleSession {
                 if activeCinematic != nil {
                     return nil
                 }
+                publishPartyCelebrateReactions(at: date)
                 return state?.earnedGold ?? 0
             }
             guard let battleState = state else { return nil }
@@ -115,12 +117,52 @@ extension BattleSession {
     }
 
     func scheduleVictoryPresentation(after date: Date) {
+        publishPartyCelebrateReactions(at: date)
         scheduleOutcomePresentation(
             after: date,
             expected: .victory,
             sfx: SFXID.victory
         ) { session in
             session.isShowingVictory = true
+        }
+    }
+
+    /// Squish/bounce living Hero + Pet cards while the enemy dissolves.
+    /// Lands on the frame after dissolve starts so KeyframeAnimator work does not
+    /// share the killing-blow chip/layout commit.
+    private func publishPartyCelebrateReactions(at date: Date) {
+        pendingPartyCelebrateTask?.cancel()
+        pendingPartyCelebrateTask = Task { @MainActor [weak self] in
+            // One display period past dissolve start (~16 ms) plus a small settle.
+            try? await Task.sleep(for: .milliseconds(32))
+            guard let self, !Task.isCancelled else { return }
+            publishPartyCelebrateReactionsNow(at: date)
+        }
+    }
+
+    private func publishPartyCelebrateReactionsNow(at date: Date) {
+        guard let battleState = state else { return }
+        // Negative synthetic IDs stay clear of engine event / feedback item IDs.
+        let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
+        var didPublish = false
+        if battleState.isHeroAlive {
+            hitReactionsByTargetID[battleState.hero.id] = CombatantHitReaction(
+                id: baseID,
+                kind: .celebrate,
+                keyword: .physical
+            )
+            didPublish = true
+        }
+        if battleState.isCompanionAlive {
+            hitReactionsByTargetID[battleState.companion.id] = CombatantHitReaction(
+                id: baseID &- 1,
+                kind: .celebrate,
+                keyword: .physical
+            )
+            didPublish = true
+        }
+        if didPublish {
+            noteHitReactionPresentationChanged()
         }
     }
 
@@ -268,124 +310,6 @@ extension BattleSession {
         clearFeedback()
         clearSpectacle()
         presentationHoldCount = 0
-    }
-
-    func recordFeedbackEvents(
-        _ events: [ActionEvent],
-        at date: Date = .now,
-        stagger: TimeInterval
-    ) {
-        for event in events {
-            feedbackEventRecordedAt[event.id] = date
-        }
-
-        let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
-        activeFeedbackItems.append(contentsOf: items)
-        onFeedbackItemsChanged?(.insert(items))
-        applyImmediatePresentation(for: items, at: date)
-        scheduleFeedbackPresentation(for: items, at: date)
-        scheduleFeedbackPruneIfNeeded(at: date)
-    }
-
-    /// Applies delayed haptics, SFX, hit reactions, and particle requests on the
-    /// same frame that a synchronized action group becomes visible.
-    func scheduleFeedbackPresentation(for items: [CombatFeedbackItem], at date: Date) {
-        let groups = Dictionary(grouping: items, by: \.actionGroupID)
-        for (actionGroupID, group) in groups {
-            guard let availableAt = group.first?.availableAt, availableAt > date else { continue }
-            pendingFeedbackPresentationTasks[actionGroupID]?.cancel()
-            let delay = max(0, availableAt.timeIntervalSince(date))
-            pendingFeedbackPresentationTasks[actionGroupID] = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .seconds(delay))
-                guard let self, !Task.isCancelled else { return }
-                let activeGroup = activeFeedbackItems.filter {
-                    $0.actionGroupID == actionGroupID
-                }
-                applyImmediatePresentation(for: activeGroup, at: .now)
-                pendingFeedbackPresentationTasks.removeValue(forKey: actionGroupID)
-            }
-        }
-    }
-
-    func scheduleFeedbackPruneIfNeeded(at date: Date) {
-        pendingFeedbackPruneTask?.cancel()
-        guard let latestExpiry = activeFeedbackItems.map(\.expiresAt).max() else { return }
-        let delay = max(0, latestExpiry.timeIntervalSince(date)) + 0.02
-        pendingFeedbackPruneTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
-            guard let self, !Task.isCancelled else { return }
-            pruneExpiredFeedback()
-        }
-    }
-
-    func applyImmediatePresentation(for items: [CombatFeedbackItem], at date: Date) {
-        let due = items.filter { $0.availableAt <= date && !presentedFeedbackIDs.contains($0.id) }
-        guard !due.isEmpty else { return }
-
-        for clipID in CombatSFXMapper.uniqueClipIDs(for: due) {
-            playSFX(clipID)
-        }
-
-        for item in due {
-            presentedFeedbackIDs.insert(item.id)
-        }
-
-        let groups = Dictionary(grouping: due, by: \.actionGroupID)
-        for group in groups.values {
-            if let reaction = CombatFeedbackPresenter.reaction(for: group),
-               let targetID = group.first?.targetID {
-                hitReactionsByTargetID[targetID] = reaction
-            }
-        }
-
-        let bursts = CombatFeedbackPresenter.bursts(for: due)
-        for burst in bursts {
-            guard let targetID = due.first(where: { $0.id == burst.id })?.targetID else { continue }
-            var existing = keywordBurstsByTargetID[targetID, default: []]
-            existing.append(burst)
-            if existing.count > TrinketMotion.Battle.maxKeywordBurstsPerPane {
-                existing = Array(existing.suffix(TrinketMotion.Battle.maxKeywordBurstsPerPane))
-            }
-            keywordBurstsByTargetID[targetID] = existing
-        }
-        if !due.isEmpty {
-            // Reactions are tracked Observable properties; bursts sit behind burstEpoch.
-            if !bursts.isEmpty {
-                noteBurstPresentationChanged()
-            }
-        }
-    }
-
-    func playSFX(_ id: String) {
-        guard let sfxPlayer else { return }
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.audioPlayback,
-            detail: "clip=\(id)"
-        )
-        sfxPlayer.play(id, volume: options?.effectsVolume ?? 0)
-    }
-
-    func clearFeedback() {
-        let hadPublishedPresentation = !activeFeedbackItems.isEmpty
-            || !hitReactionsByTargetID.isEmpty
-            || !keywordBurstsByTargetID.isEmpty
-            || !presentedFeedbackIDs.isEmpty
-        pendingFeedbackPruneTask?.cancel()
-        pendingFeedbackPruneTask = nil
-        for task in pendingFeedbackPresentationTasks.values {
-            task.cancel()
-        }
-        pendingFeedbackPresentationTasks = [:]
-        activeFeedbackItems = []
-        feedbackEventRecordedAt = [:]
-        if !hitReactionsByTargetID.isEmpty {
-            hitReactionsByTargetID = [:]
-        }
-        keywordBurstsByTargetID = [:]
-        presentedFeedbackIDs = []
-        if hadPublishedPresentation {
-            resetFeedbackPresentation()
-        }
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {

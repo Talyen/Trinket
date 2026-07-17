@@ -72,67 +72,7 @@ struct CombatantDetailPane: View {
             )
             .accessibilityIdentifier("\(combatant.name) detail hero header")
         } bodyContent: {
-            DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
-                statRow(
-                    "Health",
-                    value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
-                    accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
-                )
-                if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
-                    statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
-                }
-                statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
-                statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
-                statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
-                statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
-                statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
-            }
-
-            if let heroOrCompanionTrait {
-                traitSection(
-                    traits: [heroOrCompanionTrait],
-                    sectionID: AccessibilityID.CombatantDetail.traitSection,
-                    descriptionID: AccessibilityID.CombatantDetail.traitDescription
-                )
-            }
-
-            if !enemyTraits.isEmpty {
-                traitSection(
-                    traits: enemyTraits,
-                    sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
-                    descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
-                )
-            }
-
-            if !activeEffectSummaries.isEmpty {
-                DetailSection("Active Effects") {
-                    ForEach(activeEffectSummaries) { summary in
-                        KeywordDescriptionText(text: summary.text)
-                            .trinketTypography(.secondaryBody)
-                    }
-                }
-            }
-
-            DetailSection("Abilities") {
-                AbilitySummaryGrid(
-                    combatant: combatant,
-                    progression: progression,
-                    loadout: $loadout,
-                    allowsEditing: allowsEditing,
-                    onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil
-                )
-                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-            }
-
-            DetailSection("Items") {
-                EquipmentSlotSummaryGrid(
-                    role: combatant.role,
-                    equipmentLoadout: equipmentLoadout,
-                    inventoryState: inventoryState,
-                    onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
-                )
-                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-            }
+            combatantDetailBody(combatBuild: combatBuild)
         }
         // Sub-picker navigation — declared here so they land at the root of whichever
         // NavigationStack contains this pane (typically the Collection detail sheet).
@@ -175,6 +115,71 @@ struct CombatantDetailPane: View {
             trigger: selectionFeedbackTrigger,
             enabled: appState.options.hapticsEnabled
         )
+    }
+
+    @ViewBuilder
+    private func combatantDetailBody(combatBuild: CombatBuild) -> some View {
+        DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
+            statRow(
+                "Health",
+                value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
+                accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
+            )
+            if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
+                statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
+            }
+            statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
+            statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
+            statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
+            statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
+            statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
+        }
+
+        if let heroOrCompanionTrait {
+            traitSection(
+                traits: [heroOrCompanionTrait],
+                sectionID: AccessibilityID.CombatantDetail.traitSection,
+                descriptionID: AccessibilityID.CombatantDetail.traitDescription
+            )
+        }
+
+        if !enemyTraits.isEmpty {
+            traitSection(
+                traits: enemyTraits,
+                sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
+                descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
+            )
+        }
+
+        if !activeEffectSummaries.isEmpty {
+            DetailSection("Active Effects") {
+                ForEach(activeEffectSummaries) { summary in
+                    KeywordDescriptionText(text: summary.text)
+                        .trinketTypography(.secondaryBody)
+                }
+            }
+        }
+
+        DetailSection("Abilities") {
+            AbilitySummaryGrid(
+                combatant: combatant,
+                progression: progression,
+                loadout: $loadout,
+                allowsEditing: allowsEditing,
+                onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil
+            )
+            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+        }
+
+        DetailSection("Items") {
+            EquipmentSlotSummaryGrid(
+                role: combatant.role,
+                equipmentLoadout: equipmentLoadout,
+                inventoryState: inventoryState,
+                onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+            )
+            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+        }
     }
 
     private func traitSection(

@@ -125,8 +125,10 @@ sim deletes). Parallel source trees:
 
 `performance.sh` is intentionally separate from smoke and integration gates. It takes an
 exclusive Battle-performance lock, forces one UI lane, runs `BattlePerformance.xctestplan`
-with five repetitions, collects raw frame reports, and compares them with the observe/enforce
-policy in `Performance/Baselines/simulator-60.json`. Use `test.sh performance <Class[/method]>`
+with one measured report per scenario by default, collects raw frame reports, and compares
+them with the observe/enforce policy in `Performance/Baselines/simulator-60.json`. Override
+repetitions for diagnostic spreads with `TRINKET_PERFORMANCE_REPETITIONS=N` (skips the
+single-report gate compare when N > 1). Use `test.sh performance <Class[/method]>`
 only for focused harness iteration; use `performance.sh` for comparable artifacts.
 
 For failure report schemas and triage order, read

@@ -93,7 +93,7 @@ public extension Keyword {
         )
         public static let deathsDoor = VisualStyle(
             color: DesignAssetColors.named("KeywordDeathsDoor"),
-            symbolName: "heart.slash.fill"
+            symbolName: "hourglass.bottomhalf.filled"
         )
         public static let beneficialStatus = VisualStyle(
             color: ThemePalette.trinket.success,

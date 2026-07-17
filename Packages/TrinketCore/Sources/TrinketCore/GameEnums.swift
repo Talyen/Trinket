@@ -39,6 +39,17 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
+    /// Damage types and restoration heals (Health / Leech) can critical.
+    /// Mitigation, resources, and Death's Door never roll or scale critical chance.
+    public var allowsCriticalHits: Bool {
+        switch self {
+        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun, .health, .leech:
+            true
+        case .block, .armor, .dodge, .purge, .gold, .mana, .deathsDoor:
+            false
+        }
+    }
+
     /// Player-facing status label for control effects and DoT effects. Shares styling with the parent keyword.
     public var statusAlias: String? {
         switch self {

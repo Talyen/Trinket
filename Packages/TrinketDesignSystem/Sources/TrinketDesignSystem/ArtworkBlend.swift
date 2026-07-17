@@ -17,19 +17,20 @@ public enum ArtworkBlendDestination: CaseIterable, Equatable, Sendable {
     }
 }
 
-/// Optional bottom-edge blend for integrating artwork with its containing surface.
-/// The `perimeter` case is preserved for API compatibility but has no visual effect.
+/// Optional edge blend for integrating artwork with its containing surface.
 public enum ArtworkBlend: Equatable, Sendable {
     case none
+    /// Fades all four edges into the destination over ``ArtworkBlendRecipe/perimeterInset``.
     case perimeter(into: ArtworkBlendDestination)
     case bottom(into: ArtworkBlendDestination)
 }
 
-enum ArtworkBlendRecipe {
-    static let edgeOpacity = 1.0
-    static let shoulderOpacity = 0.35
-    static let shoulderInset = 0.08
-    static let clearInset = 0.22
+public enum ArtworkBlendRecipe: Sendable {
+    /// Bottom-edge clear band before the destination color fully takes over.
+    public static let clearInset = 0.22
+    /// All-sides inset for perimeter fades (fraction of the shorter axis is not used —
+    /// each edge uses this fraction of width or height respectively).
+    public static let perimeterInset = 0.22
 }
 
 private struct ArtworkBlendModifier: ViewModifier {
@@ -37,8 +38,13 @@ private struct ArtworkBlendModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch blend {
-        case .none, .perimeter:
+        case .none:
             content
+        case let .perimeter(destination):
+            content.overlay {
+                PerimeterArtworkBlend(destination: destination)
+                    .allowsHitTesting(false)
+            }
         case let .bottom(destination):
             content.overlay {
                 BottomArtworkBlend(destination: destination)
@@ -59,15 +65,59 @@ private struct BottomArtworkBlend: View {
             stops: [
                 .init(color: .clear, location: 0),
                 .init(color: .clear, location: 1 - recipe.clearInset),
-                .init(
-                    color: color.opacity(recipe.shoulderOpacity),
-                    location: 1 - recipe.shoulderInset
-                ),
-                .init(color: color.opacity(recipe.edgeOpacity), location: 1)
+                .init(color: color, location: 1)
             ],
             startPoint: .top,
             endPoint: .bottom
         )
+    }
+}
+
+/// Thick vignette: destination color is opaque at the rim and clear in the center.
+private struct PerimeterArtworkBlend: View {
+    let destination: ArtworkBlendDestination
+
+    var body: some View {
+        let color = destination.color
+        let inset = ArtworkBlendRecipe.perimeterInset
+
+        ZStack {
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [color, color.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .containerRelativeFrame(.vertical) { height, _ in height * inset }
+
+                Spacer(minLength: 0)
+
+                LinearGradient(
+                    colors: [color.opacity(0), color],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .containerRelativeFrame(.vertical) { height, _ in height * inset }
+            }
+
+            HStack(spacing: 0) {
+                LinearGradient(
+                    colors: [color, color.opacity(0)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .containerRelativeFrame(.horizontal) { width, _ in width * inset }
+
+                Spacer(minLength: 0)
+
+                LinearGradient(
+                    colors: [color.opacity(0), color],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .containerRelativeFrame(.horizontal) { width, _ in width * inset }
+            }
+        }
     }
 }
 

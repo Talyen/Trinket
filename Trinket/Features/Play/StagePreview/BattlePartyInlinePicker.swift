@@ -162,7 +162,6 @@ struct BattleCombatantPickerSheet: View {
     let onSelect: (Combatant) -> Void
 
     @State private var selectedCombatant: Combatant?
-    @State private var selectedDetent: PresentationDetent = .medium
     @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
@@ -174,7 +173,6 @@ struct BattleCombatantPickerSheet: View {
                 aspect: aspect,
                 onOpenDetail: { combatant in
                     selectedCombatant = combatant
-                    selectedDetent = .large
                 }
             )
             .navigationTitle("Choose \(slot.title)")
@@ -192,13 +190,8 @@ struct BattleCombatantPickerSheet: View {
             }
         }
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
-        .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .onChange(of: selectedCombatant) { _, newValue in
-            if newValue == nil {
-                selectedDetent = .medium
-            }
-        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
@@ -214,7 +207,6 @@ struct StageBattlePartyPickerSheet: View {
 
     @State private var presentedSlot: BattlePartySlot?
     @State private var selectedCombatant: Combatant?
-    @State private var selectedDetent: PresentationDetent = .medium
     @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
@@ -228,7 +220,6 @@ struct StageBattlePartyPickerSheet: View {
                         aspect: nil,
                         onOpenDetail: { combatant in
                             selectedCombatant = combatant
-                            selectedDetent = .large
                         }
                     )
                 } else {
@@ -246,7 +237,6 @@ struct StageBattlePartyPickerSheet: View {
                             select(combatant, for: presentedSlot)
                             selectedCombatant = nil
                             self.presentedSlot = nil
-                            selectedDetent = .medium
                         }
                     )
                 }
@@ -254,13 +244,8 @@ struct StageBattlePartyPickerSheet: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.stagePartyPickerSheet)
-        .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .onChange(of: selectedCombatant) { _, newValue in
-            if newValue == nil {
-                selectedDetent = .medium
-            }
-        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,

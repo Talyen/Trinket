@@ -23,12 +23,9 @@ struct AppStateMysteryRecruitTests {
         let session = try #require(state.activeMysteryEncounter)
         #expect(session.event.id == "recruit-bear")
         #expect(session.combatant?.id == "bear")
-        #expect(session.phase == .reading)
-
-        #expect(state.resolveActiveMysteryChoice(choiceID: "welcome"))
+        #expect(session.phase == .revealing)
+        #expect(session.unlockedCombatantID == "bear")
         #expect(state.roster.isCompanionUnlocked("bear"))
-        #expect(state.activeMysteryEncounter?.phase == .revealing)
-        #expect(state.activeMysteryEncounter?.unlockedCombatantID == "bear")
         // Opening / resolving a mystery does not advance journey progress.
         #expect(state.journey.activeStageID == "chapter-1-stage-1")
 
@@ -78,7 +75,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.journey.activeStageID == "chapter-1-stage-1")
         #expect(!state.journey.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.roster.isCompanionUnlocked("bear") == false)
+        #expect(state.roster.isCompanionUnlocked("bear"))
     }
 
     @Test func chooseItemPresentsCandidatesAndGrantsSelection() throws {
@@ -169,7 +166,6 @@ struct AppStateMysteryRecruitTests {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
-        #expect(state.resolveActiveMysteryChoice(choiceID: "welcome"))
         #expect(state.roster.isCompanionUnlocked("bear"))
         #expect(state.activeMysteryEncounter?.phase == .revealing)
 

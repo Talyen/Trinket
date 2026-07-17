@@ -6,7 +6,14 @@ cd "$(dirname "$0")/.."
 LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
-REPETITIONS=1
+# Default one measured report per scenario. Override for diagnostic multi-rep:
+#   TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
+REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
+
+if ! [[ "$REPETITIONS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "TRINKET_PERFORMANCE_REPETITIONS must be a positive integer (got: $REPETITIONS)" >&2
+  exit 1
+fi
 
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 if [[ -f "$LOCK_DIR/pid" ]]; then
@@ -54,12 +61,21 @@ payload = {
 output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 PY
 
-echo "Running exclusive full-fidelity app performance matrix (one measured run/scenario)..."
+echo "Running exclusive full-fidelity app performance matrix (${REPETITIONS} measured run(s)/scenario)..."
 TRINKET_ISOLATE=1 \
 TRINKET_MAX_CONCURRENT_UI=1 \
 TRINKET_PERFORMANCE_REPETITIONS="$REPETITIONS" \
 RESULTS_DIR="$OUTPUT_DIR/TestResults" \
 ./Scripts/test.sh performance
+
+if [[ "$REPETITIONS" -gt 1 ]]; then
+  echo "Diagnostic multi-rep complete. Gate compare expects one report/scenario; skipping enforce compare."
+  python3 Scripts/collect-performance-results.py \
+    "$OUTPUT_DIR/TestResults" \
+    "$OUTPUT_DIR/reports.json"
+  echo "App performance artifacts: $OUTPUT_DIR"
+  exit 0
+fi
 
 python3 Scripts/collect-performance-results.py \
   "$OUTPUT_DIR/TestResults" \

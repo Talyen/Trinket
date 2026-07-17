@@ -296,9 +296,11 @@ final class AppState {
         case .background:
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
+            shellSession.flushPendingPersistence()
             Task { await playerSave.flushPendingSave() }
         case .inactive:
             musicPlayer.cancelActiveFades()
+            shellSession.flushPendingPersistence()
             Task { await playerSave.flushPendingSave() }
         case .active:
             evaluateLaunchLanding()

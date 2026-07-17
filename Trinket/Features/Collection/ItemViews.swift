@@ -199,7 +199,7 @@ struct ItemDetailView: View {
                 .accessibilityIdentifier(primaryActionAccessibilityID ?? primaryActionTitle)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-            } else if let purchasePrice, let onPurchase {
+            } else if purchasePrice != nil, let onPurchase {
                 Button {
                     onPurchase()
                 } label: {

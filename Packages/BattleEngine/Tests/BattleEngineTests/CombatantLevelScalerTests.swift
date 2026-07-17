@@ -28,7 +28,7 @@ struct CombatantLevelScalerTests {
         let scaled = CombatantLevelScaler.scale(enemy: boss, level: 3)
 
         try #expect(scaled.maxHealth == 53)
-        try #expect(scaled.primaryStats.toughness == 28)
+        try #expect(scaled.primaryStats.toughness == 22)
     }
 
     @Test func enemyScalerKeepsManaDisabledAtHigherLevels() throws {

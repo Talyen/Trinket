@@ -34,8 +34,10 @@ Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
 | Campaign / Stage Select | Repeated mode-hub ↔ Stage Select pushes and Stage Select enemy-detail sheets |
 | Battle entry | Real Stage 1-1 CTA handoff to live Battle chrome and retreat back to Stage Select |
 | Battle | Idle, hand interaction, casts, feedback, particles, turn transitions, Ultimate, audio, and combined stress |
+| Victory / rewards | Deep-linked victory chrome settle (`victory-reward-reveal`) |
+| Mystery | Deep-linked mystery entrance settle (`mystery-encounter-reveal`) |
 
-The local matrix now covers the major app roots and the highest-value transitions between them. It does not yet model post-Battle rewards, Shop/Mystery/Labyrinth end-to-end journeys, persistence recovery, CloudKit/network variability, long-session memory/thermal behavior, or production population trends. Add those as separate deterministic scenarios rather than folding unrelated work into an existing measurement.
+The local matrix covers the major app roots, highest-value transitions, battle stress, and post-battle / mystery reveal settle. It does not yet model Shop/Labyrinth end-to-end journeys, persistence recovery, CloudKit/network variability, long-session memory/thermal behavior, or production population trends. Add those as separate deterministic scenarios rather than folding unrelated work into an existing measurement.
 
 ## Deterministic scenario matrix
 
@@ -48,6 +50,8 @@ Core app journeys use normal UI taps and production navigation:
 5. Play mode hub to Campaign Stage Select push/pop.
 6. Stage Select enemy detail presentation/dismissal.
 7. Stage Select CTA to a live Stage 1-1 Battle and retreat back to Stage Select.
+8. Deep-linked victory reward reveal settle.
+9. Deep-linked mystery encounter entrance settle.
 
 Every scenario drives the normal Battle SwiftUI and `BattleSession` presentation paths:
 
@@ -96,7 +100,9 @@ Do not describe an average as a “60 FPS floor.” A run can average 60 and sti
 5. Make one hypothesis-driven change without changing visible Battle behavior.
 6. Re-run the same scenario matrix and compare native hitch data, raw reports, and the calibrated reference.
 
-Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss.
+Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss. Navigation signposts (category `AppNavigation`): `TabSwitch`, `SheetPresent`, `NavigationPush`, `StageSelectBattleActivate`.
+
+Multimodal combat feedback is frame-split by design: chips publish on the impact frame; SFX, hit reactions, and keyword bursts land ~16 ms later so they do not share the `ChipPublish` / `ChipHostApply` commit.
 
 ## Physical-device and production lanes
 
@@ -107,11 +113,12 @@ The app already opts into ProMotion with `CADisableMinimumFrameDurationOnPhone`.
 3. Capture Animation Hitches / Time Profiler traces on-device and define a separate `device-120` baseline.
 4. Add thermal-state, Low Power Mode, and repeated warm-run metadata.
 
-MetricKit `MXAnimationMetric.hitchTimeRatio` is the later production complement for real-player trend detection. It should not replace reproducible local scenarios or Instruments traces.
+MetricKit `MXAnimationMetric.hitchTimeRatio` is subscribed in-process via `MetricKitHitchSubscriber` for real-player trend detection. It complements—and must not replace—reproducible local scenarios or Instruments traces. The physical-device lane baseline lives at `Performance/Baselines/device-120.json` (`mode: observe` until a pinned ProMotion device validates enforce).
 
 ## Guardrails and reporting
 
 - Do not move battle simulation off `@MainActor`, add weak captures, erase views, or rewrite layout because a static probe found a pattern.
+- Do not defer visible destination body content to “win” the first transition frame. Empty chrome that fills in a tick later reads as a flash of incomplete UI and feels worse than a hitch. Prefer prewarming imminent resources and narrowing observation invalidation instead.
 - Verify scene-background behavior through the actual battle/session lifecycle.
 - Profiling is not a correctness test; add focused correctness coverage when a fix changes state or lifecycle semantics.
 - If hardware, Instruments, or a reproducible signal is unavailable, record the limitation and do not claim an improvement.

@@ -4,42 +4,53 @@ import TrinketDesignSystem
 struct RewardRevealShell<Content: View>: View {
     let eyebrow: String?
     let eyebrowAccessibilityIdentifier: String?
-    let title: String
+    let title: String?
     let subtitle: String?
+    var subtitleAccessibilityIdentifier: String?
     let titleAccessibilityIdentifier: String
     var titleColor: Color = .primary
+    var eyebrowOpacity: Double = 1
+    var titleOpacity: Double = 1
+    var subtitleOpacity: Double = 1
     @ViewBuilder let content: () -> Content
     let primaryActionTitle: String?
     let primaryActionAccessibilityIdentifier: String
     let isPrimaryActionDisabled: Bool
     let onPrimaryAction: () -> Void
     var contentTopPadding = TrinketDesign.Metrics.contentTopPadding
+    var contentStackSpacing = TrinketDesign.Metrics.sectionSpacing
     var pinsPrimaryActionToBottom = true
     var primaryActionWidthFraction = 1.0
 
     var body: some View {
         ScrollView {
-            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+            VStack(spacing: contentStackSpacing) {
                 VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     if let eyebrow {
                         Text(eyebrow)
                             .trinketTypography(.eyebrow)
                             .foregroundStyle(TrinketDesign.Colors.accent)
                             .textCase(.uppercase)
+                            .opacity(eyebrowOpacity)
                             .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
                     }
 
-                    Text(title)
-                        .trinketTypography(.screenDisplay)
-                        .foregroundStyle(titleColor)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier(titleAccessibilityIdentifier)
+                    if let title {
+                        Text(title)
+                            .trinketTypography(.screenDisplay)
+                            .foregroundStyle(titleColor)
+                            .multilineTextAlignment(.center)
+                            .opacity(titleOpacity)
+                            .accessibilityIdentifier(titleAccessibilityIdentifier)
+                    }
 
                     if let subtitle {
                         Text(subtitle)
                             .trinketTypography(.secondaryBody)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
+                            .opacity(subtitleOpacity)
+                            .accessibilityIdentifier(subtitleAccessibilityIdentifier ?? subtitle)
                     }
                 }
 
@@ -54,7 +65,7 @@ struct RewardRevealShell<Content: View>: View {
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.top, contentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
+            .padding(.bottom, contentStackSpacing)
             .frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .bottom) {

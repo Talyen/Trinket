@@ -11,19 +11,33 @@ struct MysteryEncounterView: View {
     @State private var narrativeAppeared = false
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
+    @State private var inviteTapTrigger = 0
+    @State private var shroudRevealStarted = false
+    @State private var shroudRevealProgress: CGFloat = 0
+    @State private var showUnlockEyebrow = false
+    @State private var showUnlockTitle = false
+    @State private var showUnlockSubtitle = false
+    @State private var showUnlockCTA = false
+    @State private var hasStartedChromeSequence = false
+    @State private var chromeRevealTask: Task<Void, Never>?
 
     var body: some View {
         Group {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
                 unlockReveal(unlockedID: unlockedID)
             } else if session.showsItemChoice {
-                itemChoiceContent
+                MysteryItemChoiceContent(
+                    session: session,
+                    onSelectItem: { itemID in
+                        _ = appState.selectActiveMysteryItem(itemID: itemID)
+                    }
+                )
             } else {
                 readingContent
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .trinketScreenBackground()
         .sheet(item: $selectedDetail) { context in
             NavigationStack {
                 RosterCombatantDetailView(
@@ -36,6 +50,10 @@ struct MysteryEncounterView: View {
         }
         .onAppear {
             presentReadingEntrance()
+        }
+        .onDisappear {
+            chromeRevealTask?.cancel()
+            chromeRevealTask = nil
         }
     }
 
@@ -92,62 +110,6 @@ struct MysteryEncounterView: View {
         }
     }
 
-    private var itemChoiceContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Text("Choose a Find")
-                        .trinketTypography(.screenTitle)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemTitle)
-
-                    Text("Three relics answer the scrolls. Take one.")
-                        .trinketTypography(.body)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    if let persistFailure = session.persistFailureMessage {
-                        Text(persistFailure)
-                            .trinketTypography(.badge)
-                            .foregroundStyle(TrinketDesign.Colors.warning)
-                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-                            .transition(.opacity)
-                    }
-                }
-
-                LazyVGrid(
-                    columns: TrinketDesign.Metrics.collectionGridItems,
-                    spacing: TrinketDesign.Metrics.largeSpacing
-                ) {
-                    ForEach(session.itemCandidates) { item in
-                        Button {
-                            _ = appState.selectActiveMysteryItem(itemID: item.id)
-                        } label: {
-                            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                                ItemCard(
-                                    item: item,
-                                    showsAffixCount: false,
-                                    showsName: false,
-                                    appliesCardSurface: false
-                                )
-                                Text(item.displayName)
-                                    .trinketTypography(.badge)
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.85)
-                            }
-                        }
-                        // UIStyleCheck: allow - Mystery item pick uses card art without button chrome.
-                        .trinketQuietTapButtonStyle()
-                        .disabled(session.isResolvingChoice)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemCard(itemID: item.id))
-                    }
-                }
-            }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
-        }
-    }
-
     @ViewBuilder
     private var recruitArtwork: some View {
         if session.combatant != nil {
@@ -183,64 +145,184 @@ struct MysteryEncounterView: View {
 
     @ViewBuilder
     private func unlockReveal(unlockedID: String) -> some View {
-        let combatant = revealCombatant(id: unlockedID)
-        RewardRevealShell(
-            eyebrow: combatant.map { $0.role == .companion ? "New Companion" : "New Hero" } ?? "Unlocked",
-            eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
-            title: combatant?.name ?? "New Ally",
-            subtitle: nil,
-            titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
-            content: {
-                VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                    if let combatant {
-                        recruitRevealContent(combatant)
-                    }
-                    if let persistFailure = session.persistFailureMessage {
-                        Text(persistFailure)
-                            .trinketTypography(.badge)
-                            .foregroundStyle(TrinketDesign.Colors.warning)
-                            .multilineTextAlignment(.center)
-                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-                            .transition(.opacity)
-                    }
+        if let combatant = revealCombatant(id: unlockedID) {
+            recruitUnlockStage(combatant: combatant)
+                .trinketSensoryFeedback(
+                    .success,
+                    trigger: unlockFeedbackTrigger,
+                    enabled: appState.options.hapticsEnabled
+                )
+                .trinketSensoryFeedback(
+                    .selection,
+                    trigger: inviteTapTrigger,
+                    enabled: appState.options.hapticsEnabled
+                )
+                .onChange(of: shroudRevealProgress) { _, progress in
+                    guard progress >= TrinketMotion.RecruitReveal.clearEnd else { return }
+                    startUnlockChromeSequence()
                 }
-            },
-            primaryActionTitle: "Recruit",
-            primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
-            isPrimaryActionDisabled: false,
-            onPrimaryAction: { _ = appState.finishActiveMysteryEncounter() },
-            pinsPrimaryActionToBottom: true
-        )
-        .onAppear {
-            unlockFeedbackTrigger += 1
         }
-        .trinketSensoryFeedback(
-            .success,
-            trigger: unlockFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
-        )
     }
 
-    private func recruitRevealContent(_ combatant: Combatant) -> some View {
-        VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+    private func recruitUnlockStage(combatant: Combatant) -> some View {
+        let clear = shroudRevealStarted
+            ? recruitRevealClearAmount(progress: shroudRevealProgress)
+            : 0
+
+        return ZStack {
+            // Art stays geometrically centered; chrome overlays so fade-in never nudges it.
             Button {
-                selectedDetail = CombatantDetailContext(
-                    kind: combatant.role == .companion ? .companion : .hero,
-                    combatantID: combatant.id
-                )
-            } label: {
-                ZStack(alignment: .bottom) {
-                    CombatantArtwork(combatant: combatant, variant: .hero)
-                        .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                if shroudRevealStarted {
+                    guard clear >= 1 else { return }
+                    selectedDetail = CombatantDetailContext(
+                        kind: combatant.role == .companion ? .companion : .hero,
+                        combatantID: combatant.id
+                    )
+                } else {
+                    beginShroudReveal()
                 }
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-                .frame(maxWidth: 430)
+            } label: {
+                RecruitCeremonyArt(
+                    stage: session.stage,
+                    combatant: combatant,
+                    clearAmount: clear,
+                    isBreathingEnabled: !shroudRevealStarted
+                )
             }
-            // UIStyleCheck: allow - Unlock art opens detail without button chrome.
+            // UIStyleCheck: allow - Invitation / unlock art is the tap target; no button chrome.
             .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
+            .frame(maxWidth: 430)
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+
+            VStack(spacing: 0) {
+                unlockChromeHeader(combatant: combatant)
+                    .padding(.top, TrinketDesign.Metrics.contentTopPadding)
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .allowsHitTesting(false)
+
+                Spacer(minLength: 0)
+                    .allowsHitTesting(false)
+
+                unlockChromeFooter
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func unlockChromeHeader(combatant: Combatant) -> some View {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            if showUnlockEyebrow {
+                Text(combatant.role == .companion ? "New Companion" : "New Hero")
+                    .trinketTypography(.eyebrow)
+                    .foregroundStyle(TrinketDesign.Colors.accent)
+                    .textCase(.uppercase)
+                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockEyebrow)
+                    .transition(.opacity)
+            }
+
+            if showUnlockTitle {
+                Text(combatant.name)
+                    .trinketTypography(.screenDisplay)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockName)
+                    .transition(.opacity)
+            }
+
+            if showUnlockSubtitle {
+                Text("UNLOCKED")
+                    .trinketTypography(.secondaryBody)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
+                    .transition(.opacity)
+            }
+
+            if let persistFailure = session.persistFailureMessage {
+                Text(persistFailure)
+                    .trinketTypography(.badge)
+                    .foregroundStyle(TrinketDesign.Colors.warning)
+                    .multilineTextAlignment(.center)
+                    .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+                    .transition(.opacity)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var unlockChromeFooter: some View {
+        if showUnlockCTA {
+            Button {
+                _ = appState.finishActiveMysteryEncounter()
+            } label: {
+                Text("Recruit")
+                    .frame(maxWidth: .infinity)
+            }
+            .trinketPrimaryActionButton()
+            .accessibilityIdentifier(AccessibilityID.Mystery.continueButton)
+            .containerRelativeFrame(.horizontal) { width, _ in width * 0.5 }
+            .frame(maxWidth: .infinity)
+            .transition(.opacity)
+        }
+    }
+
+    private func beginShroudReveal() {
+        inviteTapTrigger += 1
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            shroudRevealStarted = true
+            shroudRevealProgress = 0
+        }
+        withAnimation(TrinketMotion.RecruitReveal.peel) {
+            shroudRevealProgress = 1
+        }
+        unlockFeedbackTrigger += 1
+    }
+
+    private func startUnlockChromeSequence() {
+        guard !hasStartedChromeSequence else { return }
+        hasStartedChromeSequence = true
+        chromeRevealTask?.cancel()
+        chromeRevealTask = Task { @MainActor in
+            let clock = SuspendingClock()
+            let stagger = TrinketMotion.Reward.resourceStagger
+
+            try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
+            guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.reveal) {
+                showUnlockEyebrow = true
+            }
+
+            try? await clock.sleep(for: .seconds(stagger))
+            guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.reveal) {
+                showUnlockTitle = true
+            }
+
+            try? await clock.sleep(for: .seconds(stagger))
+            guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.stateChange) {
+                showUnlockSubtitle = true
+            }
+
+            try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
+            guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.stateChange) {
+                showUnlockCTA = true
+            }
+            chromeRevealTask = nil
+        }
+    }
+
+    private func recruitRevealClearAmount(progress: CGFloat) -> CGFloat {
+        let motion = TrinketMotion.RecruitReveal.self
+        let span = motion.clearEnd - motion.clearStart
+        guard span > 0 else { return 1 }
+        let t = min(1, max(0, (progress - motion.clearStart) / span))
+        return t * t * (3 - 2 * t)
     }
 
     private func revealCombatant(id: String) -> Combatant? {
@@ -258,6 +340,67 @@ struct MysteryEncounterView: View {
         }
         withAnimation(.easeOut(duration: 0.4).delay(0.08)) {
             narrativeAppeared = true
+        }
+    }
+}
+
+private struct MysteryItemChoiceContent: View {
+    @Bindable var session: MysteryEncounterSession
+    let onSelectItem: (String) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    Text("Choose a Find")
+                        .trinketTypography(.screenTitle)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemTitle)
+
+                    Text("Three relics answer the scrolls. Take one.")
+                        .trinketTypography(.body)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let persistFailure = session.persistFailureMessage {
+                        Text(persistFailure)
+                            .trinketTypography(.badge)
+                            .foregroundStyle(TrinketDesign.Colors.warning)
+                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+                            .transition(.opacity)
+                    }
+                }
+
+                LazyVGrid(
+                    columns: TrinketDesign.Metrics.collectionGridItems,
+                    spacing: TrinketDesign.Metrics.largeSpacing
+                ) {
+                    ForEach(session.itemCandidates) { item in
+                        Button {
+                            onSelectItem(item.id)
+                        } label: {
+                            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: false,
+                                    showsName: false,
+                                    appliesCardSurface: false
+                                )
+                                Text(item.displayName)
+                                    .trinketTypography(.badge)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.85)
+                            }
+                        }
+                        // UIStyleCheck: allow - Mystery item pick uses card art without button chrome.
+                        .trinketQuietTapButtonStyle()
+                        .disabled(session.isResolvingChoice)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemCard(itemID: item.id))
+                    }
+                }
+            }
+            .padding(TrinketDesign.Metrics.extraLargeSpacing)
         }
     }
 }

@@ -21,40 +21,44 @@ struct BattleCombatantPane: View {
     var body: some View {
         Button(action: onCombatantTap) {
             ZStack(alignment: .bottom) {
+                // Art + resource bars share the hit reaction so HP/MP ride the
+                // same recoil/squash as the card frame.
                 CombatantHitReactionLane(
                     combatantID: combatant.id,
                     hapticsEnabled: hapticsEnabled
                 ) {
-                    artworkPresentation
+                    ZStack(alignment: .bottom) {
+                        artworkPresentation
+                        resourceBars
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // Chrome stays masked to the card slot while the reaction portrait
-                // recoils/squashes beyond it with its rounded clip.
-                ZStack(alignment: .bottom) {
-                    ZStack {
-                        // Isolated observation leaves: feedback / burst / reaction
-                        // updates must not rebuild static pane chrome or BattleView.
-                        CombatantKeywordBurstLane(combatantID: combatant.id)
-                        CombatantFeedbackLane(
-                            combatantID: combatant.id,
-                            bottomInset: resourceBarsReservedHeight + 8
+                // Bursts / callouts stay masked to the card slot while the
+                // reaction frame (portrait + bars) recoils beyond it.
+                ZStack {
+                    // Isolated observation leaves: feedback / burst / reaction
+                    // updates must not rebuild static pane chrome or BattleView.
+                    CombatantKeywordBurstLane(combatantID: combatant.id)
+                    CombatantSkillCalloutLane(combatantID: combatant.id)
+
+                    // Invisible source for Ultimate matched-geometry expand from this card.
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .matchedGeometryEffect(
+                            id: "ultimate-source-\(combatant.id)",
+                            in: cinematicNamespace,
+                            isSource: true
                         )
-                        CombatantSkillCalloutLane(combatantID: combatant.id)
-
-                        // Invisible source for Ultimate matched-geometry expand from this card.
-                        Color.clear
-                            .frame(width: 1, height: 1)
-                            .matchedGeometryEffect(
-                                id: "ultimate-source-\(combatant.id)",
-                                in: cinematicNamespace,
-                                isSource: true
-                            )
-                    }
-
-                    resourceBars
                 }
                 .clipShape(TrinketDesign.cardShape)
+
+                // Floating combat text may extend past the card frame so long
+                // labels (e.g. Death's Door) and rise paths are not clipped.
+                CombatantFeedbackLane(
+                    combatantID: combatant.id,
+                    bottomInset: resourceBarsReservedHeight + 8
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(TrinketDesign.cardShape)
@@ -121,28 +125,29 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let hapticsEnabled: Bool
     @ViewBuilder let artwork: () -> Artwork
 
+    /// Local trigger so KeyframeAnimator always sees a change, even when reaction
+    /// storage is ObservationIgnored and only the epoch fence invalidates this lane.
+    @State private var playToken = 0
+    @State private var activeKind: CombatantHitReactionKind = .none
+    @State private var activeKeyword: Keyword = .physical
     @State private var latestReactionID = 0
 
-    private var hitReaction: CombatantHitReaction? {
-        appState.battle.hitReactionsByTargetID[combatantID]
-    }
-
     var body: some View {
-        let reaction = hitReaction
-        let reactionID = reaction?.id ?? 0
-        let kind = reaction?.kind ?? .none
-        let recipe = TrinketMotion.Battle.cardReaction(for: kind)
-        let flashColor = reaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
+        // Subscribe to the observation fence (hitReactions storage is ignored).
+        // swiftlint:disable:next redundant_discardable_let
+        let _ = appState.battle.hitReactionEpoch
+        let recipe = TrinketMotion.Battle.cardReaction(for: activeKind)
+        let flashColor = activeKeyword.visualStyle.color
         let defaultOffset = CGSize(
             width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
             height: CGFloat(recipe.offsetY[safe: 0]?.value ?? 0)
         )
         let impactOffset = impactOffset(
-            for: kind,
+            for: activeKind,
             magnitude: abs(defaultOffset.width),
             defaultOffset: defaultOffset
         )
-        let isVerticalImpact = impactOffset.height != 0
+        let isVerticalImpact = activeKind == .damage || activeKind == .critical
         let impactScaleX = isVerticalImpact
             ? recipe.scaleY[safe: 0]?.value ?? 1.0
             : recipe.scaleX[safe: 0]?.value ?? 1.0
@@ -154,7 +159,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
         KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
-            trigger: reactionID
+            trigger: playToken
         ) { state in
             artwork()
                 .overlay {
@@ -162,10 +167,11 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                         .opacity(state.flashOpacity)
                         .allowsHitTesting(false)
                 }
-                // Mask travels with the portrait: recoil/squash can leave the
-                // card slot without exposing the artwork's rectangular edge.
+                // Mask travels with the frame (art + bars): recoil/squash can
+                // leave the card slot without exposing rectangular edges.
                 .clipShape(TrinketDesign.cardShape)
                 .scaleEffect(x: state.scaleX, y: state.scaleY)
+                .rotationEffect(.degrees(state.rotation))
                 .offset(x: state.offsetX, y: state.offsetY)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
@@ -216,6 +222,48 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                     spring: .bouncy(duration: recoveryDuration)
                 )
             }
+            KeyframeTrack(\.rotation) {
+                CubicKeyframe(
+                    recipe.rotation[safe: 0]?.value ?? 0,
+                    duration: recipe.rotation[safe: 0]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 1]?.value ?? 0,
+                    duration: recipe.rotation[safe: 1]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 2]?.value ?? 0,
+                    duration: recipe.rotation[safe: 2]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 3]?.value ?? 0,
+                    duration: recipe.rotation[safe: 3]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 4]?.value ?? 0,
+                    duration: recipe.rotation[safe: 4]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 5]?.value ?? 0,
+                    duration: recipe.rotation[safe: 5]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 6]?.value ?? 0,
+                    duration: recipe.rotation[safe: 6]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 7]?.value ?? 0,
+                    duration: recipe.rotation[safe: 7]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 8]?.value ?? 0,
+                    duration: recipe.rotation[safe: 8]?.duration ?? 0.01
+                )
+                CubicKeyframe(
+                    recipe.rotation[safe: 9]?.value ?? 0,
+                    duration: recipe.rotation[safe: 9]?.duration ?? 0.01
+                )
+            }
             KeyframeTrack(\.flashOpacity) {
                 CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
                 CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
@@ -223,15 +271,23 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketSensoryFeedback(
-            reactionFeedback(for: reaction?.kind),
-            trigger: reaction?.id ?? latestReactionID,
+            reactionFeedback(for: activeKind == .none ? nil : activeKind),
+            trigger: playToken,
             enabled: hapticsEnabled
         )
-        .onChange(of: reaction?.id) { _, reactionID in
-            if let reactionID {
-                latestReactionID = reactionID
-            }
+        .onChange(of: appState.battle.hitReactionEpoch) { _, _ in
+            adoptLatestReactionIfNeeded()
         }
+    }
+
+    private func adoptLatestReactionIfNeeded() {
+        guard let reaction = appState.battle.hitReactionsByTargetID[combatantID],
+              reaction.id != latestReactionID
+        else { return }
+        activeKind = reaction.kind
+        activeKeyword = reaction.keyword
+        latestReactionID = reaction.id
+        playToken &+= 1
     }
 
     private func impactOffset(
@@ -249,7 +305,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         switch kind {
         case .some(.critical):
             .impact(weight: .heavy)
-        case .some(.heal):
+        case .some(.heal), .some(.celebrate):
             .success
         case .some(.dodge):
             .selection
@@ -313,6 +369,7 @@ private struct CardReactionAnimationState {
     var scaleY = 1.0
     var offsetX = 0.0
     var offsetY = 0.0
+    var rotation = 0.0
     var flashOpacity = 0.0
 }
 

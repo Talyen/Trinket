@@ -63,7 +63,7 @@ struct DamagePipelineTests {
     }
 
     @Test func executedStepNamesShortCircuitAfterDodge() throws {
-        let stats = PrimaryStats(agility: 140)
+        let stats = PrimaryStats(agility: 280)
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
         )
@@ -96,7 +96,7 @@ struct DamagePipelineTests {
             in: &context
         )
 
-        try #expect(executed == ["DodgeGate"], "Seed 0 with high agility should dodge and short-circuit")
+        try #expect(executed == ["DodgeGate"], "High agility should dodge and short-circuit")
     }
 
     @Test func stepPhasesGroupStochasticResolutionAndPost() throws {

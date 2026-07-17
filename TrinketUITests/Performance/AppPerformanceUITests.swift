@@ -6,6 +6,11 @@ final class AppPerformanceUITests: TrinketUITestCase {
     private static let measurementDuration: TimeInterval = 7.2
     private static let samplerWarmup: TimeInterval = 0.85
 
+    private var repetitionCount: Int {
+        let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"
+        return max(1, Int(raw) ?? 1)
+    }
+
     func test00ColdLaunchToPlay() {
         let options = XCTMeasureOptions()
         options.iterationCount = 1
@@ -142,6 +147,28 @@ final class AppPerformanceUITests: TrinketUITestCase {
         battle.assertActive(timeout: 8)
     }
 
+    func test07VictoryRewardReveal() {
+        launchApp(arguments: TestLaunchArg.allForVictoryPerformance())
+        let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
+        XCTAssertTrue(victory.waitForExistence(timeout: 8))
+        run(scenario: "victory-reward-reveal") {
+            // Idle on victory chrome while XP bars and reward art settle.
+        }
+    }
+
+    func test08MysteryEncounterReveal() {
+        launchApp(arguments: TestLaunchArg.allForMysteryPerformance())
+        // Forced recruit-bear deep link opens on the unlock reveal.
+        let unlockCard = app.buttons[AccessibilityID.Mystery.unlockCard(name: "Bear")]
+        let unlocked = app.descendants(matching: .any)[AccessibilityID.Mystery.unlockName]
+        let appeared = unlockCard.waitForExistence(timeout: 8)
+            || unlocked.waitForExistence(timeout: 1)
+        XCTAssertTrue(appeared, "Mystery encounter chrome did not appear")
+        run(scenario: "mystery-encounter-reveal") {
+            // Idle on mystery entrance while artwork and chrome settle.
+        }
+    }
+
     private func tabCoordinate(named name: String) -> XCUICoordinate {
         let tab = app.tabBars.buttons[name]
         XCTAssertTrue(tab.waitForExistence(timeout: Self.defaultTimeout))
@@ -153,31 +180,40 @@ final class AppPerformanceUITests: TrinketUITestCase {
     }
 
     private func run(scenario: String, action: @escaping () -> Void) {
+        for iteration in 1 ... repetitionCount {
+            runOnce(scenario: scenario, iteration: iteration, action: action)
+        }
+    }
+
+    private func runOnce(scenario: String, iteration: Int, action: @escaping () -> Void) {
         let reset = app.buttons[AccessibilityID.Debug.frameMetricsReset]
         XCTAssertTrue(reset.waitForExistence(timeout: Self.defaultTimeout))
         let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
         XCTAssertTrue(metrics.waitForExistence(timeout: Self.defaultTimeout))
-        let startedAt = Date()
+        let resetAt = Date()
         tapWhenReady(reset)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.samplerWarmup))
         action()
-        let remaining = Self.measurementDuration - Date().timeIntervalSince(startedAt)
+        // Wait out the app's 7s freeze snapshot from reset (probe lives in a
+        // top-level UIWindow so covers / shell swaps cannot stale the AX node).
+        let remaining = Self.measurementDuration - Date().timeIntervalSince(resetAt)
         if remaining > 0 {
             RunLoop.current.run(until: Date().addingTimeInterval(remaining))
         }
-        let populated = NSPredicate { _, _ in
+
+        let settled = NSPredicate { _, _ in
             guard let payload = metrics.value as? String,
                   let report = FramePacingReport.parseAccessibilityValue(payload)
             else { return false }
-            return report.sampleCount > 0
+            return report.sampleCount >= 120
         }
-        let snapshotExpectation = XCTNSPredicateExpectation(
-            predicate: populated,
-            object: metrics
-        )
         XCTAssertEqual(
-            XCTWaiter().wait(for: [snapshotExpectation], timeout: Self.defaultTimeout),
-            .completed
+            XCTWaiter().wait(
+                for: [XCTNSPredicateExpectation(predicate: settled, object: metrics)],
+                timeout: 4
+            ),
+            .completed,
+            "No measured frame report was captured for \(scenario); last=\(metrics.value ?? "nil")"
         )
 
         guard let payload = metrics.value as? String,
@@ -191,7 +227,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
             report,
             scenario: scenario,
             suite: "app",
-            iteration: 1,
+            iteration: iteration,
             in: self
         )
     }

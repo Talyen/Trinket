@@ -99,21 +99,25 @@ private struct PreparedAppRoot: View {
             }
         }
         .environment(appState)
-        .task {
-            guard !isResourcePreparationComplete else { return }
-            appState.prepareLaunchPerformanceResources()
-            await BattlePresentationWarmup.prepareForLaunch(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-            await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
-            guard !Task.isCancelled else { return }
-            if let stageID = appState.journey.activeStageID,
-               let stage = GameContent.stage(id: stageID) {
-                appState.prepareBattle(for: stage)
+        #if DEBUG
+            .debugFPSOverlay()
+        #endif
+            .task {
+                MetricKitHitchSubscriber.shared.start()
+                guard !isResourcePreparationComplete else { return }
+                appState.prepareLaunchPerformanceResources()
+                await BattlePresentationWarmup.prepareForLaunch(
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                )
+                await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+                guard !Task.isCancelled else { return }
+                if let stageID = appState.journey.activeStageID,
+                   let stage = GameContent.stage(id: stageID) {
+                    appState.prepareBattle(for: stage)
+                }
+                isResourcePreparationComplete = true
             }
-            isResourcePreparationComplete = true
-        }
     }
 
     private var shouldPrepareCastEffects: Bool {

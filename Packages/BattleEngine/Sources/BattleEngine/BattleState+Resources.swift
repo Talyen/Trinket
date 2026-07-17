@@ -6,6 +6,7 @@ package extension BattleState {
         gold += amount + modifiers(for: sourceActorID).goldGainedBonus
     }
 
+    @discardableResult
     mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID _: String) -> Int {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
         let actual = runtime.restoreMana(amount)

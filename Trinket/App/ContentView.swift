@@ -8,6 +8,9 @@ struct ContentView: View {
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
+        // Bare PlayView during battle frees the tab bar and tears down inactive tab
+        // roots. Keeping TabView mounted (hidden bar only) left Collection/Homestead
+        // observing through victory and spiked stage-select-battle / victory stalls.
         Group {
             if appState.battle.activeBattle != nil {
                 PlayView()
@@ -84,9 +87,6 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)
         }
-        #if DEBUG
-        .debugFPSOverlay()
-        #endif
     }
 
     private func tabRoot(selection: Binding<AppTab>) -> some View {
@@ -112,6 +112,12 @@ struct ContentView: View {
                     OptionsView()
                 }
             }
+        }
+        .onChange(of: localSelectedTab) { _, newTab in
+            AppFramePacingSignposts.event(
+                AppFramePacingSignposts.Name.tabSwitch,
+                detail: "tab=\(newTab.rawValue)"
+            )
         }
     }
 

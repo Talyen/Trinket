@@ -60,10 +60,8 @@ enum CombatFeedbackChipBridge {
         }
 
         var affectedTargets = Set<String>()
-        var inserted: [CombatFeedbackItem] = []
         switch update {
         case let .insert(items):
-            inserted = items
             for item in items {
                 itemsByTarget[item.targetID, default: [:]][item.id] = item
                 affectedTargets.insert(item.targetID)
@@ -83,33 +81,14 @@ enum CombatFeedbackChipBridge {
             itemsByTarget = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
                 Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
             }
-            inserted = items
         case .reset:
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
         }
 
-        prepareRasters(for: inserted)
+        // Refresh applies warm hits immediately and paces cold compose + re-flush.
         refreshHosts(for: affectedTargets)
         scheduleAvailabilityRefreshes()
-    }
-
-    private static func prepareRasters(for items: [CombatFeedbackItem]) {
-        guard !items.isEmpty else { return }
-        var preparedHostKeys = Set<String>()
-        for entry in hosts.values where entry.view != nil {
-            let hostKey = "\(entry.combatantID)|\(entry.dynamicTypeSize)|\(entry.layoutDirection)|\(entry.displayScale)"
-            guard preparedHostKeys.insert(hostKey).inserted else { continue }
-            let targetItems = items.filter { $0.targetID == entry.combatantID }
-            guard !targetItems.isEmpty else { continue }
-            CombatFeedbackRasterPool.shared.prepareAll(
-                for: targetItems,
-                dynamicTypeSize: entry.dynamicTypeSize,
-                layoutDirection: entry.layoutDirection,
-                displayScale: entry.displayScale,
-                useFrameBudget: targetItems.contains { $0.availableAt > Date.now }
-            )
-        }
     }
 
     private static func scheduleAvailabilityRefreshes() {
@@ -173,29 +152,33 @@ enum CombatFeedbackChipBridge {
             }
             return $0.availableAt < $1.availableAt
         })
-        let chips = CombatFeedbackOverlayPolicy.canvasItems(from: groups).map { canvasItem in
-            if CombatFeedbackRasterPool.shared.cachedRaster(
+        let canvasItems = CombatFeedbackOverlayPolicy.canvasItems(from: groups)
+        var chips: [(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster?)] = []
+        var misses: [CombatFeedbackCanvasItem] = []
+        for canvasItem in canvasItems {
+            if let raster = CombatFeedbackRasterPool.shared.cachedRaster(
                 for: canvasItem,
                 dynamicTypeSize: entry.dynamicTypeSize,
                 layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale
-            ) == nil {
-                _ = CombatFeedbackRasterPool.shared.prepare(
-                    for: canvasItem,
-                    dynamicTypeSize: entry.dynamicTypeSize,
-                    layoutDirection: entry.layoutDirection,
-                    displayScale: entry.displayScale
-                )
+            ) {
+                chips.append((canvasItem: canvasItem, raster: raster))
+            } else {
+                misses.append(canvasItem)
             }
-            return (
-                canvasItem,
-                CombatFeedbackRasterPool.shared.cachedRaster(
-                    for: canvasItem,
-                    dynamicTypeSize: entry.dynamicTypeSize,
-                    layoutDirection: entry.layoutDirection,
-                    displayScale: entry.displayScale
-                )
-            )
+        }
+        // Never sync-compose on the flush frame — paced prepare + re-flush keeps
+        // ChipHostApply off cold FeedbackRasterBuild stalls.
+        if !misses.isEmpty {
+            CombatFeedbackRasterPool.shared.prepareCanvasItems(
+                misses,
+                dynamicTypeSize: entry.dynamicTypeSize,
+                layoutDirection: entry.layoutDirection,
+                displayScale: entry.displayScale,
+                useFrameBudget: true
+            ) {
+                refreshHosts(for: [entry.combatantID])
+            }
         }
         view.apply(chips: chips)
     }

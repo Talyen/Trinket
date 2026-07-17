@@ -241,10 +241,13 @@ struct BattlePerformanceScenarioHarness: View {
         let targets = [state.enemy, state.hero, state.companion]
         for batch in 0 ..< 5 {
             for (index, target) in targets.enumerated() {
-                battleSession.hitReactionsByTargetID[target.id] = CombatantHitReaction(
-                    id: runGeneration * 10000 + batch * 100 + index,
-                    kind: .damage,
-                    keyword: .physical
+                battleSession.publishHitReaction(
+                    CombatantHitReaction(
+                        id: runGeneration * 10000 + batch * 100 + index,
+                        kind: .damage,
+                        keyword: .physical
+                    ),
+                    for: target.id
                 )
             }
             try? await Task.sleep(for: .milliseconds(650))
@@ -351,8 +354,8 @@ struct BattlePerformanceScenarioHarness: View {
             }
             forcedDrag = (cardID: cardID, translation: CGSize(width: step.isMultiple(of: 2) ? 24 : -24, height: -150))
             appendCast()
+            // injectFeedback already schedules multimodal SFX one frame after chips.
             injectFeedback(runGeneration: runGeneration, batch: step)
-            battleSession.playSFX(step.isMultiple(of: 2) ? SFXID.hitBurn : SFXID.hitFreeze)
             if step == 2 {
                 runTurnTransition()
             }

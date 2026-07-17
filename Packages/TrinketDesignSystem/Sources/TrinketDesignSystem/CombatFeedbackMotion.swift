@@ -145,6 +145,7 @@ public enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable 
     case block
     case heal
     case dodge
+    case celebrate
 }
 
 /// Short transform recipe for combatant card artwork on hit.
@@ -154,6 +155,7 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
     public let scaleY: [CombatFeedbackKeyframeSample]
     public let offsetX: [CombatFeedbackKeyframeSample]
     public let offsetY: [CombatFeedbackKeyframeSample]
+    public let rotation: [CombatFeedbackKeyframeSample]
     public let flashOpacity: [CombatFeedbackKeyframeSample]
     public let duration: TimeInterval
 
@@ -163,6 +165,7 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
         scaleY: [CombatFeedbackKeyframeSample],
         offsetX: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
+        rotation: [CombatFeedbackKeyframeSample] = [],
         flashOpacity: [CombatFeedbackKeyframeSample],
         duration: TimeInterval
     ) {
@@ -171,6 +174,7 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
         self.scaleY = scaleY
         self.offsetX = offsetX
         self.offsetY = offsetY
+        self.rotation = rotation
         self.flashOpacity = flashOpacity
         self.duration = duration
     }
@@ -206,14 +210,31 @@ public enum CombatFeedbackLayout: Sendable {
         CGFloat(index) * spacing
     }
 
+    /// Shared vertical pitch for concurrent chips on one combatant.
+    /// Sized for ~title/largeTitle chip height at peak scale so lanes don't collide.
+    public static let presentationLaneSpacing: CGFloat = 54
+
+    /// Base horizontal fan amplitude; grows slightly for deeper lanes.
+    public static let presentationFanAmplitude: CGFloat = 20
+
     /// Stable vertical lanes prevent rows from jumping when siblings expire.
-    public static func presentationOffset(index: Int) -> CGFloat {
-        switch index {
-        case 0: 0
-        case 1: 48
-        case 2: 86
-        default: 116 + CGFloat(max(0, index - 3)) * 28
-        }
+    public static func presentationOffset(
+        index: Int,
+        spacing: CGFloat = presentationLaneSpacing
+    ) -> CGFloat {
+        stackOffset(index: index, spacing: spacing)
+    }
+
+    /// Deterministic left/right fan so multi-emit bursts read as a cluster,
+    /// not a single overlapping column. Index 0 stays centered.
+    public static func presentationHorizontalFan(
+        index: Int,
+        amplitude: CGFloat = presentationFanAmplitude
+    ) -> CGFloat {
+        guard index > 0 else { return 0 }
+        let sign: CGFloat = index.isMultiple(of: 2) ? 1 : -1
+        let magnitude = amplitude + CGFloat((index - 1) / 2) * 8
+        return sign * magnitude
     }
 
     public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {

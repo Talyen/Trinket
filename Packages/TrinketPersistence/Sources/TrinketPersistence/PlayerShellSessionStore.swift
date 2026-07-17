@@ -17,6 +17,10 @@ public final class PlayerShellSessionStore {
 
     private let context: ModelContext
     private var record: PlayerShellSession
+    /// Coalesces rapid tab switches so `tab-round-trip` does not pay a SwiftData
+    /// `context.save()` on every selection change.
+    private var selectedTabSaveTask: Task<Void, Never>?
+    private static let selectedTabSaveDelay: Duration = .milliseconds(300)
     private static let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerShellSession"
@@ -138,6 +142,7 @@ public final class PlayerShellSessionStore {
         clearMapScrollState()
         lastPlayMode = .campaign
         clearStaleBattleResumeFields()
+        flushPendingPersistence()
     }
 
     public static func clearLegacyKeys(from defaults: UserDefaults) {
@@ -187,6 +192,20 @@ public final class PlayerShellSessionStore {
     private func persistSelectedTab() {
         record.selectedTabRaw = selectedTab.rawValue
         record.updatedAt = .now
+        selectedTabSaveTask?.cancel()
+        selectedTabSaveTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: Self.selectedTabSaveDelay)
+            guard let self, !Task.isCancelled else { return }
+            saveContext()
+            selectedTabSaveTask = nil
+        }
+    }
+
+    /// Writes any coalesced tab selection immediately. Call before opening a
+    /// second store against the same URL in tests, or before process teardown.
+    public func flushPendingPersistence() {
+        selectedTabSaveTask?.cancel()
+        selectedTabSaveTask = nil
         saveContext()
     }
 

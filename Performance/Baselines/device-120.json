@@ -1,11 +1,11 @@
 {
   "goals": {
     "maximumSevereStallCount": 0,
-    "minimumAverageFPS": 59.0,
-    "minimumOnePercentLowFPS": 59.0
+    "minimumAverageFPS": 119.0,
+    "minimumOnePercentLowFPS": 119.0
   },
-  "mode": "enforce",
-  "refreshTargetHz": 60,
+  "mode": "observe",
+  "refreshTargetHz": 120,
   "scenarios": [
     "tab-round-trip",
     "collection-navigation",
@@ -31,5 +31,6 @@
     "audio-playback",
     "combined-worst-case"
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "notes": "Physical ProMotion lane. Do not enforce from Simulator extrapolations. Pin a device + OS before flipping mode to enforce."
 }

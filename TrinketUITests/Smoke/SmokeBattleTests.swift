@@ -11,6 +11,18 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
         battle.assertActive()
     }
 
+    /// Victory reward item opens the shared item detail sheet.
+    func testVictoryRewardItemOpensDetail() {
+        app.terminate()
+        launchApp(arguments: TestLaunchArg.allForBattleVictory())
+
+        assertExists(battle.victory, timeout: Self.defaultTimeout)
+        assertButtonExists(AccessibilityID.Battle.continueButton)
+        let rewardItemID = "chapter-1-stage-1-shortsword-basic"
+        tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
+    }
+
     /// Hand drag onto a combatant must not open details; tap still works after.
     /// Uses mid-battle Play-map entry (not `-launch-screen battle`) so ticks do not race setup.
     /// Owns BattleHandView / prepared-art a11y regressions that pollute hand selectors.

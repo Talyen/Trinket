@@ -5,6 +5,11 @@ import XCTest
 final class BattlePerformanceUITests: TrinketUITestCase {
     private static let scenarioDuration: TimeInterval = 7.2
 
+    private var repetitionCount: Int {
+        let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"
+        return max(1, Int(raw) ?? 1)
+    }
+
     func test01Idle() {
         run(scenario: "idle")
     }
@@ -66,6 +71,12 @@ final class BattlePerformanceUITests: TrinketUITestCase {
     }
 
     private func run(scenario: String) {
+        for iteration in 1 ... repetitionCount {
+            runOnce(scenario: scenario, iteration: iteration)
+        }
+    }
+
+    private func runOnce(scenario: String, iteration: Int) {
         launchApp(arguments: TestLaunchArg.allForBattlePerformance(scenario))
         battle.assertActive(timeout: 8)
 
@@ -78,6 +89,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
 
         tapWhenReady(start)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
+
         let rasterStatus = status.value as? String ?? ""
         XCTAssertTrue(
             rasterStatus.hasPrefix("complete:\(scenario):"),
@@ -93,7 +105,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
             120,
             "Sampler did not capture enough delivered frames: \(report.accessibilityValue)"
         )
-        record(report: report, scenario: scenario, iteration: 1, rasterStatus: rasterStatus)
+        record(report: report, scenario: scenario, iteration: iteration, rasterStatus: rasterStatus)
     }
 
     private func record(

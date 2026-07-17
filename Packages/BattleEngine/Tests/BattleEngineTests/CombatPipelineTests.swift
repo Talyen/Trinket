@@ -30,8 +30,8 @@ struct CombatPipelineTests {
     // MARK: - Dodge
 
     @Test func applyDamageDodgeRespectsChanceAndSkipFlags() throws {
-        // 100% dodge chance via agility
-        let stats = PrimaryStats(agility: 140) // dodge chance = 0.05 + 140 * 0.005 = 0.75
+        // Cap dodge via agility: 0.05 + 280 * 0.0025 = 0.75
+        let stats = PrimaryStats(agility: 280)
         var context = makeContext(targetPrimaryStats: stats, seed: 1772)
         let (lost, events) = context.applyTestDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
         try #expect(lost == 0)
@@ -264,6 +264,25 @@ struct CombatPipelineTests {
             return buffer
         }.first
         try #expect(remainingBuffer == 10, "5 damage crit to 10 should consume 10 shield")
+    }
+
+    @Test func nonCrittableKeywordsNeverCriticalEvenWithAbilityBonus() throws {
+        for keyword: Keyword in [.block, .armor, .dodge, .purge, .gold, .mana] {
+            var context = makeContext(seed: 1772)
+            let before = context.roster.enemy.currentHealth
+            let outcome = context.resolveDamage(
+                DamageRequest(
+                    amount: 5,
+                    target: context.roster.enemy.combatant,
+                    keyword: keyword,
+                    sourceActorID: "source",
+                    options: DamageOptions(applyDodge: false, abilityCriticalChanceBonus: 1.0)
+                )
+            )
+            try #expect(!outcome.isCritical, "\(keyword.rawValue)")
+            try #expect(outcome.healthLost == 5, "\(keyword.rawValue)")
+            try #expect(context.roster.enemy.currentHealth == before - 5, "\(keyword.rawValue)")
+        }
     }
 
     @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {

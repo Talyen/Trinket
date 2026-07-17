@@ -8,6 +8,8 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Reward.resourceStagger < 0.2)
         #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
         #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
+
+        #expect(ArtworkBlendRecipe.perimeterInset == 0.22)
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
@@ -25,14 +27,55 @@ struct TrinketMotionTests {
         )
     }
 
+    @Test func recruitRevealBreathingShroudTokensAreOrdered() {
+        #expect(TrinketMotion.RecruitReveal.clearStart == 0)
+        #expect(TrinketMotion.RecruitReveal.clearEnd == 0.55)
+        #expect(TrinketMotion.RecruitReveal.invitationBlurMin < TrinketMotion.RecruitReveal.invitationBlurMax)
+        #expect(
+            TrinketMotion.RecruitReveal.invitationSaturationMin
+                < TrinketMotion.RecruitReveal.invitationSaturationMax
+        )
+        #expect(
+            TrinketMotion.RecruitReveal.invitationBlurRadius(breath: 0)
+                == TrinketMotion.RecruitReveal.invitationBlurMin
+        )
+        #expect(
+            TrinketMotion.RecruitReveal.invitationBlurRadius(breath: 1)
+                == TrinketMotion.RecruitReveal.invitationBlurMax
+        )
+    }
+
     @Test func chipMotionRecipesStayWithinSemanticContracts() {
         let critical = TrinketMotion.Battle.chip(for: .critical)
-        let dot = TrinketMotion.Battle.chip(for: .dot)
-        #expect(critical.lifetime > dot.lifetime)
+        let normal = TrinketMotion.Battle.chip(for: .directDamage)
+        let deathsDoor = TrinketMotion.Battle.chip(for: .deathsDoor)
+
+        #expect(critical.lifetime > normal.lifetime)
         #expect(critical.textStyle == .largeTitle)
-        #expect(dot.textStyle == .title2)
+        #expect(critical.fontWeight == .heavy)
+        #expect(normal.textStyle == .title)
+        #expect(normal.fontWeight == .bold)
         #expect(!critical.showsSecondaryCaption)
-        #expect((critical.scale.last?.value ?? 0) > (TrinketMotion.Battle.chip(for: .directDamage).scale.last?.value ?? 0))
+
+        // Same choreography family: emphasis is a louder version of normal.
+        #expect((critical.scale.map(\.value).max() ?? 0) > (normal.scale.map(\.value).max() ?? 0))
+        #expect(abs(critical.offsetY.last?.value ?? 0) > abs(normal.offsetY.last?.value ?? 0))
+        #expect(critical.floatAngleRange.upperBound <= 8)
+        #expect(normal.floatAngleRange.upperBound <= 10)
+        #expect(critical.horizontalJitter.upperBound <= 4)
+        #expect(normal.horizontalJitter.upperBound <= 5)
+
+        // Emphasis classes share one motion profile; normal classes share another.
+        #expect(deathsDoor.lifetime == critical.lifetime)
+        #expect(deathsDoor.scale == critical.scale)
+        #expect(TrinketMotion.Battle.chip(for: .heal).scale == normal.scale)
+        #expect(TrinketMotion.Battle.chip(for: .dodge).offsetX.isEmpty)
+        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
+        #expect(critical.stackSpacing == CombatFeedbackLayout.presentationLaneSpacing)
+        #expect(normal.stackSpacing == CombatFeedbackLayout.presentationLaneSpacing)
+    }
+
+    @Test func chipMotionRecipesCoverEveryFeedbackClassAndLaneLayout() {
         for feedbackClass in CombatFeedbackClass.allCases {
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
             #expect(recipe.lifetime > 0)
@@ -46,18 +89,42 @@ struct TrinketMotionTests {
             #expect(recipe.initialScale < 1)
             #expect(recipe.initialOffsetY > 0)
             #expect((recipe.offsetY.last?.value ?? 0) <= -40)
+            #expect(recipe.rotation.isEmpty)
+            switch feedbackClass {
+            case .critical, .deathsDoor:
+                #expect(recipe.textStyle == .largeTitle)
+                #expect(recipe.fontWeight == .heavy)
+                #expect(recipe.chrome == .emphasis)
+            case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
+                #expect(recipe.textStyle == .title)
+                #expect(recipe.fontWeight == .bold)
+                #expect(recipe.chrome == .standard)
+            }
         }
-        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
+
         #expect(CombatFeedbackLayout.presentationOffset(index: 0) == 0)
-        #expect(CombatFeedbackLayout.presentationOffset(index: 1) > 40)
+        #expect(
+            CombatFeedbackLayout.presentationOffset(index: 1)
+                == CombatFeedbackLayout.presentationLaneSpacing
+        )
         #expect(
             CombatFeedbackLayout.presentationOffset(index: 2)
-                > CombatFeedbackLayout.presentationOffset(index: 1)
+                == CombatFeedbackLayout.presentationLaneSpacing * 2
+        )
+        #expect(CombatFeedbackLayout.presentationLaneSpacing >= 52)
+        #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 0) == 0)
+        #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 1) == -20)
+        #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 2) == 20)
+        #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 3) == -28)
+        #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 4) == 28)
+        #expect(
+            abs(CombatFeedbackLayout.presentationHorizontalFan(index: 1))
+                >= CombatFeedbackLayout.presentationFanAmplitude
         )
     }
 
     @Test func combatFeedbackFloatAnglesAreStableAndProduceBothDirections() {
-        let range: ClosedRange<CGFloat> = -26 ... 26
+        let range: ClosedRange<CGFloat> = -10 ... 10
         let first = CombatFeedbackLayout.floatAngle(seed: 17, range: range)
         let repeated = CombatFeedbackLayout.floatAngle(seed: 17, range: range)
         let other = CombatFeedbackLayout.floatAngle(seed: 18, range: range)
@@ -74,12 +141,12 @@ struct TrinketMotionTests {
         #expect(CombatFeedbackLayout.horizontalDrift(angleDegrees: -20, verticalTravel: 60) < 0)
         #expect(first != other)
 
-        let offsetA = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
-        let offsetB = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
-        let offsetC = CombatFeedbackLayout.horizontalOffset(seed: 43, jitter: -10 ... 10)
+        let offsetA = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -5 ... 5)
+        let offsetB = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -5 ... 5)
+        let offsetC = CombatFeedbackLayout.horizontalOffset(seed: 43, jitter: -5 ... 5)
         #expect(offsetA == offsetB)
         #expect(offsetA != offsetC)
-        #expect((-10 ... 10).contains(offsetA))
+        #expect((-5 ... 5).contains(offsetA))
     }
 
     @Test func cardReactionsCoverAllKinds() {
@@ -97,5 +164,15 @@ struct TrinketMotionTests {
         #expect(critical.scaleX.first?.value == 0.93)
         #expect(critical.scaleY.first?.value == 1.04)
         #expect(critical.flashOpacity.first?.value == 0.4)
+
+        let celebrate = TrinketMotion.Battle.cardReaction(for: .celebrate)
+        #expect((celebrate.scaleX.first?.value ?? 0) > 1)
+        #expect((celebrate.scaleY.first?.value ?? 1) < 1)
+        #expect((celebrate.offsetY.first?.value ?? 0) < 0)
+        #expect(celebrate.flashOpacity.first?.value == 0)
+        #expect(celebrate.rotation.count >= 8)
+        #expect(celebrate.duration == 1.0)
+        #expect((celebrate.rotation.first?.value ?? 0) < 0)
+        #expect(celebrate.rotation[1].value > 0)
     }
 }

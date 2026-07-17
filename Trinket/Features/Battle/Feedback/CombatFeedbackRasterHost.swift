@@ -182,7 +182,13 @@ final class CombatFeedbackRasterUIView: UIView {
             seed: item.spawnSeed,
             jitter: recipe.horizontalJitter
         )
-        let laneOffset = CombatFeedbackLayout.presentationOffset(index: item.presentationIndex)
+        let laneOffset = CombatFeedbackLayout.presentationOffset(
+            index: item.presentationIndex,
+            spacing: recipe.stackSpacing
+        )
+        let fanOffset = CombatFeedbackLayout.presentationHorizontalFan(
+            index: item.presentationIndex
+        )
         let sampleCount = 20
         var transforms: [NSValue] = []
         var opacities: [NSNumber] = []
@@ -200,7 +206,7 @@ final class CombatFeedbackRasterUIView: UIView {
             )
             let transform = CGAffineTransform.identity
                 .translatedBy(
-                    x: state.horizontalOffset + jitter,
+                    x: state.horizontalOffset + jitter + fanOffset,
                     y: state.verticalOffset + laneOffset
                 )
                 .rotated(by: CGFloat(state.rotation * .pi / 180))

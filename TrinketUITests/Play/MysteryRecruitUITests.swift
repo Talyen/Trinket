@@ -17,14 +17,12 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))
 
-        assertExists(AccessibilityID.Mystery.encounterTitle)
-        assertExists(AccessibilityID.Mystery.welcomeButton)
-        button(AccessibilityID.Mystery.welcomeButton).tap()
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
+        button(AccessibilityID.Mystery.unlockCard(name: "Bear")).tap()
 
         assertExists(AccessibilityID.Mystery.unlockName)
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW COMPANION")
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
-        assertDoesNotExist(AccessibilityID.Mystery.unlockSubtitle)
+        XCTAssertEqual(any(AccessibilityID.Mystery.unlockSubtitle).label.uppercased(), "UNLOCKED")
         XCTAssertFalse(app.staticTexts["View Details"].exists)
         assertExists(AccessibilityID.Mystery.continueButton)
         XCTAssertEqual(any(AccessibilityID.Mystery.continueButton).label, "Recruit")
@@ -45,13 +43,13 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-rogue"))
 
-        assertExists(AccessibilityID.Mystery.encounterTitle)
-        XCTAssertEqual(any(AccessibilityID.Mystery.welcomeButton).label, "Watch my back.")
-        tapButton(AccessibilityID.Mystery.welcomeButton)
-
-        XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW HERO")
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Rogue"))
-        assertDoesNotExist(AccessibilityID.Mystery.unlockSubtitle)
+        button(AccessibilityID.Mystery.unlockCard(name: "Rogue")).tap()
+
+        assertExists(AccessibilityID.Mystery.unlockName)
+        XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW HERO")
+        XCTAssertEqual(any(AccessibilityID.Mystery.unlockSubtitle).label.uppercased(), "UNLOCKED")
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Rogue"))
         XCTAssertFalse(app.staticTexts["View Details"].exists)
         button(AccessibilityID.Mystery.unlockCard(name: "Rogue")).tap()
         combatantDetail.assertLoaded(for: "Rogue")

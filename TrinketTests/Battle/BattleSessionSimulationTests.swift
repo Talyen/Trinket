@@ -26,12 +26,17 @@ struct BattleSessionSimulationTests {
         #expect(session.victorySummary != nil)
         #expect(!session.isShowingVictory)
         #expect(!session.canRetreat)
+        let heroID = try #require(session.state?.hero.id)
+        let companionID = try #require(session.state?.companion.id)
+        try await Task.sleep(for: .milliseconds(120))
+        #expect(session.hitReactionsByTargetID[heroID]?.kind == .celebrate)
+        #expect(session.hitReactionsByTargetID[companionID]?.kind == .celebrate)
         try await Task.sleep(for: .milliseconds(80))
         #expect(session.isShowingVictory)
         #expect(!session.canRetreat)
     }
 
-    @Test func claimedStageRewardsAutoCompleteThenPersistRetryRestoresLootChrome() throws {
+    @Test func claimedStageRewardsAutoCompleteThenPersistRetryRestoresLootChrome() async throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
@@ -50,6 +55,11 @@ struct BattleSessionSimulationTests {
         #expect(earnedGold == session.state?.earnedGold ?? 0)
         #expect(!(session.isShowingVictory))
         #expect(session.victorySummary == nil)
+        let heroID = try #require(session.state?.hero.id)
+        let companionID = try #require(session.state?.companion.id)
+        try await Task.sleep(for: .milliseconds(120))
+        #expect(session.hitReactionsByTargetID[heroID]?.kind == .celebrate)
+        #expect(session.hitReactionsByTargetID[companionID]?.kind == .celebrate)
 
         session.presentVictoryChromeForPersistRetry(homestead: .freshStart)
 

@@ -52,6 +52,16 @@ struct HomesteadNodeDetailView: View {
             .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
+        .appFramePacingSignpost(
+            AppFramePacingSignposts.Name.navigationPush,
+            isActive: true
+        )
+        .onAppear {
+            AppFramePacingSignposts.event(
+                AppFramePacingSignposts.Name.navigationPush,
+                detail: "homestead=\(definition.id)"
+            )
+        }
         .trinketSensoryFeedback(
             .success,
             trigger: build.upgradeEventCount,

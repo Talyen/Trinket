@@ -18,8 +18,8 @@ struct PrimaryStatsRulesTests {
 
     @Test func dodgeChanceCapsAtSeventyFivePercent() throws {
         try #expect(abs((PrimaryStats(agility: 0).dodgeChance) - 0.05) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 10).dodgeChance) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 100).dodgeChance) - 0.55) < 0.0001)
+        try #expect(abs((PrimaryStats(agility: 20).dodgeChance) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(agility: 100).dodgeChance) - 0.30) < 0.0001)
         try #expect(abs((PrimaryStats(agility: 1000).dodgeChance) - 0.75) < 0.0001)
     }
 
@@ -53,7 +53,20 @@ struct PrimaryStatsRulesTests {
         try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.10) < 0.0001)
         try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.10) < 0.0001)
         try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .health)) - 0.10) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .leech)) - 0.10) < 0.0001)
         try #expect(abs((PrimaryStats(agility: 1000).criticalChance(for: .physical)) - 0.75) < 0.0001)
+    }
+
+    @Test func criticalChanceIsZeroForNonCrittableKeywords() throws {
+        let stats = PrimaryStats(agility: 100, intellect: 100, wisdom: 100)
+        for keyword: Keyword in [.block, .armor, .dodge, .purge, .gold, .mana, .deathsDoor] {
+            try #expect(stats.criticalChance(for: keyword) == 0, "\(keyword.rawValue)")
+            try #expect(!keyword.allowsCriticalHits, "\(keyword.rawValue)")
+        }
+        try #expect(Keyword.health.allowsCriticalHits)
+        try #expect(Keyword.leech.allowsCriticalHits)
+        try #expect(Keyword.physical.allowsCriticalHits)
     }
 
     @Test func negativeStatInputsTruncateTowardZeroForDamageBonus() throws {

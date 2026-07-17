@@ -19,9 +19,10 @@ final class BattleSession {
     var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     var isShowingBattleLog = false
-    /// Observation fences for combat presentation lanes. Burst storage is ignored;
-    /// chip publishes go through `onFeedbackItemsChanged` (UIKit bridge).
+    /// Observation fences for combat presentation lanes. Burst / hit-reaction storage is
+    /// ignored; lanes subscribe to the epochs so publishes invalidate SwiftUI.
     private(set) var burstEpoch = 0
+    private(set) var hitReactionEpoch = 0
     @ObservationIgnored
     var activeFeedbackItems: [CombatFeedbackItem] = []
     /// Optional UIKit chip-bridge hook. Feature chrome installs this so chip publishes
@@ -30,6 +31,7 @@ final class BattleSession {
     var onFeedbackItemsChanged: ((CombatFeedbackUpdate) -> Void)?
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
+    @ObservationIgnored
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
     @ObservationIgnored
     var keywordBurstsByTargetID: [String: [KeywordBurstRequest]] = [:]
@@ -79,7 +81,11 @@ final class BattleSession {
     @ObservationIgnored
     var pendingFeedbackPresentationTasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored
+    var pendingMultimodalPresentationTasks: [Int: Task<Void, Never>] = [:]
+    @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
+    @ObservationIgnored
+    var pendingPartyCelebrateTask: Task<Void, Never>?
     @ObservationIgnored
     var preparedBattleRunsByToken: [ActiveBattleResumeToken: PreparedBattleRun] = [:]
     @ObservationIgnored
@@ -225,8 +231,18 @@ final class BattleSession {
         burstEpoch &+= 1
     }
 
+    func noteHitReactionPresentationChanged() {
+        hitReactionEpoch &+= 1
+    }
+
+    func publishHitReaction(_ reaction: CombatantHitReaction, for targetID: String) {
+        hitReactionsByTargetID[targetID] = reaction
+        noteHitReactionPresentationChanged()
+    }
+
     func resetFeedbackPresentation() {
         burstEpoch &+= 1
+        hitReactionEpoch &+= 1
         onFeedbackItemsChanged?(.reset)
     }
 
@@ -234,13 +250,18 @@ final class BattleSession {
         if let item = activeFeedbackItems.first(where: { $0.sourceEventIDs.contains(id) }) {
             let sourceEventIDs = Set(item.sourceEventIDs)
             keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == item.id }
+            var clearedReaction = false
             if hitReactionsByTargetID[item.targetID]?.id == item.id {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
+                clearedReaction = true
             }
             activeFeedbackItems.removeAll { $0.id == item.id }
             for sourceEventID in sourceEventIDs {
                 feedbackEventRecordedAt.removeValue(forKey: sourceEventID)
                 presentedFeedbackIDs.remove(sourceEventID)
+            }
+            if clearedReaction {
+                noteHitReactionPresentationChanged()
             }
             if noteChange {
                 onFeedbackItemsChanged?(.remove([item.id]))

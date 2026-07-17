@@ -182,6 +182,9 @@ extension AppState {
             labyrinthNodeID: labyrinthNodeID
         )
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
+        if event.isRecruit {
+            _ = resolveActiveMysteryChoice()
+        }
         return nil
     }
 

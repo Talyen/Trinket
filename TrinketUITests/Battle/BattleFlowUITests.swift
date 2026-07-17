@@ -87,13 +87,14 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         assertExists(AccessibilityID.Battle.rewards)
         assertExists(AccessibilityID.Battle.experience)
-        assertExists(AccessibilityID.Battle.rewardItem("chapter-1-stage-1-shortsword-basic"))
-        XCTAssertEqual(
-            app.buttons.matching(identifier: AccessibilityID.Battle.rewardItem("chapter-1-stage-1-shortsword-basic")).count,
-            0
-        )
+        let rewardItemID = "chapter-1-stage-1-shortsword-basic"
+        assertButtonExists(AccessibilityID.Battle.continueButton)
+        assertButtonExists(AccessibilityID.Battle.rewardItem(rewardItemID))
         assertExists(app.staticTexts["BASIC"])
         assertExists(app.staticTexts["Shortsword"])
+        tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
+        dismissSheet()
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
         XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden until victory is completed")

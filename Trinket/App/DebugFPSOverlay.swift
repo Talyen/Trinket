@@ -2,6 +2,7 @@
 import QuartzCore
 import SwiftUI
 import TrinketDesignSystem
+import UIKit
 
 enum DebugPreferenceKey {
     static let showFPSOverlay = "debug.showFPSOverlay"
@@ -24,24 +25,29 @@ struct DebugFPSOverlayModifier: ViewModifier {
         DebugRuntime.isUnderXCTest
     }
 
-    private var runSampler: Bool {
-        (isEnabled && !underXCTest) || enableFrameMetrics
-    }
-
     private var showVisualBadge: Bool {
         isEnabled && !underXCTest
     }
 
     func body(content: Content) -> some View {
-        content.overlay {
-            if runSampler {
-                FramePacingOverlayHost(
-                    showVisualBadge: showVisualBadge,
-                    measurementMode: enableFrameMetrics
-                )
-                .allowsHitTesting(enableFrameMetrics)
+        content
+            .overlay {
+                if showVisualBadge {
+                    FramePacingVisualBadgeHost()
+                        .allowsHitTesting(false)
+                }
             }
-        }
+            .background {
+                if enableFrameMetrics {
+                    // UIWindow probe stays above Battle shell swaps and fullScreen covers
+                    // so XCTest can always read a live accessibility value.
+                    Color.clear
+                        .frame(width: 0, height: 0)
+                        .onAppear {
+                            FramePacingMetricsProbe.shared.install()
+                        }
+                }
+            }
     }
 }
 
@@ -51,73 +57,157 @@ enum DebugRuntime {
     }
 }
 
-private struct FramePacingOverlayHost: View {
-    /// Kept slightly inside the UI test's 7.2-second window so publication is
-    /// complete before XCTest reads the frozen accessibility value.
-    private static let measurementSnapshotDelay: Duration = .seconds(7)
-
-    let showVisualBadge: Bool
-    let measurementMode: Bool
-
+/// Human-facing badge only. Measurement probes live in `FramePacingMetricsProbe`.
+private struct FramePacingVisualBadgeHost: View {
     @State private var report = FramePacingReport.empty
     @State private var monitor = FramePacingMonitor()
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            if showVisualBadge {
-                FramePacingBadge(report: report)
-                    .safeAreaPadding(.top, 4)
-                    .safeAreaPadding(.leading, 6)
-                    .accessibilityHidden(true)
+        FramePacingBadge(report: report)
+            .safeAreaPadding(.top, 4)
+            .safeAreaPadding(.leading, 6)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onAppear {
+                monitor.start(publishesAutomatically: true) { report = $0 }
             }
+            .onDisappear {
+                monitor.stop()
+            }
+    }
+}
 
-            Text(report.accessibilityValue)
-                .font(.system(size: 1))
-                .foregroundStyle(.clear)
-                .accessibilityIdentifier(AccessibilityID.Debug.frameMetrics)
-                .accessibilityValue(report.accessibilityValue)
-                .accessibilityHidden(false)
-                .frame(width: 1, height: 1)
-                .accessibilityLabel("Frame Metrics")
+/// Process-wide CADisplayLink + UIWindow accessibility probes for `-enable-frame-metrics`.
+@MainActor
+final class FramePacingMetricsProbe {
+    static let shared = FramePacingMetricsProbe()
 
-            measurementControls
+    /// Kept slightly inside the UI test's 7.2-second window so publication is
+    /// complete before XCTest reads the frozen accessibility value.
+    private static let measurementSnapshotDelay: Duration = .seconds(7)
+
+    private let monitor = FramePacingMonitor.measurementShared
+    private var window: UIWindow?
+    private var metricsLabel: UILabel?
+    private var resetButton: UIButton?
+    private var resetObserver: NSObjectProtocol?
+    private var isInstalled = false
+
+    func install() {
+        guard !isInstalled else {
+            refreshWindowSceneIfNeeded()
+            return
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onAppear {
-            monitor.start(publishesAutomatically: !measurementMode) { report = $0 }
+        guard let window = makeWindow() else { return }
+        isInstalled = true
+        self.window = window
+
+        let metrics = UILabel()
+        metrics.isAccessibilityElement = true
+        metrics.accessibilityIdentifier = AccessibilityID.Debug.frameMetrics
+        metrics.accessibilityLabel = "Frame Metrics"
+        metrics.accessibilityValue = FramePacingReport.empty.accessibilityValue
+        metrics.text = " "
+        metrics.font = .systemFont(ofSize: 1)
+        metrics.textColor = .clear
+        metrics.translatesAutoresizingMaskIntoConstraints = false
+        metricsLabel = metrics
+
+        let reset = UIButton(type: .system)
+        reset.accessibilityIdentifier = AccessibilityID.Debug.frameMetricsReset
+        reset.accessibilityLabel = "Frame Metrics Reset"
+        reset.addTarget(self, action: #selector(handleResetTap), for: .touchUpInside)
+        reset.translatesAutoresizingMaskIntoConstraints = false
+        // Keep tappable for XCTest without stealing player hits.
+        reset.backgroundColor = .clear
+        resetButton = reset
+
+        let root = UIViewController()
+        root.view.backgroundColor = .clear
+        root.view.addSubview(metrics)
+        root.view.addSubview(reset)
+        NSLayoutConstraint.activate([
+            metrics.leadingAnchor.constraint(equalTo: root.view.leadingAnchor),
+            metrics.topAnchor.constraint(equalTo: root.view.topAnchor),
+            metrics.widthAnchor.constraint(equalToConstant: 1),
+            metrics.heightAnchor.constraint(equalToConstant: 1),
+            reset.centerXAnchor.constraint(equalTo: root.view.centerXAnchor),
+            reset.topAnchor.constraint(equalTo: root.view.safeAreaLayoutGuide.topAnchor),
+            reset.widthAnchor.constraint(equalToConstant: 44),
+            reset.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        window.rootViewController = root
+        window.isHidden = false
+
+        monitor.start(publishesAutomatically: true) { [weak self] report in
+            self?.metricsLabel?.accessibilityValue = report.accessibilityValue
         }
-        .onReceive(NotificationCenter.default.publisher(for: FramePacingMeasurementControl.reset)) { _ in
-            resetMeasurement()
-        }
-        .onDisappear {
-            monitor.stop()
+
+        resetObserver = NotificationCenter.default.addObserver(
+            forName: FramePacingMeasurementControl.reset,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.resetMeasurement()
+            }
         }
     }
 
-    private var measurementControls: some View {
-        HStack {
-            Spacer()
-            Button {
-                resetMeasurement()
-            } label: {
-                Image(systemName: "arrow.counterclockwise")
-                    .foregroundStyle(.clear)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier(AccessibilityID.Debug.frameMetricsReset)
-
-            Spacer()
-        }
+    @objc private func handleResetTap() {
+        resetMeasurement()
     }
 
     private func resetMeasurement() {
-        report = .empty
+        metricsLabel?.accessibilityValue = FramePacingReport.empty.accessibilityValue
         monitor.resetMeasurement()
-        if measurementMode {
-            monitor.scheduleSnapshot(after: Self.measurementSnapshotDelay)
+        monitor.scheduleSnapshot(after: Self.measurementSnapshotDelay)
+    }
+
+    private func makeWindow() -> PassThroughWindow? {
+        guard let scene = activeWindowScene() else { return nil }
+        let window = PassThroughWindow(windowScene: scene)
+        // Above SwiftUI fullScreen covers / sheets; below system alerts.
+        window.windowLevel = .alert + 1
+        window.backgroundColor = .clear
+        window.isUserInteractionEnabled = true
+        return window
+    }
+
+    private func refreshWindowSceneIfNeeded() {
+        guard let window, window.windowScene == nil,
+              let scene = activeWindowScene()
+        else { return }
+        window.windowScene = scene
+    }
+
+    private func activeWindowScene() -> UIWindowScene? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+            ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first
+    }
+}
+
+/// Forwards hits that miss the reset button so Battle/Mystery stay interactive.
+private final class PassThroughWindow: UIWindow {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard let hit = super.hitTest(point, with: event) else { return nil }
+        // Only the reset control should consume touches.
+        if hit is UIControl {
+            return hit
         }
+        var view: UIView? = hit
+        while let current = view {
+            if current is UIControl {
+                return hit
+            }
+            view = current.superview
+        }
+        return nil
     }
 }
 
@@ -126,19 +216,10 @@ private struct FramePacingBadge: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(String(format: "%.0f / %.0f FPS", report.averageFPS, report.expectedFPS))
+            Text(String(format: "%.0f FPS", report.averageFPS))
                 .font(.system(.caption2, design: .monospaced).weight(.bold))
-            Text(String(format: "1%% %.1f FPS", report.onePercentLowFPS))
-            Text(String(format: "p95 %.1f · p99 %.1f ms", report.p95FrameMs, report.p99FrameMs))
+            Text(String(format: "1%% %.0f", report.onePercentLowFPS))
                 .font(.system(.caption2, design: .monospaced))
-            if report.missedDeadlineCount > 0 || report.severeStallCount > 0 {
-                Text(String(
-                    format: "missed %d · severe %d",
-                    report.missedDeadlineCount,
-                    report.severeStallCount
-                ))
-                .font(.system(.caption2, design: .monospaced))
-            }
         }
         .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
         .padding(.horizontal, 8)
@@ -151,7 +232,10 @@ private struct FramePacingBadge: View {
 }
 
 @MainActor
-private final class FramePacingMonitor: NSObject {
+final class FramePacingMonitor: NSObject {
+    /// Survives ContentView shell swaps during `-enable-frame-metrics` UITests.
+    static let measurementShared = FramePacingMonitor()
+
     private struct Sample: Sendable {
         let interval: CFTimeInterval
         let expectedFrameDuration: CFTimeInterval
@@ -174,17 +258,25 @@ private final class FramePacingMonitor: NSObject {
     private var scheduledSnapshotTask: Task<Void, Never>?
     private var handler: ((FramePacingReport) -> Void)?
     private var publishesAutomatically = true
+    private(set) var latestReport = FramePacingReport.empty
 
     func start(
         publishesAutomatically: Bool = true,
         onUpdate: @escaping (FramePacingReport) -> Void
     ) {
-        stop()
         handler = onUpdate
         self.publishesAutomatically = publishesAutomatically
+        if let displayLink {
+            displayLink.isPaused = false
+            return
+        }
         let link = CADisplayLink(target: self, selector: #selector(step(_:)))
         link.add(to: .main, forMode: .common)
         displayLink = link
+    }
+
+    func detachHandler() {
+        handler = nil
     }
 
     func resetMeasurement() {
@@ -199,6 +291,7 @@ private final class FramePacingMonitor: NSObject {
         nextWriteIndex = 0
         sampleCount = 0
         storage = Array(repeating: nil, count: Self.capacity)
+        latestReport = .empty
     }
 
     func stop() {
@@ -212,7 +305,9 @@ private final class FramePacingMonitor: NSObject {
     /// contaminate the interval set it is reporting.
     func snapshotMeasurement() {
         displayLink?.isPaused = true
-        publishReport()
+        // Publish synchronously so XCTest can read the accessibility value
+        // without racing the detached analysis Task.
+        publishReport(synchronously: true)
     }
 
     func scheduleSnapshot(after delay: Duration) {
@@ -252,30 +347,44 @@ private final class FramePacingMonitor: NSObject {
         guard publishesAutomatically,
               timestamp - lastPublishTimestamp >= Self.publishInterval else { return }
         lastPublishTimestamp = timestamp
-        publishReport()
+        publishReport(synchronously: false)
     }
 
-    private func publishReport() {
+    private func publishReport(synchronously: Bool) {
         let samples: [Sample] = if sampleCount < Self.capacity {
             storage.prefix(sampleCount).compactMap(\.self)
         } else {
             (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
         }
         guard !samples.isEmpty else { return }
-
         analysisTask?.cancel()
-        let handler = handler
+
+        let intervals = samples.map(\.interval)
+        let expectedDurations = samples.map(\.expectedFrameDuration)
+
+        if synchronously {
+            let built = FramePacingAnalyzer.report(
+                intervals: intervals,
+                expectedFrameDurations: expectedDurations
+            )
+            latestReport = built
+            handler?(built)
+            return
+        }
+
+        let capturedHandler = handler
         // Concurrency-Safety: outer Task stays on @MainActor for handler delivery;
         // Task.detached runs pure percentile analysis off the display-link actor.
-        analysisTask = Task {
-            let report = await Task.detached(priority: .utility) {
+        analysisTask = Task { @MainActor in
+            let built = await Task.detached(priority: .utility) {
                 FramePacingAnalyzer.report(
-                    intervals: samples.map(\.interval),
-                    expectedFrameDurations: samples.map(\.expectedFrameDuration)
+                    intervals: intervals,
+                    expectedFrameDurations: expectedDurations
                 )
             }.value
             guard !Task.isCancelled else { return }
-            handler?(report)
+            latestReport = built
+            capturedHandler?(built)
         }
     }
 }

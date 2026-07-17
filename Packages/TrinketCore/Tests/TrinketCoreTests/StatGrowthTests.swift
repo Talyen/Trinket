@@ -65,6 +65,15 @@ struct StatGrowthTests {
         try #expect(lateBoss.healthMultiplier < lateNormal.healthMultiplier)
     }
 
+    @Test func enemyPrimaryStatMultiplierStaysModestVsPlayerGrowth() throws {
+        let assassinStats = PrimaryStats(strength: 3, agility: 8, toughness: 3, intellect: 2, wisdom: 2)
+        let late = StatGrowth.enemyGearCompensation(level: 50, identityStats: assassinStats)
+        // Keep primary-stat inflation well below historical ~2x so matched-level
+        // Assassin enemies stay near player Assassin Agility.
+        try #expect(late.primaryStatMultiplier < 1.25)
+        try #expect(late.primaryStatMultiplier > 1.0)
+    }
+
     @Test func applyMergesGrowthIntoStats() throws {
         let applied = StatGrowth.apply(
             maxHealth: 14,

@@ -158,9 +158,6 @@ struct AppStateLabyrinthTests {
             return
         }
 
-        let unlockedBefore = state.roster.isCombatantUnlocked(id: unlockID)
-        #expect(!unlockedBefore)
-        #expect(state.resolveActiveMysteryChoice(choiceID: event.choices.first?.id))
         #expect(state.roster.isCombatantUnlocked(id: unlockID))
         #expect(state.activeMysteryEncounter?.phase == .revealing)
         // Labyrinth recruits clear the node with the unlock so kill/relaunch cannot re-roll.

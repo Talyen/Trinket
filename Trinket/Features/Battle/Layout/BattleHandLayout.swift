@@ -43,7 +43,6 @@ enum BattleHandLayout {
         cardCount: Int,
         configuration: BattleHandMotionConfiguration = .init()
     ) -> Metrics {
-        let count = max(cardCount, 1)
         let cardWidth = min(
             configuration.maxCardWidth,
             max(configuration.minCardWidth, containerWidth * configuration.widthRatio)

@@ -124,4 +124,102 @@ struct HealingEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
     }
+
+    @Test func instantHealCanCriticalWithWisdom() throws {
+        let source = CombatantFixtures.combatant(
+            id: "source",
+            role: .hero,
+            maxHealth: 50,
+            primaryStats: PrimaryStats(wisdom: 20)
+        )
+        let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
+            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
+        )
+        var context = BattleEngineContext(
+            roster: roster,
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        context.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
+
+        // Force crit via active critical-chance buff.
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)],
+            for: source
+        )
+
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: 5,
+                target: target,
+                sourceActorID: "source",
+                logAs: .instantHeal(
+                    actorName: "Hero",
+                    abilityName: "Heal",
+                    keyword: .health,
+                    displayAmount: 5
+                )
+            ),
+            in: &context
+        )
+
+        try #expect(outcome.isCritical)
+        try #expect(outcome.healthRestored == 10)
+        try #expect(outcome.events.first?.isCritical == true)
+        try #expect(outcome.events.first?.amount == 10)
+    }
+
+    @Test func leechHealCanCriticalWithWisdom() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            sourcePrimaryStats: PrimaryStats(wisdom: 20),
+            seed: 1772
+        )
+        let source = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3),
+                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)
+            ],
+            for: source
+        )
+        context.roster.mutateRuntime(for: source) { $0.currentHealth = 20 }
+
+        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        try #expect(outcome.isCritical)
+        try #expect(outcome.flags.contains(.leeched))
+        // Crit doubles the 10 leech heal to 20; target Wisdom 20 adds +4 via heal().
+        try #expect(outcome.healthRestored == 24)
+        try #expect(outcome.events.first?.isCritical == true)
+        try #expect(outcome.events.first?.keyword == .leech)
+    }
+
+    @Test func silentHealsDoNotRollCritical() throws {
+        var context = makeContext(seed: 1)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)],
+            for: context.roster.hero.combatant
+        )
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: 5,
+                target: context.roster.hero.combatant,
+                sourceActorID: "source",
+                logAs: .silent
+            ),
+            in: &context
+        )
+        try #expect(!outcome.isCritical)
+        try #expect(outcome.healthRestored == 5)
+    }
 }

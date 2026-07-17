@@ -812,17 +812,23 @@ def publicize(text: str) -> str:
 
     for line in lines:
         if depth == 0:
-            if TOP_LEVEL.match(line) and not line.startswith("public "):
+            top = TOP_LEVEL.match(line)
+            if top and not line.startswith("public "):
                 if re.search(r"\b\w+Generated\b", line):
+                    in_public_type = False
+                elif top.group("kind") == "extension":
+                    # Members inherit access from `public extension`; do not
+                    # also mark them `public` (redundant and warns).
+                    line = f"public {line}"
                     in_public_type = False
                 else:
                     line = f"public {line}"
                     in_public_type = True
             elif line.startswith("public extension "):
-                in_public_type = True
+                in_public_type = False
             elif line.startswith("extension ") and not line.startswith("public "):
                 line = f"public {line}"
-                in_public_type = True
+                in_public_type = False
             else:
                 in_public_type = False
 

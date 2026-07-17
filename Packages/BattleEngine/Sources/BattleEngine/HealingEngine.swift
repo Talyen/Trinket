@@ -13,8 +13,15 @@ package enum HealingEngine {
             return .empty
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
+        var amount = request.amount + bonus
+        var flags: Set<CombatFlag> = []
+
+        if let crit = rollRestorationCritical(for: request, amount: &amount, in: &context) {
+            flags.insert(crit)
+        }
+
         var restored = 0
-        context.roster.mutateRuntime(for: request.target) { restored = $0.heal(request.amount + bonus) }
+        context.roster.mutateRuntime(for: request.target) { restored = $0.heal(amount) }
 
         var events: [ActionEvent] = []
         switch request.logAs {
@@ -29,7 +36,8 @@ package enum HealingEngine {
                     abilityName: abilityName,
                     target: request.target,
                     amount: restored,
-                    keyword: keyword
+                    keyword: keyword,
+                    isCritical: flags.contains(.critical)
                 )
             )
         }
@@ -54,7 +62,7 @@ package enum HealingEngine {
             ).events)
         }
 
-        return CombatOutcome(healthDelta: restored, events: events, flags: [])
+        return CombatOutcome(healthDelta: restored, events: events, flags: flags)
     }
 
     static func leechFromDamage(
@@ -93,7 +101,7 @@ package enum HealingEngine {
                 amount: restored,
                 target: actorCombatant,
                 sourceActorID: sourceActorID,
-                logAs: .silent
+                logAs: .leech
             ),
             in: &context
         )
@@ -108,8 +116,49 @@ package enum HealingEngine {
             amount: healOutcome.healthRestored,
             keyword: .leech,
             appliedEffectSummaries: [],
-            milestone: nil
+            milestone: nil,
+            isCritical: healOutcome.isCritical
         )
-        return CombatOutcome(healthDelta: healOutcome.healthRestored, events: [event], flags: [.leeched])
+        var flags = healOutcome.flags
+        flags.insert(.leeched)
+        return CombatOutcome(healthDelta: healOutcome.healthRestored, events: [event], flags: flags)
+    }
+
+    /// Rolls Wisdom-scaled restoration crit for Health / Leech heals. Doubles the
+    /// heal amount in place when it hits. Returns `.critical` when the roll succeeds.
+    private static func rollRestorationCritical(
+        for request: HealRequest,
+        amount: inout Int,
+        in context: inout BattleEngineContext
+    ) -> CombatFlag? {
+        guard amount > 0,
+              let sourceActorID = request.sourceActorID,
+              let actor = context.roster.combatant(for: sourceActorID)
+        else { return nil }
+
+        let critKeyword: Keyword
+        switch request.logAs {
+        case let .instantHeal(_, _, keyword, _):
+            critKeyword = keyword
+        case .leech:
+            critKeyword = .leech
+        case .silent:
+            return nil
+        }
+        guard critKeyword.allowsCriticalHits else { return nil }
+
+        var chance = actor.primaryStats.criticalChance(for: critKeyword)
+        for active in context.roster.activeEffects(for: actor.combatant) {
+            if case let .criticalChanceBonus(bonus, _) = active.effect {
+                chance += bonus
+            }
+        }
+        chance = min(0.75, chance)
+        guard chance > 0,
+              Double.random(in: 0 ... 1, using: &context.rng) < chance
+        else { return nil }
+
+        amount *= 2
+        return .critical
     }
 }

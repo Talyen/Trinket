@@ -166,7 +166,28 @@ final class CombatFeedbackRasterPool {
         displayScale: CGFloat,
         useFrameBudget: Bool = false
     ) {
-        let canvasItems = Self.canvasItems(from: items)
+        prepareCanvasItems(
+            Self.canvasItems(from: items),
+            dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
+            displayScale: displayScale,
+            useFrameBudget: useFrameBudget
+        )
+    }
+
+    /// Paced or immediate compose for already-resolved canvas items.
+    func prepareCanvasItems(
+        _ canvasItems: [CombatFeedbackCanvasItem],
+        dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
+        displayScale: CGFloat,
+        useFrameBudget: Bool = false,
+        onComplete: (@MainActor () -> Void)? = nil
+    ) {
+        guard !canvasItems.isEmpty else {
+            onComplete?()
+            return
+        }
         guard useFrameBudget else {
             for canvasItem in canvasItems {
                 _ = prepare(
@@ -176,6 +197,7 @@ final class CombatFeedbackRasterPool {
                     displayScale: displayScale
                 )
             }
+            onComplete?()
             return
         }
         pendingPacedPrepareTask?.cancel()
@@ -201,6 +223,7 @@ final class CombatFeedbackRasterPool {
                 )
             }
             pendingPacedPrepareTask = nil
+            onComplete?()
         }
     }
 

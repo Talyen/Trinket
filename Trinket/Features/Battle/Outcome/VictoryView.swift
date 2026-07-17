@@ -16,6 +16,7 @@ struct VictoryView: View {
     @State private var isSequenceComplete = false
     @State private var hasStartedRewardSequence = false
     @State private var revealTask: Task<Void, Never>?
+    @State private var selectedRewardItem: InventoryItem?
 
     var body: some View {
         RewardRevealShell(
@@ -26,7 +27,7 @@ struct VictoryView: View {
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
             titleColor: TrinketDesign.Colors.accent,
             content: {
-                VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
                     experiencePanel
                     revealedRewards
                 }
@@ -36,9 +37,16 @@ struct VictoryView: View {
             isPrimaryActionDisabled: isCompleting,
             onPrimaryAction: completeVictory,
             contentTopPadding: TrinketDesign.Metrics.smallSpacing,
+            contentStackSpacing: TrinketDesign.Metrics.largeSpacing,
             pinsPrimaryActionToBottom: false,
             primaryActionWidthFraction: 0.5
         )
+        .sheet(item: $selectedRewardItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .trinketDetailSheet()
+        }
         .onAppear {
             if !summary.hasExperienceAwards {
                 startRewardSequence()
@@ -98,14 +106,15 @@ struct VictoryView: View {
     }
 
     private var revealedRewards: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            rewardWallet(columnCount: walletRewardCount)
-
+        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
             if !summary.rewardItems.isEmpty {
                 rewardItemPager
                     .opacity(areItemsVisible ? 1 : 0)
                     .scaleEffect(areItemsVisible ? 1 : 0.98)
+                    .allowsHitTesting(areItemsVisible)
             }
+
+            rewardWallet(columnCount: walletRewardCount)
         }
         .accessibilityIdentifier(AccessibilityID.Battle.rewards)
     }
@@ -114,9 +123,14 @@ struct VictoryView: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: TrinketDesign.Metrics.largeSpacing) {
                 ForEach(summary.rewardItems) { item in
-                    RewardItemRevealCard(item: item)
-                        .containerRelativeFrame(.horizontal)
-                        .accessibilityIdentifier(AccessibilityID.Battle.rewardItem(item.id))
+                    Button {
+                        selectedRewardItem = item
+                    } label: {
+                        RewardItemRevealCard(item: item)
+                    }
+                    .trinketQuietTapButtonStyle()
+                    .containerRelativeFrame(.horizontal)
+                    .accessibilityIdentifier(AccessibilityID.Battle.rewardItem(item.id))
                 }
             }
             .scrollTargetLayout()
@@ -181,6 +195,14 @@ struct VictoryView: View {
         revealTask = Task { @MainActor in
             let clock = SuspendingClock()
 
+            if !summary.rewardItems.isEmpty || walletRewardCount == 0 {
+                try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
+                guard !Task.isCancelled else { return }
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    areItemsVisible = true
+                }
+            }
+
             if walletRewardCount > 0 {
                 for count in 1 ... walletRewardCount {
                     try? await clock.sleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
@@ -188,14 +210,6 @@ struct VictoryView: View {
                     withAnimation(TrinketMotion.Reward.stateChange) {
                         visibleWalletRewardCount = count
                     }
-                }
-            }
-
-            if !summary.rewardItems.isEmpty || walletRewardCount == 0 {
-                try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
-                guard !Task.isCancelled else { return }
-                withAnimation(TrinketMotion.Reward.reveal) {
-                    areItemsVisible = true
                 }
             }
 
@@ -231,14 +245,11 @@ private struct RewardItemRevealCard: View {
 
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ItemArtwork(item: item, contentMode: .fit)
-                .frame(maxWidth: .infinity)
+            ItemArtwork(item: item)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .frame(height: 234)
-                .trinketArtworkBlend(.bottom(into: .canvas))
                 .clipShape(TrinketDesign.cardShape)
-                .overlay {
-                    TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-                }
+                .trinketCardSurface()
 
             VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 TrinketRarityLabel(rarity: item.rarity)

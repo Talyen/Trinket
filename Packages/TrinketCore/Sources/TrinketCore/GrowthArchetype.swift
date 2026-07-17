@@ -195,18 +195,20 @@ public enum StatGrowth {
 
         if isBoss {
             // Bosses spike threat via stats; keep late HP moderate to avoid 100-tick stalls.
+            // Primary-stat multiplier stays modest so bosses don't outscale player stats.
             healthMultiplier = 1.0 + 0.10 + (0.08 * progress) + (0.06 * midT) + (0.02 * lateT)
                 + (0.70 * earlyT) + (0.30 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.10 * progress) + (0.16 * midT) + (0.22 * lateT)
-                + (0.46 * earlyT) + (0.20 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.03 * progress) + (0.04 * midT) + (0.06 * lateT)
+                + (0.12 * earlyT) + (0.05 * midPeakT)
             statScale = (0.50 * progress) + (0.32 * midT) + (0.48 * lateT) + (0.62 * earlyT) + (0.34 * midPeakT)
             extraToughness = Int((1.0 + (1.5 * lateT) + (2.5 * earlyT) + (1.5 * midPeakT)).rounded())
         } else {
-            // Normal enemies: extra compensation for 2v1 party advantage at matched level.
+            // Normal enemies: HP compensation for 2v1 party advantage; primary stats stay
+            // near matched-level player growth (avoid e.g. Goblin Agility >> Rogue Agility).
             healthMultiplier = 1.0 + 0.08 + (0.14 * progress) + (0.64 * midT) + (0.46 * lateT)
                 + (0.26 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.06 * progress) + (0.52 * midT) + (0.40 * lateT)
-                + (0.20 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.02 * progress) + (0.08 * midT) + (0.06 * lateT)
+                + (0.04 * midPeakT)
             statScale = (0.58 * progress) + (0.76 * midT) + (0.52 * lateT) + (0.34 * midPeakT)
             extraToughness = Int((1.0 + (1.8 * midT) + (1.2 * lateT) + (1.2 * midPeakT)).rounded())
         }

@@ -57,14 +57,19 @@ struct ChapterStageSelectView: View {
         .onAppear {
             updateMusicPreview()
             prepareActiveBattleRun()
-            BattlePresentationWarmup.prepare(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-            appState.battle.prepareBattlePresentation(
-                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
-                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
-            )
+            // Deep-link / restore paths skip the mode-card press prep. Finish
+            // presentation warmup after the first committed frame.
+            Task { @MainActor in
+                await Task.yield()
+                BattlePresentationWarmup.prepare(
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: displayScale
+                )
+                appState.battle.prepareBattlePresentation(
+                    heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
+                    companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+                )
+            }
         }
         .onChange(of: appState.journey) { _, _ in
             updateMusicPreview()

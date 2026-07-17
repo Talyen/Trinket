@@ -165,7 +165,7 @@ extension Stage {
             return "Boss"
         }
         if recruitCombatant != nil {
-            return "Recruit"
+            return "A New Friend"
         }
         return encounter.title
     }

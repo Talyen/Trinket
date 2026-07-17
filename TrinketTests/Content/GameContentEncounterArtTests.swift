@@ -22,14 +22,14 @@ struct GameContentEncounterArtTests {
         #expect(art == ArtCatalog.encounterArtByID["mystery-recruit-companions"])
         #expect(stage.encounterCombatantArtReference == nil)
         #expect(stage.encounterSubjectName == "Mystery")
-        #expect(stage.encounterTypeTitle == "Recruit")
+        #expect(stage.encounterTypeTitle == "A New Friend")
         #expect(abs(stage.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
 
         let heroStage = try #require(chapter.stages.first { $0.id == "chapter-1-stage-4" })
         #expect(heroStage.encounterArtReference == ArtCatalog.encounterArtByID["mystery-recruit-heroes"])
         #expect(heroStage.encounterCombatantArtReference == nil)
         #expect(heroStage.encounterSubjectName == "Mystery")
-        #expect(heroStage.encounterTypeTitle == "Recruit")
+        #expect(heroStage.encounterTypeTitle == "A New Friend")
     }
 
     @Test func unmappedBattleStageUsesEnemyArt() throws {

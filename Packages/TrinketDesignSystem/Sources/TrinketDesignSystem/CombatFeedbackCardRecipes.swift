@@ -10,6 +10,7 @@ enum CombatFeedbackCardRecipes {
         case .block: blockCardReaction
         case .heal: healCardReaction
         case .dodge: dodgeCardReaction
+        case .celebrate: celebrateCardReaction
         }
     }
 
@@ -146,5 +147,43 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0.0, duration: 0.14, usesSpring: false)
         ],
         duration: 0.24
+    )
+
+    /// Soft vertical squish + hop with a 1s left-right dance tilt.
+    static let celebrateCardReaction = CombatantHitReactionRecipe(
+        kind: .celebrate,
+        scaleX: [
+            .init(value: 1.1, duration: 0.1),
+            .init(value: 1.0, duration: 0.22)
+        ],
+        scaleY: [
+            .init(value: 0.86, duration: 0.1),
+            .init(value: 1.0, duration: 0.22)
+        ],
+        offsetX: [
+            .init(value: 0, duration: 0.1),
+            .init(value: 0, duration: 0.22)
+        ],
+        offsetY: [
+            .init(value: -8, duration: 0.1),
+            .init(value: 0, duration: 0.22)
+        ],
+        rotation: [
+            .init(value: -6, duration: 0.1, usesSpring: false),
+            .init(value: 6, duration: 0.1, usesSpring: false),
+            .init(value: -6, duration: 0.1, usesSpring: false),
+            .init(value: 6, duration: 0.1, usesSpring: false),
+            .init(value: -5, duration: 0.1, usesSpring: false),
+            .init(value: 5, duration: 0.1, usesSpring: false),
+            .init(value: -4, duration: 0.1, usesSpring: false),
+            .init(value: 4, duration: 0.1, usesSpring: false),
+            .init(value: -2, duration: 0.1, usesSpring: false),
+            .init(value: 0, duration: 0.1, usesSpring: false)
+        ],
+        flashOpacity: [
+            .init(value: 0.0, duration: 0.06, usesSpring: false),
+            .init(value: 0.0, duration: 0.22, usesSpring: false)
+        ],
+        duration: 1.0
     )
 }

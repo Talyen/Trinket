@@ -24,6 +24,7 @@ final class PlayerShellSessionStoreTests {
         store.selectedTab = .options
         store.mapScrollStageID = "chapter-1-stage-3"
         store.lastPlayMode = .labyrinth
+        store.flushPendingPersistence()
 
         var reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.selectedTab == .options)
@@ -32,6 +33,7 @@ final class PlayerShellSessionStoreTests {
 
         reloaded.clearMapScrollState()
         reloaded.resetToDefaults(selectingTab: .homestead)
+        reloaded.flushPendingPersistence()
 
         reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.selectedTab == .homestead)

@@ -97,19 +97,13 @@ struct CombatFeedbackGlyphAtlasTests {
     }
 
     @Test func atlasWordVocabularyMatchesFormatterSemanticFaces() {
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .directDamage).isEmpty)
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .critical).isEmpty)
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .dot).isEmpty)
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .heal).isEmpty)
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilityBold).contains(.dodge))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilityBold).contains(.triggered(.stun)))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold).contains(.cleanse(.bleed)))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold).contains(.halve(.armor)))
-        #expect(
-            CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold)
-                .contains(.status(.criticalUp))
-        )
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .deathsDoor) == [.plain(.deathsDoor)])
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .emphasis) == [.plain(.deathsDoor)])
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.dodge))
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.triggered(.stun)))
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.cleanse(.bleed)))
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.halve(.armor)))
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.status(.criticalUp)))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.critical))
     }
 
     @Test @MainActor func chipComposerMatchesReferenceFullStringBake() throws {
