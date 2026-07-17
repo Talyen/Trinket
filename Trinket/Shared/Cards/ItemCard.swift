@@ -10,6 +10,7 @@ struct ItemCard: View {
     /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
     var appliesCardSurface: Bool = true
     var artworkBlend: ArtworkBlend = .none
+    var isSelected = false
 
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -17,6 +18,9 @@ struct ItemCard: View {
 
             if showsName {
                 VStack(spacing: 2) {
+                    TrinketRarityLabel(rarity: item.rarity)
+                        .lineLimit(1)
+
                     Text(item.displayName)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
@@ -48,9 +52,19 @@ struct ItemCard: View {
             }
 
         if appliesCardSurface {
-            tile.trinketCardSurface()
+            tile
+                .trinketCardSurface()
+                .trinketArtworkPickerSelectionBorder(
+                    isSelected: isSelected,
+                    lineWidth: 1.5
+                )
         } else {
-            tile.clipShape(TrinketDesign.cardShape)
+            tile
+                .clipShape(TrinketDesign.cardShape)
+                .trinketArtworkPickerSelectionBorder(
+                    isSelected: isSelected,
+                    lineWidth: 1.5
+                )
         }
     }
 }

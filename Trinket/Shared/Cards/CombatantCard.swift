@@ -7,6 +7,7 @@ struct CombatantCard: View {
     var isLocked: Bool = false
     var showsName: Bool = true
     var artworkBlend: ArtworkBlend = .none
+    var isSelected = false
 
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -19,6 +20,10 @@ struct CombatantCard: View {
                 }
                 .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
                 .trinketCardSurface()
+                .trinketArtworkPickerSelectionBorder(
+                    isSelected: isSelected,
+                    lineWidth: 1.5
+                )
 
             if showsName {
                 Text(combatant.name)

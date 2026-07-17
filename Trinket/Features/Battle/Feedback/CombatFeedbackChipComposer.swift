@@ -22,6 +22,7 @@ enum CombatFeedbackChipComposer {
         style: Keyword.VisualStyle,
         feedbackClass: CombatFeedbackClass,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared
     ) -> ComposedRaster? {
@@ -52,6 +53,7 @@ enum CombatFeedbackChipComposer {
         return blit(
             symbol: symbol,
             textGlyphs: textGlyphs,
+            layoutDirection: layoutDirection,
             // UIStyleCheck: allow - CoreGraphics compose needs UIKit colors bridged from semantic roles.
             tint: UIColor(style.color),
             displayScale: scale
@@ -61,6 +63,7 @@ enum CombatFeedbackChipComposer {
     private static func blit(
         symbol: CombatFeedbackGlyphAtlas.Glyph,
         textGlyphs: [CombatFeedbackGlyphAtlas.Glyph],
+        layoutDirection: LayoutDirection,
         tint: UIColor,
         displayScale: CGFloat
     ) -> ComposedRaster? {
@@ -81,11 +84,26 @@ enum CombatFeedbackChipComposer {
         let shadow = UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
         let image = renderer.image { _ in
             let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
+            let symbolX = switch layoutDirection {
+            case .leftToRight:
+                contentOrigin.x + textWidth + symbolTextSpacing
+            case .rightToLeft:
+                contentOrigin.x
+            @unknown default:
+                contentOrigin.x + textWidth + symbolTextSpacing
+            }
             let symbolOrigin = CGPoint(
-                x: contentOrigin.x,
+                x: symbolX,
                 y: contentOrigin.y + (contentHeight - symbol.height) / 2
             )
-            var textX = contentOrigin.x + symbol.width + symbolTextSpacing
+            var textX = switch layoutDirection {
+            case .leftToRight:
+                contentOrigin.x
+            case .rightToLeft:
+                contentOrigin.x + symbol.width + symbolTextSpacing
+            @unknown default:
+                contentOrigin.x
+            }
 
             let context = UIGraphicsGetCurrentContext()
             context?.setShadow(
@@ -94,7 +112,6 @@ enum CombatFeedbackChipComposer {
                 color: shadow.cgColor
             )
 
-            draw(glyph: symbol, at: symbolOrigin, tint: tint, displayScale: displayScale)
             for glyph in textGlyphs {
                 let origin = CGPoint(
                     x: textX,
@@ -103,6 +120,7 @@ enum CombatFeedbackChipComposer {
                 draw(glyph: glyph, at: origin, tint: tint, displayScale: displayScale)
                 textX += glyph.width
             }
+            draw(glyph: symbol, at: symbolOrigin, tint: tint, displayScale: displayScale)
             context?.setShadow(offset: .zero, blur: 0, color: nil)
         }
 

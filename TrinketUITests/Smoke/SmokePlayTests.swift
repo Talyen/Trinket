@@ -33,6 +33,30 @@ final class SmokePlayTests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Play.chapterHeader(number: 1))
     }
 
+    func testCampaignPartyPickerConfirmsSelectionFromCombatantDetail() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+
+        play.openCampaign()
+        button(AccessibilityID.Play.stagePartyControl).tap()
+        assertExists(AccessibilityID.Play.stagePartyPickerSheet)
+
+        button(AccessibilityID.Play.battlePartyHeroControl).tap()
+        let wizardOption = AccessibilityID.Play.battlePartyOption(
+            for: "Hero",
+            combatantName: "Wizard"
+        )
+        assertExists(wizardOption)
+        button(wizardOption).tap()
+
+        assertExists(AccessibilityID.Play.battlePartyDetail("wizard"))
+        button(AccessibilityID.Play.selectBattlePartyOption(for: "Hero", combatantID: "wizard")).tap()
+
+        XCTAssertTrue(app.navigationBars["Party"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(
+            button(AccessibilityID.Play.battlePartyHeroControl).label.localizedCaseInsensitiveContains("Wizard")
+        )
+    }
+
     private func assertNoVisibleText(
         _ text: String,
         file: StaticString = #file,

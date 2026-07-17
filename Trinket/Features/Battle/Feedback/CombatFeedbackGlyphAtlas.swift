@@ -201,7 +201,10 @@ final class CombatFeedbackGlyphAtlas {
         displayScale: CGFloat
     ) -> [PrewarmRequest] {
         let scaleHundredths = Int((displayScale * 100).rounded())
-        let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName))
+        let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
+            Keyword.VisualStyle.beneficialStatus.symbolName,
+            Keyword.VisualStyle.negativeStatus.symbolName
+        ])
         // Every integer label can be assembled from this complete alphabet. This is
         // both cheaper and more complete than eagerly rasterizing an arbitrary range.
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
@@ -250,13 +253,13 @@ final class CombatFeedbackGlyphAtlas {
             CombatFeedbackChipWord.allAtlasCases.filter { word in
                 switch word {
                 case .dodge, .plain, .applied, .triggered: true
-                case .critical, .cleanse, .purge, .halve: false
+                case .critical, .cleanse, .purge, .halve, .status: false
                 }
             }
         case .utilitySemibold:
             CombatFeedbackChipWord.allAtlasCases.filter { word in
                 switch word {
-                case .plain, .cleanse, .purge, .halve: true
+                case .plain, .cleanse, .purge, .halve, .status: true
                 case .dodge, .critical, .applied, .triggered: false
                 }
             }

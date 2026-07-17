@@ -15,24 +15,34 @@ enum CombatFeedbackCardRecipes {
 
     static let noneCardReaction = CombatantHitReactionRecipe(
         kind: .none,
-        scale: [.init(value: 1.0, duration: 0.01)],
+        scaleX: [.init(value: 1.0, duration: 0.01)],
+        scaleY: [.init(value: 1.0, duration: 0.01)],
         offsetX: [.init(value: 0, duration: 0.01)],
+        offsetY: [.init(value: 0, duration: 0.01)],
         flashOpacity: [.init(value: 0, duration: 0.01, usesSpring: false)],
         duration: 0.01
     )
 
     static let damageCardReaction = CombatantHitReactionRecipe(
         kind: .damage,
-        scale: [
-            .init(value: 0.97, duration: 0.08),
+        scaleX: [
+            .init(value: 0.96, duration: 0.08),
+            .init(value: 1.0, duration: 0.16)
+        ],
+        scaleY: [
+            .init(value: 1.025, duration: 0.08),
             .init(value: 1.0, duration: 0.16)
         ],
         offsetX: [
             .init(value: -4, duration: 0.08),
             .init(value: 0, duration: 0.16)
         ],
+        offsetY: [
+            .init(value: 0, duration: 0.08),
+            .init(value: 0, duration: 0.16)
+        ],
         flashOpacity: [
-            .init(value: 0.35, duration: 0.06, usesSpring: false),
+            .init(value: 0.2, duration: 0.06, usesSpring: false),
             .init(value: 0.0, duration: 0.16, usesSpring: false)
         ],
         duration: 0.24
@@ -40,16 +50,24 @@ enum CombatFeedbackCardRecipes {
 
     static let criticalCardReaction = CombatantHitReactionRecipe(
         kind: .critical,
-        scale: [
-            .init(value: 0.95, duration: 0.08),
+        scaleX: [
+            .init(value: 0.93, duration: 0.08),
+            .init(value: 1.0, duration: 0.18)
+        ],
+        scaleY: [
+            .init(value: 1.04, duration: 0.08),
             .init(value: 1.0, duration: 0.18)
         ],
         offsetX: [
             .init(value: -7, duration: 0.08),
             .init(value: 0, duration: 0.18)
         ],
+        offsetY: [
+            .init(value: 0, duration: 0.08),
+            .init(value: 0, duration: 0.18)
+        ],
         flashOpacity: [
-            .init(value: 0.5, duration: 0.06, usesSpring: false),
+            .init(value: 0.4, duration: 0.06, usesSpring: false),
             .init(value: 0.0, duration: 0.18, usesSpring: false)
         ],
         duration: 0.26
@@ -57,11 +75,19 @@ enum CombatFeedbackCardRecipes {
 
     static let blockCardReaction = CombatantHitReactionRecipe(
         kind: .block,
-        scale: [
+        scaleX: [
+            .init(value: 0.985, duration: 0.08),
+            .init(value: 1.0, duration: 0.18)
+        ],
+        scaleY: [
             .init(value: 0.985, duration: 0.08),
             .init(value: 1.0, duration: 0.18)
         ],
         offsetX: [
+            .init(value: 0, duration: 0.08),
+            .init(value: 0, duration: 0.18)
+        ],
+        offsetY: [
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.18)
         ],
@@ -74,11 +100,19 @@ enum CombatFeedbackCardRecipes {
 
     static let healCardReaction = CombatantHitReactionRecipe(
         kind: .heal,
-        scale: [
+        scaleX: [
+            .init(value: 1.02, duration: 0.1),
+            .init(value: 1.0, duration: 0.16)
+        ],
+        scaleY: [
             .init(value: 1.02, duration: 0.1),
             .init(value: 1.0, duration: 0.16)
         ],
         offsetX: [
+            .init(value: 0, duration: 0.1),
+            .init(value: 0, duration: 0.16)
+        ],
+        offsetY: [
             .init(value: 0, duration: 0.1),
             .init(value: 0, duration: 0.16)
         ],
@@ -91,12 +125,20 @@ enum CombatFeedbackCardRecipes {
 
     static let dodgeCardReaction = CombatantHitReactionRecipe(
         kind: .dodge,
-        scale: [
+        scaleX: [
+            .init(value: 1.0, duration: 0.08),
+            .init(value: 1.0, duration: 0.16)
+        ],
+        scaleY: [
             .init(value: 1.0, duration: 0.08),
             .init(value: 1.0, duration: 0.16)
         ],
         offsetX: [
             .init(value: 6, duration: 0.08),
+            .init(value: 0, duration: 0.16)
+        ],
+        offsetY: [
+            .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.16)
         ],
         flashOpacity: [

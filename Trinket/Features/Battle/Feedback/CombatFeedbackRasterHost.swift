@@ -6,6 +6,8 @@ import UIKit
 /// UIKit-backed chip host. Always mounted and refreshed through
 /// `CombatFeedbackChipBridge` so chip publishes skip SwiftUI invalidation.
 struct CombatFeedbackRasterSlot: View {
+    @Environment(\.layoutDirection) private var layoutDirection
+
     let combatantID: String
     let dynamicTypeSize: DynamicTypeSize
     let displayScale: CGFloat
@@ -14,6 +16,7 @@ struct CombatFeedbackRasterSlot: View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -23,6 +26,7 @@ struct CombatFeedbackRasterSlot: View {
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
     let dynamicTypeSize: DynamicTypeSize
+    let layoutDirection: LayoutDirection
     let displayScale: CGFloat
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
@@ -31,6 +35,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             view,
             combatantID: combatantID,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
         return view
@@ -41,6 +46,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             uiView,
             combatantID: combatantID,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
     }

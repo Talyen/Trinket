@@ -41,6 +41,14 @@ enum AccessibilityID {
             "Battle Party \(role) Option \(combatantName)"
         }
 
+        static func battlePartyDetail(_ combatantID: String) -> String {
+            "Battle Party Detail \(combatantID)"
+        }
+
+        static func selectBattlePartyOption(for role: String, combatantID: String) -> String {
+            "Select Battle Party \(role) \(combatantID)"
+        }
+
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"
         }

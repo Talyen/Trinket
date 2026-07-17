@@ -8,6 +8,7 @@ struct AbilityChoiceCard: View {
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var artworkBlend: ArtworkBlend = .none
+    var isSelected = false
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
 
@@ -40,15 +41,26 @@ struct AbilityChoiceCard: View {
                 }
                 .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
                 .trinketCardSurface()
+                .trinketArtworkPickerSelectionBorder(
+                    isSelected: isSelected,
+                    lineWidth: 1.5
+                )
 
             if showsName {
-                Text(ability.name)
-                    .trinketTypography(.cardLabel)
-                    .foregroundStyle(isLocked ? .secondary : .primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
-                    .trinketCardLabelSpace(reservesLabelSpace)
+                VStack(spacing: 2) {
+                    Text(ability.tier.rawValue.uppercased())
+                        .trinketTypography(.eyebrow)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+
+                    Text(ability.name)
+                        .trinketTypography(.cardLabel)
+                        .foregroundStyle(isLocked ? .secondary : .primary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
+                .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
     }

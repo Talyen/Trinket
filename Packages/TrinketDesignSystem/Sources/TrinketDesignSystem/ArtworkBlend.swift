@@ -25,16 +25,11 @@ public enum ArtworkBlend: Equatable, Sendable {
 }
 
 enum ArtworkBlendRecipe {
-    static let perimeterEdgeOpacity = 1.0
-    static let perimeterShoulderOpacity = 0.30
-    static let perimeterShoulderLocation = 0.06
-    static let perimeterInnerLocation = 0.13
-
-    static let bottomClearLocation = 0.60
-    static let bottomShoulderLocation = 0.76
-    static let bottomShoulderOpacity = 0.30
-    static let bottomNearEdgeLocation = 0.90
-    static let bottomNearEdgeOpacity = 0.78
+    /// Normalized distances measured inward from every treated artwork edge.
+    static let edgeOpacity = 1.0
+    static let shoulderOpacity = 0.24
+    static let shoulderInset = 0.05
+    static let clearInset = 0.11
 }
 
 private struct ArtworkBlendModifier: ViewModifier {
@@ -76,18 +71,18 @@ private struct PerimeterArtworkBlend: View {
 
         return LinearGradient(
             stops: [
-                .init(color: color.opacity(recipe.perimeterEdgeOpacity), location: 0),
+                .init(color: color.opacity(recipe.edgeOpacity), location: 0),
                 .init(
-                    color: color.opacity(recipe.perimeterShoulderOpacity),
-                    location: recipe.perimeterShoulderLocation
+                    color: color.opacity(recipe.shoulderOpacity),
+                    location: recipe.shoulderInset
                 ),
-                .init(color: .clear, location: recipe.perimeterInnerLocation),
-                .init(color: .clear, location: 1 - recipe.perimeterInnerLocation),
+                .init(color: .clear, location: recipe.clearInset),
+                .init(color: .clear, location: 1 - recipe.clearInset),
                 .init(
-                    color: color.opacity(recipe.perimeterShoulderOpacity),
-                    location: 1 - recipe.perimeterShoulderLocation
+                    color: color.opacity(recipe.shoulderOpacity),
+                    location: 1 - recipe.shoulderInset
                 ),
-                .init(color: color.opacity(recipe.perimeterEdgeOpacity), location: 1)
+                .init(color: color.opacity(recipe.edgeOpacity), location: 1)
             ],
             startPoint: startPoint,
             endPoint: endPoint
@@ -105,16 +100,12 @@ private struct BottomArtworkBlend: View {
         LinearGradient(
             stops: [
                 .init(color: .clear, location: 0),
-                .init(color: .clear, location: recipe.bottomClearLocation),
+                .init(color: .clear, location: 1 - recipe.clearInset),
                 .init(
-                    color: color.opacity(recipe.bottomShoulderOpacity),
-                    location: recipe.bottomShoulderLocation
+                    color: color.opacity(recipe.shoulderOpacity),
+                    location: 1 - recipe.shoulderInset
                 ),
-                .init(
-                    color: color.opacity(recipe.bottomNearEdgeOpacity),
-                    location: recipe.bottomNearEdgeLocation
-                ),
-                .init(color: color, location: 1)
+                .init(color: color.opacity(recipe.edgeOpacity), location: 1)
             ],
             startPoint: .top,
             endPoint: .bottom

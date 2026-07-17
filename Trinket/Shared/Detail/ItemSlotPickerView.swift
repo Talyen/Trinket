@@ -41,27 +41,12 @@ struct ItemSlotPickerView: View {
         return Button {
             onOpenDetail(item)
         } label: {
-            ZStack(alignment: .bottomLeading) {
-                ItemCard(
-                    item: item,
-                    showsAffixCount: false,
-                    showsName: false,
-                    artworkBlend: .bottom(into: .panel)
-                )
-
-                Text(item.displayName)
-                    .trinketTypography(.cardTitle)
-                    .trinketOnArtText(.title)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
-                    .padding(TrinketDesign.Metrics.mediumSpacing)
-
-                if isSelected {
-                    ArtworkPickerSelectionBadge()
-                }
-            }
-            .clipShape(TrinketDesign.cardShape)
-            .trinketArtworkPickerSelectionBorder(isSelected: isSelected)
+            ItemCard(
+                item: item,
+                showsAffixCount: false,
+                artworkBlend: .perimeter(into: .surface),
+                isSelected: isSelected
+            )
         }
         .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemCandidate(item.id))

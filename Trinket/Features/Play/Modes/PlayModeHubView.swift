@@ -135,7 +135,7 @@ private struct PlayModeArtworkCard: View {
         ZStack(alignment: .bottomLeading) {
             if let art {
                 HomesteadFocalArtwork(art: art)
-                    .trinketArtworkBlend(.bottom(into: .canvas))
+                    .trinketArtworkBlend(.perimeter(into: .canvas))
 
             } else {
                 TrinketDesign.Colors.surface

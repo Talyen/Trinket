@@ -45,26 +45,11 @@ struct AbilityTierPickerSheet: View {
         return Button {
             onOpenDetail(ability)
         } label: {
-            ZStack(alignment: .bottomLeading) {
-                AbilityChoiceCard(
-                    ability: ability,
-                    showsName: false,
-                    artworkBlend: .bottom(into: .panel)
-                )
-
-                Text(ability.name)
-                    .trinketTypography(.cardTitle)
-                    .trinketOnArtText(.title)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
-                    .padding(TrinketDesign.Metrics.mediumSpacing)
-
-                if isSelected {
-                    ArtworkPickerSelectionBadge()
-                }
-            }
-            .clipShape(TrinketDesign.cardShape)
-            .trinketArtworkPickerSelectionBorder(isSelected: isSelected)
+            AbilityChoiceCard(
+                ability: ability,
+                artworkBlend: .perimeter(into: .surface),
+                isSelected: isSelected
+            )
         }
         .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityCandidate(ability.id))

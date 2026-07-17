@@ -56,16 +56,11 @@ struct BattlePartyInlinePicker: View {
     @Environment(AppState.self) private var appState
 
     let aspect: AspectDefinition?
-    let accentColor: Color
 
     @State private var presentedSlot: BattlePartySlot?
 
-    init(
-        aspect: AspectDefinition? = nil,
-        accentColor: Color = TrinketDesign.Colors.accent
-    ) {
+    init(aspect: AspectDefinition? = nil) {
         self.aspect = aspect
-        self.accentColor = accentColor
     }
 
     var body: some View {
@@ -85,13 +80,10 @@ struct BattlePartyInlinePicker: View {
                 combatants: slot.combatants(in: appState.roster),
                 selectedID: slot.selectedID(in: appState.roster),
                 aspect: aspect,
-                accentColor: accentColor,
                 onSelect: { combatant in
                     select(combatant, for: slot)
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
         }
         .disabled(appState.battle.activeBattle != nil)
         .accessibilityElement(children: .contain)
@@ -159,7 +151,7 @@ struct BattlePartyInlinePicker: View {
     }
 }
 
-/// Native medium-height replacement picker for one party slot.
+/// Native party-slot picker that expands from its card grid into combatant detail.
 struct BattleCombatantPickerSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
@@ -168,79 +160,50 @@ struct BattleCombatantPickerSheet: View {
     let combatants: [Combatant]
     let selectedID: String
     let aspect: AspectDefinition?
-    let accentColor: Color
     let onSelect: (Combatant) -> Void
 
+    @State private var selectedCombatant: Combatant?
+    @State private var selectedDetent: PresentationDetent = .medium
     @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(
-                    columns: TrinketDesign.Metrics.partyPickerGridItems,
-                    spacing: TrinketDesign.Metrics.largeSpacing
-                ) {
-                    ForEach(combatants) { combatant in
-                        optionButton(combatant)
-                    }
+            BattlePartyOptionsGrid(
+                slot: slot,
+                combatants: combatants,
+                selectedID: selectedID,
+                aspect: aspect,
+                onOpenDetail: { combatant in
+                    selectedCombatant = combatant
+                    selectedDetent = .large
                 }
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-            }
+            )
             .navigationTitle("Choose \(slot.title)")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(item: $selectedCombatant) { combatant in
+                BattlePartyCombatantDetail(
+                    slot: slot,
+                    combatant: combatant,
+                    onSelect: {
+                        onSelect(combatant)
+                        selectionFeedbackTrigger += 1
+                        dismiss()
+                    }
+                )
+            }
         }
-
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
+        .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .presentationDragIndicator(.visible)
+        .onChange(of: selectedCombatant) { _, newValue in
+            if newValue == nil {
+                selectedDetent = .medium
+            }
+        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
             enabled: appState.options.hapticsEnabled
-        )
-    }
-
-    private func optionButton(_ combatant: Combatant) -> some View {
-        let eligible = BattlePartySlot.isEligible(combatant, for: aspect)
-        let selected = combatant.id == selectedID
-
-        return Button {
-            guard eligible else { return }
-            onSelect(combatant)
-            selectionFeedbackTrigger += 1
-            dismiss()
-        } label: {
-            VStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-                CombatantArtwork(combatant: combatant, variant: .card)
-                    .frame(maxWidth: .infinity)
-                    // UIStyleCheck: allow - Compact picker thumbnails use a fixed visual height.
-                    .frame(height: 88)
-                    .trinketArtworkBlend(.perimeter(into: .panel))
-                    .clipShape(TrinketDesign.cardShape)
-
-                Text(combatant.name)
-                    .trinketTypography(.cardLabel)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .trinketCardLabelSpace()
-            }
-            .padding(TrinketDesign.Metrics.smallSpacing)
-            .frame(maxWidth: .infinity)
-            .trinketSurface(.card)
-            .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape
-                    .strokeBorder(
-                        selected ? accentColor : Color.clear,
-                        lineWidth: selected ? 3 : 0
-                    )
-            }
-            .opacity(eligible ? 1 : 0.4)
-        }
-        .trinketQuietTapButtonStyle()
-        .disabled(!eligible)
-        .accessibilityIdentifier(
-            AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
         )
     }
 }
@@ -250,9 +213,9 @@ struct StageBattlePartyPickerSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    let accentColor: Color
-
     @State private var presentedSlot: BattlePartySlot?
+    @State private var selectedCombatant: Combatant?
+    @State private var selectedDetent: PresentationDetent = .medium
     @State private var selectionFeedbackTrigger = 0
 
     var body: some View {
@@ -263,10 +226,10 @@ struct StageBattlePartyPickerSheet: View {
                         slot: presentedSlot,
                         combatants: presentedSlot.combatants(in: appState.roster),
                         selectedID: presentedSlot.selectedID(in: appState.roster),
-                        accentColor: accentColor,
-                        onSelect: { combatant in
-                            select(combatant, for: presentedSlot)
-                            self.presentedSlot = nil
+                        aspect: nil,
+                        onOpenDetail: { combatant in
+                            selectedCombatant = combatant
+                            selectedDetent = .large
                         }
                     )
                 } else {
@@ -275,9 +238,30 @@ struct StageBattlePartyPickerSheet: View {
             }
             .navigationTitle(presentedSlot == nil ? "Party" : "Choose \(presentedSlot?.title ?? "")")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(item: $selectedCombatant) { combatant in
+                if let presentedSlot {
+                    BattlePartyCombatantDetail(
+                        slot: presentedSlot,
+                        combatant: combatant,
+                        onSelect: {
+                            select(combatant, for: presentedSlot)
+                            selectedCombatant = nil
+                            self.presentedSlot = nil
+                            selectedDetent = .medium
+                        }
+                    )
+                }
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.stagePartyPickerSheet)
+        .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .presentationDragIndicator(.visible)
+        .onChange(of: selectedCombatant) { _, newValue in
+            if newValue == nil {
+                selectedDetent = .medium
+            }
+        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
@@ -313,7 +297,7 @@ struct StageBattlePartyPickerSheet: View {
                 .overlay {
                     ZStack(alignment: .bottomLeading) {
                         CombatantArtwork(combatant: combatant, variant: .card)
-                            .trinketArtworkBlend(.bottom(into: .panel))
+                            .trinketArtworkBlend(.perimeter(into: .surface))
 
                         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                             Text(slot.title)
@@ -349,8 +333,15 @@ private struct BattlePartyOptionsGrid: View {
     let slot: BattlePartySlot
     let combatants: [Combatant]
     let selectedID: String
-    let accentColor: Color
-    let onSelect: (Combatant) -> Void
+    let aspect: AspectDefinition?
+    let onOpenDetail: (Combatant) -> Void
+
+    private var orderedCombatants: [Combatant] {
+        guard let selected = combatants.first(where: { $0.id == selectedID }) else {
+            return combatants
+        }
+        return [selected] + combatants.filter { $0.id != selectedID }
+    }
 
     var body: some View {
         ScrollView {
@@ -358,40 +349,23 @@ private struct BattlePartyOptionsGrid: View {
                 columns: TrinketDesign.Metrics.partyPickerGridItems,
                 spacing: TrinketDesign.Metrics.largeSpacing
             ) {
-                ForEach(combatants) { combatant in
+                ForEach(orderedCombatants) { combatant in
+                    let eligible = BattlePartySlot.isEligible(combatant, for: aspect)
                     let selected = combatant.id == selectedID
 
                     Button {
-                        onSelect(combatant)
+                        guard eligible else { return }
+                        onOpenDetail(combatant)
                     } label: {
-                        TrinketDesign.cardShape
-                            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                            .overlay {
-                                ZStack(alignment: .bottomLeading) {
-                                    CombatantArtwork(combatant: combatant, variant: .card)
-                                        .trinketArtworkBlend(.bottom(into: .panel))
-
-                                    Text(combatant.name)
-                                        .trinketTypography(.cardTitle)
-                                        .trinketOnArtText(.title)
-                                        .lineLimit(2)
-                                        .minimumScaleFactor(0.75)
-                                        .padding(TrinketDesign.Metrics.mediumSpacing)
-
-                                    if selected {
-                                        ArtworkPickerSelectionBadge(color: accentColor)
-                                            .accessibilityHidden(true)
-                                    }
-                                }
-                            }
-                            .clipShape(TrinketDesign.cardShape)
-                            .trinketCardSurface()
-                            .trinketArtworkPickerSelectionBorder(
-                                isSelected: selected,
-                                color: accentColor
-                            )
+                        CombatantCard(
+                            combatant: combatant,
+                            artworkBlend: .perimeter(into: .surface),
+                            isSelected: selected
+                        )
+                        .opacity(eligible ? 1 : 0.4)
                     }
                     .trinketQuietTapButtonStyle()
+                    .disabled(!eligible)
                     .accessibilityIdentifier(
                         AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
                     )
@@ -400,6 +374,39 @@ private struct BattlePartyOptionsGrid: View {
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        }
+    }
+}
+
+private struct BattlePartyCombatantDetail: View {
+    @Environment(AppState.self) private var appState
+
+    let slot: BattlePartySlot
+    let combatant: Combatant
+    let onSelect: () -> Void
+
+    var body: some View {
+        CombatantDetailPane(
+            combatant: combatant,
+            progression: appState.roster.progression(for: combatant),
+            loadout: .constant(combatant.abilityLoadout),
+            equipmentLoadout: .constant(appState.roster.equipmentLoadout(for: combatant)),
+            inventoryState: .constant(appState.inventory),
+            allowsEditing: false
+        )
+        .accessibilityIdentifier(AccessibilityID.Play.battlePartyDetail(combatant.id))
+        .safeAreaInset(edge: .bottom) {
+            Button("Select \(slot.title)", action: onSelect)
+                .frame(maxWidth: .infinity)
+                .trinketPrimaryActionButton()
+                .accessibilityIdentifier(
+                    AccessibilityID.Play.selectBattlePartyOption(
+                        for: slot.title,
+                        combatantID: combatant.id
+                    )
+                )
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         }
     }
 }

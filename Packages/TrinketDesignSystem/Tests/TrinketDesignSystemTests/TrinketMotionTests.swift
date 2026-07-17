@@ -88,5 +88,14 @@ struct TrinketMotionTests {
             #expect(recipe.kind == kind)
             #expect(recipe.duration > 0)
         }
+
+        let damage = TrinketMotion.Battle.cardReaction(for: .damage)
+        let critical = TrinketMotion.Battle.cardReaction(for: .critical)
+        #expect(damage.scaleX.first?.value == 0.96)
+        #expect(damage.scaleY.first?.value == 1.025)
+        #expect(damage.flashOpacity.first?.value == 0.2)
+        #expect(critical.scaleX.first?.value == 0.93)
+        #expect(critical.scaleY.first?.value == 1.04)
+        #expect(critical.flashOpacity.first?.value == 0.4)
     }
 }

@@ -224,7 +224,7 @@ struct LabyrinthMapNodeCard: View {
 
             if reachable, !node.isCleared {
                 if type.isCombat {
-                    BattlePartyInlinePicker(accentColor: tint ?? TrinketDesign.Colors.accent)
+                    BattlePartyInlinePicker()
                 }
 
                 Button {

@@ -61,6 +61,16 @@ struct CombatSFXMapperTests {
         )
         #expect(
             CombatSFXMapper.clipID(
+                for: feedbackItem(
+                    feedbackClass: .buff,
+                    keyword: .physical,
+                    text: "Marked",
+                    visualRole: .negativeStatus
+                )
+            ) == nil
+        )
+        #expect(
+            CombatSFXMapper.clipID(
                 for: feedbackItem(feedbackClass: .control, keyword: .freeze, text: "Frozen!")
             ) == SFXID.controlFreeze
         )
@@ -129,6 +139,7 @@ struct CombatSFXMapperTests {
         feedbackClass: CombatFeedbackClass,
         keyword: Keyword,
         text: String,
+        visualRole: CombatFeedbackVisualRole = .keyword,
         secondary: String? = nil
     ) -> CombatFeedbackItem {
         let label = CombatFeedbackChipLabel.fromDisplayText(text)
@@ -142,6 +153,7 @@ struct CombatSFXMapperTests {
             targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,
+            visualRole: visualRole,
             label: label,
             secondaryText: secondary,
             spawnSeed: id,

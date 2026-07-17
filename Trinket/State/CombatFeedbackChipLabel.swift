@@ -4,11 +4,11 @@ import TrinketCore
 /// Closed vocabulary for combat floating chips. The glyph atlas and composer only
 /// accept these shapes — never free-form strings on the display-link path.
 enum CombatFeedbackChipLabel: Hashable {
-    static let numericAtlasFragments = ["+", "-", "%"] + (0 ... 9).map(String.init)
+    static let numericAtlasFragments = ["%"] + (0 ... 9).map(String.init)
 
-    /// Signed numeric chip such as `-12` or `+8`.
+    /// Numeric chip sourced from a signed formatter token and displayed as a magnitude.
     case amount(Int)
-    /// Signed percent chip such as `+25%`.
+    /// Percent chip sourced from a signed formatter token and displayed as a magnitude.
     case percent(Int)
     /// Non-numeric chip such as `Dodge` or `Stunned!`.
     case word(CombatFeedbackChipWord)
@@ -25,7 +25,7 @@ enum CombatFeedbackChipLabel: Hashable {
     }
 
     /// Atlas fragments needed to render this label. Numeric chips use the complete
-    /// prewarmed sign/digit alphabet, so values of any size never trigger a raster miss.
+    /// prewarmed digit alphabet, so values of any size never trigger a raster miss.
     var atlasFragments: [String] {
         switch self {
         case .amount, .percent:
@@ -36,10 +36,7 @@ enum CombatFeedbackChipLabel: Hashable {
     }
 
     static func formatAmount(_ value: Int) -> String {
-        if value > 0 {
-            return "+\(value)"
-        }
-        return "\(value)"
+        String(value.magnitude)
     }
 
     static func formatPercent(_ value: Int) -> String {
@@ -72,6 +69,27 @@ enum CombatFeedbackChipLabel: Hashable {
     private static func parseSignedInt(_ raw: String) -> Int? {
         Int(raw)
     }
+
+    var isZeroNumeric: Bool {
+        switch self {
+        case let .amount(value), let .percent(value):
+            value == 0
+        case .word:
+            false
+        }
+    }
+}
+
+enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
+    case thorns = "Thorns"
+    case hasted = "Hasted"
+    case criticalUp = "Critical Up"
+    case manaShield = "Mana Shield"
+    case avatarOfJustice = "Avatar of Justice"
+    case consecrated = "Consecrated"
+    case nextHolyStrike = "Next Holy Strike"
+    case marked = "Marked"
+    case armorDown = "Armor Down"
 }
 
 /// Closed set of non-numeric chip phrases produced by battle presentation.
@@ -84,6 +102,7 @@ enum CombatFeedbackChipWord: Hashable {
     case cleanse(Keyword)
     case purge(Keyword)
     case halve(Keyword)
+    case status(CombatFeedbackStatusLabel)
 
     var displayString: String {
         switch self {
@@ -94,7 +113,7 @@ enum CombatFeedbackChipWord: Hashable {
         case let .plain(keyword):
             keyword.rawValue
         case let .applied(keyword):
-            "+\(keyword.rawValue)"
+            keyword.rawValue
         case let .triggered(keyword):
             "\(keyword.statusAlias ?? keyword.rawValue)!"
         case let .cleanse(keyword):
@@ -103,6 +122,8 @@ enum CombatFeedbackChipWord: Hashable {
             "Purge \(keyword.rawValue)"
         case let .halve(keyword):
             "Halve \(keyword.rawValue)"
+        case let .status(label):
+            label.rawValue
         }
     }
 
@@ -133,6 +154,9 @@ enum CombatFeedbackChipWord: Hashable {
             if let keyword = Keyword(rawValue: rest) {
                 return .halve(keyword)
             }
+        }
+        if let label = CombatFeedbackStatusLabel(rawValue: text) {
+            return .status(label)
         }
         if text.hasPrefix("+"), let keyword = Keyword(rawValue: String(text.dropFirst())) {
             return .applied(keyword)
@@ -167,6 +191,7 @@ enum CombatFeedbackChipWord: Hashable {
             words.append(.purge(keyword))
             words.append(.halve(keyword))
         }
+        words.append(contentsOf: CombatFeedbackStatusLabel.allCases.map(CombatFeedbackChipWord.status))
         return words
     }
 }

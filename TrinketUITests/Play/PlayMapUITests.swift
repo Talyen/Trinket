@@ -97,12 +97,22 @@ final class PlayMapUITests: TrinketUITestCase {
         XCTAssertFalse(app.buttons["Party"].exists)
         assertExists(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard"))
         button(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard")).tap()
-        XCTAssertTrue(app.staticTexts["Wizard"].waitForExistence(timeout: Self.defaultTimeout))
+        assertExists(AccessibilityID.Play.battlePartyDetail("wizard"))
+        button(AccessibilityID.Play.selectBattlePartyOption(for: "Hero", combatantID: "wizard")).tap()
+        XCTAssertTrue(app.navigationBars["Party"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(
+            button(AccessibilityID.Play.battlePartyHeroControl).label.localizedCaseInsensitiveContains("Wizard")
+        )
 
         button(AccessibilityID.Play.battlePartyCompanionControl).tap()
         assertExists(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear"))
         button(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear")).tap()
-        XCTAssertTrue(app.staticTexts["Bear"].waitForExistence(timeout: Self.defaultTimeout))
+        assertExists(AccessibilityID.Play.battlePartyDetail("bear"))
+        button(AccessibilityID.Play.selectBattlePartyOption(for: "Companion", combatantID: "bear")).tap()
+        XCTAssertTrue(app.navigationBars["Party"].waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(
+            button(AccessibilityID.Play.battlePartyCompanionControl).label.localizedCaseInsensitiveContains("Bear")
+        )
 
         dismissSheet()
         assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 2)
@@ -122,11 +132,21 @@ final class PlayMapUITests: TrinketUITestCase {
 
         button(AccessibilityID.Play.battlePartyHeroControl).tap()
         assertExists(AccessibilityID.Play.battlePartyPickerSheet(for: "Hero"))
+        let ineligibleWizard = button(
+            AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard")
+        )
+        assertExists(ineligibleWizard)
+        XCTAssertFalse(ineligibleWizard.isEnabled)
         button(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Rogue")).tap()
+        assertExists(AccessibilityID.Play.battlePartyDetail("rogue"))
+        button(AccessibilityID.Play.selectBattlePartyOption(for: "Hero", combatantID: "rogue")).tap()
+        assertDoesNotExist(AccessibilityID.Play.battlePartyPickerSheet(for: "Hero"), timeout: 2)
 
         button(AccessibilityID.Play.battlePartyCompanionControl).tap()
         assertExists(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"))
         button(AccessibilityID.Play.battlePartyOption(for: "Companion", combatantName: "Bear")).tap()
+        assertExists(AccessibilityID.Play.battlePartyDetail("bear"))
+        button(AccessibilityID.Play.selectBattlePartyOption(for: "Companion", combatantID: "bear")).tap()
         assertDoesNotExist(AccessibilityID.Play.battlePartyPickerSheet(for: "Companion"), timeout: 2)
 
         // Prefer the glass-CTA accessibility id (applied inside trinketPrimaryActionButton).

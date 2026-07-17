@@ -17,7 +17,10 @@ enum CombatSFXMapper {
     ]
 
     static func clipID(for item: CombatFeedbackItem) -> String? {
-        switch item.feedbackClass {
+        if item.visualRole == .negativeStatus {
+            return nil
+        }
+        return switch item.feedbackClass {
         case .dodge, .block, .resource:
             // Block absorb / dodge / resource chips have no dedicated SFX in v1.
             nil

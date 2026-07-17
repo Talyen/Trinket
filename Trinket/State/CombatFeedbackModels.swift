@@ -2,6 +2,12 @@ import Foundation
 import TrinketCore
 import TrinketDesignSystem
 
+enum CombatFeedbackVisualRole: Equatable {
+    case keyword
+    case beneficialStatus
+    case negativeStatus
+}
+
 /// View-facing combat feedback item produced from one or more `ActionEvent`s.
 struct CombatFeedbackItem: Identifiable, Equatable {
     let id: Int
@@ -12,6 +18,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let targetID: String
     let feedbackClass: CombatFeedbackClass
     let keyword: Keyword
+    let visualRole: CombatFeedbackVisualRole
     let label: CombatFeedbackChipLabel
     let secondaryText: String?
     let spawnSeed: Int

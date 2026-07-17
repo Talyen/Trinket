@@ -22,7 +22,7 @@ struct VictoryView: View {
             eyebrow: nil,
             eyebrowAccessibilityIdentifier: nil,
             title: "Victory",
-            subtitle: "\(enemyName) is defeated.",
+            subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
             titleColor: TrinketDesign.Colors.accent,
             content: {
@@ -233,7 +233,7 @@ private struct RewardItemRevealCard: View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             ItemArtwork(item: item, contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .frame(height: 260)
+                .frame(height: 234)
                 .trinketArtworkBlend(.bottom(into: .canvas))
                 .clipShape(TrinketDesign.cardShape)
 

@@ -18,7 +18,7 @@ struct CombatFeedbackGlyphAtlasTests {
                 dynamicTypeSize: .large,
                 displayScaleHundredths: Int((scale * 100).rounded())
             )
-            for digit in Array("0123456789+-%") {
+            for digit in Array("0123456789%") {
                 let glyph = try #require(atlas.fragment(String(digit), face: face, recipe: recipe))
                 #expect(glyph.width > 0)
                 #expect(glyph.height > 0)
@@ -30,10 +30,12 @@ struct CombatFeedbackGlyphAtlasTests {
                 #expect(glyph.width > 0)
                 #expect(glyph.height > 0)
             }
-            let symbol = try #require(
-                atlas.symbol(named: "burst.fill", face: face, recipe: recipe)
-            )
-            #expect(symbol.width > 0)
+            for symbolName in ["burst.fill", "arrowshape.up.fill", "arrowshape.down.fill"] {
+                let symbol = try #require(
+                    atlas.symbol(named: symbolName, face: face, recipe: recipe)
+                )
+                #expect(symbol.width > 0)
+            }
         }
     }
 
@@ -54,24 +56,33 @@ struct CombatFeedbackGlyphAtlasTests {
             dynamicTypeSize: .large,
             displayScale: 3
         )
-        let started = ContinuousClock.now
-        let composed = try #require(CombatFeedbackChipComposer.compose(
-            label: canvasItem.label,
-            style: style,
-            feedbackClass: canvasItem.item.feedbackClass,
-            dynamicTypeSize: .large,
-            displayScale: 3
-        ))
-        let elapsed = started.duration(to: .now)
-        #expect(composed.pointSize.width > 0)
-        #expect(composed.pointSize.height > 0)
-        // CI-friendly bound; local warm compose is expected under 1 ms.
-        #expect(elapsed < .milliseconds(2))
+        var samples: [Duration] = []
+        samples.reserveCapacity(20)
+        for _ in 0 ..< 20 {
+            let started = ContinuousClock.now
+            let composed = try #require(CombatFeedbackChipComposer.compose(
+                label: canvasItem.label,
+                style: style,
+                feedbackClass: canvasItem.item.feedbackClass,
+                dynamicTypeSize: .large,
+                displayScale: 3
+            ))
+            samples.append(started.duration(to: .now))
+            #expect(composed.pointSize.width > 0)
+            #expect(composed.pointSize.height > 0)
+        }
+
+        let sortedSamples = samples.sorted()
+        let upperMedian = sortedSamples[sortedSamples.count / 2]
+        let worst = try #require(sortedSamples.last)
+        // The median detects sustained regressions; the maximum guards pathological warm misses.
+        #expect(upperMedian < .milliseconds(2))
+        #expect(worst < .milliseconds(5))
     }
 
     @Test @MainActor func numericAlphabetComposesHundredsWithoutWholeValueRaster() throws {
         let label = CombatFeedbackChipLabel.amount(-847)
-        #expect(label.atlasFragments == ["-", "8", "4", "7"])
+        #expect(label.atlasFragments == ["8", "4", "7"])
         #expect(Set(label.atlasFragments).isSubset(of: Set(CombatFeedbackChipLabel.numericAtlasFragments)))
 
         let composed = try #require(CombatFeedbackChipComposer.compose(
@@ -94,6 +105,10 @@ struct CombatFeedbackGlyphAtlasTests {
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilityBold).contains(.triggered(.stun)))
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold).contains(.cleanse(.bleed)))
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold).contains(.halve(.armor)))
+        #expect(
+            CombatFeedbackGlyphAtlas.wordAtlasCases(for: .utilitySemibold)
+                .contains(.status(.criticalUp))
+        )
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .deathsDoor) == [.plain(.deathsDoor)])
     }
 
@@ -115,6 +130,7 @@ struct CombatFeedbackGlyphAtlasTests {
                 targetID: "t",
                 feedbackClass: feedbackClass,
                 keyword: keyword,
+                visualRole: .keyword,
                 label: label,
                 secondaryText: nil,
                 spawnSeed: 1,
@@ -124,28 +140,32 @@ struct CombatFeedbackGlyphAtlasTests {
                 reactionKind: .none
             )
             let style = item.feedbackVisualStyle
-            let composed = try #require(CombatFeedbackChipComposer.compose(
-                label: label,
-                style: style,
-                feedbackClass: feedbackClass,
-                dynamicTypeSize: .large,
-                displayScale: 2
-            ))
-            let reference = try #require(CombatFeedbackReferenceBaker.bake(
-                text: label.displayString,
-                style: style,
-                feedbackClass: feedbackClass,
-                dynamicTypeSize: .large,
-                displayScale: 2
-            ))
-            #expect(abs(composed.pointSize.width - reference.pointSize.width) <= 2)
-            #expect(abs(composed.pointSize.height - reference.pointSize.height) <= 2)
-            #expect(
-                CombatFeedbackReferenceBaker.meanAbsoluteDifference(
-                    composed.image,
-                    reference.image
-                ) < 12
-            )
+            for layoutDirection in [LayoutDirection.leftToRight, .rightToLeft] {
+                let composed = try #require(CombatFeedbackChipComposer.compose(
+                    label: label,
+                    style: style,
+                    feedbackClass: feedbackClass,
+                    dynamicTypeSize: .large,
+                    layoutDirection: layoutDirection,
+                    displayScale: 2
+                ))
+                let reference = try #require(CombatFeedbackReferenceBaker.bake(
+                    text: label.displayString,
+                    style: style,
+                    feedbackClass: feedbackClass,
+                    dynamicTypeSize: .large,
+                    layoutDirection: layoutDirection,
+                    displayScale: 2
+                ))
+                #expect(abs(composed.pointSize.width - reference.pointSize.width) <= 2)
+                #expect(abs(composed.pointSize.height - reference.pointSize.height) <= 2)
+                #expect(
+                    CombatFeedbackReferenceBaker.meanAbsoluteDifference(
+                        composed.image,
+                        reference.image
+                    ) < 12
+                )
+            }
         }
     }
 
@@ -191,6 +211,7 @@ private enum CombatFeedbackReferenceBaker {
         style: Keyword.VisualStyle,
         feedbackClass: CombatFeedbackClass,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> BakedRaster? {
         let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
@@ -230,12 +251,18 @@ private enum CombatFeedbackReferenceBaker {
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
         let image = renderer.image { _ in
             let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
+            let origins = horizontalOrigins(
+                contentX: contentOrigin.x,
+                textWidth: textSize.width,
+                symbolWidth: symbolSize.width,
+                layoutDirection: layoutDirection
+            )
             let symbolOrigin = CGPoint(
-                x: contentOrigin.x,
+                x: origins.symbolX,
                 y: contentOrigin.y + (contentHeight - symbolSize.height) / 2
             )
             let textOrigin = CGPoint(
-                x: contentOrigin.x + symbolSize.width + symbolTextSpacing,
+                x: origins.textX,
                 y: contentOrigin.y + (contentHeight - textSize.height) / 2
             )
             let context = UIGraphicsGetCurrentContext()
@@ -244,12 +271,28 @@ private enum CombatFeedbackReferenceBaker {
                 blur: 0,
                 color: shadow.cgColor
             )
-            symbol.draw(at: symbolOrigin)
             nsText.draw(at: textOrigin, withAttributes: textAttributes)
+            symbol.draw(at: symbolOrigin)
             context?.setShadow(offset: .zero, blur: 0, color: nil)
         }
         guard let cgImage = image.cgImage else { return nil }
         return BakedRaster(image: cgImage, pointSize: pointSize)
+    }
+
+    private static func horizontalOrigins(
+        contentX: CGFloat,
+        textWidth: CGFloat,
+        symbolWidth: CGFloat,
+        layoutDirection: LayoutDirection
+    ) -> (textX: CGFloat, symbolX: CGFloat) {
+        switch layoutDirection {
+        case .leftToRight:
+            (contentX, contentX + textWidth + symbolTextSpacing)
+        case .rightToLeft:
+            (contentX + symbolWidth + symbolTextSpacing, contentX)
+        @unknown default:
+            (contentX, contentX + textWidth + symbolTextSpacing)
+        }
     }
 
     static func meanAbsoluteDifference(_ lhs: CGImage, _ rhs: CGImage) -> Double {

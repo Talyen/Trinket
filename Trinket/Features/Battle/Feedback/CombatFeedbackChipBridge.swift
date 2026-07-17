@@ -13,6 +13,7 @@ enum CombatFeedbackChipBridge {
         weak var view: CombatFeedbackRasterUIView?
         let combatantID: String
         let dynamicTypeSize: DynamicTypeSize
+        let layoutDirection: LayoutDirection
         let displayScale: CGFloat
     }
 
@@ -20,6 +21,7 @@ enum CombatFeedbackChipBridge {
         _ view: CombatFeedbackRasterUIView,
         combatantID: String,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) {
         let key = ObjectIdentifier(view)
@@ -28,11 +30,13 @@ enum CombatFeedbackChipBridge {
             || previous?.view !== view
             || previous?.combatantID != combatantID
             || previous?.dynamicTypeSize != dynamicTypeSize
+            || previous?.layoutDirection != layoutDirection
             || previous?.displayScale != displayScale
         hosts[key] = WeakHost(
             view: view,
             combatantID: combatantID,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
         if metadataChanged {
@@ -94,13 +98,14 @@ enum CombatFeedbackChipBridge {
         guard !items.isEmpty else { return }
         var preparedHostKeys = Set<String>()
         for entry in hosts.values where entry.view != nil {
-            let hostKey = "\(entry.combatantID)|\(entry.dynamicTypeSize)|\(entry.displayScale)"
+            let hostKey = "\(entry.combatantID)|\(entry.dynamicTypeSize)|\(entry.layoutDirection)|\(entry.displayScale)"
             guard preparedHostKeys.insert(hostKey).inserted else { continue }
             let targetItems = items.filter { $0.targetID == entry.combatantID }
             guard !targetItems.isEmpty else { continue }
             CombatFeedbackRasterPool.shared.prepareAll(
                 for: targetItems,
                 dynamicTypeSize: entry.dynamicTypeSize,
+                layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale,
                 useFrameBudget: targetItems.contains { $0.availableAt > Date.now }
             )
@@ -172,11 +177,13 @@ enum CombatFeedbackChipBridge {
             if CombatFeedbackRasterPool.shared.cachedRaster(
                 for: canvasItem,
                 dynamicTypeSize: entry.dynamicTypeSize,
+                layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale
             ) == nil {
                 _ = CombatFeedbackRasterPool.shared.prepare(
                     for: canvasItem,
                     dynamicTypeSize: entry.dynamicTypeSize,
+                    layoutDirection: entry.layoutDirection,
                     displayScale: entry.displayScale
                 )
             }
@@ -185,6 +192,7 @@ enum CombatFeedbackChipBridge {
                 CombatFeedbackRasterPool.shared.cachedRaster(
                     for: canvasItem,
                     dynamicTypeSize: entry.dynamicTypeSize,
+                    layoutDirection: entry.layoutDirection,
                     displayScale: entry.displayScale
                 )
             )

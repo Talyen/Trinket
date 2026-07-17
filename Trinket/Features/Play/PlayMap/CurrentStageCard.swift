@@ -27,9 +27,7 @@ struct CurrentStageCard: View {
         .clipShape(TrinketDesign.cardShape)
         .accessibilityElement(children: .contain)
         .sheet(isPresented: $isPartyPickerPresented) {
-            StageBattlePartyPickerSheet(accentColor: stage.encounter.mapTint)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
+            StageBattlePartyPickerSheet()
         }
     }
 

@@ -116,12 +116,21 @@ enum CombatFeedbackMotionSampler {
 
 extension CombatFeedbackItem {
     var feedbackVisualStyle: Keyword.VisualStyle {
-        switch feedbackClass {
+        switch visualRole {
+        case .beneficialStatus:
+            return .beneficialStatus
+        case .negativeStatus:
+            return .negativeStatus
+        case .keyword:
+            break
+        }
+
+        return switch feedbackClass {
         case .heal: .health
-        case .resource: .gold
+        case .resource: keyword == .mana ? .mana : .gold
         case .block: .block
         case .dodge: Keyword.dodge.visualStyle
-        case .control: .stun
+        case .control: keyword.visualStyle
         case .deathsDoor: Keyword.deathsDoor.visualStyle
         case .directDamage, .critical, .dot, .buff: keyword.visualStyle
         }

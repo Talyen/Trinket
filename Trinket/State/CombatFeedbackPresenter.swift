@@ -10,9 +10,10 @@ enum CombatFeedbackPresenter {
         at date: Date,
         stagger: TimeInterval = 0
     ) -> [CombatFeedbackItem] {
-        let sources = consolidate(filterDisplayable(events).enumerated().map { order, event in
+        let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
-        })
+        }
+        let sources = consolidate(collapseAvatarOfJustice(in: filteredSources))
         let prepared = sources.compactMap(prepare)
         var targetOrder: [String] = []
         var grouped: [String: [PreparedEvent]] = [:]
@@ -94,6 +95,7 @@ enum CombatFeedbackPresenter {
         let targetID: String
         let feedbackClass: CombatFeedbackClass
         let keyword: Keyword
+        let visualRole: CombatFeedbackVisualRole
         let label: CombatFeedbackChipLabel
         let secondaryText: String?
         let reactionKind: CombatantHitReactionKind
@@ -112,6 +114,12 @@ enum CombatFeedbackPresenter {
         let isCritical: Bool
     }
 
+    private struct NamedAbilityGroupKey: Hashable {
+        let actionID: Int
+        let targetID: String
+        let abilityID: String
+    }
+
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         events.filter { event in
             guard event.kind != .milestone else { return false }
@@ -119,6 +127,9 @@ enum CombatFeedbackPresenter {
                 return false
             }
             if event.kind == .abilityDamage, event.amount == 0 {
+                return false
+            }
+            if event.effectKind == .cardsDrawn || event.effectKind == .controlApplied {
                 return false
             }
             return true
@@ -149,6 +160,53 @@ enum CombatFeedbackPresenter {
             }
         }
         return result
+    }
+
+    private static func collapseAvatarOfJustice(in sources: [PreparedSource]) -> [PreparedSource] {
+        var collapsed: [PreparedSource] = []
+        var emittedGroups = Set<NamedAbilityGroupKey>()
+
+        for source in sources {
+            let event = source.event
+            guard event.abilityID == "avatar-of-justice", isAvatarPresentationEffect(event.effectKind) else {
+                collapsed.append(source)
+                continue
+            }
+            let key = NamedAbilityGroupKey(
+                actionID: event.actionID,
+                targetID: event.targetID,
+                abilityID: event.abilityID
+            )
+            let matching = sources.filter {
+                $0.event.actionID == key.actionID
+                    && $0.event.targetID == key.targetID
+                    && $0.event.abilityID == key.abilityID
+                    && isAvatarPresentationEffect($0.event.effectKind)
+            }
+            guard let representative = matching.first(where: {
+                $0.event.effectKind == .damageKeywordOverrideApplied
+            }) else {
+                collapsed.append(source)
+                continue
+            }
+            guard emittedGroups.insert(key).inserted else { continue }
+            collapsed.append(PreparedSource(
+                event: representative.event,
+                sourceEventIDs: matching.flatMap(\.sourceEventIDs),
+                originalOrder: matching.map(\.originalOrder).min() ?? representative.originalOrder
+            ))
+        }
+        return collapsed.sorted { $0.originalOrder < $1.originalOrder }
+    }
+
+    private static func isAvatarPresentationEffect(_ effectKind: ActionEvent.EffectKind?) -> Bool {
+        guard let effectKind else { return false }
+        return switch effectKind {
+        case .shieldApplied, .mitigationApplied, .damageKeywordOverrideApplied:
+            true
+        default:
+            false
+        }
     }
 
     private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
@@ -212,10 +270,10 @@ enum CombatFeedbackPresenter {
         let feedbackClass = event.isCritical
             ? .critical
             : CombatFeedbackClassification.classify(event, display: display)
-        let floatingText = Self.floatingText(from: display)
-        guard let label = CombatFeedbackChipLabel.fromDisplayText(floatingText) else {
-            return nil
-        }
+        let statusPresentation = statusPresentation(for: event)
+        let label = statusPresentation.map { CombatFeedbackChipLabel.word(.status($0.label)) }
+            ?? CombatFeedbackChipLabel.fromDisplayText(Self.floatingText(from: display))
+        guard let label, !label.isZeroNumeric else { return nil }
         return PreparedEvent(
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
@@ -224,14 +282,47 @@ enum CombatFeedbackPresenter {
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: display.keyword,
+            visualRole: statusPresentation?.role ?? .keyword,
             label: label,
             secondaryText: display.secondaryText,
             reactionKind: CombatFeedbackClassification.reactionKind(for: feedbackClass)
         )
     }
 
+    private struct StatusPresentation {
+        let label: CombatFeedbackStatusLabel
+        let role: CombatFeedbackVisualRole
+    }
+
+    private static func statusPresentation(for event: ActionEvent) -> StatusPresentation? {
+        guard let effectKind = event.effectKind else { return nil }
+        return switch effectKind {
+        case .thornsApplied:
+            StatusPresentation(label: .thorns, role: .beneficialStatus)
+        case .hasteApplied:
+            StatusPresentation(label: .hasted, role: .beneficialStatus)
+        case .criticalChanceApplied:
+            StatusPresentation(label: .criticalUp, role: .beneficialStatus)
+        case .manaShieldApplied:
+            StatusPresentation(label: .manaShield, role: .beneficialStatus)
+        case .damageKeywordOverrideApplied:
+            StatusPresentation(
+                label: event.abilityID == "avatar-of-justice" ? .avatarOfJustice : .consecrated,
+                role: .beneficialStatus
+            )
+        case .nextHolyStrikeApplied:
+            StatusPresentation(label: .nextHolyStrike, role: .beneficialStatus)
+        case .markedApplied:
+            StatusPresentation(label: .marked, role: .negativeStatus)
+        case .mitigationHalved:
+            StatusPresentation(label: .armorDown, role: .negativeStatus)
+        default:
+            nil
+        }
+    }
+
     /// Numeric effects use the icon for their keyword identity, so the float only
-    /// needs the signed amount (and any attached numeric unit such as `%`).
+    /// needs the amount magnitude (and any attached numeric unit such as `%`).
     /// Text-only effects retain their descriptive label, such as "Dodge".
     private static func floatingText(from display: ActionEventDisplay) -> String {
         guard let firstToken = display.text.split(separator: " ").first,
@@ -259,6 +350,7 @@ enum CombatFeedbackPresenter {
             targetID: prepared.targetID,
             feedbackClass: prepared.feedbackClass,
             keyword: prepared.keyword,
+            visualRole: prepared.visualRole,
             label: prepared.label,
             secondaryText: prepared.secondaryText,
             spawnSeed: prepared.id,

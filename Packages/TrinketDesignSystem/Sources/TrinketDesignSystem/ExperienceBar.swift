@@ -15,7 +15,6 @@ public struct ExperienceBar: View {
     @State private var displayedXP: Int
     @State private var displayedRequiredXP: Int
     @State private var displayedFraction: Double
-    @State private var levelUpBurst: Int?
     @State private var showsExperienceAward = false
     @State private var hasAnimated = false
     @State private var hasReportedCompletion = false
@@ -24,9 +23,6 @@ public struct ExperienceBar: View {
     private let initialDelay: TimeInterval = 0.25
     private let segmentDuration: TimeInterval = 0.45
     private let segmentSteps = 24
-    private let levelUpFlashInDuration: TimeInterval = 0.18
-    private let levelUpFlashHoldDuration: TimeInterval = 0.18
-    private let levelUpFlashOutDuration: TimeInterval = 0.18
 
     public init(
         combatantName: String,
@@ -72,16 +68,6 @@ public struct ExperienceBar: View {
                     Text(combatantName)
                         .trinketTypography(.cardLabel)
 
-                    if let burstLevel = levelUpBurst {
-                        Text("Level \(burstLevel)!")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                            .padding(.horizontal, TrinketDesign.Metrics.denseSpacing)
-                            .padding(.vertical, 2)
-                            .background(TrinketDesign.Colors.progression, in: Capsule())
-                            .transition(.scale.combined(with: .opacity))
-                    }
-
                     Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
                     if let experienceAward, experienceAward > 0, showsExperienceAward {
@@ -117,7 +103,14 @@ public struct ExperienceBar: View {
                 .frame(height: TrinketDesign.Metrics.statBarHeight)
 
                 HStack {
-                    Text("Level \(displayedLevel)")
+                    HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+                        Text("Level \(displayedLevel)")
+
+                        if displayedLevel > pre.level {
+                            Image(systemName: "arrowshape.up.fill")
+                                .foregroundStyle(Keyword.gold.visualStyle.color)
+                        }
+                    }
                     Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
                     Text("\(displayedXP) / \(displayedRequiredXP) XP")
                         .monospacedDigit()
@@ -197,7 +190,7 @@ public struct ExperienceBar: View {
             await animate(to: segment, clock: clock)
             guard !Task.isCancelled else { return }
             if segment.levelsGained > 0 {
-                await showLevelUpFlash(newLevel: segment.newLevel, newRequiredXP: segment.newRequiredXP, clock: clock)
+                applyLevelUp(newLevel: segment.newLevel, newRequiredXP: segment.newRequiredXP)
             }
         }
         guard !Task.isCancelled else { return }
@@ -227,21 +220,11 @@ public struct ExperienceBar: View {
         displayedXP = endXP
     }
 
-    private func showLevelUpFlash(newLevel: Int, newRequiredXP: Int, clock: SuspendingClock) async {
+    private func applyLevelUp(newLevel: Int, newRequiredXP: Int) {
         displayedLevel = newLevel
         displayedRequiredXP = newRequiredXP
         displayedXP = 0
         displayedFraction = 0
-
-        withAnimation(.easeOut(duration: levelUpFlashInDuration)) {
-            levelUpBurst = newLevel
-        }
-        try? await clock.sleep(for: .seconds(levelUpFlashHoldDuration), tolerance: .milliseconds(25))
-        guard !Task.isCancelled else { return }
-        withAnimation(.easeIn(duration: levelUpFlashOutDuration)) {
-            levelUpBurst = nil
-        }
-        try? await clock.sleep(for: .seconds(levelUpFlashOutDuration), tolerance: .milliseconds(25))
     }
 
     private static func easeInOut(_ t: Double) -> Double {

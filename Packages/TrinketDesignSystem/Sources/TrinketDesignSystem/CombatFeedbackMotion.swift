@@ -150,21 +150,27 @@ public enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable 
 /// Short transform recipe for combatant card artwork on hit.
 public struct CombatantHitReactionRecipe: Sendable, Equatable {
     public let kind: CombatantHitReactionKind
-    public let scale: [CombatFeedbackKeyframeSample]
+    public let scaleX: [CombatFeedbackKeyframeSample]
+    public let scaleY: [CombatFeedbackKeyframeSample]
     public let offsetX: [CombatFeedbackKeyframeSample]
+    public let offsetY: [CombatFeedbackKeyframeSample]
     public let flashOpacity: [CombatFeedbackKeyframeSample]
     public let duration: TimeInterval
 
     public init(
         kind: CombatantHitReactionKind,
-        scale: [CombatFeedbackKeyframeSample],
+        scaleX: [CombatFeedbackKeyframeSample],
+        scaleY: [CombatFeedbackKeyframeSample],
         offsetX: [CombatFeedbackKeyframeSample],
+        offsetY: [CombatFeedbackKeyframeSample],
         flashOpacity: [CombatFeedbackKeyframeSample],
         duration: TimeInterval
     ) {
         self.kind = kind
-        self.scale = scale
+        self.scaleX = scaleX
+        self.scaleY = scaleY
         self.offsetX = offsetX
+        self.offsetY = offsetY
         self.flashOpacity = flashOpacity
         self.duration = duration
     }

@@ -159,8 +159,7 @@ struct AspectClimbView: View {
         tint: Color
     ) -> some View {
         BattlePartyInlinePicker(
-            aspect: aspect,
-            accentColor: tint
+            aspect: aspect
         )
 
         Button {

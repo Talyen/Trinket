@@ -30,7 +30,6 @@ struct BattleCombatantPane: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .trinketArtworkBlend(.perimeter(into: .canvas))
-                    .clipped()
 
                     // Isolated observation leaves: feedback / burst / reaction updates
                     // must not rebuild static pane chrome or the rest of BattleView.
@@ -51,7 +50,6 @@ struct BattleCombatantPane: View {
                         )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
 
                 resourceBars
             }
@@ -117,6 +115,10 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
     @State private var latestReactionID = 0
 
+    private var artworkOverscanScale: CGFloat {
+        1.14
+    }
+
     private var hitReaction: CombatantHitReaction? {
         appState.battle.hitReactionsByTargetID[combatantID]
     }
@@ -127,27 +129,88 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         let kind = reaction?.kind ?? .none
         let recipe = TrinketMotion.Battle.cardReaction(for: kind)
         let flashColor = reaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
+        let defaultOffset = CGSize(
+            width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
+            height: CGFloat(recipe.offsetY[safe: 0]?.value ?? 0)
+        )
+        let impactOffset = impactOffset(
+            for: kind,
+            magnitude: abs(defaultOffset.width),
+            defaultOffset: defaultOffset
+        )
+        let isVerticalImpact = impactOffset.height != 0
+        let impactScaleX = isVerticalImpact
+            ? recipe.scaleY[safe: 0]?.value ?? 1.0
+            : recipe.scaleX[safe: 0]?.value ?? 1.0
+        let impactScaleY = isVerticalImpact
+            ? recipe.scaleX[safe: 0]?.value ?? 1.0
+            : recipe.scaleY[safe: 0]?.value ?? 1.0
+        let impactDuration = recipe.scaleX[safe: 0]?.duration ?? 0.08
+        let recoveryDuration = recipe.scaleX[safe: 1]?.duration ?? 0.16
 
         KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
             trigger: reactionID
         ) { state in
             artwork()
-                .scaleEffect(state.scale)
-                .offset(x: state.offsetX)
+                // Preserve hidden artwork beyond the card viewport so recoil and
+                // deformation do not expose the moving layer's rectangular edge.
+                .scaleEffect(artworkOverscanScale)
+                .scaleEffect(x: state.scaleX, y: state.scaleY)
+                .offset(x: state.offsetX, y: state.offsetY)
                 .overlay {
                     flashColor
                         .opacity(state.flashOpacity)
                         .allowsHitTesting(false)
                 }
         } keyframes: { _ in
-            KeyframeTrack(\.scale) {
-                SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
-                SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
+            KeyframeTrack(\.scaleX) {
+                SpringKeyframe(
+                    impactScaleX,
+                    duration: impactDuration,
+                    spring: .snappy(duration: impactDuration)
+                )
+                SpringKeyframe(
+                    recipe.scaleX[safe: 1]?.value ?? 1.0,
+                    duration: recoveryDuration,
+                    spring: .bouncy(duration: recoveryDuration)
+                )
+            }
+            KeyframeTrack(\.scaleY) {
+                SpringKeyframe(
+                    impactScaleY,
+                    duration: impactDuration,
+                    spring: .snappy(duration: impactDuration)
+                )
+                SpringKeyframe(
+                    recipe.scaleY[safe: 1]?.value ?? 1.0,
+                    duration: recoveryDuration,
+                    spring: .bouncy(duration: recoveryDuration)
+                )
             }
             KeyframeTrack(\.offsetX) {
-                SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
-                SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
+                SpringKeyframe(
+                    impactOffset.width,
+                    duration: impactDuration,
+                    spring: .snappy(duration: impactDuration)
+                )
+                SpringKeyframe(
+                    recipe.offsetX[safe: 1]?.value ?? 0,
+                    duration: recoveryDuration,
+                    spring: .bouncy(duration: recoveryDuration)
+                )
+            }
+            KeyframeTrack(\.offsetY) {
+                SpringKeyframe(
+                    impactOffset.height,
+                    duration: impactDuration,
+                    spring: .snappy(duration: impactDuration)
+                )
+                SpringKeyframe(
+                    recipe.offsetY[safe: 1]?.value ?? 0,
+                    duration: recoveryDuration,
+                    spring: .bouncy(duration: recoveryDuration)
+                )
             }
             KeyframeTrack(\.flashOpacity) {
                 CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
@@ -155,7 +218,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
         .trinketSensoryFeedback(
             reactionFeedback(for: reaction?.kind),
             trigger: reaction?.id ?? latestReactionID,
@@ -166,6 +228,17 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 latestReactionID = reactionID
             }
         }
+    }
+
+    private func impactOffset(
+        for kind: CombatantHitReactionKind,
+        magnitude: CGFloat,
+        defaultOffset: CGSize
+    ) -> CGSize {
+        guard kind == .damage || kind == .critical else {
+            return defaultOffset
+        }
+        return CGSize(width: 0, height: -magnitude)
     }
 
     private func reactionFeedback(for kind: CombatantHitReactionKind?) -> SensoryFeedback {
@@ -232,8 +305,10 @@ private struct CombatantSkillCalloutLane: View {
 }
 
 private struct CardReactionAnimationState {
-    var scale = 1.0
+    var scaleX = 1.0
+    var scaleY = 1.0
     var offsetX = 0.0
+    var offsetY = 0.0
     var flashOpacity = 0.0
 }
 

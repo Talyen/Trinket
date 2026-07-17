@@ -52,7 +52,7 @@ struct InventoryGridView: View {
                             } label: {
                                 ItemCard(
                                     item: item,
-                                    showsAffixCount: true,
+                                    showsAffixCount: false,
                                     artworkBlend: .perimeter(into: .surface)
                                 )
                             }

@@ -154,12 +154,13 @@ public extension View {
     /// Selection stroke for 3:4 artwork picker tiles (loadout / party grids).
     func trinketArtworkPickerSelectionBorder(
         isSelected: Bool,
-        color: Color = TrinketDesign.Colors.selection
+        color: Color = TrinketDesign.Colors.selection,
+        lineWidth: CGFloat = 3
     ) -> some View {
         overlay {
             TrinketDesign.cardShape.strokeBorder(
                 isSelected ? color : .clear,
-                lineWidth: isSelected ? 3 : 0
+                lineWidth: isSelected ? lineWidth : 0
             )
         }
     }

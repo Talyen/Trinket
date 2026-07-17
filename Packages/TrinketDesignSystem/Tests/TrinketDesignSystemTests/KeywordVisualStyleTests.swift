@@ -14,4 +14,11 @@ struct KeywordVisualStyleTests {
             try #expect(!style.symbolName.isEmpty, "\(keyword.rawValue)) should have a symbol name")
         }
     }
+
+    @Test func genericCombatStatusesUseEstablishedSemanticStyles() {
+        #expect(Keyword.VisualStyle.beneficialStatus.symbolName == "arrowshape.up.fill")
+        #expect(Keyword.VisualStyle.beneficialStatus.color == TrinketDesign.Colors.success)
+        #expect(Keyword.VisualStyle.negativeStatus.symbolName == "arrowshape.down.fill")
+        #expect(Keyword.VisualStyle.negativeStatus.color == TrinketDesign.Colors.destructive)
+    }
 }

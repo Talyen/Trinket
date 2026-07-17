@@ -15,11 +15,9 @@ struct VisualFoundationTests {
         try #expect(TypographyRole.footnote.font != TypographyRole.caption.font)
     }
 
-    @Test func artworkBlendRecipesPreserveAProtectedCenter() throws {
-        try #expect(ArtworkBlendRecipe.perimeterShoulderLocation < ArtworkBlendRecipe.perimeterInnerLocation)
-        try #expect(ArtworkBlendRecipe.perimeterInnerLocation < 0.5)
-        try #expect(ArtworkBlendRecipe.bottomClearLocation < ArtworkBlendRecipe.bottomShoulderLocation)
-        try #expect(ArtworkBlendRecipe.bottomShoulderLocation < ArtworkBlendRecipe.bottomNearEdgeLocation)
-        try #expect(ArtworkBlendRecipe.bottomNearEdgeLocation < 1)
+    @Test func artworkBlendRecipePreservesAProtectedCenter() throws {
+        try #expect(ArtworkBlendRecipe.shoulderInset < ArtworkBlendRecipe.clearInset)
+        try #expect(ArtworkBlendRecipe.clearInset < 0.5)
+        try #expect(ArtworkBlendRecipe.shoulderOpacity < ArtworkBlendRecipe.edgeOpacity)
     }
 }

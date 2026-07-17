@@ -95,6 +95,14 @@ public extension Keyword {
             color: DesignAssetColors.named("KeywordDeathsDoor"),
             symbolName: "heart.slash.fill"
         )
+        public static let beneficialStatus = VisualStyle(
+            color: ThemePalette.trinket.success,
+            symbolName: "arrowshape.up.fill"
+        )
+        public static let negativeStatus = VisualStyle(
+            color: ThemePalette.trinket.destructive,
+            symbolName: "arrowshape.down.fill"
+        )
     }
 
     var visualStyle: VisualStyle {

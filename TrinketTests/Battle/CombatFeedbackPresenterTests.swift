@@ -46,7 +46,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(statusItems.count == 1)
-        #expect(statusItems[0].text == "-3")
+        #expect(statusItems[0].text == "3")
         #expect(statusItems[0].sourceEventIDs == [1, 2])
 
         let abilityItems = CombatFeedbackPresenter.makeItems(
@@ -57,7 +57,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(abilityItems.count == 1)
-        #expect(abilityItems[0].text == "-6")
+        #expect(abilityItems[0].text == "6")
     }
 
     @Test func consolidatesMatchingShieldEffects() {
@@ -81,7 +81,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(shields.count == 1)
-        #expect(shields[0].text == "+5")
+        #expect(shields[0].text == "5")
     }
 
     @Test func keepsCriticalDamageSeparateFromNoncriticalDamageAndMarkedConsume() {
@@ -209,7 +209,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(acrossKinds.count == 2)
-        #expect(acrossKinds.map(\.text) == ["+2", "+3"])
+        #expect(acrossKinds.map(\.text) == ["2", "3"])
 
         let directAndStatus = CombatFeedbackPresenter.makeItems(
             from: [
@@ -252,11 +252,11 @@ struct CombatFeedbackPresenterTests {
             ],
             at: .now
         )
-        #expect(items.count == 5)
+        #expect(items.count == 4)
         #expect(items[0].feedbackClass == .directDamage)
         #expect(items[0].presentationIndex == 0)
-        #expect(items.allSatisfy { $0.groupResultCount == 5 })
-        #expect(items.map(\.presentationIndex) == [0, 1, 2, 3, 4])
+        #expect(items.allSatisfy { $0.groupResultCount == 4 })
+        #expect(items.map(\.presentationIndex) == [0, 1, 2, 3])
     }
 
     @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
@@ -322,7 +322,9 @@ struct CombatFeedbackPresenterTests {
         keyword: Keyword,
         targetID: String = "enemy",
         isCritical: Bool = false,
-        actionID: Int? = nil
+        actionID: Int? = nil,
+        abilityID: String = "slash",
+        abilityName: String = "Slash"
     ) -> ActionEvent {
         ActionEvent(
             id: id,
@@ -331,8 +333,8 @@ struct CombatFeedbackPresenterTests {
             effectKind: effectKind,
             actorID: "hero",
             actorName: "Hero",
-            abilityID: "slash",
-            abilityName: "Slash",
+            abilityID: abilityID,
+            abilityName: abilityName,
             targetID: targetID,
             targetName: targetID.capitalized,
             amount: amount,
@@ -410,13 +412,105 @@ extension CombatFeedbackPresenterTests {
         #expect(CombatFeedbackChipLabel.fromDisplayText("-12") == .amount(-12))
         #expect(CombatFeedbackChipLabel.fromDisplayText("+8") == .amount(8))
         #expect(CombatFeedbackChipLabel.fromDisplayText("+25%") == .percent(25))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("-12")?.displayString == "12")
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+8")?.displayString == "8")
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+25%")?.displayString == "25%")
         #expect(CombatFeedbackChipLabel.fromDisplayText("Dodge") == .word(.dodge))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Critical") == .word(.critical))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!") == .word(.triggered(.stun)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("+Block") == .word(.applied(.block)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("+Block")?.displayString == "Block")
         #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding") == .word(.cleanse(.bleed)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Purge Block") == .word(.purge(.block)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Armor") == .word(.halve(.armor)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door") == .word(.plain(.deathsDoor)))
+    }
+
+    @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .physical),
+                makeEvent(id: 2, kind: .effect, effectKind: .controlApplied, amount: 4, keyword: .stun),
+                makeEvent(id: 3, kind: .effect, effectKind: .shieldApplied, amount: 0, keyword: .block),
+                makeEvent(id: 4, kind: .effect, effectKind: .nextHolyStrikeApplied, amount: 0, keyword: .holy)
+            ],
+            at: .now
+        )
+
+        #expect(items.count == 1)
+        #expect(items[0].text == "Next Holy Strike")
+        #expect(items[0].visualRole == .beneficialStatus)
+    }
+
+    @Test @MainActor func routesResourceAndNamedStatusVisuals() throws {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
+                makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana),
+                makeEvent(id: 3, kind: .effect, effectKind: .manaShieldTriggered, amount: 1, keyword: .mana),
+                makeEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .physical),
+                makeEvent(id: 5, kind: .effect, effectKind: .hasteApplied, amount: 2, keyword: .physical),
+                makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
+                makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
+                makeEvent(id: 8, kind: .effect, effectKind: .mitigationHalved, amount: 0, keyword: .armor)
+            ],
+            at: .now
+        )
+
+        let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+        #expect(try #require(byID[1]).feedbackVisualStyle.symbolName == "circle.circle.fill")
+        #expect(try #require(byID[2]).feedbackVisualStyle.symbolName == "moon.stars.fill")
+        #expect(try #require(byID[3]).feedbackVisualStyle.symbolName == "moon.stars.fill")
+        #expect(try #require(byID[4]).text == "Thorns")
+        #expect(try #require(byID[5]).text == "Hasted")
+        #expect(try #require(byID[6]).text == "Critical Up")
+        #expect(try #require(byID[7]).text == "Marked")
+        #expect(try #require(byID[7]).feedbackVisualStyle.symbolName == "arrowshape.down.fill")
+        #expect(try #require(byID[8]).text == "Armor Down")
+        #expect(try #require(byID[8]).feedbackVisualStyle.symbolName == "arrowshape.down.fill")
+        #expect(try #require(byID[4]).feedbackVisualStyle.symbolName == "arrowshape.up.fill")
+    }
+
+    @Test func avatarOfJusticeConsolidatesItsEffectChips() {
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(
+                    id: 10,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 5,
+                    keyword: .block,
+                    actionID: 99,
+                    abilityID: "avatar-of-justice",
+                    abilityName: "Avatar of Justice"
+                ),
+                makeEvent(
+                    id: 11,
+                    kind: .effect,
+                    effectKind: .mitigationApplied,
+                    amount: 2,
+                    keyword: .armor,
+                    actionID: 99,
+                    abilityID: "avatar-of-justice",
+                    abilityName: "Avatar of Justice"
+                ),
+                makeEvent(
+                    id: 12,
+                    kind: .effect,
+                    effectKind: .damageKeywordOverrideApplied,
+                    amount: 3,
+                    keyword: .holy,
+                    actionID: 99,
+                    abilityID: "avatar-of-justice",
+                    abilityName: "Avatar of Justice"
+                )
+            ],
+            at: .now
+        )
+
+        #expect(items.count == 1)
+        #expect(items[0].text == "Avatar of Justice")
+        #expect(items[0].visualRole == .beneficialStatus)
+        #expect(items[0].sourceEventIDs == [10, 11, 12])
     }
 }

@@ -8,6 +8,7 @@ struct CombatFeedbackRasterKey: Hashable {
     let symbolName: String
     let label: CombatFeedbackChipLabel
     let dynamicTypeSize: DynamicTypeSize
+    let layoutDirection: LayoutDirection
     let displayScaleHundredths: Int
 }
 
@@ -64,11 +65,13 @@ final class CombatFeedbackRasterPool {
     func cachedRaster(
         for canvasItem: CombatFeedbackCanvasItem,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let key = makeKey(
             for: canvasItem,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
         guard let raster = rasters[key] else { return nil }
@@ -84,6 +87,7 @@ final class CombatFeedbackRasterPool {
     func prepare(
         for canvasItem: CombatFeedbackCanvasItem,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         useFrameBudget: Bool = false
     ) -> CombatFeedbackRaster? {
@@ -91,6 +95,7 @@ final class CombatFeedbackRasterPool {
         let key = makeKey(
             for: canvasItem,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: scale
         )
         if let raster = rasters[key] {
@@ -118,6 +123,7 @@ final class CombatFeedbackRasterPool {
             style: item.feedbackVisualStyle,
             feedbackClass: item.feedbackClass,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: scale
         ) else {
             return nil
@@ -139,11 +145,13 @@ final class CombatFeedbackRasterPool {
     func raster(
         for canvasItem: CombatFeedbackCanvasItem,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         prepare(
             for: canvasItem,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScale: displayScale
         )
     }
@@ -154,6 +162,7 @@ final class CombatFeedbackRasterPool {
     func prepareAll(
         for items: [CombatFeedbackItem],
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         useFrameBudget: Bool = false
     ) {
@@ -163,6 +172,7 @@ final class CombatFeedbackRasterPool {
                 _ = prepare(
                     for: canvasItem,
                     dynamicTypeSize: dynamicTypeSize,
+                    layoutDirection: layoutDirection,
                     displayScale: displayScale
                 )
             }
@@ -176,6 +186,7 @@ final class CombatFeedbackRasterPool {
                 if cachedRaster(
                     for: canvasItem,
                     dynamicTypeSize: dynamicTypeSize,
+                    layoutDirection: layoutDirection,
                     displayScale: displayScale
                 ) != nil {
                     continue
@@ -185,6 +196,7 @@ final class CombatFeedbackRasterPool {
                 _ = prepare(
                     for: canvasItem,
                     dynamicTypeSize: dynamicTypeSize,
+                    layoutDirection: layoutDirection,
                     displayScale: displayScale
                 )
             }
@@ -264,6 +276,7 @@ final class CombatFeedbackRasterPool {
     private func makeKey(
         for canvasItem: CombatFeedbackCanvasItem,
         dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection,
         displayScale: CGFloat
     ) -> CombatFeedbackRasterKey {
         let item = canvasItem.item
@@ -274,6 +287,7 @@ final class CombatFeedbackRasterPool {
             symbolName: style.symbolName,
             label: canvasItem.label,
             dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
             displayScaleHundredths: Int((scale * 100).rounded())
         )
     }
