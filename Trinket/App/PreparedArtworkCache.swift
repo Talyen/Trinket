@@ -3,8 +3,7 @@ import SwiftUI
 import TrinketContent
 import UIKit
 
-/// Ordered launch warmup buckets: priority assets decode first, followed by the
-/// remainder of the catalog before interactive content is presented.
+/// Ordered launch warmup buckets: priority assets unblock UI; deferred assets fill the cache.
 struct LaunchArtworkWarmupPlan: Equatable {
     let priorityNames: [String]
     let deferredNames: [String]
@@ -20,9 +19,8 @@ struct LaunchArtworkWarmupPlan: Equatable {
     }
 }
 
-/// App-wide eager artwork preparation. The launch completion contract means the
-/// entire presentation catalog is decoded, so navigation and combat never inherit
-/// background preparation work from launch.
+/// App-wide artwork preparation. Priority assets decode first so interactive UI can
+/// appear; deferred catalog decode continues in the background without gating launch.
 @MainActor
 @Observable
 final class PreparedArtworkCache {
@@ -32,7 +30,7 @@ final class PreparedArtworkCache {
     private(set) var totalCount = 1
     private(set) var isLaunchWarmupComplete = false
 
-    /// True once the complete catalog decode has finished.
+    /// True once deferred catalog decode has finished (or there was nothing deferred).
     private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
@@ -92,8 +90,8 @@ final class PreparedArtworkCache {
         if isLaunchWarmupComplete {
             return
         }
-        if let launchWarmupTask {
-            await launchWarmupTask.value
+        if launchWarmupTask != nil {
+            await waitUntilLaunchWarmupComplete()
             return
         }
 
@@ -108,17 +106,27 @@ final class PreparedArtworkCache {
 
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
+            // Unblock interactive UI after the critical path; keep decoding the rest
+            // so later screens still hit the warm cache without stalling launch.
             await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
             guard !Task.isCancelled else { return }
+            isLaunchWarmupComplete = true
             await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
             guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
-            isLaunchWarmupComplete = true
             completedCount = totalCount
             launchWarmupTask = nil
         }
         launchWarmupTask = task
-        await task.value
+        await waitUntilLaunchWarmupComplete()
+    }
+
+    private func waitUntilLaunchWarmupComplete() async {
+        while !isLaunchWarmupComplete {
+            guard !Task.isCancelled else { return }
+            await Task.yield()
+            try? await Task.sleep(for: .milliseconds(5))
+        }
     }
 
     private func decode(
