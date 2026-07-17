@@ -52,6 +52,8 @@ struct BattleLootTests {
         let second = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
         #expect(first == second)
         #expect(first.item.rarity == .basic)
+        #expect(first.item.displayName == "Leather Armor")
+        #expect(first.item.templateID == "leather_armor-basic")
     }
 
     @Test func bossJourneyLootIsAstral() throws {

@@ -91,7 +91,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.continueButton)
         assertButtonExists(AccessibilityID.Battle.rewardItem(rewardItemID))
         assertExists(app.staticTexts["BASIC"])
-        assertExists(app.staticTexts["Shortsword"])
+        assertExists(app.staticTexts["Leather Armor"])
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
         dismissSheet()
