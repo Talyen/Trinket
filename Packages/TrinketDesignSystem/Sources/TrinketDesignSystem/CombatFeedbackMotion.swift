@@ -180,6 +180,38 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
     }
 }
 
+/// Vertical recoil direction for damage/critical portrait hit reactions.
+/// Enemy cards kick up; party cards (hero/pet) kick down toward the hand edge.
+public enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatable {
+    case up
+    case down
+
+    /// Impact translation for damage/critical hits. Non-impact kinds use recipe offsets.
+    public func impactOffset(magnitude: CGFloat) -> CGSize {
+        switch self {
+        case .up:
+            CGSize(width: 0, height: -magnitude)
+        case .down:
+            CGSize(width: 0, height: magnitude)
+        }
+    }
+
+    /// Impact scale axes for damage/critical squash.
+    /// `.up` swaps recipe axes (horizontal compress / vertical stretch).
+    /// `.down` keeps recipe axes (vertical compress / horizontal stretch).
+    public func impactScales(
+        scaleX: Double,
+        scaleY: Double
+    ) -> (x: Double, y: Double) {
+        switch self {
+        case .up:
+            (scaleY, scaleX)
+        case .down:
+            (scaleX, scaleY)
+        }
+    }
+}
+
 /// Deterministic layout helpers for chip scatter / stacking.
 public enum CombatFeedbackLayout: Sendable {
     /// Stable pseudo-random in `0...1` from a positive integer seed.

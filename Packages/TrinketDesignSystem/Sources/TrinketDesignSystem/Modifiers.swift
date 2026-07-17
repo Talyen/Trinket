@@ -22,7 +22,7 @@ struct LockedCardEffectModifier: ViewModifier {
     let cornerRadius: CGFloat
 
     @ScaledMetric(relativeTo: .body)
-    private var lockIconSize: CGFloat = 25.5
+    private var lockIconSize: CGFloat = 34
 
     private static let lockedBlurRadius: CGFloat = 1
     private static let lockedSaturation: Double = 0.35
@@ -62,10 +62,16 @@ struct LockedCardEffectModifier: ViewModifier {
     }
 
     private var lockBadgeOverlay: some View {
-        Image(systemName: "lock.fill")
+        let ink = TrinketDesign.Colors.Overlay.ink
+        return Image(systemName: "lock.fill")
             .font(.system(size: lockIconSize))
-            .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(.secondary)
+            .symbolRenderingMode(.monochrome)
+            .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
+            .shadow(color: ink.opacity(0.95), radius: 0, x: 0, y: 1)
+            .shadow(color: ink.opacity(0.9), radius: 0, x: 0, y: -1)
+            .shadow(color: ink.opacity(0.9), radius: 0, x: 1, y: 0)
+            .shadow(color: ink.opacity(0.9), radius: 0, x: -1, y: 0)
+            .shadow(color: ink.opacity(0.55), radius: 3, x: 0, y: 1.5)
     }
 }
 

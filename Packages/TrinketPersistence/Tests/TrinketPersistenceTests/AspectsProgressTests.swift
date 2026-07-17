@@ -55,19 +55,23 @@ struct AspectsProgressTests {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "bear" })
         let goldBefore = save.roster.gold
+        let loot = AspectCompletion.resolveLoot(for: floor)
 
         AspectCompletion.complete(
             floor: floor,
             hero: hero,
             companion: companion,
             battleEarnedGold: 3,
+            loot: loot,
             save: &save
         )
 
-        #expect(save.roster.gold == goldBefore + floor.rewards.gold + 3)
+        #expect(save.roster.gold == goldBefore + loot.gold + 3)
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
         #expect(save.aspects.isFloorStartable(2, aspectID: AspectID.ironVein.rawValue))
         #expect(!save.aspects.isFloorStartable(1, aspectID: AspectID.ironVein.rawValue))
+        #expect(loot.materials.count == 2)
+        #expect(loot.item.rarity == .basic)
     }
 
     @Test func aspectCompletionFallbackItemIsDeterministic() throws {
@@ -121,7 +125,7 @@ struct AspectsProgressTests {
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
     }
 
-    @Test func wardenCompletionGrantsBiasedItem() throws {
+    @Test func bossFloorCompletionGrantsAstralItem() throws {
         var save = PlayerSave.fresh
         for floorIndex in 1 ... 9 {
             let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: floorIndex))
@@ -130,23 +134,23 @@ struct AspectsProgressTests {
             AspectCompletion.complete(floor: floor, hero: hero, companion: companion, save: &save)
         }
 
-        let warden = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 10))
+        let bossFloor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 10))
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "bear" })
         let countBefore = save.inventory.items.count
+        let loot = AspectCompletion.resolveLoot(for: bossFloor)
 
-        var rng = SeededRandomNumberGenerator(seed: 7)
-        let item = try #require(AspectCompletion.makeAspectFloorItem(for: warden, using: &rng))
         AspectCompletion.complete(
-            floor: warden,
+            floor: bossFloor,
             hero: hero,
             companion: companion,
-            rewardItem: item,
+            loot: loot,
             save: &save
         )
 
         #expect(save.inventory.items.count == countBefore + 1)
-        #expect(item.baseType.keywordAffinities.contains(.physical))
+        #expect(loot.item.rarity == .astral)
+        #expect(loot.item.baseType.keywordAffinities.contains(.physical))
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 10)
     }
 
@@ -178,10 +182,12 @@ struct AspectsProgressTests {
         }
     }
 
-    @Test func materialBiasMatchesAspectKeyword() throws {
+    @Test func aspectLootAlwaysIncludesTwoMaterials() throws {
         let burnFloor = try #require(GameContent.aspectFloor(aspectID: .cinderSpire, floor: 3))
-        #expect(burnFloor.rewards.materialRewards.contains { $0.resource == .wood })
+        let burnLoot = AspectCompletion.resolveLoot(for: burnFloor)
+        #expect(burnLoot.materials.count == 2)
         let natureFloor = try #require(GameContent.aspectFloor(aspectID: .wildrootGrove, floor: 3))
-        #expect(natureFloor.rewards.materialRewards.contains { $0.resource == .herbs })
+        let natureLoot = AspectCompletion.resolveLoot(for: natureFloor)
+        #expect(natureLoot.materials.count == 2)
     }
 }

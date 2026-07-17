@@ -1,11 +1,9 @@
 # kind	id	asset_name	source_path	focal_x	focal_y
-combatant	alchemist	hero_alchemist_card	Raw Assets/Heroes/Alchemist.jpeg	0.50	0.50
-combatant	druid	hero_druid_card	Raw Assets/Heroes/Druid.jpeg	0.50	0.50
-combatant	knight	hero_knight_card	Raw Assets/Heroes/Knight.png	0.50	0.50
+combatant	knight	hero_knight_card	Raw Assets/Heroes/Knight.jpeg	0.50	0.50
 combatant	ranger	hero_ranger_card	Raw Assets/Heroes/Ranger.jpeg	0.50	0.50
-combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.png	0.50	0.34
+combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.jpeg	0.50	0.34
 combatant	warlock	hero_warlock_card	Raw Assets/Heroes/Warlock.jpeg	0.50	0.50
-combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.png	0.50	0.50
+combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.jpeg	0.50	0.50
 combatant	wolf	companion_wolf_card	Raw Assets/Companions/Wolf.jpeg	0.50	0.36
 combatant	bear	companion_bear_card	Raw Assets/Companions/Bear.jpeg	0.50	0.50
 combatant	frost_whelp	companion_frost_whelp_card	Raw Assets/Companions/Frost Whelp.jpeg	0.50	0.50
@@ -164,10 +162,10 @@ combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elementa
 combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpg	0.50	0.50
 combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpg	0.50	0.50
 combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50
-combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpg	0.50	0.50
-combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpg	0.50	0.50
-combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpg	0.50	0.50
-combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpg	0.50	0.50
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.50	0.50
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.50	0.50
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpeg	0.50	0.50
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpeg	0.50	0.50
 combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50
 combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50
 combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50
@@ -175,7 +173,9 @@ combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50
 combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50
 combatant	pixie	companion_pixie_card	Raw Assets/Companions/Pixie.jpeg	0.50	0.50
 combatant	shield_scarab	companion_shield_scarab_card	Raw Assets/Companions/Shield Scarab.jpeg	0.50	0.50
-background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50
+background	chapter-1	bg_forest	Raw Assets/Chapter Backgrounds/Forest.jpeg	0.50	0.50
+background	chapter-2	bg_dungeon	Raw Assets/Chapter Backgrounds/Dungeon.jpeg	0.50	0.50
+background	chapter-3	bg_desert	Raw Assets/Chapter Backgrounds/Desert.jpeg	0.50	0.50
 background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.png	0.50	0.50
 background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.png	0.50	0.50
 background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.png	0.50	0.50

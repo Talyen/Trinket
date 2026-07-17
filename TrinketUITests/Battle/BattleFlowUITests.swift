@@ -12,8 +12,8 @@ final class BattleFlowUITests: TrinketUITestCase {
             throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
         }
 
-        // Ranger is the card we open; Wolf may already be downed / off-layout mid-fight.
-        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Ranger"))
+        // Knight is the card we open; Wolf may already be downed / off-layout mid-fight.
+        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
 
         // Turn-based chrome: hand should be present mid-battle.
         battle.assertActive()
@@ -36,7 +36,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         battle.assertPresented()
         battle.assertActive()
-        battle.openCombatantCard(named: "Ranger")
+        battle.openCombatantCard(named: "Knight")
         assertCombatantDetailSections()
         dismissSheet()
     }
@@ -55,13 +55,13 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.assertActive()
         assertExists(battle.hand)
 
-        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
+        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
         assertExists(hero)
 
         battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
 
-        let detailHeader = combatantDetail.header(for: "Ranger")
+        let detailHeader = combatantDetail.header(for: "Knight")
         XCTAssertFalse(
             detailHeader.waitForExistence(timeout: 1),
             "Releasing a hand-card drag on a combatant must not open details"
@@ -71,8 +71,8 @@ final class BattleFlowUITests: TrinketUITestCase {
             throw XCTSkip("Battle resolved during hand-drag assertions; covered by victory test")
         }
 
-        battle.openCombatantCard(named: "Ranger")
-        combatantDetail.assertLoaded(for: "Ranger")
+        battle.openCombatantCard(named: "Knight")
+        combatantDetail.assertLoaded(for: "Knight")
     }
 
     /// Victory remains focused on Battle; Combat Log is available from Battle Actions.
@@ -87,7 +87,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         assertExists(AccessibilityID.Battle.rewards)
         assertExists(AccessibilityID.Battle.experience)
-        let rewardItemID = "chapter-1-stage-1-shortsword-basic"
+        let rewardItemID = "chapter-1-stage-1-loot"
         assertButtonExists(AccessibilityID.Battle.continueButton)
         assertButtonExists(AccessibilityID.Battle.rewardItem(rewardItemID))
         assertExists(app.staticTexts["BASIC"])

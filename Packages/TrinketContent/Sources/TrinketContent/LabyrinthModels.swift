@@ -60,7 +60,7 @@ public struct LabyrinthBiomeDefinition: Identifiable, Hashable, Sendable {
     public let epithet: String
     public let keywordBias: Keyword
     public let enemyPool: [String]
-    public let wardenEnemyID: String
+    public let bossEnemyID: String
 
     public init(
         id: LabyrinthBiomeID,
@@ -68,14 +68,14 @@ public struct LabyrinthBiomeDefinition: Identifiable, Hashable, Sendable {
         epithet: String,
         keywordBias: Keyword,
         enemyPool: [String],
-        wardenEnemyID: String
+        bossEnemyID: String
     ) {
         self.id = id
         self.title = title
         self.epithet = epithet
         self.keywordBias = keywordBias
         self.enemyPool = enemyPool
-        self.wardenEnemyID = wardenEnemyID
+        self.bossEnemyID = bossEnemyID
     }
 }
 
@@ -122,7 +122,7 @@ public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
 
 public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable {
     case battle
-    case warden
+    case boss
     case shop
     case rest
     case mystery
@@ -143,6 +143,11 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             self = .battle
             return
         }
+        // Legacy saves encoded boss nodes as "warden".
+        if rawValue == "warden" {
+            self = .boss
+            return
+        }
         guard let value = Self(rawValue: rawValue) else {
             throw DecodingError.dataCorruptedError(
                 in: container,
@@ -155,7 +160,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     public var title: String {
         switch canonical {
         case .battle: "Battle"
-        case .warden: "Warden"
+        case .boss: "Boss"
         case .shop: "Merchant's Shop"
         case .rest: "Shrine"
         case .mystery, .event: "Mystery"
@@ -167,7 +172,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     public var symbolName: String {
         switch canonical {
         case .battle: "bolt.fill"
-        case .warden: "crown.fill"
+        case .boss: "crown.fill"
         case .shop: "bag.fill"
         case .rest: "tent.fill"
         case .mystery, .event: "sparkles"
@@ -178,7 +183,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
 
     public var primaryActionTitle: String {
         switch canonical {
-        case .battle, .warden, .gate:
+        case .battle, .boss, .gate:
             "Fight"
         case .shop:
             "Visit"
@@ -193,7 +198,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
 
     public var isCombat: Bool {
         switch canonical {
-        case .battle, .warden, .gate:
+        case .battle, .boss, .gate:
             true
         case .shop, .rest, .mystery, .event, .craft:
             false

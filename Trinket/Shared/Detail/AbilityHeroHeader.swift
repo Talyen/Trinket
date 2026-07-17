@@ -100,7 +100,7 @@ struct AbilityDetailView: View {
                 sectionID: AccessibilityID.Battle.abilityDetailEffect
             ) {
                 KeywordDescriptionText(text: ability.summary)
-                    .trinketTypography(.secondaryBody)
+                    .trinketTypography(.body)
                     .foregroundStyle(.secondary)
             }
         }

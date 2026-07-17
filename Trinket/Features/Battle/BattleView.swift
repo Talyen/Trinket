@@ -348,6 +348,7 @@ private struct BattleCombatantProjectionPane: View {
                 maxMana: snapshot.maxMana,
                 hapticsEnabled: hapticsEnabled,
                 cinematicNamespace: cinematicNamespace,
+                recoilDirection: role == .enemy ? .up : .down,
                 onCombatantTap: { onCombatantTap(snapshot.combatant) }
             )
         }

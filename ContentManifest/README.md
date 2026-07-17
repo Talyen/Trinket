@@ -65,14 +65,13 @@ When unsure, start with `abilities.tsv`; move to the tier Swift files only when 
 Tab-separated columns:
 
 ```text
-chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	item_templates	materials	encounter_art_id	encounter_art_title
+chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	encounter_art_id	encounter_art_title
 ```
 
 - `theme`: chapter theme enum case (e.g. `verdantForest`).
 - `encounter`: `battle`, `event`, `shop`, `rest`, or `mystery`.
 - `enemy_id`: required for `battle` (enemy catalog id) and `mystery` (mystery event id); empty otherwise.
-- `item_templates`: comma-separated item template IDs.
-- `materials`: pipe-separated `resource:amount` tokens (e.g. `wood:8|stone:3`).
+- Combat rewards (item / gold / materials) are resolved at runtime by `BattleLoot`, not authored here.
 - `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
 
 ### Item bases (`ContentManifest/item_bases.tsv`)
@@ -93,25 +92,27 @@ Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand
 Tab-separated columns:
 
 ```text
-id	name	role	max_health	max_mana	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
+id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom	trait_id
 ```
 
 - `role`: `hero` or `companion`.
 - `max_mana`: `0` when unused.
 - `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
 - Stats are non-negative integers.
+- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50**.
 
 ### Enemies (`ContentManifest/enemies.tsv`)
 
 Tab-separated columns:
 
 ```text
-id	name	max_health	is_boss	level	abilities	strength	agility	toughness	intellect	wisdom
+id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	positive_trait_id	negative_trait_id
 ```
 
 - `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
 - `is_boss`: `true` or `false`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
+- Primary-stat budget: non-boss enemies sum to **50**; bosses sum to **100** (2× baseline).
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 

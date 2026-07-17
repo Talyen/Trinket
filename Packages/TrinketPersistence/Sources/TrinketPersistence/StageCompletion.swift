@@ -73,9 +73,10 @@ public enum StageCompletion {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         in chapters: [Chapter],
-        save: inout PlayerSave,
-        resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
+        save: inout PlayerSave
     ) {
         claimRewardsIfNeeded(
             for: stage,
@@ -83,9 +84,10 @@ public enum StageCompletion {
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
+            rewardItem: rewardItem,
+            loot: loot,
             enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
-            save: &save,
-            resolveTemplate: resolveTemplate
+            save: &save
         )
         if !save.journey.isCompleted(stage) {
             save.journey.complete(stage, in: chapters)
@@ -98,9 +100,10 @@ public enum StageCompletion {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         enemyEncounterLevel: Int? = nil,
-        save: inout PlayerSave,
-        resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
+        save: inout PlayerSave
     ) {
         // Stage rewards claim once. Mid-battle gold still banks on claimed-stage
         // replays / auto-complete so resourceGain loot is not silently dropped.
@@ -119,10 +122,29 @@ public enum StageCompletion {
 
         let encounterLevel = enemyEncounterLevel
             ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
+        let enemyIsBoss: Bool = {
+            guard let enemyID = stage.encounter.battleEnemyID else { return false }
+            return GameContent.enemy(matching: enemyID)?.isBoss == true
+        }()
 
+        let resolvedLoot: BattleLootPackage? = {
+            if let loot {
+                return loot
+            }
+            guard case .battle = stage.encounter else {
+                return nil
+            }
+            return BattleLoot.resolveJourney(
+                stage: stage,
+                encounterLevel: encounterLevel,
+                enemyIsBoss: enemyIsBoss
+            )
+        }()
+
+        let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
         save.roster.grantGold(
             resolvedGoldReward(
-                stageGold: stage.rewards.gold,
+                stageGold: stageGold,
                 battleEarnedGold: battleEarnedGold,
                 homestead: save.homestead
             )
@@ -131,15 +153,21 @@ public enum StageCompletion {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
             grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
         }
-        let resolvedMaterialRewards = resolvedMaterialRewards(
-            stageReward: stage.rewards,
-            override: materialRewards
-        )
-        save.homestead.grant(resolvedMaterialRewards)
 
-        for templateID in stage.rewards.itemTemplateIDs {
-            guard let template = resolveTemplate(templateID) else { continue }
-            save.inventory.addRewardItem(from: template, for: stage)
+        let resolvedMaterials = materialRewards
+            ?? resolvedLoot?.materials
+            ?? resolvedMaterialRewards(stageReward: stage.rewards)
+        save.homestead.grant(resolvedMaterials)
+
+        if let rewardItem {
+            save.inventory.appendUniqueItem(rewardItem)
+        } else if let resolvedLoot {
+            save.inventory.appendUniqueItem(resolvedLoot.item)
+        } else {
+            for templateID in stage.rewards.itemTemplateIDs {
+                guard let template = GameContent.itemTemplate(matching: templateID) else { continue }
+                save.inventory.addRewardItem(from: template, for: stage)
+            }
         }
 
         save.journey.markRewardsClaimed(for: stage)
@@ -154,30 +182,12 @@ public enum StageCompletion {
         companion: Combatant,
         in chapters: [Chapter] = GameContent.chapters
     ) -> Bool {
-        for templateID in stage.rewards.itemTemplateIDs {
-            let itemID = "\(stage.id)-\(templateID)"
-            if save.inventory.item(matching: itemID) == nil {
-                return false
-            }
-        }
-
-        let expectedMinGold = baseline.roster.gold + stage.rewards.gold
-        if save.roster.gold < expectedMinGold {
+        guard currencyAndItemsReflected(for: stage, baseline: baseline, in: save, chapters: chapters) else {
             return false
         }
-
-        for reward in stage.rewards.materialRewards where reward.resource != .gold && reward.quantity > 0 {
-            let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
-            let expectedQuantity = min(
-                baselineQuantity + reward.quantity,
-                PlayerHomesteadState.maxMaterialBalance
-            )
-            if save.homestead.resources[reward.resource, default: 0] < expectedQuantity {
-                return false
-            }
+        guard case .battle = stage.encounter else {
+            return true
         }
-
-        guard case .battle = stage.encounter else { return true }
 
         let encounterLevel = resolvedEncounterLevel(for: stage, in: chapters)
         let heroAward = battleExperienceAward(
@@ -185,11 +195,11 @@ public enum StageCompletion {
             enemyLevel: encounterLevel,
             highestLevel: baseline.roster.highestHeroLevel
         )
-        if !experienceAwardReflected(
+        guard experienceAwardReflected(
             baseline: baseline.roster.progression(for: hero),
             current: save.roster.progression(for: hero),
             award: heroAward
-        ) {
+        ) else {
             return false
         }
 
@@ -203,6 +213,70 @@ public enum StageCompletion {
             current: save.roster.progression(for: companion),
             award: companionAward
         )
+    }
+
+    private static func currencyAndItemsReflected(
+        for stage: Stage,
+        baseline: PlayerSave,
+        in save: PlayerSave,
+        chapters: [Chapter]
+    ) -> Bool {
+        if case .battle = stage.encounter {
+            let encounterLevel = resolvedEncounterLevel(for: stage, in: chapters)
+            let enemyIsBoss = stage.encounter.battleEnemyID
+                .flatMap(GameContent.enemy(matching:))?.isBoss == true
+            let loot = BattleLoot.resolveJourney(
+                stage: stage,
+                encounterLevel: encounterLevel,
+                enemyIsBoss: enemyIsBoss
+            )
+            return packageReflected(loot, baseline: baseline, in: save)
+        }
+
+        for templateID in stage.rewards.itemTemplateIDs {
+            let itemID = "\(stage.id)-\(templateID)"
+            if save.inventory.item(matching: itemID) == nil {
+                return false
+            }
+        }
+        if save.roster.gold < baseline.roster.gold + stage.rewards.gold {
+            return false
+        }
+        for reward in stage.rewards.materialRewards where reward.resource != .gold && reward.quantity > 0 {
+            let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
+            let expectedQuantity = min(
+                baselineQuantity + reward.quantity,
+                PlayerHomesteadState.maxMaterialBalance
+            )
+            if save.homestead.resources[reward.resource, default: 0] < expectedQuantity {
+                return false
+            }
+        }
+        return true
+    }
+
+    private static func packageReflected(
+        _ loot: BattleLootPackage,
+        baseline: PlayerSave,
+        in save: PlayerSave
+    ) -> Bool {
+        if save.inventory.item(matching: loot.item.id) == nil {
+            return false
+        }
+        if save.roster.gold < baseline.roster.gold + loot.gold {
+            return false
+        }
+        for reward in loot.materials where reward.quantity > 0 {
+            let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
+            let expectedQuantity = min(
+                baselineQuantity + reward.quantity,
+                PlayerHomesteadState.maxMaterialBalance
+            )
+            if save.homestead.resources[reward.resource, default: 0] < expectedQuantity {
+                return false
+            }
+        }
+        return true
     }
 
     private static func experienceAwardReflected(

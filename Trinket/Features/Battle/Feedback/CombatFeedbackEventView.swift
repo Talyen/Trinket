@@ -115,24 +115,9 @@ enum CombatFeedbackMotionSampler {
 }
 
 extension CombatFeedbackItem {
+    /// Primary (trailing) visual style for the chip. Dual-icon chips expose the
+    /// subject keyword / role via `chipPresentation` instead.
     var feedbackVisualStyle: Keyword.VisualStyle {
-        switch visualRole {
-        case .beneficialStatus:
-            return .beneficialStatus
-        case .negativeStatus:
-            return .negativeStatus
-        case .keyword:
-            break
-        }
-
-        return switch feedbackClass {
-        case .heal: .health
-        case .resource: keyword == .mana ? .mana : .gold
-        case .block: .block
-        case .dodge: Keyword.dodge.visualStyle
-        case .control: keyword.visualStyle
-        case .deathsDoor: Keyword.deathsDoor.visualStyle
-        case .directDamage, .critical, .dot, .buff: keyword.visualStyle
-        }
+        chipPresentation.trailingTint
     }
 }

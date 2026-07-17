@@ -50,16 +50,6 @@ public struct EncounterArtReference: Hashable, Sendable {
 
 public enum ArtCatalog {
     public static let combatantArtByID: [String: CombatantArtReference] = [
-        "alchemist": CombatantArtReference(
-            imageName: "hero_alchemist_card",
-            thumbnailImageName: "hero_alchemist_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "druid": CombatantArtReference(
-            imageName: "hero_druid_card",
-            thumbnailImageName: "hero_druid_card_thumb",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
         "knight": CombatantArtReference(
             imageName: "hero_knight_card",
             thumbnailImageName: "hero_knight_card_thumb",
@@ -713,7 +703,15 @@ public enum ArtCatalog {
 
     public static let backgroundArtByID: [String: BackgroundArtReference] = [
         "chapter-1": BackgroundArtReference(
-            imageName: "bg_verdant_forest",
+            imageName: "bg_forest",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "chapter-2": BackgroundArtReference(
+            imageName: "bg_dungeon",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "chapter-3": BackgroundArtReference(
+            imageName: "bg_desert",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "homestead": BackgroundArtReference(

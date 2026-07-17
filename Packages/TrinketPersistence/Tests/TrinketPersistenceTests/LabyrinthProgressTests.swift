@@ -13,7 +13,7 @@ struct LabyrinthProgressTests {
         let nodeID = "labyrinth-test-warden-" + String(seed)
         save.labyrinth.nodes[nodeID] = LabyrinthNode(
             id: nodeID,
-            type: .warden,
+            type: .boss,
             enemyID: "the_frostwarden",
             depth: 3,
             clusterID: "labyrinth-test",
@@ -243,23 +243,24 @@ struct LabyrinthProgressTests {
         #expect(LabyrinthCompletion.adjustedExperienceAward(-5, xpPercent: 20) == 0)
     }
 
-    @Test func pendingCombatRewardItemMatchesCompletionGrantForWarden() throws {
+    @Test func pendingCombatRewardItemMatchesCompletionGrantForBoss() throws {
         var save = makeWardenSave(seed: 41)
-        let wardenID = "labyrinth-test-warden-41"
-        let warden = try #require(save.labyrinth.nodes[wardenID])
+        let bossID = "labyrinth-test-warden-41"
+        let boss = try #require(save.labyrinth.nodes[bossID])
 
-        let effects = save.labyrinth.effects(for: wardenID)
+        let effects = save.labyrinth.effects(for: bossID)
         let pending = try #require(
             LabyrinthCompletion.pendingCombatRewardItem(
-                for: warden,
+                for: boss,
                 effects: effects,
                 worldSeed: save.labyrinth.worldSeed
             )
         )
-        #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: wardenID))
+        #expect(pending.id == LabyrinthCompletion.rewardItemID(forNodeID: bossID))
+        #expect(pending.rarity == .astral)
 
         LabyrinthCompletion.complete(
-            nodeID: wardenID,
+            nodeID: bossID,
             hero: save.roster.activeHero,
             companion: save.roster.activeCompanion,
             rewardItem: pending,

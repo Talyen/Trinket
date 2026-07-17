@@ -47,8 +47,12 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
-        try #expect(physical.healthLost == 10)
-        try #expect(holy.healthLost == 13)
+        let armor = skeleton.combatant.primaryStats.armorEffectivenessBonus
+        try #expect(physical.healthLost == 10 - armor)
+        // Holy weakness (30%) applies before toughness armor.
+        let holyBeforeArmor = Int((10.0 * 1.3).rounded(.up))
+        try #expect(holy.healthLost == holyBeforeArmor - armor)
+        try #expect(holy.healthLost > physical.healthLost)
     }
 
     @Test func goblinNimbleDodgeAndScrawnyVulnerability() throws {
@@ -70,8 +74,11 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        try #expect(first.healthLost == 5)
-        try #expect(second.healthLost == 3)
+        let strengthBonus = mimic.combatant.primaryStats.statBonusForDamage(keyword: .physical)
+        let ambushBonus = mimic.modifiers.ambushBonusDamage
+        try #expect(ambushBonus > 0)
+        try #expect(first.healthLost == 2 + strengthBonus + ambushBonus)
+        try #expect(second.healthLost == 2 + strengthBonus)
     }
 
     @Test func livingArmorCannotBeHealed() throws {

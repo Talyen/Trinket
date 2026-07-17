@@ -20,10 +20,9 @@ struct AspectCatalogTests {
         for aspect in GameContent.aspects {
             for floor in GameContent.aspectFloors(for: aspect.id) {
                 try #expect(GameContent.enemy(matching: floor.enemyID) != nil, "Missing enemy \(floor.enemyID)")
-                try #expect(floor.rewards.gold > 0)
             }
-            let warden = try #require(GameContent.aspectFloor(aspectID: aspect.id, floor: aspect.floorCount))
-            try #expect(warden.isWarden)
+            let finalFloor = try #require(GameContent.aspectFloor(aspectID: aspect.id, floor: aspect.floorCount))
+            try #expect(GameContent.enemy(matching: finalFloor.enemyID)?.isBoss == true)
         }
     }
 

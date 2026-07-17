@@ -4,8 +4,23 @@ import TrinketCore
 
 public enum AspectCompletion {
     public static func enemyLevel(for floor: AspectFloor) -> Int {
-        // Mild climb curve independent of journey chapters.
-        max(1, floor.floor + (floor.isWarden ? 2 : 0))
+        let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
+        return max(1, floor.floor + (isBoss ? 2 : 0))
+    }
+
+    public static func resolveLoot(for floor: AspectFloor) -> BattleLootPackage {
+        let encounterLevel = enemyLevel(for: floor)
+        let enemyIsBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
+        let keywordBias: Set<Keyword> = {
+            guard let aspect = GameContent.aspect(id: floor.aspectID) else { return [] }
+            return [aspect.keyword]
+        }()
+        return BattleLoot.resolveAspect(
+            floor: floor,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            keywordBias: keywordBias
+        )
     }
 
     public static func complete(
@@ -15,6 +30,7 @@ public enum AspectCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         save: inout PlayerSave
     ) {
         let aspectID = floor.aspectID.rawValue
@@ -33,59 +49,32 @@ public enum AspectCompletion {
         }
 
         let encounterLevel = enemyLevel(for: floor)
+        let resolvedLoot = loot ?? resolveLoot(for: floor)
         save.roster.grantGold(
-            save.homestead.effects.adjustedGold(floor.rewards.gold + battleEarnedGold)
+            save.homestead.effects.adjustedGold(resolvedLoot.gold + battleEarnedGold)
         )
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
 
-        let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
-            stageReward: floor.rewards,
-            override: materialRewards
-        )
+        let resolvedMaterials = materialRewards ?? resolvedLoot.materials
         save.homestead.grant(resolvedMaterials)
 
         if let rewardItem {
             save.inventory.appendUniqueItem(rewardItem)
         } else {
-            // Deterministic fallback when battle did not pre-roll `rewardItem`
-            // (mirrors LabyrinthCompletion's seeded item grants).
-            var rng = SeededRandomNumberGenerator(
-                seed: GameContent.stableSeed(
-                    for: "aspect-item-\(floor.aspectID.rawValue)-\(floor.floor)"
-                )
-            )
-            if let generated = makeAspectFloorItem(for: floor, using: &rng) {
-                save.inventory.appendUniqueItem(generated)
-            }
+            save.inventory.appendUniqueItem(resolvedLoot.item)
         }
 
         save.aspects.markFloorCleared(floor.floor, aspectID: aspectID)
     }
 
-    /// Generates an Aspect-biased item for any cleared floor (affinity base + biased affixes).
+    /// Generates an Aspect floor item (same seed path as `resolveLoot`).
     public static func makeAspectFloorItem(
         for floor: AspectFloor,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
-        guard let aspect = GameContent.aspect(id: floor.aspectID) else { return nil }
-
-        let keywordBias: Set<Keyword> = [aspect.keyword]
-        let candidates = GameContent.itemBaseTypes.filter {
-            !$0.keywordAffinities.isDisjoint(with: keywordBias)
-        }
-        guard let baseType = candidates.randomElement(using: &randomNumberGenerator) else {
-            return nil
-        }
-
-        let itemID = "aspect-\(floor.aspectID.rawValue)-floor-\(floor.floor)-\(baseType.id)"
-        return ItemGenerator().generate(
-            id: itemID,
-            baseType: baseType,
-            rarity: .basic,
-            keywordBias: keywordBias,
-            using: &randomNumberGenerator
-        )
+        _ = randomNumberGenerator
+        return resolveLoot(for: floor).item
     }
 }
 

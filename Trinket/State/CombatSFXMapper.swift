@@ -83,11 +83,11 @@ enum CombatSFXMapper {
     }
 
     private static func buffFamilyClipID(for item: CombatFeedbackItem) -> String {
-        // Cleanse/purge are classified as `.buff` for chip motion; route by keyword/text.
-        if item.text.hasPrefix("Cleanse") {
+        // Cleanse/purge are classified as `.buff` for chip motion; route by label case.
+        if case .word(.cleanse) = item.label {
             return SFXID.heal
         }
-        if item.text.hasPrefix("Purge") {
+        if case .word(.purge) = item.label {
             return SFXID.purge
         }
         switch item.keyword {

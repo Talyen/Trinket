@@ -210,8 +210,8 @@ struct LabyrinthMapNodeCard: View {
                 }
             }
 
-            if type == .warden, reachable, !node.isCleared {
-                Text("Warden")
+            if type == .boss, reachable, !node.isCleared {
+                Text("Boss")
                     .trinketTypography(.badge)
                     .foregroundStyle(TrinketDesign.Colors.arcane)
             }

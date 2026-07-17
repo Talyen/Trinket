@@ -67,4 +67,15 @@ struct EnemyCatalogTests {
         try #expect(heroAverage > enemyAverage)
         try #expect(companionAverage > enemyAverage)
     }
+
+    @Test(arguments: GameContent.enemies)
+    func enemiesUsePrimaryStatBudget(enemy: Enemy) throws {
+        let stats = enemy.combatant.primaryStats
+        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+        let expected = enemy.isBoss ? 100 : 50
+        try #expect(
+            total == expected,
+            "\(enemy.name) primary stats should sum to \(expected), got \(total)"
+        )
+    }
 }

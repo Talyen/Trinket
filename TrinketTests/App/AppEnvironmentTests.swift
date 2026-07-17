@@ -55,7 +55,7 @@ struct AppEnvironmentTests {
             "-battle-tick-interval", "0.4",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-map-scroll-target", "chapter-gate-placeholder-2",
-            "-mystery-recruit-event", "recruit-knight",
+            "-mystery-recruit-event", "recruit-ranger",
             "-enable-frame-metrics",
             "-battle-performance-scenario", "dense-feedback"
         ])
@@ -67,7 +67,7 @@ struct AppEnvironmentTests {
         #expect(env.battleTickInterval == 0.4)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
-        #expect(env.mysteryRecruitEventID == "recruit-knight")
+        #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == .denseFeedback)
 

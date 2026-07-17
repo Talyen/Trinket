@@ -20,6 +20,8 @@ struct BattleVictorySummaryTests {
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
         rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+            .rewardInstance(for: "chapter-1-stage-1")
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: "chapter-1-stage-1"),
             rngSeed: 0,
@@ -28,7 +30,11 @@ struct BattleVictorySummaryTests {
             enemy: enemy,
             enemyEncounterLevel: 2,
             roster: rosterState,
-            stageReward: StageReward(gold: 12, itemTemplateIDs: ["shortsword-basic"])
+            stageReward: StageReward(gold: 12, itemTemplateIDs: [], materialRewards: [
+                ResourceAmount(.wood, 8),
+                ResourceAmount(.stone, 3)
+            ]),
+            pendingRewardItem: lootItem
         )
         let session = BattleSession()
         session.activeBattle = configuration
@@ -55,6 +61,7 @@ struct BattleVictorySummaryTests {
         #expect(summary.rewardItems.map(\.displayName) == ["Shortsword"])
         #expect(summary.rewardItems.first?.id == "chapter-1-stage-1-shortsword-basic")
         #expect(summary.rewardItems.first?.affixes.isEmpty == false)
+        #expect(summary.materialRewards.count == 2)
         #expect(summary.heroProgressionBefore.level == 2)
         #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
         #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)

@@ -19,36 +19,6 @@ public enum TrinketMotion: Sendable {
         }
     }
 
-    /// Mystery recruit unlock: breathing mystery-art invitation → clear recruit portrait.
-    public enum RecruitReveal: Sendable {
-        /// Normalized progress window where the shroud clears after tap.
-        public static let clearStart: CGFloat = 0
-        public static let clearEnd: CGFloat = 0.55
-        public static let revealDuration: TimeInterval = 0.9
-
-        /// Full breath cycle length while the invitation is waiting for a tap.
-        public static let breathCycleDuration: TimeInterval = 2.4
-        public static let invitationBlurMin: CGFloat = 3
-        public static let invitationBlurMax: CGFloat = 10
-        public static let invitationSaturationMin: CGFloat = 0.15
-        public static let invitationSaturationMax: CGFloat = 0.45
-
-        public static var peel: Animation {
-            .easeInOut(duration: revealDuration)
-        }
-
-        public static func invitationBlurRadius(breath: CGFloat) -> CGFloat {
-            let t = min(1, max(0, breath))
-            return invitationBlurMin + (invitationBlurMax - invitationBlurMin) * t
-        }
-
-        public static func invitationSaturation(breath: CGFloat) -> CGFloat {
-            let t = min(1, max(0, breath))
-            return invitationSaturationMin
-                + (invitationSaturationMax - invitationSaturationMin) * t
-        }
-    }
-
     public enum Journey: Sendable {
         /// Immediate, critically damped feedback for the active stage row.
         public static var rowPress: Animation {
@@ -245,6 +215,11 @@ public enum TrinketMotion: Sendable {
 
         public static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {
             CombatFeedbackCardRecipes.cardReaction(for: kind)
+        }
+
+        /// Party combatants recoil toward the hand; enemies recoil upward.
+        public static func partyRecoilDirection(isPartyMember: Bool) -> CombatantHitRecoilDirection {
+            isPartyMember ? .down : .up
         }
     }
 

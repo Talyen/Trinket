@@ -12,6 +12,7 @@ struct BattleCombatantPane: View {
     let maxMana: Int
     let hapticsEnabled: Bool
     let cinematicNamespace: Namespace.ID
+    let recoilDirection: CombatantHitRecoilDirection
     let onCombatantTap: () -> Void
 
     private var hasMana: Bool {
@@ -25,7 +26,8 @@ struct BattleCombatantPane: View {
                 // same recoil/squash as the card frame.
                 CombatantHitReactionLane(
                     combatantID: combatant.id,
-                    hapticsEnabled: hapticsEnabled
+                    hapticsEnabled: hapticsEnabled,
+                    recoilDirection: recoilDirection
                 ) {
                     ZStack(alignment: .bottom) {
                         artworkPresentation
@@ -123,6 +125,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     @Environment(AppState.self) private var appState
     let combatantID: String
     let hapticsEnabled: Bool
+    let recoilDirection: CombatantHitRecoilDirection
     @ViewBuilder let artwork: () -> Artwork
 
     /// Local trigger so KeyframeAnimator always sees a change, even when reaction
@@ -148,12 +151,13 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             defaultOffset: defaultOffset
         )
         let isVerticalImpact = activeKind == .damage || activeKind == .critical
-        let impactScaleX = isVerticalImpact
-            ? recipe.scaleY[safe: 0]?.value ?? 1.0
-            : recipe.scaleX[safe: 0]?.value ?? 1.0
-        let impactScaleY = isVerticalImpact
-            ? recipe.scaleX[safe: 0]?.value ?? 1.0
-            : recipe.scaleY[safe: 0]?.value ?? 1.0
+        let recipeScaleX = recipe.scaleX[safe: 0]?.value ?? 1.0
+        let recipeScaleY = recipe.scaleY[safe: 0]?.value ?? 1.0
+        let impactScales = isVerticalImpact
+            ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
+            : (x: recipeScaleX, y: recipeScaleY)
+        let impactScaleX = impactScales.x
+        let impactScaleY = impactScales.y
         let impactDuration = recipe.scaleX[safe: 0]?.duration ?? 0.08
         let recoveryDuration = recipe.scaleX[safe: 1]?.duration ?? 0.16
 
@@ -298,7 +302,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         guard kind == .damage || kind == .critical else {
             return defaultOffset
         }
-        return CGSize(width: 0, height: -magnitude)
+        return recoilDirection.impactOffset(magnitude: magnitude)
     }
 
     private func reactionFeedback(for kind: CombatantHitReactionKind?) -> SensoryFeedback {

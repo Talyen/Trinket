@@ -124,9 +124,6 @@ class StageRow:
     flavor_text: str
     encounter: str
     enemy_id: str
-    gold: str
-    item_templates: str
-    materials: str
     encounter_art_id: str = ""
     encounter_art_title: str = ""
 
@@ -280,9 +277,6 @@ def parse_stage_rows() -> list[StageRow]:
         "flavor_text",
         "encounter",
         "enemy_id",
-        "gold",
-        "item_templates",
-        "materials",
         "encounter_art_id",
         "encounter_art_title",
     ]
@@ -1306,11 +1300,7 @@ def render_stage(row: StageRow) -> str:
                     stageNumber: {row.stage_number},
                     flavorText: "{swift_escape(row.flavor_text)}",
                     encounter: {render_stage_encounter(row)},
-                    rewards: StageReward(
-                        gold: {row.gold},
-                        itemTemplateIDs: {parse_item_templates(row.item_templates)},
-                        materialRewards: {parse_material_rewards(row.materials)}
-                    )
+                    rewards: .empty
                 )"""
 
 
@@ -1350,20 +1340,9 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
         for field_name, value in (
             ("chapter_number", row.chapter_number),
             ("stage_number", row.stage_number),
-            ("gold", row.gold),
         ):
             if not value.isdigit():
                 raise ValueError(f"{field_name} for {stage_id} must be an integer")
-
-        for token in row.materials.split("|"):
-            token = token.strip()
-            if not token:
-                continue
-            resource, quantity = token.split(":", 1)
-            if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
-                raise ValueError(f"Unknown homestead resource '{resource}' for {stage_id}")
-            if not quantity.strip().isdigit():
-                raise ValueError(f"Material quantity for {stage_id} must be an integer")
 
         chapters.setdefault(row.chapter_id, []).append(row)
         render_stage(row)

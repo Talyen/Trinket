@@ -202,6 +202,6 @@ struct MysteryEventCatalogTests {
 
 /// Starter IDs mirrored from persistence without importing that package into content tests.
 private enum PlayerRosterStarterIDs {
-    static let hero = "ranger"
+    static let hero = "knight"
     static let companion = "wolf"
 }

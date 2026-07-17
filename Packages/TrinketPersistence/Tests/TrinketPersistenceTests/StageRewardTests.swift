@@ -30,23 +30,29 @@ struct StageRewardTests {
         )
     }
 
-    @Test func completingStageGrantsGoldXPAndItems() throws {
+    @Test func completingBattleStageGrantsBattleLootGoldXPAndItem() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         var save = makeSave()
         let battleEarnedGold = 4
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        let loot = BattleLoot.resolveJourney(
+            stage: firstStage,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: false
+        )
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
+            loot: loot,
             in: GameContent.chapters,
             save: &save
         )
 
-        try #expect(save.roster.gold == firstStage.rewards.gold + battleEarnedGold)
-        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        try #expect(save.roster.gold == loot.gold + battleEarnedGold)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let companionLevel = PlayerRosterState.initial.progression(for: companion).level
         let expectedHeroProgression = PlayerRosterState.initial.progression(for: hero).addingExperience(
@@ -65,33 +71,14 @@ struct StageRewardTests {
         )
         try #expect(save.roster.progression(for: hero) == expectedHeroProgression)
         try #expect(save.roster.progression(for: companion) == expectedCompanionProgression)
-        _ = try #require(save.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        try #expect(save.homestead.resources[.wood] == 8)
-        try #expect(save.homestead.resources[.stone] == 3)
+        _ = try #require(save.inventory.item(matching: loot.item.id))
+        try #expect(loot.materials.count == 2)
+        for material in loot.materials {
+            try #expect(save.homestead.resources[material.resource] == material.quantity)
+        }
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
         try #expect(save.journey.isCompleted(firstStage))
         try #expect(save.journey.activeStageID == "chapter-1-stage-2")
-    }
-
-    @Test func materialRewardsAreUnchangedByHomesteadTiers() throws {
-        var save = makeSave(
-            homestead: PlayerHomesteadState(
-                resources: [:],
-                nodeTiers: [.wheatField: 3]
-            )
-        )
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            save: &save
-        )
-
-        try #expect(save.homestead.resources[.wood] == 8)
-        try #expect(save.homestead.resources[.stone] == 3)
     }
 
     @Test func wishingWellIncreasesGrantedGold() throws {
@@ -104,17 +91,24 @@ struct StageRewardTests {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let startingGold = save.roster.gold
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        let loot = BattleLoot.resolveJourney(
+            stage: firstStage,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: false
+        )
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             companion: companion,
             battleEarnedGold: 0,
+            loot: loot,
             save: &save
         )
 
         let expected = startingGold + HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
-            .adjustedGold(firstStage.rewards.gold)
+            .adjustedGold(loot.gold)
         try #expect(save.roster.gold == expected)
     }
 
@@ -163,41 +157,20 @@ struct StageRewardTests {
         try #expect(!(save.journey.isActive(firstStage)))
     }
 
-    @Test func missingItemTemplateSkipsGracefully() throws {
+    @Test func nonBattleStagesGrantAuthoredRewardsWithoutExperience() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
-        let stageWithBadTemplate = Stage(
-            id: "test-stage",
+        let eventStage = Stage(
+            id: "test-event",
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
             flavorText: "Test",
             encounter: .event,
-            rewards: StageReward(gold: 10, itemTemplateIDs: ["missing-template"])
+            rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)])
         )
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: stageWithBadTemplate,
-            hero: hero,
-            companion: companion,
-            save: &save,
-            resolveTemplate: { _ in nil }
-        )
-
-        try #expect(save.roster.gold == 10)
-        try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
-        try #expect(save.inventory.items.isEmpty)
-        try #expect(save.journey.hasClaimedRewards(for: stageWithBadTemplate))
-    }
-
-    @Test func nonBattleStagesGrantNoExperience() throws {
-        var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let heroXPBefore = save.roster.progression(for: hero).currentXP
-        let eventStage = chapter.stages[1]
 
         StageCompletion.claimRewardsIfNeeded(
             for: eventStage,
@@ -206,7 +179,10 @@ struct StageRewardTests {
             save: &save
         )
 
+        try #expect(save.roster.gold == 10)
+        try #expect(save.homestead.resources[.wood] == 2)
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(save.journey.hasClaimedRewards(for: eventStage))
     }
 
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
@@ -226,36 +202,6 @@ struct StageRewardTests {
 
         try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
         try #expect(save.roster.progression(for: companion).currentXP > 0)
-    }
-
-    @Test func claimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
-        var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: 9,
-            save: &save
-        )
-        let goldAfterFirstClaim = save.roster.gold
-        let heroXPAfterFirstClaim = save.roster.progression(for: hero).currentXP
-        let itemCountAfterFirstClaim = save.inventory.items.count
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: 0,
-            save: &save
-        )
-
-        try #expect(save.roster.gold == goldAfterFirstClaim)
-        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
-        try #expect(save.inventory.items.count == itemCountAfterFirstClaim)
-        try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
     @Test func claimRewardsBanksBattleGoldWhenStageAlreadyClaimed() throws {
@@ -299,35 +245,21 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
-    @Test func rewardItemPreservesCatalogAffixes() throws {
-        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        var inventory = PlayerInventoryState(items: [])
-
-        inventory.addRewardItem(from: template, for: firstStage)
-
-        let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        try #expect(rewardItem.affixes == template.affixes)
-    }
-
     @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
-        var save = makeSave(
-            homestead: PlayerHomesteadState(
-                resources: [:],
-                nodeTiers: [.wheatField: 2, .chickenCoop: 2]
-            )
-        )
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let snapshot = [ResourceAmount(.food, 4)]
+        let overrides = [ResourceAmount(.crystal, 7), ResourceAmount(.herbs, 2)]
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             companion: companion,
-            materialRewards: snapshot,
+            materialRewards: overrides,
             save: &save
         )
 
-        try #expect(save.homestead.resources[.food] == 4)
+        try #expect(save.homestead.resources[.crystal] == 7)
+        try #expect(save.homestead.resources[.herbs] == 2)
     }
 }

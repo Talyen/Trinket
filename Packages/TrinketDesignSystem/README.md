@@ -53,6 +53,18 @@ Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)`
 
 Hero stack order is always **eyebrow → title** (never title then rarity/role).
 
+### Detail sheet ladder
+
+Hero / Companion / Enemy / Ability / Item detail sheets share one body ladder (via `DetailSection` + pane copy). Remap at the sheet call sites — do not change these roles’ fonts globally.
+
+| Layer | Role | Color |
+|---|---|---|
+| Section header | `.rowTitle` | `.primary` |
+| Named entries (e.g. trait names) | `.cardTitle` | `.primary` |
+| Reading copy (effects, affixes, blurbs) | `.body` | `.secondary` |
+| Stat labels / values | `.body` / `.statValue` | `.primary` / `.secondary` |
+| On-art eyebrow / title | `.eyebrow` / `.screenDisplay` | `.trinketOnArtText` |
+
 ## Surface roles
 
 Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground()`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`, `modal`, `popover`.
@@ -74,7 +86,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
-| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger secondary-grey lock icon |
+| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |

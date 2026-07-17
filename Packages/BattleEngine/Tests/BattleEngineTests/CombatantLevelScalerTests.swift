@@ -25,10 +25,34 @@ struct CombatantLevelScalerTests {
 
     @Test func enemyScalerUsesBossProfile() throws {
         let boss = try #require(GameContent.enemy(matching: "the_forge_golem"))
-        let scaled = CombatantLevelScaler.scale(enemy: boss, level: 3)
+        let level = 3
+        let scaled = CombatantLevelScaler.scale(enemy: boss, level: level)
 
-        try #expect(scaled.maxHealth == 53)
-        try #expect(scaled.primaryStats.toughness == 22)
+        let levelsAbove = StatGrowth.levelsAboveIdentity(level)
+        let growth = StatGrowth.enemyGrowth(
+            archetype: boss.combatant.growthArchetype,
+            isBoss: true,
+            levelsAbove: levelsAbove,
+            identityStats: boss.combatant.primaryStats
+        )
+        let grown = StatGrowth.apply(
+            maxHealth: boss.combatant.maxHealth,
+            maxMana: boss.combatant.maxMana,
+            primaryStats: boss.combatant.primaryStats,
+            growth: growth
+        )
+        let expected = StatGrowth.applyEnemyGearCompensation(
+            maxHealth: grown.maxHealth,
+            maxMana: grown.maxMana,
+            primaryStats: grown.primaryStats,
+            level: level,
+            isBoss: true
+        )
+
+        try #expect(scaled.maxHealth == expected.maxHealth)
+        try #expect(scaled.primaryStats == expected.primaryStats)
+        try #expect(scaled.maxHealth > boss.combatant.maxHealth)
+        try #expect(scaled.primaryStats.toughness > boss.combatant.primaryStats.toughness)
     }
 
     @Test func enemyScalerKeepsManaDisabledAtHigherLevels() throws {

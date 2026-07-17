@@ -37,12 +37,12 @@ public enum RecruitMysteryEventPool {
             choiceLabel: "Offer a place by the fire."
         ),
         recruit(
-            id: "recruit-knight",
-            combatantID: "knight",
-            title: "The Scarred Shield",
-            narrative: "A battered shield rests against the dungeon wall. From beyond the torchlight, an armored silhouette approaches with weapon lowered and waits in solemn silence.",
+            id: "recruit-ranger",
+            combatantID: "ranger",
+            title: "Arrows in the Canopy",
+            narrative: "A bowstring hums once in the high branches. A hooded archer drops to the trail with a nod, already scanning the treeline for what you haven't noticed yet.",
             choiceID: "welcome",
-            choiceLabel: "Hold the line."
+            choiceLabel: "Cover our flank."
         ),
         recruit(
             id: "recruit-rogue",
@@ -59,22 +59,6 @@ public enum RecruitMysteryEventPool {
             narrative: "Runes hang in the air like fireflies. A wizard finishes a gesture, snuffs the last spark between two fingers, and looks faintly impressed that you didn't run.",
             choiceID: "welcome",
             choiceLabel: "Join our circle."
-        ),
-        recruit(
-            id: "recruit-alchemist",
-            combatantID: "alchemist",
-            title: "The Travelling Still",
-            narrative: "Glass vials clink in a mossy clearing. An alchemist offers you a sip of something that smells like courage and bad decisions, then laughs when you hesitate.",
-            choiceID: "welcome",
-            choiceLabel: "Brew with us."
-        ),
-        recruit(
-            id: "recruit-druid",
-            combatantID: "druid",
-            title: "Roots That Remember",
-            narrative: "The forest parts around a druid as if it knows their name. Birds settle on their shoulders; the path behind them closes like a held breath.",
-            choiceID: "welcome",
-            choiceLabel: "Walk with the wild."
         ),
         recruit(
             id: "recruit-warlock",

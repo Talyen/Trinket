@@ -12,7 +12,7 @@ struct LabyrinthCatalogTests {
             for enemyID in biome.enemyPool {
                 #expect(GameContent.enemy(matching: enemyID) != nil)
             }
-            #expect(GameContent.enemy(matching: biome.wardenEnemyID) != nil)
+            #expect(GameContent.enemy(matching: biome.bossEnemyID) != nil)
         }
 
         #expect(!GameContent.labyrinthModifiers.isEmpty)

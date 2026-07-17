@@ -1,16 +1,16 @@
-chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	item_templates	materials	encounter_art_id	encounter_art_title
-chapter-1	1	The Forest	verdantForest	1	A soft green shape quivers beside the forest road, waiting in the grass.	battle	slime	12	shortsword-basic	wood:8|stone:3
-chapter-1	1	The Forest	verdantForest	2	Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.	mystery	recruit-bear	8		food:4|herbs:2
-chapter-1	1	The Forest	verdantForest	3	A goblin scout darts between the roots, and the glade falls suddenly quiet.	battle	goblin	18		stone:9|herbs:3
-chapter-1	1	The Forest	verdantForest	4	A silent figure shadows the trail from above, leaving warning marks where the path grows dangerous.	mystery	recruit-rogue	5		wood:6|iron:2
-chapter-1	1	The Forest	verdantForest	5	At the forest center, the oldest roots twist around a dark crown.	battle	the_blight_treant	40	longsword-astral	iron:8|crystal:3
-chapter-2	2	The Dungeon	verdantForest	1	A skeleton guard rattles to life in the dungeon's first stone corridor.	battle	skeleton	10		crystal:2|herbs:3
-chapter-2	2	The Dungeon	verdantForest	2	A battered shield rests against the dungeon wall while an armored silhouette waits beyond the torchlight.	mystery	recruit-knight	10		herbs:4|food:2
-chapter-2	2	The Dungeon	verdantForest	3	A battered chest sits in the torchlight, and its lid blinks.	battle	mimic	10		wood:6|herbs:4
-chapter-2	2	The Dungeon	verdantForest	4	A covered cart waits where the dungeon paths cross.	shop		10		wood:4|food:4	destination-merchant-shop	Merchant's Shop
-chapter-2	2	The Dungeon	verdantForest	5	The dungeon doors groan open as the Iron Bear emerges from the buried forge.	battle	the_iron_bear	12		crystal:3|iron:2
-chapter-3	3	The Desert	verdantForest	1	A pale light slips between the ruined shelves and bars the way.	battle	will_o_wisp	8		crystal:2|herbs:2
-chapter-3	3	The Desert	verdantForest	2	Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.	mystery	recruit-library-owl	8		iron:3|stone:4
-chapter-3	3	The Desert	verdantForest	3	Frost gathers across the old stone as an elemental rises.	battle	frost_elemental	8		crystal:4|herbs:2
-chapter-3	3	The Desert	verdantForest	4	A lantern-lit merchant has made camp among the fallen stacks.	shop		8		herbs:4|food:2	destination-merchant-shop	Merchant's Shop
-chapter-3	3	The Desert	verdantForest	5	The archive doors freeze shut as the Frostwarden descends.	battle	the_frostwarden	10		stone:6|iron:3
+chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	encounter_art_id	encounter_art_title
+chapter-1	1	Forest	verdantForest	1	A soft green shape quivers beside the forest road, waiting in the grass.	battle	slime		
+chapter-1	1	Forest	verdantForest	2	Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.	mystery	recruit-bear		
+chapter-1	1	Forest	verdantForest	3	A goblin scout darts between the roots, and the glade falls suddenly quiet.	battle	goblin		
+chapter-1	1	Forest	verdantForest	4	A bowstring hums once above the trail, and fletched arrows mark the safest path through the trees.	mystery	recruit-ranger		
+chapter-1	1	Forest	verdantForest	5	At the forest center, the oldest roots twist around a dark crown.	battle	the_blight_treant		
+chapter-2	2	Dungeon	verdantForest	1	A skeleton guard rattles to life in the dungeon's first stone corridor.	battle	skeleton		
+chapter-2	2	Dungeon	verdantForest	2	A silent figure slips through the torchlight, leaving warning marks scratched into the stone where the corridor grows dangerous.	mystery	recruit-rogue		
+chapter-2	2	Dungeon	verdantForest	3	A battered chest sits in the torchlight, and its lid blinks.	battle	mimic		
+chapter-2	2	Dungeon	verdantForest	4	A covered cart waits where the dungeon paths cross.	shop		destination-merchant-shop	Merchant's Shop
+chapter-2	2	Dungeon	verdantForest	5	The dungeon doors groan open as the Iron Bear emerges from the buried forge.	battle	the_iron_bear		
+chapter-3	3	Desert	verdantForest	1	A pale light slips between the ruined shelves and bars the way.	battle	will_o_wisp		
+chapter-3	3	Desert	verdantForest	2	Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.	mystery	recruit-library-owl		
+chapter-3	3	Desert	verdantForest	3	Frost gathers across the old stone as an elemental rises.	battle	frost_elemental		
+chapter-3	3	Desert	verdantForest	4	A lantern-lit merchant has made camp among the fallen stacks.	shop		destination-merchant-shop	Merchant's Shop
+chapter-3	3	Desert	verdantForest	5	The archive doors freeze shut as the Frostwarden descends.	battle	the_frostwarden		

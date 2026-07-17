@@ -6,8 +6,8 @@ public enum LabyrinthCompletion {
     public static let milestoneDepths: [Int] = [5, 10, 25, 50]
 
     public static func enemyLevel(for node: LabyrinthNode, effects: LabyrinthModifierEffects) -> Int {
-        let base: Int = switch node.type {
-        case .warden:
+        let base: Int = switch node.type.canonical {
+        case .boss:
             max(1, node.depth + 3)
         case .gate:
             max(1, node.depth + 1)
@@ -19,51 +19,21 @@ public enum LabyrinthCompletion {
         return base + bonusLevels
     }
 
-    public static func rewards(
+    /// Non-combat node gold stipend (rest/shop/mystery/craft leave). Combat uses `BattleLoot`.
+    public static func nonCombatGoldStipend(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects
-    ) -> StageReward {
+    ) -> Int {
         let type = node.type.canonical
         let baseGold = switch type {
-        case .warden:
-            10 + node.depth * 3
-        case .gate:
-            6 + node.depth * 2
-        case .battle:
-            4 + node.depth * 2
         case .shop, .mystery, .event, .craft:
             2 + node.depth
         case .rest:
             1 + node.depth / 2
+        case .battle, .boss, .gate:
+            0
         }
-        let gold = max(0, baseGold + (baseGold * effects.goldPercent) / 100)
-
-        var materials: [ResourceAmount] = []
-        if type == .warden || node.depth % 3 == 0 {
-            materials = [ResourceAmount(.wood, type == .warden ? 3 : 1)]
-        }
-
-        // Item templates left empty; completion may roll a generated item for wardens.
-        return StageReward(gold: gold, itemTemplateIDs: [], materialRewards: materials)
-    }
-
-    public static func shouldRollItem(
-        for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> Bool {
-        switch node.type.canonical {
-        case .warden:
-            true
-        case .battle, .gate:
-            Int.random(in: 0 ... 99, using: &randomNumberGenerator) < (8 + effects.itemDropBonusPercent)
-        case .craft:
-            // Craft items come only from forgeAtAltar (paid). Leaving without forging
-            // must not mint a free generated item.
-            false
-        default:
-            false
-        }
+        return max(0, baseGold + (baseGold * effects.goldPercent) / 100)
     }
 
     /// Gold cost for the thin Crafting Altar forge action.
@@ -81,23 +51,32 @@ public enum LabyrinthCompletion {
         "labyrinth-\(nodeID)"
     }
 
-    /// Pre-rolls a combat drop using the same seeds as `complete`, for victory chrome.
+    public static func resolveCombatLoot(
+        for node: LabyrinthNode,
+        effects: LabyrinthModifierEffects,
+        worldSeed: UInt64
+    ) -> BattleLootPackage? {
+        guard node.type.isCombat else { return nil }
+        let encounterLevel = enemyLevel(for: node, effects: effects)
+        let enemyIsBoss = node.enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
+        return BattleLoot.resolveLabyrinth(
+            node: node,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            effects: effects,
+            worldSeed: worldSeed
+        )
+    }
+
+    /// Pre-rolls combat loot using the same seeds as `complete`, for victory chrome.
     public static func pendingCombatRewardItem(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
         worldSeed: UInt64,
         astralChanceBonusPercent: Int = 0
     ) -> InventoryItem? {
-        var rollRNG = SeededRandomNumberGenerator(
-            seed: worldSeed &+ GameContent.stableSeed(for: "labyrinth-roll-\(node.id)")
-        )
-        guard shouldRollItem(for: node, effects: effects, using: &rollRNG) else { return nil }
-        return makeGeneratedItem(
-            nodeID: node.id,
-            effects: effects,
-            worldSeed: worldSeed,
-            astralChanceBonusPercent: astralChanceBonusPercent
-        )
+        _ = astralChanceBonusPercent
+        return resolveCombatLoot(for: node, effects: effects, worldSeed: worldSeed)?.item
     }
 
     public static func complete(
@@ -107,18 +86,25 @@ public enum LabyrinthCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
+        loot: BattleLootPackage? = nil,
         save: inout PlayerSave
     ) {
         save.labyrinth.ensureMap()
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
         let effects = save.labyrinth.effects(for: nodeID)
-        let reward = rewards(for: node, effects: effects)
         let encounterLevel = enemyLevel(for: node, effects: effects)
 
-        save.roster.grantGold(save.homestead.effects.adjustedGold(reward.gold + battleEarnedGold))
-        // Battle XP is combat-only; rest/shop/mystery/craft grant gold/materials without XP.
         if node.type.isCombat {
+            let resolvedLoot = loot ?? resolveCombatLoot(
+                for: node,
+                effects: effects,
+                worldSeed: save.labyrinth.worldSeed
+            )
+            let stageGold = resolvedLoot?.gold ?? 0
+            save.roster.grantGold(
+                save.homestead.effects.adjustedGold(stageGold + battleEarnedGold)
+            )
             StageCompletion.grantBattleExperience(
                 enemyLevel: encounterLevel,
                 to: hero,
@@ -131,28 +117,30 @@ public enum LabyrinthCompletion {
                 roster: &save.roster,
                 xpPercent: effects.xpPercent
             )
-        }
 
-        let resolvedMaterials = StageCompletion.resolvedMaterialRewards(
-            stageReward: reward,
-            override: materialRewards
-        )
-        save.homestead.grant(resolvedMaterials)
+            let materials = materialRewards ?? resolvedLoot?.materials ?? []
+            save.homestead.grant(materials)
 
-        if let rewardItem {
-            appendUniqueRewardItem(rewardItem, save: &save)
-        } else {
-            var itemRNG = SeededRandomNumberGenerator(
-                seed: save.labyrinth.worldSeed &+ GameContent.stableSeed(for: "labyrinth-roll-\(nodeID)")
-            )
-            if shouldRollItem(for: node, effects: effects, using: &itemRNG) {
-                grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
+            if let rewardItem {
+                appendUniqueRewardItem(rewardItem, save: &save)
+            } else if let resolvedLoot {
+                appendUniqueRewardItem(resolvedLoot.item, save: &save)
             }
-        }
-
-        if node.type.canonical == .craft {
-            // Leave without forging: gold stipend already granted; bonus material only.
-            save.homestead.grant([ResourceAmount(.wood, 1)])
+        } else {
+            let stipend = nonCombatGoldStipend(for: node, effects: effects)
+            save.roster.grantGold(
+                save.homestead.effects.adjustedGold(stipend + battleEarnedGold)
+            )
+            if let materialRewards {
+                save.homestead.grant(materialRewards)
+            }
+            if node.type.canonical == .craft {
+                // Leave without forging: gold stipend already granted; bonus material only.
+                save.homestead.grant([ResourceAmount(.wood, 1)])
+            }
+            if let rewardItem {
+                appendUniqueRewardItem(rewardItem, save: &save)
+            }
         }
 
         save.labyrinth.markCleared(nodeID: nodeID)

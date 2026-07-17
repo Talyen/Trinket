@@ -26,20 +26,6 @@ enum GameContentTraitsGenerated {
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "reinforced_formula",
-            name: "Reinforced Formula",
-            description: "Increases Health restored by 1.",
-            modifiers: [.healthRestored(1)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "thornskin",
-            name: "Thornskin",
-            description: "Decreases Poison and Bleed damage taken by 10%.",
-            modifiers: [.damageTakenPercent(.poison, 0.10), .damageTakenPercent(.bleed, 0.10)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
             id: "pack_leader",
             name: "Pack Leader",
             description: "Increases Companion damage dealt by 1.",

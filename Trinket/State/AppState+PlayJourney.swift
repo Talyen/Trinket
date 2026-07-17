@@ -71,7 +71,8 @@ extension AppState {
                 hero: hero,
                 companion: companion,
                 battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
+                materialRewards: materialRewards,
+                rewardItem: configuration.pendingRewardItem
             ) else {
                 return false
             }
@@ -140,13 +141,19 @@ extension AppState {
             return nil
         }
 
+        let loot = battleLootPackage(
+            for: .journey(stageID: stage.id),
+            enemy: encounter.combatant,
+            encounterLevel: encounter.level
+        )
         activateBattle(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: stage.rewards
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
         )
         return nil
     }
@@ -155,13 +162,19 @@ extension AppState {
         guard battle.activeBattle == nil,
               let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage)
         else { return }
+        let loot = battleLootPackage(
+            for: .journey(stageID: stage.id),
+            enemy: encounter.combatant,
+            encounterLevel: encounter.level
+        )
         let configuration = makeBattleConfiguration(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: stage.rewards
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
         )
         battle.prepareBattleRun(configuration)
     }
@@ -309,6 +322,7 @@ extension AppState {
         companion: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false
     ) -> JourneyProgressState? {
         guard !stages.isEmpty else { return nil }
@@ -327,6 +341,7 @@ extension AppState {
                         companion: companion,
                         battleEarnedGold: isLast ? battleEarnedGold : 0,
                         materialRewards: isLast ? materialRewards : nil,
+                        rewardItem: isLast ? rewardItem : nil,
                         in: GameContent.chapters,
                         save: &save
                     )
@@ -340,5 +355,40 @@ extension AppState {
             return nil
         }
         return resultingJourney
+    }
+
+    /// Resolves seeded combat loot for victory chrome and grant paths.
+    func battleLootPackage(
+        for resumeToken: ActiveBattleResumeToken?,
+        enemy: Combatant?,
+        encounterLevel: Int
+    ) -> BattleLootPackage? {
+        let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
+        switch resumeToken {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID),
+                  case .battle = stage.encounter
+            else { return nil }
+            return BattleLoot.resolveJourney(
+                stage: stage,
+                encounterLevel: encounterLevel,
+                enemyIsBoss: enemyIsBoss
+            )
+        case let .aspect(aspectID, floorNumber):
+            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
+                return nil
+            }
+            return AspectCompletion.resolveLoot(for: floor)
+        case let .labyrinth(nodeID):
+            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return nil }
+            let effects = labyrinth.effects(for: nodeID)
+            return LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: effects,
+                worldSeed: labyrinth.worldSeed
+            )
+        case .none:
+            return nil
+        }
     }
 }

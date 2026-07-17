@@ -7,7 +7,7 @@ enum GameContentChaptersGenerated {
         Chapter(
             id: "chapter-1",
             number: 1,
-            title: "The Forest",
+            title: "Forest",
             theme: .verdantForest,
             stages: [
                 Stage(
@@ -17,11 +17,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 1,
                     flavorText: "A soft green shape quivers beside the forest road, waiting in the grass.",
                     encounter: .battle(enemyID: "slime"),
-                    rewards: StageReward(
-                        gold: 12,
-                        itemTemplateIDs: ["shortsword-basic"],
-                        materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-1-stage-2",
@@ -30,11 +26,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 2,
                     flavorText: "Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.",
                     encounter: .mysteryEvent(eventID: "recruit-bear"),
-                    rewards: StageReward(
-                        gold: 8,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.food, 4), ResourceAmount(.herbs, 2)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-1-stage-3",
@@ -43,24 +35,16 @@ enum GameContentChaptersGenerated {
                     stageNumber: 3,
                     flavorText: "A goblin scout darts between the roots, and the glade falls suddenly quiet.",
                     encounter: .battle(enemyID: "goblin"),
-                    rewards: StageReward(
-                        gold: 18,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.stone, 9), ResourceAmount(.herbs, 3)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-1-stage-4",
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    flavorText: "A silent figure shadows the trail from above, leaving warning marks where the path grows dangerous.",
-                    encounter: .mysteryEvent(eventID: "recruit-rogue"),
-                    rewards: StageReward(
-                        gold: 5,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.iron, 2)]
-                    )
+                    flavorText: "A bowstring hums once above the trail, and fletched arrows mark the safest path through the trees.",
+                    encounter: .mysteryEvent(eventID: "recruit-ranger"),
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-1-stage-5",
@@ -69,18 +53,14 @@ enum GameContentChaptersGenerated {
                     stageNumber: 5,
                     flavorText: "At the forest center, the oldest roots twist around a dark crown.",
                     encounter: .battle(enemyID: "the_blight_treant"),
-                    rewards: StageReward(
-                        gold: 40,
-                        itemTemplateIDs: ["longsword-astral"],
-                        materialRewards: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 3)]
-                    )
+                    rewards: .empty
                 )
             ]
         ),
         Chapter(
             id: "chapter-2",
             number: 2,
-            title: "The Dungeon",
+            title: "Dungeon",
             theme: .verdantForest,
             stages: [
                 Stage(
@@ -90,24 +70,16 @@ enum GameContentChaptersGenerated {
                     stageNumber: 1,
                     flavorText: "A skeleton guard rattles to life in the dungeon's first stone corridor.",
                     encounter: .battle(enemyID: "skeleton"),
-                    rewards: StageReward(
-                        gold: 10,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.herbs, 3)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-2-stage-2",
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 2,
-                    flavorText: "A battered shield rests against the dungeon wall while an armored silhouette waits beyond the torchlight.",
-                    encounter: .mysteryEvent(eventID: "recruit-knight"),
-                    rewards: StageReward(
-                        gold: 10,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.herbs, 4), ResourceAmount(.food, 2)]
-                    )
+                    flavorText: "A silent figure slips through the torchlight, leaving warning marks scratched into the stone where the corridor grows dangerous.",
+                    encounter: .mysteryEvent(eventID: "recruit-rogue"),
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-2-stage-3",
@@ -116,11 +88,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 3,
                     flavorText: "A battered chest sits in the torchlight, and its lid blinks.",
                     encounter: .battle(enemyID: "mimic"),
-                    rewards: StageReward(
-                        gold: 10,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.herbs, 4)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-2-stage-4",
@@ -129,11 +97,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 4,
                     flavorText: "A covered cart waits where the dungeon paths cross.",
                     encounter: .shop,
-                    rewards: StageReward(
-                        gold: 10,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.wood, 4), ResourceAmount(.food, 4)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-2-stage-5",
@@ -142,18 +106,14 @@ enum GameContentChaptersGenerated {
                     stageNumber: 5,
                     flavorText: "The dungeon doors groan open as the Iron Bear emerges from the buried forge.",
                     encounter: .battle(enemyID: "the_iron_bear"),
-                    rewards: StageReward(
-                        gold: 12,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.crystal, 3), ResourceAmount(.iron, 2)]
-                    )
+                    rewards: .empty
                 )
             ]
         ),
         Chapter(
             id: "chapter-3",
             number: 3,
-            title: "The Desert",
+            title: "Desert",
             theme: .verdantForest,
             stages: [
                 Stage(
@@ -163,11 +123,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 1,
                     flavorText: "A pale light slips between the ruined shelves and bars the way.",
                     encounter: .battle(enemyID: "will_o_wisp"),
-                    rewards: StageReward(
-                        gold: 8,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.herbs, 2)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-3-stage-2",
@@ -176,11 +132,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 2,
                     flavorText: "Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.",
                     encounter: .mysteryEvent(eventID: "recruit-library-owl"),
-                    rewards: StageReward(
-                        gold: 8,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.iron, 3), ResourceAmount(.stone, 4)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-3-stage-3",
@@ -189,11 +141,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 3,
                     flavorText: "Frost gathers across the old stone as an elemental rises.",
                     encounter: .battle(enemyID: "frost_elemental"),
-                    rewards: StageReward(
-                        gold: 8,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.crystal, 4), ResourceAmount(.herbs, 2)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-3-stage-4",
@@ -202,11 +150,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 4,
                     flavorText: "A lantern-lit merchant has made camp among the fallen stacks.",
                     encounter: .shop,
-                    rewards: StageReward(
-                        gold: 8,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.herbs, 4), ResourceAmount(.food, 2)]
-                    )
+                    rewards: .empty
                 ),
                 Stage(
                     id: "chapter-3-stage-5",
@@ -215,11 +159,7 @@ enum GameContentChaptersGenerated {
                     stageNumber: 5,
                     flavorText: "The archive doors freeze shut as the Frostwarden descends.",
                     encounter: .battle(enemyID: "the_frostwarden"),
-                    rewards: StageReward(
-                        gold: 10,
-                        itemTemplateIDs: [],
-                        materialRewards: [ResourceAmount(.stone, 6), ResourceAmount(.iron, 3)]
-                    )
+                    rewards: .empty
                 )
             ]
         )

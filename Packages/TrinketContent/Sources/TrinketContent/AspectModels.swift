@@ -53,8 +53,6 @@ public struct AspectFloor: Identifiable, Hashable, Sendable {
     public let aspectID: AspectID
     public let floor: Int
     public let enemyID: String
-    public let rewards: StageReward
-    public let isWarden: Bool
 
     public var id: String {
         "\(aspectID.rawValue)-floor-\(floor)"
@@ -63,15 +61,11 @@ public struct AspectFloor: Identifiable, Hashable, Sendable {
     public init(
         aspectID: AspectID,
         floor: Int,
-        enemyID: String,
-        rewards: StageReward,
-        isWarden: Bool = false
+        enemyID: String
     ) {
         self.aspectID = aspectID
         self.floor = floor
         self.enemyID = enemyID
-        self.rewards = rewards
-        self.isWarden = isWarden
     }
 }
 

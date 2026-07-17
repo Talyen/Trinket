@@ -71,7 +71,7 @@ struct BattleScreen {
     /// Skips Ultimate cinematics when present so matched-geometry expand does not hide cards.
     /// Fails (rather than silently skipping) when neither mid-battle chrome nor victory appears.
     func waitForMidBattleOrVictory(
-        combatantName: String = "Ranger",
+        combatantName: String = "Knight",
         timeout: TimeInterval = 8,
         file: StaticString = #file,
         line: UInt = #line

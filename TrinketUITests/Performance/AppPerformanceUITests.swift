@@ -158,7 +158,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
 
     func test08MysteryEncounterReveal() {
         launchApp(arguments: TestLaunchArg.allForMysteryPerformance())
-        // Forced recruit-bear deep link opens on the unlock reveal.
+        // Forced recruit-bear deep link opens on the unlocked reward.
         let unlockCard = app.buttons[AccessibilityID.Mystery.unlockCard(name: "Bear")]
         let unlocked = app.descendants(matching: .any)[AccessibilityID.Mystery.unlockName]
         let appeared = unlockCard.waitForExistence(timeout: 8)

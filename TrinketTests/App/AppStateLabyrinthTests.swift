@@ -201,10 +201,10 @@ struct AppStateLabyrinthTests {
         _ = state.enterLabyrinth()
         let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
         let node = try #require(state.labyrinth.node(id: restNodeID))
-        let rawGold = LabyrinthCompletion.rewards(
+        let rawGold = LabyrinthCompletion.nonCombatGoldStipend(
             for: node,
             effects: state.labyrinth.effects(for: restNodeID)
-        ).gold
+        )
         let expected = state.homestead.effects.adjustedGold(rawGold)
 
         #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)

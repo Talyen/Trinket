@@ -218,7 +218,7 @@ final class CombatFeedbackGlyphAtlas {
                     requests.append(.fragment(key, recipe))
                 }
             }
-            for word in Self.wordAtlasCases(for: typography).map(\.displayString) {
+            for word in Self.wordAtlasCases(for: typography).compactMap(\.composeText) {
                 let key = FragmentKey(face: face, text: word)
                 if fragments[key] == nil {
                     requests.append(.fragment(key, recipe))
@@ -228,22 +228,25 @@ final class CombatFeedbackGlyphAtlas {
         return requests
     }
 
-    /// Exhaustive word vocabulary by actual formatter/classification output.
-    /// Damage, DoT, heal, block, and resource labels are numeric and therefore
-    /// completely covered by `numericAtlasFragments`.
+    /// Short word fragments still drawn next to a keyword icon.
+    /// Icon-only / dual-icon chips (dodge, Death's Door, cleanse, status, …) need
+    /// no text fragments. Numerics use `numericAtlasFragments`.
     nonisolated static func wordAtlasCases(
         for typography: Face.Typography
     ) -> [CombatFeedbackChipWord] {
         switch typography {
         case .emphasis:
-            [.plain(.deathsDoor)]
+            // Death's Door is emphasis + symbol-only; no word fragment.
+            []
         case .normal:
-            CombatFeedbackChipWord.allAtlasCases.filter { word in
+            CombatFeedbackChipWord.textAtlasCases.filter { word in
                 switch word {
-                case .critical, .plain(.deathsDoor):
+                case .critical:
                     false
-                case .dodge, .plain, .applied, .triggered, .cleanse, .purge, .halve, .status:
+                case .plain, .applied, .triggered:
                     true
+                case .dodge, .cleanse, .purge, .halve, .status:
+                    false
                 }
             }
         }

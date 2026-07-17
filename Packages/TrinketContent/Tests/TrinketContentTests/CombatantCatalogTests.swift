@@ -29,4 +29,11 @@ struct CombatantCatalogTests {
             _ = try #require(combatant.abilityLoadout.ultimate, "\(combatant.name) should have a selected ultimate")
         }
     }
+
+    @Test(arguments: GameContent.heroes + GameContent.companions)
+    func playerCombatantsUseBaselinePrimaryStatBudget(combatant: Combatant) throws {
+        let stats = combatant.primaryStats
+        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+        try #expect(total == 50, "\(combatant.name) primary stats should sum to 50, got \(total)")
+    }
 }

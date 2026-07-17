@@ -27,8 +27,7 @@ struct ActiveBattleConfigurationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battleEnemyID = try #require(stage.encounter.battleEnemyID)
         let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
-        let itemTemplateID = try #require(stage.rewards.itemTemplateIDs.first)
-        let expectedItem = try #require(GameContent.itemTemplate(matching: itemTemplateID))
+        let loot = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: stage.id),
@@ -36,21 +35,22 @@ struct ActiveBattleConfigurationTests {
             hero: knight,
             companion: wolf,
             enemy: enemy,
-            stageReward: stage.rewards
+            stageReward: loot.asStageReward,
+            pendingRewardItem: loot.item
         )
 
         #expect(configuration.resumeToken == .journey(stageID: stage.id))
         #expect(configuration.stageID == stage.id)
-        #expect(configuration.stageReward == stage.rewards)
-        #expect(configuration.rewardItems.map(\.displayName) == [expectedItem.displayName])
-        #expect(configuration.rewardItems.first?.id == "\(stage.id)-\(itemTemplateID)")
-        #expect(configuration.rewardItems.first?.affixes == expectedItem.affixes)
+        #expect(configuration.stageReward == loot.asStageReward)
+        #expect(configuration.rewardItems == [loot.item])
+        #expect(configuration.pendingRewardItem == loot.item)
     }
 
-    @Test func rewardResolutionCoversNoItemAndMultipleJourneyItems() throws {
+    @Test func rewardResolutionPrefersPendingItem() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
+        let pending = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
 
         let noItem = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: "test-stage"),
@@ -62,21 +62,16 @@ struct ActiveBattleConfigurationTests {
         )
         #expect(noItem.rewardItems.isEmpty)
 
-        let multiple = try ActiveBattleConfigurationTestSupport.make(
+        let withPending = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: "test-stage"),
             rngSeed: 1,
             hero: hero,
             companion: companion,
             enemy: enemy,
-            stageReward: StageReward(
-                gold: 10,
-                itemTemplateIDs: ["shortsword-basic", "longsword-basic"]
-            )
+            stageReward: StageReward(gold: 10, itemTemplateIDs: []),
+            pendingRewardItem: pending
         )
-        #expect(multiple.rewardItems.map(\.id) == [
-            "test-stage-shortsword-basic",
-            "test-stage-longsword-basic"
-        ])
+        #expect(withPending.rewardItems.map(\.id) == [pending.id])
     }
 
     @Test func aspectRewardUsesTheExactGeneratedPersistenceItem() throws {

@@ -155,7 +155,8 @@ struct CombatantDetailPane: View {
             DetailSection("Active Effects") {
                 ForEach(activeEffectSummaries) { summary in
                     KeywordDescriptionText(text: summary.text)
-                        .trinketTypography(.secondaryBody)
+                        .trinketTypography(.body)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -188,8 +189,10 @@ struct CombatantDetailPane: View {
         descriptionID: String
     ) -> some View {
         DetailSection("Traits", sectionID: sectionID) {
-            ForEach(traits) { trait in
-                traitRow(trait, descriptionID: descriptionID)
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(traits) { trait in
+                    traitRow(trait, descriptionID: descriptionID)
+                }
             }
         }
     }
@@ -197,15 +200,17 @@ struct CombatantDetailPane: View {
     private func traitRow(_ trait: CombatantTraitDefinition, descriptionID: String) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(trait.name)
-                .trinketTypography(.body)
+                .trinketTypography(.cardTitle)
                 .foregroundStyle(.primary)
 
             KeywordDescriptionText(text: trait.description)
-                .trinketTypography(.secondaryBody)
+                .trinketTypography(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.leading)
                 .accessibilityIdentifier(descriptionID)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .trinketSurface(.secondary)
     }
 
     private func currentHealth(for combatBuild: CombatBuild) -> Int {

@@ -10,9 +10,11 @@ enum CombatFeedbackChipLabel: Hashable {
     case amount(Int)
     /// Percent chip sourced from a signed formatter token and displayed as a magnitude.
     case percent(Int)
-    /// Non-numeric chip such as `Dodge` or `Stunned!`.
+    /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
 
+    /// Visible chip text for numeric chips and short keyword words. Icon-only /
+    /// dual-icon chips return an empty string (see `CombatFeedbackChipPresentation`).
     var displayString: String {
         switch self {
         case let .amount(value):
@@ -20,18 +22,23 @@ enum CombatFeedbackChipLabel: Hashable {
         case let .percent(value):
             Self.formatPercent(value)
         case let .word(word):
-            word.displayString
+            word.composeText ?? ""
         }
     }
 
     /// Atlas fragments needed to render this label. Numeric chips use the complete
     /// prewarmed digit alphabet, so values of any size never trigger a raster miss.
+    /// Icon-only / dual-icon words contribute no fragments.
     var atlasFragments: [String] {
         switch self {
         case .amount, .percent:
             displayString.map(String.init)
         case let .word(word):
-            [word.displayString]
+            if let text = word.composeText {
+                [text]
+            } else {
+                []
+            }
         }
     }
 
@@ -104,27 +111,31 @@ enum CombatFeedbackChipWord: Hashable {
     case halve(Keyword)
     case status(CombatFeedbackStatusLabel)
 
-    var displayString: String {
+    /// Short text drawn next to the keyword icon. `nil` means icon-only or dual-icon.
+    var composeText: String? {
         switch self {
-        case .dodge:
-            "Dodge"
+        case .dodge, .cleanse, .purge, .halve, .status:
+            nil
         case .critical:
             "Critical"
         case let .plain(keyword):
-            keyword.rawValue
+            keyword == .deathsDoor ? nil : keyword.rawValue
         case let .applied(keyword):
             keyword.rawValue
         case let .triggered(keyword):
-            "\(keyword.statusAlias ?? keyword.rawValue)!"
-        case let .cleanse(keyword):
-            "Cleanse \(keyword.statusAlias ?? keyword.rawValue)"
-        case let .purge(keyword):
-            "Purge \(keyword.rawValue)"
-        case let .halve(keyword):
-            "Halve \(keyword.rawValue)"
-        case let .status(label):
-            label.rawValue
+            keyword.rawValue
         }
+    }
+
+    /// Exhaustive word cases that still need a text fragment in the glyph atlas.
+    static var textAtlasCases: [CombatFeedbackChipWord] {
+        var words: [CombatFeedbackChipWord] = [.critical]
+        for keyword in Keyword.allCases where keyword != .deathsDoor {
+            words.append(.plain(keyword))
+            words.append(.applied(keyword))
+            words.append(.triggered(keyword))
+        }
+        return words
     }
 
     static func parse(_ text: String) -> CombatFeedbackChipWord? {
@@ -178,20 +189,5 @@ enum CombatFeedbackChipWord: Hashable {
             return keyword
         }
         return Keyword.allCases.first { $0.statusAlias == label }
-    }
-
-    /// Exhaustive word cases for atlas prewarm.
-    static var allAtlasCases: [CombatFeedbackChipWord] {
-        var words: [CombatFeedbackChipWord] = [.dodge, .critical]
-        for keyword in Keyword.allCases {
-            words.append(.plain(keyword))
-            words.append(.applied(keyword))
-            words.append(.triggered(keyword))
-            words.append(.cleanse(keyword))
-            words.append(.purge(keyword))
-            words.append(.halve(keyword))
-        }
-        words.append(contentsOf: CombatFeedbackStatusLabel.allCases.map(CombatFeedbackChipWord.status))
-        return words
     }
 }

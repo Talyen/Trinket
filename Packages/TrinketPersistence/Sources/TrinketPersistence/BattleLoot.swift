@@ -1,0 +1,159 @@
+import Foundation
+import TrinketContent
+import TrinketCore
+
+/// Deterministic combat victory loot: 1 generated item, gold, and exactly 2 materials.
+public struct BattleLootPackage: Hashable, Sendable {
+    public let item: InventoryItem
+    public let gold: Int
+    public let materials: [ResourceAmount]
+
+    public init(item: InventoryItem, gold: Int, materials: [ResourceAmount]) {
+        self.item = item
+        self.gold = gold
+        self.materials = materials
+    }
+
+    /// Display/grant DTO used by battle chrome and completion overrides.
+    public var asStageReward: StageReward {
+        StageReward(gold: gold, itemTemplateIDs: [], materialRewards: materials)
+    }
+}
+
+public enum BattleLoot {
+    public static let materialResources: [HomesteadResource] = [
+        .wood, .stone, .iron, .food, .herbs, .crystal
+    ]
+
+    /// Shared quantity band for gold and each material (L1 8–12 → L50 12–24).
+    public static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
+        let clamped = max(1, level)
+        let minQty = 8 + clamped / 12
+        let maxQty = max(minQty, 12 + clamped / 4)
+        return minQty ... maxQty
+    }
+
+    public static func resolve(
+        encounterLevel: Int,
+        enemyIsBoss: Bool,
+        itemID: String,
+        keywordBias: Set<Keyword> = [],
+        goldPercent: Int = 0,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> BattleLootPackage {
+        let range = quantityRange(forLevel: encounterLevel)
+        let multiplier = enemyIsBoss ? 2 : 1
+
+        var gold = Int.random(in: range, using: &randomNumberGenerator) * multiplier
+        if goldPercent != 0 {
+            gold = max(0, gold + (gold * goldPercent) / 100)
+        }
+
+        let materials = rollDistinctMaterials(
+            count: 2,
+            range: range,
+            quantityMultiplier: multiplier,
+            using: &randomNumberGenerator
+        )
+
+        let rarity: Rarity = enemyIsBoss ? .astral : .basic
+        let bases = GameContent.itemBaseTypes
+        let baseType: ItemBaseType
+        if keywordBias.isEmpty {
+            baseType = bases.randomElement(using: &randomNumberGenerator) ?? bases[0]
+        } else {
+            let biased = bases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
+            baseType = (biased.randomElement(using: &randomNumberGenerator)
+                ?? bases.randomElement(using: &randomNumberGenerator))
+                ?? bases[0]
+        }
+
+        let item = ItemGenerator().generate(
+            id: itemID,
+            templateID: "\(baseType.id)-\(rarity.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            keywordBias: keywordBias,
+            using: &randomNumberGenerator
+        )
+
+        return BattleLootPackage(item: item, gold: gold, materials: materials)
+    }
+
+    /// Journey combat loot; seed is stable per stage so victory chrome matches claim.
+    public static func resolveJourney(
+        stage: Stage,
+        encounterLevel: Int,
+        enemyIsBoss: Bool
+    ) -> BattleLootPackage {
+        var rng = SeededRandomNumberGenerator(
+            seed: GameContent.stableSeed(for: "battle-loot-journey-\(stage.id)")
+        )
+        return resolve(
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            itemID: "\(stage.id)-loot",
+            using: &rng
+        )
+    }
+
+    /// Aspect floor loot; optional keyword bias from the Aspect.
+    public static func resolveAspect(
+        floor: AspectFloor,
+        encounterLevel: Int,
+        enemyIsBoss: Bool,
+        keywordBias: Set<Keyword> = []
+    ) -> BattleLootPackage {
+        var rng = SeededRandomNumberGenerator(
+            seed: GameContent.stableSeed(
+                for: "battle-loot-aspect-\(floor.aspectID.rawValue)-\(floor.floor)"
+            )
+        )
+        return resolve(
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            itemID: "aspect-\(floor.aspectID.rawValue)-floor-\(floor.floor)-loot",
+            keywordBias: keywordBias,
+            using: &rng
+        )
+    }
+
+    /// Labyrinth combat loot; incorporates world seed + node id.
+    public static func resolveLabyrinth(
+        node: LabyrinthNode,
+        encounterLevel: Int,
+        enemyIsBoss: Bool,
+        effects: LabyrinthModifierEffects,
+        worldSeed: UInt64
+    ) -> BattleLootPackage {
+        var rng = SeededRandomNumberGenerator(
+            seed: worldSeed &+ GameContent.stableSeed(for: "battle-loot-labyrinth-\(node.id)")
+        )
+        return resolve(
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            itemID: "labyrinth-\(node.id)",
+            keywordBias: effects.keywordBiases,
+            goldPercent: effects.goldPercent,
+            using: &rng
+        )
+    }
+
+    private static func rollDistinctMaterials(
+        count: Int,
+        range: ClosedRange<Int>,
+        quantityMultiplier: Int,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> [ResourceAmount] {
+        var pool = materialResources
+        var picked: [ResourceAmount] = []
+        for _ in 0 ..< count {
+            guard !pool.isEmpty else { break }
+            let index = Int.random(in: 0 ..< pool.count, using: &randomNumberGenerator)
+            let resource = pool.remove(at: index)
+            let quantity = Int.random(in: range, using: &randomNumberGenerator) * quantityMultiplier
+            picked.append(ResourceAmount(resource, quantity))
+        }
+        return picked
+    }
+}

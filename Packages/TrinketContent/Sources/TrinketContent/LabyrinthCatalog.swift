@@ -10,7 +10,7 @@ public enum LabyrinthCatalog {
             epithet: "Struck stone, brute foes",
             keywordBias: .physical,
             enemyPool: ["goblin", "skeleton", "slime", "living_armor"],
-            wardenEnemyID: "the_iron_bear"
+            bossEnemyID: "the_iron_bear"
         ),
         LabyrinthBiomeDefinition(
             id: .cinderGalleries,
@@ -18,7 +18,7 @@ public enum LabyrinthCatalog {
             epithet: "Heat that refuses to die",
             keywordBias: .burn,
             enemyPool: ["will_o_wisp", "fire_elemental", "skeleton"],
-            wardenEnemyID: "the_forge_golem"
+            bossEnemyID: "the_forge_golem"
         ),
         LabyrinthBiomeDefinition(
             id: .serpentSump,
@@ -26,7 +26,7 @@ public enum LabyrinthCatalog {
             epithet: "Slow certainty",
             keywordBias: .poison,
             enemyPool: ["plague_doctor", "slime", "goblin"],
-            wardenEnemyID: "the_blight_treant"
+            bossEnemyID: "the_blight_treant"
         ),
         LabyrinthBiomeDefinition(
             id: .scarCatacombs,
@@ -34,7 +34,7 @@ public enum LabyrinthCatalog {
             epithet: "Every cut remembers",
             keywordBias: .bleed,
             enemyPool: ["mimic", "necromancer", "skeleton"],
-            wardenEnemyID: "the_blight_treant"
+            bossEnemyID: "the_blight_treant"
         ),
         LabyrinthBiomeDefinition(
             id: .aureateCrypt,
@@ -42,7 +42,7 @@ public enum LabyrinthCatalog {
             epithet: "Light that judges",
             keywordBias: .holy,
             enemyPool: ["skeleton", "living_armor", "goblin"],
-            wardenEnemyID: "the_iron_bear"
+            bossEnemyID: "the_iron_bear"
         ),
         LabyrinthBiomeDefinition(
             id: .wildrootHollow,
@@ -50,7 +50,7 @@ public enum LabyrinthCatalog {
             epithet: "Growth as weapon",
             keywordBias: .nature,
             enemyPool: ["mud_elemental", "slime", "goblin"],
-            wardenEnemyID: "the_blight_treant"
+            bossEnemyID: "the_blight_treant"
         ),
         LabyrinthBiomeDefinition(
             id: .rimeDescent,
@@ -58,7 +58,7 @@ public enum LabyrinthCatalog {
             epithet: "Stillness that binds",
             keywordBias: .freeze,
             enemyPool: ["frost_elemental", "skeleton", "slime"],
-            wardenEnemyID: "the_frostwarden"
+            bossEnemyID: "the_frostwarden"
         ),
         LabyrinthBiomeDefinition(
             id: .stormCulvert,
@@ -66,7 +66,7 @@ public enum LabyrinthCatalog {
             epithet: "Sudden violence",
             keywordBias: .stun,
             enemyPool: ["goblin", "living_armor", "mimic"],
-            wardenEnemyID: "the_forge_golem"
+            bossEnemyID: "the_forge_golem"
         ),
         LabyrinthBiomeDefinition(
             id: .gildedFault,
@@ -74,7 +74,7 @@ public enum LabyrinthCatalog {
             epithet: "Fortune in the dark",
             keywordBias: .gold,
             enemyPool: ["goblin", "mimic", "skeleton"],
-            wardenEnemyID: "the_iron_bear"
+            bossEnemyID: "the_iron_bear"
         ),
         LabyrinthBiomeDefinition(
             id: .heartwellGrotto,
@@ -82,7 +82,7 @@ public enum LabyrinthCatalog {
             epithet: "Mend and stand",
             keywordBias: .health,
             enemyPool: ["slime", "mud_elemental", "skeleton"],
-            wardenEnemyID: "the_blight_treant"
+            bossEnemyID: "the_blight_treant"
         )
     ]
 
@@ -143,14 +143,14 @@ public enum LabyrinthCatalog {
             guaranteedNodeType: .shop
         ),
         LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("wardensMark"),
-            title: "Warden's Mark",
+            id: LabyrinthModifierID("bossMark"),
+            title: "Boss Mark",
             epithet: "Something waits below",
             category: .special,
             enemyPowerPercent: 5,
             goldPercent: 15,
             itemDropBonusPercent: 20,
-            guaranteedNodeType: .warden
+            guaranteedNodeType: .boss
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("quietAltar"),

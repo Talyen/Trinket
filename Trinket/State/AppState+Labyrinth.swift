@@ -33,7 +33,7 @@ extension AppState {
         }
 
         switch node.type.canonical {
-        case .battle, .warden, .gate:
+        case .battle, .boss, .gate:
             return startLabyrinthBattle(nodeID: nodeID)
         case .shop:
             return beginShopEncounter(labyrinthNodeID: nodeID)
@@ -53,11 +53,11 @@ extension AppState {
             return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
         }
         let effects = labyrinth.effects(for: nodeID)
-        let reward = LabyrinthCompletion.rewards(for: node, effects: effects)
+        let rewardGold = LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects)
         activeLabyrinthNodeSession = LabyrinthNodeSession(
             kind: .rest,
             nodeID: nodeID,
-            goldAmount: homestead.effects.adjustedGold(reward.gold),
+            goldAmount: homestead.effects.adjustedGold(rewardGold),
             depth: node.depth
         )
         return nil
@@ -148,12 +148,10 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
-        let rewards = LabyrinthCompletion.rewards(for: node, effects: effects)
-        let pendingRewardItem = LabyrinthCompletion.pendingCombatRewardItem(
+        let loot = LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: effects,
-            worldSeed: labyrinth.worldSeed,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+            worldSeed: labyrinth.worldSeed
         )
         activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
@@ -161,9 +159,9 @@ extension AppState {
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: rewards,
+            stageReward: loot?.asStageReward ?? .empty,
             experienceBonusPercent: effects.xpPercent,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: loot?.item
         )
         return nil
     }
@@ -183,11 +181,10 @@ extension AppState {
             effects: effects
         ) else { return }
 
-        let pendingRewardItem = LabyrinthCompletion.pendingCombatRewardItem(
+        let loot = LabyrinthCompletion.resolveCombatLoot(
             for: node,
             effects: effects,
-            worldSeed: labyrinth.worldSeed,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+            worldSeed: labyrinth.worldSeed
         )
         battle.prepareBattleRun(makeBattleConfiguration(
             resumeToken: .labyrinth(nodeID: nodeID),
@@ -195,9 +192,9 @@ extension AppState {
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: LabyrinthCompletion.rewards(for: node, effects: effects),
+            stageReward: loot?.asStageReward ?? .empty,
             experienceBonusPercent: effects.xpPercent,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: loot?.item
         ))
     }
 

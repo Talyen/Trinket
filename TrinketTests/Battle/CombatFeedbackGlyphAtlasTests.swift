@@ -23,14 +23,22 @@ struct CombatFeedbackGlyphAtlasTests {
                 #expect(glyph.width > 0)
                 #expect(glyph.height > 0)
             }
-            for word in CombatFeedbackChipWord.allAtlasCases {
+            for word in CombatFeedbackChipWord.textAtlasCases {
+                let text = try #require(word.composeText)
                 let glyph = try #require(
-                    atlas.fragment(word.displayString, face: face, recipe: recipe)
+                    atlas.fragment(text, face: face, recipe: recipe)
                 )
                 #expect(glyph.width > 0)
                 #expect(glyph.height > 0)
             }
-            for symbolName in ["burst.fill", "arrowshape.up.fill", "arrowshape.down.fill"] {
+            for symbolName in [
+                "burst.fill",
+                "arrowshape.up.fill",
+                "arrowshape.down.fill",
+                "sparkles",
+                "hourglass.bottomhalf.filled",
+                "figure.run"
+            ] {
                 let symbol = try #require(
                     atlas.symbol(named: symbolName, face: face, recipe: recipe)
                 )
@@ -47,11 +55,10 @@ struct CombatFeedbackGlyphAtlasTests {
         let canvasItem = try #require(CombatFeedbackOverlayPolicy.canvasItems(
             from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
         ).first)
-        let style = canvasItem.item.feedbackVisualStyle
+        let presentation = canvasItem.item.chipPresentation
 
         _ = CombatFeedbackChipComposer.compose(
-            label: canvasItem.label,
-            style: style,
+            presentation: presentation,
             feedbackClass: canvasItem.item.feedbackClass,
             dynamicTypeSize: .large,
             displayScale: 3
@@ -61,8 +68,7 @@ struct CombatFeedbackGlyphAtlasTests {
         for _ in 0 ..< 20 {
             let started = ContinuousClock.now
             let composed = try #require(CombatFeedbackChipComposer.compose(
-                label: canvasItem.label,
-                style: style,
+                presentation: presentation,
                 feedbackClass: canvasItem.item.feedbackClass,
                 dynamicTypeSize: .large,
                 displayScale: 3
@@ -86,8 +92,12 @@ struct CombatFeedbackGlyphAtlasTests {
         #expect(Set(label.atlasFragments).isSubset(of: Set(CombatFeedbackChipLabel.numericAtlasFragments)))
 
         let composed = try #require(CombatFeedbackChipComposer.compose(
-            label: label,
-            style: Keyword.physical.visualStyle,
+            presentation: CombatFeedbackChipPresentation.resolve(
+                label: label,
+                keyword: .physical,
+                visualRole: .keyword,
+                feedbackClass: .directDamage
+            ),
             feedbackClass: .directDamage,
             dynamicTypeSize: .large,
             displayScale: 3
@@ -96,56 +106,43 @@ struct CombatFeedbackGlyphAtlasTests {
         #expect(composed.pointSize.height > 0)
     }
 
-    @Test func atlasWordVocabularyMatchesFormatterSemanticFaces() {
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .emphasis) == [.plain(.deathsDoor)])
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.dodge))
+    @Test func atlasWordVocabularyMatchesIconFirstFaces() {
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .emphasis).isEmpty)
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.triggered(.stun)))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.cleanse(.bleed)))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.halve(.armor)))
-        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.status(.criticalUp)))
+        #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.applied(.block)))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.dodge))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.cleanse(.bleed)))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.halve(.armor)))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.status(.criticalUp)))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.critical))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.plain(.deathsDoor)))
     }
 
-    @Test @MainActor func chipComposerMatchesReferenceFullStringBake() throws {
+    @Test @MainActor func chipComposerMatchesReferenceBakeForTextAndIconChips() throws {
         let samples: [(CombatFeedbackChipLabel, Keyword, CombatFeedbackClass)] = [
             (.amount(-12), .physical, .directDamage),
             (.amount(-12), .physical, .critical),
-            (.word(.dodge), .dodge, .dodge),
-            (.word(.applied(.block)), .block, .block)
+            (.word(.applied(.block)), .block, .block),
+            (.word(.triggered(.stun)), .stun, .control)
         ]
 
         for (label, keyword, feedbackClass) in samples {
-            let item = CombatFeedbackItem(
-                id: 1,
-                sourceEventIDs: [1],
-                actionGroupID: 1,
-                presentationIndex: 0,
-                groupResultCount: 1,
-                targetID: "t",
-                feedbackClass: feedbackClass,
+            let presentation = CombatFeedbackChipPresentation.resolve(
+                label: label,
                 keyword: keyword,
                 visualRole: .keyword,
-                label: label,
-                secondaryText: nil,
-                spawnSeed: 1,
-                lifetime: 1,
-                availableAt: .now,
-                expiresAt: .now.addingTimeInterval(1),
-                reactionKind: .none
+                feedbackClass: feedbackClass
             )
-            let style = item.feedbackVisualStyle
             for layoutDirection in [LayoutDirection.leftToRight, .rightToLeft] {
                 let composed = try #require(CombatFeedbackChipComposer.compose(
-                    label: label,
-                    style: style,
+                    presentation: presentation,
                     feedbackClass: feedbackClass,
                     dynamicTypeSize: .large,
                     layoutDirection: layoutDirection,
                     displayScale: 2
                 ))
                 let reference = try #require(CombatFeedbackReferenceBaker.bake(
-                    text: label.displayString,
-                    style: style,
+                    presentation: presentation,
                     feedbackClass: feedbackClass,
                     dynamicTypeSize: .large,
                     layoutDirection: layoutDirection,
@@ -161,6 +158,47 @@ struct CombatFeedbackGlyphAtlasTests {
                 )
             }
         }
+    }
+
+    @Test @MainActor func dualTintCleanseAndIconOnlyDodgeCompose() throws {
+        let cleanse = try #require(CombatFeedbackChipComposer.compose(
+            presentation: CombatFeedbackChipPresentation.resolve(
+                label: .word(.cleanse(.bleed)),
+                keyword: .bleed,
+                visualRole: .keyword,
+                feedbackClass: .buff
+            ),
+            feedbackClass: .buff,
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(cleanse.pointSize.width > 0)
+
+        let dodge = try #require(CombatFeedbackChipComposer.compose(
+            presentation: CombatFeedbackChipPresentation.resolve(
+                label: .word(.dodge),
+                keyword: .dodge,
+                visualRole: .keyword,
+                feedbackClass: .dodge
+            ),
+            feedbackClass: .dodge,
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(dodge.pointSize.width > 0)
+
+        let deathsDoor = try #require(CombatFeedbackChipComposer.compose(
+            presentation: CombatFeedbackChipPresentation.resolve(
+                label: .word(.plain(.deathsDoor)),
+                keyword: .deathsDoor,
+                visualRole: .keyword,
+                feedbackClass: .deathsDoor
+            ),
+            feedbackClass: .deathsDoor,
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(deathsDoor.pointSize.width > 0)
     }
 
     private func makeEvent(
@@ -192,7 +230,7 @@ struct CombatFeedbackGlyphAtlasTests {
 private enum CombatFeedbackReferenceBaker {
     private static let horizontalPadding: CGFloat = 4
     private static let verticalPadding: CGFloat = 5
-    private static let symbolTextSpacing: CGFloat = 8
+    private static let glyphSpacing: CGFloat = 8
     private static let shadowOffsetY: CGFloat = 1.5
 
     struct BakedRaster {
@@ -201,8 +239,7 @@ private enum CombatFeedbackReferenceBaker {
     }
 
     static func bake(
-        text: String,
-        style: Keyword.VisualStyle,
+        presentation: CombatFeedbackChipPresentation,
         feedbackClass: CombatFeedbackClass,
         dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
@@ -214,26 +251,25 @@ private enum CombatFeedbackReferenceBaker {
             recipe: recipe,
             dynamicTypeSize: dynamicTypeSize
         )
-        // UIStyleCheck: allow - parity baker bridges semantic SwiftUI roles into UIKit.
-        let tint = UIColor(style.color)
-        let shadow = UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
-        let symbolConfig = UIImage.SymbolConfiguration(font: font)
-        guard let symbol = UIImage(
-            systemName: style.symbolName,
-            withConfiguration: symbolConfig
-        )?.withTintColor(tint, renderingMode: .alwaysOriginal) else {
+        guard let symbols = loadSymbols(presentation: presentation, font: font) else {
             return nil
         }
-
-        let nsText = text as NSString
+        // UIStyleCheck: allow - parity baker bridges semantic SwiftUI roles into UIKit.
+        let trailingTint = UIColor(presentation.trailingTint.color)
+        let text = presentation.text ?? ""
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: tint
+            .foregroundColor: trailingTint
         ]
-        let textSize = nsText.size(withAttributes: textAttributes)
-        let symbolSize = symbol.size
-        let contentWidth = symbolSize.width + symbolTextSpacing + textSize.width
-        let contentHeight = max(symbolSize.height, textSize.height)
+        let nsText = text as NSString
+        let textSize = text.isEmpty ? CGSize.zero : nsText.size(withAttributes: textAttributes)
+        let leadingSize = symbols.leading?.size ?? .zero
+        let trailingSize = symbols.trailing.size
+        let symbolCount = (symbols.leading == nil ? 0 : 1) + 1
+        let gapCount = max(0, (symbolCount + (textSize.width > 0 ? 1 : 0)) - 1)
+        let contentWidth = leadingSize.width + trailingSize.width + textSize.width
+            + CGFloat(gapCount) * glyphSpacing
+        let contentHeight = max(leadingSize.height, trailingSize.height, textSize.height)
         let pointSize = CGSize(
             width: ceil(contentWidth + horizontalPadding * 2),
             height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY)
@@ -244,48 +280,129 @@ private enum CombatFeedbackReferenceBaker {
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
         let image = renderer.image { _ in
-            let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
-            let origins = horizontalOrigins(
-                contentX: contentOrigin.x,
-                textWidth: textSize.width,
-                symbolWidth: symbolSize.width,
+            drawChip(
+                symbols: symbols,
+                nsText: nsText,
+                textAttributes: textAttributes,
+                textSize: textSize,
+                contentHeight: contentHeight,
                 layoutDirection: layoutDirection
             )
-            let symbolOrigin = CGPoint(
-                x: origins.symbolX,
-                y: contentOrigin.y + (contentHeight - symbolSize.height) / 2
-            )
-            let textOrigin = CGPoint(
-                x: origins.textX,
-                y: contentOrigin.y + (contentHeight - textSize.height) / 2
-            )
-            let context = UIGraphicsGetCurrentContext()
-            context?.setShadow(
-                offset: CGSize(width: 0, height: shadowOffsetY),
-                blur: 0,
-                color: shadow.cgColor
-            )
-            nsText.draw(at: textOrigin, withAttributes: textAttributes)
-            symbol.draw(at: symbolOrigin)
-            context?.setShadow(offset: .zero, blur: 0, color: nil)
         }
         guard let cgImage = image.cgImage else { return nil }
         return BakedRaster(image: cgImage, pointSize: pointSize)
     }
 
+    private static func loadSymbols(
+        presentation: CombatFeedbackChipPresentation,
+        font: UIFont
+    ) -> (leading: UIImage?, trailing: UIImage)? {
+        // UIStyleCheck: allow - parity baker bridges semantic SwiftUI roles into UIKit.
+        let trailingTint = UIColor(presentation.trailingTint.color)
+        let leadingTint = UIColor((presentation.leadingTint ?? presentation.trailingTint).color)
+        let symbolConfig = UIImage.SymbolConfiguration(font: font)
+        var leadingImage: UIImage?
+        if let leadingName = presentation.leadingSymbolName {
+            guard let image = UIImage(
+                systemName: leadingName,
+                withConfiguration: symbolConfig
+            )?.withTintColor(leadingTint, renderingMode: .alwaysOriginal) else {
+                return nil
+            }
+            leadingImage = image
+        }
+        guard let trailingImage = UIImage(
+            systemName: presentation.trailingSymbolName,
+            withConfiguration: symbolConfig
+        )?.withTintColor(trailingTint, renderingMode: .alwaysOriginal) else {
+            return nil
+        }
+        return (leadingImage, trailingImage)
+    }
+
+    private static func drawChip(
+        symbols: (leading: UIImage?, trailing: UIImage),
+        nsText: NSString,
+        textAttributes: [NSAttributedString.Key: Any],
+        textSize: CGSize,
+        contentHeight: CGFloat,
+        layoutDirection: LayoutDirection
+    ) {
+        let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
+        let leadingSize = symbols.leading?.size ?? .zero
+        let trailingSize = symbols.trailing.size
+        let origins = horizontalOrigins(
+            contentX: contentOrigin.x,
+            leadingWidth: leadingSize.width,
+            textWidth: textSize.width,
+            trailingWidth: trailingSize.width,
+            layoutDirection: layoutDirection
+        )
+        // UIStyleCheck: allow - parity baker bridges semantic SwiftUI roles into UIKit.
+        let shadow = UIColor(TrinketDesign.Colors.Overlay.ink.opacity(0.95))
+        let context = UIGraphicsGetCurrentContext()
+        context?.setShadow(
+            offset: CGSize(width: 0, height: shadowOffsetY),
+            blur: 0,
+            color: shadow.cgColor
+        )
+        if let leadingImage = symbols.leading {
+            leadingImage.draw(at: CGPoint(
+                x: origins.leadingX,
+                y: contentOrigin.y + (contentHeight - leadingSize.height) / 2
+            ))
+        }
+        if textSize.width > 0 {
+            nsText.draw(
+                at: CGPoint(
+                    x: origins.textX,
+                    y: contentOrigin.y + (contentHeight - textSize.height) / 2
+                ),
+                withAttributes: textAttributes
+            )
+        }
+        symbols.trailing.draw(at: CGPoint(
+            x: origins.trailingX,
+            y: contentOrigin.y + (contentHeight - trailingSize.height) / 2
+        ))
+        context?.setShadow(offset: .zero, blur: 0, color: nil)
+    }
+
     private static func horizontalOrigins(
         contentX: CGFloat,
+        leadingWidth: CGFloat,
         textWidth: CGFloat,
-        symbolWidth: CGFloat,
+        trailingWidth: CGFloat,
         layoutDirection: LayoutDirection
-    ) -> (textX: CGFloat, symbolX: CGFloat) {
+    ) -> (leadingX: CGFloat, textX: CGFloat, trailingX: CGFloat) {
+        let leadingPresent = leadingWidth > 0
+        let textPresent = textWidth > 0
+
+        func advance(_ x: inout CGFloat, width: CGFloat, present: Bool) {
+            if present {
+                x += width + glyphSpacing
+            }
+        }
+
         switch layoutDirection {
-        case .leftToRight:
-            (contentX, contentX + textWidth + symbolTextSpacing)
         case .rightToLeft:
-            (contentX + symbolWidth + symbolTextSpacing, contentX)
+            var x = contentX
+            let trailingX = x
+            x += trailingWidth + glyphSpacing
+            let textX = x
+            advance(&x, width: textWidth, present: textPresent)
+            let leadingX = x
+            return (leadingX, textX, trailingX)
+        case .leftToRight:
+            fallthrough
         @unknown default:
-            (contentX, contentX + textWidth + symbolTextSpacing)
+            var x = contentX
+            let leadingX = x
+            advance(&x, width: leadingWidth, present: leadingPresent)
+            let textX = x
+            advance(&x, width: textWidth, present: textPresent)
+            let trailingX = x
+            return (leadingX, textX, trailingX)
         }
     }
 

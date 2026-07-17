@@ -189,7 +189,7 @@ extension AppState {
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
-    /// Recruit unlocks transition to the reveal phase; choose-item choices present
+    /// Recruit unlocks present the unlocked reward; choose-item choices present
     /// candidates; other outcomes complete the stage in the same persist transaction
     /// so effects cannot land without completion.
     @discardableResult
@@ -219,7 +219,7 @@ extension AppState {
                     using: &randomNumberGenerator
                 )
                 if !applyResult.unlockedCombatantIDs.isEmpty {
-                    // Journey recruits delay completion for the reveal ceremony; authored
+                    // Journey recruits delay completion for the unlock screen; authored
                     // reopen safety auto-completes if already unlocked. Labyrinth mystery
                     // events are re-rolled from the unlocked roster, so complete the node
                     // with the unlock to prevent kill/relaunch double-recruits.

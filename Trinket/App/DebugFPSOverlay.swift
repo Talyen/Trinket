@@ -58,9 +58,12 @@ enum DebugRuntime {
 }
 
 /// Human-facing badge only. Measurement probes live in `FramePacingMetricsProbe`.
+///
+/// Uses a process-wide display-link sampler and `.task` (not onAppear/stop) so the
+/// launch warmup → ContentView shell swap cannot leave a visible badge with a
+/// stopped CADisplayLink stuck at the empty report.
 private struct FramePacingVisualBadgeHost: View {
     @State private var report = FramePacingReport.empty
-    @State private var monitor = FramePacingMonitor()
 
     var body: some View {
         FramePacingBadge(report: report)
@@ -69,11 +72,17 @@ private struct FramePacingVisualBadgeHost: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
-            .onAppear {
+            .task {
+                let monitor = FramePacingMonitor.visualShared
                 monitor.start(publishesAutomatically: true) { report = $0 }
-            }
-            .onDisappear {
-                monitor.stop()
+                if monitor.latestReport.sampleCount > 0 {
+                    report = monitor.latestReport
+                }
+                defer { monitor.detachHandler() }
+                // Stay suspended until SwiftUI cancels this task on teardown.
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(60 * 60))
+                }
             }
     }
 }
@@ -235,6 +244,8 @@ private struct FramePacingBadge: View {
 final class FramePacingMonitor: NSObject {
     /// Survives ContentView shell swaps during `-enable-frame-metrics` UITests.
     static let measurementShared = FramePacingMonitor()
+    /// Survives launch/shell remounts for the DEBUG FPS badge without stopping sampling.
+    static let visualShared = FramePacingMonitor()
 
     private struct Sample: Sendable {
         let interval: CFTimeInterval
@@ -244,8 +255,8 @@ final class FramePacingMonitor: NSObject {
     /// Thirty seconds at 120 Hz; overwrites oldest samples without shifting an Array.
     private static let capacity = 3600
     private static let warmupSeconds: CFTimeInterval = 0.75
-    /// Publishing every two seconds keeps the visual probe substantially below frame cadence.
-    private static let publishInterval: CFTimeInterval = 2.0
+    /// Publishing every half-second keeps the badge responsive without matching frame cadence.
+    private static let publishInterval: CFTimeInterval = 0.5
 
     private var displayLink: CADisplayLink?
     private var previousTimestamp: CFTimeInterval = 0
@@ -267,6 +278,8 @@ final class FramePacingMonitor: NSObject {
         handler = onUpdate
         self.publishesAutomatically = publishesAutomatically
         if let displayLink {
+            // Drop the pause gap so the next tick re-seeds interval baselines.
+            previousTimestamp = 0
             displayLink.isPaused = false
             return
         }
@@ -277,6 +290,8 @@ final class FramePacingMonitor: NSObject {
 
     func detachHandler() {
         handler = nil
+        // Pause while no subscriber is attached; start() unpauses on re-subscribe.
+        displayLink?.isPaused = true
     }
 
     func resetMeasurement() {
@@ -347,7 +362,10 @@ final class FramePacingMonitor: NSObject {
         guard publishesAutomatically,
               timestamp - lastPublishTimestamp >= Self.publishInterval else { return }
         lastPublishTimestamp = timestamp
-        publishReport(synchronously: false)
+        // Publish on the display-link turn. Percentile work over the ring buffer is
+        // cheap; avoiding Task.detached prevents cancel/resume races from dropping
+        // every update and leaving the badge stuck at the empty report.
+        publishReport(synchronously: true)
     }
 
     private func publishReport(synchronously: Bool) {

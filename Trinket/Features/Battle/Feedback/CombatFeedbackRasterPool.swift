@@ -5,7 +5,8 @@ import TrinketDesignSystem
 
 struct CombatFeedbackRasterKey: Hashable {
     let feedbackClass: String
-    let symbolName: String
+    let leadingSymbolName: String?
+    let trailingSymbolName: String
     let label: CombatFeedbackChipLabel
     let dynamicTypeSize: DynamicTypeSize
     let layoutDirection: LayoutDirection
@@ -119,8 +120,7 @@ final class CombatFeedbackRasterPool {
 
         let item = canvasItem.item
         guard let composed = CombatFeedbackChipComposer.compose(
-            label: canvasItem.label,
-            style: item.feedbackVisualStyle,
+            presentation: item.chipPresentation,
             feedbackClass: item.feedbackClass,
             dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
@@ -303,11 +303,12 @@ final class CombatFeedbackRasterPool {
         displayScale: CGFloat
     ) -> CombatFeedbackRasterKey {
         let item = canvasItem.item
-        let style = item.feedbackVisualStyle
+        let presentation = item.chipPresentation
         let scale = max(1, displayScale)
         return CombatFeedbackRasterKey(
             feedbackClass: item.feedbackClass.rawValue,
-            symbolName: style.symbolName,
+            leadingSymbolName: presentation.leadingSymbolName,
+            trailingSymbolName: presentation.trailingSymbolName,
             label: canvasItem.label,
             dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,

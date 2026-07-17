@@ -18,8 +18,6 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))
 
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
-        button(AccessibilityID.Mystery.unlockCard(name: "Bear")).tap()
-
         assertExists(AccessibilityID.Mystery.unlockName)
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW COMPANION")
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockSubtitle).label.uppercased(), "UNLOCKED")
@@ -41,17 +39,14 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             "mystery"
         ]
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
-            + TestLaunchArg.mysteryRecruit(eventID: "recruit-rogue"))
+            + TestLaunchArg.mysteryRecruit(eventID: "recruit-ranger"))
 
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Rogue"))
-        button(AccessibilityID.Mystery.unlockCard(name: "Rogue")).tap()
-
+        assertExists(AccessibilityID.Mystery.unlockCard(name: "Ranger"))
         assertExists(AccessibilityID.Mystery.unlockName)
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockEyebrow).label.uppercased(), "NEW HERO")
         XCTAssertEqual(any(AccessibilityID.Mystery.unlockSubtitle).label.uppercased(), "UNLOCKED")
-        assertExists(AccessibilityID.Mystery.unlockCard(name: "Rogue"))
         XCTAssertFalse(app.staticTexts["View Details"].exists)
-        button(AccessibilityID.Mystery.unlockCard(name: "Rogue")).tap()
-        combatantDetail.assertLoaded(for: "Rogue")
+        button(AccessibilityID.Mystery.unlockCard(name: "Ranger")).tap()
+        combatantDetail.assertLoaded(for: "Ranger")
     }
 }

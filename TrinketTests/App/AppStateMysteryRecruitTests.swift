@@ -54,7 +54,7 @@ struct AppStateMysteryRecruitTests {
     @Test func authoredRecruitEventDoesNotSubstituteAnotherCombatant() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         var roster = state.roster
-        roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "rogue"]
+        roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "ranger"]
         state.roster = roster
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))

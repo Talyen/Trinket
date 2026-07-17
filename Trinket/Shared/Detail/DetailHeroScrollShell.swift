@@ -138,8 +138,8 @@ struct DetailSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(title)
-                .trinketTypography(.cardTitle)
-                .foregroundStyle(.secondary)
+                .trinketTypography(.rowTitle)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.top, TrinketDesign.Metrics.contentTopPadding)
                 .accessibilityIdentifier(sectionID ?? title)

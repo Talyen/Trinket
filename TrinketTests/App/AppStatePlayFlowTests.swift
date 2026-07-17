@@ -49,7 +49,12 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
         #expect(state.journey.activeStageID == "chapter-1-stage-2")
         #expect(state.roster.gold == goldAfterFirstContinue)
-        #expect(state.roster.gold == initialGold + 5 + stage.rewards.gold)
+        let loot = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: configuration.enemyEncounterLevel ?? 1,
+            enemyIsBoss: false
+        )
+        #expect(state.roster.gold == initialGold + 5 + loot.gold)
     }
 
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
@@ -225,8 +230,13 @@ struct AppStatePlayFlowTests {
         // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold), not the
         // homestead-adjusted display split (summary.battleGold).
         let rawBattleEarnedGold = 20
+        let loot = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: configuration.enemyEncounterLevel ?? 1,
+            enemyIsBoss: false
+        )
         let expectedTotal = StageCompletion.resolvedGoldReward(
-            stageGold: stage.rewards.gold,
+            stageGold: loot.gold,
             battleEarnedGold: rawBattleEarnedGold,
             homestead: state.homestead
         )

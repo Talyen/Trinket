@@ -27,24 +27,6 @@ struct TrinketMotionTests {
         )
     }
 
-    @Test func recruitRevealBreathingShroudTokensAreOrdered() {
-        #expect(TrinketMotion.RecruitReveal.clearStart == 0)
-        #expect(TrinketMotion.RecruitReveal.clearEnd == 0.55)
-        #expect(TrinketMotion.RecruitReveal.invitationBlurMin < TrinketMotion.RecruitReveal.invitationBlurMax)
-        #expect(
-            TrinketMotion.RecruitReveal.invitationSaturationMin
-                < TrinketMotion.RecruitReveal.invitationSaturationMax
-        )
-        #expect(
-            TrinketMotion.RecruitReveal.invitationBlurRadius(breath: 0)
-                == TrinketMotion.RecruitReveal.invitationBlurMin
-        )
-        #expect(
-            TrinketMotion.RecruitReveal.invitationBlurRadius(breath: 1)
-                == TrinketMotion.RecruitReveal.invitationBlurMax
-        )
-    }
-
     @Test func chipMotionRecipesStayWithinSemanticContracts() {
         let critical = TrinketMotion.Battle.chip(for: .critical)
         let normal = TrinketMotion.Battle.chip(for: .directDamage)
@@ -174,5 +156,28 @@ struct TrinketMotionTests {
         #expect(celebrate.duration == 1.0)
         #expect((celebrate.rotation.first?.value ?? 0) < 0)
         #expect(celebrate.rotation[1].value > 0)
+    }
+
+    @Test func hitRecoilDirectionFlipsOffsetAndScaleAxes() {
+        let magnitude: CGFloat = 4
+        let upOffset = CombatantHitRecoilDirection.up.impactOffset(magnitude: magnitude)
+        let downOffset = CombatantHitRecoilDirection.down.impactOffset(magnitude: magnitude)
+        #expect(upOffset.width == 0)
+        #expect(upOffset.height == -magnitude)
+        #expect(downOffset.width == 0)
+        #expect(downOffset.height == magnitude)
+
+        let damage = TrinketMotion.Battle.cardReaction(for: .damage)
+        let scaleX = damage.scaleX.first?.value ?? 1
+        let scaleY = damage.scaleY.first?.value ?? 1
+        let upScales = CombatantHitRecoilDirection.up.impactScales(scaleX: scaleX, scaleY: scaleY)
+        let downScales = CombatantHitRecoilDirection.down.impactScales(scaleX: scaleX, scaleY: scaleY)
+        #expect(upScales.x == scaleY)
+        #expect(upScales.y == scaleX)
+        #expect(downScales.x == scaleX)
+        #expect(downScales.y == scaleY)
+
+        #expect(TrinketMotion.Battle.partyRecoilDirection(isPartyMember: true) == .down)
+        #expect(TrinketMotion.Battle.partyRecoilDirection(isPartyMember: false) == .up)
     }
 }

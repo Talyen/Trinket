@@ -127,7 +127,7 @@ struct AppStateShopEncounterTests {
         #expect(state.activeShopEncounter == nil)
         #expect(state.journey.completedStageIDs.contains("chapter-2-stage-4"))
         #expect(state.journey.activeStageID == "chapter-2-stage-5")
-        #expect(state.roster.gold == stage.rewards.gold)
+        #expect(state.roster.gold == 0)
         #expect(state.inventory.items.count == itemsBefore)
     }
 

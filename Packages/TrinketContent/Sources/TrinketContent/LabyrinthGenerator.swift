@@ -153,8 +153,8 @@ public enum LabyrinthGenerator {
     ) -> [LabyrinthNode] {
         types.enumerated().map { index, type in
             let enemyID: String? = if type.isCombat {
-                (type == .warden)
-                    ? biome.wardenEnemyID
+                (type == .boss)
+                    ? biome.bossEnemyID
                     : pickEnemy(from: biome, using: &rng)
             } else {
                 nil
@@ -227,7 +227,7 @@ public enum LabyrinthGenerator {
         from biome: LabyrinthBiomeDefinition,
         using rng: inout some RandomNumberGenerator
     ) -> String {
-        biome.enemyPool.randomElement(using: &rng) ?? biome.wardenEnemyID
+        biome.enemyPool.randomElement(using: &rng) ?? biome.bossEnemyID
     }
 
     private static func rollModifiers(
@@ -325,15 +325,15 @@ public enum LabyrinthGenerator {
         }
 
         // Depth 1+: ensure at least one battle-like node before the gate.
-        if !types.contains(where: { $0 == .battle || $0 == .warden }) {
+        if !types.contains(where: { $0 == .battle || $0 == .boss }) {
             types.insert(.battle, at: 0)
         }
 
         types = Array(types.prefix(max(count - 1, 1)))
-        // Occasional warden near the end of deeper bands.
-        if depthBand >= 3, !types.contains(.warden), Int.random(in: 0 ... 4, using: &rng) == 0 {
+        // Occasional boss near the end of deeper bands.
+        if depthBand >= 3, !types.contains(.boss), Int.random(in: 0 ... 4, using: &rng) == 0 {
             if let replaceIndex = types.indices.randomElement(using: &rng) {
-                types[replaceIndex] = .warden
+                types[replaceIndex] = .boss
             }
         }
         // Prefer a combat encounter as the cluster entry for a clear first action.

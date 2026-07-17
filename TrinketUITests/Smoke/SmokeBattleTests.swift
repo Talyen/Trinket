@@ -18,7 +18,7 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
 
         assertExists(battle.victory, timeout: Self.defaultTimeout)
         assertButtonExists(AccessibilityID.Battle.continueButton)
-        let rewardItemID = "chapter-1-stage-1-shortsword-basic"
+        let rewardItemID = "chapter-1-stage-1-loot"
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID))
     }
@@ -39,13 +39,13 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
         battle.assertActive()
         assertExists(battle.hand)
 
-        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
+        let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Knight")]
         assertExists(hero)
 
         battle.hand.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             .press(forDuration: 0.2, thenDragTo: hero.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
 
-        let detailHeader = combatantDetail.header(for: "Ranger")
+        let detailHeader = combatantDetail.header(for: "Knight")
         XCTAssertFalse(
             detailHeader.waitForExistence(timeout: 1),
             "Releasing a hand-card drag on a combatant must not open details"
@@ -55,7 +55,7 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
             throw XCTSkip("Battle resolved during hand-drag assertions; covered by victory test")
         }
 
-        battle.openCombatantCard(named: "Ranger")
-        combatantDetail.assertLoaded(for: "Ranger")
+        battle.openCombatantCard(named: "Knight")
+        combatantDetail.assertLoaded(for: "Knight")
     }
 }

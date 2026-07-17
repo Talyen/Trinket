@@ -11,9 +11,6 @@ struct MysteryEncounterView: View {
     @State private var narrativeAppeared = false
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
-    @State private var inviteTapTrigger = 0
-    @State private var shroudRevealStarted = false
-    @State private var shroudRevealProgress: CGFloat = 0
     @State private var showUnlockEyebrow = false
     @State private var showUnlockTitle = false
     @State private var showUnlockSubtitle = false
@@ -152,44 +149,28 @@ struct MysteryEncounterView: View {
                     trigger: unlockFeedbackTrigger,
                     enabled: appState.options.hapticsEnabled
                 )
-                .trinketSensoryFeedback(
-                    .selection,
-                    trigger: inviteTapTrigger,
-                    enabled: appState.options.hapticsEnabled
-                )
-                .onChange(of: shroudRevealProgress) { _, progress in
-                    guard progress >= TrinketMotion.RecruitReveal.clearEnd else { return }
+                .onAppear {
+                    unlockFeedbackTrigger += 1
                     startUnlockChromeSequence()
                 }
         }
     }
 
     private func recruitUnlockStage(combatant: Combatant) -> some View {
-        let clear = shroudRevealStarted
-            ? recruitRevealClearAmount(progress: shroudRevealProgress)
-            : 0
-
-        return ZStack {
+        ZStack {
             // Art stays geometrically centered; chrome overlays so fade-in never nudges it.
             Button {
-                if shroudRevealStarted {
-                    guard clear >= 1 else { return }
-                    selectedDetail = CombatantDetailContext(
-                        kind: combatant.role == .companion ? .companion : .hero,
-                        combatantID: combatant.id
-                    )
-                } else {
-                    beginShroudReveal()
-                }
-            } label: {
-                RecruitCeremonyArt(
-                    stage: session.stage,
-                    combatant: combatant,
-                    clearAmount: clear,
-                    isBreathingEnabled: !shroudRevealStarted
+                selectedDetail = CombatantDetailContext(
+                    kind: combatant.role == .companion ? .companion : .hero,
+                    combatantID: combatant.id
                 )
+            } label: {
+                CombatantArtwork(combatant: combatant, variant: .hero)
+                    .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
+                    .clipShape(TrinketDesign.cardShape)
+                    .trinketCardSurface()
             }
-            // UIStyleCheck: allow - Invitation / unlock art is the tap target; no button chrome.
+            // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
             .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
             .frame(maxWidth: 430)
@@ -268,20 +249,6 @@ struct MysteryEncounterView: View {
         }
     }
 
-    private func beginShroudReveal() {
-        inviteTapTrigger += 1
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
-            shroudRevealStarted = true
-            shroudRevealProgress = 0
-        }
-        withAnimation(TrinketMotion.RecruitReveal.peel) {
-            shroudRevealProgress = 1
-        }
-        unlockFeedbackTrigger += 1
-    }
-
     private func startUnlockChromeSequence() {
         guard !hasStartedChromeSequence else { return }
         hasStartedChromeSequence = true
@@ -315,14 +282,6 @@ struct MysteryEncounterView: View {
             }
             chromeRevealTask = nil
         }
-    }
-
-    private func recruitRevealClearAmount(progress: CGFloat) -> CGFloat {
-        let motion = TrinketMotion.RecruitReveal.self
-        let span = motion.clearEnd - motion.clearStart
-        guard span > 0 else { return 1 }
-        let t = min(1, max(0, (progress - motion.clearStart) / span))
-        return t * t * (3 - 2 * t)
     }
 
     private func revealCombatant(id: String) -> Combatant? {

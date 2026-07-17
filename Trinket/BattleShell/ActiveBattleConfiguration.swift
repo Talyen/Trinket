@@ -156,10 +156,11 @@ struct ActiveBattleConfiguration: Identifiable {
         resumeToken: ActiveBattleResumeToken?,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
+        _ = randomNumberGenerator
         guard case let .aspect(aspectID, floorNumber) = resumeToken,
               let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber)
         else { return nil }
-        return AspectCompletion.makeAspectFloorItem(for: floor, using: &randomNumberGenerator)
+        return AspectCompletion.resolveLoot(for: floor).item
     }
 
     private static func partyMember(
@@ -208,14 +209,11 @@ struct ActiveBattleConfiguration: Identifiable {
         stageReward: StageReward?,
         pendingRewardItem: InventoryItem?
     ) -> [InventoryItem] {
+        if let pendingRewardItem {
+            return [pendingRewardItem]
+        }
         switch resumeToken {
-        case .aspect, .labyrinth:
-            return pendingRewardItem.map { [$0] } ?? []
-        case let .journey(stageID):
-            guard let stageReward else { return [] }
-            let templates = stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
-            return templates.map { $0.rewardInstance(for: stageID) }
-        case .none:
+        case .aspect, .labyrinth, .journey, .none:
             guard let stageReward else { return [] }
             return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
         }

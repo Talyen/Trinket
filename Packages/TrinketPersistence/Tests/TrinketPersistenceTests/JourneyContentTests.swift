@@ -7,13 +7,10 @@ struct JourneyContentTests {
         GameContent.chapters[0]
     }
 
-    @Test func eachRewardItemTemplateExists() throws {
-        for stage in chapter.stages {
-            for templateID in stage.rewards.itemTemplateIDs {
-                _ = try #require(
-                    GameContent.itemTemplate(matching: templateID),
-                    "Stage \(stage.id) references missing item template \(templateID)"
-                )
+    @Test func authoredStagesHaveEmptyStageRewards() throws {
+        for chapter in GameContent.chapters {
+            for stage in chapter.stages {
+                try #expect(stage.rewards == .empty, "\(stage.id) should not author StageReward")
             }
         }
     }
@@ -44,11 +41,11 @@ struct JourneyContentTests {
 
         let chapterOne = GameContent.chapters[0]
         try #expect(chapterOne.stages[1].encounter.mysteryEventID == "recruit-bear")
-        try #expect(chapterOne.stages[3].encounter.mysteryEventID == "recruit-rogue")
+        try #expect(chapterOne.stages[3].encounter.mysteryEventID == "recruit-ranger")
         try #expect(chapterOne.stages.contains { $0.encounter == .shop } == false)
 
         let chapterTwo = GameContent.chapters[1]
-        try #expect(chapterTwo.stages[1].encounter.mysteryEventID == "recruit-knight")
+        try #expect(chapterTwo.stages[1].encounter.mysteryEventID == "recruit-rogue")
         try #expect(chapterTwo.stages[3].encounter == .shop)
 
         let chapterThree = GameContent.chapters[2]
@@ -58,8 +55,8 @@ struct JourneyContentTests {
 
     @Test func placeholderEncountersMatchTheApprovedChapterLineup() throws {
         let expectedEncounterIDs = [
-            ["slime", "recruit-bear", "goblin", "recruit-rogue", "the_blight_treant"],
-            ["skeleton", "recruit-knight", "mimic", "shop", "the_iron_bear"],
+            ["slime", "recruit-bear", "goblin", "recruit-ranger", "the_blight_treant"],
+            ["skeleton", "recruit-rogue", "mimic", "shop", "the_iron_bear"],
             ["will_o_wisp", "recruit-library-owl", "frost_elemental", "shop", "the_frostwarden"]
         ]
 

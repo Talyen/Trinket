@@ -40,7 +40,7 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
 }
 
 public struct PlayerRosterState: Equatable, Sendable {
-    public static let starterHeroID = "ranger"
+    public static let starterHeroID = "knight"
     public static let starterCompanionID = "wolf"
 
     public var activeHeroID: String
@@ -119,8 +119,6 @@ public struct PlayerRosterState: Equatable, Sendable {
                 "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 155),
                 "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
                 "wizard": CombatantProgression(level: 3, currentXP: 20, requiredXP: 220),
-                "alchemist": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-                "druid": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "ranger": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "warlock": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "bear": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),

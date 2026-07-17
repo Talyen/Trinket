@@ -78,7 +78,10 @@ struct TraitBattleTests {
             .directAbilityHit(amount: 1, target: enemy, keyword: .physical, sourceActorID: wolf.id)
         )
 
-        try #expect(outcome.healthLost == 3)
+        let strengthBonus = wolf.primaryStats.statBonusForDamage(keyword: .physical)
+        let packBonus = rangerBuild.modifiers.companionDamageDealtBonus
+        try #expect(packBonus == 1)
+        try #expect(outcome.healthLost == 1 + strengthBonus + packBonus)
     }
 
     @Test func purifyingWisdomHealsAfterCleanse() throws {

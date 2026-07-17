@@ -137,7 +137,10 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.feedbackClass) == [.heal, .dodge])
         #expect(items[0].reactionKind == .heal)
         #expect(items[1].reactionKind == .dodge)
-        #expect(items[1].text == "Dodge")
+        #expect(items.count == 2)
+        #expect(items[1].label == .word(.dodge))
+        #expect(items[1].chipPresentation.text == nil)
+        #expect(items[1].chipPresentation.trailingSymbolName == "figure.run")
     }
 
     @Test func actionGroupTimingSharesAvailabilityAndStaggersTargets() {
@@ -220,7 +223,8 @@ struct CombatFeedbackPresenterTests {
         )
         #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .dot])
         #expect(directAndStatus[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
-        #expect(directAndStatus[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
+        // DoT and direct damage share the normal chip lifetime recipe.
+        #expect(directAndStatus[1].lifetime == TrinketMotion.Battle.chip(for: .directDamage).lifetime)
     }
 
     @Test func assignsPriorityAndOverflowMetadataDeterministically() {
@@ -418,12 +422,15 @@ extension CombatFeedbackPresenterTests {
         #expect(CombatFeedbackChipLabel.fromDisplayText("Dodge") == .word(.dodge))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Critical") == .word(.critical))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!") == .word(.triggered(.stun)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Stunned!")?.displayString == "Stun")
         #expect(CombatFeedbackChipLabel.fromDisplayText("+Block") == .word(.applied(.block)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("+Block")?.displayString == "Block")
         #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding") == .word(.cleanse(.bleed)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding")?.displayString.isEmpty == true)
         #expect(CombatFeedbackChipLabel.fromDisplayText("Purge Block") == .word(.purge(.block)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Armor") == .word(.halve(.armor)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door") == .word(.plain(.deathsDoor)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door")?.displayString.isEmpty == true)
     }
 
     @Test func suppressesCardsControlBuildupAndNumericZeroesButNamesZeroValueStatuses() {
@@ -438,8 +445,11 @@ extension CombatFeedbackPresenterTests {
         )
 
         #expect(items.count == 1)
-        #expect(items[0].text == "Next Holy Strike")
+        #expect(items[0].label == .word(.status(.nextHolyStrike)))
         #expect(items[0].visualRole == .beneficialStatus)
+        #expect(items[0].chipPresentation.leadingSymbolName == "arrowshape.up.fill")
+        #expect(items[0].chipPresentation.trailingSymbolName == "sun.max.fill")
+        #expect(items[0].chipPresentation.text == nil)
     }
 
     @Test @MainActor func routesResourceAndNamedStatusVisuals() throws {
@@ -461,14 +471,32 @@ extension CombatFeedbackPresenterTests {
         #expect(try #require(byID[1]).feedbackVisualStyle.symbolName == "circle.circle.fill")
         #expect(try #require(byID[2]).feedbackVisualStyle.symbolName == "moon.stars.fill")
         #expect(try #require(byID[3]).feedbackVisualStyle.symbolName == "moon.stars.fill")
-        #expect(try #require(byID[4]).text == "Thorns")
-        #expect(try #require(byID[5]).text == "Hasted")
-        #expect(try #require(byID[6]).text == "Critical Up")
-        #expect(try #require(byID[7]).text == "Marked")
-        #expect(try #require(byID[7]).feedbackVisualStyle.symbolName == "arrowshape.down.fill")
-        #expect(try #require(byID[8]).text == "Armor Down")
-        #expect(try #require(byID[8]).feedbackVisualStyle.symbolName == "arrowshape.down.fill")
-        #expect(try #require(byID[4]).feedbackVisualStyle.symbolName == "arrowshape.up.fill")
+
+        let thorns = try #require(byID[4]).chipPresentation
+        #expect(try #require(byID[4]).label == .word(.status(.thorns)))
+        #expect(thorns.leadingSymbolName == "arrowshape.up.fill")
+        #expect(thorns.trailingSymbolName == "burst.fill")
+        #expect(thorns.text == nil)
+
+        let hasted = try #require(byID[5]).chipPresentation
+        #expect(try #require(byID[5]).label == .word(.status(.hasted)))
+        #expect(hasted.leadingSymbolName == nil)
+        #expect(hasted.trailingSymbolName == "arrowshape.up.fill")
+
+        let criticalUp = try #require(byID[6]).chipPresentation
+        #expect(try #require(byID[6]).label == .word(.status(.criticalUp)))
+        #expect(criticalUp.leadingSymbolName == "arrowshape.up.fill")
+        #expect(criticalUp.trailingSymbolName == "burst.fill")
+
+        let marked = try #require(byID[7]).chipPresentation
+        #expect(try #require(byID[7]).label == .word(.status(.marked)))
+        #expect(marked.leadingSymbolName == nil)
+        #expect(marked.trailingSymbolName == "arrowshape.down.fill")
+
+        let armorDown = try #require(byID[8]).chipPresentation
+        #expect(try #require(byID[8]).label == .word(.status(.armorDown)))
+        #expect(armorDown.leadingSymbolName == "arrowshape.down.fill")
+        #expect(armorDown.trailingSymbolName == "shield.lefthalf.filled")
     }
 
     @Test func avatarOfJusticeConsolidatesItsEffectChips() {
@@ -509,8 +537,10 @@ extension CombatFeedbackPresenterTests {
         )
 
         #expect(items.count == 1)
-        #expect(items[0].text == "Avatar of Justice")
+        #expect(items[0].label == .word(.status(.avatarOfJustice)))
         #expect(items[0].visualRole == .beneficialStatus)
+        #expect(items[0].chipPresentation.leadingSymbolName == "arrowshape.up.fill")
+        #expect(items[0].chipPresentation.trailingSymbolName == "sun.max.fill")
         #expect(items[0].sourceEventIDs == [10, 11, 12])
     }
 }

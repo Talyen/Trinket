@@ -7,8 +7,6 @@ enum GameContentRosterGenerated {
         "knight": "oathbound",
         "rogue": "cutpurse",
         "wizard": "arcane_focus",
-        "alchemist": "reinforced_formula",
-        "druid": "thornskin",
         "ranger": "pack_leader",
         "warlock": "soul_siphon",
         "bear": "thick_hide",
@@ -36,7 +34,7 @@ enum GameContentRosterGenerated {
                 skills: [.smite, .plateMail],
                 ultimates: [.avatarOfJustice, .sanctifiedPlate]
             ),
-            primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 11, intellect: 2, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
         ),
         Combatant(
@@ -49,7 +47,7 @@ enum GameContentRosterGenerated {
                 skills: [.poisonDagger, .serratedEdge],
                 ultimates: [.hemorrhage, .concussiveShot]
             ),
-            primaryStats: PrimaryStats(strength: 5, agility: 11, toughness: 4, intellect: 3, wisdom: 6),
+            primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
             growthArchetype: .assassin
         ),
         Combatant(
@@ -63,36 +61,8 @@ enum GameContentRosterGenerated {
                 skills: [.fireball, .frostbolt],
                 ultimates: [.meteor, .glacialWard]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 12, wisdom: 3),
+            primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 8, intellect: 14, wisdom: 12),
             growthArchetype: .mage
-        ),
-        Combatant(
-            id: "alchemist",
-            name: "Alchemist",
-            role: .hero,
-            maxHealth: 15,
-            maxMana: 8,
-            abilityChoices: AbilityChoices(
-                basics: [.causticJab, .block],
-                skills: [.acidPotion, .healthPotion],
-                ultimates: [.panaceaPotion, .luckPotion]
-            ),
-            primaryStats: PrimaryStats(strength: 2, agility: 5, toughness: 5, intellect: 8, wisdom: 10),
-            growthArchetype: .support
-        ),
-        Combatant(
-            id: "druid",
-            name: "Druid",
-            role: .hero,
-            maxHealth: 17,
-            maxMana: 8,
-            abilityChoices: AbilityChoices(
-                basics: [.kindling, .fangs],
-                skills: [.briarShield, .graspingVines],
-                ultimates: [.bloodthorn, .thornMail]
-            ),
-            primaryStats: PrimaryStats(strength: 3, agility: 4, toughness: 8, intellect: 4, wisdom: 11),
-            growthArchetype: .support
         ),
         Combatant(
             id: "ranger",
@@ -101,10 +71,10 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.bountyShot, .fireArrow],
-                skills: [.venomArrow, .sapArrow],
+                skills: [.lightningArrow, .venomArrow],
                 ultimates: [.packTactics, .concussiveShot]
             ),
-            primaryStats: PrimaryStats(strength: 6, agility: 10, toughness: 4, intellect: 2, wisdom: 6),
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
             growthArchetype: .assassin
         ),
         Combatant(
@@ -118,7 +88,7 @@ enum GameContentRosterGenerated {
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.combustion, .faustianBargain]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 10, wisdom: 7),
+            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 8, intellect: 13, wisdom: 12),
             growthArchetype: .mage
         )
     ]
@@ -134,7 +104,7 @@ enum GameContentRosterGenerated {
                 skills: [.spikedShield, .sunderArmor],
                 ultimates: [.crystalBulwark, .thornMail]
             ),
-            primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 10, intellect: 2, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
         ),
         Combatant(
@@ -148,7 +118,7 @@ enum GameContentRosterGenerated {
                 skills: [.frostbolt, .coldSnap],
                 ultimates: [.glacialWard, .blizzard]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 10, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 14, wisdom: 11),
             growthArchetype: .mage
         ),
         Combatant(
@@ -161,7 +131,7 @@ enum GameContentRosterGenerated {
                 skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.hemorrhage, .steal]
             ),
-            primaryStats: PrimaryStats(strength: 5, agility: 10, toughness: 4, intellect: 4, wisdom: 5),
+            primaryStats: PrimaryStats(strength: 9, agility: 12, toughness: 9, intellect: 9, wisdom: 11),
             growthArchetype: .assassin
         ),
         Combatant(
@@ -174,7 +144,7 @@ enum GameContentRosterGenerated {
                 skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.packTactics, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 5, intellect: 3, wisdom: 3),
+            primaryStats: PrimaryStats(strength: 12, agility: 12, toughness: 10, intellect: 8, wisdom: 8),
             growthArchetype: .bruiser
         ),
         Combatant(
@@ -188,7 +158,7 @@ enum GameContentRosterGenerated {
                 skills: [.fireball, .cinderbloom],
                 ultimates: [.phoenixFeather, .combustion]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 9, wisdom: 7),
+            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 13, wisdom: 12),
             growthArchetype: .mage
         ),
         Combatant(
@@ -201,7 +171,7 @@ enum GameContentRosterGenerated {
                 skills: [.graspingVines, .predatorsHaste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 5, intellect: 2, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
             growthArchetype: .assassin
         ),
         Combatant(
@@ -214,7 +184,7 @@ enum GameContentRosterGenerated {
                 skills: [.stoneskinPotion, .tithe],
                 ultimates: [.luckPotion, .goldenPlate]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 7, intellect: 3, wisdom: 9),
+            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 11, intellect: 8, wisdom: 14),
             growthArchetype: .support
         ),
         Combatant(
@@ -228,7 +198,7 @@ enum GameContentRosterGenerated {
                 skills: [.sageHeal, .cleanse],
                 ultimates: [.panaceaPotion, .exorcism]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 5, intellect: 7, wisdom: 10),
+            primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
             growthArchetype: .support
         ),
         Combatant(
@@ -241,7 +211,7 @@ enum GameContentRosterGenerated {
                 skills: [.bloodOffering, .sunderArmor],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 7, agility: 5, toughness: 7, intellect: 5, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 12, agility: 10, toughness: 11, intellect: 9, wisdom: 8),
             growthArchetype: .bruiser
         ),
         Combatant(
@@ -255,7 +225,7 @@ enum GameContentRosterGenerated {
                 skills: [.manaPotion, .manaShield],
                 ultimates: [.manaBulwark, .combustion]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 7, toughness: 4, intellect: 9, wisdom: 7),
+            primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
             growthArchetype: .mage
         ),
         Combatant(
@@ -269,7 +239,7 @@ enum GameContentRosterGenerated {
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 8, toughness: 4, intellect: 6, wisdom: 8),
+            primaryStats: PrimaryStats(strength: 7, agility: 11, toughness: 8, intellect: 11, wisdom: 13),
             growthArchetype: .support
         ),
         Combatant(
@@ -282,7 +252,7 @@ enum GameContentRosterGenerated {
                 skills: [.spikedShield, .stoneskinPotion],
                 ultimates: [.thornMail, .blessedAegis]
             ),
-            primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 12, intellect: 2, wisdom: 4),
+            primaryStats: PrimaryStats(strength: 10, agility: 9, toughness: 14, intellect: 7, wisdom: 10),
             growthArchetype: .tank
         )
     ]
