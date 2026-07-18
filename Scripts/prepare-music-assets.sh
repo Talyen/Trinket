@@ -108,9 +108,9 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
 
   output_file="$resources_dir/$asset_name.m4a"
 
-  needs_convert=true
-  if [[ -f "$output_file" && "$source_path" -ot "$output_file" ]]; then
-    needs_convert=false
+  needs_convert=false
+  if [[ ! -f "$output_file" || "$source_path" -nt "$output_file" ]]; then
+    needs_convert=true
   fi
 
   if $needs_convert; then
