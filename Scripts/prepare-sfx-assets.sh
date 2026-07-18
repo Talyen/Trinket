@@ -77,7 +77,8 @@ while IFS=$'\t' read -r id asset_name source_path volume_gain || [[ -n "${id:-}"
   output_file="$resources_dir/$asset_name.m4a"
 
   needs_convert=false
-  if [[ ! -f "$output_file" || "$source_path" -nt "$output_file" ]]; then
+  if [[ "${FORCE_ASSET_REENCODE:-0}" == "1" ]] \
+    || [[ ! -f "$output_file" || "$source_path" -nt "$output_file" ]]; then
     needs_convert=true
   fi
 

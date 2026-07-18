@@ -162,6 +162,12 @@ trinket_classify_path() {
       TRINKET_NEEDS_ASSET_GENERATION=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
+    Scripts/prepare-art-assets.sh|Scripts/prepare-music-assets.sh|Scripts/prepare-sfx-assets.sh|Scripts/prepare-cinematic-assets.sh|Scripts/prepare-app-icon.sh)
+      TRINKET_HAS_ASSETS=true
+      TRINKET_NEEDS_ASSET_GENERATION=true
+      TRINKET_HAS_DOCS_OR_TOOLS=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
     project.yml)
       TRINKET_HAS_PROJECT=true
       TRINKET_NEEDS_PROJECT_GENERATION=true
@@ -324,18 +330,32 @@ trinket_add_agent_guides_for_path() {
 trinket_build_verification_plan() {
   TRINKET_VERIFICATION_COMMANDS=()
 
-  if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
-    trinket_add_command "./Scripts/generate.sh --assets"
-  elif [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
-    trinket_add_command "./Scripts/generate.sh"
-  fi
-  if [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_ASSET_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
+  local push_ready="${TRINKET_PUSH_READY:-false}"
+
+  if [[ "$push_ready" == true ]]; then
+    # Commit completeness: regenerate with pinned XcodeGen (force), then assert vs HEAD.
+    # Mid-task verify keeps --idempotent so uncommitted generation remains OK.
     if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
-      # Idempotent: confirm regenerate is a no-op. Do not assert vs HEAD — that is
-      # CI/pre-push commit-completeness (intentional uncommitted generation is fine here).
-      trinket_add_command "./Scripts/assert-generated-output.sh --idempotent --assets"
+      trinket_add_command "./Scripts/generate.sh --assets --force-xcodegen"
+      trinket_add_command "./Scripts/assert-generated-output.sh --assets"
     else
-      trinket_add_command "./Scripts/assert-generated-output.sh --idempotent"
+      trinket_add_command "./Scripts/generate.sh --force-xcodegen"
+      trinket_add_command "./Scripts/assert-generated-output.sh"
+    fi
+  else
+    if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
+      trinket_add_command "./Scripts/generate.sh --assets"
+    elif [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
+      trinket_add_command "./Scripts/generate.sh"
+    fi
+    if [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_ASSET_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
+      if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
+        # Idempotent: confirm regenerate is a no-op. Do not assert vs HEAD — that is
+        # CI/pre-push/agent-push-gate commit-completeness (intentional uncommitted generation is fine here).
+        trinket_add_command "./Scripts/assert-generated-output.sh --idempotent --assets"
+      else
+        trinket_add_command "./Scripts/assert-generated-output.sh --idempotent"
+      fi
     fi
   fi
   # Always run style when Swift changed — format/lint failures do not need a simulator.

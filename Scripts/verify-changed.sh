@@ -12,6 +12,7 @@ source Scripts/run-env.sh
 
 DRY_RUN=false
 ISOLATE=false
+PUSH_READY=false
 PATH_MODE="working-tree"
 declare -a requested_paths=()
 while [[ $# -gt 0 ]]; do
@@ -22,9 +23,17 @@ while [[ $# -gt 0 ]]; do
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
       ;;
+    --push-ready)
+      # Commit completeness: force XcodeGen + assert vs HEAD (not --idempotent).
+      PUSH_READY=true
+      TRINKET_PUSH_READY=true
+      export TRINKET_PUSH_READY
+      TRINKET_REQUIRE_PINNED_TOOLS=1
+      export TRINKET_REQUIRE_PINNED_TOOLS
+      ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/verify-changed.sh [--dry-run] [--isolate] [--paths <file> ...]
+Usage: ./Scripts/verify-changed.sh [--dry-run] [--isolate] [--push-ready] [--paths <file> ...]
 
 Classifies task-scoped changes when --paths is supplied, otherwise all working-tree
 changes. It runs any required generation once, then the smallest focused
@@ -36,6 +45,11 @@ arguments.
 DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
+
+--push-ready switches generation asserts from --idempotent (mid-task) to
+commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
+Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate; use this flag when
+you also want the path-scoped style/package/smoke plan in the same run.
 USAGE
       exit 0
       ;;
@@ -60,8 +74,24 @@ done
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
 
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
+  if [[ "$PUSH_READY" == true ]]; then
+    echo "No working-tree changes; running agent-push-gate for commit completeness."
+    if [[ "$DRY_RUN" == true ]]; then
+      echo "Would run: ./Scripts/agent-push-gate.sh"
+      exit 0
+    fi
+    exec ./Scripts/agent-push-gate.sh
+  fi
   echo "No working-tree changes to verify."
   exit 0
+fi
+
+if [[ "$PUSH_READY" == true ]]; then
+  echo "=== Push-ready: ensuring pinned tools ==="
+  if [[ "$DRY_RUN" == false ]]; then
+    ./Scripts/ensure-ci-tools.sh
+    export PATH="$PWD/.tools:$PATH"
+  fi
 fi
 
 trinket_classify_paths
@@ -71,6 +101,14 @@ if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then commands=("${TRINKET_VER
 smoke_target_unresolved="$TRINKET_SMOKE_TARGET_UNRESOLVED"
 
 if [[ ${#commands[@]} -eq 0 ]]; then
+  if [[ "$PUSH_READY" == true ]]; then
+    echo "No source verification selected; falling back to agent-push-gate."
+    if [[ "$DRY_RUN" == true ]]; then
+      echo "Would run: ./Scripts/agent-push-gate.sh"
+      exit 0
+    fi
+    exec ./Scripts/agent-push-gate.sh
+  fi
   echo "No source verification selected for the current changes."
   if [[ "$smoke_target_unresolved" == true ]]; then
     echo "UI note: no single smoke owner could be inferred; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke."

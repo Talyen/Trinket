@@ -6,9 +6,11 @@ cd "$(dirname "$0")/.."
 
 echo "=== Ensure pinned tools ==="
 ./Scripts/ensure-ci-tools.sh
+export PATH="$PWD/.tools:$PATH"
+export TRINKET_REQUIRE_PINNED_TOOLS=1
 
 echo "=== Generating Xcode project / catalogs ==="
-./Scripts/generate.sh
+./Scripts/generate.sh --force-xcodegen
 
 # Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
 # shellcheck source=run-env.sh

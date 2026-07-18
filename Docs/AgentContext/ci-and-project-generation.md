@@ -22,8 +22,21 @@ This card adds the CI/project-generation exceptions:
   generated-output check (`assert-generated-output.sh --idempotent`): regenerate
   must not change tracked outputs further. That answers “does this working tree
   match the manifests?” It does **not** require generated files to match HEAD —
-  commit completeness is CI / pre-push / `ci-gate.sh` (`assert-generated-output.sh`
-  without `--idempotent` after `generate.sh` on a clean or soon-to-push tree).
+  commit completeness is `./Scripts/agent-push-gate.sh`, pre-push, `ci-gate.sh`,
+  and CI (`assert-generated-output.sh` without `--idempotent` after force generate).
+- `--push-ready` on `verify-changed.sh` switches to commit-completeness (pinned
+  tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
+  plus the normal style/package/smoke plan. Prefer `./Scripts/agent-push-gate.sh`
+  when you only need the generate/assert gate.
+- After push, agents must run `./Scripts/agent-watch-ci.sh`. Path-filtered green
+  runs (only Path filter executed) auto-dispatch a full `Trinket CI`
+  `workflow_dispatch` and watch until green.
+- `generate.sh` prefers `.tools/xcodegen`. `--force-xcodegen` (or
+  `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so stale “project has not
+  changed” cannot hide `project.pbxproj` drift. Agent push gate sets
+  `TRINKET_REQUIRE_PINNED_TOOLS=1`. Asset prepare scripts skip re-encode when
+  outputs are up to date; set `FORCE_ASSET_REENCODE=1` only for intentional
+  binary refreshes.
 - `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
   wrapper tests so a single verification run does not regenerate the project repeatedly.
 - Generation uses a **shared** lock at `.DerivedData/.generate.lock` with

@@ -109,8 +109,10 @@ DerivedData under `$DERIVED_DATA_PATH/packages/<name>/` so package builds can ru
 parallel. Humans/CI may omit `--isolate` to keep
 the shared warm cache. After generation, verify-changed runs
 `assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
-HEAD/commit check. Commit completeness stays on CI, pre-push, and `ci-gate.sh`.
-It intentionally does
+HEAD/commit check. Commit completeness is `./Scripts/agent-push-gate.sh` (also
+called from pre-push), `verify-changed.sh --push-ready`, `ci-gate.sh`, and CI.
+After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI when
+path filters skipped substantive jobs). Mid-task verify-changed intentionally does
 not replace the pre-push or pre-merge gates.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
@@ -163,6 +165,8 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 
 | Script | Purpose |
 |--------|---------|
+| `./Scripts/agent-push-gate.sh` | Pinned tools + `generate --force-xcodegen` + assert vs HEAD (conditional `--assets`); agents before commit/push |
+| `./Scripts/agent-watch-ci.sh` | Watch Actions for HEAD; dispatch full CI if path-filtered; agents after push |
 | `./Scripts/ensure-git-cliff.sh` | Install/run git-cliff (cached in `.tools/`) |
 | `./Scripts/release-notes.sh unreleased` | Preview unreleased changelog |
 | `./Scripts/release-notes.sh prepend v0.2.0` | Prepend version section to `CHANGELOG.md` |
@@ -173,7 +177,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
 | `./Scripts/changed-source-summary.sh [--paths <file...>]` | Summarize task-scoped or working-tree changes and focused agent route |
-| `./Scripts/verify-changed.sh [--dry-run] [--isolate] [--paths <file...>]` | Run the minimum sequential verification; agents always pass `--isolate` |
+| `./Scripts/verify-changed.sh [--dry-run] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; agents always pass `--isolate`; `--push-ready` uses commit-completeness asserts |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
@@ -277,6 +281,6 @@ git config core.hooksPath .githooks
 The repo includes:
 
 - `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
-- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + generate/assert vs HEAD (blocks push on uncommitted generated drift)
+- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + `./Scripts/agent-push-gate.sh` (pinned XcodeGen force generate + assert vs HEAD; conditional assets)
 
-Install pinned SwiftFormat/SwiftLint with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.
+Install pinned SwiftFormat/SwiftLint/XcodeGen with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. Skip only the generate/assert half with `SKIP_TRINKET_PUSH_GATE=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

@@ -58,3 +58,13 @@ Use `--dry-run` only when previewing an unfamiliar or potentially expensive rout
 - If no existing smoke class closely covers the changed behavior, add or update one focused smoke test and run only that class. Do not use the unrelated Homestead canary as a substitute.
 
 If verification fails, follow `Docs/AgentContext/ci-diagnostics.md` and use its structured reports before opening raw logs.
+
+## Commit, push, and CI babysit
+
+Agent contract (do not skip):
+
+1. Mid-task: `./Scripts/verify-changed.sh --isolate --paths <file...>` (idempotent generate assert).
+2. Before commit/push: `./Scripts/agent-push-gate.sh` (or `verify-changed.sh --isolate --push-ready --paths …`). Uses pinned `.tools` XcodeGen with `--force-xcodegen` and asserts vs HEAD; includes `--assets` only when classification says assets changed.
+3. After push to `main`: `./Scripts/agent-watch-ci.sh` until green. If path filters skipped substantive jobs, it dispatches a full `workflow_dispatch` run and watches that too.
+
+Never “fix” generated drift by hand-editing `project.pbxproj` or committing lossy asset re-encodes from CI. Regenerate with pinned tools (`./Scripts/ensure-ci-tools.sh` + `./Scripts/generate.sh --force-xcodegen`); use `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.

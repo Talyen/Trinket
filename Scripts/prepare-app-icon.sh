@@ -50,7 +50,8 @@ for index in "${!sources[@]}"; do
     echo "  WARNING: Missing source $src, skipping" >&2
     continue
   fi
-  if [[ -f "$target_dir/$dst" && ! "$source_dir/$src" -nt "$target_dir/$dst" ]]; then
+  if [[ "${FORCE_ASSET_REENCODE:-0}" != "1" ]] \
+    && [[ -f "$target_dir/$dst" && ! "$source_dir/$src" -nt "$target_dir/$dst" ]]; then
     continue
   fi
   install_compressed_app_icon "$source_dir/$src" "$target_dir/$dst"

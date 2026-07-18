@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
+FORCE_XCODEGEN=false
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
@@ -52,6 +53,38 @@ acquire_generation_lock() {
   trap cleanup_generation_lock EXIT INT TERM
 }
 
+ensure_pinned_xcodegen_path() {
+  # Prefer pinned .tools XcodeGen so local/agent output matches CI.
+  if [[ -x "$PWD/.tools/xcodegen" ]]; then
+    export PATH="$PWD/.tools:$PATH"
+  fi
+
+  if [[ "${TRINKET_REQUIRE_PINNED_TOOLS:-0}" == "1" ]]; then
+    if [[ ! -x "$PWD/.tools/xcodegen" ]]; then
+      echo "Pinned XcodeGen missing at .tools/xcodegen. Run ./Scripts/ensure-ci-tools.sh first." >&2
+      return 1
+    fi
+    if [[ "$(command -v xcodegen)" != "$PWD/.tools/xcodegen" ]]; then
+      echo "PATH must resolve xcodegen to .tools/xcodegen when TRINKET_REQUIRE_PINNED_TOOLS=1." >&2
+      echo "Resolved: $(command -v xcodegen 2>/dev/null || echo missing)" >&2
+      return 1
+    fi
+  fi
+}
+
+should_force_xcodegen() {
+  if [[ "$FORCE_XCODEGEN" == true || "${TRINKET_FORCE_XCODEGEN:-0}" == "1" ]]; then
+    return 0
+  fi
+  # Bust cache when project.yml is newer than the XcodeGen cache (or cache missing).
+  if [[ -f project.yml ]]; then
+    if [[ ! -f "$XCODEGEN_CACHE_PATH" || project.yml -nt "$XCODEGEN_CACHE_PATH" ]]; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 usage() {
   cat <<'EOF'
 Usage: ./Scripts/generate.sh [options]
@@ -59,11 +92,17 @@ Usage: ./Scripts/generate.sh [options]
 Runs manifest validation, content codegen, optional asset pipelines, and XcodeGen.
 
 Options:
-  --assets         Also run art, music, SFX, and cinematic asset pipelines (slow; for manifest edits)
-  --skip-xcodegen  Skip XcodeGen (content/asset codegen only)
-  -h, --help       Show this help
+  --assets          Also run art, music, SFX, and cinematic asset pipelines (slow; for manifest edits)
+  --force-xcodegen  Ignore XcodeGen cache and rewrite project.pbxproj (matches CI assert)
+  --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
+  -h, --help        Show this help
 
 Prefer this script over individual generate-* subcommands.
+
+Env:
+  TRINKET_FORCE_XCODEGEN=1       Same as --force-xcodegen
+  TRINKET_REQUIRE_PINNED_TOOLS=1 Require .tools/xcodegen on PATH (agent push gate)
+  FORCE_ASSET_REENCODE=1         Force SFX/music/app-icon re-encode even when up to date
 EOF
 }
 
@@ -71,6 +110,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --assets)
       INCLUDE_ASSETS=true
+      shift
+      ;;
+    --force-xcodegen)
+      FORCE_XCODEGEN=true
       shift
       ;;
     --skip-xcodegen)
@@ -114,14 +157,18 @@ fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
-  # Prefer pinned .tools XcodeGen when present so local output matches CI.
-  if [[ -x "$PWD/.tools/xcodegen" ]]; then
-    export PATH="$PWD/.tools:$PATH"
-  fi
+  ensure_pinned_xcodegen_path
   if command -v xcodegen >/dev/null 2>&1; then
-    xcodegen generate \
-      --use-cache \
-      --cache-path "$XCODEGEN_CACHE_PATH"
+    if should_force_xcodegen; then
+      echo "Forcing XcodeGen regenerate (cache ignored)."
+      rm -f "$XCODEGEN_CACHE_PATH"
+      mkdir -p "$(dirname "$XCODEGEN_CACHE_PATH")"
+      xcodegen generate --cache-path "$XCODEGEN_CACHE_PATH"
+    else
+      xcodegen generate \
+        --use-cache \
+        --cache-path "$XCODEGEN_CACHE_PATH"
+    fi
   else
     echo "xcodegen not found; syncing legacy project sources into project.pbxproj"
     python3 Scripts/sync-xcodeproj-sources.py
