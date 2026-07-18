@@ -312,9 +312,6 @@ public enum ArtCatalog {
         "golden-plate": AbilityArtReference(
             imageName: "ability_golden_plate_thumb"
         ),
-        "grasping-vines": AbilityArtReference(
-            imageName: "ability_grasping_vines_thumb"
-        ),
         "haste": AbilityArtReference(
             imageName: "ability_haste_thumb"
         ),
@@ -338,12 +335,6 @@ public enum ArtCatalog {
         ),
         "kindling": AbilityArtReference(
             imageName: "ability_kindling_thumb"
-        ),
-        "lightning-arrow": AbilityArtReference(
-            imageName: "ability_lightning_arrow_thumb"
-        ),
-        "lightning-bolt": AbilityArtReference(
-            imageName: "ability_lightning_bolt_thumb"
         ),
         "luck-potion": AbilityArtReference(
             imageName: "ability_luck_potion_thumb"
@@ -894,6 +885,9 @@ public enum ArtCatalog {
         ),
         "herbs": ResourceArtReference(
             imageName: "resource_homestead_herbs"
+        ),
+        "hide": ResourceArtReference(
+            imageName: "resource_homestead_hide"
         ),
         "crystal": ResourceArtReference(
             imageName: "resource_homestead_crystal"

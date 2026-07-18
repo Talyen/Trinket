@@ -26,7 +26,7 @@ struct StatIntegrationTests {
             DirectDamageCase(ability: .fangs, stats: PrimaryStats(agility: 10), expectedAmount: 3, keyword: .bleed),
             DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
             DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .freeze),
-            DirectDamageCase(ability: .lightningBolt, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .nature),
+            DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .poison),
             DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy)
         ]
 

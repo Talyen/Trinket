@@ -11,6 +11,30 @@ if [[ ! -d "$source_dir" ]]; then
   exit 1
 fi
 
+# App Store icons must stay PNG. These sources are photographic RGBA (~4MB each);
+# lossless recompression barely helps. Prefer pngquant when available; otherwise
+# JPEG round-trip via sips strips unused alpha and typically lands ~1.2MB each.
+install_compressed_app_icon() {
+  local src="$1"
+  local dst="$2"
+  local tmp_jpeg size_label
+
+  if command -v pngquant >/dev/null 2>&1; then
+    if pngquant --force --skip-if-larger --quality=70-95 --output "$dst" "$src"; then
+      size_label="$(du -h "$dst" | awk '{print $1}')"
+      echo "  Installed $dst ($size_label, pngquant)"
+      return 0
+    fi
+  fi
+
+  tmp_jpeg="$(mktemp -t trinket-appicon).jpg"
+  sips -s format jpeg -s formatOptions 85 "$src" --out "$tmp_jpeg" >/dev/null
+  sips -s format png "$tmp_jpeg" --out "$dst" >/dev/null
+  rm -f "$tmp_jpeg"
+  size_label="$(du -h "$dst" | awk '{print $1}')"
+  echo "  Installed $dst ($size_label)"
+}
+
 echo "=== Preparing app icon ==="
 
 sources=(
@@ -26,8 +50,7 @@ for index in "${!sources[@]}"; do
     echo "  WARNING: Missing source $src, skipping" >&2
     continue
   fi
-  cp "$source_dir/$src" "$target_dir/$dst"
-  echo "  Installed $dst"
+  install_compressed_app_icon "$source_dir/$src" "$target_dir/$dst"
 done
 
 echo "=== App icon ready ==="

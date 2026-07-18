@@ -6,13 +6,13 @@ public struct Enemy: Identifiable, Hashable, Sendable {
 
     public let combatant: Combatant
     public let positiveTraitID: String
-    public let negativeTraitID: String
+    public let negativeTraitID: String?
     public let isBoss: Bool
 
     public init(
         combatant: Combatant,
         positiveTraitID: String,
-        negativeTraitID: String,
+        negativeTraitID: String? = nil,
         isBoss: Bool = false
     ) {
         self.combatant = combatant

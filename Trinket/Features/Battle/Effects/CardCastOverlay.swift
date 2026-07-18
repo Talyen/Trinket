@@ -26,6 +26,17 @@ final class BattleCastPresentationState {
     }
 }
 
+/// DEBUG isolation knobs for cast/dissolve. Production always uses `.full`.
+enum CardCastWorkload: Equatable, Sendable {
+    case full
+    /// Card face + cast transforms only (no mask, no particles).
+    case faceOnly
+    /// Noise threshold mask over a solid stand-in (no ability art, no particles).
+    case maskOnly
+    /// Particle Canvas only (no face, no mask).
+    case particlesOnly
+}
+
 struct CardActivationRequest: Equatable, Identifiable {
     let id: UUID
     let startedAt: Date
@@ -40,6 +51,7 @@ struct CardActivationRequest: Equatable, Identifiable {
     let keywords: [Keyword]
     let particleCount: Int
     let particles: [CardActivationParticle]
+    let workload: CardCastWorkload
 
     init(
         id: UUID = UUID(),
@@ -52,7 +64,8 @@ struct CardActivationRequest: Equatable, Identifiable {
         scale: CGFloat,
         perspective: CGFloat = 0.35,
         keywords: [Keyword],
-        particleCount: Int = TrinketMotion.Battle.cardCastParticleCount
+        particleCount: Int = TrinketMotion.Battle.cardCastParticleCount,
+        workload: CardCastWorkload = .full
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -69,6 +82,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
         self.particleCount = particleCount
+        self.workload = workload
         particles = CardActivationParticle.make(count: particleCount)
     }
 }
@@ -111,29 +125,28 @@ struct CardCastEffectsLayer: View {
     let onFinished: (UUID) -> Void
 
     var body: some View {
-        Group {
-            if !requests.isEmpty {
+        ZStack {
+            // Keep TimelineView resident across casts. Remounting it on every
+            // append was a measured hitch in repeated-card-casts (maxConcurrent=1
+            // replaces the prior request, so the schedule pauses while idle).
+            TimelineView(.animation(paused: requests.isEmpty)) { timeline in
                 ZStack {
-                    TimelineView(.animation) { timeline in
-                        ZStack {
-                            ForEach(requests) { request in
-                                cast(request, at: timeline.date)
-                            }
-                        }
-                    }
-
                     ForEach(requests) { request in
-                        Color.clear
-                            .frame(width: 0, height: 0)
-                            .task(id: request.id) {
-                                let elapsed = Date.now.timeIntervalSince(request.startedAt)
-                                let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
-                                try? await Task.sleep(for: .seconds(remaining))
-                                guard !Task.isCancelled else { return }
-                                onFinished(request.id)
-                            }
+                        cast(request, at: timeline.date)
                     }
                 }
+            }
+
+            ForEach(requests) { request in
+                Color.clear
+                    .frame(width: 0, height: 0)
+                    .task(id: request.id) {
+                        let elapsed = Date.now.timeIntervalSince(request.startedAt)
+                        let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
+                        try? await Task.sleep(for: .seconds(remaining))
+                        guard !Task.isCancelled else { return }
+                        onFinished(request.id)
+                    }
             }
         }
         .allowsHitTesting(false)
@@ -145,24 +158,53 @@ struct CardCastEffectsLayer: View {
 
     private func cast(_ request: CardActivationRequest, at date: Date) -> some View {
         let progress = cardActivationProgress(elapsed: date.timeIntervalSince(request.startedAt))
-        return BattleDissolveEffect(
-            progress: progress,
-            keywords: request.keywords,
-            size: request.size,
-            particles: request.particles
-        ) {
+        return castContent(request, progress: progress)
+            // Match BattleAbilityCardView handoff order: scale → rotate → position.
+            .scaleEffect(request.scale)
+            .rotationEffect(.radians(request.rotation), anchor: .bottom)
+            .rotation3DEffect(
+                .degrees(request.verticalTilt),
+                axis: (x: 1, y: 0, z: 0),
+                anchor: .bottom,
+                perspective: request.perspective
+            )
+            .position(x: request.center.x, y: request.center.y)
+    }
+
+    @ViewBuilder
+    private func castContent(_ request: CardActivationRequest, progress: CGFloat) -> some View {
+        switch request.workload {
+        case .full:
+            BattleDissolveEffect(
+                progress: progress,
+                keywords: request.keywords,
+                size: request.size,
+                particles: request.particles
+            ) {
+                BattleAbilityCardFace(artworkName: request.artworkName)
+            }
+        case .faceOnly:
             BattleAbilityCardFace(artworkName: request.artworkName)
+                .frame(width: request.size.width, height: request.size.height)
+        case .maskOnly:
+            BattleDissolveEffect(
+                progress: progress,
+                keywords: request.keywords,
+                size: request.size,
+                particles: []
+            ) {
+                Rectangle().fill(TrinketDesign.Colors.Overlay.paper)
+            }
+        case .particlesOnly:
+            CardActivationParticles(
+                progress: progress,
+                keywords: request.keywords,
+                cardSize: request.size,
+                particles: request.particles
+            )
+            .frame(width: request.size.width + 180, height: request.size.height + 180)
+            .frame(width: request.size.width, height: request.size.height)
         }
-        // Match BattleAbilityCardView handoff order: scale → rotate → position.
-        .scaleEffect(request.scale)
-        .rotationEffect(.radians(request.rotation), anchor: .bottom)
-        .rotation3DEffect(
-            .degrees(request.verticalTilt),
-            axis: (x: 1, y: 0, z: 0),
-            anchor: .bottom,
-            perspective: request.perspective
-        )
-        .position(x: request.center.x, y: request.center.y)
     }
 }
 
@@ -289,6 +331,8 @@ struct BattleDissolveEffect<Content: View>: View {
             // mask chain for the remaining particle travel window.
             if dissolveProgress < 1 {
                 Group {
+                    // Progress 0 must not apply the threshold mask: step 0 still
+                    // clears edge cells, which would flash a partial wipe on mount.
                     if dissolveProgress <= 0 {
                         content
                             .frame(width: size.width, height: size.height)
@@ -309,22 +353,23 @@ struct BattleDissolveEffect<Content: View>: View {
                 }
                 .frame(width: size.width, height: size.height)
                 .scaleEffect(1 - dissolveProgress * configuration.dissolveShrink)
+                // Flatten the masked face only. Wrapping particles here forced a
+                // full offscreen re-raster of the card on every Canvas tick.
+                .compositingGroup()
             }
 
-            CardActivationParticles(
-                progress: progress,
-                keywords: keywords,
-                cardSize: size,
-                particles: particles,
-                configuration: configuration
-            )
-            .frame(width: size.width + 180, height: size.height + 180)
+            if !particles.isEmpty {
+                CardActivationParticles(
+                    progress: progress,
+                    keywords: keywords,
+                    cardSize: size,
+                    particles: particles,
+                    configuration: configuration
+                )
+                .frame(width: size.width + 180, height: size.height + 180)
+            }
         }
         .frame(width: size.width, height: size.height)
-        // Rasterize the face mask and particle canvas once before applying the
-        // outer cast transform. Without this boundary SwiftUI composites every
-        // child independently, which is substantially more expensive under overlap.
-        .compositingGroup()
     }
 }
 
@@ -377,21 +422,32 @@ struct BattleDissolveArtwork<Content: View>: View {
     }
 }
 
-/// Primes the dissolve texture cache and filter/Canvas pipeline once, then tears down.
+/// Primes the dissolve texture cache and the live TimelineView / Canvas cast path
+/// once, then tears down. Uses a real ability card face so production first-cast
+/// does not pay card-surface + artwork + mask + particles together cold.
 struct CardCastEffectsPrewarmView: View {
+    var artworkName: String? = "ability_bash_thumb"
     let onComplete: () -> Void
 
     private let cardSize = CGSize(width: 168, height: 224)
-    private let particles = CardActivationParticle.make(count: 12)
+    private let particles = CardActivationParticle.make(
+        count: TrinketMotion.Battle.cardCastParticleCount
+    )
+    @State private var startDate = Date()
 
     var body: some View {
-        BattleDissolveEffect(
-            progress: 0.45,
-            keywords: [.physical],
-            size: cardSize,
-            particles: particles
-        ) {
-            Rectangle().fill(TrinketDesign.Colors.Overlay.paper)
+        TimelineView(.animation) { timeline in
+            let progress = cardActivationProgress(
+                elapsed: timeline.date.timeIntervalSince(startDate)
+            )
+            BattleDissolveEffect(
+                progress: progress,
+                keywords: [.physical],
+                size: cardSize,
+                particles: particles
+            ) {
+                BattleAbilityCardFace(artworkName: artworkName)
+            }
         }
         // A nonzero opacity ensures the render is not optimized away. Scaling
         // happens after Canvas rasterization, so the representative workload is
@@ -400,11 +456,15 @@ struct CardCastEffectsPrewarmView: View {
         .scaleEffect(0.01)
         .allowsHitTesting(false)
         .task {
-            // Warm the noise texture cache before the first real cast.
-            CardDissolveTexture.prewarm()
-            // Yield so the dissolve filter + Canvas get one commit, then remove.
-            await Task.yield()
-            try? await Task.sleep(for: .milliseconds(32))
+            startDate = Date()
+            if let artworkName {
+                await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
+            }
+            if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
+                await CardDissolveTexture.prepare()
+            }
+            // Cover mask onset (dissolveDuration fraction) plus a few particle ticks.
+            try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
             onComplete()
         }

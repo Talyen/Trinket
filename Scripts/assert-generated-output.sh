@@ -5,19 +5,30 @@ cd "$(dirname "$0")/.."
 
 REGENERATE=false
 INCLUDE_ASSETS=false
+# committed: fail when tracked generated paths differ from HEAD (CI / pre-push).
+# idempotent: regenerate once and fail if tracked outputs still change (local verify-changed).
+MODE="committed"
 
 usage() {
   cat <<'EOF'
 Usage: ./Scripts/assert-generated-output.sh [options]
 
-Fails when committed generated output does not match manifests.
+Checks that generated catalogs/assets match their manifests.
+
+Modes:
+  (default)        Commit completeness — tracked generated paths must match HEAD.
+                   Use after generate on a clean checkout (CI, pre-push, ci-gate).
+  --idempotent     Consistency — run generate once more; tracked outputs must not
+                   change again. Use after generate in verify-changed (local/agent).
 
 Options:
-  --regenerate     Run ./Scripts/generate.sh before checking (default: check only)
+  --regenerate     Run ./Scripts/generate.sh before the committed-mode check
   --assets         Include art/music/SFX/cinematic outputs when regenerating or checking
+  --idempotent     Consistency check (see Modes); implies a regenerate pass
   -h, --help       Show this help
 
 CI runs ./Scripts/generate.sh first, then this script without --regenerate.
+verify-changed runs generate, then this script with --idempotent.
 EOF
 }
 
@@ -29,6 +40,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --assets)
       INCLUDE_ASSETS=true
+      shift
+      ;;
+    --idempotent)
+      MODE="idempotent"
       shift
       ;;
     -h | --help)
@@ -55,6 +70,7 @@ TRACKED_PATHS=(
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
 )
 
@@ -71,17 +87,65 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
   )
 fi
 
-if [[ "$REGENERATE" == true ]]; then
-  GENERATE_ARGS=()
+run_generate() {
   if [[ "$INCLUDE_ASSETS" == true ]]; then
-    GENERATE_ARGS+=(--assets)
+    ./Scripts/generate.sh --assets
+  else
+    ./Scripts/generate.sh
   fi
-  ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
+}
+
+# Content fingerprint of tracked generated paths (files + trees). Stable across runs
+# when generation is idempotent.
+snapshot_tracked() {
+  local path
+  for path in "${TRACKED_PATHS[@]}"; do
+    if [[ -d "$path" ]]; then
+      # shellcheck disable=SC2038
+      find "$path" -type f ! -name '.DS_Store' -print \
+        | LC_ALL=C sort \
+        | while IFS= read -r file; do
+            shasum -a 256 "$file"
+          done
+    elif [[ -f "$path" ]]; then
+      shasum -a 256 "$path"
+    else
+      printf 'MISSING %s\n' "$path"
+    fi
+  done
+}
+
+print_tracked_diff_vs_head() {
+  git diff -- "${TRACKED_PATHS[@]}" >&2 || true
+  git diff --cached -- "${TRACKED_PATHS[@]}" >&2 || true
+}
+
+if [[ "$MODE" == "idempotent" ]]; then
+  before="$(snapshot_tracked)"
+  run_generate
+  after="$(snapshot_tracked)"
+  if [[ "$before" == "$after" ]]; then
+    echo "Generated output is stable under regenerate (matches manifests)."
+    exit 0
+  fi
+  echo "ERROR: Regenerating still changed tracked generated output." >&2
+  echo "Generation is not idempotent, or another process mutated outputs mid-run." >&2
+  if [[ "$INCLUDE_ASSETS" == true ]]; then
+    echo "For art/music manifest edits, use ./Scripts/generate.sh --assets" >&2
+  fi
+  echo "" >&2
+  # Show working-tree churn vs HEAD for triage (may include intentional uncommitted work).
+  print_tracked_diff_vs_head
+  exit 1
+fi
+
+if [[ "$REGENERATE" == true ]]; then
+  run_generate
 fi
 
 if git diff --quiet -- "${TRACKED_PATHS[@]}" \
   && git diff --cached --quiet -- "${TRACKED_PATHS[@]}" 2>/dev/null; then
-  echo "Generated output matches manifests."
+  echo "Generated output matches manifests (committed)."
   exit 0
 fi
 
@@ -91,6 +155,5 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
   echo "For art/music manifest edits, use ./Scripts/generate.sh --assets" >&2
 fi
 echo "" >&2
-git diff -- "${TRACKED_PATHS[@]}" >&2 || true
-git diff --cached -- "${TRACKED_PATHS[@]}" >&2 || true
+print_tracked_diff_vs_head
 exit 1

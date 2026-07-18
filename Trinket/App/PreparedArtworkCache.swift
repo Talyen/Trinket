@@ -86,6 +86,26 @@ final class PreparedArtworkCache {
         pinnedImages[name] ?? images.object(forKey: name as NSString)
     }
 
+    /// Decode and pin images that must survive NSCache pressure until first use
+    /// (for example, opening-hand ability art for an imminent battle).
+    func prepareAndPin(names: [String]) async {
+        let unique = Array(Set(names)).sorted()
+        guard !unique.isEmpty else { return }
+        pinnedNames.formUnion(unique)
+        for name in unique {
+            if let image = images.object(forKey: name as NSString) {
+                pinnedImages[name] = image
+            }
+        }
+        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
+        for name in unique {
+            if pinnedImages[name] == nil,
+               let image = images.object(forKey: name as NSString) {
+                pinnedImages[name] = image
+            }
+        }
+    }
+
     func prepareAll(priorityImageNames: [String]) async {
         if isLaunchWarmupComplete {
             return

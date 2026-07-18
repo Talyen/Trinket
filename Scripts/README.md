@@ -75,11 +75,11 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 
 | Gate | Runs |
 |------|------|
-| `ci-gate.sh` | generate → assert → boundaries → Swift Testing check → style → release-notes validate |
-| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **pre-push** |
+| `ci-gate.sh` | generate → assert (vs HEAD) → boundaries → Swift Testing check → style → release-notes validate |
+| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **pre-push companion** |
 | `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
-| GitHub `pr.yml` | gate → one self-contained build → unit + full smoke (`smoke-full`) on `macos-26` |
-| GitHub `ci.yml` (main) | PR verification shape plus one self-contained exhaustive UI job on `macos-26` |
+| GitHub `pr.yml` | gate → one **build-for-testing** → parallel **unit** and **smoke-full** (DerivedData cache) on `macos-26` |
+| GitHub `ci.yml` (main) | Same build-once fan-out, plus exhaustive UI on `macos-26` |
 
 | Tier | Command | When |
 |------|---------|------|
@@ -104,8 +104,13 @@ tree represents one task. Agents must run
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
-(default 3); slot sims stay Booted between runs. Humans/CI may omit `--isolate` to keep
-the shared warm cache. It intentionally does
+(default 3); slot sims stay Booted between runs. Package schemes use per-package
+DerivedData under `$DERIVED_DATA_PATH/packages/<name>/` so package builds can run in
+parallel. Humans/CI may omit `--isolate` to keep
+the shared warm cache. After generation, verify-changed runs
+`assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
+HEAD/commit check. Commit completeness stays on CI, pre-push, and `ci-gate.sh`.
+It intentionally does
 not replace the pre-push or pre-merge gates.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
@@ -130,6 +135,9 @@ them with the observe/enforce policy in `Performance/Baselines/simulator-60.json
 repetitions for diagnostic spreads with `TRINKET_PERFORMANCE_REPETITIONS=N` (skips the
 single-report gate compare when N > 1). Use `test.sh performance <Class[/method]>`
 only for focused harness iteration; use `performance.sh` for comparable artifacts.
+For fast Battle isolation loops, prefix with `TRINKET_PERFORMANCE_QUICK=1` (shorter
+measure window / UITest wait; not for gate compares). `test.sh` maps this through
+`TEST_RUNNER_TRINKET_PERFORMANCE_QUICK` so XCTest and the app under test both see it.
 
 For failure report schemas and triage order, read
 `Docs/AgentContext/ci-diagnostics.md`. Operators can aggregate current reports with
@@ -147,7 +155,7 @@ as artifacts.
 Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 
 1. Land correct source/docs changes.
-2. Run what you can: `./Scripts/generate.sh`, `./Scripts/assert-generated-output.sh`, `./Scripts/check-module-boundaries.sh`, `./Scripts/check-ui-style.sh`, `./Scripts/ci-gate.sh`.
+2. Run what you can: `./Scripts/generate.sh`, `./Scripts/assert-generated-output.sh` (commit check) or `--idempotent` after a local generate, `./Scripts/check-module-boundaries.sh`, `./Scripts/check-ui-style.sh`, `./Scripts/ci-gate.sh`.
 3. Skip `build.sh` / `test.sh` / simulator work — state that clearly in the commit/PR body.
 4. When Xcode 26 + simulator **are** present, `build.sh` / `test.sh` (or the AGENTS Task Router row) are mandatory before claiming the change is verified.
 
@@ -269,6 +277,6 @@ git config core.hooksPath .githooks
 The repo includes:
 
 - `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
-- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + generate/assert (blocks push on drift)
+- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + generate/assert vs HEAD (blocks push on uncommitted generated drift)
 
 Install pinned SwiftFormat/SwiftLint with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

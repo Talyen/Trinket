@@ -22,7 +22,6 @@ public struct AspectID: RawRepresentable, Hashable, Codable, Sendable, Identifia
     public static let serpentHollow = AspectID("serpentHollow")
     public static let scarGallery = AspectID("scarGallery")
     public static let aureateChoir = AspectID("aureateChoir")
-    public static let wildrootGrove = AspectID("wildrootGrove")
     public static let rimeVault = AspectID("rimeVault")
     public static let stormAnvil = AspectID("stormAnvil")
 }

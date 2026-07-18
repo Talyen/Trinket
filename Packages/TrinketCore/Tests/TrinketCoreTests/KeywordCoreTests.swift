@@ -5,7 +5,7 @@ struct KeywordCoreTests {
     @Test func allKeywordsAreCovered() throws {
         let expected: Set = [
             "Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison",
-            "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge", "Mana", "Death's Door"
+            "Bleed", "Leech", "Freeze", "Dodge", "Purge", "Mana", "Death's Door"
         ]
         let actual = Set(Keyword.allCases.map(\.rawValue))
         try #expect(expected == actual)
@@ -23,7 +23,6 @@ struct KeywordCoreTests {
         (.poison, .damageType),
         (.bleed, .damageType),
         (.holy, .damageType),
-        (.nature, .damageType),
         (.freeze, .damageType),
         (.stun, .damageType),
         (.block, .mitigation),

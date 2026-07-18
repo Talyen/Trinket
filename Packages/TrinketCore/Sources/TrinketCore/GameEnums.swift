@@ -12,7 +12,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     case poison = "Poison"
     case bleed = "Bleed"
     case leech = "Leech"
-    case nature = "Nature"
     case freeze = "Freeze"
     case dodge = "Dodge"
     case purge = "Purge"
@@ -32,7 +31,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     public var category: Category {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: .damageType
+        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun: .damageType
         case .block, .armor, .dodge, .purge: .mitigation
         case .health, .leech, .deathsDoor: .restoration
         case .gold, .mana: .resource
@@ -43,7 +42,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     /// Mitigation, resources, and Death's Door never roll or scale critical chance.
     public var allowsCriticalHits: Bool {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun, .health, .leech:
+        case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech:
             true
         case .block, .armor, .dodge, .purge, .gold, .mana, .deathsDoor:
             false
@@ -97,8 +96,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
             "Physical damage over time from bleeding wounds."
         case .leech:
             "Damage that restores health to the attacker."
-        case .nature:
-            "Nature and growth damage type."
         case .freeze:
             "Freeze damage builds up; at 20% of max HP the target becomes Frozen and loses their next action."
         case .dodge:

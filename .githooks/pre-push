@@ -34,7 +34,7 @@ echo "=== Pre-push: regenerate content catalogs ==="
 # Without XcodeGen, only regenerate catalogs (avoid Linux sync UUID churn).
 if command -v xcodegen >/dev/null 2>&1; then
   ./Scripts/generate.sh
-  echo "=== Pre-push: assert generated output ==="
+  echo "=== Pre-push: assert generated output is committed ==="
   ./Scripts/assert-generated-output.sh
 else
   ./Scripts/generate.sh --skip-xcodegen
@@ -51,6 +51,7 @@ else
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift
   )
   if ! git diff --quiet -- "${TRACKED[@]}"; then

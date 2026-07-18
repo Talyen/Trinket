@@ -14,72 +14,103 @@ extension BattleSession {
 
         let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
         activeFeedbackItems.append(contentsOf: items)
-        // Frame N: chip publish/flush/host apply stays on-impact.
+        // Chips, SFX, hit reactions, and keyword bursts all fire on impact.
         onFeedbackItemsChanged?(.insert(items))
-        // Frame N+1: reactions, keyword bursts, and SFX — avoids same-frame stacking.
-        scheduleMultimodalPresentation(for: items, at: date)
+        applyImmediatePresentation(for: items, at: date)
         scheduleFeedbackPresentation(for: items, at: date)
         scheduleFeedbackPruneIfNeeded(at: date)
     }
 
-    /// Applies delayed haptics, SFX, hit reactions, and particle requests one
-    /// display frame after chip publish so multimodal work does not share the
-    /// ChipPublish / ChipHostApply commit (~16 ms causality tradeoff).
+    /// Staggered groups become available later — fire their multimodal at
+    /// `availableAt` with no extra frame delay.
     func scheduleFeedbackPresentation(for items: [CombatFeedbackItem], at date: Date) {
         let groups = Dictionary(grouping: items, by: \.actionGroupID)
-        for (actionGroupID, group) in groups {
+        var didEnqueue = false
+        for (_, group) in groups {
             guard let availableAt = group.first?.availableAt, availableAt > date else { continue }
-            pendingFeedbackPresentationTasks[actionGroupID]?.cancel()
-            let delay = max(0, availableAt.timeIntervalSince(date))
-            pendingFeedbackPresentationTasks[actionGroupID] = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: .seconds(delay))
-                guard let self, !Task.isCancelled else { return }
-                let activeGroup = activeFeedbackItems.filter {
-                    $0.actionGroupID == actionGroupID
+            pendingFeedbackPresentationDates.append(availableAt)
+            didEnqueue = true
+        }
+        guard didEnqueue else { return }
+        pendingFeedbackPresentationDates.sort()
+        ensureFeedbackPresentationLoopRunning()
+    }
+
+    func scheduleFeedbackPruneIfNeeded(at _: Date) {
+        if let latestExpiry = activeFeedbackItems.map(\.expiresAt).max() {
+            let candidate = latestExpiry.addingTimeInterval(0.02)
+            if let existing = nextFeedbackPruneAt {
+                nextFeedbackPruneAt = max(existing, candidate)
+            } else {
+                nextFeedbackPruneAt = candidate
+            }
+        }
+        ensureFeedbackPruneLoopRunning()
+        ensureFeedbackPresentationLoopRunning()
+    }
+
+    /// One long-lived loop started on first feedback — publish frames only bump
+    /// `nextFeedbackPruneAt` (Task allocation on publish was a measured hitch).
+    private func ensureFeedbackPruneLoopRunning() {
+        guard pendingFeedbackPruneTask == nil else { return }
+        pendingFeedbackPruneTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                guard let fireAt = nextFeedbackPruneAt else {
+                    try? await Task.sleep(for: .seconds(1))
+                    continue
                 }
-                scheduleMultimodalPresentation(for: activeGroup, at: .now)
-                pendingFeedbackPresentationTasks.removeValue(forKey: actionGroupID)
+                let delay = fireAt.timeIntervalSinceNow
+                if delay > 0 {
+                    try? await Task.sleep(for: .seconds(delay))
+                }
+                guard !Task.isCancelled else { return }
+                // Cleared while sleeping — do not prune from a stale wake.
+                guard let current = nextFeedbackPruneAt else { continue }
+                if current > fireAt {
+                    continue
+                }
+                nextFeedbackPruneAt = nil
+                pruneExpiredFeedback()
+                if let latestExpiry = activeFeedbackItems.map(\.expiresAt).max() {
+                    nextFeedbackPruneAt = latestExpiry.addingTimeInterval(0.02)
+                }
             }
         }
     }
 
-    /// Defers SFX / hit reactions / keyword bursts by one display period after chips.
-    func scheduleMultimodalPresentation(for items: [CombatFeedbackItem], at date: Date) {
-        let due = items.filter { $0.availableAt <= date && !presentedFeedbackIDs.contains($0.id) }
-        guard !due.isEmpty else { return }
-
-        for item in due {
-            presentedFeedbackIDs.insert(item.id)
-        }
-
-        let taskID = due.map(\.id).min() ?? 0
-        pendingMultimodalPresentationTasks[taskID]?.cancel()
-        pendingMultimodalPresentationTasks[taskID] = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(16))
-            guard let self, !Task.isCancelled else { return }
-            applyDeferredMultimodalPresentation(for: due)
-            pendingMultimodalPresentationTasks.removeValue(forKey: taskID)
-        }
-    }
-
-    func scheduleFeedbackPruneIfNeeded(at date: Date) {
-        pendingFeedbackPruneTask?.cancel()
-        guard let latestExpiry = activeFeedbackItems.map(\.expiresAt).max() else { return }
-        let delay = max(0, latestExpiry.timeIntervalSince(date)) + 0.02
-        pendingFeedbackPruneTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
-            guard let self, !Task.isCancelled else { return }
-            pruneExpiredFeedback()
+    private func ensureFeedbackPresentationLoopRunning() {
+        guard pendingFeedbackPresentationLoopTask == nil else { return }
+        pendingFeedbackPresentationLoopTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                guard let fireAt = pendingFeedbackPresentationDates.first else {
+                    try? await Task.sleep(for: .seconds(1))
+                    continue
+                }
+                let delay = fireAt.timeIntervalSinceNow
+                if delay > 0 {
+                    try? await Task.sleep(for: .seconds(delay))
+                }
+                guard !Task.isCancelled else { return }
+                guard let currentFirst = pendingFeedbackPresentationDates.first else { continue }
+                if currentFirst > fireAt {
+                    continue
+                }
+                pendingFeedbackPresentationDates.removeAll { $0 <= fireAt }
+                let activeGroup = activeFeedbackItems.filter {
+                    $0.availableAt <= fireAt && fireAt < $0.expiresAt
+                }
+                applyImmediatePresentation(for: activeGroup, at: fireAt)
+            }
         }
     }
 
-    /// SFX, hit reactions, and keyword bursts — invoked one frame after chip publish.
-    func applyDeferredMultimodalPresentation(for due: [CombatFeedbackItem]) {
+    /// SFX, hit reactions, and keyword bursts — same frame as chips when due.
+    func applyMultimodalPresentation(for due: [CombatFeedbackItem]) {
         guard !due.isEmpty else { return }
 
-        for clipID in CombatSFXMapper.uniqueClipIDs(for: due) {
-            playSFX(clipID)
-        }
+        playSFX(ids: CombatSFXMapper.uniqueClipIDs(for: due))
 
         let groups = Dictionary(grouping: due, by: \.actionGroupID)
         var didPublishReaction = false
@@ -93,62 +124,49 @@ extension BattleSession {
         if didPublishReaction {
             noteHitReactionPresentationChanged()
         }
-
-        let bursts = CombatFeedbackPresenter.bursts(for: due)
-        for burst in bursts {
-            guard let targetID = due.first(where: { $0.id == burst.id })?.targetID else { continue }
-            var existing = keywordBurstsByTargetID[targetID, default: []]
-            existing.append(burst)
-            if existing.count > TrinketMotion.Battle.maxKeywordBurstsPerPane {
-                existing = Array(existing.suffix(TrinketMotion.Battle.maxKeywordBurstsPerPane))
-            }
-            keywordBurstsByTargetID[targetID] = existing
-        }
-        if !bursts.isEmpty {
-            noteBurstPresentationChanged()
-        }
     }
 
-    /// Kept for call sites that still want synchronous multimodal apply (tests / prune).
     func applyImmediatePresentation(for items: [CombatFeedbackItem], at date: Date) {
         let due = items.filter { $0.availableAt <= date && !presentedFeedbackIDs.contains($0.id) }
         guard !due.isEmpty else { return }
         for item in due {
             presentedFeedbackIDs.insert(item.id)
         }
-        applyDeferredMultimodalPresentation(for: due)
+        applyMultimodalPresentation(for: due)
     }
 
     func playSFX(_ id: String) {
+        playSFX(ids: [id])
+    }
+
+    func playSFX(ids: [String]) {
         guard let sfxPlayer else { return }
+        guard !ids.isEmpty else { return }
         BattleFramePacingSignposts.event(
             BattleFramePacingSignposts.Name.audioPlayback,
-            detail: "clip=\(id)"
+            detail: "clips=\(ids.joined(separator: ","))"
         )
-        sfxPlayer.play(id, volume: options?.effectsVolume ?? 0)
+        sfxPlayer.playAll(ids, volume: options?.effectsVolume ?? 0)
     }
 
     func clearFeedback() {
         let hadPublishedPresentation = !activeFeedbackItems.isEmpty
             || !hitReactionsByTargetID.isEmpty
+            || !attackReactionsByCombatantID.isEmpty
             || !keywordBurstsByTargetID.isEmpty
             || !presentedFeedbackIDs.isEmpty
-        pendingFeedbackPruneTask?.cancel()
-        pendingFeedbackPruneTask = nil
+        // Keep prune / staggered-presentation loops alive across clears.
+        nextFeedbackPruneAt = nil
+        pendingFeedbackPresentationDates.removeAll(keepingCapacity: true)
         pendingPartyCelebrateTask?.cancel()
         pendingPartyCelebrateTask = nil
-        for task in pendingFeedbackPresentationTasks.values {
-            task.cancel()
-        }
-        pendingFeedbackPresentationTasks = [:]
-        for task in pendingMultimodalPresentationTasks.values {
-            task.cancel()
-        }
-        pendingMultimodalPresentationTasks = [:]
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]
         if !hitReactionsByTargetID.isEmpty {
             hitReactionsByTargetID = [:]
+        }
+        if !attackReactionsByCombatantID.isEmpty {
+            attackReactionsByCombatantID = [:]
         }
         keywordBurstsByTargetID = [:]
         presentedFeedbackIDs = []

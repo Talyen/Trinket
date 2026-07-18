@@ -8,9 +8,7 @@ struct ContentView: View {
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
-        // Bare PlayView during battle frees the tab bar and tears down inactive tab
-        // roots. Keeping TabView mounted (hidden bar only) left Collection/Homestead
-        // observing through victory and spiked stage-select-battle / victory stalls.
+        // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
             if appState.battle.activeBattle != nil {
                 PlayView()

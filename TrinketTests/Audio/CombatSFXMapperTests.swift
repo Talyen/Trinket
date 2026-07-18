@@ -9,7 +9,7 @@ struct CombatSFXMapperTests {
     // This matrix intentionally keeps all semantic mapper branches in one fast test.
     // swiftlint:disable function_body_length
     @Test func semanticFeedbackMappingsCoverTypedFallbackAndSilentCases() {
-        for keyword: Keyword in [.physical, .nature, .holy, .poison, .bleed, .leech] {
+        for keyword: Keyword in [.physical, .holy, .poison, .bleed, .leech] {
             let item = feedbackItem(feedbackClass: .directDamage, keyword: keyword, text: "-10")
             #expect(CombatSFXMapper.clipID(for: item) == SFXID.hit)
         }
@@ -150,6 +150,7 @@ struct CombatSFXMapperTests {
             actionGroupID: id,
             presentationIndex: 0,
             groupResultCount: 1,
+            presentationRole: .headline,
             targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,

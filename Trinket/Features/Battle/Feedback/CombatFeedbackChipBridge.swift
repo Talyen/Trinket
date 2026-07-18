@@ -8,6 +8,8 @@ enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
     private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private static var pendingAvailabilityTask: Task<Void, Never>?
+    /// Future `availableAt` wake times for the long-lived availability loop.
+    private static var pendingAvailabilityDates: [Date] = []
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
@@ -84,38 +86,59 @@ enum CombatFeedbackChipBridge {
         case .reset:
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
+            pendingAvailabilityDates.removeAll(keepingCapacity: true)
         }
 
-        // Refresh applies warm hits immediately and paces cold compose + re-flush.
+        // Refresh applies visible chips immediately (compose on miss).
         refreshHosts(for: affectedTargets)
-        scheduleAvailabilityRefreshes()
+        noteAvailabilityWakeTimes()
     }
 
-    private static func scheduleAvailabilityRefreshes() {
-        pendingAvailabilityTask?.cancel()
+    /// Publish frames only record future `availableAt` dates. A single long-lived
+    /// loop sleeps until those dates — no Task cancel/realloc on every insert.
+    private static func noteAvailabilityWakeTimes() {
         let now = Date()
         let dates = Set(itemsByTarget.values.flatMap(\.values).compactMap { item in
             item.availableAt > now ? item.availableAt : nil
         }).sorted()
-        guard !dates.isEmpty else {
-            pendingAvailabilityTask = nil
-            return
-        }
+        pendingAvailabilityDates = dates
+        ensureAvailabilityLoopRunning()
+    }
+
+    private static func ensureAvailabilityLoopRunning() {
+        guard pendingAvailabilityTask == nil else { return }
         pendingAvailabilityTask = Task { @MainActor in
-            for date in dates {
-                let delay = date.timeIntervalSinceNow
+            while !Task.isCancelled {
+                guard let fireAt = pendingAvailabilityDates.first else {
+                    // Must stay interruptible: a 1s park made staggered chips miss
+                    // their lifetime after publish bumped new availableAt dates.
+                    try? await Task.sleep(for: .milliseconds(16))
+                    continue
+                }
+                let delay = fireAt.timeIntervalSinceNow
+                if delay > 0.016 {
+                    // Chunk long waits so an earlier availableAt published mid-sleep
+                    // is observed within one display frame.
+                    try? await Task.sleep(for: .milliseconds(16))
+                    continue
+                }
                 if delay > 0 {
                     try? await Task.sleep(for: .seconds(delay))
                 }
                 guard !Task.isCancelled else { return }
+                // Cleared / reset while sleeping — do not refresh from a stale wake.
+                guard let currentFirst = pendingAvailabilityDates.first else { continue }
+                if currentFirst > fireAt {
+                    continue
+                }
+                pendingAvailabilityDates.removeAll { $0 <= fireAt }
                 let targets = Set(itemsByTarget.compactMap { targetID, items in
-                    items.values.contains { $0.availableAt <= date && date < $0.expiresAt }
+                    items.values.contains { $0.availableAt <= fireAt && fireAt < $0.expiresAt }
                         ? targetID
                         : nil
                 })
                 refreshHosts(for: targets)
             }
-            pendingAvailabilityTask = nil
         }
     }
 
@@ -167,17 +190,18 @@ enum CombatFeedbackChipBridge {
                 misses.append(canvasItem)
             }
         }
-        // Never sync-compose on the flush frame — paced prepare + re-flush keeps
-        // ChipHostApply off cold FeedbackRasterBuild stalls.
+        // Compose misses on this flush. Warm glyph-atlas blits stay sub-ms; pacing
+        // them behind a park wake was making feedback text late or miss entirely.
         if !misses.isEmpty {
-            CombatFeedbackRasterPool.shared.prepareCanvasItems(
-                misses,
-                dynamicTypeSize: entry.dynamicTypeSize,
-                layoutDirection: entry.layoutDirection,
-                displayScale: entry.displayScale,
-                useFrameBudget: true
-            ) {
-                refreshHosts(for: [entry.combatantID])
+            for canvasItem in misses {
+                if let raster = CombatFeedbackRasterPool.shared.prepare(
+                    for: canvasItem,
+                    dynamicTypeSize: entry.dynamicTypeSize,
+                    layoutDirection: entry.layoutDirection,
+                    displayScale: entry.displayScale
+                ) {
+                    chips.append((canvasItem: canvasItem, raster: raster))
+                }
             }
         }
         view.apply(chips: chips)

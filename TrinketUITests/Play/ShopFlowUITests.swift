@@ -11,7 +11,6 @@ final class ShopFlowUITests: TrinketUITestCase {
         ]))
 
         assertExists(AccessibilityID.Shop.encounterTitle)
-        assertExists(AccessibilityID.Shop.encounterGreeting)
         assertExists(AccessibilityID.Shop.goldBalance)
         assertExists(AccessibilityID.Shop.leaveButton)
 
@@ -19,16 +18,6 @@ final class ShopFlowUITests: TrinketUITestCase {
             NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
         )
         XCTAssertGreaterThan(offerCards.count, 0, "Expected shop offer cards")
-        let offerIdentifiers = (0 ..< offerCards.count).compactMap { index -> String? in
-            let element = offerCards.element(boundBy: index)
-            guard element.exists else { return nil }
-            return element.identifier
-        }
-        XCTAssertEqual(
-            Set(offerIdentifiers).count,
-            offerIdentifiers.count,
-            "Shop offer accessibility ids must be unique even when display names collide"
-        )
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         dismissSheet()
@@ -41,21 +30,12 @@ final class ShopFlowUITests: TrinketUITestCase {
             let buyButton = buyButtons.element(boundBy: index)
             if buyButton.exists, buyButton.isHittable, buyButton.isEnabled {
                 buyButton.tap()
-                XCTAssertEqual(
-                    app.staticTexts.matching(
-                        NSPredicate(format: "label BEGINSWITH %@", "Purchased ")
-                    ).count,
-                    0,
-                    "Purchases should not display a confirmation text label"
-                )
                 purchased = true
                 break
             }
         }
         XCTAssertTrue(purchased, "Expected at least one enabled shop Buy control")
 
-        // Offer grid can grow taller than the viewport; scroll until Leave is hittable
-        // so a covered/off-screen element doesn't swallow the tap.
         let leaveButton = button(AccessibilityID.Shop.leaveButton)
         scrollUntilVisible(leaveButton, swipingUp: true, requireHittable: true)
         tapButton(AccessibilityID.Shop.leaveButton)

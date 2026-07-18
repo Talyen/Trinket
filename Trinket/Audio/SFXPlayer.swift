@@ -53,6 +53,7 @@ enum SFXID {
 final class SFXPlayer {
     private let isDisabled: Bool
     private var hasConfiguredSession = false
+    private var engineIsRunning = false
     private let engine = AVAudioEngine()
     private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
     private var buffersByID: [String: AVAudioPCMBuffer] = [:]
@@ -67,28 +68,36 @@ final class SFXPlayer {
     }
 
     func play(_ id: String, volume: Double) {
+        playAll([id], volume: volume)
+    }
+
+    /// Plays several one-shots on the same frame with a single engine/session check.
+    /// Dense multimodal stacks this with hit reactions; the hot path must stay
+    /// schedule-only (no stop / attach / decode).
+    func playAll(_ ids: [String], volume: Double) {
         guard !isDisabled else { return }
         guard volume > 0 else { return }
-        guard let clip = SFXCatalog.clipsByID[id] else {
-            logger.warning("Unknown SFX id: \(id, privacy: .public)")
+        guard !ids.isEmpty else { return }
+
+        if !ensureReady(for: ids) {
             return
         }
 
-        configureSessionIfNeeded()
-        if preparedVoicesByID[id] == nil {
-            warm([id])
+        let gain = max(0, volume)
+        for id in ids {
+            guard let clip = SFXCatalog.clipsByID[id],
+                  let voices = preparedVoicesByID[id],
+                  !voices.isEmpty else { continue }
+            let voiceIndex = (nextVoiceIndexByID[id] ?? 0) % voices.count
+            nextVoiceIndexByID[id] = (voiceIndex + 1) % voices.count
+            let voice = voices[voiceIndex]
+            voice.node.volume = min(Float(gain * max(0, clip.volumeGain)), 1)
+            // `.interrupts` replaces any in-flight buffer without a synchronous stop().
+            voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts)
+            if !voice.node.isPlaying {
+                voice.node.play()
+            }
         }
-        guard startEngineIfNeeded(),
-              let voices = preparedVoicesByID[id],
-              !voices.isEmpty else { return }
-
-        let voiceIndex = (nextVoiceIndexByID[id] ?? 0) % voices.count
-        nextVoiceIndexByID[id] = (voiceIndex + 1) % voices.count
-        let voice = voices[voiceIndex]
-        voice.node.stop()
-        voice.node.volume = min(Float(max(0, volume) * max(0, clip.volumeGain)), 1)
-        voice.node.scheduleBuffer(voice.buffer)
-        voice.node.play()
     }
 
     /// Prepares a small overlap pool. Battle uses two players per clip so rapid
@@ -99,7 +108,10 @@ final class SFXPlayer {
         let idsNeedingWork = ids.filter { id in
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
         }
-        guard !idsNeedingWork.isEmpty else { return }
+        guard !idsNeedingWork.isEmpty else {
+            _ = ensureEngineRunning()
+            return
+        }
 
         configureSessionIfNeeded()
 
@@ -116,7 +128,7 @@ final class SFXPlayer {
             preparedVoicesByID[id] = voices
         }
         engine.prepare()
-        _ = startEngineIfNeeded()
+        _ = ensureEngineRunning()
     }
 
     func stopAll() {
@@ -125,6 +137,17 @@ final class SFXPlayer {
                 voice.node.stop()
             }
         }
+    }
+
+    private func ensureReady(for ids: [String]) -> Bool {
+        let missing = ids.filter { preparedVoicesByID[$0] == nil }
+        if !missing.isEmpty {
+            warm(missing)
+        } else {
+            configureSessionIfNeeded()
+            _ = ensureEngineRunning()
+        }
+        return ensureEngineRunning()
     }
 
     private func preparedBuffer(for clip: SFXClip) -> AVAudioPCMBuffer? {
@@ -170,12 +193,20 @@ final class SFXPlayer {
         AmbientAudioSession.configureIfNeeded(configured: &hasConfiguredSession, logger: logger)
     }
 
-    private func startEngineIfNeeded() -> Bool {
-        guard !engine.isRunning else { return true }
+    private func ensureEngineRunning() -> Bool {
+        if engineIsRunning, engine.isRunning {
+            return true
+        }
+        guard !engine.isRunning else {
+            engineIsRunning = true
+            return true
+        }
         do {
             try engine.start()
+            engineIsRunning = true
             return true
         } catch {
+            engineIsRunning = false
             logger.error(
                 "Unable to start SFX engine: \(error.localizedDescription, privacy: .public)"
             )

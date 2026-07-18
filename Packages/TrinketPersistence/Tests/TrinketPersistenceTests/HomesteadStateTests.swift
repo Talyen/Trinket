@@ -5,20 +5,20 @@ import TrinketCore
 
 struct HomesteadStateTests {
     private enum BuildSpendCase {
-        case wheatFieldMaterialsOnly
-        case herbGardenMaterialsAndGold
+        case wheatFieldMaterials
+        case herbGardenMaterials
     }
 
     @Test(arguments: [
-        BuildSpendCase.wheatFieldMaterialsOnly,
-        .herbGardenMaterialsAndGold
+        BuildSpendCase.wheatFieldMaterials,
+        .herbGardenMaterials
     ])
     private func buildOrUpgradeSpendsRequiredCosts(caseKind: BuildSpendCase) throws {
         switch caseKind {
-        case .wheatFieldMaterialsOnly:
+        case .wheatFieldMaterials:
             let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
             var homestead = PlayerHomesteadState(
-                resources: [.wood: 20, .stone: 10],
+                resources: [.wood: 20, .herbs: 10],
                 nodeTiers: [:]
             )
             var roster = PlayerRosterState.freshStart
@@ -27,14 +27,14 @@ struct HomesteadStateTests {
             let built = homestead.buildOrUpgrade(definition, roster: &roster)
             try #expect(built)
             try #expect(homestead.tier(for: .wheatField) == 1)
-            try #expect(homestead.resources[.wood] == 10)
-            try #expect(homestead.resources[.stone] == 6)
+            try #expect(homestead.resources[.wood] == 15)
+            try #expect(homestead.resources[.herbs] == 5)
             try #expect(roster.gold == 4)
 
-        case .herbGardenMaterialsAndGold:
+        case .herbGardenMaterials:
             let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
             var homestead = PlayerHomesteadState(
-                resources: [.wood: 12, .food: 6],
+                resources: [.wood: 5, .herbs: 5],
                 nodeTiers: [.wheatField: 1]
             )
             var roster = PlayerRosterState.freshStart
@@ -44,8 +44,8 @@ struct HomesteadStateTests {
             try #expect(built)
             try #expect(homestead.tier(for: .herbGarden) == 1)
             try #expect(homestead.resources[.wood] == 0)
-            try #expect(homestead.resources[.food] == 0)
-            try #expect(roster.gold == 0)
+            try #expect(homestead.resources[.herbs] == 0)
+            try #expect(roster.gold == 10)
         }
     }
 

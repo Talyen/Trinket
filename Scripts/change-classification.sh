@@ -111,30 +111,28 @@ trinket_classify_smoke_target() {
   local path="$1"
 
   case "$path" in
-    Trinket/Features/Battle/BattleHandView.swift|Trinket/App/PreparedArtworkCache.swift)
-      trinket_add_smoke_target SmokeBattleTests/testHandDragReleaseOnCombatantDoesNotOpenDetail
-      ;;
-    Trinket/Features/Battle/*)
+    Trinket/Features/Battle/*|Trinket/App/PreparedArtworkCache.swift|TrinketUITests/Battle/*)
+      # Hand-drag safety is FullUI-only; agents still use the battle load canary.
       trinket_add_smoke_target SmokeBattleTests
       ;;
-    Trinket/Features/Collection/*)
+    Trinket/Features/Collection/*|Trinket/Shared/Detail/*|TrinketUITests/Collection/*)
       trinket_add_smoke_target SmokeCollectionTests
       ;;
-    Trinket/Features/Homestead/*)
+    Trinket/Features/Homestead/*|TrinketUITests/Homestead/*)
       trinket_add_smoke_target SmokeHomesteadTests
       ;;
-    Trinket/Features/Play/Shop/*)
+    Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
       trinket_add_smoke_target SmokeShopTests
       ;;
-    Trinket/Features/Play/PlayView.swift|Trinket/Features/Play/Modes/PlayModeHubView.swift)
+    Trinket/Features/Play/PlayView.swift|Trinket/Features/Play/Modes/PlayModeHubView.swift|TrinketUITests/Play/*)
       trinket_add_smoke_target SmokePlayTests
-      ;;
-    Trinket/Shared/Detail/*)
-      trinket_add_smoke_target SmokeHeroDetailTests
       ;;
     TrinketUITests/Smoke/*.swift)
       local target="${path##*/}"
       trinket_add_smoke_target "${target%.swift}"
+      ;;
+    TrinketUITests/Support/*)
+      trinket_add_smoke_target SmokeHomesteadTests
       ;;
     *)
       TRINKET_SMOKE_TARGET_UNRESOLVED=true
@@ -333,9 +331,11 @@ trinket_build_verification_plan() {
   fi
   if [[ "$TRINKET_NEEDS_CONTENT_GENERATION" == true || "$TRINKET_NEEDS_ASSET_GENERATION" == true || "$TRINKET_NEEDS_PROJECT_GENERATION" == true ]]; then
     if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
-      trinket_add_command "./Scripts/assert-generated-output.sh --assets"
+      # Idempotent: confirm regenerate is a no-op. Do not assert vs HEAD — that is
+      # CI/pre-push commit-completeness (intentional uncommitted generation is fine here).
+      trinket_add_command "./Scripts/assert-generated-output.sh --idempotent --assets"
     else
-      trinket_add_command "./Scripts/assert-generated-output.sh"
+      trinket_add_command "./Scripts/assert-generated-output.sh --idempotent"
     fi
   fi
   # Always run style when Swift changed — format/lint failures do not need a simulator.

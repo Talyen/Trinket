@@ -91,9 +91,7 @@ done
 
 acquire_generation_lock
 
-echo "=== Validating content manifests ==="
-python3 Scripts/content_codegen.py validate
-
+# content_codegen validates manifests before writing generated catalogs.
 echo "=== Generating content catalogs ==="
 python3 Scripts/content_codegen.py
 

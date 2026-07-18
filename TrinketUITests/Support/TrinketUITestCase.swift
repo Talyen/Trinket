@@ -65,6 +65,9 @@ enum TestLaunchArg {
     ) -> [String] {
         var args = performanceArguments(from: allForBattle(reset: reset))
         args += ["-battle-performance-scenario", scenario]
+        if ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" {
+            args.append("-battle-performance-quick")
+        }
         return args
     }
 
@@ -181,6 +184,14 @@ class TrinketUITestCase: XCTestCase {
         var launchArgs = arguments
         launchArgs.append(contentsOf: ["-store-name", UUID().uuidString])
         app.launchArguments = launchArgs
+        // Forward perf knobs into the app process (UITest env is not inherited by default).
+        var launchEnvironment = app.launchEnvironment
+        for key in ["TRINKET_PERFORMANCE_QUICK"] {
+            if let value = ProcessInfo.processInfo.environment[key], !value.isEmpty {
+                launchEnvironment[key] = value
+            }
+        }
+        app.launchEnvironment = launchEnvironment
         app.launch()
     }
 

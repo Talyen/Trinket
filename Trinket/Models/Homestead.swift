@@ -11,6 +11,7 @@ extension HomesteadResource {
         case .iron: "Iron"
         case .food: "Food"
         case .herbs: "Herbs"
+        case .hide: "Hide"
         case .crystal: "Crystal"
         case .gold: "Gold"
         }
@@ -23,6 +24,7 @@ extension HomesteadResource {
         case .iron: "hammer.fill"
         case .food: "carrot.fill"
         case .herbs: "leaf.fill"
+        case .hide: "pawprint.fill"
         case .crystal: "sparkles"
         case .gold: "dollarsign.circle.fill"
         }

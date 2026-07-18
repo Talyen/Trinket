@@ -8,9 +8,11 @@ struct BattleView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @State private var persistFailureMessage: StageMapMessage?
-    @State private var cardPlayFeedbackToken = 0
     @State private var castPresentation = BattleCastPresentationState()
-    @State private var performanceForcedDrag: (cardID: Int, translation: CGSize)?
+    @State private var performanceForcedDrag = BattleForcedDragState()
+    /// Offscreen first-hand cast prime so production play does not cold-mount
+    /// card face + mask + particles together.
+    @State private var handCastPrewarmArtwork: String?
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
     @State private var suppressCombatantTaps = false
@@ -34,7 +36,7 @@ struct BattleView: View {
     private func bodyContent(battleSession: BattleSession) -> some View {
         outcomeContent(battleSession: battleSession)
             .trinketScreenBackground()
-            .navigationTitle(battleSession.isShowingDefeat ? "Defeat" : "")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
@@ -43,11 +45,6 @@ struct BattleView: View {
                     battleActionsMenu(canRetreat: battleSession.canRetreat)
                 }
             }
-            .trinketSensoryFeedback(
-                .impact(weight: .medium),
-                trigger: cardPlayFeedbackToken,
-                enabled: appState.options.hapticsEnabled
-            )
             .alert(item: $persistFailureMessage) { message in
                 Alert(
                     title: Text(message.title),
@@ -130,8 +127,6 @@ struct BattleView: View {
             if let labyrinthNodeID = configuration.labyrinthNodeID {
                 DefeatView(
                     enemyName: configuration.enemy?.name ?? "Enemy",
-                    infoTitle: "The Path Holds",
-                    infoMessage: "Try again or take another way. The Labyrinth remembers.",
                     primaryButtonTitle: "Return to Map",
                     onPrimaryAction: {
                         appState.recordLabyrinthDefeat(nodeID: labyrinthNodeID)
@@ -172,9 +167,11 @@ struct BattleView: View {
                 BattleHandProjectionLane(
                     presentation: battleSession.presentation,
                     battleSize: geometry.size,
-                    forcedDrag: $performanceForcedDrag,
+                    forcedDrag: performanceForcedDrag,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
+                    onAttackWindUp: beginPartyAttackWindUp(for:),
+                    onAttackCancel: cancelPartyAttack(for:),
                     onReady: {
                         wireAutoEndTurn(battleSession)
                         battleSession.considerAutoEndTurn(
@@ -190,6 +187,13 @@ struct BattleView: View {
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
 
+                if let handCastPrewarmArtwork {
+                    CardCastEffectsPrewarmView(artworkName: handCastPrewarmArtwork) {
+                        self.handCastPrewarmArtwork = nil
+                    }
+                    .zIndex(2)
+                }
+
                 BattleCinematicLane(namespace: cinematicNamespace)
                     .zIndex(10)
 
@@ -201,7 +205,7 @@ struct BattleView: View {
                         battleSession: battleSession,
                         battleSize: geometry.size,
                         castPresentation: castPresentation,
-                        forcedDrag: $performanceForcedDrag
+                        forcedDrag: performanceForcedDrag
                     )
                     .zIndex(20)
                 }
@@ -219,9 +223,31 @@ struct BattleView: View {
         )
         let didPlay = playCard(cardID: card.id)
         guard didPlay else { return false }
-        castPresentation.append(request)
-        cardPlayFeedbackToken &+= 1
+        #if DEBUG
+        let scenario = AppEnvironment.shared.battlePerformanceScenario
+        let skipSwing = scenario == .playRealNoSwing
+        let skipCast = scenario == .playRealNoCast
+        #else
+        let skipSwing = false
+        let skipCast = false
+        #endif
+        if !skipSwing, let combatantID = appState.battle.combatantID(for: card.owner) {
+            appState.battle.commitAttackSwing(for: combatantID)
+        }
+        if !skipCast {
+            castPresentation.append(request)
+        }
         return true
+    }
+
+    private func beginPartyAttackWindUp(for card: BattleCard) {
+        guard let combatantID = appState.battle.combatantID(for: card.owner) else { return }
+        appState.battle.beginAttackWindUp(for: combatantID)
+    }
+
+    private func cancelPartyAttack(for card: BattleCard) {
+        guard let combatantID = appState.battle.combatantID(for: card.owner) else { return }
+        appState.battle.cancelAttack(for: combatantID)
     }
 
     private func playCard(cardID: Int) -> Bool {
@@ -362,25 +388,43 @@ private struct BattleHandProjectionLane: View {
 
     let presentation: BattlePresentationState
     let battleSize: CGSize
-    @Binding var forcedDrag: (cardID: Int, translation: CGSize)?
+    let forcedDrag: BattleForcedDragState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
+    let onAttackWindUp: (BattleCard) -> Void
+    let onAttackCancel: (BattleCard) -> Void
     let onReady: () -> Void
 
+    @State private var cardPlayFeedbackToken = 0
+
     var body: some View {
-        let battleSession = appState.battle
+        let hand = presentation.hand
+        let playableIDs = presentation.playableCardIDs
         BattleHandView(
-            cards: presentation.hand,
-            isPlayable: { battleSession.isCardPlayable($0) },
+            cards: hand,
+            isPlayable: { playableIDs.contains($0.id) },
             onTap: { card in
-                battleSession.presentAbilityDetail(card.ability)
+                appState.battle.presentAbilityDetail(card.ability)
             },
-            onPlay: onPlay,
+            onPlay: { card, request in
+                let didPlay = onPlay(card, request)
+                if didPlay {
+                    cardPlayFeedbackToken &+= 1
+                }
+                return didPlay
+            },
             hapticsEnabled: appState.options.hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
             configuration: .init(),
-            forcedDragTranslation: forcedDrag,
-            onCardInteractionChanged: onInteractionChanged
+            forcedDrag: forcedDrag,
+            onCardInteractionChanged: onInteractionChanged,
+            onAttackWindUp: onAttackWindUp,
+            onAttackCancel: onAttackCancel
+        )
+        .trinketSensoryFeedback(
+            .impact(weight: .medium),
+            trigger: cardPlayFeedbackToken,
+            enabled: appState.options.hapticsEnabled
         )
         .onAppear(perform: onReady)
     }
@@ -428,6 +472,22 @@ private extension BattleView {
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )
+        // Start prune / multimodal loops, paced raster prepare, and the chip motion
+        // clock before the first chip publish so that frame only bumps dates /
+        // enqueues work / inserts layers.
+        appState.battle.scheduleFeedbackPruneIfNeeded(at: .now)
+        CombatFeedbackRasterPool.shared.prewarmPacedPrepareLoop()
+        CombatFeedbackRasterUIView.prewarmMotionClock()
+        let handArtNames = appState.battle.hand.compactMap { $0.ability.artReference?.imageName }
+        guard !handArtNames.isEmpty else { return }
+        Task { @MainActor in
+            await PreparedArtworkCache.shared.prepareAndPin(names: handArtNames)
+        }
+        // Prime the full cast stack with the lead hand card (invisible). Skip the
+        // cold-cast performance scenario so its measurement stays honest.
+        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
+            handCastPrewarmArtwork = handArtNames[0]
+        }
     }
 }
 
@@ -439,13 +499,24 @@ enum BattlePresentationWarmup {
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) {
+        Task { @MainActor in
+            await prepareAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+        }
+    }
+
+    static func prepareAndWait(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) async {
         let key = "\(dynamicTypeSize)|\(Int((displayScale * 100).rounded()))"
-        guard preparedEffectsKey != key else { return }
         preparedEffectsKey = key
         if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-            CardDissolveTexture.prewarm()
+            await CardDissolveTexture.prepare()
         }
-        CombatFeedbackRasterPool.shared.prewarmInfrastructure(
+        await CombatFeedbackRasterPool.shared.prewarmInfrastructureAndWait(
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )

@@ -16,11 +16,11 @@ struct HomesteadBuildingArtwork: View {
     var body: some View {
         ZStack {
             if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
+                // Backgrounds ship full-only; row thumbs scale the same asset.
                 HomesteadFocalArtwork(
                     art: art,
-                    imageName: variant == .full ? art.imageName : "\(art.imageName)_thumb"
+                    interpolation: variant == .thumbnail ? .low : .medium
                 )
-
             } else {
                 RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .fill(
@@ -42,14 +42,20 @@ struct HomesteadBuildingArtwork: View {
 struct HomesteadFocalArtwork: View {
     let art: BackgroundArtReference
     var imageName: String?
+    var interpolation: Image.Interpolation = .medium
 
     /// Mode, chapter, and homestead art share a 4:3 source crop. Catalog focal
     /// points keep subjects stable across portrait and regular-width layouts.
     private let sourceAspectRatio: CGFloat = 4.0 / 3.0
 
-    init(art: BackgroundArtReference, imageName: String? = nil) {
+    init(
+        art: BackgroundArtReference,
+        imageName: String? = nil,
+        interpolation: Image.Interpolation = .medium
+    ) {
         self.art = art
         self.imageName = imageName
+        self.interpolation = interpolation
     }
 
     var body: some View {
@@ -65,6 +71,7 @@ struct HomesteadFocalArtwork: View {
 
             Image.preparedAsset(named: imageName ?? art.imageName)
                 .resizable()
+                .interpolation(interpolation)
                 .scaledToFill()
                 .frame(width: container.width, height: container.height)
                 .decorativePreparedArtwork()

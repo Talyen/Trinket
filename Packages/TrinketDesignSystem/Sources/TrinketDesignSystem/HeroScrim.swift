@@ -51,12 +51,13 @@ private struct OnArtTextModifier: ViewModifier {
         case .title:
             content
                 .foregroundStyle(paper)
-                .shadow(color: ink.opacity(0.95), radius: 1, y: 1)
-                .shadow(color: ink.opacity(0.48), radius: 5, y: 2)
+                .shadow(color: ink.opacity(0.98), radius: 1.5, y: 1)
+                .shadow(color: ink.opacity(0.55), radius: 7, y: 2)
         case .eyebrow:
             content
-                .foregroundStyle(paper.opacity(0.78))
-                .shadow(color: ink.opacity(0.7), radius: 1, y: 1)
+                .foregroundStyle(paper.opacity(0.9))
+                .shadow(color: ink.opacity(0.85), radius: 1.5, y: 1)
+                .shadow(color: ink.opacity(0.4), radius: 5, y: 2)
         }
     }
 }

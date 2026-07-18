@@ -70,10 +70,6 @@ public extension Keyword {
             color: DesignAssetColors.named("KeywordLeech"),
             symbolName: "drop"
         )
-        public static let nature = VisualStyle(
-            color: DesignAssetColors.named("KeywordNature"),
-            symbolName: "leaf.fill"
-        )
         public static let freeze = VisualStyle(
             color: DesignAssetColors.named("KeywordFreeze"),
             symbolName: "snowflake",
@@ -118,7 +114,6 @@ public extension Keyword {
         case .poison: .poison
         case .bleed: .bleed
         case .leech: .leech
-        case .nature: .nature
         case .freeze: .freeze
         case .dodge: .dodge
         case .purge: .purge

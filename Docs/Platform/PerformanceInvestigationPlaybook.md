@@ -58,22 +58,26 @@ Every scenario drives the normal Battle SwiftUI and `BattleSession` presentation
 1. Idle Battle.
 2. Continuous hand drag/cancel motion.
 3. First card cast without the cast-effect prewarm.
-4. Repeated warmed card casts.
-5. Maximum configured concurrent card casts.
-6. Feedback chips in isolation.
-7. Feedback-raster cold activation with an empty bounded pool.
-8. Feedback-raster warm activation with the first production label set prepared.
-9. Combatant reactions and haptics in isolation.
-10. Keyword bursts in isolation.
-11. Dense combat feedback plus keyword bursts.
-12. Turn transition and hand reflow.
-13. Full Ultimate cinematic.
-14. Real SFX playback path (audio is not disabled).
-15. Combined worst case.
+4. Production drag-to-release `playCard` path (forced lift → `beginPlay` → hand remove + feedback + cast + attack swing).
+5. Play-commit isolation (diagnostic; not baseline-enforced): `play-engine-hand`, `play-feedback-only`, `play-cast-only`, `play-cast-face-only`, `play-cast-mask-only`, `play-cast-particles-only`, `play-swing-only`, plus stacked-commit probes (`play-stack-direct`, `play-stack-no-*`, `play-real-no-*`, `play-cast-held-pose`).
+6. Repeated warmed card casts.
+7. Maximum configured concurrent card casts.
+8. Feedback chips in isolation.
+9. Feedback-raster cold activation with an empty bounded pool.
+10. Feedback-raster warm activation with the first production label set prepared.
+11. Combatant reactions and haptics in isolation.
+12. Keyword bursts in isolation.
+13. Dense combat feedback plus keyword bursts.
+14. Turn transition and hand reflow.
+15. Full Ultimate cinematic.
+16. Real SFX playback path (audio is not disabled).
+17. Combined worst case.
 
 The scenario launch argument changes stimulus only: `-battle-performance-scenario <name>`. It is DEBUG-only UI tooling and is not a gameplay mode.
 
-The display-link sampler discards 0.75 seconds after every reset so cadence can stabilize. All deterministic stimulus must begin after that warmup. Otherwise an immediate cold transition or cast is absent from the custom 1% report even though the native hitch metric may still observe it.
+For fast local isolation loops, set `TRINKET_PERFORMANCE_QUICK=1` (≈2.5s measure / ≈3.2s UITest wait). `Scripts/test.sh performance` forwards it into XCTest via `TEST_RUNNER_TRINKET_PERFORMANCE_QUICK`, and UITests also pass `-battle-performance-quick` into the app. Omit quick mode for formal `performance.sh` comparable artifacts.
+
+The display-link sampler discards a short warmup after every reset so cadence can stabilize (`0.75s` full / `0.35s` quick). All deterministic stimulus must begin after that warmup. Otherwise an immediate cold transition or cast is absent from the custom 1% report even though the native hitch metric may still observe it.
 
 ## Signals and acceptance
 
@@ -100,9 +104,11 @@ Do not describe an average as a “60 FPS floor.” A run can average 60 and sti
 5. Make one hypothesis-driven change without changing visible Battle behavior.
 6. Re-run the same scenario matrix and compare native hitch data, raw reports, and the calibrated reference.
 
-Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss. Navigation signposts (category `AppNavigation`): `TabSwitch`, `SheetPresent`, `NavigationPush`, `StageSelectBattleActivate`.
+Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Cast dissolve: keep `compositingGroup` on the masked face only (not particles), step-stable threshold masks, and prewarm the real ability-card face + mask + particle path (launch + battle hand) so first play is not a cold combined mount. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss. Navigation signposts (category `AppNavigation`): `TabSwitch`, `SheetPresent`, `NavigationPush`, `StageSelectBattleActivate`.
 
-Multimodal combat feedback is frame-split by design: chips publish on the impact frame; SFX, hit reactions, and keyword bursts land ~16 ms later so they do not share the `ChipPublish` / `ChipHostApply` commit.
+Multimodal combat feedback fires on the impact frame with chips (SFX, hit reactions, and keyword bursts). Do not reintroduce frame-splitting without an explicit UX approval — isolation matrix evidence shows chips alone are not the hitch source; hand drag, overlapping casts, and stacked commits are.
+
+Stacked-commit probes (`play-stack-*`, `play-real-no-*`) show two interactions dominate `real-card-play`: forced-drag release ⊕ feedback host apply (~60 ms when cast is omitted), and hand-reflow springs ⊕ cast mount (~45 ms when feedback is omitted). Alone, engine/feedback/cast/swing stay near 60/16.7 once warm. Do not suppress sibling hand reflow to “win” the commit frame — that is UX-facing fan settle. Further commit-frame splitting remains UX-gated.
 
 ## Physical-device and production lanes
 

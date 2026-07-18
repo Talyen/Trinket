@@ -18,7 +18,8 @@ public extension GameContent {
     }
 
     static func negativeTrait(for enemy: Enemy) -> CombatantTraitDefinition? {
-        trait(id: enemy.negativeTraitID)
+        guard let negativeTraitID = enemy.negativeTraitID else { return nil }
+        return trait(id: negativeTraitID)
     }
 
     static func traits(for enemy: Enemy) -> [CombatantTraitDefinition] {

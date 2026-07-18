@@ -22,7 +22,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var mitigationShredDurationTicks: Int
     public var freezeControlVulnerabilityPercent: Double
     public var armorEffectivenessPenaltyPercent: Double
-    public var graspingVinesHealBonus: Int
     public var leechHealingMultiplier: Double
     public var hemorrhageBleedBonus: Int
     public var onBleedApplyPoison: Int
@@ -73,7 +72,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         mitigationShredDurationTicks: Int = 0,
         freezeControlVulnerabilityPercent: Double = 0,
         armorEffectivenessPenaltyPercent: Double = 0,
-        graspingVinesHealBonus: Int = 0,
         leechHealingMultiplier: Double = 1,
         hemorrhageBleedBonus: Int = 0,
         onBleedApplyPoison: Int = 0,
@@ -123,7 +121,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         self.mitigationShredDurationTicks = mitigationShredDurationTicks
         self.freezeControlVulnerabilityPercent = freezeControlVulnerabilityPercent
         self.armorEffectivenessPenaltyPercent = armorEffectivenessPenaltyPercent
-        self.graspingVinesHealBonus = graspingVinesHealBonus
         self.leechHealingMultiplier = leechHealingMultiplier
         self.hemorrhageBleedBonus = hemorrhageBleedBonus
         self.onBleedApplyPoison = onBleedApplyPoison
@@ -179,7 +176,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         mitigationShredDurationTicks = max(mitigationShredDurationTicks, other.mitigationShredDurationTicks)
         freezeControlVulnerabilityPercent += other.freezeControlVulnerabilityPercent
         armorEffectivenessPenaltyPercent += other.armorEffectivenessPenaltyPercent
-        graspingVinesHealBonus += other.graspingVinesHealBonus
         leechHealingMultiplier *= other.leechHealingMultiplier
         hemorrhageBleedBonus += other.hemorrhageBleedBonus
         onBleedApplyPoison += other.onBleedApplyPoison

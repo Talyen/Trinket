@@ -25,6 +25,12 @@ extension BattleSession {
         )
     }
 
+    /// Opening-hand ability art names for a prepared run (cast faces on first play).
+    func preparedAbilityArtworkNames(for resumeToken: ActiveBattleResumeToken) -> [String] {
+        guard let run = preparedBattleRunsByToken[resumeToken] else { return [] }
+        return run.state.hand.cards.compactMap { $0.ability.artReference?.imageName }
+    }
+
     func activatePreparedJourneyBattle(
         stageID: String,
         heroID: String,

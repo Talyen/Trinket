@@ -25,14 +25,22 @@ xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination "$SIMULATOR_DESTINATION" \
-  -derivedDataPath "$DERIVED_DATA_PATH"
+  -derivedDataPath "$DERIVED_DATA_PATH" \
+  COMPILER_INDEX_STORE_ENABLE=NO \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
 
-# Default to dark mode
-xcrun simctl spawn "$SIMULATOR_UDID" defaults write com.apple.UIKit UIUserInterfaceStyle -int 2 2>/dev/null || true
-xcrun simctl spawn "$SIMULATOR_UDID" killall SpringBoard 2>/dev/null || true
-sleep 1
+# Prefer simctl ui appearance (no SpringBoard restart). Fall back to defaults write
+# only if appearance is unsupported; avoid killall SpringBoard on the warm path.
+current_appearance="$(xcrun simctl ui "$SIMULATOR_UDID" appearance 2>/dev/null || true)"
+if [[ "$current_appearance" != "dark" ]]; then
+  if ! xcrun simctl ui "$SIMULATOR_UDID" appearance dark >/dev/null 2>&1; then
+    xcrun simctl spawn "$SIMULATOR_UDID" defaults write com.apple.UIKit UIUserInterfaceStyle -int 2 2>/dev/null || true
+  fi
+fi
+
 open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID"
-xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" 2>/dev/null || true
+# Let install replace an existing app; forced uninstall rewrites ~100MB+ every Run.
 xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # Installing a normal app bundle replaces the XCTest-installed app container, so
 # invalidate test-without-building stamps that depend on that simulator state.

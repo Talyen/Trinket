@@ -22,7 +22,6 @@ public struct LabyrinthBiomeID: RawRepresentable, Hashable, Codable, Sendable, I
     public static let serpentSump = LabyrinthBiomeID("serpentSump")
     public static let scarCatacombs = LabyrinthBiomeID("scarCatacombs")
     public static let aureateCrypt = LabyrinthBiomeID("aureateCrypt")
-    public static let wildrootHollow = LabyrinthBiomeID("wildrootHollow")
     public static let rimeDescent = LabyrinthBiomeID("rimeDescent")
     public static let stormCulvert = LabyrinthBiomeID("stormCulvert")
     public static let gildedFault = LabyrinthBiomeID("gildedFault")

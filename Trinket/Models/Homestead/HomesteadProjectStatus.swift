@@ -55,11 +55,18 @@ struct HomesteadProjectStatus {
         isUnlocked && isAffordable && !isComplete
     }
 
-    /// The effect visible in the overview row. Unbuilt and locked projects
-    /// intentionally preview tier one; built projects show only their active tier.
+    /// The active bonus for built projects. Unbuilt and locked projects have none.
     var overviewEffect: HomesteadBonus? {
-        let visibleTier = max(currentTier, 1)
-        return definition.tier(visibleTier)?.bonus
+        guard currentTier > 0 else { return nil }
+        return definition.tier(currentTier)?.bonus
+    }
+
+    /// Caption under the project title on the overview row.
+    var overviewCaption: String {
+        if currentTier == 0 {
+            return "Not Yet Constructed"
+        }
+        return overviewEffect?.description ?? definition.summary
     }
 
     var rowState: HomesteadProjectRowState {

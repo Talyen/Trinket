@@ -241,6 +241,37 @@ xcode_runner_run() {
     return 2
   fi
 
+  # Scripted builds do not need the IDE index store; skip it unless the caller
+  # already set COMPILER_INDEX_STORE_ENABLE explicitly. Simulator scripted
+  # builds also skip code signing unless the caller set those flags.
+  local cmd_name="${command_args[0]##*/}"
+  local has_index_store=false
+  local has_signing_allowed=false
+  local has_signing_required=false
+  local uses_simulator=false
+  local arg
+  if [[ "$cmd_name" == "xcodebuild" ]]; then
+    for arg in "${command_args[@]}"; do
+      case "$arg" in
+        COMPILER_INDEX_STORE_ENABLE=*) has_index_store=true ;;
+        CODE_SIGNING_ALLOWED=*) has_signing_allowed=true ;;
+        CODE_SIGNING_REQUIRED=*) has_signing_required=true ;;
+        *iphonesimulator*|*iOS\ Simulator*) uses_simulator=true ;;
+      esac
+    done
+    if [[ "$has_index_store" == "false" ]]; then
+      command_args+=("COMPILER_INDEX_STORE_ENABLE=NO")
+    fi
+    if [[ "$uses_simulator" == "true" ]]; then
+      if [[ "$has_signing_allowed" == "false" ]]; then
+        command_args+=("CODE_SIGNING_ALLOWED=NO")
+      fi
+      if [[ "$has_signing_required" == "false" ]]; then
+        command_args+=("CODE_SIGNING_REQUIRED=NO")
+      fi
+    fi
+  fi
+
   while (( attempt <= max_attempts )); do
     if [[ "$quiet" == "true" ]]; then
       set +e

@@ -179,7 +179,18 @@ elif [[ "$MODE" == "performance" ]]; then
       fi
     done
   fi
-  echo "Running the dedicated app performance scenario matrix..."
+  # Xcode only forwards TEST_RUNNER_* into the XCTest process (prefix stripped).
+  if [[ -n "${TRINKET_PERFORMANCE_QUICK:-}" ]]; then
+    export TEST_RUNNER_TRINKET_PERFORMANCE_QUICK="$TRINKET_PERFORMANCE_QUICK"
+  fi
+  if [[ -n "${TRINKET_PERFORMANCE_REPETITIONS:-}" ]]; then
+    export TEST_RUNNER_TRINKET_PERFORMANCE_REPETITIONS="$TRINKET_PERFORMANCE_REPETITIONS"
+  fi
+  if [[ "${TRINKET_PERFORMANCE_QUICK:-}" == "1" ]]; then
+    echo "Running the dedicated app performance scenario matrix (quick measure window)..."
+  else
+    echo "Running the dedicated app performance scenario matrix..."
+  fi
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
@@ -278,14 +289,44 @@ run_package_tests() {
   local jobs
   local cpu_count
 
-  # Shared DerivedData build.db cannot be written in parallel — build serially first
-  # when this is a full `test` action, then always run package tests with --no-build.
+  # Package schemes use per-package DerivedData tenants so builds can run in
+  # parallel without contending on a shared build.db.
   if [[ "$xcodebuild_action" != "test-without-building" ]]; then
     SECONDS=0
-    for package in "${packages[@]}"; do
+    package_build_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+    package_build_output="$RESULTS_DIR/.deferred/package-build-$package_build_token"
+    mkdir -p "$package_build_output"
+    cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
+    build_jobs="$cpu_count"
+    if [[ "$build_jobs" -gt ${#packages[@]} ]]; then
+      build_jobs=${#packages[@]}
+    fi
+    if [[ "$build_jobs" -lt 1 ]]; then
+      build_jobs=1
+    fi
+    echo "Building package tests in parallel (jobs=$build_jobs)..."
+    printf '%s\n' "${packages[@]}" | xargs -P "$build_jobs" -I{} bash -c '
+      set -euo pipefail
+      package="$1"
+      results_dir="$2"
+      derived_data_path="$3"
+      destination="$4"
+      output_root="$5"
+      script_dir="$6"
+      repo_root="$7"
+
+      export DERIVED_DATA_PATH="$derived_data_path"
+      # shellcheck source=build-stamp.sh
+      source "$script_dir/build-stamp.sh"
+      # shellcheck source=xcode-runner.sh
+      source "$script_dir/xcode-runner.sh"
+
+      package_dd="$(package_derived_data_path "$package")"
+      mkdir -p "$package_dd"
+
       echo "Building $package package tests..."
       package_status=0
-      xcode_runner_prepare "package-build-$package" "$RESULTS_DIR"
+      xcode_runner_prepare "package-build-$package" "$results_dir"
       package_build_result="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
       package_build_log="$XCODE_RUNNER_LOG_PATH"
       package_build_report="$XCODE_RUNNER_REPORT_PREFIX"
@@ -295,20 +336,26 @@ run_package_tests() {
         --log "$package_build_log"
         --report-prefix "$package_build_report"
         --quiet
-        --working-directory "$PWD/Packages/$package"
+        --working-directory "$repo_root/Packages/$package"
       )
       xcode_runner_run "${build_runner_args[@]}" -- \
         xcodebuild build-for-testing \
           -scheme "$(package_test_scheme "$package")" \
           -sdk iphonesimulator \
-          -destination "$SIMULATOR_DESTINATION" \
-          -derivedDataPath "$DERIVED_DATA_PATH" \
+          -destination "$destination" \
+          -derivedDataPath "$package_dd" \
           -resultBundlePath "$package_build_result" \
         || package_status=$?
       if [[ "$package_status" -eq 0 ]]; then
-        touch_build_stamp "$RESULTS_DIR" "package_$package"
+        touch_build_stamp "$results_dir" "package_$package"
       fi
-      if [[ "$package_status" -ne 0 ]]; then
+      printf "%s\n" "$package_status" >"$output_root/$package.status"
+      exit "$package_status"
+    ' _ {} "$RESULTS_DIR" "$DERIVED_DATA_PATH" "$SIMULATOR_DESTINATION" "$package_build_output" "$SCRIPT_DIR" "$PWD" || failed=1
+
+    for package in "${packages[@]}"; do
+      status_file="$package_build_output/$package.status"
+      if [[ ! -f "$status_file" ]] || [[ "$(cat "$status_file")" != "0" ]]; then
         failed=1
       fi
     done

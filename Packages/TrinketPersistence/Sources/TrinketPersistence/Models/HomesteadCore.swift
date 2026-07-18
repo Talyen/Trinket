@@ -21,6 +21,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
                 .iron: 12,
                 .food: 20,
                 .herbs: 14,
+                .hide: 10,
                 .crystal: 4
             ],
             nodeTiers: [

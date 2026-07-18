@@ -48,7 +48,8 @@ struct HomesteadPresentationTests {
         let status = makeStatus(definition: definition, homestead: .freshStart)
         let firstTier = try #require(definition.tier(1))
         #expect(status.rowState == .prerequisiteLocked)
-        #expect(status.overviewEffect == definition.tier(1)?.bonus)
+        #expect(status.overviewEffect == nil)
+        #expect(status.overviewCaption == "Not Yet Constructed")
         #expect(status.tierPathState(for: firstTier) == .locked)
         #expect(status.footerState == .action(title: "Build", enabled: false, reason: "Requires Wheat Field"))
     }
@@ -57,9 +58,11 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 10, .stone: 4], nodeTiers: [:])
+            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:])
         )
         #expect(status.rowState == .unbuilt(affordable: true))
+        #expect(status.overviewEffect == nil)
+        #expect(status.overviewCaption == "Not Yet Constructed")
         #expect(status.footerState == .action(title: "Build", enabled: true, reason: nil))
     }
 
@@ -67,6 +70,8 @@ struct HomesteadPresentationTests {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let status = makeStatus(definition: definition, homestead: .freshStart)
         #expect(status.rowState == .unbuilt(affordable: false))
+        #expect(status.overviewEffect == nil)
+        #expect(status.overviewCaption == "Not Yet Constructed")
     }
 
     private func assertBuiltLifecycle() throws {
@@ -76,8 +81,10 @@ struct HomesteadPresentationTests {
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
         )
         #expect(status.rowState == .built)
-        #expect(status.overviewEffect == definition.tier(1)?.bonus)
+        let activeBonus = try #require(definition.tier(1)?.bonus)
+        #expect(status.overviewEffect == activeBonus)
         #expect(status.overviewEffect != definition.tier(2)?.bonus)
+        #expect(status.overviewCaption == activeBonus.description)
     }
 
     private func assertUpgradeReadyLifecycle() throws {
@@ -85,7 +92,7 @@ struct HomesteadPresentationTests {
         let status = makeStatus(
             definition: definition,
             homestead: PlayerHomesteadState(
-                resources: [.wood: 18, .stone: 8],
+                resources: [.wood: 15, .herbs: 15],
                 nodeTiers: [.wheatField: 1]
             ),
             gold: 14
@@ -114,7 +121,9 @@ struct HomesteadPresentationTests {
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
         )
         #expect(status.rowState == .completed)
-        #expect(status.overviewEffect == definition.tier(3)?.bonus)
+        let activeBonus = try #require(definition.tier(3)?.bonus)
+        #expect(status.overviewEffect == activeBonus)
+        #expect(status.overviewCaption == activeBonus.description)
         #expect(status.footerState == .complete)
     }
 
@@ -124,7 +133,7 @@ struct HomesteadPresentationTests {
 
         let tierZero = makeStatus(
             definition: definition,
-            homestead: PlayerHomesteadState(resources: [.wood: 10, .stone: 4], nodeTiers: [:])
+            homestead: PlayerHomesteadState(resources: [.wood: 5, .herbs: 5], nodeTiers: [:])
         )
         #expect(tierZero.tierPathState(for: tiers[0]) == .next(affordable: true))
         #expect(tierZero.tierPathState(for: tiers[1]) == .future)

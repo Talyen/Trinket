@@ -35,25 +35,30 @@ final class CombatFeedbackGlyphAtlas {
         }
 
         let typography: Typography
+        let presentationRole: CombatFeedbackPresentationRole
         let dynamicTypeSize: DynamicTypeSize
         let displayScaleHundredths: Int
 
         init(
             feedbackClass: CombatFeedbackClass,
+            presentationRole: CombatFeedbackPresentationRole = .headline,
             dynamicTypeSize: DynamicTypeSize,
             displayScaleHundredths: Int
         ) {
             typography = Typography(feedbackClass: feedbackClass)
+            self.presentationRole = presentationRole
             self.dynamicTypeSize = dynamicTypeSize
             self.displayScaleHundredths = displayScaleHundredths
         }
 
         init(
             typography: Typography,
+            presentationRole: CombatFeedbackPresentationRole = .headline,
             dynamicTypeSize: DynamicTypeSize,
             displayScaleHundredths: Int
         ) {
             self.typography = typography
+            self.presentationRole = presentationRole
             self.dynamicTypeSize = dynamicTypeSize
             self.displayScaleHundredths = displayScaleHundredths
         }
@@ -201,27 +206,33 @@ final class CombatFeedbackGlyphAtlas {
         for typography in Face.Typography.allCases {
             let feedbackClass = typography.representativeClass
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
-            let face = Face(
-                typography: typography,
-                dynamicTypeSize: dynamicTypeSize,
-                displayScaleHundredths: scaleHundredths
-            )
-            for symbolName in symbolNames {
-                let key = SymbolKey(face: face, symbolName: symbolName)
-                if symbols[key] == nil {
-                    requests.append(.symbol(key, recipe))
+            for role in CombatFeedbackPresentationRole.allCases {
+                let face = Face(
+                    typography: typography,
+                    presentationRole: role,
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScaleHundredths: scaleHundredths
+                )
+                for symbolName in symbolNames {
+                    let key = SymbolKey(face: face, symbolName: symbolName)
+                    if symbols[key] == nil {
+                        requests.append(.symbol(key, recipe))
+                    }
                 }
-            }
-            for fragment in numericFragments {
-                let key = FragmentKey(face: face, text: fragment)
-                if fragments[key] == nil {
-                    requests.append(.fragment(key, recipe))
+                for fragment in numericFragments {
+                    let key = FragmentKey(face: face, text: fragment)
+                    if fragments[key] == nil {
+                        requests.append(.fragment(key, recipe))
+                    }
                 }
-            }
-            for word in Self.wordAtlasCases(for: typography).compactMap(\.composeText) {
-                let key = FragmentKey(face: face, text: word)
-                if fragments[key] == nil {
-                    requests.append(.fragment(key, recipe))
+                // Word fragments stay headline-sized; secondary/overflow only shrink numerics.
+                if role == .headline {
+                    for word in Self.wordAtlasCases(for: typography).compactMap(\.composeText) {
+                        let key = FragmentKey(face: face, text: word)
+                        if fragments[key] == nil {
+                            requests.append(.fragment(key, recipe))
+                        }
+                    }
                 }
             }
         }
@@ -273,6 +284,7 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
+            presentationRole: face.presentationRole,
             dynamicTypeSize: face.dynamicTypeSize
         )
         let config = UIImage.SymbolConfiguration(font: font)
@@ -292,6 +304,7 @@ final class CombatFeedbackGlyphAtlas {
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
+            presentationRole: face.presentationRole,
             dynamicTypeSize: face.dynamicTypeSize
         )
         let attributes: [NSAttributedString.Key: Any] = [
@@ -340,14 +353,28 @@ final class CombatFeedbackGlyphAtlas {
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
         recipe: CombatFeedbackMotionRecipe,
+        presentationRole: CombatFeedbackPresentationRole = .headline,
         dynamicTypeSize: DynamicTypeSize
     ) -> UIFont {
-        let textStyle = uiTextStyle(recipe.textStyle)
+        let style: Font.TextStyle
+        let weight: Font.Weight
+        switch presentationRole {
+        case .headline:
+            style = recipe.textStyle
+            weight = recipe.fontWeight
+        case .secondary:
+            style = .title2
+            weight = .bold
+        case .overflow:
+            style = .callout
+            weight = .semibold
+        }
+        let textStyle = uiTextStyle(style)
         let category = uiContentSizeCategory(dynamicTypeSize)
         let traits = UITraitCollection(preferredContentSizeCategory: category)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
-        let weight = uiWeight(recipe.fontWeight)
-        let weighted = UIFont.systemFont(ofSize: preferred.pointSize, weight: weight)
+        let resolvedWeight = uiWeight(weight)
+        let weighted = UIFont.systemFont(ofSize: preferred.pointSize, weight: resolvedWeight)
         let roundedDescriptor = weighted.fontDescriptor.withDesign(.rounded) ?? weighted.fontDescriptor
         let monospacedDescriptor = roundedDescriptor.addingAttributes([
             .featureSettings: [[

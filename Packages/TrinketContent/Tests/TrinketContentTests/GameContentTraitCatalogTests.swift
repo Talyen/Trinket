@@ -23,15 +23,17 @@ struct GameContentTraitCatalogTests {
         try #expect(Set(GameContent.combatantTraitIDs.keys) == combatantIDs)
     }
 
-    @Test func everyEnemyHasPositiveAndNegativeTraits() throws {
+    @Test func everyEnemyHasPositiveTraitAndOptionalNegativeTrait() throws {
         let traitIDs = Set(GameContent.traits.map(\.id))
         for enemy in GameContent.enemies {
             try #expect(traitIDs.contains(enemy.positiveTraitID), "\(enemy.name) positive trait")
-            try #expect(traitIDs.contains(enemy.negativeTraitID), "\(enemy.name) negative trait")
-            try #expect(
-                enemy.positiveTraitID != enemy.negativeTraitID,
-                "\(enemy.name) should not reuse the same trait"
-            )
+            if let negativeTraitID = enemy.negativeTraitID {
+                try #expect(traitIDs.contains(negativeTraitID), "\(enemy.name) negative trait")
+                try #expect(
+                    enemy.positiveTraitID != negativeTraitID,
+                    "\(enemy.name) should not reuse the same trait"
+                )
+            }
         }
     }
 

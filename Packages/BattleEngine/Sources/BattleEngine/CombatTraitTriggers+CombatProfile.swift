@@ -32,7 +32,6 @@ public extension CombatTraitTriggers {
         )
         profile.freezeControlVulnerabilityPercent += freezeControlVulnerabilityPercent
         profile.armorEffectivenessPenaltyPercent += armorEffectivenessPenaltyPercent
-        profile.graspingVinesHealBonus += graspingVinesHealBonus
         profile.leechHealingMultiplier *= leechHealingMultiplier
         profile.hemorrhageBleedBonus += hemorrhageBleedBonus
         profile.onBleedApplyPoison += onBleedApplyPoison

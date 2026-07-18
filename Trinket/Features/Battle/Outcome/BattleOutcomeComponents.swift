@@ -2,8 +2,8 @@ import SwiftUI
 import TrinketDesignSystem
 
 struct BattleOutcomeShell<Content: View>: View {
-    let symbolName: String
-    let symbolColor: Color
+    var symbolName: String?
+    var symbolColor: Color?
     let title: String
     let subtitle: String
     let titleAccessibilityIdentifier: String
@@ -20,13 +20,15 @@ struct BattleOutcomeShell<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                Image(systemName: symbolName)
-                    .font(.system(size: outcomeSymbolSize, weight: .semibold))
-                    .foregroundStyle(symbolColor)
-                    .symbolEffect(.bounce, value: symbolAnimationCount)
-                    .onAppear {
-                        symbolAnimationCount += 1
-                    }
+                if let symbolName, let symbolColor {
+                    Image(systemName: symbolName)
+                        .font(.system(size: outcomeSymbolSize, weight: .semibold))
+                        .foregroundStyle(symbolColor)
+                        .symbolEffect(.bounce, value: symbolAnimationCount)
+                        .onAppear {
+                            symbolAnimationCount += 1
+                        }
+                }
 
                 VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     Text(title)
@@ -58,25 +60,6 @@ struct BattleOutcomeShell<Content: View>: View {
             .padding(TrinketDesign.Metrics.extraLargeSpacing)
         }
         .frame(maxWidth: .infinity)
-    }
-}
-
-struct BattleOutcomeInfoSection: View {
-    let title: String
-    let message: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            Text(title)
-                .trinketTypography(.cardTitle)
-
-            Text(message)
-                .trinketTypography(.secondaryBody)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .trinketCardSurface()
     }
 }
 

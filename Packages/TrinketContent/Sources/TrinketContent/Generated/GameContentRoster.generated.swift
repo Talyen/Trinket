@@ -71,7 +71,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.bountyShot, .fireArrow],
-                skills: [.lightningArrow, .venomArrow],
+                skills: [.sapArrow, .venomArrow],
                 ultimates: [.packTactics, .concussiveShot]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
@@ -168,7 +168,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
-                skills: [.graspingVines, .predatorsHaste],
+                skills: [.venomFangs, .predatorsHaste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),

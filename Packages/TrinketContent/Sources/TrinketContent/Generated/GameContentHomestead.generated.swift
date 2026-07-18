@@ -15,7 +15,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 4)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
                         title: "Companion Health",
                         description: "Increases Companion Health by 2"
@@ -23,7 +23,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 8), ResourceAmount(.gold, 14)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.herbs, 15)],
                     bonus: HomesteadBonus(
                         title: "Companion Health",
                         description: "Increases Companion Health by 4"
@@ -31,7 +31,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 16), ResourceAmount(.food, 18), ResourceAmount(.gold, 28)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Companion Health",
                         description: "Increases Companion Health by 6"
@@ -50,7 +50,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.food, 6), ResourceAmount(.gold, 10)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
                         title: "Health Restored",
                         description: "Increases Health restored by 1"
@@ -58,7 +58,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 22), ResourceAmount(.food, 12), ResourceAmount(.herbs, 8), ResourceAmount(.gold, 22)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.herbs, 15)],
                     bonus: HomesteadBonus(
                         title: "Health Restored",
                         description: "Increases Health restored by 2"
@@ -66,7 +66,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.herbs, 20), ResourceAmount(.gold, 38)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Health Restored",
                         description: "Increases Health restored by 3"
@@ -85,7 +85,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 14), ResourceAmount(.food, 8), ResourceAmount(.gold, 12)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.food, 10)],
                     bonus: HomesteadBonus(
                         title: "Hero Strength",
                         description: "Increases Hero Strength by 1"
@@ -93,7 +93,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.food, 16), ResourceAmount(.gold, 24)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.food, 20)],
                     bonus: HomesteadBonus(
                         title: "Hero Strength",
                         description: "Increases Hero Strength by 2"
@@ -101,7 +101,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.food, 28), ResourceAmount(.gold, 40)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.food, 30)],
                     bonus: HomesteadBonus(
                         title: "Hero Strength",
                         description: "Increases Hero Strength by 3"
@@ -120,7 +120,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 12), ResourceAmount(.food, 14), ResourceAmount(.gold, 18)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.food, 10)],
                     bonus: HomesteadBonus(
                         title: "Companion Toughness",
                         description: "Increases Companion Toughness by 1"
@@ -128,7 +128,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 18), ResourceAmount(.food, 24), ResourceAmount(.gold, 34)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.food, 20)],
                     bonus: HomesteadBonus(
                         title: "Companion Toughness",
                         description: "Increases Companion Toughness by 2"
@@ -136,7 +136,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 40), ResourceAmount(.stone, 28), ResourceAmount(.food, 40), ResourceAmount(.iron, 6), ResourceAmount(.gold, 52)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.food, 30)],
                     bonus: HomesteadBonus(
                         title: "Companion Toughness",
                         description: "Increases Companion Toughness by 3"
@@ -155,7 +155,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 12), ResourceAmount(.gold, 20)],
+                    cost: [ResourceAmount(.food, 10), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
                         title: "Hero Health",
                         description: "Increases Hero Health by 2"
@@ -163,7 +163,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 26), ResourceAmount(.food, 22), ResourceAmount(.herbs, 6), ResourceAmount(.gold, 36)],
+                    cost: [ResourceAmount(.food, 20), ResourceAmount(.herbs, 15)],
                     bonus: HomesteadBonus(
                         title: "Hero Health",
                         description: "Increases Hero Health by 4"
@@ -171,7 +171,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 16), ResourceAmount(.food, 34), ResourceAmount(.gold, 54)],
+                    cost: [ResourceAmount(.food, 30), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Hero Health",
                         description: "Increases Hero Health by 6"
@@ -190,7 +190,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.stone, 20), ResourceAmount(.iron, 6), ResourceAmount(.gold, 24)],
+                    cost: [ResourceAmount(.stone, 15), ResourceAmount(.iron, 20)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increases Hero Physical damage dealt by 1"
@@ -198,7 +198,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 30), ResourceAmount(.iron, 16), ResourceAmount(.gold, 42)],
+                    cost: [ResourceAmount(.stone, 25), ResourceAmount(.iron, 40)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increases Hero Physical damage dealt by 2"
@@ -206,7 +206,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 46), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 4), ResourceAmount(.gold, 64)],
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 60)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
                         description: "Increases Hero Physical damage dealt by 3"
@@ -225,7 +225,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 22), ResourceAmount(.stone, 14), ResourceAmount(.food, 10), ResourceAmount(.gold, 30)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.hide, 15)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage received by 1"
@@ -233,7 +233,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 22), ResourceAmount(.food, 18), ResourceAmount(.iron, 8), ResourceAmount(.gold, 48)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.hide, 25)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage received by 2"
@@ -241,7 +241,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 18), ResourceAmount(.food, 24), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 70)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.hide, 40)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
                         description: "Reduces Freeze damage received by 3"
@@ -260,7 +260,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 18), ResourceAmount(.food, 10), ResourceAmount(.herbs, 14), ResourceAmount(.gold, 28)],
+                    cost: [ResourceAmount(.stone, 15), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
                         title: "Poison Damage",
                         description: "Increases Hero Poison damage dealt by 1"
@@ -268,7 +268,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 3), ResourceAmount(.gold, 46)],
+                    cost: [ResourceAmount(.stone, 25), ResourceAmount(.herbs, 15)],
                     bonus: HomesteadBonus(
                         title: "Poison Damage",
                         description: "Increases Hero Poison damage dealt by 2"
@@ -276,7 +276,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 10), ResourceAmount(.herbs, 42), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 68)],
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Poison Damage",
                         description: "Increases Hero Poison damage dealt by 3"
@@ -295,26 +295,26 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 22), ResourceAmount(.herbs, 18), ResourceAmount(.food, 8), ResourceAmount(.gold, 34)],
+                    cost: [ResourceAmount(.herbs, 5), ResourceAmount(.crystal, 10)],
                     bonus: HomesteadBonus(
-                        title: "Nature Damage",
-                        description: "Increases Hero Nature damage dealt by 1"
+                        title: "Poison Resistance",
+                        description: "Decreases Hero Poison damage taken by 10%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 32), ResourceAmount(.herbs, 28), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 52)],
+                    cost: [ResourceAmount(.herbs, 15), ResourceAmount(.crystal, 15)],
                     bonus: HomesteadBonus(
-                        title: "Nature Damage",
-                        description: "Increases Hero Nature damage dealt by 2"
+                        title: "Poison Resistance",
+                        description: "Decreases Hero Poison damage taken by 20%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 12), ResourceAmount(.herbs, 40), ResourceAmount(.crystal, 12), ResourceAmount(.gold, 76)],
+                    cost: [ResourceAmount(.herbs, 20), ResourceAmount(.crystal, 25)],
                     bonus: HomesteadBonus(
-                        title: "Nature Damage",
-                        description: "Increases Hero Nature damage dealt by 3"
+                        title: "Poison Resistance",
+                        description: "Decreases Hero Poison damage taken by 30%"
                     )
                 )
             ]
@@ -330,7 +330,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 18), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 42)],
+                    cost: [ResourceAmount(.stone, 15), ResourceAmount(.crystal, 10)],
                     bonus: HomesteadBonus(
                         title: "Hero Intellect",
                         description: "Increases Hero Intellect by 1"
@@ -338,7 +338,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 38), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 14), ResourceAmount(.gold, 64)],
+                    cost: [ResourceAmount(.stone, 25), ResourceAmount(.crystal, 15)],
                     bonus: HomesteadBonus(
                         title: "Hero Intellect",
                         description: "Increases Hero Intellect by 2"
@@ -346,7 +346,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 18), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 88)],
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.crystal, 25)],
                     bonus: HomesteadBonus(
                         title: "Hero Intellect",
                         description: "Increases Hero Intellect by 3"
@@ -365,7 +365,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 52)],
+                    cost: [ResourceAmount(.iron, 20), ResourceAmount(.crystal, 10)],
                     bonus: HomesteadBonus(
                         title: "Mana Costs",
                         description: "Reduces Mana Costs by 5%"
@@ -373,7 +373,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 42), ResourceAmount(.iron, 28), ResourceAmount(.crystal, 20), ResourceAmount(.gold, 76)],
+                    cost: [ResourceAmount(.iron, 40), ResourceAmount(.crystal, 15)],
                     bonus: HomesteadBonus(
                         title: "Mana Costs",
                         description: "Reduces Mana Costs by 10%"
@@ -381,7 +381,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 44), ResourceAmount(.herbs, 24), ResourceAmount(.crystal, 34), ResourceAmount(.gold, 110)],
+                    cost: [ResourceAmount(.iron, 60), ResourceAmount(.crystal, 25)],
                     bonus: HomesteadBonus(
                         title: "Mana Costs",
                         description: "Reduces Mana Costs by 15%"
@@ -400,7 +400,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.stone, 18), ResourceAmount(.food, 16), ResourceAmount(.iron, 8), ResourceAmount(.gold, 36)],
+                    cost: [ResourceAmount(.wood, 5), ResourceAmount(.hide, 15)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
                         description: "Increases Companion damage dealt by 1"
@@ -408,7 +408,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 26), ResourceAmount(.food, 24), ResourceAmount(.iron, 14), ResourceAmount(.gold, 54)],
+                    cost: [ResourceAmount(.wood, 15), ResourceAmount(.hide, 25)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
                         description: "Increases Companion damage dealt by 2"
@@ -416,7 +416,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.food, 32), ResourceAmount(.iron, 22), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 78)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.hide, 40)],
                     bonus: HomesteadBonus(
                         title: "Companion Damage",
                         description: "Increases Companion damage dealt by 3"
@@ -435,7 +435,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 26), ResourceAmount(.stone, 16), ResourceAmount(.food, 14), ResourceAmount(.gold, 40)],
+                    cost: [ResourceAmount(.food, 10), ResourceAmount(.hide, 15)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increases Companion Agility by 1"
@@ -443,7 +443,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 24), ResourceAmount(.food, 22), ResourceAmount(.iron, 10), ResourceAmount(.gold, 58)],
+                    cost: [ResourceAmount(.food, 20), ResourceAmount(.hide, 25)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increases Companion Agility by 2"
@@ -451,7 +451,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 36), ResourceAmount(.food, 30), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 84)],
+                    cost: [ResourceAmount(.food, 30), ResourceAmount(.hide, 40)],
                     bonus: HomesteadBonus(
                         title: "Companion Agility",
                         description: "Increases Companion Agility by 3"
@@ -470,7 +470,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 34), ResourceAmount(.herbs, 20), ResourceAmount(.crystal, 12), ResourceAmount(.gold, 56)],
+                    cost: [ResourceAmount(.herbs, 5), ResourceAmount(.crystal, 10)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 5% more Astral items"
@@ -478,7 +478,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 46), ResourceAmount(.herbs, 30), ResourceAmount(.crystal, 20), ResourceAmount(.gold, 82)],
+                    cost: [ResourceAmount(.herbs, 15), ResourceAmount(.crystal, 15)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 10% more Astral items"
@@ -486,7 +486,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 24), ResourceAmount(.herbs, 38), ResourceAmount(.crystal, 32), ResourceAmount(.gold, 112)],
+                    cost: [ResourceAmount(.herbs, 20), ResourceAmount(.crystal, 25)],
                     bonus: HomesteadBonus(
                         title: "Astral Find",
                         description: "Find 15% more Astral items"
@@ -505,7 +505,7 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 18), ResourceAmount(.gold, 70)],
+                    cost: [ResourceAmount(.crystal, 10), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
                         description: "Find 5% more Gold"
@@ -513,7 +513,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 56), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 110)],
+                    cost: [ResourceAmount(.crystal, 15), ResourceAmount(.gold, 80)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
                         description: "Find 10% more Gold"
@@ -521,7 +521,7 @@ enum GameContentHomesteadGenerated {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 46), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 44), ResourceAmount(.gold, 160)],
+                    cost: [ResourceAmount(.crystal, 25), ResourceAmount(.gold, 120)],
                     bonus: HomesteadBonus(
                         title: "Gold Find",
                         description: "Find 15% more Gold"

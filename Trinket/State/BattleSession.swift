@@ -19,10 +19,11 @@ final class BattleSession {
     var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     var isShowingBattleLog = false
-    /// Observation fences for combat presentation lanes. Burst / hit-reaction storage is
-    /// ignored; lanes subscribe to the epochs so publishes invalidate SwiftUI.
+    /// Observation fences for combat presentation lanes. Burst / hit-reaction / attack
+    /// storage is ignored; lanes subscribe to the epochs so publishes invalidate SwiftUI.
     private(set) var burstEpoch = 0
     private(set) var hitReactionEpoch = 0
+    private(set) var attackReactionEpoch = 0
     @ObservationIgnored
     var activeFeedbackItems: [CombatFeedbackItem] = []
     /// Optional UIKit chip-bridge hook. Feature chrome installs this so chip publishes
@@ -33,6 +34,8 @@ final class BattleSession {
     var activeCinematic: BattleCinematicPresentation?
     @ObservationIgnored
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
+    @ObservationIgnored
+    var attackReactionsByCombatantID: [String: CombatantAttackReaction] = [:]
     @ObservationIgnored
     var keywordBurstsByTargetID: [String: [KeywordBurstRequest]] = [:]
 
@@ -78,10 +81,14 @@ final class BattleSession {
     var pendingAutoEndTask: Task<Void, Never>?
     @ObservationIgnored
     var pendingFeedbackPruneTask: Task<Void, Never>?
+    /// Next prune fire time for the long-lived prune loop (no per-publish Task alloc).
     @ObservationIgnored
-    var pendingFeedbackPresentationTasks: [Int: Task<Void, Never>] = [:]
+    var nextFeedbackPruneAt: Date?
     @ObservationIgnored
-    var pendingMultimodalPresentationTasks: [Int: Task<Void, Never>] = [:]
+    var pendingFeedbackPresentationLoopTask: Task<Void, Never>?
+    /// Staggered action-group wake times for multimodal at `availableAt`.
+    @ObservationIgnored
+    var pendingFeedbackPresentationDates: [Date] = []
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
@@ -104,6 +111,12 @@ final class BattleSession {
     @ObservationIgnored
     var outcomePresentationDelayOverride: TimeInterval?
 
+    #if DEBUG
+    /// Performance harness isolation: engine/hand updates without chips, SFX, or reactions.
+    @ObservationIgnored
+    var performanceSuppressFeedbackPresentation = false
+    #endif
+
     /// Beat after the last playable card so feedback can show before the turn advances.
     static let autoEndTurnDelay: TimeInterval = 0.4
 
@@ -111,11 +124,17 @@ final class BattleSession {
     @ObservationIgnored
     var autoEndTurnDelay: TimeInterval
 
+    /// Test seam for attack telegraph impact timing. Production uses the attack recipe.
+    @ObservationIgnored
+    var enemyAttackImpactDelayOverride: TimeInterval?
+
     init(
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
+        enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil
     ) {
         self.autoEndTurnDelay = autoEndTurnDelay
+        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
     }
 
@@ -162,30 +181,6 @@ final class BattleSession {
         autoEndJourney = journey
         autoEndHomestead = homestead
         scheduleAutoEndIfNeeded()
-    }
-
-    func setMusicPreview(for stage: Stage?) {
-        guard activeBattle == nil,
-              let stage,
-              let enemyID = stage.encounter.battleEnemyID
-        else {
-            preview = nil
-            return
-        }
-
-        preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
-    }
-
-    func presentCombatantDetail(_ detail: CombatantCardDetail) {
-        overlayCombatantDetail = detail
-    }
-
-    func presentAbilityDetail(_ ability: Ability) {
-        overlayAbilityDetail = ability
-    }
-
-    func clearAbilityDetail() {
-        overlayAbilityDetail = nil
     }
 
     func presentBattleLog() {
@@ -235,6 +230,10 @@ final class BattleSession {
         hitReactionEpoch &+= 1
     }
 
+    func noteAttackReactionPresentationChanged() {
+        attackReactionEpoch &+= 1
+    }
+
     func publishHitReaction(_ reaction: CombatantHitReaction, for targetID: String) {
         hitReactionsByTargetID[targetID] = reaction
         noteHitReactionPresentationChanged()
@@ -243,6 +242,7 @@ final class BattleSession {
     func resetFeedbackPresentation() {
         burstEpoch &+= 1
         hitReactionEpoch &+= 1
+        attackReactionEpoch &+= 1
         onFeedbackItemsChanged?(.reset)
     }
 
@@ -273,7 +273,8 @@ final class BattleSession {
     }
 
     func pruneExpiredFeedback(at date: Date = .now, notifyPresentation: Bool = true) {
-        applyImmediatePresentation(for: activeFeedbackItems, at: date)
+        // Multimodal catch-up belongs to the presentation loop at `availableAt`.
+        // Running it here stacked SFX/reactions onto prune frames and missed 60 Hz.
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
         }

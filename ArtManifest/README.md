@@ -28,16 +28,19 @@ For combatants, the raw art filename should match the game entity name exactly, 
 Focal points are intentionally lightweight. They let hero headers bias a 3:4 portrait image toward the face or upper body when the layout crops the image with `scaledToFill`.
 Background focal points are also emitted into `BackgroundArtReference` so cinematic landscape headers and thumbnails can share a curated crop anchor. Resource entries use the same six-column row shape for pipeline consistency; their focal point should normally be `0.50, 0.50`.
 
-## Output Format: HEIC + Thumbnail Variants
+## Output Format: HEIC + Kind-Aware Variants
 
-The pipeline outputs two **HEIC** (HEVC-based) images per manifest row:
+The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variants ship depends on `kind`:
 
-- **Full-size** — `max_dimension` px (default `1600`) for hero header / detail views. Named `<asset_name>.heic`.
-- **Thumbnail** — `thumb_dimension` px (default `480`) for card grids, battle status cards, and any `CombatantArtwork` rendered with `variant: .card`. Named `<asset_name>_thumb.heic`.
+| Kind | Full (`<asset_name>`) | Thumb (`<asset_name>_thumb`) |
+|------|-----------------------|------------------------------|
+| `combatant`, `item`, `encounter` | yes (`max_dimension`, default `1600`) | yes (`thumb_dimension`, default `480`) |
+| `ability` | no | yes (`imageName` is the thumb) |
+| `background`, `resource`, `slot_background` | yes | no |
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
-The generated Swift struct `CombatantArtReference` includes both `imageName` (full) and `thumbnailImageName` (card-safe). Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Trinket/Shared/Cards/CombatantArtwork.swift`).
+`CombatantArtReference`, `ItemArtReference`, and `EncounterArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Trinket/Shared/Cards/CombatantArtwork.swift`). Background and resource callers always use the full `imageName`.
 
 ## Generate Curated Assets
 
@@ -47,7 +50,7 @@ Run:
 ./Scripts/prepare-art-assets.sh
 ```
 
-The script validates manifest rows, verifies source files, converts selected images through macOS `sips` (HEIC with quality 80), writes two `.imageset` folders per asset, strips metadata, and regenerates the Swift art catalog.
+The script validates manifest rows, verifies source files, converts selected images through macOS `sips` (HEIC with quality 80), writes the kind-appropriate `.imageset` folders, strips leftover unused variants, and regenerates the Swift art catalog.
 
 ### Environment Overrides
 

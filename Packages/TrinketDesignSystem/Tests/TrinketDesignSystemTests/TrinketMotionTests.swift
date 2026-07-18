@@ -40,7 +40,7 @@ struct TrinketMotionTests {
         #expect(!critical.showsSecondaryCaption)
 
         // Same choreography family: emphasis is a louder version of normal.
-        #expect((critical.scale.map(\.value).max() ?? 0) > (normal.scale.map(\.value).max() ?? 0))
+        #expect(critical.initialScale > normal.initialScale)
         #expect(abs(critical.offsetY.last?.value ?? 0) > abs(normal.offsetY.last?.value ?? 0))
         #expect(critical.floatAngleRange.upperBound <= 8)
         #expect(normal.floatAngleRange.upperBound <= 10)
@@ -68,10 +68,16 @@ struct TrinketMotionTests {
             #expect(recipe.offsetY.count == 3)
             #expect(recipe.feedbackClass == feedbackClass)
             #expect(recipe.initialOpacity == 0)
-            #expect(recipe.initialScale < 1)
+            #expect(recipe.initialScale > 1)
+            #expect(recipe.scale.last?.value == 1.0)
             #expect(recipe.initialOffsetY > 0)
             #expect((recipe.offsetY.last?.value ?? 0) <= -40)
             #expect(recipe.rotation.isEmpty)
+            var previousScale = recipe.initialScale
+            for keyframe in recipe.scale {
+                #expect(keyframe.value <= previousScale)
+                previousScale = keyframe.value
+            }
             switch feedbackClass {
             case .critical, .deathsDoor:
                 #expect(recipe.textStyle == .largeTitle)
@@ -83,22 +89,54 @@ struct TrinketMotionTests {
                 #expect(recipe.chrome == .standard)
             }
         }
+    }
 
+    @Test func combatFeedbackLaneLayoutPacksDenseGroupsTowardCenter() {
         #expect(CombatFeedbackLayout.presentationOffset(index: 0) == 0)
+        #expect(CombatFeedbackLayout.presentationOffset(index: 0, count: 3) == 0)
         #expect(
-            CombatFeedbackLayout.presentationOffset(index: 1)
+            CombatFeedbackLayout.presentationOffset(index: 1, count: 3)
+                == -CombatFeedbackLayout.presentationLaneSpacing
+        )
+        #expect(
+            CombatFeedbackLayout.presentationOffset(index: 2, count: 3)
                 == CombatFeedbackLayout.presentationLaneSpacing
         )
-        #expect(
-            CombatFeedbackLayout.presentationOffset(index: 2)
-                == CombatFeedbackLayout.presentationLaneSpacing * 2
-        )
         #expect(CombatFeedbackLayout.presentationLaneSpacing >= 52)
+        #expect(CombatFeedbackLayout.presentationLaneSpacingFloor == 34)
+        #expect(CombatFeedbackLayout.presentationSpacing(forCount: 1)
+            == CombatFeedbackLayout.presentationLaneSpacing)
+        #expect(CombatFeedbackLayout.presentationSpacing(forCount: 3)
+            == CombatFeedbackLayout.presentationLaneSpacing)
+        #expect(
+            CombatFeedbackLayout.presentationSpacing(forCount: 6)
+                == CombatFeedbackLayout.presentationLaneSpacingFloor
+        )
+        #expect(CombatFeedbackLayout.floatTravelScale(forCount: 1) == 1)
+        #expect(CombatFeedbackLayout.floatTravelScale(forCount: 3) == 1)
+        #expect(CombatFeedbackLayout.floatTravelScale(forCount: 4) < 1)
+        #expect(
+            CombatFeedbackLayout.floatTravelScale(forCount: 6)
+                == CombatFeedbackLayout.floatTravelScale(forCount: 9)
+        )
+        let denseSpacing = CombatFeedbackLayout.presentationSpacing(forCount: 6)
+        #expect(
+            CombatFeedbackLayout.presentationOffset(index: 1, count: 6, spacing: denseSpacing)
+                == -denseSpacing
+        )
+        #expect(
+            CombatFeedbackLayout.presentationOffset(index: 2, count: 6, spacing: denseSpacing)
+                == denseSpacing
+        )
         #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 0) == 0)
         #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 1) == -20)
         #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 2) == 20)
         #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 3) == -28)
         #expect(CombatFeedbackLayout.presentationHorizontalFan(index: 4) == 28)
+        #expect(
+            abs(CombatFeedbackLayout.presentationHorizontalFan(index: 1, count: 6))
+                < abs(CombatFeedbackLayout.presentationHorizontalFan(index: 1, count: 1))
+        )
         #expect(
             abs(CombatFeedbackLayout.presentationHorizontalFan(index: 1))
                 >= CombatFeedbackLayout.presentationFanAmplitude
@@ -142,20 +180,55 @@ struct TrinketMotionTests {
         let critical = TrinketMotion.Battle.cardReaction(for: .critical)
         #expect(damage.scaleX.first?.value == 0.96)
         #expect(damage.scaleY.first?.value == 1.025)
-        #expect(damage.flashOpacity.first?.value == 0.2)
+        #expect(abs(damage.offsetX.first?.value ?? 0) == 4)
         #expect(critical.scaleX.first?.value == 0.93)
         #expect(critical.scaleY.first?.value == 1.04)
-        #expect(critical.flashOpacity.first?.value == 0.4)
+        #expect(abs(critical.offsetX.first?.value ?? 0) == 7)
 
         let celebrate = TrinketMotion.Battle.cardReaction(for: .celebrate)
         #expect((celebrate.scaleX.first?.value ?? 0) > 1)
         #expect((celebrate.scaleY.first?.value ?? 1) < 1)
         #expect((celebrate.offsetY.first?.value ?? 0) < 0)
-        #expect(celebrate.flashOpacity.first?.value == 0)
         #expect(celebrate.rotation.count >= 8)
         #expect(celebrate.duration == 1.0)
         #expect((celebrate.rotation.first?.value ?? 0) < 0)
         #expect(celebrate.rotation[1].value > 0)
+    }
+
+    @Test func cardAttacksCoverAllKindsAndLungeImpactTiming() {
+        for kind in CombatantAttackReactionKind.allCases {
+            let recipe = TrinketMotion.Battle.cardAttack(for: kind)
+            #expect(recipe.kind == kind)
+            #expect(recipe.duration > 0)
+            #expect(recipe.impactDelay >= 0)
+            #expect(recipe.impactDelay <= recipe.duration)
+        }
+
+        let lunge = TrinketMotion.Battle.cardAttack(for: .attack)
+        #expect(lunge.scaleX.count == 3)
+        #expect(lunge.scaleY.count == 3)
+        #expect(lunge.offsetY.count == 3)
+        #expect(lunge.rotation.count == 3)
+        #expect(lunge.impactDelay == 0.55)
+        #expect(lunge.duration == 1.0)
+        #expect((lunge.offsetY[0].value) < 0)
+        #expect((lunge.offsetY[1].value) > 0)
+        #expect(lunge.offsetY[2].value == 0)
+        let windUpPlusSwing = (lunge.offsetY[0].duration) + (lunge.offsetY[1].duration)
+        #expect(abs(lunge.impactDelay - windUpPlusSwing) < 0.001)
+
+        let enemyAim = TrinketMotion.Battle.attackAim(isPartyMember: false)
+        let partyAim = TrinketMotion.Battle.attackAim(isPartyMember: true)
+        #expect(enemyAim == .towardParty)
+        #expect(partyAim == .towardEnemy)
+        #expect(lunge.windUpPose(aim: enemyAim).offsetY < 0)
+        #expect(lunge.swingPose(aim: enemyAim).offsetY > 0)
+        #expect(lunge.windUpPose(aim: partyAim).offsetY > 0)
+        #expect(lunge.swingPose(aim: partyAim).offsetY < 0)
+        #expect(lunge.restPose == .rest)
+        #expect(lunge.windUpDuration == 0.40)
+        #expect(lunge.swingDuration == 0.15)
+        #expect(lunge.recoverDuration == 0.45)
     }
 
     @Test func hitRecoilDirectionFlipsOffsetAndScaleAxes() {

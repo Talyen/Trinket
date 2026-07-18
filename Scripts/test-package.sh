@@ -114,6 +114,8 @@ for package in "${PACKAGES[@]}"; do
   result_bundle="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
   log_file="$XCODE_RUNNER_LOG_PATH"
   package_report_prefix="$XCODE_RUNNER_REPORT_PREFIX"
+  package_dd="$(package_derived_data_path "$package")"
+  mkdir -p "$package_dd"
 
   if [[ "$ACTION" == "test-without-building" ]]; then
     if assert_no_build_inputs_are_fresh \
@@ -154,7 +156,7 @@ for package in "${PACKAGES[@]}"; do
       -scheme "$scheme" \
       -sdk iphonesimulator \
       -destination "$DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH" \
+      -derivedDataPath "$package_dd" \
       -resultBundlePath "$result_bundle" \
     || package_status=$?
 

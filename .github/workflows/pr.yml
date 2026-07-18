@@ -22,7 +22,7 @@ jobs:
 
   assets-gate:
     name: Asset codegen
-    needs: [changes, gate]
+    needs: [changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true'
     runs-on: macos-26
     timeout-minutes: 20
@@ -32,35 +32,71 @@ jobs:
       - run: ./Scripts/generate.sh --assets
       - run: ./Scripts/assert-generated-output.sh --assets
 
-  verify:
-    name: Build, unit, and smoke tests
+  build:
+    name: Build for testing
     needs: [changes, gate]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    timeout-minutes: 35
+    timeout-minutes: 25
+    outputs:
+      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-      - name: Build all test bundles
+
+      - name: Export build cache key
+        id: export-build-cache-key
+        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore warm build cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .DerivedData
+          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+          restore-keys: |
+            build-
+
+      - name: Build for testing
         run: ./Scripts/build-for-testing.sh
         env:
           SKIP_GENERATE: 1
-      - name: Run unit and smoke suites
-        shell: bash
-        env:
-          SKIP_GENERATE: 1
-          CI: true
-        run: |
-          status=0
-          ./Scripts/test.sh unit --no-build || status=1
-          ./Scripts/test.sh smoke-full --no-build || status=1
-          exit "$status"
-      - name: Classify CI outcome and report timing
-        if: always()
-        run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always()
+
+      - name: Prune DerivedData before cache save
+        run: ./Scripts/prune-derived-data-cache.sh
+
+      - name: Save build cache for test jobs
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
-          name: pr-verify-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
+          path: .DerivedData
+          key: ${{ steps.export-build-cache-key.outputs.key }}
+
+  unit:
+    name: Unit tests
+    needs: [changes, build]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/setup-trinket
+      - uses: ./.github/actions/test-job
+        with:
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: pr-unit
+          command: ./Scripts/test.sh unit --no-build
+
+  smoke:
+    name: Smoke tests
+    needs: [changes, build]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/setup-trinket
+      - uses: ./.github/actions/test-job
+        with:
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: pr-smoke
+          rebuild-command: ./Scripts/build-for-testing.sh --app-only
+          command: ./Scripts/test.sh smoke-full --no-build

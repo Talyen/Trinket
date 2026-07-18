@@ -186,8 +186,8 @@ struct AspectsProgressTests {
         let burnFloor = try #require(GameContent.aspectFloor(aspectID: .cinderSpire, floor: 3))
         let burnLoot = AspectCompletion.resolveLoot(for: burnFloor)
         #expect(burnLoot.materials.count == 2)
-        let natureFloor = try #require(GameContent.aspectFloor(aspectID: .wildrootGrove, floor: 3))
-        let natureLoot = AspectCompletion.resolveLoot(for: natureFloor)
-        #expect(natureLoot.materials.count == 2)
+        let poisonFloor = try #require(GameContent.aspectFloor(aspectID: .serpentHollow, floor: 3))
+        let poisonLoot = AspectCompletion.resolveLoot(for: poisonFloor)
+        #expect(poisonLoot.materials.count == 2)
     }
 }

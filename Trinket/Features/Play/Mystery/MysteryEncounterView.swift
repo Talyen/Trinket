@@ -11,6 +11,7 @@ struct MysteryEncounterView: View {
     @State private var narrativeAppeared = false
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
+    @State private var showUnlockArt = false
     @State private var showUnlockEyebrow = false
     @State private var showUnlockTitle = false
     @State private var showUnlockSubtitle = false
@@ -173,8 +174,11 @@ struct MysteryEncounterView: View {
             // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
             .trinketQuietTapButtonStyle()
             .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
+            .opacity(showUnlockArt ? 1 : 0)
+            .scaleEffect(showUnlockArt ? 1 : 0.94)
             .frame(maxWidth: 430)
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .allowsHitTesting(showUnlockArt)
 
             VStack(spacing: 0) {
                 unlockChromeHeader(combatant: combatant)
@@ -273,6 +277,12 @@ struct MysteryEncounterView: View {
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
                 showUnlockSubtitle = true
+            }
+
+            try? await clock.sleep(for: .seconds(stagger))
+            guard !Task.isCancelled else { return }
+            withAnimation(TrinketMotion.Reward.reveal) {
+                showUnlockArt = true
             }
 
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))

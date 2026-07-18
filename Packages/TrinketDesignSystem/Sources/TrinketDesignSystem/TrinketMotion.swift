@@ -146,8 +146,9 @@ public enum TrinketMotion: Sendable {
         }
 
         public static let cardHeldScale = 1.035
-        public static let cardHeldShadowRadius: CGFloat = 10
-        public static let cardHeldShadowY: CGFloat = 30
+        /// Softer than a deep drop shadow so held-card drag stays compositor-cheap.
+        public static let cardHeldShadowRadius: CGFloat = 6
+        public static let cardHeldShadowY: CGFloat = 16
         public static let cardMaximumTiltDegrees = 20.0
         public static let cardMaximumStretch = 0.025
 
@@ -215,6 +216,15 @@ public enum TrinketMotion: Sendable {
 
         public static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {
             CombatFeedbackCardRecipes.cardReaction(for: kind)
+        }
+
+        public static func cardAttack(for kind: CombatantAttackReactionKind) -> CombatantAttackReactionRecipe {
+            CombatFeedbackAttackRecipes.cardAttack(for: kind)
+        }
+
+        /// Party lunges toward the enemy; enemies lunge toward the party.
+        public static func attackAim(isPartyMember: Bool) -> CombatantAttackAim {
+            CombatantAttackAim.aim(isPartyMember: isPartyMember)
         }
 
         /// Party combatants recoil toward the hand; enemies recoil upward.

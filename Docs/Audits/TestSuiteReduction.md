@@ -44,11 +44,11 @@ Confirm duplicate, weaker, or implementation-detail declarations with a stronger
 | Persistence write-through | `TrinketPersistenceTests` store / sanitizer / journey owners |
 | App orchestration | `TrinketTests` shell / play-flow / session owners only when package tests cannot cover the seam |
 | Design system | Public semantic tokens, contrast, motion contracts, path geometry — not material/shadow/padding details |
-| UI tiers | Smoke = short canaries; exhaustive = multi-step journeys. `FullUI.xctestplan` must not auto-include smoke classes |
+| UI tiers | Smoke = shell/entry canaries; exhaustive = state-changing journeys + one-owner safety invariants. `FullUI.xctestplan` must not auto-include smoke classes. Follow Testing.md keep/drop rubric — do not re-add chrome, copy catalogs, or cross-tier duplicates. |
 
 **Quality:** assert semantics (events, HP deltas, reload-from-disk, visible UI outcomes), not log fingerprints, pixel tables for common device widths, or property round-trips of plain structs.
 
-**UI:** Prefer `-launch-screen` / launch args over navigation loops. One smoke theme per method. Long Play hierarchy journeys stay exhaustive-tier-only.
+**UI:** Prefer `-launch-screen` / launch args over navigation loops. One smoke theme per method. Assert `AccessibilityID` + outcomes, not nav titles or marketing copy. Long Play hierarchy journeys stay exhaustive-tier-only.
 
 ## Probe hints
 

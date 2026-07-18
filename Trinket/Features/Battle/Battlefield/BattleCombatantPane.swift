@@ -21,54 +21,56 @@ struct BattleCombatantPane: View {
 
     var body: some View {
         Button(action: onCombatantTap) {
-            ZStack(alignment: .bottom) {
-                // Art + resource bars share the hit reaction so HP/MP ride the
-                // same recoil/squash as the card frame.
-                CombatantHitReactionLane(
-                    combatantID: combatant.id,
-                    hapticsEnabled: hapticsEnabled,
-                    recoilDirection: recoilDirection
-                ) {
-                    ZStack(alignment: .bottom) {
-                        artworkPresentation
-                        resourceBars
+            CombatantAttackLane(
+                combatantID: combatant.id,
+                aim: TrinketMotion.Battle.attackAim(isPartyMember: recoilDirection == .down)
+            ) {
+                ZStack(alignment: .bottom) {
+                    // Art + resource bars + border share hit reaction; attack lane
+                    // wraps the whole chrome so the enemy card lunges as one unit.
+                    CombatantHitReactionLane(
+                        combatantID: combatant.id,
+                        hapticsEnabled: hapticsEnabled,
+                        recoilDirection: recoilDirection,
+                        borderVisible: !isDefeated
+                    ) {
+                        ZStack(alignment: .bottom) {
+                            artworkPresentation
+                            resourceBars
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    // Bursts / callouts stay masked to the card slot while the
+                    // reaction frame (portrait + bars) recoils beyond it.
+                    ZStack {
+                        // Isolated observation leaves: feedback / burst / reaction
+                        // updates must not rebuild static pane chrome or BattleView.
+                        CombatantKeywordBurstLane(combatantID: combatant.id)
+                        CombatantSkillCalloutLane(combatantID: combatant.id)
+
+                        // Invisible source for Ultimate matched-geometry expand from this card.
+                        Color.clear
+                            .frame(width: 1, height: 1)
+                            .matchedGeometryEffect(
+                                id: "ultimate-source-\(combatant.id)",
+                                in: cinematicNamespace,
+                                isSource: true
+                            )
+                    }
+                    .clipShape(TrinketDesign.cardShape)
+
+                    // Floating combat text may extend past the card frame so long
+                    // labels (e.g. Death's Door) and rise paths are not clipped.
+                    CombatantFeedbackLane(
+                        combatantID: combatant.id,
+                        bottomInset: resourceBarsReservedHeight + 8
+                    )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                // Bursts / callouts stay masked to the card slot while the
-                // reaction frame (portrait + bars) recoils beyond it.
-                ZStack {
-                    // Isolated observation leaves: feedback / burst / reaction
-                    // updates must not rebuild static pane chrome or BattleView.
-                    CombatantKeywordBurstLane(combatantID: combatant.id)
-                    CombatantSkillCalloutLane(combatantID: combatant.id)
-
-                    // Invisible source for Ultimate matched-geometry expand from this card.
-                    Color.clear
-                        .frame(width: 1, height: 1)
-                        .matchedGeometryEffect(
-                            id: "ultimate-source-\(combatant.id)",
-                            in: cinematicNamespace,
-                            isSource: true
-                        )
-                }
-                .clipShape(TrinketDesign.cardShape)
-
-                // Floating combat text may extend past the card frame so long
-                // labels (e.g. Death's Door) and rise paths are not clipped.
-                CombatantFeedbackLane(
-                    combatantID: combatant.id,
-                    bottomInset: resourceBarsReservedHeight + 8
-                )
+                .contentShape(TrinketDesign.cardShape)
+                .animation(TrinketMotion.Battle.scrim, value: isDefeated)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-                    .opacity(isDefeated ? 0 : 1)
-            }
-            .animation(TrinketMotion.Battle.scrim, value: isDefeated)
         }
         .trinketQuietTapButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -126,13 +128,13 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let combatantID: String
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
+    let borderVisible: Bool
     @ViewBuilder let artwork: () -> Artwork
 
     /// Local trigger so KeyframeAnimator always sees a change, even when reaction
     /// storage is ObservationIgnored and only the epoch fence invalidates this lane.
     @State private var playToken = 0
     @State private var activeKind: CombatantHitReactionKind = .none
-    @State private var activeKeyword: Keyword = .physical
     @State private var latestReactionID = 0
 
     var body: some View {
@@ -140,7 +142,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         // swiftlint:disable:next redundant_discardable_let
         let _ = appState.battle.hitReactionEpoch
         let recipe = TrinketMotion.Battle.cardReaction(for: activeKind)
-        let flashColor = activeKeyword.visualStyle.color
         let defaultOffset = CGSize(
             width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
             height: CGFloat(recipe.offsetY[safe: 0]?.value ?? 0)
@@ -160,20 +161,29 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         let impactScaleY = impactScales.y
         let impactDuration = recipe.scaleX[safe: 0]?.duration ?? 0.08
         let recoveryDuration = recipe.scaleX[safe: 1]?.duration ?? 0.16
+        // KeyframeAnimator interpolates Doubles; keep tracks typed explicitly.
+        let impactOffsetX = Double(impactOffset.width)
+        let impactOffsetY = Double(impactOffset.height)
+        let recoverOffsetX = recipe.offsetX[safe: 1]?.value ?? 0
+        let recoverOffsetY = recipe.offsetY[safe: 1]?.value ?? 0
 
         KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
             trigger: playToken
         ) { state in
             artwork()
-                .overlay {
-                    flashColor
-                        .opacity(state.flashOpacity)
-                        .allowsHitTesting(false)
-                }
                 // Mask travels with the frame (art + bars): recoil/squash can
                 // leave the card slot without exposing rectangular edges.
                 .clipShape(TrinketDesign.cardShape)
+                // Border after clip so the stroke is not half-masked, and rides
+                // the same scale/offset as art + bars (whole-card hop).
+                .overlay {
+                    TrinketDesign.cardShape.strokeBorder(
+                        TrinketDesign.Colors.subtleStroke,
+                        lineWidth: 1
+                    )
+                    .opacity(borderVisible ? 1 : 0)
+                }
                 .scaleEffect(x: state.scaleX, y: state.scaleY)
                 .rotationEffect(.degrees(state.rotation))
                 .offset(x: state.offsetX, y: state.offsetY)
@@ -203,28 +213,14 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 )
             }
             KeyframeTrack(\.offsetX) {
-                SpringKeyframe(
-                    impactOffset.width,
-                    duration: impactDuration,
-                    spring: .snappy(duration: impactDuration)
-                )
-                SpringKeyframe(
-                    recipe.offsetX[safe: 1]?.value ?? 0,
-                    duration: recoveryDuration,
-                    spring: .bouncy(duration: recoveryDuration)
-                )
+                // Cubic guarantees the impact translation is reached; springs on
+                // sub-0.1s segments can undershoot small offsets into invisibility.
+                CubicKeyframe(impactOffsetX, duration: impactDuration)
+                CubicKeyframe(recoverOffsetX, duration: recoveryDuration)
             }
             KeyframeTrack(\.offsetY) {
-                SpringKeyframe(
-                    impactOffset.height,
-                    duration: impactDuration,
-                    spring: .snappy(duration: impactDuration)
-                )
-                SpringKeyframe(
-                    recipe.offsetY[safe: 1]?.value ?? 0,
-                    duration: recoveryDuration,
-                    spring: .bouncy(duration: recoveryDuration)
-                )
+                CubicKeyframe(impactOffsetY, duration: impactDuration)
+                CubicKeyframe(recoverOffsetY, duration: recoveryDuration)
             }
             KeyframeTrack(\.rotation) {
                 CubicKeyframe(
@@ -268,10 +264,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                     duration: recipe.rotation[safe: 9]?.duration ?? 0.01
                 )
             }
-            KeyframeTrack(\.flashOpacity) {
-                CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
-                CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketSensoryFeedback(
@@ -288,10 +280,13 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         guard let reaction = appState.battle.hitReactionsByTargetID[combatantID],
               reaction.id != latestReactionID
         else { return }
+        // Install recipe/kind first, then bump the trigger on the next turn so
+        // KeyframeAnimator does not start with stale `.none` keyframes (offset 0).
         activeKind = reaction.kind
-        activeKeyword = reaction.keyword
         latestReactionID = reaction.id
-        playToken &+= 1
+        Task { @MainActor in
+            playToken &+= 1
+        }
     }
 
     private func impactOffset(
@@ -374,7 +369,6 @@ private struct CardReactionAnimationState {
     var offsetX = 0.0
     var offsetY = 0.0
     var rotation = 0.0
-    var flashOpacity = 0.0
 }
 
 private extension Array {

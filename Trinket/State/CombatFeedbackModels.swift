@@ -6,6 +6,14 @@ enum CombatFeedbackVisualRole: Equatable {
     case keyword
     case beneficialStatus
     case negativeStatus
+
+    var cacheKey: String {
+        switch self {
+        case .keyword: "keyword"
+        case .beneficialStatus: "beneficialStatus"
+        case .negativeStatus: "negativeStatus"
+        }
+    }
 }
 
 /// View-facing combat feedback item produced from one or more `ActionEvent`s.
@@ -15,6 +23,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let actionGroupID: Int
     let presentationIndex: Int
     let groupResultCount: Int
+    let presentationRole: CombatFeedbackPresentationRole
     let targetID: String
     let feedbackClass: CombatFeedbackClass
     let keyword: Keyword
@@ -46,7 +55,13 @@ enum CombatFeedbackUpdate {
 struct CombatantHitReaction: Equatable {
     let id: Int
     let kind: CombatantHitReactionKind
-    let keyword: Keyword
+}
+
+/// Whole-card attack telegraph published for enemy resolve or party card cast.
+struct CombatantAttackReaction: Equatable {
+    let id: Int
+    let kind: CombatantAttackReactionKind
+    let phase: CombatantAttackPhase
 }
 
 /// Keyword particle burst request for a combatant pane.

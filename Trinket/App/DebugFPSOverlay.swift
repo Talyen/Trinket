@@ -37,6 +37,14 @@ struct DebugFPSOverlayModifier: ViewModifier {
                         .allowsHitTesting(false)
                 }
             }
+            // Own sampling lifetime here — not on the badge's appear/disappear — so the
+            // launch warmup → ContentView swap cannot pause the display link.
+            .onAppear {
+                syncVisualSampling(showVisualBadge)
+            }
+            .onChange(of: showVisualBadge) { _, show in
+                syncVisualSampling(show)
+            }
             .background {
                 if enableFrameMetrics {
                     // UIWindow probe stays above Battle shell swaps and fullScreen covers
@@ -49,6 +57,15 @@ struct DebugFPSOverlayModifier: ViewModifier {
                 }
             }
     }
+
+    private func syncVisualSampling(_ show: Bool) {
+        let monitor = FramePacingMonitor.visualShared
+        if show {
+            monitor.start(publishesAutomatically: true)
+        } else {
+            monitor.pauseSampling()
+        }
+    }
 }
 
 enum DebugRuntime {
@@ -59,31 +76,19 @@ enum DebugRuntime {
 
 /// Human-facing badge only. Measurement probes live in `FramePacingMetricsProbe`.
 ///
-/// Uses a process-wide display-link sampler and `.task` (not onAppear/stop) so the
-/// launch warmup → ContentView shell swap cannot leave a visible badge with a
-/// stopped CADisplayLink stuck at the empty report.
+/// Reads the process-wide observable sampler directly. Sampling lifetime is owned by
+/// `DebugFPSOverlayModifier` so SwiftUI remounts cannot pause the display link or
+/// strand updates in a stale `@State` handler closure.
 private struct FramePacingVisualBadgeHost: View {
-    @State private var report = FramePacingReport.empty
+    @State private var monitor = FramePacingMonitor.visualShared
 
     var body: some View {
-        FramePacingBadge(report: report)
+        FramePacingBadge(report: monitor.latestReport)
             .safeAreaPadding(.top, 4)
             .safeAreaPadding(.leading, 6)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
-            .task {
-                let monitor = FramePacingMonitor.visualShared
-                monitor.start(publishesAutomatically: true) { report = $0 }
-                if monitor.latestReport.sampleCount > 0 {
-                    report = monitor.latestReport
-                }
-                defer { monitor.detachHandler() }
-                // Stay suspended until SwiftUI cancels this task on teardown.
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(60 * 60))
-                }
-            }
     }
 }
 
@@ -92,9 +97,11 @@ private struct FramePacingVisualBadgeHost: View {
 final class FramePacingMetricsProbe {
     static let shared = FramePacingMetricsProbe()
 
-    /// Kept slightly inside the UI test's 7.2-second window so publication is
-    /// complete before XCTest reads the frozen accessibility value.
-    private static let measurementSnapshotDelay: Duration = .seconds(7)
+    /// Kept slightly inside the UI test wait so publication completes before XCTest
+    /// reads the frozen accessibility value. Shortens under `TRINKET_PERFORMANCE_QUICK=1`.
+    private static var measurementSnapshotDelay: Duration {
+        BattlePerformanceTiming.snapshotDelay
+    }
 
     private let monitor = FramePacingMonitor.measurementShared
     private var window: UIWindow?
@@ -241,41 +248,60 @@ private struct FramePacingBadge: View {
 }
 
 @MainActor
+@Observable
 final class FramePacingMonitor: NSObject {
     /// Survives ContentView shell swaps during `-enable-frame-metrics` UITests.
-    static let measurementShared = FramePacingMonitor()
+    /// Keeps a 30s buffer so a full soak window is never clipped before snapshot.
+    static let measurementShared = FramePacingMonitor(windowSeconds: 30)
     /// Survives launch/shell remounts for the DEBUG FPS badge without stopping sampling.
-    static let visualShared = FramePacingMonitor()
+    /// Five-second window keeps 1% low sensitive to recent stutters while debugging.
+    static let visualShared = FramePacingMonitor(windowSeconds: 5)
 
     private struct Sample: Sendable {
         let interval: CFTimeInterval
         let expectedFrameDuration: CFTimeInterval
     }
 
-    /// Thirty seconds at 120 Hz; overwrites oldest samples without shifting an Array.
-    private static let capacity = 3600
-    private static let warmupSeconds: CFTimeInterval = 0.75
+    /// Upper bound for ring-buffer sizing only. Sampling still follows CADisplayLink
+    /// at the device's real refresh rate (often 60 Hz on Simulator).
+    private static let maxRefreshRate: CFTimeInterval = 120
+    private static var warmupSeconds: CFTimeInterval {
+        BattlePerformanceTiming.monitorWarmupSeconds
+    }
+
     /// Publishing every half-second keeps the badge responsive without matching frame cadence.
     private static let publishInterval: CFTimeInterval = 0.5
 
-    private var displayLink: CADisplayLink?
-    private var previousTimestamp: CFTimeInterval = 0
-    private var startTimestamp: CFTimeInterval = 0
-    private var lastPublishTimestamp: CFTimeInterval = 0
-    private var storage = [Sample?](repeating: nil, count: capacity)
-    private var nextWriteIndex = 0
-    private var sampleCount = 0
-    private var analysisTask: Task<Void, Never>?
-    private var scheduledSnapshotTask: Task<Void, Never>?
-    private var handler: ((FramePacingReport) -> Void)?
-    private var publishesAutomatically = true
+    private let windowSeconds: CFTimeInterval
+    private let capacity: Int
+    @ObservationIgnored private var displayLink: CADisplayLink?
+    @ObservationIgnored private var previousTimestamp: CFTimeInterval = 0
+    @ObservationIgnored private var startTimestamp: CFTimeInterval = 0
+    @ObservationIgnored private var lastPublishTimestamp: CFTimeInterval = 0
+    @ObservationIgnored private var storage: [Sample?]
+    @ObservationIgnored private var nextWriteIndex = 0
+    @ObservationIgnored private var sampleCount = 0
+    @ObservationIgnored private var analysisTask: Task<Void, Never>?
+    @ObservationIgnored private var scheduledSnapshotTask: Task<Void, Never>?
+    @ObservationIgnored private var handler: ((FramePacingReport) -> Void)?
+    @ObservationIgnored private var publishesAutomatically = true
     private(set) var latestReport = FramePacingReport.empty
+
+    private init(windowSeconds: CFTimeInterval) {
+        self.windowSeconds = windowSeconds
+        // Oversize for ProMotion so the named window is never truncated by slot count;
+        // reports still trim to wall-clock `windowSeconds` via interval accumulation.
+        capacity = max(1, Int((windowSeconds * Self.maxRefreshRate).rounded(.up)))
+        storage = Array(repeating: nil, count: capacity)
+    }
 
     func start(
         publishesAutomatically: Bool = true,
-        onUpdate: @escaping (FramePacingReport) -> Void
+        onUpdate: ((FramePacingReport) -> Void)? = nil
     ) {
-        handler = onUpdate
+        if let onUpdate {
+            handler = onUpdate
+        }
         self.publishesAutomatically = publishesAutomatically
         if let displayLink {
             // Drop the pause gap so the next tick re-seeds interval baselines.
@@ -288,9 +314,9 @@ final class FramePacingMonitor: NSObject {
         displayLink = link
     }
 
-    func detachHandler() {
+    /// Stops the display link when the DEBUG overlay preference is off.
+    func pauseSampling() {
         handler = nil
-        // Pause while no subscriber is attached; start() unpauses on re-subscribe.
         displayLink?.isPaused = true
     }
 
@@ -305,7 +331,7 @@ final class FramePacingMonitor: NSObject {
         lastPublishTimestamp = 0
         nextWriteIndex = 0
         sampleCount = 0
-        storage = Array(repeating: nil, count: Self.capacity)
+        storage = Array(repeating: nil, count: capacity)
         latestReport = .empty
     }
 
@@ -355,8 +381,8 @@ final class FramePacingMonitor: NSObject {
                 interval: interval,
                 expectedFrameDuration: expectedFrameDuration
             )
-            nextWriteIndex = (nextWriteIndex + 1) % Self.capacity
-            sampleCount = min(sampleCount + 1, Self.capacity)
+            nextWriteIndex = (nextWriteIndex + 1) % capacity
+            sampleCount = min(sampleCount + 1, capacity)
         }
 
         guard publishesAutomatically,
@@ -369,11 +395,12 @@ final class FramePacingMonitor: NSObject {
     }
 
     private func publishReport(synchronously: Bool) {
-        let samples: [Sample] = if sampleCount < Self.capacity {
+        let ordered: [Sample] = if sampleCount < capacity {
             storage.prefix(sampleCount).compactMap(\.self)
         } else {
             (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
         }
+        let samples = Self.samples(inLast: windowSeconds, from: ordered)
         guard !samples.isEmpty else { return }
         analysisTask?.cancel()
 
@@ -404,6 +431,21 @@ final class FramePacingMonitor: NSObject {
             latestReport = built
             capturedHandler?(built)
         }
+    }
+
+    /// Newest-first wall-clock trim so 60 Hz and 120 Hz share the same time window.
+    private static func samples(inLast windowSeconds: CFTimeInterval, from ordered: [Sample]) -> [Sample] {
+        guard windowSeconds > 0, !ordered.isEmpty else { return ordered }
+        var total: CFTimeInterval = 0
+        var count = 0
+        for sample in ordered.reversed() {
+            total += sample.interval
+            count += 1
+            if total >= windowSeconds {
+                break
+            }
+        }
+        return Array(ordered.suffix(count))
     }
 }
 

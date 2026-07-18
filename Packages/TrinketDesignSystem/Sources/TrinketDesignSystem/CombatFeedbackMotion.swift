@@ -156,7 +156,6 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
     public let offsetX: [CombatFeedbackKeyframeSample]
     public let offsetY: [CombatFeedbackKeyframeSample]
     public let rotation: [CombatFeedbackKeyframeSample]
-    public let flashOpacity: [CombatFeedbackKeyframeSample]
     public let duration: TimeInterval
 
     public init(
@@ -166,7 +165,6 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
         offsetX: [CombatFeedbackKeyframeSample],
         offsetY: [CombatFeedbackKeyframeSample],
         rotation: [CombatFeedbackKeyframeSample] = [],
-        flashOpacity: [CombatFeedbackKeyframeSample],
         duration: TimeInterval
     ) {
         self.kind = kind
@@ -175,8 +173,138 @@ public struct CombatantHitReactionRecipe: Sendable, Equatable {
         self.offsetX = offsetX
         self.offsetY = offsetY
         self.rotation = rotation
-        self.flashOpacity = flashOpacity
         self.duration = duration
+    }
+}
+
+/// Whole-card attack telegraph kinds (enemy lunge before resolve).
+public enum CombatantAttackReactionKind: String, CaseIterable, Sendable, Equatable {
+    case none
+    case attack
+}
+
+/// Attack telegraph phase. Party uses wind-up → swing/cancel; enemy uses `.full`.
+public enum CombatantAttackPhase: String, CaseIterable, Sendable, Equatable {
+    case windUp
+    case swing
+    case cancel
+    case full
+}
+
+/// Live transform pose for interruptible attack springs.
+public struct CombatantAttackPose: Sendable, Equatable {
+    public var scaleX: Double
+    public var scaleY: Double
+    public var offsetX: Double
+    public var offsetY: Double
+    public var rotation: Double
+
+    public init(
+        scaleX: Double = 1,
+        scaleY: Double = 1,
+        offsetX: Double = 0,
+        offsetY: Double = 0,
+        rotation: Double = 0
+    ) {
+        self.scaleX = scaleX
+        self.scaleY = scaleY
+        self.offsetX = offsetX
+        self.offsetY = offsetY
+        self.rotation = rotation
+    }
+
+    public static let rest = CombatantAttackPose()
+}
+
+/// Attack aim: recipe Y is authored for enemy→party (down). Party flips Y toward the enemy.
+public enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
+    case towardParty
+    case towardEnemy
+
+    public func aimedOffsetY(_ recipeOffsetY: Double) -> Double {
+        switch self {
+        case .towardParty: recipeOffsetY
+        case .towardEnemy: -recipeOffsetY
+        }
+    }
+
+    public static func aim(isPartyMember: Bool) -> CombatantAttackAim {
+        isPartyMember ? .towardEnemy : .towardParty
+    }
+}
+
+/// Transform recipe for a combatant card attacking (art + bars + border).
+/// Keyframes are wind-up → swing → recover; `impactDelay` is when resolve should fire.
+public struct CombatantAttackReactionRecipe: Sendable, Equatable {
+    public let kind: CombatantAttackReactionKind
+    public let scaleX: [CombatFeedbackKeyframeSample]
+    public let scaleY: [CombatFeedbackKeyframeSample]
+    public let offsetX: [CombatFeedbackKeyframeSample]
+    public let offsetY: [CombatFeedbackKeyframeSample]
+    public let rotation: [CombatFeedbackKeyframeSample]
+    /// Time from animation start to swing peak (wind-up + swing durations).
+    public let impactDelay: TimeInterval
+    public let duration: TimeInterval
+
+    public init(
+        kind: CombatantAttackReactionKind,
+        scaleX: [CombatFeedbackKeyframeSample],
+        scaleY: [CombatFeedbackKeyframeSample],
+        offsetX: [CombatFeedbackKeyframeSample],
+        offsetY: [CombatFeedbackKeyframeSample],
+        rotation: [CombatFeedbackKeyframeSample] = [],
+        impactDelay: TimeInterval,
+        duration: TimeInterval
+    ) {
+        self.kind = kind
+        self.scaleX = scaleX
+        self.scaleY = scaleY
+        self.offsetX = offsetX
+        self.offsetY = offsetY
+        self.rotation = rotation
+        self.impactDelay = impactDelay
+        self.duration = duration
+    }
+
+    public var windUpDuration: TimeInterval {
+        scaleX[safe: 0]?.duration ?? 0.01
+    }
+
+    public var swingDuration: TimeInterval {
+        scaleX[safe: 1]?.duration ?? 0.01
+    }
+
+    public var recoverDuration: TimeInterval {
+        scaleX[safe: 2]?.duration ?? 0.01
+    }
+
+    public func windUpPose(aim: CombatantAttackAim) -> CombatantAttackPose {
+        pose(at: 0, aim: aim)
+    }
+
+    public func swingPose(aim: CombatantAttackAim) -> CombatantAttackPose {
+        pose(at: 1, aim: aim)
+    }
+
+    public var restPose: CombatantAttackPose {
+        .rest
+    }
+
+    private func pose(at index: Int, aim: CombatantAttackAim) -> CombatantAttackPose {
+        CombatantAttackPose(
+            scaleX: scaleX[safe: index]?.value ?? 1,
+            scaleY: scaleY[safe: index]?.value ?? 1,
+            offsetX: offsetX[safe: index]?.value ?? 0,
+            offsetY: aim.aimedOffsetY(offsetY[safe: index]?.value ?? 0),
+            rotation: rotation[safe: index]?.value ?? 0
+        )
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
     }
 }
 
@@ -246,26 +374,66 @@ public enum CombatFeedbackLayout: Sendable {
     /// Sized for ~title/largeTitle chip height at peak scale so lanes don't collide.
     public static let presentationLaneSpacing: CGFloat = 54
 
+    /// Floor spacing used when packing dense (5–6 chip) clusters inside art.
+    public static let presentationLaneSpacingFloor: CGFloat = 34
+
+    /// Individual chips kept before collapsing the rest into one overflow chip.
+    public static let maxVisibleIndividualChips = 5
+
     /// Base horizontal fan amplitude; grows slightly for deeper lanes.
     public static let presentationFanAmplitude: CGFloat = 20
 
-    /// Stable vertical lanes prevent rows from jumping when siblings expire.
+    /// Density-aware lane pitch: full spacing for sparse groups, floor at 6+.
+    public static func presentationSpacing(forCount count: Int) -> CGFloat {
+        let clamped = max(1, count)
+        guard clamped > 3 else { return presentationLaneSpacing }
+        let t = min(1, CGFloat(clamped - 3) / 3)
+        return presentationLaneSpacing
+            + (presentationLaneSpacingFloor - presentationLaneSpacing) * t
+    }
+
+    /// Scales float travel so dense packs stay inside the art band.
+    /// Sparse (≤3) keeps full rise; dense lerps toward ~0.55.
+    public static func floatTravelScale(forCount count: Int) -> CGFloat {
+        let clamped = max(1, count)
+        guard clamped >= 4 else { return 1 }
+        let t = min(1, CGFloat(clamped - 3) / 3)
+        return 0.7 - 0.15 * t
+    }
+
+    /// Fan amplitude shrinks slightly for dense groups so long labels stay on-art.
+    public static func presentationFanAmplitude(forCount count: Int) -> CGFloat {
+        let clamped = max(1, count)
+        guard clamped > 3 else { return presentationFanAmplitude }
+        let t = min(1, CGFloat(clamped - 3) / 3)
+        return presentationFanAmplitude * (1 - 0.35 * t)
+    }
+
+    /// Centered vertical lanes: index 0 at mid, then alternate up/down (±1, ±2…).
+    /// Stable by index so rows do not jump when siblings expire.
     public static func presentationOffset(
         index: Int,
-        spacing: CGFloat = presentationLaneSpacing
+        count: Int = 1,
+        spacing: CGFloat? = nil
     ) -> CGFloat {
-        stackOffset(index: index, spacing: spacing)
+        let pitch = spacing ?? presentationSpacing(forCount: count)
+        guard index > 0 else { return 0 }
+        let ring = (index + 1) / 2
+        let sign: CGFloat = index.isMultiple(of: 2) ? 1 : -1
+        return sign * CGFloat(ring) * pitch
     }
 
     /// Deterministic left/right fan so multi-emit bursts read as a cluster,
     /// not a single overlapping column. Index 0 stays centered.
     public static func presentationHorizontalFan(
         index: Int,
-        amplitude: CGFloat = presentationFanAmplitude
+        count: Int = 1,
+        amplitude: CGFloat? = nil
     ) -> CGFloat {
         guard index > 0 else { return 0 }
+        let amp = amplitude ?? presentationFanAmplitude(forCount: count)
         let sign: CGFloat = index.isMultiple(of: 2) ? 1 : -1
-        let magnitude = amplitude + CGFloat((index - 1) / 2) * 8
+        let magnitude = amp + CGFloat((index - 1) / 2) * 8
         return sign * magnitude
     }
 

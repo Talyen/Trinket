@@ -8,16 +8,28 @@ struct AbilitySummaryGrid: View {
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     let allowsEditing: Bool
-    /// Called by the parent when the user taps an ability slot. The parent owns
+    /// Called by the parent when the user taps an editable ability slot. The parent owns
     /// the navigation/presentation so no nested sheet is needed here.
     var onSelectTier: ((AbilityTier) -> Void)?
+    /// Called when viewing (not editing) and the user taps a filled ability slot.
+    var onViewAbility: ((Ability) -> Void)?
 
     var body: some View {
         HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(AbilityTier.allCases) { tier in
-                if allowsEditing, !isLocked(tier) {
+                if allowsEditing, !isLocked(tier), let onSelectTier {
                     Button {
-                        onSelectTier?(tier)
+                        onSelectTier(tier)
+                    } label: {
+                        abilitySlot(for: tier)
+                    }
+                    .trinketQuietTapButtonStyle()
+                    .frame(maxWidth: .infinity, alignment: .top)
+                    .accessibilityIdentifier("\(tier.rawValue) ability slot")
+
+                } else if !allowsEditing, let ability = selectedAbility(for: tier), let onViewAbility {
+                    Button {
+                        onViewAbility(ability)
                     } label: {
                         abilitySlot(for: tier)
                     }

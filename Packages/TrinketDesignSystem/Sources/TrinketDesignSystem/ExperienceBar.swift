@@ -24,9 +24,16 @@ public struct ExperienceBar: View {
     private let segmentDuration: TimeInterval = 0.45
     private let segmentSteps = 24
 
+    /// Normalized crop anchor for circular combatant thumbs. Portrait art is 3:4;
+    /// a center crop clips heads, so default toward the upper body / face.
+    private let artworkFocalX: Double
+    private let artworkFocalY: Double
+
     public init(
         combatantName: String,
         artworkName: String? = nil,
+        artworkFocalX: Double = 0.50,
+        artworkFocalY: Double = 0.30,
         pre: CombatantProgression,
         post: CombatantProgression,
         fillColor: Color,
@@ -36,6 +43,8 @@ public struct ExperienceBar: View {
     ) {
         self.combatantName = combatantName
         self.artworkName = artworkName
+        self.artworkFocalX = artworkFocalX
+        self.artworkFocalY = artworkFocalY
         self.pre = pre
         self.post = post
         self.fillColor = fillColor
@@ -51,16 +60,7 @@ public struct ExperienceBar: View {
     public var body: some View {
         HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             if let artworkName {
-                Image(artworkName)
-                    .resizable()
-                    .interpolation(.low)
-                    .scaledToFill()
-                    .frame(width: 58, height: 58)
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(fillColor.opacity(0.82), lineWidth: 1.5)
-                    }
+                circularPortrait(artworkName: artworkName)
             }
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
@@ -139,6 +139,36 @@ public struct ExperienceBar: View {
                 snapToPost()
                 reportCompletion()
             }
+        }
+    }
+
+    private func circularPortrait(artworkName: String) -> some View {
+        let size: CGFloat = 58
+        // Combatant thumbs are authored at 3:4; match HomesteadFocalArtwork offset math.
+        let sourceAspectRatio: CGFloat = 3.0 / 4.0
+
+        return GeometryReader { geometry in
+            let container = geometry.size
+            let scale = max(container.width / sourceAspectRatio, container.height)
+            let renderedWidth = sourceAspectRatio * scale
+            let renderedHeight = scale
+            let overflowX = max(renderedWidth - container.width, 0)
+            let overflowY = max(renderedHeight - container.height, 0)
+            let offsetX = (0.5 - artworkFocalX) * overflowX
+            let offsetY = (0.5 - artworkFocalY) * overflowY
+
+            Image(artworkName)
+                .resizable()
+                .interpolation(.low)
+                .scaledToFill()
+                .frame(width: container.width, height: container.height)
+                .offset(x: offsetX, y: offsetY)
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .overlay {
+            Circle()
+                .stroke(fillColor.opacity(0.82), lineWidth: 1.5)
         }
     }
 

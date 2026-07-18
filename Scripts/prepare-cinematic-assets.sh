@@ -76,7 +76,9 @@ while IFS=$'\t' read -r ability_id asset_name source_path has_audio display_aspe
   fi
 
   dest="$resources_dir/${asset_name}.mp4"
-  cp "$source_path" "$dest"
+  if [[ ! -f "$dest" || "$source_path" -nt "$dest" ]]; then
+    cp "$source_path" "$dest"
+  fi
   printf '%s\n' "${asset_name}.mp4" >> "$active_assets_temp"
 
   escaped_id="$(escape_swift_string "$ability_id")"

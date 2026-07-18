@@ -11,6 +11,10 @@ inputs:
   cache-key:
     description: DerivedData cache key from the build job
     required: true
+  rebuild-command:
+    description: Shell command to rebuild on cache miss (default full build-for-testing)
+    required: false
+    default: './Scripts/build-for-testing.sh'
   timing-mode:
     description: Optional test-timing.sh mode for assert-budget (empty to skip)
     required: false
@@ -37,8 +41,8 @@ runs:
       env:
         SKIP_GENERATE: 1
       run: |
-        echo "Build cache miss for key ${{ inputs.cache-key }}; rebuilding with build-for-testing.sh"
-        ./Scripts/build-for-testing.sh
+        echo "Build cache miss for key ${{ inputs.cache-key }}; rebuilding with: ${{ inputs.rebuild-command }}"
+        ${{ inputs.rebuild-command }}
 
     - name: Clear cached test diagnostics after cache restore
       shell: bash

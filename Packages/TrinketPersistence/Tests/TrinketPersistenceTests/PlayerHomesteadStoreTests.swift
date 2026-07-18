@@ -16,7 +16,7 @@ final class PlayerHomesteadStoreTests {
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         firstStore.homestead = PlayerHomesteadState(
-            resources: [.wood: 20, .stone: 10],
+            resources: [.wood: 20, .herbs: 10],
             nodeTiers: [:]
         )
         var roster = firstStore.roster
@@ -26,12 +26,12 @@ final class PlayerHomesteadStoreTests {
         let result = firstStore.homesteadStore.buildOrUpgradeNode(definition)
         try #expect(result == .success)
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
-        try #expect(firstStore.homestead.resources[.wood] == 10)
+        try #expect(firstStore.homestead.resources[.wood] == 15)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.homestead.tier(for: .wheatField) == 1)
-        try #expect(reloaded.homestead.resources[.wood] == 10)
-        try #expect(reloaded.homestead.resources[.stone] == 6)
+        try #expect(reloaded.homestead.resources[.wood] == 15)
+        try #expect(reloaded.homestead.resources[.herbs] == 5)
     }
 
     @Test func buildOrUpgradeNodeReturnsInsufficientResourcesWithoutMutating() throws {

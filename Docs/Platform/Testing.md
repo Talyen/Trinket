@@ -44,7 +44,7 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 3. New catalog content → invariant test in the matching `*CatalogTests` (`TrinketContentTests`).
 4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
 5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
-6. New user flow → stable `AccessibilityID` test selector (or existing id) + one smoke UI test. Keep assertions focused on visible UI state and interaction outcomes; do not test custom accessibility labels or values.
+6. New user flow → stable `AccessibilityID` test selector (or existing id). Add or extend a UI test **only** when the keep/drop rubric below applies; prefer extending an existing smoke/exhaustive method over adding a new class. Keep assertions on visible UI state and interaction outcomes; do not test custom accessibility labels or values.
 7. Verify with the AGENTS Task→Command Router (toolchain permitting), using
    **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
    - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
@@ -52,6 +52,20 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
    - **App orchestration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>` (or full unit when cross-cutting)
    - **Small UI feature** → `./Scripts/verify-changed.sh --isolate --paths <file...>` (style + closest focused smoke; package tests when packages are touched); use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
    - **Cross-cutting UI** → run the affected focused smoke classes during iteration (still via path-scoped verify so style is included). Full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
+
+## UI keep / drop rubric
+
+Keep a UI test only if it asserts a **shipping product outcome** that unit/package tests cannot own:
+
+1. **Shell / entry** — a major surface becomes usable (Play chooser, Homestead wallet, Shop controls, Battle chrome).
+2. **State-changing journey** — a user action mutates durable or navigable state (purchase unlocks next stage, equip persists, retreat returns to Play, chapter advance, recruit continue).
+3. **Safety invariant** — a wrong interaction must not happen (locked slot inert; hand drag must not open detail). **One owner only** across smoke + exhaustive.
+
+Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, unexpected-text catalogs, layout/chrome mirrors (overscroll, swipe scroll ownership, grid layout), mid-battle detail marathons that race live ticks, or second copies of the same interaction across smoke and FullUI. Push loadout, party-selection, and unlock rules down to `TrinketTests` / package tests when possible; UI proves the sheet/control path once.
+
+**Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
+
+Smoke = short shell canaries (`smoke-full` ≈ five lean methods). Exhaustive FullUI = state-changing journeys only. Mid-battle interaction safety (hand drag) lives in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
 
 ## UI tests (summary)
 

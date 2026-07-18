@@ -9,6 +9,8 @@ struct EquipmentSlotSummaryGrid: View {
     let equipmentLoadout: EquipmentLoadout
     let inventoryState: PlayerInventoryState
     let onSelect: ((ItemSlot) -> Void)?
+    /// Called when viewing (not editing) and the user taps a filled item slot.
+    var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
         HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
@@ -16,6 +18,17 @@ struct EquipmentSlotSummaryGrid: View {
                 if let onSelect, !isLocked(slot) {
                     Button {
                         onSelect(slot)
+                    } label: {
+                        itemSlot(for: slot)
+                    }
+                    .trinketQuietTapButtonStyle()
+                    .frame(maxWidth: .infinity, alignment: .top)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier(slot.accessibilityIdentifier)
+
+                } else if let onViewItem, !isLocked(slot), let item = equippedItem(for: slot) {
+                    Button {
+                        onViewItem(item)
                     } label: {
                         itemSlot(for: slot)
                     }
@@ -41,7 +54,7 @@ struct EquipmentSlotSummaryGrid: View {
                 lockLabel: slot.unlockLabel,
                 reservesLabelSpace: false
             )
-        } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
+        } else if let item = equippedItem(for: slot) {
             ItemCard(
                 item: item,
                 showsAffixCount: false,
@@ -53,6 +66,10 @@ struct EquipmentSlotSummaryGrid: View {
                 reservesLabelSpace: false
             )
         }
+    }
+
+    private func equippedItem(for slot: ItemSlot) -> InventoryItem? {
+        inventoryState.item(matching: equipmentLoadout.itemID(for: slot))
     }
 
     private func isLocked(_ slot: ItemSlot) -> Bool {

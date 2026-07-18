@@ -68,8 +68,9 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
                 .damageDealt(.poison, tierValue(tier, values: [1, 2, 3]))
             )
         case .botanicalDistillation:
+            let percent = Double(tierValue(tier, values: [10, 20, 30])) / 100
             effects.heroModifiers.append(
-                .damageDealt(.nature, tierValue(tier, values: [1, 2, 3]))
+                .damageTakenPercent(.poison, percent)
             )
         case .crystalGarden:
             effects.heroModifiers.append(.intellect(tierValue(tier, values: [1, 2, 3])))

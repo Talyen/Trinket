@@ -16,7 +16,6 @@ public enum AbilityValidator {
         "blackjack",
         "blood-offering",
         "dark-pact",
-        "grasping-vines",
         "judgment",
         "glacial-ward",
         "molten-bulwark",
@@ -137,7 +136,7 @@ public enum AbilityValidator {
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
         case "bloodthorn":
-            total == 6
+            total == 4
         case "blood-offering":
             total == 4
         case "acid-potion", "ice-shot":

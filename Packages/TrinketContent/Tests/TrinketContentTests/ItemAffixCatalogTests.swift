@@ -54,9 +54,6 @@ struct ItemAffixCatalogTests {
         try #expect(gilded.basic.description == "Increases Gold gained by 1 and Stun damage dealt by 1")
         try #expect(gilded.keywords.contains(.gold) && gilded.keywords.contains(.stun))
 
-        let verdant = try #require(byID["verdant"])
-        try #expect(verdant.basic.description == "Increases Nature damage dealt by 1 and Health restored by 1")
-
         let sparkling = try #require(byID["sparkling"])
         try #expect(sparkling.basic.description == "Increases Holy damage dealt by 1 and Block gained by 1")
     }

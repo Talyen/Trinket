@@ -18,6 +18,7 @@
     "idle",
     "hand-drag-cancel",
     "first-card-cast-cold",
+    "real-card-play",
     "repeated-card-casts",
     "maximum-concurrent-casts",
     "feedback-chips-only",

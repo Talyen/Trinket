@@ -6,7 +6,6 @@ import TrinketDesignSystem
 
 private struct BattleHitReactionMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""
-    @State private var keyword = Keyword.physical
     @State private var direction = HitDirection.up
     @State private var cyclesDirection = false
     @State private var deformation = Deformation.squish
@@ -21,7 +20,6 @@ private struct BattleHitReactionMotionLab: View {
     @State private var squash = 0.04
     @State private var stretch = 0.025
     @State private var recoilDistance = 4.0
-    @State private var flashOpacity = 0.2
     @State private var hitTrigger = 0
 
     private var selectedEnemy: Enemy? {
@@ -57,11 +55,11 @@ private struct BattleHitReactionMotionLab: View {
                     damping: $customRecoveryDamping
                 )
                 deformationSection
-                flashSection
                 presetsSection
             }
             .frame(width: 380)
         }
+        .preferredColorScheme(.dark)
     }
 
     private var stage: some View {
@@ -69,6 +67,7 @@ private struct BattleHitReactionMotionLab: View {
             VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 Text("Battle Hit Reaction Lab")
                     .font(.title2.weight(.bold))
+                    .foregroundStyle(.primary)
                 Text("Tune native SwiftUI springs on production enemy artwork")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -77,7 +76,6 @@ private struct BattleHitReactionMotionLab: View {
             if let selectedEnemy {
                 HitReactionPreview(
                     combatant: selectedEnemy.combatant,
-                    keyword: keyword,
                     direction: activeDirection,
                     deformation: deformation,
                     impactSpring: impactSpring.spring(
@@ -95,11 +93,10 @@ private struct BattleHitReactionMotionLab: View {
                     squash: squash,
                     stretch: stretch,
                     recoilDistance: recoilDistance,
-                    flashOpacity: flashOpacity,
                     trigger: hitTrigger
                 )
                 .frame(maxWidth: 480)
-                .aspectRatio(4 / 3, contentMode: .fit)
+                .aspectRatio(BattleCardGridLayout.enemyAspectRatio, contentMode: .fit)
                 .overlay {
                     TrinketDesign.cardShape
                         .stroke(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
@@ -107,6 +104,7 @@ private struct BattleHitReactionMotionLab: View {
 
                 Text(selectedEnemy.name)
                     .font(.headline)
+                    .foregroundStyle(.primary)
             } else {
                 ContentUnavailableView("No Enemy", systemImage: "person.crop.rectangle")
             }
@@ -130,11 +128,6 @@ private struct BattleHitReactionMotionLab: View {
             Picker("Enemy", selection: $selectedEnemyID) {
                 ForEach(GameContent.enemies, id: \.id) { enemy in
                     Text(enemy.name).tag(enemy.id)
-                }
-            }
-            Picker("Keyword Flash", selection: $keyword) {
-                ForEach(Keyword.allCases) { keyword in
-                    Text(keyword.rawValue).tag(keyword)
                 }
             }
         }
@@ -200,12 +193,6 @@ private struct BattleHitReactionMotionLab: View {
         }
     }
 
-    private var flashSection: some View {
-        Section("Flash") {
-            parameterSlider("Opacity", value: $flashOpacity, range: 0 ... 0.8, format: "%.2f")
-        }
-    }
-
     private var presetsSection: some View {
         Section("Production Starting Points") {
             Button("Load Normal Hit") {
@@ -247,7 +234,6 @@ private struct BattleHitReactionMotionLab: View {
         squash = 0.04
         stretch = 0.025
         recoilDistance = 4
-        flashOpacity = 0.2
         hitTrigger += 1
     }
 
@@ -262,14 +248,12 @@ private struct BattleHitReactionMotionLab: View {
         squash = 0.07
         stretch = 0.04
         recoilDistance = 7
-        flashOpacity = 0.4
         hitTrigger += 1
     }
 }
 
 private struct HitReactionPreview: View {
     let combatant: Combatant
-    let keyword: Keyword
     let direction: HitDirection
     let deformation: Deformation
     let impactSpring: Spring
@@ -279,7 +263,6 @@ private struct HitReactionPreview: View {
     let squash: Double
     let stretch: Double
     let recoilDistance: Double
-    let flashOpacity: Double
     let trigger: Int
 
     var body: some View {
@@ -288,11 +271,6 @@ private struct HitReactionPreview: View {
 
         KeyframeAnimator(initialValue: HitReactionState(), trigger: trigger) { state in
             CombatantArtwork(combatant: combatant, variant: .battle)
-                .overlay {
-                    keyword.visualStyle.color
-                        .opacity(state.flashOpacity)
-                        .allowsHitTesting(false)
-                }
                 .clipShape(TrinketDesign.cardShape)
                 .scaleEffect(x: state.scaleX, y: state.scaleY)
                 .offset(x: state.offsetX, y: state.offsetY)
@@ -313,10 +291,6 @@ private struct HitReactionPreview: View {
                 SpringKeyframe(impactOffset.height, duration: impactDuration, spring: impactSpring)
                 SpringKeyframe(0, duration: recoveryDuration, spring: recoverySpring)
             }
-            KeyframeTrack(\.flashOpacity) {
-                CubicKeyframe(flashOpacity, duration: min(impactDuration, 0.06))
-                CubicKeyframe(0, duration: recoveryDuration)
-            }
         }
     }
 }
@@ -326,7 +300,6 @@ private struct HitReactionState {
     var scaleY = 1.0
     var offsetX = 0.0
     var offsetY = 0.0
-    var flashOpacity = 0.0
 }
 
 private enum HitDirection: String, CaseIterable, Identifiable {
@@ -415,7 +388,13 @@ private enum SpringPreset: String, CaseIterable, Identifiable {
     }
 }
 
-#Preview("Battle Hit Reaction Motion Lab", traits: .landscapeLeft) {
-    BattleHitReactionMotionLab()
+struct BattleHitReactionMotionLab_Previews: PreviewProvider {
+    static var previews: some View {
+        BattleHitReactionMotionLab()
+            .preferredColorScheme(.dark)
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewInterfaceOrientation(.landscapeLeft)
+            .previewDisplayName("Battle Hit Reaction Motion Lab")
+    }
 }
 #endif

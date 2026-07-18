@@ -37,7 +37,6 @@ public extension Ability {
     static let gamblersShot = AbilityCatalogBasicGenerated.gamblersShot
     static let glacialWard = AbilityCatalogUltimate.glacialWard
     static let goldenPlate = AbilityCatalogUltimate.goldenPlate
-    static let graspingVines = AbilityCatalogSkill.graspingVines
     static let haste = AbilityCatalogSkillGenerated.haste
     static let heal = AbilityCatalogSkill.heal
     static let healthPotion = AbilityCatalogSkillGenerated.healthPotion
@@ -46,8 +45,6 @@ public extension Ability {
     static let iceShot = AbilityCatalogBasic.iceShot
     static let judgment = AbilityCatalogUltimate.judgment
     static let kindling = AbilityCatalogBasicGenerated.kindling
-    static let lightningArrow = AbilityCatalogSkillGenerated.lightningArrow
-    static let lightningBolt = AbilityCatalogSkillGenerated.lightningBolt
     static let luckPotion = AbilityCatalogUltimateGenerated.luckPotion
     static let manaBerries = AbilityCatalogBasic.manaBerries
     static let manaBulwark = AbilityCatalogUltimate.manaBulwark

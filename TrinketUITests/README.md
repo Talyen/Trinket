@@ -12,7 +12,21 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Frame-pacing matrix (`performance.sh` / `test.sh performance`); not smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke classes are lean per-screen checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here. Bare `test.sh smoke` runs only the Homestead canary; `test.sh smoke <Class>` filters the full Smoke plan for iteration.
+Smoke classes are lean per-screen **shell** checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here. Bare `test.sh smoke` runs only the Homestead canary; `test.sh smoke <Class>` filters the full Smoke plan for iteration.
+
+## Keep / drop (do not add)
+
+Keep UI tests only for shell/entry, state-changing journeys, or one-owner safety invariants — see the rubric in `Docs/Platform/Testing.md`.
+
+**Do not add:**
+
+- Marketing/copy strings, nav titles, or “unexpected text” catalogs
+- Layout/chrome mirrors (overscroll, vertical pull, inventory grid layout)
+- Mid-battle multi-step detail marathons that race live ticks
+- Duplicate coverage of the same interaction in both smoke and FullUI
+- Negative “unimplemented mode” catalogs when a positive Campaign + Explore assert already covers the chooser
+
+Prefer extending an existing keep method over a new class. Push rules/persistence to unit tests; UI proves the control path once.
 
 ## Launch args
 
@@ -33,12 +47,13 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 ## Speed
 
 - Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
+- Prefer one launch per class (`SeededSmokeUITestCase` or shared `setUp`) when methods share args; avoid `app.terminate()` + relaunch mid-suite unless args must change (then split classes).
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
 - Avoid long Play-map scrolls; use `-completed-stages` or `-map-scroll-target`.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
-- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (3s ticks), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle covers load-only deep-link plus `testHandDragReleaseOnCombatantDoesNotOpenDetail` (same mid-battle entry) for BattleHandView / prepared-art regressions; broader mid-battle chrome lives in `BattleFlowUITests`. If Stage 1-1 already resolved, those methods `XCTSkip` instead of silently passing.
+- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (3s ticks), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; hand-drag safety lives in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
 - Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
-- Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors, visible text, and interaction outcomes.
+- Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.
 - UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.

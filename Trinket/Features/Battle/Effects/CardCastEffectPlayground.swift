@@ -111,6 +111,7 @@ private struct CardCastEffectPlayground: View {
             }
             .frame(width: 340)
         }
+        .preferredColorScheme(.dark)
     }
 
     private func progress(at date: Date) -> CGFloat {
@@ -132,7 +133,13 @@ private struct CardCastEffectPlayground: View {
     }
 }
 
-#Preview("Card Cast Effect Lab") {
-    CardCastEffectPlayground()
+struct CardCastEffectLab_Previews: PreviewProvider {
+    static var previews: some View {
+        CardCastEffectPlayground()
+            .preferredColorScheme(.dark)
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewInterfaceOrientation(.landscapeLeft)
+            .previewDisplayName("Card Cast Effect Lab")
+    }
 }
 #endif

@@ -13,7 +13,7 @@ private struct HandMotionPlayground: View {
     @State private var showFanLabels = false
     @State private var cards: [BattleCard] = HandMotionPlayground.makeCards(count: 5)
     @State private var dealGeneration = 0
-    @State private var forcedDragTranslation: (cardID: Int, translation: CGSize)?
+    @State private var forcedDrag = BattleForcedDragState()
     @State private var releasePose: CardActivationRequest?
     @State private var copiedBannerVisible = false
     @State private var cancelDemoTask: Task<Void, Never>?
@@ -39,6 +39,7 @@ private struct HandMotionPlayground: View {
             }
             .frame(width: 360)
         }
+        .preferredColorScheme(.dark)
         .onChange(of: cardCount) { _, newValue in
             rebuildHand(count: Int(newValue.rounded()))
         }
@@ -75,7 +76,7 @@ private struct HandMotionPlayground: View {
                     hapticsEnabled: false,
                     battleFrame: battleFrame,
                     configuration: configuration,
-                    forcedDragTranslation: forcedDragTranslation
+                    forcedDrag: forcedDrag
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -configuration.bottomRise)
@@ -439,7 +440,7 @@ private struct HandMotionPlayground: View {
             }
             Button("Reset Defaults") {
                 cancelDemoTask?.cancel()
-                forcedDragTranslation = nil
+                forcedDrag.clear()
                 releasePose = nil
                 configuration = BattleHandMotionConfiguration()
                 includeUnplayableCard = true
@@ -457,14 +458,14 @@ private struct HandMotionPlayground: View {
 
     private func rebuildHand(count: Int) {
         cancelDemoTask?.cancel()
-        forcedDragTranslation = nil
+        forcedDrag.clear()
         cards = Self.makeCards(count: max(1, min(5, count)))
         dealGeneration &+= 1
     }
 
     private func replayDeal() {
         cancelDemoTask?.cancel()
-        forcedDragTranslation = nil
+        forcedDrag.clear()
         releasePose = nil
         let count = Int(cardCount.rounded())
         cards = []
@@ -486,21 +487,21 @@ private struct HandMotionPlayground: View {
 
         let lift = CGSize(width: 0, height: -(configuration.playDragThreshold * 0.85))
         withAnimation(configuration.cardPress) {
-            forcedDragTranslation = (cardID: target.id, translation: lift)
+            forcedDrag.set(cardID: target.id, translation: lift)
         }
 
         cancelDemoTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(450))
             guard !Task.isCancelled else { return }
             withAnimation(configuration.cardReturn) {
-                forcedDragTranslation = nil
+                forcedDrag.clear()
             }
         }
     }
 
     private func handleSuccessfulPlay(card: BattleCard, request: CardActivationRequest) -> Bool {
         cancelDemoTask?.cancel()
-        forcedDragTranslation = nil
+        forcedDrag.clear()
         releasePoseTask?.cancel()
         releasePose = request
         cards.removeAll { $0.id == card.id }
@@ -578,7 +579,13 @@ private struct HandMotionPlayground: View {
     }
 }
 
-#Preview("Hand Motion Lab") {
-    HandMotionPlayground()
+struct HandMotionLab_Previews: PreviewProvider {
+    static var previews: some View {
+        HandMotionPlayground()
+            .preferredColorScheme(.dark)
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewInterfaceOrientation(.landscapeLeft)
+            .previewDisplayName("Hand Motion Lab")
+    }
 }
 #endif

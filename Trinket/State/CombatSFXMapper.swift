@@ -108,7 +108,7 @@ enum CombatSFXMapper {
             SFXID.hitFreeze
         case .stun:
             SFXID.controlStun
-        case .physical, .nature, .holy, .poison, .bleed, .leech:
+        case .physical, .holy, .poison, .bleed, .leech:
             SFXID.hit
         default:
             SFXID.hit

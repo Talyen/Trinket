@@ -33,6 +33,7 @@ struct OverscrollHeroContainer<Art: View, Overlay: View>: View {
                 art()
                     .frame(width: geometry.size.width, height: metrics.height)
                     .trinketArtworkBlend(artworkBlend)
+                    .backgroundExtensionEffect()
 
                 overlay()
                     .frame(width: geometry.size.width, height: metrics.height, alignment: alignment)

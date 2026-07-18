@@ -11,7 +11,6 @@ struct PrimaryStatsRulesTests {
         try #expect(stats.statBonusForDamage(keyword: .freeze) == 4)
         try #expect(stats.statBonusForDamage(keyword: .poison) == 5)
         try #expect(stats.statBonusForDamage(keyword: .holy) == 5)
-        try #expect(stats.statBonusForDamage(keyword: .nature) == 5)
         try #expect(stats.statBonusForDamage(keyword: .armor) == 0)
         try #expect(stats.statBonusForDamage(keyword: .block) == 0)
     }

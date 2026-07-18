@@ -40,6 +40,7 @@ enum BattleSessionTestSupport {
         )
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
+            enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0
         )
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(

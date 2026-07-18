@@ -66,18 +66,16 @@ struct AbilityCatalogTests {
             name: "Bloodthorn",
             tier: .ultimate,
             damageComponents: [
-                DamageComponent(2, keyword: .nature),
                 DamageComponent(2, keyword: .bleed),
                 DamageComponent(2, keyword: .poison)
             ],
             effects: [
                 TargetedEffect(.bleed(2)),
                 TargetedEffect(.poison(2))
-            ],
-            hasLeech: true
+            ]
         )
         try #expect(
-            ability.summary == "Deal 2 Nature damage, Deal 2 Bleed damage and Deal 2 Poison damage. Leech."
+            ability.summary == "Deal 2 Bleed damage and Deal 2 Poison damage."
         )
     }
 

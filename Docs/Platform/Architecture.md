@@ -83,7 +83,7 @@ Code mapping:
 3. Optionally prepare art, music, SFX, and cinematic catalogs (`--assets`)
 4. Run XcodeGen
 
-**Drift check:** `./Scripts/assert-generated-output.sh` (CI runs this after `generate.sh`).
+**Drift check:** `./Scripts/assert-generated-output.sh` after `generate.sh` (CI / pre-push: must match HEAD). Local `verify-changed` uses `--idempotent` instead so intentional uncommitted regeneration is allowed mid-task.
 
 **Boundary check:** `./Scripts/check-module-boundaries.sh` (CI gate + `ci-locally.sh`).
 

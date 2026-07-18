@@ -17,6 +17,9 @@ struct BattlePresentationSnapshot: Equatable {
     let companion: BattleCombatantPresentation
     let enemy: BattleCombatantPresentation
     let hand: [BattleCard]
+    /// Card IDs that may be cast with the current mana / phase. Stored on the
+    /// projection so the hand lane does not observe live `BattleSession.state`.
+    let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
     init(configurationID: UUID, state: BattleState) {
@@ -25,6 +28,7 @@ struct BattlePresentationSnapshot: Equatable {
         companion = Self.combatant(state.companion, in: state)
         enemy = Self.combatant(state.enemy, in: state)
         hand = state.hand.cards
+        playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
         isBattleOver = state.isBattleOver
     }
 
@@ -53,6 +57,7 @@ final class BattlePresentationState {
     private(set) var companion: BattleCombatantPresentation?
     private(set) var enemy: BattleCombatantPresentation?
     private(set) var hand: [BattleCard] = []
+    private(set) var playableCardIDs: Set<Int> = []
     private(set) var isBattleOver = false
 
     var isReady: Bool {
@@ -75,6 +80,9 @@ final class BattlePresentationState {
         if hand != snapshot.hand {
             hand = snapshot.hand
         }
+        if playableCardIDs != snapshot.playableCardIDs {
+            playableCardIDs = snapshot.playableCardIDs
+        }
         if isBattleOver != snapshot.isBattleOver {
             isBattleOver = snapshot.isBattleOver
         }
@@ -86,6 +94,7 @@ final class BattlePresentationState {
         companion = nil
         enemy = nil
         hand = []
+        playableCardIDs = []
         isBattleOver = false
     }
 }

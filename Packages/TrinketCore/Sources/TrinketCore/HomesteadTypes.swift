@@ -6,6 +6,7 @@ public enum HomesteadResource: String, CaseIterable, Codable, Hashable, Identifi
     case iron
     case food
     case herbs
+    case hide
     case crystal
     case gold
 

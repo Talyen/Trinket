@@ -1,14 +1,15 @@
 import XCTest
 
-final class SmokeShopTests: TrinketUITestCase {
-    func testMerchantShopLoadsCriticalControls() {
-        // Deep-link opens stage 2-4 shop; prior stages completed so leave would unlock stage 5.
-        launchApp(arguments: TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
+final class SmokeShopTests: SeededSmokeUITestCase {
+    override var launchArguments: [String] {
+        TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
             "chapter-2-stage-1",
             "chapter-2-stage-2",
             "chapter-2-stage-3"
-        ]))
+        ])
+    }
 
+    func testMerchantShopLoadsCriticalControls() {
         assertExists(AccessibilityID.Shop.encounterTitle)
         assertExists(AccessibilityID.Shop.encounterGreeting)
         assertExists(AccessibilityID.Shop.goldBalance)

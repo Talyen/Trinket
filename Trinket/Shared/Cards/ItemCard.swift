@@ -69,6 +69,6 @@ struct ItemCard: View {
 
 private extension InventoryItem {
     var affixCountLabel: String {
-        "\(affixes.count) \(affixes.count == 1 ? "affix" : "affixes")"
+        "\(affixes.count) \(affixes.count == 1 ? "trait" : "traits")"
     }
 }

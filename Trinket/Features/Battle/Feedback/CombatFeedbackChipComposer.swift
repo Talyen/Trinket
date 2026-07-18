@@ -20,6 +20,7 @@ enum CombatFeedbackChipComposer {
     static func compose(
         presentation: CombatFeedbackChipPresentation,
         feedbackClass: CombatFeedbackClass,
+        presentationRole: CombatFeedbackPresentationRole = .headline,
         dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
@@ -29,6 +30,7 @@ enum CombatFeedbackChipComposer {
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,
+            presentationRole: presentationRole,
             dynamicTypeSize: dynamicTypeSize,
             displayScaleHundredths: Int((scale * 100).rounded())
         )
@@ -101,7 +103,7 @@ enum CombatFeedbackChipComposer {
             trailingTint: style,
             text: {
                 switch label {
-                case .amount, .percent:
+                case .amount, .percent, .overflow:
                     label.displayString
                 case let .word(word):
                     word.composeText
@@ -239,7 +241,7 @@ enum CombatFeedbackChipComposer {
         atlas: CombatFeedbackGlyphAtlas
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
         // Numeric chips pass digit characters; word chips pass one whole-word fragment.
-        let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "%" }) {
+        let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "%" || $0 == "+" }) {
             text.map(String.init)
         } else {
             [text]

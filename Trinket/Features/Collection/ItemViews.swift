@@ -175,12 +175,10 @@ struct ItemDetailView: View {
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {
-                DetailSection("Affixes") {
+                DetailSection("Traits") {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                         ForEach(item.affixes.prefix(4)) { affix in
-                            KeywordDescriptionText(text: affix.description)
-                                .trinketTypography(.body)
-                                .foregroundStyle(.secondary)
+                            DetailTraitRow(description: affix.description)
                         }
                     }
                 }

@@ -13,10 +13,36 @@ struct CardDissolveThresholdMask: View {
     var thresholdContrast: CGFloat = 100
 
     var body: some View {
+        // Quantize before lookup so TimelineView ticks that share a dissolve step
+        // reuse one Equatable mask leaf instead of rebuilding Image every frame.
+        let step = CardDissolveTexture.progressStep(for: progress)
+        StableCardDissolveThresholdMask(
+            step: step,
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: cellSize,
+            thresholdMidpoint: thresholdMidpoint,
+            thresholdContrast: thresholdContrast
+        )
+        .equatable()
+    }
+}
+
+/// Step-keyed mask leaf. Equality ignores floating progress so SwiftUI can skip
+/// redundant updates while the quantized wipe holds a single baked frame.
+private struct StableCardDissolveThresholdMask: View, Equatable {
+    let step: Int
+    let edgeDepthWeight: CGFloat
+    let noiseWeight: CGFloat
+    let cellSize: Int
+    let thresholdMidpoint: CGFloat
+    let thresholdContrast: CGFloat
+
+    var body: some View {
         // CPU-baked alpha masks avoid per-frame brightness/contrast/luminanceToAlpha.
         // Soft-fail: if CGImage baking fails, omit the mask rather than crashing the cast.
         if let image = CardDissolveTexture.thresholdMaskImage(
-            progress: progress,
+            progress: CGFloat(step) / CGFloat(CardDissolveTexture.progressStepCount),
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
             cellSize: cellSize,
@@ -35,8 +61,20 @@ enum CardDissolveTexture {
     private static let height = 256
     /// Discrete dissolve steps — enough for a smooth wipe without unique masks per frame.
     private static let progressSteps = 40
+    /// Exposed for step-stable mask views (same quantization as the bake cache).
+    static var progressStepCount: Int {
+        progressSteps
+    }
+
     private static let cache = TextureCache()
     private static let prewarmState = Mutex(PrewarmState())
+
+    static func progressStep(for progress: CGFloat) -> Int {
+        min(
+            progressSteps,
+            max(0, Int((min(max(progress, 0), 1) * CGFloat(progressSteps)).rounded()))
+        )
+    }
 
     private struct PrewarmState {
         var tasks: [NoiseCacheKey: Task<Void, Never>] = [:]
@@ -62,6 +100,7 @@ enum CardDissolveTexture {
     private final class TextureCache: Sendable {
         private let noiseCache = Mutex<[NoiseCacheKey: [UInt8]]>([:])
         private let thresholdCache = Mutex<[ThresholdCacheKey: CGImage]>([:])
+        private let provisionalCache = Mutex<[Int: CGImage]>([:])
 
         func noiseBytes(
             key: NoiseCacheKey,
@@ -77,6 +116,10 @@ enum CardDissolveTexture {
             }
         }
 
+        func cachedThresholdImage(key: ThresholdCacheKey) -> CGImage? {
+            thresholdCache.withLock { $0[key] }
+        }
+
         func thresholdImage(
             key: ThresholdCacheKey,
             make: () -> CGImage?
@@ -89,6 +132,30 @@ enum CardDissolveTexture {
                     return nil
                 }
                 cache[key] = image
+                return image
+            }
+        }
+
+        /// Uniform-alpha stand-in so a cold cache miss never bakes 192×256 noise on
+        /// the display-link thread. Real masks replace this once `prewarm` finishes.
+        func provisionalThresholdImage(progressStep: Int) -> CGImage? {
+            provisionalCache.withLock { cache in
+                if let cached = cache[progressStep] {
+                    return cached
+                }
+                let alpha = UInt8(
+                    clamping: Int(
+                        ((1 - Double(progressStep) / Double(progressSteps)) * 255).rounded()
+                    )
+                )
+                var rgba = [UInt8](repeating: 255, count: width * height * 4)
+                for index in 0 ..< (width * height) {
+                    rgba[index * 4 + 3] = alpha
+                }
+                guard let image = makeRGBAImage(pixels: rgba, width: width, height: height) else {
+                    return nil
+                }
+                cache[progressStep] = image
                 return image
             }
         }
@@ -108,6 +175,10 @@ enum CardDissolveTexture {
     }
 
     /// Baked alpha mask for a quantized dissolve progress (no SwiftUI filter chain).
+    ///
+    /// Production and warm paths sync-bake on a rare cache miss so cast and
+    /// enemy-death dissolves keep the noise wipe. Only the cold-cast performance
+    /// scenario returns a provisional fade so measurement stays honest.
     static func thresholdMaskImage(
         progress: CGFloat,
         edgeDepthWeight: CGFloat = 0.86,
@@ -122,19 +193,57 @@ enum CardDissolveTexture {
             noiseWeight: quantize(noiseWeight),
             cellSize: clampedCell
         )
-        let step = min(
-            progressSteps,
-            max(0, Int((min(max(progress, 0), 1) * CGFloat(progressSteps)).rounded()))
-        )
+        let step = progressStep(for: progress)
         let key = ThresholdCacheKey(
             noise: noiseKey,
             progressStep: step,
             thresholdMidpoint: quantize(thresholdMidpoint),
             thresholdContrast: Int(thresholdContrast.rounded())
         )
-        // Resolve noise outside `thresholdImage`'s Mutex — nested acquisition of the
-        // same lock is undefined, and baking under it while calling `noiseBytes`
-        // would deadlock the UI on first cast.
+        if let cached = cache.cachedThresholdImage(key: key) {
+            return cached
+        }
+        if AppEnvironment.shared.battlePerformanceScenario == .firstCardCastCold {
+            // Schedule the full bake off-actor; do not block the cold measurement path.
+            _ = prewarmTask(
+                edgeDepthWeight: edgeDepthWeight,
+                noiseWeight: noiseWeight,
+                cellSize: clampedCell
+            )
+            return cache.provisionalThresholdImage(progressStep: step)
+        }
+        return bakeThresholdMaskImage(
+            progress: progress,
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: clampedCell,
+            thresholdMidpoint: thresholdMidpoint,
+            thresholdContrast: thresholdContrast
+        )
+    }
+
+    /// Forces a synchronous bake into the real threshold cache (prewarm / tests).
+    fileprivate static func bakeThresholdMaskImage(
+        progress: CGFloat,
+        edgeDepthWeight: CGFloat = 0.86,
+        noiseWeight: CGFloat = 0.18,
+        cellSize: Int = 1,
+        thresholdMidpoint: CGFloat = 0.46,
+        thresholdContrast: CGFloat = 100
+    ) -> CGImage? {
+        let clampedCell = max(1, min(cellSize, 16))
+        let noiseKey = NoiseCacheKey(
+            edgeDepthWeight: quantize(edgeDepthWeight),
+            noiseWeight: quantize(noiseWeight),
+            cellSize: clampedCell
+        )
+        let step = progressStep(for: progress)
+        let key = ThresholdCacheKey(
+            noise: noiseKey,
+            progressStep: step,
+            thresholdMidpoint: quantize(thresholdMidpoint),
+            thresholdContrast: Int(thresholdContrast.rounded())
+        )
         let noise = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
@@ -205,7 +314,7 @@ enum CardDissolveTexture {
                 )
                 for step in 0 ... progressSteps {
                     let progress = CGFloat(step) / CGFloat(progressSteps)
-                    _ = thresholdMaskImage(
+                    _ = bakeThresholdMaskImage(
                         progress: progress,
                         edgeDepthWeight: edgeDepthWeight,
                         noiseWeight: noiseWeight,
@@ -221,7 +330,9 @@ enum CardDissolveTexture {
             return task
         }
     }
+}
 
+extension CardDissolveTexture {
     private static func noiseBytes(
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,

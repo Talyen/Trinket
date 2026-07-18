@@ -77,15 +77,6 @@ enum ItemAffixCatalogGenerated {
             astral: ItemAffixPower(description: "Increases Holy damage dealt by 3", modifiers: [.damageDealt(.holy, 3)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
-            id: "wild",
-            title: "Wild",
-            slot: .weapon,
-            keywords: [.nature],
-            weight: 8,
-            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1", modifiers: [.damageDealt(.nature, 1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3", modifiers: [.damageDealt(.nature, 3)], triggers: CombatTraitTriggers())
-        ),
-        ItemAffixCatalogSupport.affix(
             id: "glacial",
             title: "Glacial",
             slot: .weapon,
@@ -192,15 +183,6 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increases Strength by 1 and Stun damage dealt by 1", modifiers: [.strength(1), .damageDealt(.stun, 1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Strength by 2 and Stun damage dealt by 2", modifiers: [.strength(2), .damageDealt(.stun, 2)], triggers: CombatTraitTriggers())
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "druids",
-            title: "Druid's",
-            slot: .weapon,
-            keywords: [.nature],
-            weight: 8,
-            basic: ItemAffixPower(description: "Increases Wisdom by 1 and Nature damage dealt by 1", modifiers: [.wisdom(1), .damageDealt(.nature, 1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Wisdom by 2 and Nature damage dealt by 2", modifiers: [.wisdom(2), .damageDealt(.nature, 2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "leeching",
@@ -383,15 +365,6 @@ enum ItemAffixCatalogGenerated {
             astral: ItemAffixPower(description: "Increases Wisdom by 2 and Health restored by 2", modifiers: [.wisdom(2), .healthRestored(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
-            id: "thorned",
-            title: "Thorned",
-            slot: .armor,
-            keywords: [.nature, .armor],
-            weight: 8,
-            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1 and Armor gained by 1", modifiers: [.damageDealt(.nature, 1), .armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 2 and Armor gained by 2", modifiers: [.damageDealt(.nature, 2), .armorGained(2)], triggers: CombatTraitTriggers())
-        ),
-        ItemAffixCatalogSupport.affix(
             id: "bloodbound",
             title: "Bloodbound",
             slot: .armor,
@@ -453,15 +426,6 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increases Leech healing by 1", modifiers: [.leechHealing(1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Leech healing by 3", modifiers: [.leechHealing(3)], triggers: CombatTraitTriggers())
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "verdant",
-            title: "Verdant",
-            slot: .trinket,
-            keywords: [.nature, .health],
-            weight: 10,
-            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1 and Health restored by 1", modifiers: [.damageDealt(.nature, 1), .healthRestored(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3 and Health restored by 3", modifiers: [.damageDealt(.nature, 3), .healthRestored(3)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "sparkling",
@@ -615,15 +579,6 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increases Stun damage dealt by 1 and Gold gained by 1", modifiers: [.damageDealt(.stun, 1), .goldGained(1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Stun damage dealt by 2 and Gold gained by 2", modifiers: [.damageDealt(.stun, 2), .goldGained(2)], triggers: CombatTraitTriggers())
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "vitalis",
-            title: "Vitalis",
-            slot: .trinket,
-            keywords: [.health, .nature],
-            weight: 8,
-            basic: ItemAffixPower(description: "Increases Maximum Health by 2 and Nature damage dealt by 1", modifiers: [.maximumHealth(2), .damageDealt(.nature, 1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Maximum Health by 6 and Nature damage dealt by 3", modifiers: [.maximumHealth(6), .damageDealt(.nature, 3)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "ashen",

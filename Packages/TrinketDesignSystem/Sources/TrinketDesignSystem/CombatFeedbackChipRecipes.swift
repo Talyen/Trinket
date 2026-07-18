@@ -14,19 +14,19 @@ enum CombatFeedbackChipRecipes {
 
     // MARK: - Emphasis (~34pt largeTitle / heavy)
 
-    /// Crit + Death's Door: same path as normal, larger amplitude and longer hold.
+    /// Crit + Death's Door: same path as normal, larger start size and longer hold.
     /// Lateral motion stays tight so long labels stay readable after overflow.
     private static func emphasisChip(
         feedbackClass: CombatFeedbackClass
     ) -> CombatFeedbackMotionRecipe {
         CombatFeedbackMotionRecipe(
             feedbackClass: feedbackClass,
-            initialScale: 0.78,
+            initialScale: 1.22,
             initialOffsetY: 10,
             scale: [
-                .init(value: 1.22, duration: 0.12),
-                .init(value: 1.04, duration: 0.16),
-                .init(value: 1.0, duration: 0.55)
+                .init(value: 1.08, duration: 0.28),
+                .init(value: 1.03, duration: 0.3),
+                .init(value: 1.0, duration: 0.25)
             ],
             opacity: [
                 .init(value: 1.0, duration: 0.08, usesSpring: false),
@@ -34,12 +34,12 @@ enum CombatFeedbackChipRecipes {
                 .init(value: 0.0, duration: 0.27, usesSpring: false)
             ],
             offsetY: [
-                .init(value: -10, duration: 0.12),
-                .init(value: -44, duration: 0.52),
-                .init(value: -70, duration: 0.36)
+                .init(value: -52, duration: 0.28),
+                .init(value: -64, duration: 0.36),
+                .init(value: -70, duration: 0.22)
             ],
             lifetime: 1.1,
-            // Narrow scatter: hierarchy comes from size/pop, not chaos.
+            // Narrow scatter: hierarchy comes from start size / lifetime / float, not chaos.
             horizontalJitter: -4 ... 4,
             floatAngleRange: -8 ... 8,
             stackSpacing: CombatFeedbackLayout.presentationLaneSpacing,
@@ -60,12 +60,12 @@ enum CombatFeedbackChipRecipes {
     ) -> CombatFeedbackMotionRecipe {
         CombatFeedbackMotionRecipe(
             feedbackClass: feedbackClass,
-            initialScale: 0.86,
+            initialScale: 1.12,
             initialOffsetY: 8,
             scale: [
-                .init(value: 1.1, duration: 0.1),
-                .init(value: 1.0, duration: 0.14),
-                .init(value: 0.98, duration: 0.42)
+                .init(value: 1.04, duration: 0.22),
+                .init(value: 1.01, duration: 0.24),
+                .init(value: 1.0, duration: 0.2)
             ],
             opacity: [
                 .init(value: 1.0, duration: 0.08, usesSpring: false),
@@ -73,9 +73,9 @@ enum CombatFeedbackChipRecipes {
                 .init(value: 0.0, duration: 0.2, usesSpring: false)
             ],
             offsetY: [
-                .init(value: -6, duration: 0.1),
-                .init(value: -28, duration: 0.4),
-                .init(value: -50, duration: 0.28)
+                .init(value: -38, duration: 0.22),
+                .init(value: -48, duration: 0.28),
+                .init(value: -50, duration: 0.18)
             ],
             lifetime: 0.86,
             horizontalJitter: -5 ... 5,

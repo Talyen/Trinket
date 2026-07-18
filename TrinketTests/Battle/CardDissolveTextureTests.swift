@@ -4,14 +4,22 @@ import Testing
 
 struct CardDissolveTextureTests {
     @Test func thresholdMaskImageDoesNotDeadlockOnCacheMiss() throws {
-        // Regression: baking used to call noiseBytes while holding the threshold lock
-        // (single non-recursive lock), freezing the UI on first card play.
+        // Cold miss must return immediately (provisional) without baking on-thread.
         let image = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
         #expect(image.width == 192)
         #expect(image.height == 256)
-        // Second call should hit cache and still return a live image.
         let cached = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
         #expect(cached.width == 192)
+    }
+
+    @Test func prepareFillsRealThresholdCache() async throws {
+        await CardDissolveTexture.prepare()
+        let image = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
+        #expect(image.width == 192)
+        #expect(image.height == 256)
+        // Second call should hit the real cache.
+        let cached = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
+        #expect(cached === image)
     }
 
     @Test func prewarmCompletesWithoutNestedLock() async throws {

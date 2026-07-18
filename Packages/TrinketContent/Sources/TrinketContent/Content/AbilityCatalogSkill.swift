@@ -75,15 +75,6 @@ public enum AbilityCatalogSkill {
         damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
         targetedEffects: [TargetedEffect(.drawCards(2))]
     )
-    public static let graspingVines = Ability(
-        id: "grasping-vines", name: "Grasping Vines", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .nature)],
-        targetedEffects: [
-            TargetedEffect(.bleed(1)),
-            TargetedEffect(.instantHeal(.health, 1))
-        ],
-        manaCost: 2
-    )
     public static let heal = Ability(
         id: "heal", name: "Heal", tier: .skill,
         targetedEffects: [TargetedEffect(.instantHeal(.health, 3))],
@@ -178,7 +169,6 @@ public enum AbilityCatalogSkill {
         cleanse,
         coldSnap,
         darkPact,
-        graspingVines,
         heal,
         manaPotion,
         manaShield,

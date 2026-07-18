@@ -10,16 +10,16 @@ longbow	Longbow	weapon	physical,bleed,poison
 longsword	Longsword	weapon	physical,bleed,holy
 mace	Mace	weapon	physical,stun,holy
 maul	Maul	weapon	physical,stun,armor
-recurve_bow	Recurve Bow	weapon	physical,bleed,nature
+recurve_bow	Recurve Bow	weapon	physical,bleed,poison
 shortbow	Shortbow	weapon	physical,bleed,poison
 shortsword	Shortsword	weapon	physical,bleed
-spellbook	Spellbook	weapon	burn,freeze,holy,nature,gold,mana
-staff	Staff	weapon	burn,freeze,holy,nature,block,mana
+spellbook	Spellbook	weapon	burn,freeze,holy,gold,mana
+staff	Staff	weapon	burn,freeze,holy,block,mana
 wand	Wand	weapon	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor	physical,armor,health,poison,leech,bleed,nature
+leather_armor	Leather Armor	armor	physical,armor,health,poison,leech,bleed
 plate_armor	Plate Armor	armor	block,armor,health,holy,stun
-emerald_amulet	Emerald Amulet	trinket	nature,poison,health
-emerald_ring	Emerald Ring	trinket	nature,poison,health
+emerald_amulet	Emerald Amulet	trinket	poison,health
+emerald_ring	Emerald Ring	trinket	poison,health
 ruby_amulet	Ruby Amulet	trinket	burn,health,leech,bleed
 ruby_ring	Ruby Ring	trinket	burn,health,leech,bleed
 sapphire_amulet	Sapphire Amulet	trinket	freeze,block,armor,mana

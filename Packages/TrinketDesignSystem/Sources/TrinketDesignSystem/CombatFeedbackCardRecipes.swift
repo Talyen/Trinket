@@ -20,7 +20,6 @@ enum CombatFeedbackCardRecipes {
         scaleY: [.init(value: 1.0, duration: 0.01)],
         offsetX: [.init(value: 0, duration: 0.01)],
         offsetY: [.init(value: 0, duration: 0.01)],
-        flashOpacity: [.init(value: 0, duration: 0.01, usesSpring: false)],
         duration: 0.01
     )
 
@@ -41,10 +40,6 @@ enum CombatFeedbackCardRecipes {
         offsetY: [
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.16)
-        ],
-        flashOpacity: [
-            .init(value: 0.2, duration: 0.06, usesSpring: false),
-            .init(value: 0.0, duration: 0.16, usesSpring: false)
         ],
         duration: 0.24
     )
@@ -67,10 +62,6 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.18)
         ],
-        flashOpacity: [
-            .init(value: 0.4, duration: 0.06, usesSpring: false),
-            .init(value: 0.0, duration: 0.18, usesSpring: false)
-        ],
         duration: 0.26
     )
 
@@ -91,10 +82,6 @@ enum CombatFeedbackCardRecipes {
         offsetY: [
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.18)
-        ],
-        flashOpacity: [
-            .init(value: 0.24, duration: 0.06, usesSpring: false),
-            .init(value: 0.0, duration: 0.2, usesSpring: false)
         ],
         duration: 0.28
     )
@@ -117,10 +104,6 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0, duration: 0.1),
             .init(value: 0, duration: 0.16)
         ],
-        flashOpacity: [
-            .init(value: 0.28, duration: 0.08, usesSpring: false),
-            .init(value: 0.0, duration: 0.18, usesSpring: false)
-        ],
         duration: 0.26
     )
 
@@ -141,10 +124,6 @@ enum CombatFeedbackCardRecipes {
         offsetY: [
             .init(value: 0, duration: 0.08),
             .init(value: 0, duration: 0.16)
-        ],
-        flashOpacity: [
-            .init(value: 0.12, duration: 0.06, usesSpring: false),
-            .init(value: 0.0, duration: 0.14, usesSpring: false)
         ],
         duration: 0.24
     )
@@ -179,10 +158,6 @@ enum CombatFeedbackCardRecipes {
             .init(value: 4, duration: 0.1, usesSpring: false),
             .init(value: -2, duration: 0.1, usesSpring: false),
             .init(value: 0, duration: 0.1, usesSpring: false)
-        ],
-        flashOpacity: [
-            .init(value: 0.0, duration: 0.06, usesSpring: false),
-            .init(value: 0.0, duration: 0.22, usesSpring: false)
         ],
         duration: 1.0
     )

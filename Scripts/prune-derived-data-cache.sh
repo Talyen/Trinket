@@ -34,6 +34,23 @@ rm -rf \
   "$DERIVED_DATA_PATH/Logs" \
   2>/dev/null || true
 
+# Per-package DerivedData tenants (parallel package builds).
+if [[ -d "$DERIVED_DATA_PATH/packages" ]]; then
+  find "$DERIVED_DATA_PATH/packages" -mindepth 1 -maxdepth 1 -type d -print0 \
+    | while IFS= read -r -d '' package_dd; do
+      rm -rf \
+        "$package_dd/Build/Intermediates.noindex" \
+        "$package_dd/Build/ProfileData" \
+        "$package_dd/Index.noindex" \
+        "$package_dd/Index" \
+        "$package_dd/SymbolCache" \
+        "$package_dd/SDKStatCaches.noindex" \
+        "$package_dd/CompilationCache.noindex" \
+        "$package_dd/Logs" \
+        2>/dev/null || true
+    done
+fi
+
 # Drop xcresults from the cache blob (uploaded separately as artifacts).
 find "$DERIVED_DATA_PATH/TestResults" -type d -name '*.xcresult' -prune -exec rm -rf {} + 2>/dev/null || true
 

@@ -58,10 +58,11 @@ struct ChapterStageSelectView: View {
             updateMusicPreview()
             prepareActiveBattleRun()
             // Deep-link / restore paths skip the mode-card press prep. Finish
-            // presentation warmup after the first committed frame.
+            // presentation warmup after the first committed frame, then await
+            // atlas / dissolve so the Stage Select CTA is not the first bake.
             Task { @MainActor in
                 await Task.yield()
-                BattlePresentationWarmup.prepare(
+                await BattlePresentationWarmup.prepareAndWait(
                     dynamicTypeSize: dynamicTypeSize,
                     displayScale: displayScale
                 )
@@ -69,6 +70,12 @@ struct ChapterStageSelectView: View {
                     heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
                     companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
                 )
+                if let stageID = appState.journey.activeStageID {
+                    let names = appState.battle.preparedAbilityArtworkNames(
+                        for: .journey(stageID: stageID)
+                    )
+                    await PreparedArtworkCache.shared.prepareAndPin(names: names)
+                }
             }
         }
         .onChange(of: appState.journey) { _, _ in

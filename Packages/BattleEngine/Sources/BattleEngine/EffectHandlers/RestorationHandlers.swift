@@ -14,18 +14,16 @@ struct InstantHealHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let bonus = EnemyTraitEngine.bonusHealAmount(ability: ability, sourceID: source.id, in: context)
-        let totalAmount = amount + bonus
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
-                amount: totalAmount,
+                amount: amount,
                 target: target,
                 sourceActorID: source.id,
                 logAs: .instantHeal(
                     actorName: source.name,
                     abilityName: ability.name,
                     keyword: keyword,
-                    displayAmount: totalAmount
+                    displayAmount: amount
                 )
             ),
             in: &context

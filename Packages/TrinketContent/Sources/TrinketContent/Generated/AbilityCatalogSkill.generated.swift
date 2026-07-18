@@ -18,16 +18,6 @@ enum AbilityCatalogSkillGenerated {
         amount: 2, keyword: .freeze
     )
 
-    static let lightningArrow = AbilityBuilder.directHit(
-        id: "lightning-arrow", name: "Lightning Arrow", tier: .skill,
-        amount: 3, keyword: .nature
-    )
-
-    static let lightningBolt = AbilityBuilder.directHit(
-        id: "lightning-bolt", name: "Lightning Bolt", tier: .skill,
-        amount: 3, keyword: .nature
-    )
-
     static let poisonDagger = AbilityBuilder.directHit(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
         amount: 3, keyword: .poison
@@ -73,8 +63,6 @@ enum AbilityCatalogSkillGenerated {
         burningBlade,
         fireball,
         frostbolt,
-        lightningArrow,
-        lightningBolt,
         poisonDagger,
         sapArrow,
         roulette,

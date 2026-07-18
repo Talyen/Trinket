@@ -18,13 +18,15 @@ struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var hidesNavigationBar = false
 
-    /// Sub-picker navigation state — owned here at the pane level so the
+    /// Sub-picker / view-detail navigation state — owned here at the pane level so the
     /// navigationDestination modifiers are at the root of whatever NavigationStack
-    /// is presenting this view. No nested UISheetPresentationControllers.
+    /// is presenting this view. No nested UISheetPresentationControllers for loadout.
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
     @State private var pendingItemEquip: PendingItemEquip?
     @State private var selectedAbility: Ability?
+    @State private var viewingAbility: ViewOnlyAbility?
+    @State private var viewingItem: InventoryItem?
     @State private var selectionFeedbackTrigger = 0
 
     /// Pairs the destination slot with the picked item so Equip does not re-read
@@ -35,6 +37,15 @@ struct CombatantDetailPane: View {
 
         var id: String {
             "\(slot.rawValue)::\(item.id)"
+        }
+    }
+
+    /// Distinct from `Ability` so view-only and loadout destinations do not collide.
+    private struct ViewOnlyAbility: Hashable, Identifiable {
+        let ability: Ability
+
+        var id: String {
+            ability.id
         }
     }
 
@@ -110,6 +121,12 @@ struct CombatantDetailPane: View {
                 onPrimaryAction: { select(ability) }
             )
         }
+        .navigationDestination(item: $viewingAbility) { wrapper in
+            AbilityDetailView(ability: wrapper.ability)
+        }
+        .navigationDestination(item: $viewingItem) { item in
+            ItemDetailView(item: item)
+        }
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
@@ -167,7 +184,8 @@ struct CombatantDetailPane: View {
                 progression: progression,
                 loadout: $loadout,
                 allowsEditing: allowsEditing,
-                onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil
+                onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
+                onViewAbility: allowsEditing ? nil : { viewingAbility = ViewOnlyAbility(ability: $0) }
             )
             .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         }
@@ -177,7 +195,8 @@ struct CombatantDetailPane: View {
                 role: combatant.role,
                 equipmentLoadout: equipmentLoadout,
                 inventoryState: inventoryState,
-                onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+                onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
+                onViewItem: allowsEditing ? nil : { viewingItem = $0 }
             )
             .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         }
@@ -191,26 +210,14 @@ struct CombatantDetailPane: View {
         DetailSection("Traits", sectionID: sectionID) {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(traits) { trait in
-                    traitRow(trait, descriptionID: descriptionID)
+                    DetailTraitRow(
+                        title: trait.name,
+                        description: trait.description,
+                        descriptionAccessibilityID: descriptionID
+                    )
                 }
             }
         }
-    }
-
-    private func traitRow(_ trait: CombatantTraitDefinition, descriptionID: String) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            Text(trait.name)
-                .trinketTypography(.cardTitle)
-                .foregroundStyle(.primary)
-
-            KeywordDescriptionText(text: trait.description)
-                .trinketTypography(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.leading)
-                .accessibilityIdentifier(descriptionID)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .trinketSurface(.secondary)
     }
 
     private func currentHealth(for combatBuild: CombatBuild) -> Int {

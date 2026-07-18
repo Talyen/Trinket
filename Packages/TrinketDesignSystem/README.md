@@ -33,7 +33,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
 | Homestead tints | `HomesteadTint.color` | `HomesteadTintOrange` … |
-| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceCrystal` (+ gold via KeywordGold) |
+| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` (+ gold via KeywordGold) |
 | Chapter | `TrinketDesign.Colors.chapterVerdant` | `ChapterVerdant` |
 
 Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.

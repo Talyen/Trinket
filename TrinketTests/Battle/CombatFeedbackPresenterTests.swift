@@ -261,6 +261,8 @@ struct CombatFeedbackPresenterTests {
         #expect(items[0].presentationIndex == 0)
         #expect(items.allSatisfy { $0.groupResultCount == 4 })
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3])
+        #expect(items[0].presentationRole == .headline)
+        #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }
 
     @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
@@ -297,7 +299,7 @@ struct CombatFeedbackPresenterTests {
         #expect(snapshot.evictionCount == 1)
     }
 
-    @Test func burstsSkipUtilityClasses() {
+    @Test func chipPresentationDoesNotEmitKeywordBursts() {
         let now = Date(timeIntervalSince1970: 10)
         let items = CombatFeedbackPresenter.makeItems(
             from: [
@@ -312,10 +314,7 @@ struct CombatFeedbackPresenterTests {
             ],
             at: now
         )
-        let bursts = CombatFeedbackPresenter.bursts(for: items)
-        #expect(bursts.count == 1)
-        #expect(bursts[0].id == 2)
-        #expect(bursts[0].particleCount == CombatFeedbackLayout.particleCount(for: .directDamage))
+        #expect(CombatFeedbackPresenter.bursts(for: items).isEmpty)
     }
 
     private func makeEvent(
@@ -453,19 +452,17 @@ extension CombatFeedbackPresenterTests {
     }
 
     @Test @MainActor func routesResourceAndNamedStatusVisuals() throws {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
-                makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana),
-                makeEvent(id: 3, kind: .effect, effectKind: .manaShieldTriggered, amount: 1, keyword: .mana),
-                makeEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .physical),
-                makeEvent(id: 5, kind: .effect, effectKind: .hasteApplied, amount: 2, keyword: .physical),
-                makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
-                makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
-                makeEvent(id: 8, kind: .effect, effectKind: .mitigationHalved, amount: 0, keyword: .armor)
-            ],
-            at: .now
-        )
+        let now = Date.now
+        let items = [
+            makeEvent(id: 1, kind: .effect, effectKind: .resourceGain, amount: 3, keyword: .gold),
+            makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana),
+            makeEvent(id: 3, kind: .effect, effectKind: .manaShieldTriggered, amount: 1, keyword: .mana),
+            makeEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .physical),
+            makeEvent(id: 5, kind: .effect, effectKind: .hasteApplied, amount: 2, keyword: .physical),
+            makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
+            makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
+            makeEvent(id: 8, kind: .effect, effectKind: .mitigationHalved, amount: 0, keyword: .armor)
+        ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
         #expect(try #require(byID[1]).feedbackVisualStyle.symbolName == "circle.circle.fill")

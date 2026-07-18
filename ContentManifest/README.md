@@ -147,11 +147,14 @@ Validate manifests only:
 ./Scripts/validate-manifests.sh
 ```
 
-Regenerate and verify committed output matches:
+Regenerate and verify committed output matches HEAD (CI / pre-push):
 
 ```sh
 ./Scripts/assert-generated-output.sh --regenerate
 ```
+
+For mid-task consistency after `./Scripts/generate.sh`, use
+`./Scripts/assert-generated-output.sh --idempotent` (what `verify-changed` runs).
 
 Legacy subcommands (`generate-content-catalogs.sh`, `generate-ability-shorthand.sh`) still work but print a notice to prefer `generate.sh`.
 

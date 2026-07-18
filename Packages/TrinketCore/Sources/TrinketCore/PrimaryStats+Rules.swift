@@ -11,7 +11,7 @@ public extension PrimaryStats {
         case .physical, .stun: strength / 5
         case .bleed: agility / 5
         case .burn, .freeze: intellect / 5
-        case .poison, .holy, .nature: wisdom / 5
+        case .poison, .holy: wisdom / 5
         default: 0
         }
     }
@@ -46,7 +46,7 @@ public extension PrimaryStats {
             Double(agility) * 0.0025
         case .burn, .freeze:
             Double(intellect) * 0.0025
-        case .poison, .holy, .nature, .health, .leech:
+        case .poison, .holy, .health, .leech:
             Double(wisdom) * 0.0025
         default:
             0

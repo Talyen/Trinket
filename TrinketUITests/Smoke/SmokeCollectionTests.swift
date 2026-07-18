@@ -1,13 +1,16 @@
 import XCTest
 
-final class SmokeCollectionTests: TrinketUITestCase {
-    func testFreshStartCollectionHidesInventorySection() {
-        launchApp(arguments: [
+final class SmokeCollectionTests: SeededSmokeUITestCase {
+    override var launchArguments: [String] {
+        [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
             "-selectedTab",
             "collection"
-        ])
+        ]
+    }
+
+    func testFreshStartCollectionHidesInventorySection() {
         collection.assertLoaded()
         assertExists(AccessibilityID.Collection.heroesCategory)
         assertExists(AccessibilityID.Collection.companionsCategory)

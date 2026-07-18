@@ -61,9 +61,9 @@ struct AbilityEffectIntegrationTests {
             "Expected Bloodthorn to resolve in battle"
         )
 
-        // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
-        // before any end-of-round DoT tick. Ability Leech heals 50% of damage dealt.
-        try #expect(battle.health(of: battle.enemy) == 94)
+        // Two typed damage components (2 bleed, 2 poison) resolve
+        // before any end-of-round DoT tick. Leech was removed from Bloodthorn.
+        try #expect(battle.health(of: battle.enemy) == 96)
         try #expect(battle.hasEnemyEffect {
             if case .bleed = $0 {
                 return true
@@ -74,7 +74,7 @@ struct AbilityEffectIntegrationTests {
                 return true
             }; return false
         })
-        try #expect(battle.health(of: battle.hero) > 10)
+        try #expect(battle.health(of: battle.hero) == 10)
         try #expect(!battle.hasHeroEffect {
             if case .leech = $0 {
                 return true

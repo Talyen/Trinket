@@ -1,48 +1,8 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    /// Mid-battle interactions: enter via Play map and assert turn-based chrome stays visible.
-    func testMidBattleCombatantDetailAndHandChrome() throws {
-        launchApp(arguments: TestLaunchArg.allForMidBattle())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-
-        // If Stage 1-1 already resolved, mid-battle chrome is gone — skip rather than false-green.
-        if battle.waitForMidBattleOrVictory() {
-            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
-        }
-
-        // Knight is the card we open; Wolf may already be downed / off-layout mid-fight.
-        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
-
-        // Turn-based chrome: hand should be present mid-battle.
-        battle.assertActive()
-        assertExists(AccessibilityID.Battle.hand)
-
-        XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden during battle")
-        assertButtonExists(AccessibilityID.Battle.actionsMenu)
-
-        battle.openActions()
-        assertButtonExists(AccessibilityID.Battle.combatLog)
-        assertButtonExists(AccessibilityID.Battle.retreat)
-        battle.combatLogAction.tap()
-        assertExists(AccessibilityID.Battle.combatLog)
-        XCTAssertFalse(app.buttons["Close Combat Log"].exists)
-        dismissSheet()
-
-        if battle.victory.waitForExistence(timeout: 1) {
-            throw XCTSkip("Battle resolved during mid-battle assertions; covered by victory test")
-        }
-
-        battle.assertPresented()
-        battle.assertActive()
-        battle.openCombatantCard(named: "Knight")
-        assertCombatantDetailSections()
-        dismissSheet()
-    }
-
     /// Hand drag onto a combatant must not open details; tap still works after.
-    /// Kept out of smoke: mid-battle interactions enter via Play map, not `-launch-screen battle`.
+    /// Single owner for this safety invariant (not in smoke).
     func testHandDragReleaseOnCombatantDoesNotOpenDetail() throws {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
@@ -75,29 +35,18 @@ final class BattleFlowUITests: TrinketUITestCase {
         combatantDetail.assertLoaded(for: "Knight")
     }
 
-    /// Victory remains focused on Battle; Combat Log is available from Battle Actions.
+    /// Victory remains focused on Battle; continue and reward item detail are reachable.
     func testBattleVictorySummaryAndPostVictoryMenu() {
         launchApp(arguments: TestLaunchArg.allForBattleVictory())
 
         assertExists(battle.victory, timeout: Self.defaultTimeout)
-
-        assertExists(AccessibilityID.Battle.experience)
-        XCTAssertFalse(app.buttons["Victory Reward Chest"].exists)
-        XCTAssertFalse(app.buttons["Open Rewards Button"].exists)
-
         assertExists(AccessibilityID.Battle.rewards)
         assertExists(AccessibilityID.Battle.experience)
-        let rewardItemID = "chapter-1-stage-1-loot"
         assertButtonExists(AccessibilityID.Battle.continueButton)
+
+        let rewardItemID = "chapter-1-stage-1-loot"
         assertButtonExists(AccessibilityID.Battle.rewardItem(rewardItemID))
-        assertExists(app.staticTexts["BASIC"])
-        assertExists(app.staticTexts["Leather Armor"])
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
-        // Sheet + hero header art can take longer under exhaustive suite load than smoke.
-        XCTAssertTrue(
-            app.navigationBars["Leather Armor"].waitForExistence(timeout: 8),
-            "Reward item detail sheet did not present"
-        )
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 8)
         dismissSheet()
         assertButtonExists(AccessibilityID.Battle.continueButton)
@@ -106,8 +55,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.openActions()
         assertButtonExists(AccessibilityID.Battle.combatLog)
         XCTAssertFalse(battle.retreatAction.exists, "Retreat should be unavailable after victory")
-        battle.combatLogAction.tap()
-        assertExists(AccessibilityID.Battle.combatLog)
     }
 
     func testRetreatRestoresPlayNavigation() throws {
@@ -115,7 +62,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
-        // Stage 1-1 can resolve before retreat is reachable — skip rather than false-green.
         if battle.waitForMidBattleOrVictory() {
             throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
         }

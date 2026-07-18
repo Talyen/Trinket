@@ -137,15 +137,6 @@ package enum EnemyTraitEngine {
         return events
     }
 
-    package static func bonusHealAmount(
-        ability: Ability,
-        sourceID: String,
-        in context: BattleEngineContext
-    ) -> Int {
-        guard ability.id == "grasping-vines" else { return 0 }
-        return context.modifiers(for: sourceID).graspingVinesHealBonus
-    }
-
     package static func bonusBleedPotency(
         ability: Ability,
         sourceID: String,

@@ -21,11 +21,11 @@ Confirm P0–P2 UI-test candidates with a focused current run, then make a bound
 
 | Tier | Command | Belongs here |
 |------|---------|--------------|
-| Smoke | `./Scripts/test.sh smoke` | One theme per method; load + critical control exists; ~minutes not journeys |
-| Exhaustive UI | `./Scripts/test.sh ui` | Multi-step journeys |
+| Smoke | `./Scripts/test.sh smoke` / `smoke-full` | Shell/entry canaries only (see Testing.md rubric); ~minutes not journeys |
+| Exhaustive UI | `./Scripts/test.sh ui` | State-changing journeys + one-owner safety invariants |
 | Unit | `./Scripts/test.sh unit` | Rules/state — not full-app spins |
 
-Prefer `-launch-screen` / `-selectedTab` / `-completed-stages` / `-map-scroll-target` over tab+grid navigation. Prefer `replaceText` over long grid scrolls. Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync` unless testing persistence.
+Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer `-launch-screen` / `-selectedTab` / `-completed-stages` / `-map-scroll-target` over tab+grid navigation. Prefer `replaceText` over long grid scrolls. Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync` unless testing persistence.
 
 ## Scoring
 

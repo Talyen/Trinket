@@ -98,8 +98,8 @@ public enum MysteryEventPool {
             narrative: "A leather-wrapped bundle tucked between exposed roots catches your eye. Whatever is inside has been hidden here for a long time.",
             artID: "mystery-leather-bundle-between-roots",
             choices: [
-                ("take-coinpurse", "Take the Coinpurse", [.gainGold(20)]),
-                ("claim-blade", "Claim the Blade", [generatedItem("dagger")])
+                ("take-coinpurse", "Take the Coinpurse", [.gainGold(20), .gainMaterial(.hide, 3)]),
+                ("claim-blade", "Claim the Blade", [generatedItem("dagger"), .gainMaterial(.hide, 2)])
             ]
         ),
         ev(
@@ -254,8 +254,8 @@ public enum MysteryEventPool {
             narrative: "A deserted lodge still smells of smoke, wood, and leather. A hunter's bow and hatchet hang near the door, preserved and waiting.",
             artID: nil,
             choices: [
-                ("take-bow", "Take the Bow", [generatedItem("shortbow")]),
-                ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet")])
+                ("take-bow", "Take the Bow", [generatedItem("shortbow"), .gainMaterial(.hide, 4)]),
+                ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet"), .gainMaterial(.hide, 4)])
             ]
         ),
         ev(

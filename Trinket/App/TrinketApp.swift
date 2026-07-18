@@ -74,6 +74,9 @@ struct TrinketApp: App {
 }
 
 private struct PreparedAppRoot: View {
+    /// Avoid a flash when launch prep finishes before the screen can register.
+    private static let minimumLaunchDisplayDuration: Duration = .seconds(1)
+
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @State private var artworkCache = PreparedArtworkCache.shared
@@ -89,7 +92,7 @@ private struct PreparedAppRoot: View {
                 ContentView()
             } else {
                 ZStack {
-                    LaunchWarmupView(progress: artworkCache.progress)
+                    LaunchWarmupView()
                     if shouldPrepareCastEffects, !areCastEffectsPrepared {
                         CardCastEffectsPrewarmView {
                             areCastEffectsPrepared = true
@@ -106,6 +109,10 @@ private struct PreparedAppRoot: View {
                 MetricKitHitchSubscriber.shared.start()
                 guard !isResourcePreparationComplete else { return }
                 appState.prepareLaunchPerformanceResources()
+                // Align the minimum hold with first paint (same yield as the
+                // progress fill) so a warm cache cannot dismiss before the bar runs.
+                await Task.yield()
+                let displayedAt = ContinuousClock.now
                 await BattlePresentationWarmup.prepareForLaunch(
                     dynamicTypeSize: dynamicTypeSize,
                     displayScale: displayScale
@@ -116,12 +123,20 @@ private struct PreparedAppRoot: View {
                    let stage = GameContent.stage(id: stageID) {
                     appState.prepareBattle(for: stage)
                 }
+                let hold = Self.minimumLaunchDisplayDuration
+                    - displayedAt.duration(to: ContinuousClock.now)
+                if hold > .zero {
+                    try? await Task.sleep(for: hold)
+                }
+                guard !Task.isCancelled else { return }
                 isResourcePreparationComplete = true
             }
     }
 
     private var shouldPrepareCastEffects: Bool {
-        AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold
+        // Always prime the live TimelineView / Canvas cast path. Cold-cast scenarios
+        // still skip dissolve texture prepare inside CardCastEffectsPrewarmView.
+        true
     }
 
     private var isPreparationComplete: Bool {

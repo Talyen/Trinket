@@ -12,14 +12,13 @@ trinket_run_env_print
 source ./Scripts/build-inputs.sh
 prepare_generated_inputs "$RESULTS_DIR"
 
-# shellcheck source=ensure-simulator.sh
-source ./Scripts/ensure-simulator.sh
-trinket_sim_slot_ensure
-ensure_test_simulator
-
+# Compile-only: generic simulator destination avoids booting a concrete sim.
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -sdk iphonesimulator \
-  -destination "$SIMULATOR_DESTINATION" \
-  -derivedDataPath "$DERIVED_DATA_PATH"
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath "$DERIVED_DATA_PATH" \
+  COMPILER_INDEX_STORE_ENABLE=NO \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO

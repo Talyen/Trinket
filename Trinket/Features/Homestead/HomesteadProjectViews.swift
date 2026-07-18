@@ -95,8 +95,7 @@ struct HomesteadProjectRow: View {
     }
 
     private var effectLine: String {
-        guard let effect = status.overviewEffect else { return definition.summary }
-        return effect.description
+        status.overviewCaption
     }
 }
 

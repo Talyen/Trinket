@@ -203,9 +203,9 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "heartwood_renewal",
             name: "Heartwood Renewal",
-            description: "Restore 1 Health every 6 seconds. Grasping Vines restores 1 extra Health.",
+            description: "Restore 1 Health every 6 seconds.",
             modifiers: [],
-            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTicks: 6, graspingVinesHealBonus: 1)
+            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTicks: 6)
         ),
         CombatantTraitDefinition(
             id: "living_furnace",
@@ -325,13 +325,6 @@ enum GameContentTraitsGenerated {
             description: "Takes 35% more Burn damage. Burn damage erodes Block shield duration.",
             modifiers: [.damageTakenVulnerability(.burn, 0.35)],
             triggers: CombatTraitTriggers(shieldErosionKeyword: .burn, shieldErosionTicks: 1)
-        ),
-        CombatantTraitDefinition(
-            id: "rusted_joints",
-            name: "Rusted Joints",
-            description: "Takes 30% more Nature damage.",
-            modifiers: [.damageTakenVulnerability(.nature, 0.30)],
-            triggers: CombatTraitTriggers()
         ),
     ]
 }

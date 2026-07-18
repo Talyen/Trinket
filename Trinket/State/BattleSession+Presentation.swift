@@ -6,6 +6,79 @@ import TrinketDesignSystem
 import TrinketPersistence
 
 extension BattleSession {
+    func setMusicPreview(for stage: Stage?) {
+        guard activeBattle == nil,
+              let stage,
+              let enemyID = stage.encounter.battleEnemyID
+        else {
+            preview = nil
+            return
+        }
+
+        preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
+    }
+
+    func presentCombatantDetail(_ detail: CombatantCardDetail) {
+        overlayCombatantDetail = detail
+    }
+
+    func presentAbilityDetail(_ ability: Ability) {
+        overlayAbilityDetail = ability
+    }
+
+    func clearAbilityDetail() {
+        overlayAbilityDetail = nil
+    }
+
+    func publishAttackReaction(_ reaction: CombatantAttackReaction, for combatantID: String) {
+        attackReactionsByCombatantID[combatantID] = reaction
+        noteAttackReactionPresentationChanged()
+    }
+
+    func beginAttackWindUp(for combatantID: String) {
+        nextSpectacleID += 1
+        publishAttackReaction(
+            CombatantAttackReaction(id: nextSpectacleID, kind: .attack, phase: .windUp),
+            for: combatantID
+        )
+    }
+
+    func commitAttackSwing(for combatantID: String) {
+        nextSpectacleID += 1
+        publishAttackReaction(
+            CombatantAttackReaction(id: nextSpectacleID, kind: .attack, phase: .swing),
+            for: combatantID
+        )
+    }
+
+    func cancelAttack(for combatantID: String) {
+        nextSpectacleID += 1
+        publishAttackReaction(
+            CombatantAttackReaction(id: nextSpectacleID, kind: .attack, phase: .cancel),
+            for: combatantID
+        )
+    }
+
+    func publishFullAttack(for combatantID: String) {
+        nextSpectacleID += 1
+        publishAttackReaction(
+            CombatantAttackReaction(id: nextSpectacleID, kind: .attack, phase: .full),
+            for: combatantID
+        )
+    }
+
+    /// Resolves a hand-card owner to the live combatant id for attack telegraph.
+    func combatantID(for participant: BattleParticipant) -> String? {
+        switch participant {
+        case .hero:
+            presentation.hero?.combatant.id ?? state?.hero.id
+        case .companion:
+            presentation.companion?.combatant.id ?? state?.companion.id
+        case .enemy:
+            presentation.enemy?.combatant.id ?? state?.enemy.id
+        }
+    }
+
     func markCinematicPlaying() {
         guard var cinematic = activeCinematic, cinematic.phase == .expanding else { return }
         cinematic.phase = .playing
@@ -148,16 +221,14 @@ extension BattleSession {
         if battleState.isHeroAlive {
             hitReactionsByTargetID[battleState.hero.id] = CombatantHitReaction(
                 id: baseID,
-                kind: .celebrate,
-                keyword: .physical
+                kind: .celebrate
             )
             didPublish = true
         }
         if battleState.isCompanionAlive {
             hitReactionsByTargetID[battleState.companion.id] = CombatantHitReaction(
                 id: baseID &- 1,
-                kind: .celebrate,
-                keyword: .physical
+                kind: .celebrate
             )
             didPublish = true
         }
@@ -222,6 +293,11 @@ extension BattleSession {
     }
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
+        #if DEBUG
+        if performanceSuppressFeedbackPresentation {
+            return
+        }
+        #endif
         let nonMilestone = events.filter { $0.kind != .milestone }
         guard let state else {
             recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
@@ -347,14 +423,34 @@ extension BattleSession {
               let journey = autoEndJourney,
               let homestead = autoEndHomestead else { return }
 
-        let delay = autoEndTurnDelay
+        let settleDelay = autoEndTurnDelay
         pendingAutoEndTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.sleep(for: .seconds(settleDelay))
             guard let self, !Task.isCancelled else { return }
             guard canEndTurn, !hasPlayableCard else { return }
+
+            if shouldTelegraphEnemyAttack(), let enemyID = state?.enemy.id {
+                publishFullAttack(for: enemyID)
+                let impactDelay = enemyAttackImpactDelayOverride
+                    ?? TrinketMotion.Battle.cardAttack(for: .attack).impactDelay
+                if impactDelay > 0 {
+                    try? await Task.sleep(for: .seconds(impactDelay))
+                    guard !Task.isCancelled else { return }
+                    guard canEndTurn, !hasPlayableCard else { return }
+                }
+            }
+
             let earnedGold = endTurn(journey: journey, homestead: homestead)
             onTurnAutoEnded?(earnedGold)
         }
+    }
+
+    /// True when the upcoming `endTurn` will have the enemy perform an ability.
+    func shouldTelegraphEnemyAttack() -> Bool {
+        guard let state else { return false }
+        guard state.roster.enemy.isAlive else { return false }
+        guard !state.roster.hasPendingActionSkip(for: state.enemy) else { return false }
+        return true
     }
 
     func cancelPendingAutoEnd() {
@@ -388,7 +484,13 @@ extension BattleSession {
         if isShowingBattleLog {
             isShowingBattleLog = false
         }
-        playSFX(SFXID.abilityDraw) // opening hand
+        // Opening-hand SFX must not share the activate / first-layout frame with
+        // shell remount and BattleView construction.
+        Task { @MainActor in
+            await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
+            guard activeBattle?.id == configuration.id else { return }
+            playSFX(SFXID.abilityDraw)
+        }
     }
 
     static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
@@ -416,6 +518,12 @@ extension BattleSession {
         clearFeedback()
         clearSpectacle()
         clearOutcomePresentation()
+        pendingFeedbackPruneTask?.cancel()
+        pendingFeedbackPruneTask = nil
+        nextFeedbackPruneAt = nil
+        pendingFeedbackPresentationLoopTask?.cancel()
+        pendingFeedbackPresentationLoopTask = nil
+        pendingFeedbackPresentationDates.removeAll(keepingCapacity: true)
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false

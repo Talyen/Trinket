@@ -45,14 +45,6 @@ public enum LabyrinthCatalog {
             bossEnemyID: "the_iron_bear"
         ),
         LabyrinthBiomeDefinition(
-            id: .wildrootHollow,
-            title: "Wildroot Hollow",
-            epithet: "Growth as weapon",
-            keywordBias: .nature,
-            enemyPool: ["mud_elemental", "slime", "goblin"],
-            bossEnemyID: "the_blight_treant"
-        ),
-        LabyrinthBiomeDefinition(
             id: .rimeDescent,
             title: "Rime Descent",
             epithet: "Stillness that binds",
@@ -123,15 +115,6 @@ public enum LabyrinthCatalog {
             keywordBias: .bleed,
             enemyPowerPercent: 10,
             xpPercent: 15
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("rootboundHoard"),
-            title: "Rootbound Hoard",
-            epithet: "Nature keeps its gifts",
-            category: .affinity,
-            keywordBias: .nature,
-            goldPercent: 10,
-            itemDropBonusPercent: 15
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("gildedWhisper"),

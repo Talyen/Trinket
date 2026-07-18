@@ -96,12 +96,12 @@ struct AbilityDetailView: View {
             .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityDetail(ability.id))
         } bodyContent: {
             DetailSection(
-                "Effect",
+                "Traits",
                 sectionID: AccessibilityID.Battle.abilityDetailEffect
             ) {
-                KeywordDescriptionText(text: ability.summary)
-                    .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    DetailTraitRow(description: ability.summary)
+                }
             }
         }
         .safeAreaInset(edge: .bottom) {

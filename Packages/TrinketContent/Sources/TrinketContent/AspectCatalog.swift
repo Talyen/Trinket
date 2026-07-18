@@ -35,12 +35,6 @@ public enum AspectCatalog {
             keyword: .holy
         ),
         AspectDefinition(
-            id: .wildrootGrove,
-            title: "Wildroot Grove",
-            epithet: "Growth as weapon",
-            keyword: .nature
-        ),
-        AspectDefinition(
             id: .rimeVault,
             title: "Rime Vault",
             epithet: "Stillness that binds",
@@ -76,7 +70,6 @@ public enum AspectCatalog {
         .poison: ["plague_doctor", "necromancer", "the_blight_treant"],
         .bleed: ["mimic", "necromancer", "the_blight_treant"],
         .holy: ["skeleton", "living_armor", "the_iron_bear"],
-        .nature: ["mud_elemental", "the_blight_treant", "the_blight_treant"],
         .freeze: ["frost_elemental", "the_frostwarden"],
         .stun: ["goblin", "living_armor", "the_forge_golem"]
     ]

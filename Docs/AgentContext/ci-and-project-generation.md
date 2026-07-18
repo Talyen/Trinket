@@ -18,14 +18,22 @@ This card adds the CI/project-generation exceptions:
   diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3); slot
   sims stay Booted for reuse. Omit `--isolate` only for humans/CI that want the
   shared warm cache (`.DerivedData` + `Trinket CI`).
-- `verify-changed.sh` runs required generation once, then sets `SKIP_GENERATE=1` for app
+- `verify-changed.sh` runs required generation once, then an **idempotent**
+  generated-output check (`assert-generated-output.sh --idempotent`): regenerate
+  must not change tracked outputs further. That answers “does this working tree
+  match the manifests?” It does **not** require generated files to match HEAD —
+  commit completeness is CI / pre-push / `ci-gate.sh` (`assert-generated-output.sh`
+  without `--idempotent` after `generate.sh` on a clean or soon-to-push tree).
+- `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
   wrapper tests so a single verification run does not regenerate the project repeatedly.
 - Generation uses a **shared** lock at `.DerivedData/.generate.lock` with
   `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS` (default 120). On timeout, fail fast — do not
   kill the holder. XcodeGen cache stays at `.DerivedData/XcodeGen.cache`.
-- Shared-tenant (non-isolated) `test.sh` wrappers must not run in parallel: they share
-  DerivedData `build.db`. Isolated unit/package runs may proceed in parallel once each
-  has an agent slot. UI/smoke modes also take a fail-fast concurrency slot
+- Shared-tenant (non-isolated) app `test.sh` wrappers must not run in parallel: they
+  share the app DerivedData `build.db`. Package schemes use per-package tenants under
+  `$DERIVED_DATA_PATH/packages/<name>/` so package builds and package tests can run
+  in parallel. Isolated unit/package runs may proceed in parallel once each has an
+  agent slot. UI/smoke modes also take a fail-fast concurrency slot
   (`TRINKET_MAX_CONCURRENT_UI`, default 2). Agent sim slots and UI slots are both
   fail-fast when full.
 - Use a filtered command for intentionally narrow work; an affected player flow needs
@@ -37,6 +45,10 @@ This card adds the CI/project-generation exceptions:
   tenant; the wrappers reject stale inputs. Without Xcode 26/simulator, run the applicable
   generation, generated-output, boundary, style, and CI-gate checks and report skipped
   build/test work.
+- CI (`pr.yml` / `ci.yml`) builds once, prunes DerivedData with
+  `Scripts/prune-derived-data-cache.sh`, saves a run-scoped cache, and fans out unit /
+  smoke / exhaustive UI via `.github/actions/test-job` (`--no-build`, rebuild-on-miss).
+  Smoke/UI cache-miss rebuilds use `build-for-testing.sh --app-only`.
 - Parallel source trees: `./Scripts/agent-worktree.sh create <slug>` then verify with
   `--isolate` inside the sibling checkout.
 

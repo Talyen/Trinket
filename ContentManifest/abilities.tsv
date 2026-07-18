@@ -13,8 +13,6 @@ buff_only	smellingSalts	smelling-salts	Smelling Salts	basic				cleanse:stun|inst
 direct_hit	burningBlade	burning-blade	Burning Blade	skill	3	burn					
 direct_hit	fireball	fireball	Fireball	skill	2	burn					
 direct_hit	frostbolt	frostbolt	Frostbolt	skill	2	freeze					
-direct_hit	lightningArrow	lightning-arrow	Lightning Arrow	skill	3	nature					
-direct_hit	lightningBolt	lightning-bolt	Lightning Bolt	skill	3	nature					
 direct_hit	poisonDagger	poison-dagger	Poison Dagger	skill	3	poison					
 direct_hit	sapArrow	sap-arrow	Sap Arrow	skill	3	stun					
 direct_hit	roulette	roulette	Roulette	skill	3	physical				resource_gain:gold:3	
@@ -29,5 +27,5 @@ direct_hit	sunburst	sunburst	Sunburst	ultimate	6	holy				instant_heal:health:2
 buff_only	luckPotion	luck-potion	Luck Potion	ultimate				resource_gain:gold:3|instant_heal:health:2			
 buff_only	plateMail	plate-mail	Plate Mail	skill				mitigation:armor:3		
 buff_only	sanctifiedPlate	sanctified-plate	Sanctified Plate	ultimate				mitigation:armor:3|instant_heal:health:2			
-multi_damage	bloodthorn	bloodthorn	Bloodthorn	ultimate				bleed:2|poison:2	2:nature|2:bleed|2:poison		true
+multi_damage	bloodthorn	bloodthorn	Bloodthorn	ultimate				bleed:2|poison:2	2:bleed|2:poison		
 multi_damage	faustianBargain	faustian-bargain	Faustian Bargain	ultimate				resource_gain:gold:3	6:physical|3:physical:actor		

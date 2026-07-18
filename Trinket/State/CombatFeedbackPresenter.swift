@@ -39,16 +39,24 @@ enum CombatFeedbackPresenter {
                 .map { TrinketMotion.Battle.chip(for: $0.feedbackClass).lifetime }
                 .max() ?? 0
             let expiresAt = availableAt.addingTimeInterval(groupLifetime)
-            return sorted.enumerated().map { presentationIndex, preparedEvent in
-                makeItem(
-                    from: preparedEvent,
-                    actionGroupID: actionGroupID,
-                    presentationIndex: presentationIndex,
-                    groupResultCount: sorted.count,
-                    availableAt: availableAt,
-                    expiresAt: expiresAt
-                )
-            }
+            return CombatFeedbackPresentationFactory.makeItems(
+                from: sorted.map {
+                    CombatFeedbackPresentationFactory.Source(
+                        id: $0.id,
+                        sourceEventIDs: $0.sourceEventIDs,
+                        targetID: $0.targetID,
+                        feedbackClass: $0.feedbackClass,
+                        keyword: $0.keyword,
+                        visualRole: $0.visualRole,
+                        label: $0.label,
+                        secondaryText: $0.secondaryText,
+                        reactionKind: $0.reactionKind
+                    )
+                },
+                actionGroupID: actionGroupID,
+                availableAt: availableAt,
+                expiresAt: expiresAt
+            )
         }
     }
 
@@ -58,25 +66,14 @@ enum CombatFeedbackPresenter {
         }) else { return nil }
         return CombatantHitReaction(
             id: item.id,
-            kind: item.reactionKind,
-            keyword: item.keyword
+            kind: item.reactionKind
         )
     }
 
-    static func bursts(for items: [CombatFeedbackItem]) -> [KeywordBurstRequest] {
-        items.compactMap { item in
-            guard item.presentationIndex < 3 else { return nil }
-            let count = CombatFeedbackLayout.particleCount(for: item.feedbackClass)
-            guard count > 0 else { return nil }
-            return KeywordBurstRequest(
-                id: item.id,
-                keyword: item.keyword,
-                particleCount: count,
-                seed: item.spawnSeed,
-                availableAt: item.availableAt,
-                expiresAt: item.availableAt.addingTimeInterval(0.45)
-            )
-        }
+    /// Keyword particle bursts alongside floating chips are disabled; chips alone
+    /// carry feedback. The performance harness may still inject bursts directly.
+    static func bursts(for _: [CombatFeedbackItem]) -> [KeywordBurstRequest] {
+        []
     }
 
     // MARK: - Private
@@ -330,34 +327,5 @@ enum CombatFeedbackPresenter {
             return display.text
         }
         return String(firstToken)
-    }
-
-    private static func makeItem(
-        from prepared: PreparedEvent,
-        actionGroupID: Int,
-        presentationIndex: Int,
-        groupResultCount: Int,
-        availableAt: Date,
-        expiresAt: Date
-    ) -> CombatFeedbackItem {
-        let recipe = TrinketMotion.Battle.chip(for: prepared.feedbackClass)
-        return CombatFeedbackItem(
-            id: prepared.id,
-            sourceEventIDs: prepared.sourceEventIDs,
-            actionGroupID: actionGroupID,
-            presentationIndex: presentationIndex,
-            groupResultCount: groupResultCount,
-            targetID: prepared.targetID,
-            feedbackClass: prepared.feedbackClass,
-            keyword: prepared.keyword,
-            visualRole: prepared.visualRole,
-            label: prepared.label,
-            secondaryText: prepared.secondaryText,
-            spawnSeed: prepared.id,
-            lifetime: recipe.lifetime,
-            availableAt: availableAt,
-            expiresAt: expiresAt,
-            reactionKind: prepared.reactionKind
-        )
     }
 }

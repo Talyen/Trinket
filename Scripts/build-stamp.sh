@@ -29,3 +29,10 @@ package_test_scheme() {
     *) printf '%s\n' "$1" ;;
   esac
 }
+
+# Package schemes get their own DerivedData tenant so builds can run in parallel
+# without contending on a shared build.db. App builds keep DERIVED_DATA_PATH.
+package_derived_data_path() {
+  local package="$1"
+  printf '%s/packages/%s' "${DERIVED_DATA_PATH:?}" "$package"
+}

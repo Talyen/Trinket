@@ -4,12 +4,14 @@ import TrinketCore
 /// Closed vocabulary for combat floating chips. The glyph atlas and composer only
 /// accept these shapes — never free-form strings on the display-link path.
 enum CombatFeedbackChipLabel: Hashable {
-    static let numericAtlasFragments = ["%"] + (0 ... 9).map(String.init)
+    static let numericAtlasFragments = ["+", "%"] + (0 ... 9).map(String.init)
 
     /// Numeric chip sourced from a signed formatter token and displayed as a magnitude.
     case amount(Int)
     /// Percent chip sourced from a signed formatter token and displayed as a magnitude.
     case percent(Int)
+    /// Collapsed surplus chip (`+N`) when a resolve emits more results than fit on-art.
+    case overflow(Int)
     /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
 
@@ -21,17 +23,20 @@ enum CombatFeedbackChipLabel: Hashable {
             Self.formatAmount(value)
         case let .percent(value):
             Self.formatPercent(value)
+        case let .overflow(value):
+            Self.formatOverflow(value)
         case let .word(word):
             word.composeText ?? ""
         }
     }
 
     /// Atlas fragments needed to render this label. Numeric chips use the complete
-    /// prewarmed digit alphabet, so values of any size never trigger a raster miss.
-    /// Icon-only / dual-icon words contribute no fragments.
+    /// prewarmed digit alphabet so magnitude blits never wait on glyph baking.
+    /// Full chip rasters for specific amounts are still composed on demand (or from
+    /// the closed-vocabulary catalog for non-numeric chips).
     var atlasFragments: [String] {
         switch self {
-        case .amount, .percent:
+        case .amount, .percent, .overflow:
             displayString.map(String.init)
         case let .word(word):
             if let text = word.composeText {
@@ -48,6 +53,10 @@ enum CombatFeedbackChipLabel: Hashable {
 
     static func formatPercent(_ value: Int) -> String {
         "\(formatAmount(value))%"
+    }
+
+    static func formatOverflow(_ value: Int) -> String {
+        "+\(max(0, value))"
     }
 
     /// Builds a label from an `ActionEventDisplay` using the same first-token rule as
@@ -81,7 +90,7 @@ enum CombatFeedbackChipLabel: Hashable {
         switch self {
         case let .amount(value), let .percent(value):
             value == 0
-        case .word:
+        case .overflow, .word:
             false
         }
     }

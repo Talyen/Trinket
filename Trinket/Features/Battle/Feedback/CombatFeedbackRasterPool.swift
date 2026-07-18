@@ -5,6 +5,11 @@ import TrinketDesignSystem
 
 struct CombatFeedbackRasterKey: Hashable {
     let feedbackClass: String
+    let presentationRole: String
+    /// Keyword + visual role keep identically symbolled styles (e.g. poison vs bleed)
+    /// from sharing a pre-tinted raster.
+    let keyword: String
+    let visualRole: String
     let leadingSymbolName: String?
     let trailingSymbolName: String
     let label: CombatFeedbackChipLabel
@@ -47,8 +52,9 @@ struct CombatFeedbackRasterPoolSnapshot: Equatable {
 @MainActor
 final class CombatFeedbackRasterPool {
     static let shared = CombatFeedbackRasterPool()
-    /// Sized for a fight's concurrent chip templates without retaining every historic amount.
-    static let defaultCapacity = 32
+    /// Fits the closed vocabulary catalog plus headroom for live numeric magnitudes
+    /// during a fight. Numeric amounts stay on-demand (atlas digits are complete).
+    static let defaultCapacity = 384
 
     private let capacity: Int
     private var rasters: [CombatFeedbackRasterKey: CombatFeedbackRaster] = [:]
@@ -56,10 +62,26 @@ final class CombatFeedbackRasterPool {
     private var hitCount = 0
     private var buildCount = 0
     private var evictionCount = 0
-    private var pendingPacedPrepareTask: Task<Void, Never>?
+    private var pacedPrepareLoopTask: Task<Void, Never>?
+    private var pendingPrepareQueue: [PendingPrepareRequest] = []
+    private var preparedCatalogKey: String?
+
+    private struct PendingPrepareRequest {
+        let canvasItems: [CombatFeedbackCanvasItem]
+        let dynamicTypeSize: DynamicTypeSize
+        let layoutDirection: LayoutDirection
+        let displayScale: CGFloat
+        let onComplete: (@MainActor () -> Void)?
+    }
 
     init(capacity: Int = defaultCapacity) {
         self.capacity = max(1, capacity)
+    }
+
+    /// Starts the paced-prepare loop before the first cache miss so publish frames
+    /// only enqueue work instead of allocating a Task.
+    func prewarmPacedPrepareLoop() {
+        ensurePacedPrepareLoopRunning()
     }
 
     /// Lookup-only. The display-link path prefers this before composing.
@@ -122,6 +144,7 @@ final class CombatFeedbackRasterPool {
         guard let composed = CombatFeedbackChipComposer.compose(
             presentation: item.chipPresentation,
             feedbackClass: item.feedbackClass,
+            presentationRole: item.presentationRole,
             dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: scale
@@ -200,59 +223,108 @@ final class CombatFeedbackRasterPool {
             onComplete?()
             return
         }
-        pendingPacedPrepareTask?.cancel()
-        pendingPacedPrepareTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            for canvasItem in canvasItems {
-                guard !Task.isCancelled else { return }
-                if cachedRaster(
-                    for: canvasItem,
-                    dynamicTypeSize: dynamicTypeSize,
-                    layoutDirection: layoutDirection,
-                    displayScale: displayScale
-                ) != nil {
+        // Publish frames only enqueue. A long-lived loop owns sleeps — cancelling
+        // and reallocating `Task` here was a measured ChipPublish hitch.
+        pendingPrepareQueue.append(
+            PendingPrepareRequest(
+                canvasItems: canvasItems,
+                dynamicTypeSize: dynamicTypeSize,
+                layoutDirection: layoutDirection,
+                displayScale: displayScale,
+                onComplete: onComplete
+            )
+        )
+        ensurePacedPrepareLoopRunning()
+    }
+
+    private func ensurePacedPrepareLoopRunning() {
+        guard pacedPrepareLoopTask == nil else { return }
+        pacedPrepareLoopTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                guard !pendingPrepareQueue.isEmpty else {
+                    // Interruptible park — a 1s sleep let cold chip misses expire
+                    // before compose + re-flush, so feedback text never appeared.
+                    try? await Task.sleep(for: .milliseconds(16))
                     continue
                 }
-                await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
-                guard !Task.isCancelled else { return }
-                _ = prepare(
-                    for: canvasItem,
-                    dynamicTypeSize: dynamicTypeSize,
-                    layoutDirection: layoutDirection,
-                    displayScale: displayScale
-                )
+                let request = pendingPrepareQueue.removeFirst()
+                for canvasItem in request.canvasItems {
+                    guard !Task.isCancelled else { return }
+                    if cachedRaster(
+                        for: canvasItem,
+                        dynamicTypeSize: request.dynamicTypeSize,
+                        layoutDirection: request.layoutDirection,
+                        displayScale: request.displayScale
+                    ) != nil {
+                        continue
+                    }
+                    await Task.yield()
+                    try? await Task.sleep(for: .milliseconds(16))
+                    guard !Task.isCancelled else { return }
+                    _ = prepare(
+                        for: canvasItem,
+                        dynamicTypeSize: request.dynamicTypeSize,
+                        layoutDirection: request.layoutDirection,
+                        displayScale: request.displayScale
+                    )
+                }
+                request.onComplete?()
             }
-            pendingPacedPrepareTask = nil
-            onComplete?()
         }
     }
 
-    /// Starts paced glyph-atlas prewarm for the current Dynamic Type / scale.
+    /// Starts paced glyph-atlas + closed-catalog prewarm for the current Dynamic Type / scale.
     func prewarmInfrastructure(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) {
-        CombatFeedbackGlyphAtlas.shared.prepareBattlePresentation(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
+        Task { @MainActor in
+            await prewarmInfrastructureAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+        }
     }
 
     func prewarmInfrastructureAndWait(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) async {
+        let scale = max(1, displayScale)
+        let catalogKey = "\(dynamicTypeSize)|\(Int((scale * 100).rounded()))"
         await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
             dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
+            displayScale: scale
         )
+        guard preparedCatalogKey != catalogKey else { return }
+        let catalog = CombatFeedbackRasterCatalog.closedVocabularyCanvasItems()
+        // Yield between small batches so Stage Select / Battle appear stay responsive
+        // while still finishing before the typical first card play.
+        let batchSize = 8
+        var index = 0
+        while index < catalog.count {
+            let end = min(index + batchSize, catalog.count)
+            for canvasItem in catalog[index ..< end] {
+                _ = prepare(
+                    for: canvasItem,
+                    dynamicTypeSize: dynamicTypeSize,
+                    displayScale: scale
+                )
+            }
+            index = end
+            await Task.yield()
+        }
+        preparedCatalogKey = catalogKey
     }
 
     func removeAll() {
-        pendingPacedPrepareTask?.cancel()
-        pendingPacedPrepareTask = nil
+        // Keep the paced-prepare loop alive across clears — restarting it on the
+        // next miss allocated a Task on the measured ChipPublish frame.
+        pendingPrepareQueue.removeAll(keepingCapacity: true)
         rasters.removeAll(keepingCapacity: true)
         recency.removeAll(keepingCapacity: true)
+        preparedCatalogKey = nil
     }
 
     func removeAllIncludingAtlas() {
@@ -307,6 +379,9 @@ final class CombatFeedbackRasterPool {
         let scale = max(1, displayScale)
         return CombatFeedbackRasterKey(
             feedbackClass: item.feedbackClass.rawValue,
+            presentationRole: item.presentationRole.rawValue,
+            keyword: item.keyword.rawValue,
+            visualRole: item.visualRole.cacheKey,
             leadingSymbolName: presentation.leadingSymbolName,
             trailingSymbolName: presentation.trailingSymbolName,
             label: canvasItem.label,

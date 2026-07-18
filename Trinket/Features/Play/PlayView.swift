@@ -129,14 +129,22 @@ private struct PlayBrowsingStack: View {
            stage.encounter.battleEnemyID != nil {
             appState.prepareBattle(for: stage)
         }
-        BattlePresentationWarmup.prepare(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-        appState.battle.prepareBattlePresentation(
-            heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
-            companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
-        )
+        Task { @MainActor in
+            await BattlePresentationWarmup.prepareAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+            appState.battle.prepareBattlePresentation(
+                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
+                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+            )
+            if let stageID = appState.journey.activeStageID {
+                let names = appState.battle.preparedAbilityArtworkNames(
+                    for: .journey(stageID: stageID)
+                )
+                await PreparedArtworkCache.shared.prepareAndPin(names: names)
+            }
+        }
     }
 
     private func handleStageTap(_ stage: Stage) {
@@ -224,18 +232,20 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .sheet(item: $battle.overlayCombatantDetail, content: { detail in
-                CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
-                    .trinketDetailSheet(dragIndicator: .hidden)
-                    .appFramePacingSignpost(
+                NavigationStack {
+                    CombatantDetailPane(snapshot: detail)
+                }
+                .trinketDetailSheet()
+                .appFramePacingSignpost(
+                    AppFramePacingSignposts.Name.sheetPresent,
+                    isActive: true
+                )
+                .onAppear {
+                    AppFramePacingSignposts.event(
                         AppFramePacingSignposts.Name.sheetPresent,
-                        isActive: true
+                        detail: "enemyDetail=\(detail.id)"
                     )
-                    .onAppear {
-                        AppFramePacingSignposts.event(
-                            AppFramePacingSignposts.Name.sheetPresent,
-                            detail: "enemyDetail=\(detail.id)"
-                        )
-                    }
+                }
             })
             .sheet(item: $battle.overlayAbilityDetail, content: { ability in
                 NavigationStack {

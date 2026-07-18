@@ -48,7 +48,7 @@ struct AppStateAspectsTests {
             "-completed-stages",
             "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
-        // Seeded active companion is wolf (Nature/Physical). Pair with frost whelp to fail Physical.
+        // Seeded active companion is wolf (Poison/Physical). Pair with frost whelp to fail Physical.
         var roster = state.roster
         let frost = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
         roster.setActiveCompanion(frost)

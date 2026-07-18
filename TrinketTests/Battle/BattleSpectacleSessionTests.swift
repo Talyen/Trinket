@@ -54,7 +54,7 @@ struct BattleSpectacleSessionTests {
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
-                maxHealth: 5,
+                maxHealth: 3,
                 abilities: []
             )
         )
