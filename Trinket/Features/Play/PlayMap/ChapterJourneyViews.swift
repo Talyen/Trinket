@@ -62,7 +62,7 @@ private struct ChapterStageRow: View {
                 .frame(width: 74, height: 55.5)
                 .clipShape(TrinketDesign.cardShape)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(presentation.stage.encounterSubjectName)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)

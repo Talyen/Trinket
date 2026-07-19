@@ -60,7 +60,7 @@ struct HomesteadProjectRow: View {
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(definition.title)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(isLocked ? .secondary : .primary)

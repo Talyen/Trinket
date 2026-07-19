@@ -28,10 +28,11 @@ struct LabyrinthAtlasView: View {
                 }
                 if biomes.isEmpty {
                     Text("Places you meet are recorded here.")
+                        .trinketTypography(.secondaryBody)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(biomes) { biome in
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                             Text(biome.title)
                                 .trinketTypography(.button)
                             Text(biome.epithet)
@@ -48,10 +49,11 @@ struct LabyrinthAtlasView: View {
                 }
                 if modifiers.isEmpty {
                     Text("Powers you meet are recorded here.")
+                        .trinketTypography(.secondaryBody)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(modifiers) { modifier in
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                             Text(modifier.title)
                                 .trinketTypography(.button)
                             Text(modifier.epithet)
@@ -66,6 +68,7 @@ struct LabyrinthAtlasView: View {
                 Section("Milestones") {
                     ForEach(state.claimedMilestoneDepths.sorted(), id: \.self) { depth in
                         Text("Depth \(depth)")
+                            .trinketTypography(.body)
                     }
                 }
             }

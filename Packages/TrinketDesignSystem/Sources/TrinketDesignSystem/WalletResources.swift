@@ -51,7 +51,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             artwork
                 .frame(width: 36, height: 36)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(title)
                     .trinketTypography(.caption)
                     .foregroundStyle(.secondary)

@@ -47,7 +47,7 @@ private struct KeywordGlossaryPopover: View {
     let keyword: Keyword
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
             HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 Text(keyword.rawValue)
                     .trinketTypography(.cardTitle)

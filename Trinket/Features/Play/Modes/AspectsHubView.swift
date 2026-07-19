@@ -67,7 +67,7 @@ struct AspectsHubView: View {
                 .frame(width: 28, height: 28)
                 .trinketGlassChip()
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(aspect.title)
                     .trinketTypography(.button)
                 Text(aspect.epithet)

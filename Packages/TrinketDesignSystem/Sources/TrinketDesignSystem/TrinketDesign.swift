@@ -52,6 +52,8 @@ public enum TrinketDesign {
     }
 
     public enum Metrics {
+        /// Title/epithet and card-label stacks tighter than extraSmall.
+        public static let tightSpacing: CGFloat = 2
         public static let extraSmallSpacing: CGFloat = 4
         /// Dense chrome / wallet / chip-adjacent gaps between extraSmall and small.
         public static let denseSpacing: CGFloat = 6

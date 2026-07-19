@@ -71,6 +71,7 @@ struct LabyrinthMapView: View {
                     Section("Effects") {
                         ForEach(LabyrinthMapPresentation.modifierDetailLines(modifier), id: \.self) { line in
                             Text(line)
+                                .trinketTypography(.body)
                         }
                     }
                 }

@@ -16,7 +16,7 @@ struct ItemCard: View {
             artTile
 
             if showsName {
-                VStack(spacing: 2) {
+                VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
                     TrinketRarityLabel(rarity: item.rarity)
                         .lineLimit(1)
 

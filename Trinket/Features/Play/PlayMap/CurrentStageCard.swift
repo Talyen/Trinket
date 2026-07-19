@@ -64,7 +64,7 @@ struct CurrentStageCard: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
             Text(stage.mapLabel.uppercased())
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)

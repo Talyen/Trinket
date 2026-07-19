@@ -32,6 +32,7 @@ struct OptionsView: View {
                 Toggle(isOn: $options.hapticsEnabled) {
                     Label {
                         Text("Haptics")
+                            .trinketTypography(.body)
                     } icon: {
                         Image(systemName: options.hapticsEnabled ? "iphone.radiowaves.left.and.right" : "iphone")
                             .contentTransition(.symbolEffect(.replace))

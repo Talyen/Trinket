@@ -99,7 +99,7 @@ struct BattlePartyInlinePicker: View {
                     .frame(width: 38, height: 48)
                     .clipShape(TrinketDesign.cardShape)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                     Text(slot.title)
                         .trinketTypography(.badge)
                         .foregroundStyle(.secondary)

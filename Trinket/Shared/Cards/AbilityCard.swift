@@ -45,7 +45,7 @@ struct AbilityChoiceCard: View {
                 )
 
             if showsName {
-                VStack(spacing: 2) {
+                VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
                     Text(ability.tier.rawValue.uppercased())
                         .trinketTypography(.eyebrow)
                         .foregroundStyle(.secondary)

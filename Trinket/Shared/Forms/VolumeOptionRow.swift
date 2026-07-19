@@ -30,6 +30,7 @@ struct VolumeOptionRow: View {
             HStack {
                 Label {
                     Text(title)
+                        .trinketTypography(.body)
                 } icon: {
                     Image(systemName: dynamicIconName)
                         .contentTransition(.symbolEffect(.replace))
@@ -38,6 +39,7 @@ struct VolumeOptionRow: View {
                 Spacer()
 
                 Text(percentageText)
+                    .trinketTypography(.statValue)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }

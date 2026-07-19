@@ -286,7 +286,7 @@ struct HomesteadTierCostLabel: View {
     var body: some View {
         HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             ForEach(cost) { amount in
-                HStack(spacing: 3) {
+                HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
                     HomesteadResourceArtwork(resource: amount.resource)
                         .frame(width: 20, height: 20)
                     Text("\(amount.quantity)")
