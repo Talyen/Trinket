@@ -77,6 +77,7 @@ TRACKED_PATHS=(
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   TRACKED_PATHS+=(
     "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"

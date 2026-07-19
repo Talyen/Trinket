@@ -36,9 +36,9 @@ This card adds the CI/project-generation exceptions:
 - `generate.sh` prefers `.tools/xcodegen`. `--force-xcodegen` (or
   `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so stale “project has not
   changed” cannot hide `project.pbxproj` drift. Agent push gate sets
-  `TRINKET_REQUIRE_PINNED_TOOLS=1`. Asset prepare scripts skip re-encode when
-  outputs are up to date; set `FORCE_ASSET_REENCODE=1` only for intentional
-  binary refreshes.
+  `TRINKET_REQUIRE_PINNED_TOOLS=1`. Art prepare invalidates on source content hash
+  (not mtime); other asset prepare scripts still use mtime. Set
+  `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.
 - `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
   wrapper tests so a single verification run does not regenerate the project repeatedly.
 - Completed task-scoped and push-gate runs print an advisory `change-budget.sh`

@@ -77,8 +77,10 @@ prepare_generated_inputs() {
     content_changed="$(generation_paths_newer_than "$stamp" "${content_generation_inputs[@]}")"
     project_changed="$(generation_paths_newer_than "$stamp" project.yml)"
     assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}")"
-  elif asset_inputs_are_dirty; then
-    # A developer may edit an asset before the first local build creates a stamp.
+  fi
+  # Content edits can preserve stale mtimes (e.g. Darkroom exports). Git dirtiness
+  # catches those even when find -newer would miss them.
+  if [[ -z "$assets_changed" ]] && asset_inputs_are_dirty; then
     assets_changed="dirty asset input"
   fi
 

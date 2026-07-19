@@ -52,6 +52,8 @@ Run:
 
 The script validates manifest rows, verifies source files, converts selected images through macOS `sips` (HEIC with quality 80), writes the kind-appropriate `.imageset` folders, strips leftover unused variants, and regenerates the Swift art catalog.
 
+Reconvert is **content-hash based** (not mtime). Digests live in `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv`. Exporters that preserve stale timestamps (for example Darkroom) still invalidate when pixel bytes change. Set `FORCE_ASSET_REENCODE=1` to rebuild every curated asset regardless of hash.
+
 ### Environment Overrides
 
 | Variable | Default | Description |
@@ -59,6 +61,7 @@ The script validates manifest rows, verifies source files, converts selected ima
 | `ART_HEIC_QUALITY` | `80` | Lossy quality 0–100 |
 | `ART_MAX_DIMENSION` | `1600` | Full-image max dimension |
 | `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension |
+| `FORCE_ASSET_REENCODE` | `0` | When `1`, re-encode all curated art even when source hashes match |
 
 After changing `ArtManifest/curated-assets.tsv`, run the script, then run:
 
