@@ -89,12 +89,6 @@ struct BattleCombatantPane: View {
         CombatantArtwork(combatant: combatant, variant: .battle)
     }
 
-    private var resourceBarsReservedHeight: CGFloat {
-        let healthHeight = TrinketDesign.Metrics.battleHealthBarHeight
-        guard hasMana else { return healthHeight }
-        return healthHeight * 2
-    }
-
     private var resourceBars: some View {
         VStack(spacing: 0) {
             CombatHealthBar(

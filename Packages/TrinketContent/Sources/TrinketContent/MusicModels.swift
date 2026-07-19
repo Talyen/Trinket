@@ -14,10 +14,6 @@ public struct MusicTrack: Identifiable, Hashable, Sendable {
     public let bossEnemyID: String
     public let isLooping: Bool
     public let volumeGain: Double
-
-    public var resolvedBossEnemyID: String? {
-        bossEnemyID.isEmpty ? nil : bossEnemyID
-    }
 }
 
 public extension MusicCatalog {

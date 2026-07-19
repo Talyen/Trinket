@@ -172,13 +172,6 @@ public struct ExperienceBar: View {
         }
     }
 
-    private var levelLabel: String {
-        if pre.level == post.level {
-            return "Experience, level \(post.level)"
-        }
-        return "Experience, level \(pre.level) to \(post.level)"
-    }
-
     private func startAnimation() {
         animationTask = Task { @MainActor in
             let clock = SuspendingClock()

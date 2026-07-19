@@ -77,8 +77,10 @@
 				Detail/HeroHeaderLayout.swift,
 				Detail/ItemHeroHeader.swift,
 				Detail/ItemSlotPickerView.swift,
+				Detail/OptionPickerGrid.swift,
 				Detail/OverscrollHeroContainer.swift,
 				Detail/RosterCombatantDetailView.swift,
+				Detail/SlotSummaryGrid.swift,
 				Forms/VolumeOptionRow.swift,
 				KeywordDescriptionText.swift,
 			);

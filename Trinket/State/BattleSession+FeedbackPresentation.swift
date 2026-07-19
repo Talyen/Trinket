@@ -124,18 +124,17 @@ extension BattleSession {
     }
 }
 
-@MainActor
-final class BattleFeedbackScheduler: NSObject {
-    private weak var session: BattleSession?
+final class BattleFeedbackScheduler {
     private var pruneTimer: Timer!
+    private var target: FeedbackPruneTarget!
 
     init(session: BattleSession) {
-        self.session = session
-        super.init()
+        let target = FeedbackPruneTarget(session: session)
+        self.target = target
         pruneTimer = Timer(
             timeInterval: 86400,
-            target: self,
-            selector: #selector(prune),
+            target: target,
+            selector: #selector(FeedbackPruneTarget.fire),
             userInfo: nil,
             repeats: false
         )
@@ -155,7 +154,21 @@ final class BattleFeedbackScheduler: NSObject {
         pruneTimer.invalidate()
     }
 
-    @objc private func prune() {
-        session?.feedbackPruneTimerDidFire()
+    deinit {
+        pruneTimer?.invalidate()
+    }
+}
+
+private final class FeedbackPruneTarget: NSObject {
+    private weak var session: BattleSession?
+
+    init(session: BattleSession) {
+        self.session = session
+    }
+
+    @objc func fire() {
+        Task { @MainActor [weak session] in
+            session?.feedbackPruneTimerDidFire()
+        }
     }
 }

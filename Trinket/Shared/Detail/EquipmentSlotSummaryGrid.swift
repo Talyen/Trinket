@@ -13,59 +13,39 @@ struct EquipmentSlotSummaryGrid: View {
     var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            ForEach(role.equipmentSlots) { slot in
-                if let onSelect, !isLocked(slot) {
-                    Button {
-                        onSelect(slot)
-                    } label: {
-                        itemSlot(for: slot)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier(slot.accessibilityIdentifier)
-
-                } else if let onViewItem, !isLocked(slot), let item = equippedItem(for: slot) {
-                    Button {
-                        onViewItem(item)
-                    } label: {
-                        itemSlot(for: slot)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier(slot.accessibilityIdentifier)
-
+        SlotSummaryGrid(
+            slots: role.equipmentSlots,
+            isLocked: isLocked,
+            hasItem: { equippedItem(for: $0) != nil },
+            onSelect: onSelect,
+            onView: onViewItem != nil ? { slot in
+                if let item = equippedItem(for: slot) {
+                    onViewItem?(item)
+                }
+            } : nil,
+            accessibilityIdentifier: { $0.accessibilityIdentifier },
+            combinesAccessibilityChildren: true,
+            card: { slot in
+                if isLocked(slot) {
+                    EmptyItemSlotCard(
+                        slot: slot,
+                        lockLabel: slot.unlockLabel,
+                        reservesLabelSpace: false
+                    )
+                } else if let item = equippedItem(for: slot) {
+                    ItemCard(
+                        item: item,
+                        showsAffixCount: false,
+                        reservesLabelSpace: false
+                    )
                 } else {
-                    itemSlot(for: slot)
-                        .frame(maxWidth: .infinity, alignment: .top)
-                        .accessibilityIdentifier(slot.accessibilityIdentifier)
+                    EmptyItemSlotCard(
+                        slot: slot,
+                        reservesLabelSpace: false
+                    )
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private func itemSlot(for slot: ItemSlot) -> some View {
-        if isLocked(slot) {
-            EmptyItemSlotCard(
-                slot: slot,
-                lockLabel: slot.unlockLabel,
-                reservesLabelSpace: false
-            )
-        } else if let item = equippedItem(for: slot) {
-            ItemCard(
-                item: item,
-                showsAffixCount: false,
-                reservesLabelSpace: false
-            )
-        } else {
-            EmptyItemSlotCard(
-                slot: slot,
-                reservesLabelSpace: false
-            )
-        }
+        )
     }
 
     private func equippedItem(for slot: ItemSlot) -> InventoryItem? {

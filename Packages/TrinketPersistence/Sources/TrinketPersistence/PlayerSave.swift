@@ -86,12 +86,6 @@ public struct PlayerSave: Equatable, Sendable {
         self.labyrinth = labyrinth
     }
 
-    public func markedLocalMutation(at date: Date = Date()) -> PlayerSave {
-        var updated = self
-        updated.modifiedAt = date
-        updated.schemaVersion = Self.currentSchemaVersion
-        return updated
-    }
 }
 
 extension PlayerSave: Codable {

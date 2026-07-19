@@ -173,48 +173,6 @@ public enum StageCompletion {
         save.journey.markRewardsClaimed(for: stage)
     }
 
-    /// Whether `save` already reflects the rewards that `baseline` would gain from `stage`.
-    public static func rewardsReflected(
-        for stage: Stage,
-        baseline: PlayerSave,
-        in save: PlayerSave,
-        hero: Combatant,
-        companion: Combatant,
-        in chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        guard currencyAndItemsReflected(for: stage, baseline: baseline, in: save, chapters: chapters) else {
-            return false
-        }
-        guard case .battle = stage.encounter else {
-            return true
-        }
-
-        let encounterLevel = resolvedEncounterLevel(for: stage, in: chapters)
-        let heroAward = battleExperienceAward(
-            playerLevel: baseline.roster.progression(for: hero).level,
-            enemyLevel: encounterLevel,
-            highestLevel: baseline.roster.highestHeroLevel
-        )
-        guard experienceAwardReflected(
-            baseline: baseline.roster.progression(for: hero),
-            current: save.roster.progression(for: hero),
-            award: heroAward
-        ) else {
-            return false
-        }
-
-        let companionAward = battleExperienceAward(
-            playerLevel: baseline.roster.progression(for: companion).level,
-            enemyLevel: encounterLevel,
-            highestLevel: baseline.roster.highestCompanionLevel
-        )
-        return experienceAwardReflected(
-            baseline: baseline.roster.progression(for: companion),
-            current: save.roster.progression(for: companion),
-            award: companionAward
-        )
-    }
-
     private static func currencyAndItemsReflected(
         for stage: Stage,
         baseline: PlayerSave,

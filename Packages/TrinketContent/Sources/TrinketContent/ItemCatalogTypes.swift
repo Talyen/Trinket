@@ -36,10 +36,6 @@ public extension ItemAffix {
         description: "No effect yet.",
         keywords: []
     )
-
-    var sortedKeywords: [Keyword] {
-        keywords.sorted { $0.rawValue < $1.rawValue }
-    }
 }
 
 public struct ItemAffixPower: Equatable, Hashable, Sendable {

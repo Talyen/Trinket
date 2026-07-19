@@ -26,10 +26,6 @@ extension BattleSession {
         overlayAbilityDetail = ability
     }
 
-    func clearAbilityDetail() {
-        overlayAbilityDetail = nil
-    }
-
     func publishAttackReaction(_ reaction: CombatantAttackReaction, for combatantID: String) {
         attackReactionsByCombatantID[combatantID] = reaction
         noteAttackReactionPresentationChanged()

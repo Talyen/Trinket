@@ -109,16 +109,18 @@ struct CollectionView: View {
     private func presentPendingLaunchRoute() {
         guard let presentation = appState.consumePendingCollectionPresentation() else { return }
 
-        switch presentation {
-        case let .collectionCombatant(context):
-            selectedCombatant = context
-        case let .collectionItem(itemID):
-            if let owned = appState.inventory.item(matching: itemID) {
-                selectedItem = owned
-            } else if let template = GameContent.itemTemplate(matching: itemID) {
-                selectedItem = template
-            } else {
-                showMissingItem = true
+        DispatchQueue.main.async {
+            switch presentation {
+            case let .collectionCombatant(context):
+                selectedCombatant = context
+            case let .collectionItem(itemID):
+                if let owned = appState.inventory.item(matching: itemID) {
+                    selectedItem = owned
+                } else if let template = GameContent.itemTemplate(matching: itemID) {
+                    selectedItem = template
+                } else {
+                    showMissingItem = true
+                }
             }
         }
     }

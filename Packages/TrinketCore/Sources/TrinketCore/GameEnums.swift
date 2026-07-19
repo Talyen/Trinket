@@ -173,17 +173,6 @@ public extension AbilityTier {
             "star.fill"
         }
     }
-
-    var cadenceLabel: String {
-        switch self {
-        case .basic:
-            "Every turn"
-        case .skill:
-            "Every 3 turns"
-        case .ultimate:
-            "Every 6 turns"
-        }
-    }
 }
 
 public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {

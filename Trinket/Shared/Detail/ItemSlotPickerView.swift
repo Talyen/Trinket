@@ -13,18 +13,23 @@ struct ItemSlotPickerView: View {
     @State private var itemOrder: [String] = []
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: TrinketDesign.Metrics.partyPickerGridItems,
-                spacing: TrinketDesign.Metrics.largeSpacing
-            ) {
-                ForEach(orderedItems) { item in
-                    optionButton(item)
-                }
+        OptionPickerGrid(
+            items: orderedItems,
+            isSelected: { item in
+                item.id == equipmentLoadout.itemID(for: slot)
+            },
+            onSelect: onOpenDetail,
+            accessibilityIdentifier: { item in
+                AccessibilityID.LoadoutPicker.itemCandidate(item.id)
+            },
+            card: { item, isSelected in
+                ItemCard(
+                    item: item,
+                    showsAffixCount: false,
+                    isSelected: isSelected
+                )
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-        }
+        )
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
@@ -33,22 +38,6 @@ struct ItemSlotPickerView: View {
                 itemOrder = entrySortedItems.map(\.id)
             }
         }
-    }
-
-    private func optionButton(_ item: InventoryItem) -> some View {
-        let isSelected = item.id == equipmentLoadout.itemID(for: slot)
-
-        return Button {
-            onOpenDetail(item)
-        } label: {
-            ItemCard(
-                item: item,
-                showsAffixCount: false,
-                isSelected: isSelected
-            )
-        }
-        .trinketQuietTapButtonStyle()
-        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemCandidate(item.id))
     }
 
     private var orderedItems: [InventoryItem] {

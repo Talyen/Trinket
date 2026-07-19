@@ -39,8 +39,6 @@ struct AppEnvironment {
     /// DEBUG-only deterministic workload driver. Presence changes stimuli, never rendering fidelity.
     let battlePerformanceScenario: BattlePerformanceScenario?
 
-    static let defaultBattleTickInterval: TimeInterval = 1.0
-
     private init(
         launchTab: AppTab?,
         launchScreen: LaunchScreen?,

@@ -15,47 +15,28 @@ struct AbilitySummaryGrid: View {
     var onViewAbility: ((Ability) -> Void)?
 
     var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            ForEach(AbilityTier.allCases) { tier in
-                if allowsEditing, !isLocked(tier), let onSelectTier {
-                    Button {
-                        onSelectTier(tier)
-                    } label: {
-                        abilitySlot(for: tier)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .accessibilityIdentifier("\(tier.rawValue) ability slot")
-
-                } else if !allowsEditing, let ability = selectedAbility(for: tier), let onViewAbility {
-                    Button {
-                        onViewAbility(ability)
-                    } label: {
-                        abilitySlot(for: tier)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .frame(maxWidth: .infinity, alignment: .top)
-                    .accessibilityIdentifier("\(tier.rawValue) ability slot")
-
+        SlotSummaryGrid(
+            slots: AbilityTier.allCases,
+            isLocked: isLocked,
+            hasItem: { selectedAbility(for: $0) != nil },
+            onSelect: allowsEditing ? onSelectTier : nil,
+            onView: !allowsEditing ? { tier in
+                if let ability = selectedAbility(for: tier) {
+                    onViewAbility?(ability)
+                }
+            } : nil,
+            accessibilityIdentifier: { "\($0.rawValue) ability slot" },
+            card: { tier in
+                if let ability = selectedAbility(for: tier) {
+                    AbilityChoiceCard(
+                        ability: ability,
+                        lockLabel: lockLabel(for: tier)
+                    )
                 } else {
-                    abilitySlot(for: tier)
-                        .frame(maxWidth: .infinity, alignment: .top)
-                        .accessibilityIdentifier("\(tier.rawValue) ability slot")
+                    EmptyAbilitySlotCard(tier: tier)
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private func abilitySlot(for tier: AbilityTier) -> some View {
-        if let ability = selectedAbility(for: tier) {
-            AbilityChoiceCard(
-                ability: ability,
-                lockLabel: lockLabel(for: tier)
-            )
-        } else {
-            EmptyAbilitySlotCard(tier: tier)
-        }
+        )
     }
 
     private func selectedAbility(for tier: AbilityTier) -> Ability? {

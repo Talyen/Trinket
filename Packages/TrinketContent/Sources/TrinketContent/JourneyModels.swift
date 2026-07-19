@@ -132,8 +132,4 @@ public struct StageReward: Hashable, Sendable {
     }
 
     public static let empty = StageReward(gold: 0, itemTemplateIDs: [])
-
-    public var hasRewards: Bool {
-        gold > 0 || !itemTemplateIDs.isEmpty || !materialRewards.isEmpty
-    }
 }

@@ -22,35 +22,24 @@ struct AbilityTierPickerSheet: View {
     }
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: TrinketDesign.Metrics.partyPickerGridItems,
-                spacing: TrinketDesign.Metrics.largeSpacing
-            ) {
-                ForEach(abilities) { ability in
-                    optionButton(ability)
-                }
+        OptionPickerGrid(
+            items: abilities,
+            isSelected: { ability in
+                ability.id == selectedAbilityID
+            },
+            onSelect: onOpenDetail,
+            accessibilityIdentifier: { ability in
+                AccessibilityID.LoadoutPicker.abilityCandidate(ability.id)
+            },
+            card: { ability, isSelected in
+                AbilityChoiceCard(
+                    ability: ability,
+                    isSelected: isSelected
+                )
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-        }
+        )
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
         .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func optionButton(_ ability: Ability) -> some View {
-        let isSelected = ability.id == selectedAbilityID
-
-        return Button {
-            onOpenDetail(ability)
-        } label: {
-            AbilityChoiceCard(
-                ability: ability,
-                isSelected: isSelected
-            )
-        }
-        .trinketQuietTapButtonStyle()
-        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityCandidate(ability.id))
     }
 }

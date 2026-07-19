@@ -369,19 +369,6 @@ public struct CombatFloatTextModifier: ViewModifier {
     }
 }
 
-public struct StatusBadgeModifier: ViewModifier {
-    public func body(content: Content) -> some View {
-        content
-            .padding(.horizontal, TrinketDesign.Metrics.chipCompactPaddingHorizontal)
-            .padding(.vertical, TrinketDesign.Metrics.chipCompactPaddingVertical)
-            .modifier(TrinketGlassBackgroundModifier(
-                glass: .regular,
-                shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.trinket.panelSurface
-            ))
-    }
-}
-
 public struct WalletPillModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
@@ -424,10 +411,6 @@ public extension View {
 
     func trinketCombatFloatText() -> some View {
         modifier(CombatFloatTextModifier())
-    }
-
-    func trinketStatusBadge() -> some View {
-        modifier(StatusBadgeModifier())
     }
 
     func trinketWalletPill() -> some View {

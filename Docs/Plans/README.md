@@ -6,4 +6,4 @@ This folder may hold design reference images and **active agent execution plans*
 
 Active:
 
-- [BattleCommitPresentationMigration.md](BattleCommitPresentationMigration.md) — Battle play-commit presentation (#1 → #4 → #5 → #2 → #3)
+(none)

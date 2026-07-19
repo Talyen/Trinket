@@ -16,7 +16,6 @@ enum AccessibilityID {
     }
 
     enum Play {
-        static let modesEntry = "Modes Entry"
         static let modesScreen = "Modes Screen"
         static let aspectsHub = "Aspects Hub"
         static let exploreHub = "Explore Hub"
@@ -28,7 +27,6 @@ enum AccessibilityID {
         static let battlePartyCompanionControl = "Battle Party Companion Control"
         static let chapterPicker = "Campaign Chapter Picker"
         static let chapterAdvance = "Campaign Chapter Advance"
-        static let stageRewards = "Campaign Stage Rewards"
         static let activeStageDetail = "Campaign Active Stage Detail"
         static let stagePartyControl = "Campaign Stage Party Control"
         static let stagePartyPickerSheet = "Campaign Stage Party Picker Sheet"
@@ -59,10 +57,6 @@ enum AccessibilityID {
 
         static func stageRow(chapter: Int, stage: Int) -> String {
             "Stage \(chapter)-\(stage) Row"
-        }
-
-        static func bossBadge(chapter: Int, stage: Int) -> String {
-            "Stage \(chapter)-\(stage) Boss Badge"
         }
 
         static func stageNode(chapter: Int, stage: Int) -> String {
@@ -224,10 +218,6 @@ enum AccessibilityID {
         static func tierNode(title: String, tier: Int) -> String {
             "\(title) Homestead Tier \(tier)"
         }
-
-        static func footerAction(title: String) -> String {
-            "\(title) Homestead Action"
-        }
     }
 
     enum Battle {
@@ -252,13 +242,6 @@ enum AccessibilityID {
     }
 
     enum Equipment {
-        static let weaponSlot = "Weapon item slot"
-        static let armorSlot = "Armor item slot"
-        static let trinketSlot = "Trinket item slot"
-        static let findWeaponToUnlock = "Find a Weapon to Unlock"
-        static let findArmorToUnlock = "Find Armor to Unlock"
-        static let findTrinketToUnlock = "Find a Trinket to Unlock"
-        static let equipWeapon = "Equip Weapon"
         static let basicAbilitySlot = "Basic ability slot"
     }
 

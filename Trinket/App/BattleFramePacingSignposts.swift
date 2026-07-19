@@ -14,7 +14,6 @@ enum BattleFramePacingSignposts {
     enum Name {
         static let cardCast: StaticString = "CardCast"
         static let keywordBurst: StaticString = "KeywordBurst"
-        static let combatFeedback: StaticString = "CombatFeedback"
         static let chipPublish: StaticString = "ChipPublish"
         static let chipFlush: StaticString = "ChipFlush"
         static let chipHostApply: StaticString = "ChipHostApply"

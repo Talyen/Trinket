@@ -3,7 +3,6 @@ import CoreGraphics
 enum BattleCardGridLayout {
     static let enemyAspectRatio: CGFloat = 4.0 / 3.0
     static let partyAspectRatio: CGFloat = 3.0 / 4.0
-    static let gutter: CGFloat = 0
     static let outerPadding: CGFloat = 0
     static let cardSpacing: CGFloat = 12
     /// Scales enemy + party together so the triptych clears space for the hand.

@@ -327,36 +327,28 @@ private struct BattlePartyOptionsGrid: View {
     }
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: TrinketDesign.Metrics.partyPickerGridItems,
-                spacing: TrinketDesign.Metrics.largeSpacing
-            ) {
-                ForEach(orderedCombatants) { combatant in
-                    let eligible = BattlePartySlot.isEligible(combatant, for: aspect)
-                    let selected = combatant.id == selectedID
-
-                    Button {
-                        guard eligible else { return }
-                        onOpenDetail(combatant)
-                    } label: {
-                        CombatantCard(
-                            combatant: combatant,
-                            isSelected: selected
-                        )
-                        .opacity(eligible ? 1 : 0.4)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .disabled(!eligible)
-                    .accessibilityIdentifier(
-                        AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
-                    )
-                    .accessibilityValue(selected ? "Selected" : "Available")
-                }
+        OptionPickerGrid(
+            items: orderedCombatants,
+            isSelected: { combatant in
+                combatant.id == selectedID
+            },
+            isEligible: { combatant in
+                BattlePartySlot.isEligible(combatant, for: aspect)
+            },
+            onSelect: onOpenDetail,
+            accessibilityIdentifier: { combatant in
+                AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
+            },
+            accessibilityValue: { combatant in
+                combatant.id == selectedID ? "Selected" : "Available"
+            },
+            card: { combatant, isSelected in
+                CombatantCard(
+                    combatant: combatant,
+                    isSelected: isSelected
+                )
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-        }
+        )
     }
 }
 

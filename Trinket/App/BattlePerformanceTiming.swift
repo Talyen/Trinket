@@ -28,9 +28,4 @@ enum BattlePerformanceTiming {
     static var snapshotDelay: Duration {
         isQuick ? .seconds(3.0) : .seconds(7)
     }
-
-    /// XCTest RunLoop wait after tapping Start (covers snapshot + completion).
-    static var uiTestWaitSeconds: TimeInterval {
-        isQuick ? 3.2 : 7.2
-    }
 }

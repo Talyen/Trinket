@@ -43,10 +43,6 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
         case .lateGame: 3
         }
     }
-
-    public var usesRandomLoadouts: Bool {
-        self != .early
-    }
 }
 
 public struct SimulationBuildContext: Equatable, Hashable, Sendable {

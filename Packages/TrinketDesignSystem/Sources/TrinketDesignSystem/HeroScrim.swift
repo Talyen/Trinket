@@ -1,37 +1,8 @@
 import SwiftUI
 
-/// Full-bleed hero readability scrims — route art overlays through these roles instead of raw black/RGB.
-public enum HeroScrimRole: Sendable {
-    case homesteadOverview
-    case homesteadDetail
-    case detailHeader
-    case chapter
-}
-
 public enum OnArtTextEmphasis: Sendable {
     case title
     case eyebrow
-}
-
-public enum TrinketHeroScrim {
-    public static func colors(for role: HeroScrimRole) -> [Color] {
-        let warm = TrinketDesign.Colors.Overlay.heroWarm
-        switch role {
-        case .homesteadOverview, .homesteadDetail, .chapter:
-            // Keep full-bleed collection and journey heroes on the Homestead overview treatment.
-            return [Color.clear, warm.opacity(0.88)]
-        case .detailHeader:
-            return [Color.clear, TrinketDesign.Colors.Overlay.detailHeroScrim]
-        }
-    }
-
-    public static func gradient(
-        for role: HeroScrimRole,
-        startPoint: UnitPoint = .top,
-        endPoint: UnitPoint = .bottom
-    ) -> LinearGradient {
-        LinearGradient(colors: colors(for: role), startPoint: startPoint, endPoint: endPoint)
-    }
 }
 
 public extension View {

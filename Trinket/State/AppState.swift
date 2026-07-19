@@ -143,10 +143,6 @@ final class AppState {
         battle.presentBattleLog()
     }
 
-    func rememberPlayMode(_ mode: PlayerShellSessionPlayMode) {
-        lastPlayMode = mode
-    }
-
     var persistenceStatusMessage: String? {
         switch playerSave.lastPersistenceError {
         case .writeFailed:

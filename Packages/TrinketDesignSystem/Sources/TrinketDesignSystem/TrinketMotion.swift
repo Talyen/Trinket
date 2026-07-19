@@ -19,18 +19,6 @@ public enum TrinketMotion: Sendable {
         }
     }
 
-    public enum Journey: Sendable {
-        /// Immediate, critically damped feedback for the active stage row.
-        public static var rowPress: Animation {
-            .spring(response: 0.2, dampingFraction: 1.0)
-        }
-
-        /// Spatially continuous expansion and collapse for the active stage detail.
-        public static var stageExpansion: Animation {
-            .spring(response: 0.38, dampingFraction: 1.0)
-        }
-    }
-
     public enum Homestead: Sendable {
         /// Completion emphasis for a tier node after a successful build or upgrade.
         public static var tierCompletion: Animation {
@@ -90,9 +78,6 @@ public enum TrinketMotion: Sendable {
             cardReturn
         }
 
-        /// Time reserved for the card's activation travel before the engine commit.
-        public static let cardCommitDelay: TimeInterval = 0.11
-
         /// Particle activation of a played card.
         public static let cardActivationDuration: TimeInterval = 1.0
 
@@ -101,9 +86,6 @@ public enum TrinketMotion: Sendable {
 
         /// Stagger for a small deal without making the turn feel held up.
         public static let cardDrawStagger: TimeInterval = 0.045
-
-        /// Short, low-distraction delay between cards entering the hand.
-        public static let dealStagger: TimeInterval = cardDrawStagger
 
         /// Spring used while a freshly dealt hand settles into its fan.
         public static var deal: Animation {
@@ -120,29 +102,9 @@ public enum TrinketMotion: Sendable {
             handReflow
         }
 
-        /// Explicit card-named alias for `pickup`.
-        public static var cardPickup: Animation {
-            pickup
-        }
-
-        /// Explicit card-named alias for `readiness`.
-        public static var cardReadiness: Animation {
-            readiness
-        }
-
         /// Explicit card-named alias for `cast`.
         public static var cardCast: Animation {
             cast
-        }
-
-        /// Explicit card-named alias for `impact`.
-        public static var cardImpact: Animation {
-            impact
-        }
-
-        /// Explicit card-named alias for `deal`.
-        public static var cardDeal: Animation {
-            deal
         }
 
         public static let cardHeldScale = 1.035

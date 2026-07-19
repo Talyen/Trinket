@@ -136,29 +136,6 @@ public struct QuietTapButtonStyle: ButtonStyle {
     }
 }
 
-/// Top-trailing glass checkmark for selected artwork picker tiles.
-public struct ArtworkPickerSelectionBadge: View {
-    private let color: Color
-
-    public init(color: Color = TrinketDesign.Colors.selection) {
-        self.color = color
-    }
-
-    public var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Image(systemName: "checkmark")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(color)
-                    .trinketGlassChip(.compact)
-            }
-            Spacer()
-        }
-        .padding(TrinketDesign.Metrics.smallSpacing)
-    }
-}
-
 public extension View {
     /// Selection stroke for 3:4 artwork picker tiles (loadout / party grids).
     func trinketArtworkPickerSelectionBorder(

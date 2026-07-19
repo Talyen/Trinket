@@ -105,16 +105,3 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         )
     }
 }
-
-public extension Combatant.Role {
-    var fallbackArtSymbolName: String {
-        switch self {
-        case .hero:
-            "person.fill"
-        case .companion:
-            "pawprint.fill"
-        case .enemy:
-            "flame.fill"
-        }
-    }
-}

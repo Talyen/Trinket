@@ -213,12 +213,6 @@ final class BattleSession {
         }
     }
 
-    func feedbackItems(for targetID: String, at date: Date = .now) -> [CombatFeedbackItem] {
-        activeFeedbackItems.filter { item in
-            item.targetID == targetID && date >= item.availableAt && date < item.expiresAt
-        }
-    }
-
     func keywordBursts(for targetID: String, at date: Date = .now) -> [KeywordBurstRequest] {
         (keywordBurstsByTargetID[targetID] ?? []).filter { burst in
             date >= burst.availableAt && date < burst.expiresAt
@@ -239,11 +233,6 @@ final class BattleSession {
 
     func noteAttackReactionPresentationChanged() {
         attackReactionEpoch &+= 1
-    }
-
-    func publishHitReaction(_ reaction: CombatantHitReaction, for targetID: String) {
-        hitReactionsByTargetID[targetID] = reaction
-        noteHitReactionPresentationChanged()
     }
 
     func resetFeedbackPresentation() {
