@@ -38,7 +38,8 @@ enum PlayerSaveStoreConfiguration {
             (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
         } else if disableCloudSync {
             // Local-only until Apple Developer Program + CloudKit container (F2).
-            (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
+            // Explicit URL so corrupt-open recovery can delete/recreate the same files.
+            (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
         } else {
             // Requires filled Trinket.entitlements + portal container (see CloudKitPreShipChecklist).
             (

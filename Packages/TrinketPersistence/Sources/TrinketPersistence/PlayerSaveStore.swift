@@ -197,8 +197,9 @@ public final class PlayerSaveStore {
         }
     }
 
-    public func flushPendingSave() async {
-        await Task.yield()
+    /// Writes any coalesced deferred mutation immediately (no yield). Call from
+    /// scene-phase teardown so progress is durable before suspension.
+    public func flushPendingPersistence() {
         deferredSaveTask?.cancel()
         deferredSaveTask = nil
         do {
@@ -210,6 +211,11 @@ public final class PlayerSaveStore {
             lastPersistenceError = .writeFailed
             logger.error("Failed to flush deferred SwiftData save: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    public func flushPendingSave() async {
+        await Task.yield()
+        flushPendingPersistence()
     }
 
     private func scheduleDeferredSave() {

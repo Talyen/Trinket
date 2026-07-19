@@ -294,12 +294,12 @@ final class AppState {
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
             shellSession.flushPendingPersistence()
-            Task { await playerSave.flushPendingSave() }
+            playerSave.flushPendingPersistence()
         case .inactive:
             battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             shellSession.flushPendingPersistence()
-            Task { await playerSave.flushPendingSave() }
+            playerSave.flushPendingPersistence()
         case .active:
             // Launch tab is applied once during bootstrap / finishBootstrap.
             // Re-forcing Play on every foreground would wipe the persisted shell tab.

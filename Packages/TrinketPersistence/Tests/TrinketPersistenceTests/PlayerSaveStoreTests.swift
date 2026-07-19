@@ -222,6 +222,38 @@ final class PlayerSaveStoreTests {
         try #expect(store.lastPersistenceError == nil)
     }
 
+    @Test func flushPendingPersistencePersistsDeferredMutationThroughReload() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: false
+        )
+        store.grantGold(19)
+        try #expect(store.roster.gold == 19)
+
+        store.flushPendingPersistence()
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.roster.gold == 19)
+        try #expect(store.lastPersistenceError == nil)
+    }
+
+    @Test func localOnlyConfigurationWiresStoreURLAndRecovery() {
+        let finalURL = context.storeURL()
+        let resolved = PlayerSaveStoreConfiguration.resolveConfiguration(
+            schema: PlayerSaveGraph.schema,
+            finalURL: finalURL,
+            storeName: nil,
+            storeURL: nil,
+            disableCloudSync: true,
+            inMemoryOnly: false,
+            cloudKitContainerIdentifier: PlayerSaveStore.cloudKitContainerIdentifier
+        )
+        #expect(resolved.recoveryURL == finalURL)
+        #expect(resolved.config.url == finalURL)
+    }
+
     @Test func performBatchMutationPreservesStateWhenValidationFails() throws {
         let store = try context.makeSaveStore()
         store.grantGold(25)
@@ -280,6 +312,32 @@ final class PlayerSaveStoreTests {
 
         store.forcesNextSaveFailure = true
         await store.flushPendingSave()
+
+        try #expect(store.roster.gold == 10)
+        try #expect(store.lastPersistenceError == .writeFailed)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.roster.gold == 10)
+    }
+
+    @Test func deferredFlushPendingPersistenceRollsBackToLastPersistedSnapshot() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: false
+        )
+        try store.performBatchMutation({ save in
+            save.roster.gold = 10
+        }, persistImmediately: true)
+
+        try store.performBatchMutation({ save in
+            save.roster.gold = 30
+        }, persistImmediately: false)
+        try #expect(store.roster.gold == 30)
+
+        store.forcesNextSaveFailure = true
+        store.flushPendingPersistence()
 
         try #expect(store.roster.gold == 10)
         try #expect(store.lastPersistenceError == .writeFailed)

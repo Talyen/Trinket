@@ -54,6 +54,26 @@ struct AppStateTests {
         #expect(!state.battle.isSuspendedForScenePhase)
     }
 
+    @Test func scenePhaseFlushesDeferredPlayerSaveSynchronously() throws {
+        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL)
+        let playerSave = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: false
+        )
+        let state = try context.makeAppState(playerSave: playerSave)
+        let goldBefore = state.roster.gold
+        var updatedRoster = state.roster
+        updatedRoster.grantGold(13)
+        state.roster = updatedRoster
+
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        #expect(reloaded.roster.gold == goldBefore + 13)
+        #expect(playerSave.lastPersistenceError == nil)
+    }
+
     @Test func collectionDetailLaunchScreensMapToCollectionPresentations() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
