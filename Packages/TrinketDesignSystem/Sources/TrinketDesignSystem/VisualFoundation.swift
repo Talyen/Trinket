@@ -90,17 +90,15 @@ enum HomesteadPalette {
     static let mutedText = Color.secondary
 }
 
-public struct TrinketScreenBackground: View {
-    public init() {}
-
-    public var body: some View {
+struct TrinketScreenBackground: View {
+    var body: some View {
         ThemePalette.trinket.appBackground
             .ignoresSafeArea()
     }
 }
 
-public struct ScreenBackgroundModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct ScreenBackgroundModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .background {
                 TrinketScreenBackground()
@@ -108,11 +106,11 @@ public struct ScreenBackgroundModifier: ViewModifier {
     }
 }
 
-public struct SurfaceModifier: ViewModifier {
+struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         let style = SurfaceStyle(role: role, palette: ThemePalette.trinket)
 
         content
@@ -231,11 +229,11 @@ private struct SurfaceStyle {
     }
 }
 
-public struct MaterialRoleModifier: ViewModifier {
+struct MaterialRoleModifier: ViewModifier {
     let role: MaterialRole
     let shape: RoundedRectangle
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         switch MaterialRoleStyle(role: role) {
         case .none:
             content
@@ -302,22 +300,22 @@ struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     }
 }
 
-public struct TypographyModifier: ViewModifier {
+struct TypographyModifier: ViewModifier {
     let role: TypographyRole
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content.font(role.font)
     }
 }
 
-public struct GlassChipModifier: ViewModifier {
+struct GlassChipModifier: ViewModifier {
     let role: ChipChromeRole
 
-    public init(role: ChipChromeRole = .standard) {
+    init(role: ChipChromeRole = .standard) {
         self.role = role
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .padding(.horizontal, role.horizontalPadding)
             .padding(.vertical, role.verticalPadding)
@@ -356,10 +354,8 @@ extension ChipChromeRole {
 }
 
 /// Dark outline + soft bloom so floating combat numbers stay readable on busy art.
-public struct CombatFloatTextModifier: ViewModifier {
-    public init() {}
-
-    public func body(content: Content) -> some View {
+struct CombatFloatTextModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.95), radius: 0, x: 0, y: 1)
             .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: 0, y: -1)
@@ -369,8 +365,8 @@ public struct CombatFloatTextModifier: ViewModifier {
     }
 }
 
-public struct WalletPillModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct WalletPillModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .padding(.horizontal, TrinketDesign.Metrics.chipPaddingHorizontal)
             .padding(.vertical, TrinketDesign.Metrics.chipPaddingVertical)
