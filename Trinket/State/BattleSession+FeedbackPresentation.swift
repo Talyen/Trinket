@@ -162,13 +162,13 @@ extension BattleSession {
 }
 
 final class BattleFeedbackScheduler {
-    private var pruneTimer: Timer!
-    private var target: FeedbackPruneTarget!
+    private let pruneTimer: Timer
+    private let target: FeedbackPruneTarget
 
     init(session: BattleSession) {
         let target = FeedbackPruneTarget(session: session)
         self.target = target
-        pruneTimer = Timer(
+        let pruneTimer = Timer(
             timeInterval: 86400,
             target: target,
             selector: #selector(FeedbackPruneTarget.fire),
@@ -177,6 +177,7 @@ final class BattleFeedbackScheduler {
         )
         pruneTimer.fireDate = .distantFuture
         RunLoop.main.add(pruneTimer, forMode: .common)
+        self.pruneTimer = pruneTimer
     }
 
     func schedulePrune(at date: Date?) {
@@ -192,7 +193,7 @@ final class BattleFeedbackScheduler {
     }
 
     deinit {
-        pruneTimer?.invalidate()
+        pruneTimer.invalidate()
     }
 }
 
