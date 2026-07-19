@@ -174,8 +174,15 @@ struct ItemDetailView: View {
         DetailHeroScrollShell(
             title: item.displayName,
             header: {
-                ItemHeroHeader(item: item, baseHeight: $0, overscroll: $1)
-                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
+                DetailHeroHeader(
+                    eyebrow: item.rarity.label.uppercased(),
+                    title: item.displayName,
+                    baseHeight: $0,
+                    overscroll: $1
+                ) {
+                    ItemArtwork(item: item)
+                }
+                .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
             },
             bodyContent: {
                 DetailSection("Traits") {

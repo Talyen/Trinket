@@ -75,12 +75,26 @@ struct CombatantDetailPane: View {
             title: combatant.name,
             hidesNavigationBar: hidesNavigationBar
         ) { baseHeight, overscroll in
-            CombatantHeroHeader(
-                combatant: combatant,
-                progression: progression,
+            DetailHeroHeader(
+                eyebrow: combatant.role.rawValue.uppercased(),
+                title: combatant.name,
                 baseHeight: baseHeight,
                 overscroll: overscroll
-            )
+            ) {
+                CombatantArtwork(combatant: combatant)
+            } footer: {
+                HStack {
+                    Text("LEVEL \(progression.level)")
+                        .trinketTypography(.eyebrow)
+                        .trinketOnArtText(.eyebrow)
+
+                    Text("\(progression.currentXP)/\(progression.requiredXP) XP")
+                        .trinketTypography(.eyebrow)
+                        .monospacedDigit()
+                        .trinketOnArtText(.eyebrow)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
             .accessibilityIdentifier("\(combatant.name) detail hero header")
         } bodyContent: {
             combatantDetailBody(combatBuild: combatBuild)

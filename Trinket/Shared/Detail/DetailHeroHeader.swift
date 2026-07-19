@@ -1,13 +1,15 @@
 import SwiftUI
-import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 
-struct CombatantHeroHeader: View {
-    let combatant: Combatant
-    let progression: CombatantProgression
+/// Shared full-bleed detail hero: art, on-art eyebrow/title, optional footer.
+struct DetailHeroHeader<Art: View, Footer: View>: View {
+    let eyebrow: String
+    let title: String
     let baseHeight: CGFloat
     let overscroll: CGFloat
+    @ViewBuilder let art: () -> Art
+    @ViewBuilder let footer: () -> Footer
+
     var body: some View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
@@ -15,12 +17,12 @@ struct CombatantHeroHeader: View {
             alignment: .topLeading,
             artworkBlend: .bottom(into: .canvas)
         ) {
-            CombatantArtwork(combatant: combatant)
+            art()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } overlay: {
             VStack(alignment: .leading) {
                 titleBlock
-                experienceFooter
+                footer()
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -30,29 +32,32 @@ struct CombatantHeroHeader: View {
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-            Text(combatant.role.rawValue.uppercased())
+            Text(eyebrow)
                 .trinketTypography(.eyebrow)
                 .trinketOnArtText(.eyebrow)
 
-            Text(combatant.name)
+            Text(title)
                 .trinketTypography(.screenDisplay)
                 .trinketOnArtText(.title)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
         }
     }
+}
 
-    private var experienceFooter: some View {
-        HStack {
-            Text("LEVEL \(progression.level)")
-                .trinketTypography(.eyebrow)
-                .trinketOnArtText(.eyebrow)
-
-            Text("\(progression.currentXP)/\(progression.requiredXP) XP")
-                .trinketTypography(.eyebrow)
-                .monospacedDigit()
-                .trinketOnArtText(.eyebrow)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+extension DetailHeroHeader where Footer == EmptyView {
+    init(
+        eyebrow: String,
+        title: String,
+        baseHeight: CGFloat,
+        overscroll: CGFloat,
+        @ViewBuilder art: @escaping () -> Art
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.baseHeight = baseHeight
+        self.overscroll = overscroll
+        self.art = art
+        footer = { EmptyView() }
     }
 }
