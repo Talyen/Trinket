@@ -11,18 +11,14 @@ struct MysteryEncounterView: View {
     @State private var narrativeAppeared = false
     @State private var welcomeFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
-    @State private var showUnlockArt = false
-    @State private var showUnlockEyebrow = false
-    @State private var showUnlockTitle = false
-    @State private var showUnlockSubtitle = false
-    @State private var showUnlockCTA = false
-    @State private var hasStartedChromeSequence = false
-    @State private var chromeRevealTask: Task<Void, Never>?
+    @State private var unlockRevealPhase: UnlockRevealPhase = .hidden
+    @State private var hasStartedUnlockReveal = false
+    @State private var unlockRevealTask: Task<Void, Never>?
 
     var body: some View {
         Group {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
-                unlockReveal(unlockedID: unlockedID)
+                unlockRevealContent(unlockedID: unlockedID)
             } else if session.showsItemChoice {
                 MysteryItemChoiceContent(
                     session: session,
@@ -50,12 +46,12 @@ struct MysteryEncounterView: View {
             presentReadingEntrance()
         }
         .onDisappear {
-            chromeRevealTask?.cancel()
-            chromeRevealTask = nil
+            unlockRevealTask?.cancel()
+            unlockRevealTask = nil
             // Cancel without completion left Recruit locked when @State survived
             // (same class as VictoryView / ExperienceBar onDisappear snap).
-            if hasStartedChromeSequence {
-                finishUnlockChromeSequence()
+            if hasStartedUnlockReveal {
+                finishUnlockReveal()
             }
         }
     }
@@ -82,13 +78,7 @@ struct MysteryEncounterView: View {
                 .offset(y: narrativeAppeared ? 0 : 8)
 
                 if let choice = session.event.choices.first {
-                    if let persistFailure = session.persistFailureMessage {
-                        Text(persistFailure)
-                            .trinketTypography(.badge)
-                            .foregroundStyle(TrinketDesign.Colors.warning)
-                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-                            .transition(.opacity)
-                    }
+                    mysteryPersistFailureBanner(session.persistFailureMessage)
 
                     Button {
                         welcomeFeedbackTrigger += 1
@@ -147,7 +137,7 @@ struct MysteryEncounterView: View {
     }
 
     @ViewBuilder
-    private func unlockReveal(unlockedID: String) -> some View {
+    private func unlockRevealContent(unlockedID: String) -> some View {
         if let combatant = revealCombatant(id: unlockedID) {
             recruitUnlockStage(combatant: combatant)
                 .trinketSensoryFeedback(
@@ -157,155 +147,98 @@ struct MysteryEncounterView: View {
                 )
                 .onAppear {
                     unlockFeedbackTrigger += 1
-                    startUnlockChromeSequence()
+                    startUnlockReveal()
                 }
         }
     }
 
     private func recruitUnlockStage(combatant: Combatant) -> some View {
-        ZStack {
-            // Art stays geometrically centered; chrome overlays so fade-in never nudges it.
-            Button {
-                selectedDetail = CombatantDetailContext(
-                    kind: combatant.role == .companion ? .companion : .hero,
-                    combatantID: combatant.id
-                )
-            } label: {
-                CombatantArtwork(combatant: combatant, variant: .hero)
-                    .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
-                    .clipShape(TrinketDesign.cardShape)
-                    .trinketCardSurface()
-            }
-            // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
-            .trinketQuietTapButtonStyle()
-            .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
-            .opacity(showUnlockArt ? 1 : 0)
-            .scaleEffect(showUnlockArt ? 1 : 0.94)
-            .frame(maxWidth: 430)
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .allowsHitTesting(showUnlockArt)
+        let artVisible = unlockRevealPhase >= .art
 
-            VStack(spacing: 0) {
-                unlockChromeHeader(combatant: combatant)
-                    .padding(.top, TrinketDesign.Metrics.contentTopPadding)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .allowsHitTesting(false)
+        return RewardRevealShell(
+            eyebrow: combatant.role == .companion ? "New Companion" : "New Hero",
+            eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
+            title: combatant.name,
+            subtitle: "UNLOCKED",
+            subtitleAccessibilityIdentifier: AccessibilityID.Mystery.unlockSubtitle,
+            titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
+            eyebrowOpacity: unlockRevealPhase.opacity(visibleFrom: .eyebrow),
+            titleOpacity: unlockRevealPhase.opacity(visibleFrom: .title),
+            subtitleOpacity: unlockRevealPhase.opacity(visibleFrom: .subtitle),
+            content: {
+                VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    Button {
+                        selectedDetail = CombatantDetailContext(
+                            kind: combatant.role == .companion ? .companion : .hero,
+                            combatantID: combatant.id
+                        )
+                    } label: {
+                        CombatantArtwork(combatant: combatant, variant: .hero)
+                            .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
+                            .clipShape(TrinketDesign.cardShape)
+                            .trinketCardSurface()
+                    }
+                    // UIStyleCheck: allow - Unlock art is the tap target for combatant detail; no button chrome.
+                    .trinketQuietTapButtonStyle()
+                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
+                    .opacity(artVisible ? 1 : 0)
+                    .scaleEffect(artVisible ? 1 : 0.94)
+                    .frame(maxWidth: 430)
+                    .allowsHitTesting(artVisible)
 
-                Spacer(minLength: 0)
-                    .allowsHitTesting(false)
-
-                unlockChromeFooter
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private func unlockChromeHeader(combatant: Combatant) -> some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            if showUnlockEyebrow {
-                Text(combatant.role == .companion ? "New Companion" : "New Hero")
-                    .trinketTypography(.eyebrow)
-                    .foregroundStyle(TrinketDesign.Colors.accent)
-                    .textCase(.uppercase)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockEyebrow)
-                    .transition(.opacity)
-            }
-
-            if showUnlockTitle {
-                Text(combatant.name)
-                    .trinketTypography(.screenDisplay)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockName)
-                    .transition(.opacity)
-            }
-
-            if showUnlockSubtitle {
-                Text("UNLOCKED")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
-                    .transition(.opacity)
-            }
-
-            if let persistFailure = session.persistFailureMessage {
-                Text(persistFailure)
-                    .trinketTypography(.badge)
-                    .foregroundStyle(TrinketDesign.Colors.warning)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-                    .transition(.opacity)
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    @ViewBuilder
-    private var unlockChromeFooter: some View {
-        if showUnlockCTA {
-            Button {
+                    mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
+                }
+            },
+            primaryActionTitle: unlockRevealPhase >= .complete ? "Recruit" : nil,
+            primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
+            isPrimaryActionDisabled: false,
+            onPrimaryAction: {
                 _ = appState.finishActiveMysteryEncounter()
-            } label: {
-                Text("Recruit")
-                    .frame(maxWidth: .infinity)
-            }
-            .trinketPrimaryActionButton()
-            .accessibilityIdentifier(AccessibilityID.Mystery.continueButton)
-            .containerRelativeFrame(.horizontal) { width, _ in width * 0.5 }
-            .frame(maxWidth: .infinity)
-            .transition(.opacity)
-        }
+            },
+            pinsPrimaryActionToBottom: false,
+            primaryActionWidthFraction: 0.5
+        )
     }
 
-    private func startUnlockChromeSequence() {
-        guard !hasStartedChromeSequence else { return }
-        hasStartedChromeSequence = true
-        chromeRevealTask?.cancel()
-        chromeRevealTask = Task { @MainActor in
+    private func startUnlockReveal() {
+        guard !hasStartedUnlockReveal else { return }
+        hasStartedUnlockReveal = true
+        unlockRevealTask?.cancel()
+        unlockRevealTask = Task { @MainActor in
             let clock = SuspendingClock()
             let stagger = TrinketMotion.Reward.resourceStagger
+            let steps: [(UnlockRevealPhase, Animation)] = [
+                (.eyebrow, TrinketMotion.Reward.reveal),
+                (.title, TrinketMotion.Reward.reveal),
+                (.subtitle, TrinketMotion.Reward.stateChange),
+                (.art, TrinketMotion.Reward.reveal)
+            ]
 
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
             guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.reveal) {
-                showUnlockEyebrow = true
-            }
 
-            try? await clock.sleep(for: .seconds(stagger))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.reveal) {
-                showUnlockTitle = true
-            }
-
-            try? await clock.sleep(for: .seconds(stagger))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.stateChange) {
-                showUnlockSubtitle = true
-            }
-
-            try? await clock.sleep(for: .seconds(stagger))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.reveal) {
-                showUnlockArt = true
+            for (index, step) in steps.enumerated() {
+                if index > 0 {
+                    try? await clock.sleep(for: .seconds(stagger))
+                    guard !Task.isCancelled else { return }
+                }
+                withAnimation(step.1) {
+                    unlockRevealPhase = step.0
+                }
             }
 
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
-                finishUnlockChromeSequence()
+                finishUnlockReveal()
             }
-            chromeRevealTask = nil
+            unlockRevealTask = nil
         }
     }
 
-    private func finishUnlockChromeSequence() {
-        guard !showUnlockCTA else { return }
-        showUnlockEyebrow = true
-        showUnlockTitle = true
-        showUnlockSubtitle = true
-        showUnlockArt = true
-        showUnlockCTA = true
+    private func finishUnlockReveal() {
+        guard unlockRevealPhase != .complete else { return }
+        unlockRevealPhase = .complete
     }
 
     private func revealCombatant(id: String) -> Combatant? {
@@ -327,6 +260,39 @@ struct MysteryEncounterView: View {
     }
 }
 
+/// Ordered chrome reveal for mystery unlock; drives `RewardRevealShell` opacities.
+private enum UnlockRevealPhase: Int, Comparable {
+    case hidden = 0
+    case eyebrow = 1
+    case title = 2
+    case subtitle = 3
+    case art = 4
+    case complete = 5
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+
+    func opacity(visibleFrom phase: UnlockRevealPhase) -> Double {
+        self >= phase ? 1 : 0
+    }
+}
+
+@ViewBuilder
+private func mysteryPersistFailureBanner(
+    _ message: String?,
+    centered: Bool = false
+) -> some View {
+    if let message {
+        Text(message)
+            .trinketTypography(.badge)
+            .foregroundStyle(TrinketDesign.Colors.warning)
+            .multilineTextAlignment(centered ? .center : .leading)
+            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
+            .transition(.opacity)
+    }
+}
+
 private struct MysteryItemChoiceContent: View {
     @Bindable var session: MysteryEncounterSession
     let onSelectItem: (String) -> Void
@@ -344,13 +310,7 @@ private struct MysteryItemChoiceContent: View {
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    if let persistFailure = session.persistFailureMessage {
-                        Text(persistFailure)
-                            .trinketTypography(.badge)
-                            .foregroundStyle(TrinketDesign.Colors.warning)
-                            .accessibilityIdentifier(AccessibilityID.Mystery.persistFailure)
-                            .transition(.opacity)
-                    }
+                    mysteryPersistFailureBanner(session.persistFailureMessage)
                 }
 
                 LazyVGrid(
