@@ -9,10 +9,32 @@ struct DetailHeroHeader<Art: View, Footer: View>: View {
     let baseHeight: CGFloat
     let overscroll: CGFloat
     /// Matches prior `.padding()` on portrait detail heroes.
-    var horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing
-    var bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing
+    var horizontalPadding: CGFloat
+    var bottomPadding: CGFloat
     @ViewBuilder let art: () -> Art
     @ViewBuilder let footer: () -> Footer
+
+    init(
+        eyebrow: String? = nil,
+        title: String,
+        titleAccessibilityIdentifier: String? = nil,
+        baseHeight: CGFloat,
+        overscroll: CGFloat,
+        horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
+        @ViewBuilder art: @escaping () -> Art,
+        @ViewBuilder footer: @escaping () -> Footer
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
+        self.baseHeight = baseHeight
+        self.overscroll = overscroll
+        self.horizontalPadding = horizontalPadding
+        self.bottomPadding = bottomPadding
+        self.art = art
+        self.footer = footer
+    }
 
     var body: some View {
         OverscrollHeroContainer(
@@ -60,30 +82,6 @@ struct DetailHeroHeader<Art: View, Footer: View>: View {
         } else {
             label
         }
-    }
-}
-
-extension DetailHeroHeader {
-    init(
-        eyebrow: String? = nil,
-        title: String,
-        titleAccessibilityIdentifier: String? = nil,
-        baseHeight: CGFloat,
-        overscroll: CGFloat,
-        horizontalPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
-        @ViewBuilder art: @escaping () -> Art,
-        @ViewBuilder footer: @escaping () -> Footer
-    ) {
-        self.eyebrow = eyebrow
-        self.title = title
-        self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
-        self.baseHeight = baseHeight
-        self.overscroll = overscroll
-        self.horizontalPadding = horizontalPadding
-        self.bottomPadding = bottomPadding
-        self.art = art
-        self.footer = footer
     }
 }
 
