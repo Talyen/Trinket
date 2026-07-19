@@ -21,7 +21,21 @@ struct HomesteadView: View {
             title: "Homestead",
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
-            HomesteadOverviewHero(baseHeight: baseHeight, overscroll: overscroll)
+            DetailHeroHeader(
+                title: "Homestead",
+                baseHeight: baseHeight,
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.snugSpacing
+            ) {
+                if let art = ArtCatalog.backgroundArtByID["homestead"]
+                    ?? ArtCatalog.backgroundArtByID["wheatField"]
+                {
+                    HomesteadFocalArtwork(art: art)
+                } else {
+                    TrinketDesign.Colors.surface
+                }
+            }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
@@ -49,38 +63,5 @@ struct HomesteadView: View {
 
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
         GameContent.homesteadNodes.filter { $0.category == category }
-    }
-}
-
-struct HomesteadOverviewHero: View {
-    let baseHeight: CGFloat
-    let overscroll: CGFloat
-
-    private var art: BackgroundArtReference? {
-        ArtCatalog.backgroundArtByID["homestead"]
-            ?? ArtCatalog.backgroundArtByID["wheatField"]
-    }
-
-    var body: some View {
-        OverscrollHeroContainer(
-            baseHeight: baseHeight,
-            overscroll: overscroll,
-            alignment: .bottomLeading,
-            artworkBlend: .bottom(into: .canvas)
-        ) {
-            if let art {
-                HomesteadFocalArtwork(art: art)
-
-            } else {
-                TrinketDesign.Colors.surface
-            }
-        } overlay: {
-            Text("Homestead")
-                .trinketTypography(.screenDisplay)
-                .trinketOnArtText(.title)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, TrinketDesign.Metrics.snugSpacing)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-        }
     }
 }
