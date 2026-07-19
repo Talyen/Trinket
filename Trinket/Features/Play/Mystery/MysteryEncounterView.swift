@@ -52,6 +52,11 @@ struct MysteryEncounterView: View {
         .onDisappear {
             chromeRevealTask?.cancel()
             chromeRevealTask = nil
+            // Cancel without completion left Recruit locked when @State survived
+            // (same class as VictoryView / ExperienceBar onDisappear snap).
+            if hasStartedChromeSequence {
+                finishUnlockChromeSequence()
+            }
         }
     }
 
@@ -288,10 +293,19 @@ struct MysteryEncounterView: View {
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
-                showUnlockCTA = true
+                finishUnlockChromeSequence()
             }
             chromeRevealTask = nil
         }
+    }
+
+    private func finishUnlockChromeSequence() {
+        guard !showUnlockCTA else { return }
+        showUnlockEyebrow = true
+        showUnlockTitle = true
+        showUnlockSubtitle = true
+        showUnlockArt = true
+        showUnlockCTA = true
     }
 
     private func revealCombatant(id: String) -> Combatant? {
