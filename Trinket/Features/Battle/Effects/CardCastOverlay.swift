@@ -70,6 +70,13 @@ struct CardActivationRequest: Equatable, Identifiable {
 }
 
 struct CardActivationParticle: Equatable {
+    /// Radial omnidirectional burst vs upward-biased fireworks with staggered waves.
+    enum Spread: Equatable {
+        case radial
+        /// Upper hemisphere in SwiftUI space (negative Y is up), three delay waves.
+        case fireworks
+    }
+
     let originXNoise: CGFloat
     let originYNoise: CGFloat
     let vector: CGVector
@@ -81,35 +88,23 @@ struct CardActivationParticle: Equatable {
     let fadeNoise: CGFloat
     let colorNoise: CGFloat
 
-    static func make(count: Int) -> [Self] {
-        (0 ..< max(0, count)).map { index in
-            let angle = dissolveNoise(column: index, row: 41) * 2 * .pi
-            return Self(
-                originXNoise: dissolveNoise(column: index, row: 13),
-                originYNoise: dissolveNoise(column: index, row: 29),
-                vector: CGVector(dx: cos(angle), dy: sin(angle)),
-                distanceNoise: dissolveNoise(column: index, row: 53),
-                delayNoise: dissolveNoise(column: index, row: 61),
-                lifetimeNoise: dissolveNoise(column: index, row: 67),
-                curveNoise: dissolveNoise(column: index, row: 83),
-                sizeNoise: dissolveNoise(column: index, row: 79),
-                fadeNoise: dissolveNoise(column: index, row: 101),
-                colorNoise: dissolveNoise(column: index, row: 109)
-            )
-        }
-    }
-
-    /// Upward-biased bursts with staggered wave delays for enemy defeat celebration.
-    static func makeFireworks(count: Int) -> [Self] {
+    static func make(count: Int, spread: Spread = .radial) -> [Self] {
         let waveCount = 3
         return (0 ..< max(0, count)).map { index in
-            // Upper hemisphere in SwiftUI space (negative Y is up).
-            let angle = -.pi + dissolveNoise(column: index, row: 41) * .pi
-            let wave = CGFloat(index % waveCount) / CGFloat(waveCount)
-            let delayNoise = min(
-                1,
-                wave + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount))
-            )
+            let angleNoise = dissolveNoise(column: index, row: 41)
+            let angle: CGFloat = switch spread {
+            case .radial:
+                angleNoise * 2 * .pi
+            case .fireworks:
+                -.pi + angleNoise * .pi
+            }
+            let delayNoise: CGFloat = switch spread {
+            case .radial:
+                dissolveNoise(column: index, row: 61)
+            case .fireworks:
+                let wave = CGFloat(index % waveCount) / CGFloat(waveCount)
+                min(1, wave + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount)))
+            }
             return Self(
                 originXNoise: dissolveNoise(column: index, row: 13),
                 originYNoise: dissolveNoise(column: index, row: 29),
@@ -349,7 +344,7 @@ struct BattleDissolveArtwork<Content: View>: View {
         self.celebratesDefeat = celebratesDefeat
         self.content = content()
         if celebratesDefeat {
-            particles = CardActivationParticle.makeFireworks(count: 28)
+            particles = CardActivationParticle.make(count: 28, spread: .fireworks)
             keywords = [.gold, .holy]
             configuration = .defeatCelebration
         } else {

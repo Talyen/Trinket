@@ -15,12 +15,12 @@ struct CardActivationTests {
     }
 
     @Test func fireworksParticlesArePreparedDeterministically() {
-        let first = CardActivationParticle.makeFireworks(count: 28)
-        let second = CardActivationParticle.makeFireworks(count: 28)
+        let first = CardActivationParticle.make(count: 28, spread: .fireworks)
+        let second = CardActivationParticle.make(count: 28, spread: .fireworks)
 
         #expect(first == second)
         #expect(first.count == 28)
-        #expect(CardActivationParticle.makeFireworks(count: -1).isEmpty)
+        #expect(CardActivationParticle.make(count: -1, spread: .fireworks).isEmpty)
         // Upward hemisphere: every particle travels with non-positive Y.
         #expect(first.allSatisfy { $0.vector.dy <= 0 })
     }
