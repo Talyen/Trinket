@@ -75,7 +75,7 @@ struct ActiveBattleConfigurationTests {
 
         var labyrinth = PlayerLabyrinthState.freshStart
         labyrinth.ensureMap()
-        let combatNode = try #require(labyrinth.nodes.values.first { $0.type.isCombat })
+        let combatNode = try #require(labyrinth.nodes.values.first(where: \.type.isCombat))
         let labyrinthLoot = ActiveBattleConfiguration.lootPackage(
             for: .labyrinth(nodeID: combatNode.id),
             labyrinth: labyrinth
