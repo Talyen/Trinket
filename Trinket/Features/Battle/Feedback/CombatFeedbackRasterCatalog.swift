@@ -35,16 +35,23 @@ enum CombatFeedbackRasterCatalog {
         CombatFeedbackRasterPool.canvasItems(from: closedVocabularyItems(at: date))
     }
 
-    private static func wordSources() -> [CombatFeedbackPresentationFactory.Source] {
+    private struct CatalogSource {
+        let id: Int
+        let feedbackClass: CombatFeedbackClass
+        let keyword: Keyword
+        let visualRole: CombatFeedbackVisualRole
+        let label: CombatFeedbackChipLabel
+        let reactionKind: CombatantHitReactionKind
+    }
+
+    private static func wordSources() -> [CatalogSource] {
         var sources = specialWordSources(startingID: 1)
         sources += keywordWordSources(startingID: sources.count + 1)
         sources += statusWordSources(startingID: sources.count + 1)
         return sources
     }
 
-    private static func specialWordSources(
-        startingID: Int
-    ) -> [CombatFeedbackPresentationFactory.Source] {
+    private static func specialWordSources(startingID: Int) -> [CatalogSource] {
         [
             source(
                 id: startingID,
@@ -72,10 +79,8 @@ enum CombatFeedbackRasterCatalog {
         ]
     }
 
-    private static func keywordWordSources(
-        startingID: Int
-    ) -> [CombatFeedbackPresentationFactory.Source] {
-        var sources: [CombatFeedbackPresentationFactory.Source] = []
+    private static func keywordWordSources(startingID: Int) -> [CatalogSource] {
+        var sources: [CatalogSource] = []
         var nextID = startingID
         for keyword in Keyword.allCases {
             if keyword != .deathsDoor {
@@ -106,9 +111,7 @@ enum CombatFeedbackRasterCatalog {
         return sources
     }
 
-    private static func statusWordSources(
-        startingID: Int
-    ) -> [CombatFeedbackPresentationFactory.Source] {
+    private static func statusWordSources(startingID: Int) -> [CatalogSource] {
         CombatFeedbackStatusLabel.allCases.enumerated().map { offset, status in
             source(
                 id: startingID + offset,
@@ -127,22 +130,19 @@ enum CombatFeedbackRasterCatalog {
         visualRole: CombatFeedbackVisualRole = .keyword,
         label: CombatFeedbackChipLabel,
         reactionKind: CombatantHitReactionKind = .none
-    ) -> CombatFeedbackPresentationFactory.Source {
-        CombatFeedbackPresentationFactory.Source(
+    ) -> CatalogSource {
+        CatalogSource(
             id: id,
-            sourceEventIDs: [id],
-            targetID: "catalog",
             feedbackClass: feedbackClass,
             keyword: keyword,
             visualRole: visualRole,
             label: label,
-            secondaryText: nil,
             reactionKind: reactionKind
         )
     }
 
     private static func catalogItem(
-        from source: CombatFeedbackPresentationFactory.Source,
+        from source: CatalogSource,
         presentationRole: CombatFeedbackPresentationRole,
         availableAt: Date,
         expiresAt: Date
@@ -153,17 +153,17 @@ enum CombatFeedbackRasterCatalog {
         }
         return CombatFeedbackItem(
             id: source.id &+ roleBias,
-            sourceEventIDs: source.sourceEventIDs,
+            sourceEventIDs: [source.id],
             actionGroupID: source.id,
             presentationIndex: presentationRole == .headline ? 0 : 1,
             groupResultCount: presentationRole == .headline ? 1 : 4,
             presentationRole: presentationRole,
-            targetID: source.targetID,
+            targetID: "catalog",
             feedbackClass: source.feedbackClass,
             keyword: source.keyword,
             visualRole: source.visualRole,
             label: source.label,
-            secondaryText: source.secondaryText,
+            secondaryText: nil,
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,

@@ -5,10 +5,13 @@ import TrinketDesignSystem
 
 struct CombatFeedbackCanvasItem: Identifiable {
     let item: CombatFeedbackItem
-    let label: CombatFeedbackChipLabel
 
     var id: Int {
         item.id
+    }
+
+    var label: CombatFeedbackChipLabel {
+        item.label
     }
 
     /// Derived for tests and debug tooling.

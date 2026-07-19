@@ -393,19 +393,9 @@ final class CombatFeedbackRasterPool {
     static func canvasItems(from items: [CombatFeedbackItem]) -> [CombatFeedbackCanvasItem] {
         // Prepare every action group in the batch — not only the single newest group
         // the overlay keeps on-screen — so staggered targets are warm before availableAt.
-        var order: [Int] = []
-        var grouped: [Int: [CombatFeedbackItem]] = [:]
-        for item in items {
-            if grouped[item.actionGroupID] == nil {
-                order.append(item.actionGroupID)
-            }
-            grouped[item.actionGroupID, default: []].append(item)
-        }
-        let actionGroups = order.compactMap { id -> CombatFeedbackActionGroup? in
-            guard let groupItems = grouped[id] else { return nil }
-            return CombatFeedbackActionGroup(id: id, items: groupItems)
-        }
-        return CombatFeedbackOverlayPolicy.canvasItems(from: actionGroups)
+        CombatFeedbackOverlayPolicy.canvasItems(
+            from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
+        )
     }
 
     private func makeKey(

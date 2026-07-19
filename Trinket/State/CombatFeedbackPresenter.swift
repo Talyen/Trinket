@@ -35,25 +35,43 @@ enum CombatFeedbackPresenter {
             guard let actionGroupID = sorted.first?.actionID else { return [] }
             let availableAt = date
             let expiresAt = availableAt.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
-            return CombatFeedbackPresentationFactory.makeItems(
-                from: sorted.map {
-                    CombatFeedbackPresentationFactory.Source(
-                        id: $0.id,
-                        sourceEventIDs: $0.sourceEventIDs,
-                        targetID: $0.targetID,
-                        feedbackClass: $0.feedbackClass,
-                        keyword: $0.keyword,
-                        visualRole: $0.visualRole,
-                        label: $0.label,
-                        secondaryText: $0.secondaryText,
-                        reactionKind: $0.reactionKind
-                    )
-                },
-                actionGroupID: actionGroupID,
-                availableAt: availableAt,
-                expiresAt: expiresAt
-            )
+            let groupResultCount = sorted.count
+            return sorted.enumerated().map { presentationIndex, prepared in
+                CombatFeedbackItem(
+                    id: prepared.id,
+                    sourceEventIDs: prepared.sourceEventIDs,
+                    actionGroupID: actionGroupID,
+                    presentationIndex: presentationIndex,
+                    groupResultCount: groupResultCount,
+                    presentationRole: presentationRole(
+                        index: presentationIndex,
+                        groupResultCount: groupResultCount
+                    ),
+                    targetID: prepared.targetID,
+                    feedbackClass: prepared.feedbackClass,
+                    keyword: prepared.keyword,
+                    visualRole: prepared.visualRole,
+                    label: prepared.label,
+                    secondaryText: prepared.secondaryText,
+                    lifetime: TrinketMotion.Battle.chipDisplayDuration,
+                    availableAt: availableAt,
+                    expiresAt: expiresAt,
+                    reactionKind: prepared.reactionKind,
+                    lane: .middle
+                )
+            }
         }
+    }
+
+    /// Sparse groups keep headline sizing for every chip; denser groups promote index 0.
+    private static func presentationRole(
+        index: Int,
+        groupResultCount: Int
+    ) -> CombatFeedbackPresentationRole {
+        if groupResultCount <= 3 {
+            return .headline
+        }
+        return index == 0 ? .headline : .secondary
     }
 
     static func reaction(for items: [CombatFeedbackItem]) -> CombatantHitReaction? {

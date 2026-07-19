@@ -25,7 +25,7 @@ enum CombatFeedbackOverlayPolicy {
         groups.flatMap { group in
             group.items
                 .sorted { $0.presentationIndex < $1.presentationIndex }
-                .map { CombatFeedbackCanvasItem(item: $0, label: $0.label) }
+                .map { CombatFeedbackCanvasItem(item: $0) }
         }
     }
 }
