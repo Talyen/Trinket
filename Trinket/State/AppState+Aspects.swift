@@ -45,15 +45,17 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
-        let loot = AspectCompletion.resolveLoot(for: floor)
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .aspect(aspectID: floor.aspectID, floor: floor.floor)
+        )
         activateBattle(
             resumeToken: .aspect(aspectID: floor.aspectID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: loot.asStageReward,
-            pendingRewardItem: loot.item
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
         )
         return nil
     }
@@ -71,15 +73,17 @@ extension AppState {
               let encounter = ActiveBattleConfiguration.resolvedAspectEncounter(for: floor)
         else { return }
 
-        let loot = AspectCompletion.resolveLoot(for: floor)
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .aspect(aspectID: floor.aspectID, floor: floor.floor)
+        )
         battle.prepareBattleRun(makeBattleConfiguration(
             resumeToken: .aspect(aspectID: floor.aspectID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: loot.asStageReward,
-            pendingRewardItem: loot.item
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
         ))
     }
 

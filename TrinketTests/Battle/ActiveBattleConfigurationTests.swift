@@ -27,7 +27,11 @@ struct ActiveBattleConfigurationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battleEnemyID = try #require(stage.encounter.battleEnemyID)
         let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
-        let loot = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
+        let loot = try #require(ActiveBattleConfiguration.lootPackage(
+            for: .journey(stageID: stage.id),
+            enemy: enemy,
+            encounterLevel: 1
+        ))
 
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: stage.id),
@@ -44,6 +48,45 @@ struct ActiveBattleConfigurationTests {
         #expect(configuration.stageReward == loot.asStageReward)
         #expect(configuration.rewardItems == [loot.item])
         #expect(configuration.pendingRewardItem == loot.item)
+    }
+
+    @Test func lootPackageMatchesPersistenceResolvers() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let battleEnemyID = try #require(stage.encounter.battleEnemyID)
+        let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
+        let journeyLoot = try #require(ActiveBattleConfiguration.lootPackage(
+            for: .journey(stageID: stage.id),
+            enemy: enemy,
+            encounterLevel: 1
+        ))
+        #expect(
+            journeyLoot == BattleLoot.resolveJourney(
+                stage: stage,
+                encounterLevel: 1,
+                enemyIsBoss: false
+            )
+        )
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        let aspectLoot = try #require(ActiveBattleConfiguration.lootPackage(
+            for: .aspect(aspectID: .ironVein, floor: 1)
+        ))
+        #expect(aspectLoot == AspectCompletion.resolveLoot(for: floor))
+
+        var labyrinth = PlayerLabyrinthState.freshStart
+        labyrinth.ensureMap()
+        let combatNode = try #require(labyrinth.nodes.values.first { $0.type.isCombat })
+        let labyrinthLoot = ActiveBattleConfiguration.lootPackage(
+            for: .labyrinth(nodeID: combatNode.id),
+            labyrinth: labyrinth
+        )
+        #expect(
+            labyrinthLoot == LabyrinthCompletion.resolveCombatLoot(
+                for: combatNode,
+                effects: labyrinth.effects(for: combatNode.id),
+                worldSeed: labyrinth.worldSeed
+            )
+        )
     }
 
     @Test func rewardResolutionPrefersPendingItem() throws {

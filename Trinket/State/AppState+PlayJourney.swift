@@ -141,7 +141,7 @@ extension AppState {
             return nil
         }
 
-        let loot = battleLootPackage(
+        let loot = ActiveBattleConfiguration.lootPackage(
             for: .journey(stageID: stage.id),
             enemy: encounter.combatant,
             encounterLevel: encounter.level
@@ -162,7 +162,7 @@ extension AppState {
         guard battle.activeBattle == nil,
               let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage)
         else { return }
-        let loot = battleLootPackage(
+        let loot = ActiveBattleConfiguration.lootPackage(
             for: .journey(stageID: stage.id),
             enemy: encounter.combatant,
             encounterLevel: encounter.level
@@ -358,40 +358,5 @@ extension AppState {
             return nil
         }
         return resultingJourney
-    }
-
-    /// Resolves seeded combat loot for victory chrome and grant paths.
-    func battleLootPackage(
-        for resumeToken: ActiveBattleResumeToken?,
-        enemy: Combatant?,
-        encounterLevel: Int
-    ) -> BattleLootPackage? {
-        let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
-        switch resumeToken {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID),
-                  case .battle = stage.encounter
-            else { return nil }
-            return BattleLoot.resolveJourney(
-                stage: stage,
-                encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss
-            )
-        case let .aspect(aspectID, floorNumber):
-            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
-                return nil
-            }
-            return AspectCompletion.resolveLoot(for: floor)
-        case let .labyrinth(nodeID):
-            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return nil }
-            let effects = labyrinth.effects(for: nodeID)
-            return LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: effects,
-                worldSeed: labyrinth.worldSeed
-            )
-        case .none:
-            return nil
-        }
     }
 }

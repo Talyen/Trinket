@@ -148,10 +148,9 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
-        let loot = LabyrinthCompletion.resolveCombatLoot(
-            for: node,
-            effects: effects,
-            worldSeed: labyrinth.worldSeed
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .labyrinth(nodeID: nodeID),
+            labyrinth: labyrinth
         )
         activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
@@ -181,10 +180,9 @@ extension AppState {
             effects: effects
         ) else { return }
 
-        let loot = LabyrinthCompletion.resolveCombatLoot(
-            for: node,
-            effects: effects,
-            worldSeed: labyrinth.worldSeed
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .labyrinth(nodeID: nodeID),
+            labyrinth: labyrinth
         )
         battle.prepareBattleRun(makeBattleConfiguration(
             resumeToken: .labyrinth(nodeID: nodeID),

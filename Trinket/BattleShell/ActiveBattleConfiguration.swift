@@ -92,6 +92,44 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
+    /// Seeded combat loot for battle chrome and grant paths. Pure formulas stay in Persistence.
+    static func lootPackage(
+        for resumeToken: ActiveBattleResumeToken?,
+        enemy: Combatant? = nil,
+        encounterLevel: Int = 0,
+        labyrinth: PlayerLabyrinthState? = nil
+    ) -> BattleLootPackage? {
+        let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
+        switch resumeToken {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID),
+                  case .battle = stage.encounter
+            else { return nil }
+            return BattleLoot.resolveJourney(
+                stage: stage,
+                encounterLevel: encounterLevel,
+                enemyIsBoss: enemyIsBoss
+            )
+        case let .aspect(aspectID, floorNumber):
+            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
+                return nil
+            }
+            return AspectCompletion.resolveLoot(for: floor)
+        case let .labyrinth(nodeID):
+            guard let labyrinth,
+                  let node = labyrinth.node(id: nodeID),
+                  node.type.isCombat
+            else { return nil }
+            return LabyrinthCompletion.resolveCombatLoot(
+                for: node,
+                effects: labyrinth.effects(for: nodeID),
+                worldSeed: labyrinth.worldSeed
+            )
+        case .none:
+            return nil
+        }
+    }
+
     private static func scaledEnemy(
         _ enemy: Enemy,
         level: Int
@@ -157,10 +195,8 @@ struct ActiveBattleConfiguration: Identifiable {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         _ = randomNumberGenerator
-        guard case let .aspect(aspectID, floorNumber) = resumeToken,
-              let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber)
-        else { return nil }
-        return AspectCompletion.resolveLoot(for: floor).item
+        guard case .aspect = resumeToken else { return nil }
+        return lootPackage(for: resumeToken)?.item
     }
 
     private static func partyMember(
