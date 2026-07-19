@@ -40,27 +40,6 @@ struct MitigationIntegrationTests {
         let initial = battle.health(of: battle.hero)
 
         // One enemy Judgment hit: 6 → reduce by min(toughnessMitigation=3, floor(6/2)=3) → 3 damage.
-        _ = BattleTestFixtures.endTurn(on: &battle)
-
-        try #expect(battle.health(of: battle.hero) == initial - 3)
-    }
-
-    @Test func effectiveDamageMatchesEventAmount() throws {
-        let hero = BattleTestFixtures.statHero(
-            abilities: [],
-            stats: PrimaryStats(toughness: 15),
-            maxHealth: 20,
-            actionIntervalTicks: 100
-        )
-        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
-        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.judgment])
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            companion: companion,
-            enemy: enemy
-        )
-        let initial = battle.health(of: battle.hero)
-
         let events = BattleTestFixtures.endTurn(on: &battle)
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
