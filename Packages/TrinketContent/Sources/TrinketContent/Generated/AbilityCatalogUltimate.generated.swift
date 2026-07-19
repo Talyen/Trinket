@@ -11,7 +11,7 @@ enum AbilityCatalogUltimateGenerated {
 
     static let avatarOfJustice = AbilityBuilder.buffOnly(
         id: "avatar-of-justice", name: "Avatar of Justice", tier: .ultimate,
-        effects: [.shield(.block, 5), .mitigation(.armor, 2), .damageKeywordOverride(.holy, 3, 6)]
+        effects: [.shield(.block, 7), .damageKeywordOverride(.holy, 3, 6)]
     )
 
     static let holyRadiance = AbilityBuilder.directHit(
@@ -33,7 +33,7 @@ enum AbilityCatalogUltimateGenerated {
 
     static let sanctifiedPlate = AbilityBuilder.buffOnly(
         id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate,
-        effects: [.mitigation(.armor, 3), .instantHeal(.health, 2)]
+        effects: [.shield(.block, 3), .instantHeal(.health, 2)]
     )
 
     static let bloodthorn = AbilityBuilder.multiDamage(

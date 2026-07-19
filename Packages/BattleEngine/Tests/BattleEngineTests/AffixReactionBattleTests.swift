@@ -103,7 +103,7 @@ struct AffixReactionBattleTests {
         try #expect(events.contains { $0.kind == .status && $0.keyword == .freeze && $0.amount == 1 })
     }
 
-    @Test func cascadingGrantsArmorWhenBlockBreaks() throws {
+    @Test func cascadingGrantsBlockWhenBlockBreaks() throws {
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
@@ -120,18 +120,20 @@ struct AffixReactionBattleTests {
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 6)
             ],
-            heroModifiers: CombatModifierProfile(blockBrokenArmorFlat: 1)
+            heroModifiers: CombatModifierProfile(blockBrokenBlockFlat: 4)
         )
 
+        // Strike's 2 damage breaks the 1-point Block, Cascading regrants 4, then
+        // end-of-round decay halves it to 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
-        let armor = battle.activeEffects(of: battle.hero).first { active in
-            if case let .mitigation(keyword, points) = active.effect {
-                return keyword == .armor && points == 1
+        let block = battle.activeEffects(of: battle.hero).first { active in
+            if case let .shield(keyword, points) = active.effect {
+                return keyword == .block && points == 2
             }
             return false
         }
-        try #expect(armor != nil)
+        try #expect(block != nil)
     }
 
     @Test func symbiosisSharesHeroHealingWithCompanion() throws {

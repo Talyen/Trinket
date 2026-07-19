@@ -2,8 +2,8 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct HalveMitigationHandler: BattleEffectHandler {
-    let kind: EffectKind = .halveMitigation
+struct HalveShieldHandler: BattleEffectHandler {
+    let kind: EffectKind = .halveShield
 
     func apply(
         _ effect: Effect,
@@ -13,23 +13,13 @@ struct HalveMitigationHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .halveMitigation(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        var currentEffects = context.roster.activeEffects(for: target)
-        var didHalve = false
-        for index in currentEffects.indices {
-            if case let .mitigation(mitigationKeyword, points) = currentEffects[index].effect,
-               mitigationKeyword == keyword {
-                currentEffects[index].effect = .mitigation(
-                    mitigationKeyword, points / 2
-                )
-                didHalve = true
-            }
+        guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard DefensePoolEngine.halveBlock(on: target, in: &context) else {
+            return EffectApplyOutcome(events: [], didApply: false)
         }
-        context.roster.setActiveEffects(currentEffects, for: target)
-        guard didHalve else { return EffectApplyOutcome(events: [], didApply: false) }
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .mitigationHalved,
+            effectKind: .shieldHalved,
             actorName: source.name,
             abilityName: ability.name,
             target: target,

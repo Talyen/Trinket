@@ -82,11 +82,11 @@ struct EffectSummaryBuilderTests {
     @Test func multipleKeywordsYieldMultipleSummaries() throws {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
-            ActiveEffect(id: 2, effect: .mitigation(.armor, 2), remainingTicks: 3)
+            ActiveEffect(id: 2, effect: .burn(2), remainingTicks: 3)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.count == 2)
         try #expect(summaries.contains { $0.keyword == .block })
-        try #expect(summaries.contains { $0.keyword == .armor })
+        try #expect(summaries.contains { $0.keyword == .burn })
     }
 }

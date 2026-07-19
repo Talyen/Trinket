@@ -98,6 +98,32 @@ struct CardActivationParticle: Equatable {
             )
         }
     }
+
+    /// Upward-biased bursts with staggered wave delays for enemy defeat celebration.
+    static func makeFireworks(count: Int) -> [Self] {
+        let waveCount = 3
+        return (0 ..< max(0, count)).map { index in
+            // Upper hemisphere in SwiftUI space (negative Y is up).
+            let angle = -.pi + dissolveNoise(column: index, row: 41) * .pi
+            let wave = CGFloat(index % waveCount) / CGFloat(waveCount)
+            let delayNoise = min(
+                1,
+                wave + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount))
+            )
+            return Self(
+                originXNoise: dissolveNoise(column: index, row: 13),
+                originYNoise: dissolveNoise(column: index, row: 29),
+                vector: CGVector(dx: cos(angle), dy: sin(angle)),
+                distanceNoise: dissolveNoise(column: index, row: 53),
+                delayNoise: delayNoise,
+                lifetimeNoise: dissolveNoise(column: index, row: 67),
+                curveNoise: dissolveNoise(column: index, row: 83),
+                sizeNoise: dissolveNoise(column: index, row: 79),
+                fadeNoise: dissolveNoise(column: index, row: 101),
+                colorNoise: dissolveNoise(column: index, row: 109)
+            )
+        }
+    }
 }
 
 /// All active casts share one display-linked clock. Per-request cleanup remains
@@ -208,6 +234,24 @@ struct CardCastEffectConfiguration {
     var particleSizeShrink: CGFloat = 0.30
     var particleFadeExponent: CGFloat = 1.35
     var particlePathControl: CGFloat = 0.45
+
+    /// Subtle gold fireworks over the dissolving enemy portrait (same 1s window).
+    static let defeatCelebration = CardCastEffectConfiguration(
+        particleDistance: 120,
+        particleDistanceVariation: 55,
+        particleDelay: 0.42,
+        particleLifetime: 0.40,
+        particleLifetimeVariation: 0.16,
+        particleCurve: 1.40,
+        particleOriginSpread: 0.32,
+        particleSize: 3.0,
+        particleSizeVariation: 2.8,
+        fadeStart: 0.40,
+        particleAgeEasePower: 2.10,
+        particleSizeShrink: 0.50,
+        particleFadeExponent: 1.55,
+        particlePathControl: 0.32
+    )
 }
 
 struct BattleDissolveEffect<Content: View>: View {
@@ -271,6 +315,9 @@ struct BattleDissolveEffect<Content: View>: View {
             }
 
             if !particles.isEmpty {
+                let travelPad = configuration.particleDistance
+                    + configuration.particleDistanceVariation
+                    + 40
                 CardActivationParticles(
                     progress: progress,
                     keywords: keywords,
@@ -278,7 +325,7 @@ struct BattleDissolveEffect<Content: View>: View {
                     particles: particles,
                     configuration: configuration
                 )
-                .frame(width: size.width + 180, height: size.height + 180)
+                .frame(width: size.width + travelPad * 2, height: size.height + travelPad * 2)
             }
         }
         .frame(width: size.width, height: size.height)
@@ -286,14 +333,30 @@ struct BattleDissolveEffect<Content: View>: View {
 }
 
 struct BattleDissolveArtwork<Content: View>: View {
+    let celebratesDefeat: Bool
     let content: Content
 
     @State private var startDate = Date()
     @State private var isComplete = false
-    private let particles = CardActivationParticle.make(count: 20)
+    private let particles: [CardActivationParticle]
+    private let keywords: [Keyword]
+    private let configuration: CardCastEffectConfiguration
 
-    init(@ViewBuilder content: () -> Content) {
+    init(
+        celebratesDefeat: Bool = false,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.celebratesDefeat = celebratesDefeat
         self.content = content()
+        if celebratesDefeat {
+            particles = CardActivationParticle.makeFireworks(count: 28)
+            keywords = [.gold, .holy]
+            configuration = .defeatCelebration
+        } else {
+            particles = CardActivationParticle.make(count: 20)
+            keywords = [.physical]
+            configuration = CardCastEffectConfiguration()
+        }
     }
 
     var body: some View {
@@ -311,9 +374,10 @@ struct BattleDissolveArtwork<Content: View>: View {
 
                         BattleDissolveEffect(
                             progress: progress,
-                            keywords: [.physical],
+                            keywords: keywords,
                             size: geometry.size,
-                            particles: particles
+                            particles: particles,
+                            configuration: configuration
                         ) {
                             content
                         }

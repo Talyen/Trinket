@@ -5,6 +5,7 @@ import TrinketDesignSystem
 struct CollectionCombatantGridView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedCombatant: CombatantDetailContext?
+    @Namespace private var zoomNamespace
 
     let kind: CombatantDetailContext.Kind
 
@@ -48,6 +49,7 @@ struct CollectionCombatantGridView: View {
                                     combatantID: combatant.id
                                 )
                             }
+                            .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
                         }
                     }
                 }
@@ -64,6 +66,7 @@ struct CollectionCombatantGridView: View {
                     combatantID: context.combatantID
                 )
             }
+            .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
             .trinketDetailSheet()
         }
     }

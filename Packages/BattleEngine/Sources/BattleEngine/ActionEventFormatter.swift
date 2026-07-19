@@ -82,8 +82,6 @@ public enum ActionEventFormatter {
             signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .shieldApplied:
             signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
-        case .mitigationApplied:
-            mitigationAppliedDisplay(for: event)
         case .shieldAbsorbed:
             signedAmountDisplay(emphasis: .shieldAbsorbed, event: event, prefix: "-")
         case .controlActionSkipped, .controlApplied, .controlTriggered:
@@ -104,8 +102,8 @@ public enum ActionEventFormatter {
             )
         case .leechApplied:
             leechAppliedDisplay(for: event)
-        case .mitigationHalved:
-            mitigationHalvedDisplay(for: event)
+        case .shieldHalved:
+            shieldHalvedDisplay(for: event)
         case .dodgeApplied:
             dodgeDisplay(for: event)
         case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
@@ -135,15 +133,6 @@ public enum ActionEventFormatter {
             emphasis: .resourceGain,
             keyword: event.keyword,
             text: text,
-            secondaryText: nil
-        )
-    }
-
-    private static func mitigationAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {
-        ActionEventDisplay(
-            emphasis: .buff,
-            keyword: event.keyword,
-            text: "+\(Int(Double(event.amount)))% \(event.keyword.rawValue)",
             secondaryText: nil
         )
     }
@@ -193,7 +182,7 @@ public enum ActionEventFormatter {
         )
     }
 
-    private static func mitigationHalvedDisplay(for event: ActionEvent) -> ActionEventDisplay {
+    private static func shieldHalvedDisplay(for event: ActionEvent) -> ActionEventDisplay {
         ActionEventDisplay(
             emphasis: .buff,
             keyword: event.keyword,

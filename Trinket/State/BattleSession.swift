@@ -99,9 +99,9 @@ final class BattleSession {
     /// Next prune fire time for the long-lived prune loop (no per-publish Task alloc).
     @ObservationIgnored
     var nextFeedbackPruneAt: Date?
-    /// Next visual start for each combatant's independent floating-text queue.
+    /// Next visual start per combatant lane (left / middle / right).
     @ObservationIgnored
-    var nextFeedbackVisualStartByTargetID: [String: Date] = [:]
+    var nextFeedbackVisualStartByTargetLane: [String: [Date]] = [:]
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
@@ -131,16 +131,29 @@ final class BattleSession {
     @ObservationIgnored
     var autoEndTurnDelay: TimeInterval
 
+    /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
+    /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
+    @ObservationIgnored
+    var openingHandDrawStagger: TimeInterval
+
+    /// True while the opening hand is still being drawn into presentation.
+    var isDealingOpeningHand = false
+
+    @ObservationIgnored
+    var pendingOpeningHandDealTask: Task<Void, Never>?
+
     /// Test seam for attack telegraph impact timing. Production uses the attack recipe.
     @ObservationIgnored
     var enemyAttackImpactDelayOverride: TimeInterval?
 
     init(
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
+        openingHandDrawStagger: TimeInterval = TrinketMotion.Battle.cardDrawStagger,
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil
     ) {
         self.autoEndTurnDelay = autoEndTurnDelay
+        self.openingHandDrawStagger = openingHandDrawStagger
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
     }
@@ -160,6 +173,7 @@ final class BattleSession {
     var canEndTurn: Bool {
         guard let state else { return false }
         return state.phase == .playerTurn && !state.isBattleOver
+            && !isDealingOpeningHand
             && activeCinematic == nil
             && !isShowingVictory && !isShowingDefeat
     }
@@ -176,6 +190,7 @@ final class BattleSession {
 
     func endBattle() {
         cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
         activeBattle = nil
         clearAllPresentation()
     }

@@ -148,7 +148,7 @@ struct DoTMechanicsTests {
         try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count == 2)
     }
 
-    @Test func burnRespectsBlockAndArmor() throws {
+    @Test func burnRespectsBlock() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
@@ -160,8 +160,7 @@ struct DoTMechanicsTests {
             companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 5),
-                ActiveEffect(id: 2, effect: .mitigation(.armor, 3), remainingTicks: 5)
+                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 5)
             ]
         )
 

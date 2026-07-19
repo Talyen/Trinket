@@ -74,7 +74,7 @@ struct StatIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         let event = BattleTestFixtures.firstAbilityEvent(in: events)
 
-        // Slash deals 1; flat Armor cap is floor(1/2)=0, so Toughness cannot reduce it.
+        // Slash deals 1; the mitigation cap is floor(1/2)=0, so Toughness cannot reduce it.
         try #expect(event?.amount == 1)
         try #expect(battle.health(of: battle.hero) == initial - 1)
     }
@@ -96,7 +96,7 @@ struct StatIntegrationTests {
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 
         let initial = battle.health(of: battle.hero)
-        // Fireball 2 → Armor effectiveness 10, cap floor(2/2)=1 → take 1.
+        // Fireball 2 → Toughness mitigation 10, cap floor(2/2)=1 → take 1.
         // Burn tick potency 2 → same cap → take 1. Total lost: 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
 

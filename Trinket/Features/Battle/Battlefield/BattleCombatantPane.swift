@@ -10,6 +10,7 @@ struct BattleCombatantPane: View {
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
+    let borderAccentKeyword: Keyword?
     let hapticsEnabled: Bool
     let cinematicNamespace: Namespace.ID
     let recoilDirection: CombatantHitRecoilDirection
@@ -32,7 +33,8 @@ struct BattleCombatantPane: View {
                         combatantID: combatant.id,
                         hapticsEnabled: hapticsEnabled,
                         recoilDirection: recoilDirection,
-                        borderVisible: !isDefeated
+                        borderVisible: !isDefeated,
+                        borderAccentKeyword: borderAccentKeyword
                     ) {
                         ZStack(alignment: .bottom) {
                             artworkPresentation
@@ -73,7 +75,7 @@ struct BattleCombatantPane: View {
     @ViewBuilder
     private var artworkPresentation: some View {
         if isDefeated {
-            BattleDissolveArtwork {
+            BattleDissolveArtwork(celebratesDefeat: recoilDirection != .down) {
                 artworkLayer
             }
         } else {
@@ -116,6 +118,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
     let borderVisible: Bool
+    let borderAccentKeyword: Keyword?
     @ViewBuilder let artwork: () -> Artwork
 
     /// Local trigger so KeyframeAnimator always sees a change, even when reaction
@@ -123,6 +126,8 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     @State private var playToken = 0
     @State private var activeKind: CombatantHitReactionKind = .none
     @State private var latestReactionID = 0
+    /// Bright end of the status border opacity cycle while an accent is active.
+    @State private var statusBorderPulseBright = false
 
     var body: some View {
         // Subscribe to the observation fence (hitReactions storage is ignored).
@@ -153,6 +158,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         let impactOffsetY = Double(impactOffset.height)
         let recoverOffsetX = recipe.offsetX[safe: 1]?.value ?? 0
         let recoverOffsetY = recipe.offsetY[safe: 1]?.value ?? 0
+        let borderColor = borderStrokeColor
 
         KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
@@ -166,7 +172,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 // the same scale/offset as art + bars (whole-card hop).
                 .overlay {
                     TrinketDesign.cardShape.strokeBorder(
-                        TrinketDesign.Colors.subtleStroke,
+                        borderColor,
                         lineWidth: 1
                     )
                     .opacity(borderVisible ? 1 : 0)
@@ -260,6 +266,37 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         )
         .onChange(of: appState.battle.hitReactionEpoch) { _, _ in
             adoptLatestReactionIfNeeded()
+        }
+        .onAppear {
+            syncStatusBorderPulse(isActive: borderAccentKeyword != nil)
+        }
+        .onChange(of: borderAccentKeyword) { _, keyword in
+            syncStatusBorderPulse(isActive: keyword != nil)
+        }
+    }
+
+    private var borderStrokeColor: Color {
+        guard let borderAccentKeyword else {
+            return TrinketDesign.Colors.subtleStroke
+        }
+        let opacity = statusBorderPulseBright
+            ? 1.0
+            : TrinketMotion.Battle.statusBorderPulseDimOpacity
+        return borderAccentKeyword.visualStyle.color.opacity(opacity)
+    }
+
+    private func syncStatusBorderPulse(isActive: Bool) {
+        if isActive {
+            statusBorderPulseBright = false
+            withAnimation(
+                TrinketMotion.Battle.statusBorderPulse.repeatForever(autoreverses: true)
+            ) {
+                statusBorderPulseBright = true
+            }
+        } else {
+            withAnimation(.easeOut(duration: 0.15)) {
+                statusBorderPulseBright = false
+            }
         }
     }
 

@@ -191,7 +191,7 @@ private struct PlayBattleOverlay: View {
     var body: some View {
         let configuration = appState.battle.activeBattle
         // The stack itself is stable; activation inserts only prepared battle
-        // content. No custom navigation controller or transition is involved.
+        // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
                 BattleView(configuration: configuration)
@@ -201,6 +201,7 @@ private struct PlayBattleOverlay: View {
             }
         }
         .opacity(configuration == nil ? 0 : 1)
+        .animation(TrinketMotion.Screen.crossfade, value: configuration?.id)
         .allowsHitTesting(configuration != nil)
         .accessibilityHidden(configuration == nil)
     }

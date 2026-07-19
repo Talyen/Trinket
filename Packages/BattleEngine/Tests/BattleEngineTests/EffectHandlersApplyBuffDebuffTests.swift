@@ -8,31 +8,31 @@ struct EffectHandlersApplyBuffDebuffTests {
     // MARK: - Debuff
 
     @Test(arguments: [true, false])
-    func halveMitigationHandlerAppliesOnlyWhenArmorPresent(seedArmor: Bool) throws {
+    func halveShieldHandlerAppliesOnlyWhenBlockPresent(seedBlock: Bool) throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        if seedArmor {
+        if seedBlock {
             BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 6)],
+                [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTicks: 0)],
                 for: battle.enemy,
                 on: &battle
             )
         }
         let outcome = EffectHandlersTestSupport.dispatch(
-            .halveMitigation(.armor),
+            .halveShield(.block),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.enemy,
             battle: &battle
         )
-        if seedArmor {
+        if seedBlock {
             try #expect(outcome.didApply)
             try #expect(battle.activeEffects(of: battle.enemy).contains { ae in
-                if case .mitigation(.armor, 1) = ae.effect {
+                if case .shield(.block, 1) = ae.effect {
                     return true
                 }
                 return false
             })
-            try #expect(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
+            try #expect(outcome.events.contains { $0.effectKind == .shieldHalved && $0.keyword == .block })
         } else {
             try #expect(!(outcome.didApply))
             try #expect(outcome.events.isEmpty)

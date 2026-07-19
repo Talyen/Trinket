@@ -174,8 +174,7 @@ struct AbilityEffectIntegrationTests {
             }
             return false
         })
-        try #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-        try #expect(events.contains { $0.effectKind == .mitigationApplied && $0.amount == 2 })
+        try #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 7 })
         try #expect(events.contains { $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 })
     }
 }

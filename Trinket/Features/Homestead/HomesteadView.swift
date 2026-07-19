@@ -6,6 +6,7 @@ import TrinketPersistence
 
 struct HomesteadView: View {
     @Environment(AppState.self) private var appState
+    @Namespace private var zoomNamespace
 
     private var homestead: PlayerHomesteadState {
         appState.homestead
@@ -31,7 +32,8 @@ struct HomesteadView: View {
                         category: category,
                         definitions: definitions(in: category),
                         homestead: homestead,
-                        roster: roster
+                        roster: roster,
+                        zoomNamespace: zoomNamespace
                     )
                 }
             }
@@ -40,6 +42,7 @@ struct HomesteadView: View {
         }
         .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
             HomesteadNodeDetailView(definition: definition)
+                .navigationTransition(.zoom(sourceID: definition.id, in: zoomNamespace))
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
     }

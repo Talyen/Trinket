@@ -16,16 +16,16 @@ direct_hit	frostbolt	frostbolt	Frostbolt	skill	2	freeze
 direct_hit	poisonDagger	poison-dagger	Poison Dagger	skill	3	poison					
 direct_hit	sapArrow	sap-arrow	Sap Arrow	skill	3	stun					
 direct_hit	roulette	roulette	Roulette	skill	3	physical				resource_gain:gold:3	
-buff_only	haste	haste	Haste	skill				mitigation:armor:2			
+buff_only	haste	haste	Haste	skill				shield:block:2			
 buff_only	healthPotion	health-potion	Health Potion	skill				instant_heal:health:3			
-buff_only	stoneskinPotion	stoneskin-potion	Stoneskin Potion	skill				mitigation:armor:3			
+buff_only	stoneskinPotion	stoneskin-potion	Stoneskin Potion	skill				shield:block:3			
 buff_only	tithe	tithe	Tithe	skill				resource_gain:gold:2|instant_heal:health:1			
 direct_hit	blessedAegis	blessed-aegis	Blessed Aegis	ultimate	6	holy				shield:block:4	
-buff_only	avatarOfJustice	avatar-of-justice	Avatar of Justice	ultimate				shield:block:5|mitigation:armor:2|damage_keyword_override:holy:3:6			
+buff_only	avatarOfJustice	avatar-of-justice	Avatar of Justice	ultimate				shield:block:7|damage_keyword_override:holy:3:6			
 direct_hit	holyRadiance	holy-radiance	Holy Radiance	ultimate	6	holy				instant_heal:health:3	
 direct_hit	sunburst	sunburst	Sunburst	ultimate	6	holy				instant_heal:health:2	
 buff_only	luckPotion	luck-potion	Luck Potion	ultimate				resource_gain:gold:3|instant_heal:health:2			
-buff_only	plateMail	plate-mail	Plate Mail	skill				mitigation:armor:3		
-buff_only	sanctifiedPlate	sanctified-plate	Sanctified Plate	ultimate				mitigation:armor:3|instant_heal:health:2			
+buff_only	plateMail	plate-mail	Plate Mail	skill				shield:block:3		
+buff_only	sanctifiedPlate	sanctified-plate	Sanctified Plate	ultimate				shield:block:3|instant_heal:health:2			
 multi_damage	bloodthorn	bloodthorn	Bloodthorn	ultimate				bleed:2|poison:2	2:bleed|2:poison		
 multi_damage	faustianBargain	faustian-bargain	Faustian Bargain	ultimate				resource_gain:gold:3	6:physical|3:physical:actor		

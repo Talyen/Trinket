@@ -20,7 +20,7 @@ enum CombatFeedbackOverlayPolicy {
 
     /// One canvas chip per distinct feedback item. Same-kind amounts are already
     /// summed in `CombatFeedbackPresenter.consolidate` — do not collapse different
-    /// kinds into a single "+N Effects" label.
+    /// kinds. Lane queues own concurrent density.
     static func canvasItems(from groups: [CombatFeedbackActionGroup]) -> [CombatFeedbackCanvasItem] {
         groups.flatMap { group in
             group.items

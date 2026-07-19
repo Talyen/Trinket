@@ -103,7 +103,7 @@ enum CombatFeedbackChipComposer {
             trailingTint: style,
             text: {
                 switch label {
-                case .amount, .percent, .overflow:
+                case .amount, .percent:
                     label.displayString
                 case let .word(word):
                     word.composeText

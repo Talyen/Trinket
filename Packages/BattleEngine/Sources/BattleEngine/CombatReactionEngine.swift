@@ -224,32 +224,13 @@ package extension CombatReactionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        guard profile.blockBrokenArmorFlat > 0 else { return [] }
+        guard profile.blockBrokenBlockFlat > 0 else { return [] }
 
-        let amount = profile.blockBrokenArmorFlat + profile.armorGainedBonus
-        DefensePoolEngine.add(amount, pool: .armor, to: target, in: &context)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .mitigationApplied,
-            actorName: target.name,
-            abilityName: "Cascading",
-            target: target,
-            amount: amount,
-            keyword: .armor
-        )]
-    }
-
-    static func afterArmorGained(
-        by target: Combatant,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        let amount = context.modifiers(for: target.id).armorGainedBlock
-        guard amount > 0 else { return [] }
         return applyBlock(
-            amount: amount,
+            amount: profile.blockBrokenBlockFlat,
             to: target,
             source: target,
-            abilityName: "Undergird",
+            abilityName: "Cascading",
             in: &context
         )
     }

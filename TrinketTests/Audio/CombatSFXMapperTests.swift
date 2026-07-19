@@ -56,7 +56,7 @@ struct CombatSFXMapperTests {
         )
         #expect(
             CombatSFXMapper.clipID(
-                for: feedbackItem(feedbackClass: .buff, keyword: .armor, text: "+10% Armor")
+                for: feedbackItem(feedbackClass: .buff, keyword: .block, text: "+10 Block")
             ) == SFXID.block
         )
         #expect(
@@ -108,7 +108,7 @@ struct CombatSFXMapperTests {
                 feedbackItem(id: 1, feedbackClass: .buff, keyword: .stun, text: "Cleanse Stunned"),
                 feedbackItem(id: 2, feedbackClass: .heal, keyword: .health, text: "+1 Health"),
                 feedbackItem(id: 3, feedbackClass: .buff, keyword: .block, text: "+4 Block"),
-                feedbackItem(id: 4, feedbackClass: .buff, keyword: .armor, text: "+22% Armor")
+                feedbackItem(id: 4, feedbackClass: .buff, keyword: .block, text: "+22 Block")
             ]) == [SFXID.heal, SFXID.block]
         )
         #expect(
@@ -160,7 +160,8 @@ struct CombatSFXMapperTests {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: .now,
             expiresAt: .now.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
-            reactionKind: .none
+            reactionKind: .none,
+            lane: .middle
         )
     }
 }

@@ -7,7 +7,7 @@ public enum AbilityCatalogSkill {
         damageComponents: [DamageComponent(2, keyword: .poison)],
         targetedEffects: [
             TargetedEffect(.poison(2)),
-            TargetedEffect(.halveMitigation(.armor), target: .enemy)
+            TargetedEffect(.halveShield(.block), target: .enemy)
         ],
         manaCost: 1
     )
@@ -30,8 +30,7 @@ public enum AbilityCatalogSkill {
     public static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 3)),
-            TargetedEffect(.mitigation(.armor, 2)),
+            TargetedEffect(.shield(.block, 5)),
             TargetedEffect(.instantHeal(.health, 1))
         ],
         manaCost: 2
@@ -125,8 +124,7 @@ public enum AbilityCatalogSkill {
     public static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.mitigation(.armor, 2)),
+            TargetedEffect(.shield(.block, 4)),
             TargetedEffect(.thorns(.physical, 1, 6))
         ]
     )
@@ -138,10 +136,10 @@ public enum AbilityCatalogSkill {
     )
     public static let sunderArmor = Ability(
         id: "sunder-armor",
-        name: "Sunder Armor",
+        name: "Sunder",
         tier: .skill,
         damageComponents: [DamageComponent(3)],
-        targetedEffects: [TargetedEffect(.halveMitigation(.armor), target: .enemy)]
+        targetedEffects: [TargetedEffect(.halveShield(.block), target: .enemy)]
     )
     public static let venomArrow = Ability(
         id: "venom-arrow", name: "Venom Arrow", tier: .skill,

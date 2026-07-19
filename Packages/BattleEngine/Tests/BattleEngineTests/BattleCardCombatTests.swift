@@ -60,6 +60,58 @@ struct BattleCardCombatTests {
         try #expect(battle.companionDeck.count == battle.companion.abilityLoadout.abilities.count - companionDrawn)
     }
 
+    @Test func pacedOpeningHandMatchesImmediateDrawForSameSeed() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            abilities: [.slash, .heal, .smite]
+        )
+        let companion = Combatant(
+            id: "companion",
+            name: "Companion",
+            role: .companion,
+            maxHealth: 50,
+            abilities: [.bash, .fangs, .bloodthorn]
+        )
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            abilities: []
+        )
+        let seed: UInt64 = 42
+        let immediate = BattleState(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            rngSeed: seed,
+            tracksLog: false
+        )
+        var paced = BattleState(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            rngSeed: seed,
+            tracksLog: false,
+            dealOpeningHand: false
+        )
+        try #expect(paced.hand.count == 0)
+
+        var draws = 0
+        while paced.drawNextOpeningHandCard(rebuildLog: false) {
+            draws += 1
+        }
+        paced.finalizeOpeningHand()
+
+        try #expect(draws == BattleHand.maxSize)
+        try #expect(paced.hand.cards.map(\.ability.id) == immediate.hand.cards.map(\.ability.id))
+        try #expect(paced.hand.cards.map(\.owner) == immediate.hand.cards.map(\.owner))
+        try #expect(paced.ownersSkippingThisPlayerTurn == immediate.ownersSkippingThisPlayerTurn)
+    }
+
     @Test func playPutsCardOnBottomOfOwnerDeck() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],

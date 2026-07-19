@@ -145,6 +145,7 @@ struct VictoryView: View {
         let rewardCount = (summary.totalGold > 0 ? 1 : 0) + materials.count
 
         if rewardCount > 0 {
+            let goldOffset = summary.totalGold > 0 ? 1 : 0
             TrinketWalletGrid(columnCount: max(1, min(columnCount, rewardCount))) {
                 if summary.totalGold > 0 {
                     TrinketWalletResourcePill(
@@ -154,10 +155,10 @@ struct VictoryView: View {
                     ) {
                         HomesteadResourceArtwork(resource: .gold)
                     }
-                    .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
                 }
 
                 ForEach(Array(materials.enumerated()), id: \.element.resource) { index, reward in
+                    let revealIndex = index + goldOffset
                     TrinketWalletResourcePill(
                         title: reward.resource.displayName,
                         amount: reward.quantity,
@@ -165,9 +166,10 @@ struct VictoryView: View {
                     ) {
                         HomesteadResourceArtwork(resource: reward.resource)
                     }
-                    .opacity(visibleWalletRewardCount > index + (summary.totalGold > 0 ? 1 : 0) ? 1 : 0)
+                    .opacity(revealIndex == 0 || visibleWalletRewardCount > revealIndex ? 1 : 0)
                 }
             }
+            .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
         } else if summary.rewardItems.isEmpty {
             Text("No additional rewards.")
                 .trinketTypography(.secondaryBody)

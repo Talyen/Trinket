@@ -228,8 +228,11 @@ struct CombatPipelineTests {
             }
             _ = try #require(stunMeter, "Fully shielded stun hits still charge control meters")
         } else {
-            let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
-            var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 1772)
+            var context = makeContext(
+                targetMaxHealth: 100,
+                targetPrimaryStats: PrimaryStats(toughness: 15),
+                seed: 1772
+            )
             _ = context.applyTestDamage(
                 20,
                 to: context.roster.enemy.combatant,
@@ -239,7 +242,7 @@ struct CombatPipelineTests {
 
             let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
             let amount = buildup?.effect.controlMeterValues?.amount
-            // Flat Armor 3 vs 20 → remaining 17 for stun buildup
+            // Toughness mitigation 3 vs 20 → remaining 17 for stun buildup
             try #expect(amount == 17)
         }
     }
@@ -267,7 +270,7 @@ struct CombatPipelineTests {
     }
 
     @Test func nonCrittableKeywordsNeverCriticalEvenWithAbilityBonus() throws {
-        for keyword: Keyword in [.block, .armor, .dodge, .purge, .gold, .mana] {
+        for keyword: Keyword in [.block, .dodge, .purge, .gold, .mana] {
             var context = makeContext(seed: 1772)
             let before = context.roster.enemy.currentHealth
             let outcome = context.resolveDamage(
@@ -286,10 +289,10 @@ struct CombatPipelineTests {
     }
 
     @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {
-        let armor = ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 6)
+        let buff = ActiveEffect(id: 1, effect: .shield(.block, 2), remainingTicks: 6)
         // Seed whose first crit roll is in the 0.75...1.0 band that the soft cap
         // would reject — guaranteed path must still crit.
-        var context = makeContext(targetEffects: [armor], seed: 1)
+        var context = makeContext(targetEffects: [buff], seed: 1)
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: 5,

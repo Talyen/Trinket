@@ -27,7 +27,6 @@ struct EffectModelTests {
         try #expect(Effect.bleed(1).isRemovableDebuff)
         try #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
         try #expect(!(Effect.shield(.block, 1)).isRemovableDebuff)
-        try #expect(!(Effect.mitigation(.armor, 2)).isRemovableDebuff)
         try #expect(!(Effect.leech(.leech, 0.1, 6)).isRemovableDebuff)
         try #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
         try #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
@@ -36,10 +35,9 @@ struct EffectModelTests {
         try #expect(!(Effect.cleanseRandom.isRemovableDebuff))
         try #expect(!(Effect.purge(.block)).isRemovableDebuff)
         try #expect(!(Effect.purgeRandom.isRemovableDebuff))
-        try #expect(!(Effect.halveMitigation(.armor)).isRemovableDebuff)
+        try #expect(!(Effect.halveShield(.block)).isRemovableDebuff)
 
         try #expect(Effect.shield(.block, 1).isRemovableBuff)
-        try #expect(Effect.mitigation(.armor, 2).isRemovableBuff)
         try #expect(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
         try #expect(!(Effect.burn(1)).isRemovableBuff)
         try #expect(!(Effect.poison(1)).isRemovableBuff)
@@ -50,7 +48,6 @@ struct EffectModelTests {
         try #expect(Effect.bleed(1).isTickable)
         try #expect(Effect.controlMeter(.stun, 1, 10).isTickable)
         try #expect(!(Effect.shield(.block, 1)).isTickable)
-        try #expect(!(Effect.mitigation(.armor, 2)).isTickable)
         try #expect(!(Effect.nextHolyStrike.isTickable))
         try #expect(Effect.leech(.leech, 0.1, 6).isTickable)
         try #expect(!(Effect.instantHeal(.health, 1)).isTickable)
@@ -60,6 +57,6 @@ struct EffectModelTests {
         try #expect(!(Effect.cleanseRandom.isTickable))
         try #expect(!(Effect.purge(.block)).isTickable)
         try #expect(!(Effect.purgeRandom.isTickable))
-        try #expect(!(Effect.halveMitigation(.armor)).isTickable)
+        try #expect(!(Effect.halveShield(.block)).isTickable)
     }
 }

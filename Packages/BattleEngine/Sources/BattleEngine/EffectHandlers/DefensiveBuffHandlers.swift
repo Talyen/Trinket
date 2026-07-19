@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Shared handler for shield (block) and mitigation (armor) pool gains.
+/// Handler for Block pool gains.
 struct DefensePoolBuffHandler: BattleEffectHandler {
     let pool: DefensePoolEngine.Pool
     var kind: EffectKind {
@@ -40,12 +40,7 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
             keyword: gain.keyword
         )
         var events = [event]
-        switch pool {
-        case .block:
-            events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
-        case .armor:
-            events.append(contentsOf: CombatReactionEngine.afterArmorGained(by: target, in: &context))
-        }
+        events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }

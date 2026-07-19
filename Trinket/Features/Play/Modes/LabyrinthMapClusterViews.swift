@@ -228,6 +228,7 @@ struct LabyrinthMapNodeCard: View {
                 }
 
                 Button {
+                    appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
                     if type.isCombat {
                         if let message = appState.startLabyrinthBattle(nodeID: node.id) {
                             onMessage(message)

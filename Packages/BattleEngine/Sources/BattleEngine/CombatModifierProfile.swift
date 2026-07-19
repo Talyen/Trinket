@@ -12,7 +12,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var leechHealingBonus: Int
     public var goldGainedBonus: Int
     public var blockGainedBonus: Int
-    public var armorGainedBonus: Int
     public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
     public var damageTakenReduction: [Keyword: Double]
@@ -29,7 +28,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var ambushBonusDamage: Int
     public var regenerationAmount: Int
     public var regenerationIntervalTicks: Int
-    public var passiveArmorFlat: Int
+    public var passiveMitigationFlat: Int
     public var thornsPercent: Double
     public var cannotBeHealed: Bool
     public var burnDecaySlowPercent: Double
@@ -39,7 +38,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var mitigationShredMultiplier: Double
     public var mitigationShredDurationTicks: Int
     public var freezeControlVulnerabilityPercent: Double
-    public var armorEffectivenessPenaltyPercent: Double
+    public var mitigationEffectivenessPenaltyPercent: Double
     public var leechHealingMultiplier: Double
     public var hemorrhageBleedBonus: Int
     public var onBleedApplyPoison: Int
@@ -54,8 +53,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageBelowHealthPercentBonus: Int
     public var damageAfterDodgeBonus: Int
     public var refreshBleedOnReapply: Bool
-    public var blockBrokenArmorFlat: Int
-    public var armorGainedBlock: Int
+    public var blockBrokenBlockFlat: Int
     public var blockGainedCleanseCount: Int
     public var blockGainedCleanseIntervalTicks: Int
     public var enemyStunnedHasteDurationTicks: Int
@@ -84,7 +82,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechHealingBonus: Int = 0,
         goldGainedBonus: Int = 0,
         blockGainedBonus: Int = 0,
-        armorGainedBonus: Int = 0,
         leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
         damageTakenReduction: [Keyword: Double] = [:],
@@ -101,7 +98,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         ambushBonusDamage: Int = 0,
         regenerationAmount: Int = 0,
         regenerationIntervalTicks: Int = 0,
-        passiveArmorFlat: Int = 0,
+        passiveMitigationFlat: Int = 0,
         thornsPercent: Double = 0,
         cannotBeHealed: Bool = false,
         burnDecaySlowPercent: Double = 0,
@@ -111,7 +108,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         mitigationShredMultiplier: Double = 0,
         mitigationShredDurationTicks: Int = 0,
         freezeControlVulnerabilityPercent: Double = 0,
-        armorEffectivenessPenaltyPercent: Double = 0,
+        mitigationEffectivenessPenaltyPercent: Double = 0,
         leechHealingMultiplier: Double = 1,
         hemorrhageBleedBonus: Int = 0,
         onBleedApplyPoison: Int = 0,
@@ -126,8 +123,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageBelowHealthPercentBonus: Int = 0,
         damageAfterDodgeBonus: Int = 0,
         refreshBleedOnReapply: Bool = false,
-        blockBrokenArmorFlat: Int = 0,
-        armorGainedBlock: Int = 0,
+        blockBrokenBlockFlat: Int = 0,
         blockGainedCleanseCount: Int = 0,
         blockGainedCleanseIntervalTicks: Int = 0,
         enemyStunnedHasteDurationTicks: Int = 0,
@@ -151,7 +147,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.leechHealingBonus = leechHealingBonus
         self.goldGainedBonus = goldGainedBonus
         self.blockGainedBonus = blockGainedBonus
-        self.armorGainedBonus = armorGainedBonus
         self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
         self.damageTakenReduction = damageTakenReduction
@@ -168,7 +163,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.ambushBonusDamage = ambushBonusDamage
         self.regenerationAmount = regenerationAmount
         self.regenerationIntervalTicks = regenerationIntervalTicks
-        self.passiveArmorFlat = passiveArmorFlat
+        self.passiveMitigationFlat = passiveMitigationFlat
         self.thornsPercent = thornsPercent
         self.cannotBeHealed = cannotBeHealed
         self.burnDecaySlowPercent = burnDecaySlowPercent
@@ -178,7 +173,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.mitigationShredMultiplier = mitigationShredMultiplier
         self.mitigationShredDurationTicks = mitigationShredDurationTicks
         self.freezeControlVulnerabilityPercent = freezeControlVulnerabilityPercent
-        self.armorEffectivenessPenaltyPercent = armorEffectivenessPenaltyPercent
+        self.mitigationEffectivenessPenaltyPercent = mitigationEffectivenessPenaltyPercent
         self.leechHealingMultiplier = leechHealingMultiplier
         self.hemorrhageBleedBonus = hemorrhageBleedBonus
         self.onBleedApplyPoison = onBleedApplyPoison
@@ -193,8 +188,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageBelowHealthPercentBonus = damageBelowHealthPercentBonus
         self.damageAfterDodgeBonus = damageAfterDodgeBonus
         self.refreshBleedOnReapply = refreshBleedOnReapply
-        self.blockBrokenArmorFlat = blockBrokenArmorFlat
-        self.armorGainedBlock = armorGainedBlock
+        self.blockBrokenBlockFlat = blockBrokenBlockFlat
         self.blockGainedCleanseCount = blockGainedCleanseCount
         self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
         self.enemyStunnedHasteDurationTicks = enemyStunnedHasteDurationTicks
@@ -235,7 +229,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechHealingBonus += other.leechHealingBonus
         goldGainedBonus += other.goldGainedBonus
         blockGainedBonus += other.blockGainedBonus
-        armorGainedBonus += other.armorGainedBonus
         leechDurationBonus += other.leechDurationBonus
         bleedDurationBonus += other.bleedDurationBonus
         for (keyword, amount) in other.damageTakenReduction {
@@ -258,7 +251,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         ambushBonusDamage += other.ambushBonusDamage
         regenerationAmount += other.regenerationAmount
         regenerationIntervalTicks = max(regenerationIntervalTicks, other.regenerationIntervalTicks)
-        passiveArmorFlat += other.passiveArmorFlat
+        passiveMitigationFlat += other.passiveMitigationFlat
         thornsPercent += other.thornsPercent
         cannotBeHealed = cannotBeHealed || other.cannotBeHealed
         burnDecaySlowPercent += other.burnDecaySlowPercent
@@ -272,7 +265,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         mitigationShredMultiplier = max(mitigationShredMultiplier, other.mitigationShredMultiplier)
         mitigationShredDurationTicks = max(mitigationShredDurationTicks, other.mitigationShredDurationTicks)
         freezeControlVulnerabilityPercent += other.freezeControlVulnerabilityPercent
-        armorEffectivenessPenaltyPercent += other.armorEffectivenessPenaltyPercent
+        mitigationEffectivenessPenaltyPercent += other.mitigationEffectivenessPenaltyPercent
         leechHealingMultiplier *= other.leechHealingMultiplier
         hemorrhageBleedBonus += other.hemorrhageBleedBonus
         onBleedApplyPoison += other.onBleedApplyPoison
@@ -289,8 +282,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
         damageAfterDodgeBonus += other.damageAfterDodgeBonus
         refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply
-        blockBrokenArmorFlat += other.blockBrokenArmorFlat
-        armorGainedBlock += other.armorGainedBlock
+        blockBrokenBlockFlat += other.blockBrokenBlockFlat
         blockGainedCleanseCount += other.blockGainedCleanseCount
         blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)
         enemyStunnedHasteDurationTicks = max(enemyStunnedHasteDurationTicks, other.enemyStunnedHasteDurationTicks)

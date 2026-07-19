@@ -91,7 +91,7 @@ enum CombatSFXMapper {
             return SFXID.purge
         }
         switch item.keyword {
-        case .block, .armor:
+        case .block:
             return SFXID.block
         case .purge:
             return SFXID.purge

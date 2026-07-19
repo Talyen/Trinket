@@ -21,6 +21,7 @@ private enum HomesteadProjectRowMetrics {
 struct HomesteadProjectRow: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
+    var zoomNamespace: Namespace.ID?
 
     private var isLocked: Bool {
         if case .prerequisiteLocked = status.rowState {
@@ -40,6 +41,7 @@ struct HomesteadProjectRow: View {
             } else {
                 NavigationLink(value: definition) {
                     rowContent
+                        .optionalHomesteadZoomSource(id: definition.id, in: zoomNamespace)
                 }
                 .trinketQuietTapButtonStyle()
             }
@@ -104,6 +106,7 @@ struct HomesteadProjectSection: View {
     let definitions: [HomesteadNodeDefinition]
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
+    var zoomNamespace: Namespace.ID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
@@ -121,7 +124,8 @@ struct HomesteadProjectSection: View {
                             definition: definition,
                             homestead: homestead,
                             roster: roster
-                        )
+                        ),
+                        zoomNamespace: zoomNamespace
                     )
 
                     if index < definitions.count - 1 {
@@ -133,6 +137,20 @@ struct HomesteadProjectSection: View {
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func optionalHomesteadZoomSource<ID: Hashable>(
+        id: ID,
+        in namespace: Namespace.ID?
+    ) -> some View {
+        if let namespace {
+            matchedTransitionSource(id: id, in: namespace)
+        } else {
+            self
         }
     }
 }

@@ -195,7 +195,7 @@ enum CombatFeedbackPresenter {
     private static func isAvatarPresentationEffect(_ effectKind: ActionEvent.EffectKind?) -> Bool {
         guard let effectKind else { return false }
         return switch effectKind {
-        case .shieldApplied, .mitigationApplied, .damageKeywordOverrideApplied:
+        case .shieldApplied, .damageKeywordOverrideApplied:
             true
         default:
             false
@@ -228,7 +228,7 @@ enum CombatFeedbackPresenter {
     private static func isAdditive(_ effectKind: ActionEvent.EffectKind) -> Bool {
         switch effectKind {
         case .instantHeal, .resourceGain, .cardsDrawn, .leechHeal, .shieldApplied,
-             .mitigationApplied, .shieldAbsorbed, .thornsTriggered, .markedConsumed,
+             .shieldAbsorbed, .thornsTriggered, .markedConsumed,
              .manaShieldTriggered:
             true
         default:
@@ -307,8 +307,8 @@ enum CombatFeedbackPresenter {
             StatusPresentation(label: .nextHolyStrike, role: .beneficialStatus)
         case .markedApplied:
             StatusPresentation(label: .marked, role: .negativeStatus)
-        case .mitigationHalved:
-            StatusPresentation(label: .armorDown, role: .negativeStatus)
+        case .shieldHalved:
+            StatusPresentation(label: .blockDown, role: .negativeStatus)
         default:
             nil
         }

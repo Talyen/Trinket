@@ -10,8 +10,6 @@ enum CombatFeedbackChipLabel: Hashable {
     case amount(Int)
     /// Percent chip sourced from a signed formatter token and displayed as a magnitude.
     case percent(Int)
-    /// Collapsed surplus chip (`+N`) when a resolve emits more results than fit on-art.
-    case overflow(Int)
     /// Non-numeric chip such as dodge, cleanse, or a short keyword word.
     case word(CombatFeedbackChipWord)
 
@@ -23,8 +21,6 @@ enum CombatFeedbackChipLabel: Hashable {
             Self.formatAmount(value)
         case let .percent(value):
             Self.formatPercent(value)
-        case let .overflow(value):
-            Self.formatOverflow(value)
         case let .word(word):
             word.composeText ?? ""
         }
@@ -36,7 +32,7 @@ enum CombatFeedbackChipLabel: Hashable {
     /// the closed-vocabulary catalog for non-numeric chips).
     var atlasFragments: [String] {
         switch self {
-        case .amount, .percent, .overflow:
+        case .amount, .percent:
             displayString.map(String.init)
         case let .word(word):
             if let text = word.composeText {
@@ -53,10 +49,6 @@ enum CombatFeedbackChipLabel: Hashable {
 
     static func formatPercent(_ value: Int) -> String {
         "\(formatAmount(value))%"
-    }
-
-    static func formatOverflow(_ value: Int) -> String {
-        "+\(max(0, value))"
     }
 
     /// Builds a label from an `ActionEventDisplay` using the same first-token rule as
@@ -90,7 +82,7 @@ enum CombatFeedbackChipLabel: Hashable {
         switch self {
         case let .amount(value), let .percent(value):
             value == 0
-        case .overflow, .word:
+        case .word:
             false
         }
     }
@@ -105,7 +97,7 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case consecrated = "Consecrated"
     case nextHolyStrike = "Next Holy Strike"
     case marked = "Marked"
-    case armorDown = "Armor Down"
+    case blockDown = "Block Down"
 }
 
 /// Closed set of non-numeric chip phrases produced by battle presentation.

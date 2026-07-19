@@ -55,7 +55,7 @@ final class AppTestContext {
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
-        return try AppState(
+        let state = try AppState(
             environment: parsed,
             playerSave: playerSave ?? PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
@@ -66,11 +66,14 @@ final class AppTestContext {
             shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults
         )
+        // Unit tests expect a full hand before the next statement; skip paced deal.
+        state.battle.openingHandDrawStagger = 0
+        return state
     }
 
     @MainActor
     func makeAppState(environment: AppEnvironment) throws -> AppState {
-        try AppState(
+        let state = try AppState(
             environment: environment,
             playerSave: PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
@@ -81,5 +84,7 @@ final class AppTestContext {
             shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults
         )
+        state.battle.openingHandDrawStagger = 0
+        return state
     }
 }

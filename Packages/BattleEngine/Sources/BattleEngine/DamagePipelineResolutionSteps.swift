@@ -127,7 +127,8 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
-    /// Flat Armor: reduce by `min(effectiveArmor, floor(incoming/2))`, then decay Armor pool by 1.
+    /// Toughness-based inherent DR: reduce by `min(effective, floor(incoming/2))`.
+    /// No pool, so nothing decays — the reduction applies on every hit.
     static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
@@ -136,29 +137,18 @@ package extension DamagePipeline {
 
         let effects = context.roster.activeEffects(for: state.combatant)
         let profile = context.modifiers(for: state.combatant.id)
-        let effective = DefensePoolEngine.effectiveArmor(
+        let effective = DefensePoolEngine.effectiveToughnessMitigation(
             for: state.combatant,
             effects: effects,
             profile: profile,
             in: context
         )
-        let poolArmor = DefensePoolEngine.points(in: effects, pool: .armor)
         let maxReduction = state.remaining / 2
         let reduction = min(effective, maxReduction)
         if reduction > 0 {
             state.remaining -= reduction
         }
         state.buildupDamage = state.remaining
-
-        // Decay the real Armor pool by 1 whenever damage is taken (even if reduction was 0
-        // due to zero effective armor — only when there is a pool or passive to track).
-        // Spec: Armor decays by 1 for each instance of damage taken.
-        if poolArmor > 0 {
-            DefensePoolEngine.set(poolArmor - 1, pool: .armor, on: state.combatant, in: &context)
-            state.activeEffects = context.roster.activeEffects(for: state.combatant)
-        } else if effective > 0 {
-            // Passive/Toughness-only effective armor still "takes" the hit; nothing to decay.
-        }
     }
 
     static func applyShieldAbsorption(

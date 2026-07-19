@@ -14,7 +14,7 @@ public extension CombatTraitTriggers {
         profile.ambushBonusDamage += ambushBonusDamage
         profile.regenerationAmount += regenerationAmount
         profile.regenerationIntervalTicks = max(profile.regenerationIntervalTicks, regenerationIntervalTicks)
-        profile.passiveArmorFlat += passiveArmorFlat
+        profile.passiveMitigationFlat += passiveMitigationFlat
         profile.thornsPercent += thornsPercent
         profile.cannotBeHealed = profile.cannotBeHealed || cannotBeHealed
         profile.burnDecaySlowPercent += burnDecaySlowPercent
@@ -31,7 +31,7 @@ public extension CombatTraitTriggers {
             mitigationShredDurationTicks
         )
         profile.freezeControlVulnerabilityPercent += freezeControlVulnerabilityPercent
-        profile.armorEffectivenessPenaltyPercent += armorEffectivenessPenaltyPercent
+        profile.mitigationEffectivenessPenaltyPercent += mitigationEffectivenessPenaltyPercent
         profile.leechHealingMultiplier *= leechHealingMultiplier
         profile.hemorrhageBleedBonus += hemorrhageBleedBonus
         profile.onBleedApplyPoison += onBleedApplyPoison
@@ -51,8 +51,7 @@ public extension CombatTraitTriggers {
         profile.damageBelowHealthPercentBonus += damageBelowHealthPercentBonus
         profile.damageAfterDodgeBonus += damageAfterDodgeBonus
         profile.refreshBleedOnReapply = profile.refreshBleedOnReapply || refreshBleedOnReapply
-        profile.blockBrokenArmorFlat += blockBrokenArmorFlat
-        profile.armorGainedBlock += armorGainedBlock
+        profile.blockBrokenBlockFlat += blockBrokenBlockFlat
         profile.blockGainedCleanseCount += blockGainedCleanseCount
         profile.blockGainedCleanseIntervalTicks = max(
             profile.blockGainedCleanseIntervalTicks,

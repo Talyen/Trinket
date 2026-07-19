@@ -143,7 +143,7 @@ final class CombatFeedbackRasterPool {
         }
         missCount += 1
         switch canvasItem.label {
-        case .amount, .percent, .overflow:
+        case .amount, .percent:
             numericMissCount += 1
         case .word where preparedCatalogKey != nil:
             unexpectedClosedVocabularyBuildCount += 1

@@ -118,10 +118,7 @@ struct BattleHandView: View {
                             )
                             .combined(with: .opacity)
                             .combined(with: .scale(scale: configuration.dealInsertScale))
-                            .animation(
-                                configuration.handReflow
-                                    .delay(Double(index) * configuration.cardDrawStagger)
-                            ),
+                            .animation(configuration.deal),
                             removal: .identity
                         )
                     )

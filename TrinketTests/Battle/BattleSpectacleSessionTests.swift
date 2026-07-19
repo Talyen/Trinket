@@ -140,13 +140,13 @@ struct BattleSpectacleSessionTests {
 
         let flushAt = now.addingTimeInterval(1)
         let deferredItems = session.activeFeedbackItems.filter { $0.availableAt >= flushAt }
+        let stagger = TrinketMotion.Battle.feedbackQueueStagger
         for targetItems in Dictionary(grouping: deferredItems, by: \.targetID).values {
-            let starts = targetItems.map(\.availableAt).sorted()
-            for (earlier, later) in zip(starts, starts.dropFirst()) {
-                #expect(
-                    abs(later.timeIntervalSince(earlier)
-                        - TrinketMotion.Battle.feedbackQueueStagger) < 0.001
-                )
+            for laneItems in Dictionary(grouping: targetItems, by: \.lane).values {
+                let starts = laneItems.map(\.availableAt).sorted()
+                for (earlier, later) in zip(starts, starts.dropFirst()) {
+                    #expect(abs(later.timeIntervalSince(earlier) - stagger) < 0.001)
+                }
             }
         }
     }

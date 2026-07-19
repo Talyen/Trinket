@@ -6,7 +6,7 @@ import TrinketDesignSystem
 @testable import Trinket
 
 struct CombatFeedbackDensePresentationTests {
-    @Test func collapsesSurplusChipsIntoOverflow() {
+    @Test func keepsAllDistinctChipsWithoutOverflowCollapse() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical),
@@ -49,13 +49,11 @@ struct CombatFeedbackDensePresentationTests {
             ],
             at: .now
         )
-        #expect(items.count == CombatFeedbackLayout.maxVisibleIndividualChips + 1)
+        // controlApplied is filtered; remaining distinct chips stay individual.
+        #expect(items.count == 7)
         #expect(items.allSatisfy { $0.groupResultCount == items.count })
-        #expect(items.last?.presentationRole == .overflow)
-        #expect(items.last?.label == .overflow(2))
-        #expect(items.last?.feedbackClass == .buff)
         #expect(items.first?.presentationRole == .headline)
-        #expect(items.dropFirst().dropLast().allSatisfy { $0.presentationRole == .secondary })
+        #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }
 
     private func makeEvent(

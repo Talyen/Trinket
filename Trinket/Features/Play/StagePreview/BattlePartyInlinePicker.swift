@@ -163,6 +163,7 @@ struct BattleCombatantPickerSheet: View {
 
     @State private var selectedCombatant: Combatant?
     @State private var selectionFeedbackTrigger = 0
+    @Namespace private var zoomNamespace
 
     var body: some View {
         NavigationStack {
@@ -171,6 +172,7 @@ struct BattleCombatantPickerSheet: View {
                 combatants: combatants,
                 selectedID: selectedID,
                 aspect: aspect,
+                zoomNamespace: zoomNamespace,
                 onOpenDetail: { combatant in
                     selectedCombatant = combatant
                 }
@@ -187,6 +189,7 @@ struct BattleCombatantPickerSheet: View {
                         dismiss()
                     }
                 )
+                .navigationTransition(.zoom(sourceID: combatant.id, in: zoomNamespace))
             }
         }
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyPickerSheet(for: slot.title))
@@ -208,6 +211,7 @@ struct StageBattlePartyPickerSheet: View {
     @State private var presentedSlot: BattlePartySlot?
     @State private var selectedCombatant: Combatant?
     @State private var selectionFeedbackTrigger = 0
+    @Namespace private var zoomNamespace
 
     var body: some View {
         NavigationStack {
@@ -218,6 +222,7 @@ struct StageBattlePartyPickerSheet: View {
                         combatants: presentedSlot.combatants(in: appState.roster),
                         selectedID: presentedSlot.selectedID(in: appState.roster),
                         aspect: nil,
+                        zoomNamespace: zoomNamespace,
                         onOpenDetail: { combatant in
                             selectedCombatant = combatant
                         }
@@ -239,6 +244,7 @@ struct StageBattlePartyPickerSheet: View {
                             self.presentedSlot = nil
                         }
                     )
+                    .navigationTransition(.zoom(sourceID: combatant.id, in: zoomNamespace))
                 }
             }
         }
@@ -317,6 +323,7 @@ private struct BattlePartyOptionsGrid: View {
     let combatants: [Combatant]
     let selectedID: String
     let aspect: AspectDefinition?
+    var zoomNamespace: Namespace.ID?
     let onOpenDetail: (Combatant) -> Void
 
     private var orderedCombatants: [Combatant] {
@@ -342,6 +349,7 @@ private struct BattlePartyOptionsGrid: View {
             accessibilityValue: { combatant in
                 combatant.id == selectedID ? "Selected" : "Available"
             },
+            zoomNamespace: zoomNamespace,
             card: { combatant, isSelected in
                 CombatantCard(
                     combatant: combatant,

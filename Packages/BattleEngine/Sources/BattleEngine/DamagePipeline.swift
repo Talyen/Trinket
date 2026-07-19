@@ -21,8 +21,8 @@ package enum DamagePipeline {
         let apply: @Sendable (inout DamageResolutionState, inout BattleEngineContext) -> Void
     }
 
-    /// Canonical damage resolution order. Flat Armor runs after item mods and
-    /// crit so it mitigates the final pre-Block hit amount; Block absorbs last.
+    /// Canonical damage resolution order. Toughness-based inherent DR runs after
+    /// item mods and crit so it mitigates the final pre-Block hit amount; Block absorbs last.
     /// Hexmark runs after MarkedConsume so a freshly applied mark cannot feed the
     /// same hit's MarkedBonus / consume path — Marked is for a later hit.
     package static let steps: [Step] = [

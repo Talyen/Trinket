@@ -137,11 +137,17 @@ public enum TrinketMotion: Sendable {
         public static let scrimFade: TimeInterval = 0.2
         public static let ultimateCollapse: TimeInterval = 0.28
 
-        /// Fixed delay between visual starts in one combatant's feedback queue.
-        public static let feedbackQueueStagger: TimeInterval = 0.1
-
         /// Every floating combat label uses the same presentation lifetime.
         public static let chipDisplayDuration: TimeInterval = 1.0
+
+        /// Per-lane interval between successive chip starts on one combatant.
+        /// Matches `chipDisplayDuration` so a lane finishes rise+fade before reuse.
+        public static var feedbackQueueStagger: TimeInterval {
+            chipDisplayDuration
+        }
+
+        /// Concurrent horizontal rise paths per combatant (left / middle / right).
+        public static let feedbackLaneCount = CombatFeedbackLane.allCases.count
 
         /// Labels stay fully opaque until this final portion of their lifetime.
         public static let chipFadeOutDuration: TimeInterval = 0.2
@@ -178,14 +184,30 @@ public enum TrinketMotion: Sendable {
             .easeOut(duration: scrimFade)
         }
 
+        /// Gentle opacity cycle for a combatant card status border accent.
+        public static let statusBorderPulseDuration: TimeInterval = 0.9
+
+        public static var statusBorderPulse: Animation {
+            .easeInOut(duration: statusBorderPulseDuration)
+        }
+
+        /// Dim end of the status border pulse (full keyword color is `1`).
+        public static let statusBorderPulseDimOpacity = 0.45
+
         public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackChipStyle {
             CombatFeedbackChipRecipes.chip(for: feedbackClass)
         }
 
-        /// Quadratic ease-out: full initial velocity that decelerates smoothly to rest.
+        /// Quadratic ease-in: slow start that accelerates through the rise.
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
             let progress = min(max(elapsed / chipDisplayDuration, 0), 1)
-            return 1 - pow(1 - progress, 2)
+            return pow(progress, 2)
+        }
+
+        /// Eligible horizontal rise paths for a combatant. Party uses middle only;
+        /// enemies use left / middle / right.
+        public static func feedbackLanes(isPartyMember: Bool) -> [CombatFeedbackLane] {
+            isPartyMember ? [.middle] : Array(CombatFeedbackLane.allCases)
         }
 
         public static func chipOpacity(elapsed: TimeInterval) -> Double {
@@ -229,6 +251,15 @@ public enum TrinketMotion: Sendable {
 
         public static var modifierIn: Animation {
             .easeOut(duration: 0.22)
+        }
+    }
+
+    /// Short opacity crossfades for full-screen content swaps (battle shell, outcomes).
+    public enum Screen: Sendable {
+        public static let crossfadeDuration: TimeInterval = 0.22
+
+        public static var crossfade: Animation {
+            .easeOut(duration: crossfadeDuration)
         }
     }
 }

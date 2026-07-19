@@ -426,8 +426,6 @@ def modifier_token_to_swift(token: str) -> str:
         return f".goldGained({token.split(':', 1)[1]})"
     if token.startswith("block_gained:"):
         return f".blockGained({token.split(':', 1)[1]})"
-    if token.startswith("armor_gained:"):
-        return f".armorGained({token.split(':', 1)[1]})"
     if token.startswith("bleed_duration:"):
         return f".bleedDuration({token.split(':', 1)[1]})"
     if token.startswith("damage_taken_percent:"):
@@ -472,8 +470,8 @@ def triggers_swift(raw: str) -> str:
             _, amount, interval = token.split(":", 2)
             values["regenerationAmount"] = amount
             values["regenerationIntervalTicks"] = interval
-        elif token.startswith("passive_armor:"):
-            values["passiveArmorFlat"] = token.split(":", 1)[1]
+        elif token.startswith("passive_mitigation:"):
+            values["passiveMitigationFlat"] = token.split(":", 1)[1]
         elif token.startswith("thorns_percent:"):
             values["thornsPercent"] = token.split(":", 1)[1]
         elif token.startswith("cannot_be_healed:"):
@@ -491,8 +489,8 @@ def triggers_swift(raw: str) -> str:
             values["mitigationShredDurationTicks"] = duration
         elif token.startswith("freeze_control_vulnerability:"):
             values["freezeControlVulnerabilityPercent"] = token.split(":", 1)[1]
-        elif token.startswith("armor_effectiveness_penalty:"):
-            values["armorEffectivenessPenaltyPercent"] = token.split(":", 1)[1]
+        elif token.startswith("mitigation_effectiveness_penalty:"):
+            values["mitigationEffectivenessPenaltyPercent"] = token.split(":", 1)[1]
         elif token.startswith("leech_healing_multiplier:"):
             values["leechHealingMultiplier"] = token.split(":", 1)[1]
         elif token.startswith("hemorrhage_bleed_bonus:"):
@@ -520,10 +518,8 @@ def triggers_swift(raw: str) -> str:
             values["damageAfterDodgeBonus"] = token.split(":", 1)[1]
         elif token.startswith("refresh_bleed_on_reapply:"):
             values["refreshBleedOnReapply"] = token.split(":", 1)[1]
-        elif token.startswith("on_block_broken_armor:"):
-            values["blockBrokenArmorFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_armor_gained_block:"):
-            values["armorGainedBlock"] = token.split(":", 1)[1]
+        elif token.startswith("on_block_broken_block:"):
+            values["blockBrokenBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_block_gained_cleanse:"):
             _, count, interval = token.split(":", 2)
             values["blockGainedCleanseCount"] = count
@@ -560,7 +556,7 @@ def triggers_swift(raw: str) -> str:
         "ambushBonusDamage",
         "regenerationAmount",
         "regenerationIntervalTicks",
-        "passiveArmorFlat",
+        "passiveMitigationFlat",
         "thornsPercent",
         "cannotBeHealed",
         "burnDecaySlowPercent",
@@ -570,7 +566,7 @@ def triggers_swift(raw: str) -> str:
         "mitigationShredMultiplier",
         "mitigationShredDurationTicks",
         "freezeControlVulnerabilityPercent",
-        "armorEffectivenessPenaltyPercent",
+        "mitigationEffectivenessPenaltyPercent",
         "leechHealingMultiplier",
         "hemorrhageBleedBonus",
         "onBleedApplyPoison",
@@ -585,8 +581,7 @@ def triggers_swift(raw: str) -> str:
         "damageBelowHealthPercentBonus",
         "damageAfterDodgeBonus",
         "refreshBleedOnReapply",
-        "blockBrokenArmorFlat",
-        "armorGainedBlock",
+        "blockBrokenBlockFlat",
         "blockGainedCleanseCount",
         "blockGainedCleanseIntervalTicks",
         "enemyStunnedHasteDurationTicks",
@@ -643,15 +638,9 @@ def parse_effect_token(token: str) -> str:
         else:
             raise ValueError(f"Invalid shield token: {token}")
     elif token.startswith("mitigation:"):
-        parts = token.split(":")
-        if len(parts) == 3:
-            _, kind, amount = parts
-            effect = f".mitigation(.{kind}, {amount})"
-        elif len(parts) == 4:
-            _, kind, amount, _duration = parts
-            effect = f".mitigation(.{kind}, {amount})"
-        else:
-            raise ValueError(f"Invalid mitigation token: {token}")
+        raise ValueError(
+            f"mitigation effect tokens are removed; convert Armor grants to shield:block:N ({token})"
+        )
     elif token.startswith("instant_heal:"):
         _, kind, amount = token.split(":", 2)
         effect = f".instantHeal(.{kind}, {amount})"
@@ -664,8 +653,8 @@ def parse_effect_token(token: str) -> str:
     elif token.startswith("damage_keyword_override:"):
         _, keyword, bonus, duration = token.split(":", 3)
         effect = f".damageKeywordOverride(.{keyword}, {bonus}, {duration})"
-    elif token.startswith("halve_mitigation:"):
-        effect = f".halveMitigation(.{token.split(':', 1)[1]})"
+    elif token.startswith("halve_shield:"):
+        effect = f".halveShield(.{token.split(':', 1)[1]})"
     else:
         raise ValueError(f"Unknown effect token: {token}")
 

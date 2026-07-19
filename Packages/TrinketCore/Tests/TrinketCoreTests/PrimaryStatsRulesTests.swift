@@ -11,7 +11,6 @@ struct PrimaryStatsRulesTests {
         try #expect(stats.statBonusForDamage(keyword: .freeze) == 4)
         try #expect(stats.statBonusForDamage(keyword: .poison) == 5)
         try #expect(stats.statBonusForDamage(keyword: .holy) == 5)
-        try #expect(stats.statBonusForDamage(keyword: .armor) == 0)
         try #expect(stats.statBonusForDamage(keyword: .block) == 0)
     }
 
@@ -22,11 +21,11 @@ struct PrimaryStatsRulesTests {
         try #expect(abs((PrimaryStats(agility: 1000).dodgeChance) - 0.75) < 0.0001)
     }
 
-    @Test func armorEffectivenessBonusMatchesFormula() throws {
-        try #expect(PrimaryStats(toughness: 0).armorEffectivenessBonus == 0)
-        try #expect(PrimaryStats(toughness: 5).armorEffectivenessBonus == 1)
-        try #expect(PrimaryStats(toughness: 50).armorEffectivenessBonus == 10)
-        try #expect(PrimaryStats(toughness: 100).armorEffectivenessBonus == 20)
+    @Test func toughnessMitigationMatchesFormula() throws {
+        try #expect(PrimaryStats(toughness: 0).toughnessMitigation == 0)
+        try #expect(PrimaryStats(toughness: 5).toughnessMitigation == 1)
+        try #expect(PrimaryStats(toughness: 50).toughnessMitigation == 10)
+        try #expect(PrimaryStats(toughness: 100).toughnessMitigation == 20)
     }
 
     @Test func controlMeterThresholdScalesWithAgilityAndCeilsBaseHealth() throws {
@@ -59,7 +58,7 @@ struct PrimaryStatsRulesTests {
 
     @Test func criticalChanceIsZeroForNonCrittableKeywords() throws {
         let stats = PrimaryStats(agility: 100, intellect: 100, wisdom: 100)
-        for keyword: Keyword in [.block, .armor, .dodge, .purge, .gold, .mana, .deathsDoor] {
+        for keyword: Keyword in [.block, .dodge, .purge, .gold, .mana, .deathsDoor] {
             try #expect(stats.criticalChance(for: keyword) == 0, "\(keyword.rawValue)")
             try #expect(!keyword.allowsCriticalHits, "\(keyword.rawValue)")
         }

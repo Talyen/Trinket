@@ -15,10 +15,6 @@ package extension BattleState {
             return .shield(
                 keyword, buffer + profile.blockGainedBonus
             )
-        case let .mitigation(keyword, points):
-            return .mitigation(
-                keyword, points + profile.armorGainedBonus
-            )
         case let .leech(keyword, percent, durationTicks):
             return .leech(
                 keyword,

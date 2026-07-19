@@ -167,6 +167,7 @@ struct AspectClimbView: View {
         )
 
         Button {
+            appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
             if let message = appState.startAspectBattle(for: floor) {
                 floorMessage = message
             }

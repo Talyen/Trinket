@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 import TrinketPersistence
 import TrinketTestSupport
 @testable import BattleEngine
@@ -11,7 +12,7 @@ import TrinketTestSupport
 struct BattleSessionSimulationTests {
     @Test func victoryPresentationHoldsChromeAndLocksRetreatUntilConfiguredDelay() async throws {
         let party = BattlePartyFixtures.quickWinParty()
-        let session = BattleSession(outcomePresentationDelayOverride: 0.05)
+        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
@@ -41,7 +42,7 @@ struct BattleSessionSimulationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
         journey.markRewardsClaimed(for: stage)
-        let session = BattleSession(outcomePresentationDelayOverride: 0)
+        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: stage.id),
             rngSeed: 0,
@@ -69,7 +70,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         session.isShowingVictory = true
         session.isShowingDefeat = true
         session.victorySummary = BattleVictorySummary(
@@ -196,7 +197,7 @@ struct BattleSessionSimulationTests {
     }
 
     @Test func consolidatedFeedbackRemoveAndExpireClearsSources() throws {
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)
         session.recordFeedbackEvents(
             [
@@ -227,33 +228,68 @@ struct BattleSessionSimulationTests {
         #expect(session.feedbackEventRecordedAt.isEmpty)
     }
 
-    @Test func feedbackVisualsQueuePerTargetAtOneTenthSecondIntervals() {
-        let session = BattleSession()
+    @Test func feedbackVisualsQueueAcrossThreeLanesPreferringMiddle() {
+        let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)
         session.recordFeedbackEvents(
             [
                 feedbackEvent(id: 1, amount: 1, keyword: .bleed),
                 feedbackEvent(id: 2, amount: 2, keyword: .burn),
                 feedbackEvent(id: 3, amount: 3, keyword: .poison),
-                feedbackEvent(id: 4, amount: 4, keyword: .burn, targetID: "hero")
+                feedbackEvent(id: 4, amount: 4, keyword: .holy),
+                feedbackEvent(id: 5, amount: 5, keyword: .burn, targetID: "hero")
             ],
             at: now
         )
 
-        let enemyStarts = session.activeFeedbackItems
+        let enemyItems = session.activeFeedbackItems
             .filter { $0.targetID == "enemy" }
-            .map(\.availableAt)
-            .sorted()
-        let heroStart = session.activeFeedbackItems.first { $0.targetID == "hero" }?.availableAt
-        #expect(enemyStarts == [
+            .sorted { $0.id < $1.id }
+        #expect(enemyItems.map(\.lane) == [.middle, .left, .right, .middle])
+        #expect(enemyItems.map(\.availableAt) == [
             now,
-            now.addingTimeInterval(0.1),
-            now.addingTimeInterval(0.2)
+            now,
+            now,
+            now.addingTimeInterval(TrinketMotion.Battle.feedbackQueueStagger)
         ])
-        #expect(heroStart == now)
+
+        // No battle state → party detection falls back to enemy lanes; single chip still middle.
+        let heroItem = session.activeFeedbackItems.first { $0.targetID == "hero" }
+        #expect(heroItem?.lane == .middle)
+        #expect(heroItem?.availableAt == now)
         #expect(session.activeFeedbackItems.allSatisfy {
-            $0.expiresAt.timeIntervalSince($0.availableAt) == 1
+            $0.expiresAt.timeIntervalSince($0.availableAt) == TrinketMotion.Battle.chipDisplayDuration
         })
+    }
+
+    @Test func feedbackVisualsQueueEightDistinctChipsInThreeWaves() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let now = Date(timeIntervalSince1970: 200)
+        let keywords: [Keyword] = [
+            .bleed, .burn, .poison, .holy, .physical, .freeze, .stun, .leech
+        ]
+        session.recordFeedbackEvents(
+            keywords.enumerated().map { index, keyword in
+                feedbackEvent(id: index + 1, amount: index + 1, keyword: keyword)
+            },
+            at: now
+        )
+
+        let items = session.activeFeedbackItems.sorted { $0.id < $1.id }
+        #expect(items.count == 8)
+        let stagger = TrinketMotion.Battle.feedbackQueueStagger
+        #expect(items.prefix(3).map(\.availableAt) == [now, now, now])
+        #expect(items.dropFirst(3).prefix(3).map(\.availableAt) == [
+            now.addingTimeInterval(stagger),
+            now.addingTimeInterval(stagger),
+            now.addingTimeInterval(stagger)
+        ])
+        #expect(items.suffix(2).map(\.availableAt) == [
+            now.addingTimeInterval(stagger * 2),
+            now.addingTimeInterval(stagger * 2)
+        ])
+        #expect(Set(items.prefix(3).map(\.lane)) == Set(CombatFeedbackLane.allCases))
+        #expect(items.map(\.availableAt).max()?.timeIntervalSince(now) == stagger * 2)
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
@@ -264,7 +300,7 @@ struct BattleSessionSimulationTests {
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant
         )
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
 
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
@@ -337,6 +373,64 @@ struct BattleSessionSimulationTests {
         amount: Int,
         keyword: Keyword = .bleed,
         targetID: String = "enemy"
+    ) -> ActionEvent {
+        ActionEvent(
+            id: id,
+            kind: .status,
+            actorID: "hero",
+            actorName: "Hero",
+            abilityID: "bleed",
+            abilityName: "Bleed",
+            targetID: targetID,
+            targetName: targetID.capitalized,
+            amount: amount,
+            keyword: keyword
+        )
+    }
+}
+
+@MainActor
+struct BattleSessionPartyFeedbackLaneTests {
+    @Test func partyFeedbackQueuesOnMiddleLaneOnly() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let now = Date(timeIntervalSince1970: 150)
+        let stagger = TrinketMotion.Battle.feedbackQueueStagger
+        session.recordFeedbackEvents(
+            [
+                partyFeedbackEvent(id: 1, amount: 1, keyword: .bleed, targetID: "hero"),
+                partyFeedbackEvent(id: 2, amount: 2, keyword: .burn, targetID: "hero"),
+                partyFeedbackEvent(id: 3, amount: 3, keyword: .poison, targetID: "hero"),
+                partyFeedbackEvent(id: 4, amount: 4, keyword: .holy, targetID: "companion"),
+                partyFeedbackEvent(id: 5, amount: 5, keyword: .physical, targetID: "companion")
+            ],
+            at: now
+        )
+
+        let heroItems = session.activeFeedbackItems
+            .filter { $0.targetID == "hero" }
+            .sorted { $0.id < $1.id }
+        #expect(heroItems.map(\.lane) == [.middle, .middle, .middle])
+        #expect(heroItems.map(\.availableAt) == [
+            now,
+            now.addingTimeInterval(stagger),
+            now.addingTimeInterval(stagger * 2)
+        ])
+
+        let companionItems = session.activeFeedbackItems
+            .filter { $0.targetID == "companion" }
+            .sorted { $0.id < $1.id }
+        #expect(companionItems.map(\.lane) == [.middle, .middle])
+        #expect(companionItems.map(\.availableAt) == [
+            now,
+            now.addingTimeInterval(stagger)
+        ])
+    }
+
+    private func partyFeedbackEvent(
+        id: Int,
+        amount: Int,
+        keyword: Keyword,
+        targetID: String
     ) -> ActionEvent {
         ActionEvent(
             id: id,

@@ -451,6 +451,7 @@ extension BattleSession {
 
     func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
         if let pendingPreparedRun,
            pendingPreparedRun.configuration.id == configuration.id {
             state = pendingPreparedRun.state
@@ -475,30 +476,12 @@ extension BattleSession {
         if isShowingBattleLog {
             isShowingBattleLog = false
         }
-        // Opening-hand SFX must not share the activate / first-layout frame with
-        // shell remount and BattleView construction.
-        Task { @MainActor in
-            await CombatFeedbackDisplayLinkGate.waitForNextDisplayLink()
-            guard activeBattle?.id == configuration.id else { return }
-            playSFX(SFXID.abilityDraw)
-        }
-    }
-
-    static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
-        BattleState(
-            hero: configuration.hero.combatant,
-            companion: configuration.companion.combatant,
-            enemy: configuration.enemy,
-            heroModifiers: configuration.hero.modifiers,
-            companionModifiers: configuration.companion.modifiers,
-            enemyModifiers: configuration.enemyModifiers,
-            rngSeed: configuration.rngSeed,
-            tracksLog: false
-        )
+        beginOpeningHandDeal(for: configuration.id)
     }
 
     func clearRunState() {
         cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
         preparedBattleRunsByToken.removeAll(keepingCapacity: true)
         pendingPreparedRun = nil
         onTurnAutoEnded = nil
@@ -512,7 +495,7 @@ extension BattleSession {
         feedbackScheduler?.invalidate()
         feedbackScheduler = nil
         nextFeedbackPruneAt = nil
-        nextFeedbackVisualStartByTargetID.removeAll(keepingCapacity: true)
+        nextFeedbackVisualStartByTargetLane.removeAll(keepingCapacity: true)
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false

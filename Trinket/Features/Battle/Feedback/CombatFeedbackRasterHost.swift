@@ -78,7 +78,7 @@ final class CombatFeedbackRasterUIView: UIView {
         }
     }
 
-    static let preallocatedSlotCount = CombatFeedbackLayout.maxVisibleIndividualChips + 1
+    static let preallocatedSlotCount = TrinketMotion.Battle.feedbackLaneCount + 1
 
     private var layersByID: [Int: ChipLayer] = [:]
     private var reusableLayers: [CALayer] = []
@@ -162,20 +162,30 @@ final class CombatFeedbackRasterUIView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        for layer in layersByID.values {
-            layer.layer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        guard !bounds.isEmpty else { return }
+        let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        withLayerActionsDisabled {
+            for layer in layersByID.values {
+                layer.layer.position = center
+                // Reveal chips inserted before the host had a measured frame.
+                if layer.layer.isHidden {
+                    layer.layer.isHidden = false
+                }
+            }
         }
     }
 
     fileprivate func tickMotion(at date: Date) {
-        for layer in layersByID.values {
-            let pose = compositorPose(
-                for: layer.canvasItem,
-                chipSize: layer.layer.bounds.size,
-                at: date
-            )
-            layer.layer.transform = pose.transform
-            layer.layer.opacity = Float(pose.opacity)
+        withLayerActionsDisabled {
+            for layer in layersByID.values {
+                let pose = compositorPose(
+                    for: layer.canvasItem,
+                    chipSize: layer.layer.bounds.size,
+                    at: date
+                )
+                layer.layer.transform = pose.transform
+                layer.layer.opacity = Float(pose.opacity)
+            }
         }
     }
 
@@ -189,11 +199,7 @@ final class CombatFeedbackRasterUIView: UIView {
             CombatFeedbackRasterHostDiagnostics.noteWarmPathAllocation()
         }
         let rasterID = ObjectIdentifier(raster)
-        chipLayer.contents = raster.image
-        chipLayer.contentsScale = raster.displayScale
-        chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
-        chipLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
-        chipLayer.removeAllAnimations()
+        let hasMeasuredBounds = !bounds.isEmpty
         // Same recipe sampling as the old CAKeyframe path; driven by the shared
         // display-link clock so publish does not install animation groups.
         let pose = compositorPose(
@@ -201,9 +207,21 @@ final class CombatFeedbackRasterUIView: UIView {
             chipSize: raster.pointSize,
             at: .now
         )
-        chipLayer.transform = pose.transform
-        chipLayer.opacity = Float(pose.opacity)
-        chipLayer.isHidden = false
+        withLayerActionsDisabled {
+            chipLayer.contents = raster.image
+            chipLayer.contentsScale = raster.displayScale
+            chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
+            chipLayer.removeAllAnimations()
+            chipLayer.transform = pose.transform
+            chipLayer.opacity = Float(pose.opacity)
+            if hasMeasuredBounds {
+                chipLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+                chipLayer.isHidden = false
+            } else {
+                // Stay hidden until layoutSubviews can place us at the real center.
+                chipLayer.isHidden = true
+            }
+        }
 
         layersByID[canvasItem.id] = ChipLayer(
             layer: chipLayer,
@@ -221,12 +239,24 @@ final class CombatFeedbackRasterUIView: UIView {
 
     private func recycleLayer(id: Int) {
         guard let layer = layersByID.removeValue(forKey: id) else { return }
-        layer.layer.removeAllAnimations()
-        layer.layer.contents = nil
-        layer.layer.transform = CATransform3DIdentity
-        layer.layer.opacity = 1
-        layer.layer.isHidden = true
+        withLayerActionsDisabled {
+            layer.layer.removeAllAnimations()
+            layer.layer.contents = nil
+            layer.layer.transform = CATransform3DIdentity
+            layer.layer.opacity = 1
+            layer.layer.isHidden = true
+        }
         reusableLayers.append(layer.layer)
+    }
+
+    /// Display-link sampling must write model values without Core Animation's
+    /// default ~0.25s implicit actions, or layout position corrections animate
+    /// downward while the rise transform continues upward.
+    private func withLayerActionsDisabled(_ updates: () -> Void) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        updates()
+        CATransaction.commit()
     }
 
     private func compositorPose(
@@ -244,8 +274,12 @@ final class CombatFeedbackRasterUIView: UIView {
             travelDistance: travelDistance,
             at: date
         )
+        let horizontalOffset = CombatFeedbackLayout.laneOffsetX(
+            for: item.lane,
+            chipWidth: chipSize.width
+        )
         let transform = CGAffineTransform.identity
-            .translatedBy(x: 0, y: state.verticalOffset)
+            .translatedBy(x: horizontalOffset, y: state.verticalOffset)
         return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 }

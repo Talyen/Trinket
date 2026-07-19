@@ -55,10 +55,10 @@ public struct CombatantRuntime: Hashable {
     /// Last battle round where Ablution cleansed a debuff for this combatant.
     public var lastAblutionTick: Int?
 
-    /// Round until which mitigation from armor effects is reduced by `mitigationShredMultiplier`.
+    /// Round until which Toughness-based inherent DR is reduced by `mitigationShredMultiplier`.
     public var mitigationShredUntilTick: Int
 
-    /// Multiplier applied to armor mitigation while shred is active (e.g. 0.5 halves armor).
+    /// Multiplier applied to Toughness-based DR while shred is active (e.g. 0.5 halves it).
     public var mitigationShredMultiplier: Double
 
     public init(

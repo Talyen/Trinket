@@ -6,6 +6,8 @@ import TrinketContent
 /// Stable SFX catalog IDs curated in `SoundManifest/sfx.tsv`.
 enum SFXID {
     static let uiDeny = "ui_deny"
+    static let uiConfirm = "ui_confirm"
+    static let uiCancel = "ui_cancel"
     static let uiToggleOn = "ui_toggle_on"
     static let uiToggleOff = "ui_toggle_off"
     static let uiEquip = "ui_equip"

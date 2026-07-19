@@ -225,7 +225,7 @@ struct CombatFeedbackPresenterTests {
         })
     }
 
-    @Test func assignsPriorityAndOverflowMetadataDeterministically() {
+    @Test func assignsPriorityAndPresentationRolesDeterministically() {
         let items = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
@@ -425,7 +425,7 @@ extension CombatFeedbackPresenterTests {
         #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding") == .word(.cleanse(.bleed)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Cleanse Bleeding")?.displayString.isEmpty == true)
         #expect(CombatFeedbackChipLabel.fromDisplayText("Purge Block") == .word(.purge(.block)))
-        #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Armor") == .word(.halve(.armor)))
+        #expect(CombatFeedbackChipLabel.fromDisplayText("Halve Block") == .word(.halve(.block)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door") == .word(.plain(.deathsDoor)))
         #expect(CombatFeedbackChipLabel.fromDisplayText("Death's Door")?.displayString.isEmpty == true)
     }
@@ -459,7 +459,7 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 5, kind: .effect, effectKind: .hasteApplied, amount: 2, keyword: .physical),
             makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
-            makeEvent(id: 8, kind: .effect, effectKind: .mitigationHalved, amount: 0, keyword: .armor)
+            makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block)
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -488,10 +488,10 @@ extension CombatFeedbackPresenterTests {
         #expect(marked.leadingSymbolName == nil)
         #expect(marked.trailingSymbolName == "arrowshape.down.fill")
 
-        let armorDown = try #require(byID[8]).chipPresentation
-        #expect(try #require(byID[8]).label == .word(.status(.armorDown)))
-        #expect(armorDown.leadingSymbolName == "arrowshape.down.fill")
-        #expect(armorDown.trailingSymbolName == "shield.lefthalf.filled")
+        let blockDown = try #require(byID[8]).chipPresentation
+        #expect(try #require(byID[8]).label == .word(.status(.blockDown)))
+        #expect(blockDown.leadingSymbolName == "arrowshape.down.fill")
+        #expect(blockDown.trailingSymbolName == "shield.fill")
     }
 
     @Test func avatarOfJusticeConsolidatesItsEffectChips() {
@@ -503,16 +503,6 @@ extension CombatFeedbackPresenterTests {
                     effectKind: .shieldApplied,
                     amount: 5,
                     keyword: .block,
-                    actionID: 99,
-                    abilityID: "avatar-of-justice",
-                    abilityName: "Avatar of Justice"
-                ),
-                makeEvent(
-                    id: 11,
-                    kind: .effect,
-                    effectKind: .mitigationApplied,
-                    amount: 2,
-                    keyword: .armor,
                     actionID: 99,
                     abilityID: "avatar-of-justice",
                     abilityName: "Avatar of Justice"
@@ -536,6 +526,6 @@ extension CombatFeedbackPresenterTests {
         #expect(items[0].visualRole == .beneficialStatus)
         #expect(items[0].chipPresentation.leadingSymbolName == "arrowshape.up.fill")
         #expect(items[0].chipPresentation.trailingSymbolName == "sun.max.fill")
-        #expect(items[0].sourceEventIDs == [10, 11, 12])
+        #expect(items[0].sourceEventIDs == [10, 12])
     }
 }

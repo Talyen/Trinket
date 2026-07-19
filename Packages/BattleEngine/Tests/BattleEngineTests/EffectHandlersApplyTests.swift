@@ -39,7 +39,6 @@ struct EffectHandlersApplyTests {
 
     @Test(arguments: [
         Effect.shield(.block, 5),
-        .mitigation(.armor, 2),
         .standardLeechBuff
     ])
     func defensiveBuffHandlersApplyAndEmitEvents(effect: Effect) throws {
@@ -62,14 +61,6 @@ struct EffectHandlersApplyTests {
                 return false
             })
             try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-        case .mitigation(.armor, 2):
-            try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-                if case .mitigation(.armor, 2) = ae.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 2 })
         case .standardLeechBuff:
             try #expect(battle.activeEffects(of: battle.hero).contains {
                 $0.effect.keyword == .leech && !$0.effect.isInstant

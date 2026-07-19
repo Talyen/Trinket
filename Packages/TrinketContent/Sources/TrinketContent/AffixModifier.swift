@@ -15,7 +15,6 @@ public enum AffixModifier: Equatable, Hashable, Sendable {
     case leechHealing(Int)
     case goldGained(Int)
     case blockGained(Int)
-    case armorGained(Int)
     case leechDuration(Int)
     case bleedDuration(Int)
     case damageTakenPercent(Keyword, Double)

@@ -12,10 +12,13 @@ struct ContentView: View {
         Group {
             if appState.battle.activeBattle != nil {
                 PlayView()
+                    .transition(.opacity)
             } else {
                 tabRoot(selection: battleLockedSelection)
+                    .transition(.opacity)
             }
         }
+        .animation(TrinketMotion.Screen.crossfade, value: appState.battle.activeBattle?.id)
         .tint(TrinketDesign.Colors.accent)
         .preferredColorScheme(.dark)
         .alert(

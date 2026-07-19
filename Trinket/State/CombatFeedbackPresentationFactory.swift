@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 import TrinketDesignSystem
 
-/// Caps dense per-target chip groups and assigns presentation roles / overflow.
+/// Assigns presentation roles for per-target chip groups after same-kind consolidate.
 enum CombatFeedbackPresentationFactory {
     struct Source: Equatable {
         let id: Int
@@ -16,25 +16,15 @@ enum CombatFeedbackPresentationFactory {
         let reactionKind: CombatantHitReactionKind
     }
 
-    /// Caps dense resolves at `maxVisibleIndividualChips` plus one overflow chip.
+    /// One chip per consolidated source. Lane queues own density — no overflow collapse.
     static func makeItems(
         from sorted: [Source],
         actionGroupID: Int,
         availableAt: Date,
         expiresAt: Date
     ) -> [CombatFeedbackItem] {
-        let maxIndividual = CombatFeedbackLayout.maxVisibleIndividualChips
-        let visibleEvents: [Source]
-        let overflowCount: Int
-        if sorted.count > maxIndividual {
-            visibleEvents = Array(sorted.prefix(maxIndividual))
-            overflowCount = sorted.count - maxIndividual
-        } else {
-            visibleEvents = sorted
-            overflowCount = 0
-        }
-        let groupResultCount = visibleEvents.count + (overflowCount > 0 ? 1 : 0)
-        var items = visibleEvents.enumerated().map { presentationIndex, preparedEvent in
+        let groupResultCount = sorted.count
+        return sorted.enumerated().map { presentationIndex, preparedEvent in
             makeItem(
                 from: preparedEvent,
                 actionGroupID: actionGroupID,
@@ -48,20 +38,6 @@ enum CombatFeedbackPresentationFactory {
                 expiresAt: expiresAt
             )
         }
-        if overflowCount > 0, let firstDropped = sorted.dropFirst(maxIndividual).first {
-            items.append(
-                makeOverflowItem(
-                    from: Array(sorted.dropFirst(maxIndividual)),
-                    firstDropped: firstDropped,
-                    actionGroupID: actionGroupID,
-                    presentationIndex: items.count,
-                    groupResultCount: groupResultCount,
-                    availableAt: availableAt,
-                    expiresAt: expiresAt
-                )
-            )
-        }
-        return items
     }
 
     private static func presentationRole(
@@ -100,36 +76,8 @@ enum CombatFeedbackPresentationFactory {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
-            reactionKind: prepared.reactionKind
-        )
-    }
-
-    private static func makeOverflowItem(
-        from dropped: [Source],
-        firstDropped: Source,
-        actionGroupID: Int,
-        presentationIndex: Int,
-        groupResultCount: Int,
-        availableAt: Date,
-        expiresAt: Date
-    ) -> CombatFeedbackItem {
-        CombatFeedbackItem(
-            id: firstDropped.id &+ 0x4000_0000,
-            sourceEventIDs: dropped.flatMap(\.sourceEventIDs),
-            actionGroupID: actionGroupID,
-            presentationIndex: presentationIndex,
-            groupResultCount: groupResultCount,
-            presentationRole: .overflow,
-            targetID: firstDropped.targetID,
-            feedbackClass: .buff,
-            keyword: firstDropped.keyword,
-            visualRole: .keyword,
-            label: .overflow(dropped.count),
-            secondaryText: nil,
-            lifetime: TrinketMotion.Battle.chipDisplayDuration,
-            availableAt: availableAt,
-            expiresAt: expiresAt,
-            reactionKind: .none
+            reactionKind: prepared.reactionKind,
+            lane: .middle
         )
     }
 }

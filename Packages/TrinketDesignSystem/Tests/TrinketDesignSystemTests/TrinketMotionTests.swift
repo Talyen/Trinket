@@ -13,9 +13,22 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
-        #expect(TrinketMotion.Battle.feedbackQueueStagger == 0.1)
+        #expect(TrinketMotion.Battle.feedbackQueueStagger == TrinketMotion.Battle.chipDisplayDuration)
+        #expect(TrinketMotion.Battle.feedbackLaneCount == 3)
+        #expect(CombatFeedbackLayout.laneSpreadFraction == 1.15)
+        #expect(CombatFeedbackLayout.laneOffsetX(for: .middle, chipWidth: 100) == 0)
+        let spread = 100 * CombatFeedbackLayout.laneSpreadFraction
+        #expect(CombatFeedbackLayout.laneOffsetX(for: .left, chipWidth: 100) == -spread)
+        #expect(CombatFeedbackLayout.laneOffsetX(for: .right, chipWidth: 100) == spread)
+        #expect(TrinketMotion.Battle.feedbackLanes(isPartyMember: true) == [.middle])
+        #expect(TrinketMotion.Battle.feedbackLanes(isPartyMember: false) == Array(CombatFeedbackLane.allCases))
+        #expect(TrinketMotion.Battle.statusBorderPulseDuration > 0)
+        #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity > 0)
+        #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity < 1)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
         #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
+        #expect(TrinketMotion.Screen.crossfadeDuration > 0)
+        #expect(TrinketMotion.Screen.crossfadeDuration < 0.35)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
         #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(
@@ -59,19 +72,19 @@ struct TrinketMotionTests {
         }
     }
 
-    @Test func combatFeedbackUsesOneSecondDeceleratingRiseAndFinalFade() {
+    @Test func combatFeedbackUsesOneSecondAcceleratingRiseAndFinalFade() {
         #expect(TrinketMotion.Battle.chipDisplayDuration == 1)
         #expect(TrinketMotion.Battle.chipFadeOutDuration == 0.2)
         #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0) == 0)
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0.5) == 0.75)
+        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0.5) == 0.25)
         #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 1) == 1)
 
         let firstQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.25)
         let secondQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.5) - firstQuarter
         let lastQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 1)
             - TrinketMotion.Battle.chipMotionProgress(elapsed: 0.75)
-        #expect(firstQuarter > secondQuarter)
-        #expect(secondQuarter > lastQuarter)
+        #expect(firstQuarter < secondQuarter)
+        #expect(secondQuarter < lastQuarter)
 
         #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0) == 1)
         #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0.8) == 1)

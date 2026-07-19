@@ -14,10 +14,9 @@ enum CombatFeedbackRasterCatalog {
     /// secondary roles so dense groups stay cache-warm.
     static func closedVocabularyItems(at date: Date = .now) -> [CombatFeedbackItem] {
         let wordSources = wordSources()
-        let overflowSources = overflowSources(startingID: wordSources.count + 1)
         let expiresAt = date.addingTimeInterval(1)
         var items: [CombatFeedbackItem] = []
-        for role in [CombatFeedbackPresentationRole.headline, .secondary] {
+        for role in CombatFeedbackPresentationRole.allCases {
             for source in wordSources {
                 items.append(
                     catalogItem(
@@ -28,16 +27,6 @@ enum CombatFeedbackRasterCatalog {
                     )
                 )
             }
-        }
-        for source in overflowSources {
-            items.append(
-                catalogItem(
-                    from: source,
-                    presentationRole: .overflow,
-                    availableAt: date,
-                    expiresAt: expiresAt
-                )
-            )
         }
         return items
     }
@@ -131,19 +120,6 @@ enum CombatFeedbackRasterCatalog {
         }
     }
 
-    private static func overflowSources(
-        startingID: Int
-    ) -> [CombatFeedbackPresentationFactory.Source] {
-        (1 ... CombatFeedbackLayout.maxVisibleIndividualChips).map { count in
-            source(
-                id: startingID + count - 1,
-                feedbackClass: .buff,
-                keyword: .physical,
-                label: .overflow(count)
-            )
-        }
-    }
-
     private static func source(
         id: Int,
         feedbackClass: CombatFeedbackClass,
@@ -174,7 +150,6 @@ enum CombatFeedbackRasterCatalog {
         let roleBias = switch presentationRole {
         case .headline: 0
         case .secondary: 0x1000_0000
-        case .overflow: 0x2000_0000
         }
         return CombatFeedbackItem(
             id: source.id &+ roleBias,
@@ -192,7 +167,8 @@ enum CombatFeedbackRasterCatalog {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
-            reactionKind: source.reactionKind
+            reactionKind: source.reactionKind,
+            lane: .middle
         )
     }
 }

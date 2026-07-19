@@ -18,6 +18,7 @@ extension BattleSession {
         guard activeCinematic == nil,
               !isShowingVictory,
               !isShowingDefeat,
+              !isDealingOpeningHand,
               state != nil else {
             // No new events — still publish if prune dropped expired chips.
             noteFeedbackPresentationChanged()

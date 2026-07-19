@@ -5,7 +5,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     case burn = "Burn"
     case stun = "Stun"
     case block = "Block"
-    case armor = "Armor"
     case health = "Health"
     case gold = "Gold"
     case holy = "Holy"
@@ -32,7 +31,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var category: Category {
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun: .damageType
-        case .block, .armor, .dodge, .purge: .mitigation
+        case .block, .dodge, .purge: .mitigation
         case .health, .leech, .deathsDoor: .restoration
         case .gold, .mana: .resource
         }
@@ -44,7 +43,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .freeze, .stun, .health, .leech:
             true
-        case .block, .armor, .dodge, .purge, .gold, .mana, .deathsDoor:
+        case .block, .dodge, .purge, .gold, .mana, .deathsDoor:
             false
         }
     }
@@ -75,38 +74,63 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var rulesText: String {
         switch self {
         case .physical:
-            "Direct weapon or body damage."
+            "Physical direct damage type"
         case .burn:
-            "Fire damage over time."
+            "Burn deals damage each turn and fades quickly"
         case .stun:
-            "Stun damage builds up; at 20% of max HP the target becomes Stunned and loses their next action."
+            "Stun damage builds up and eventually causes the loss of a turn"
         case .block:
-            "A pooled damage buffer absorbed before Health. Halves at the end of each round."
-        case .armor:
-            "Flat damage reduction up to half of each hit. Decays by 1 whenever damage is taken."
+            "Prevents Health damage and fades quickly"
         case .health:
-            "Survivability and health restoration."
+            "Health keeps you alive"
         case .gold:
-            "Currency for shops or upgrades."
+            "Gold is currency for shops and upgrades"
         case .holy:
-            "Radiant holy damage type."
+            "Holy direct damage type"
         case .poison:
-            "Toxic damage over time."
+            "Poison deals damage each turn and fades slowly"
         case .bleed:
-            "Physical damage over time from bleeding wounds."
+            "Bleed deals damage each turn for 3 turns"
         case .leech:
-            "Damage that restores health to the attacker."
+            "Leech damage heals the attacker"
         case .freeze:
-            "Freeze damage builds up; at 20% of max HP the target becomes Frozen and loses their next action."
+            "Freeze damage builds up and eventually causes the loss of a turn"
         case .dodge:
-            "Chance to avoid incoming damage entirely."
+            "Dodge avoids an attack completely"
         case .purge:
-            "Instantly removes beneficial status effects from enemies."
+            "Purge removes a beneficial effect"
         case .mana:
-            "Magical energy used to power abilities."
+            "Mana is used to cast spells"
         case .deathsDoor:
-            "Hanging by a thread after a near-fatal blow. Heal soon or the next fatal hit will end them."
+            "Death's Door survives a fatal blow at 1 HP — heal before it ends or the next fatal hit kills"
         }
+    }
+
+    /// URL scheme for in-app keyword glossary links (`trinket-keyword://burn`).
+    public static let glossaryURLScheme = "trinket-keyword"
+
+    public var glossaryURL: URL {
+        var components = URLComponents()
+        components.scheme = Self.glossaryURLScheme
+        components.host = glossaryHost
+        if let url = components.url {
+            return url
+        }
+        preconditionFailure("Keyword glossary URL must form for host \(glossaryHost)")
+    }
+
+    public init?(glossaryURL url: URL) {
+        guard url.scheme == Self.glossaryURLScheme,
+              let host = url.host,
+              let keyword = Self.allCases.first(where: { $0.glossaryHost == host })
+        else {
+            return nil
+        }
+        self = keyword
+    }
+
+    private var glossaryHost: String {
+        String(describing: self)
     }
 }
 

@@ -2,37 +2,33 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Shared helpers for the pooled Block / Armor model.
+/// Shared helpers for the pooled Block model and Toughness-based inherent DR.
 package enum DefensePoolEngine {
-    /// Player-facing pool identity. Maps to `Effect.shield` / `Effect.mitigation`.
+    /// Player-facing pool identity. Maps to `Effect.shield`.
     package enum Pool: Sendable {
         case block
-        case armor
 
         var effectKind: EffectKind {
             switch self {
             case .block: .shield
-            case .armor: .mitigation
             }
         }
 
         var appliedEffectKind: ActionEvent.EffectKind {
             switch self {
             case .block: .shieldApplied
-            case .armor: .mitigationApplied
             }
         }
 
         fileprivate var defaultKeyword: Keyword {
             switch self {
             case .block: .block
-            case .armor: .armor
             }
         }
 
         fileprivate func matches(_ effect: Effect) -> Bool {
             switch (self, effect) {
-            case (.block, .shield), (.armor, .mitigation): true
+            case (.block, .shield): true
             default: false
             }
         }
@@ -40,7 +36,6 @@ package enum DefensePoolEngine {
         fileprivate func points(in effect: Effect) -> Int? {
             switch (self, effect) {
             case let (.block, .shield(_, buffer)): buffer
-            case let (.armor, .mitigation(_, points)): points
             default: nil
             }
         }
@@ -48,7 +43,6 @@ package enum DefensePoolEngine {
         func decodeGain(_ effect: Effect) -> (keyword: Keyword, amount: Int)? {
             switch (self, effect) {
             case let (.block, .shield(keyword, amount)): (keyword, amount)
-            case let (.armor, .mitigation(keyword, amount)): (keyword, amount)
             default: nil
             }
         }
@@ -56,14 +50,12 @@ package enum DefensePoolEngine {
         fileprivate func makeEffect(keyword: Keyword, amount: Int) -> Effect {
             switch self {
             case .block: .shield(keyword, amount)
-            case .armor: .mitigation(keyword, amount)
             }
         }
 
         fileprivate func withAmount(_ effect: Effect, amount: Int) -> Effect? {
             switch (self, effect) {
             case let (.block, .shield(keyword, _)): .shield(keyword, amount)
-            case let (.armor, .mitigation(keyword, _)): .mitigation(keyword, amount)
             default: nil
             }
         }
@@ -75,20 +67,22 @@ package enum DefensePoolEngine {
         }
     }
 
-    package static func effectiveArmor(
+    /// Inherent Toughness-based damage reduction: `passiveMitigationFlat +
+    /// toughnessMitigation`, shredded and reduced by effectiveness penalties.
+    /// No pool points — Toughness DR is never consumed or decayed.
+    package static func effectiveToughnessMitigation(
         for combatant: Combatant,
-        effects: [ActiveEffect],
+        effects _: [ActiveEffect],
         profile: CombatModifierProfile,
         in context: BattleEngineContext
     ) -> Int {
-        var points = Self.points(in: effects, pool: .armor) + profile.passiveArmorFlat
-        points += combatant.primaryStats.armorEffectivenessBonus
+        var points = profile.passiveMitigationFlat + combatant.primaryStats.toughnessMitigation
         if let runtime = context.roster.runtime(for: combatant),
            runtime.mitigationShredUntilTick > context.tickCount {
             points = Int(floor(Double(points) * runtime.mitigationShredMultiplier))
         }
-        if profile.armorEffectivenessPenaltyPercent > 0 {
-            points = Int(floor(Double(points) * max(0, 1 - profile.armorEffectivenessPenaltyPercent)))
+        if profile.mitigationEffectivenessPenaltyPercent > 0 {
+            points = Int(floor(Double(points) * max(0, 1 - profile.mitigationEffectivenessPenaltyPercent)))
         }
         return max(0, points)
     }
@@ -151,5 +145,16 @@ package enum DefensePoolEngine {
         let current = points(in: context.roster.activeEffects(for: target), pool: .block)
         guard current > 0 else { return }
         set(current / 2, pool: .block, on: target, in: &context)
+    }
+
+    /// Halves pooled Block (floor). Used by `Effect.halveShield`.
+    package static func halveBlock(
+        on target: Combatant,
+        in context: inout BattleEngineContext
+    ) -> Bool {
+        let current = points(in: context.roster.activeEffects(for: target), pool: .block)
+        guard current > 0 else { return false }
+        set(current / 2, pool: .block, on: target, in: &context)
+        return true
     }
 }

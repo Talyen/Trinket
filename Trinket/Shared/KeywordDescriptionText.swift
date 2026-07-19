@@ -1,11 +1,25 @@
 import SwiftUI
 import TrinketCore
+import TrinketDesignSystem
 
 struct KeywordDescriptionText: View {
     let text: String
 
+    @State private var selectedKeyword: Keyword?
+
     var body: some View {
         Text(attributedText)
+            .environment(\.openURL, OpenURLAction { url in
+                guard let keyword = Keyword(glossaryURL: url) else {
+                    return .systemAction
+                }
+                selectedKeyword = keyword
+                return .handled
+            })
+            .popover(item: $selectedKeyword) { keyword in
+                KeywordGlossaryPopover(keyword: keyword)
+                    .presentationCompactAdaptation(.popover)
+            }
     }
 
     private var attributedText: AttributedString {
@@ -16,12 +30,41 @@ struct KeywordDescriptionText: View {
                   let range = text.range(of: term, range: searchStart ..< text.endIndex) {
                 if let startIdx = AttributedString.Index(range.lowerBound, within: attr),
                    let endIdx = AttributedString.Index(range.upperBound, within: attr) {
-                    attr[startIdx ..< endIdx].foregroundColor = keyword.visualStyle.color
-                    attr[startIdx ..< endIdx].inlinePresentationIntent = .stronglyEmphasized
+                    let styledRange = startIdx ..< endIdx
+                    attr[styledRange].foregroundColor = keyword.visualStyle.color
+                    attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
+                    attr[styledRange].link = keyword.glossaryURL
+                    attr[styledRange].underlineStyle = .init(pattern: .solid, color: .clear)
                 }
                 searchStart = range.upperBound
             }
         }
         return attr
+    }
+}
+
+private struct KeywordGlossaryPopover: View {
+    let keyword: Keyword
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                Text(keyword.rawValue)
+                    .trinketTypography(.cardTitle)
+                    .foregroundStyle(keyword.visualStyle.color)
+
+                Image(systemName: keyword.visualStyle.symbolName)
+                    .foregroundStyle(keyword.visualStyle.color)
+                    .accessibilityHidden(true)
+            }
+
+            Text(keyword.rulesText)
+                .trinketTypography(.body)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .frame(maxWidth: 280, alignment: .leading)
+        .trinketMaterial(.popover)
     }
 }

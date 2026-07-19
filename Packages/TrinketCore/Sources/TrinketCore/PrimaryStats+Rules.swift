@@ -22,9 +22,9 @@ public extension PrimaryStats {
         min(0.75, 0.05 + Double(agility) * 0.0025)
     }
 
-    /// Flat Armor effectiveness bonus from Toughness. Mirrors the damage-stat
+    /// Flat damage reduction from Toughness. Mirrors the damage-stat
     /// `/ 5` pattern used by Strength / Agility / Intellect / Wisdom.
-    var armorEffectivenessBonus: Int {
+    var toughnessMitigation: Int {
         toughness / 5
     }
 

@@ -40,6 +40,7 @@ enum BattleSessionTestSupport {
         )
         let session = BattleSession(
             autoEndTurnDelay: autoEndTurnDelay,
+            openingHandDrawStagger: 0,
             enemyAttackImpactDelayOverride: 0,
             outcomePresentationDelayOverride: 0
         )

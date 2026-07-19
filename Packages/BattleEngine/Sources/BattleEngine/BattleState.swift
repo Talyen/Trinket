@@ -127,7 +127,8 @@ public struct BattleState {
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true,
-        tracksEvents: Bool = true
+        tracksEvents: Bool = true,
+        dealOpeningHand: Bool = true
     ) {
         self.hero = hero
         self.companion = companion
@@ -183,7 +184,11 @@ public struct BattleState {
 
         _ = appendMilestone(.battleStarted, matchup: cachedMatchup)
 
-        BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
+        if dealOpeningHand {
+            BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
+        } else {
+            BattleCardCombatEngine.bootstrapDecks(context: &self)
+        }
 
         if tracksLog {
             var projection = BattleLogProjection()
@@ -233,6 +238,28 @@ public struct BattleState {
         let events = BattleCardCombatEngine.endTurn(matchup: cachedMatchup, context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
+    }
+
+    /// Fills the opening hand in one step (tests / headless). Prefer paced
+    /// `drawNextOpeningHandCard` when the UI should animate each draw.
+    public mutating func drawOpeningHand(rebuildLog: Bool = true) {
+        BattleCardCombatEngine.drawOpeningHand(context: &self)
+        finishMutation(rebuildLog: rebuildLog)
+    }
+
+    /// Draws a single opening-hand card. Returns `false` when no further draw is possible.
+    @discardableResult
+    public mutating func drawNextOpeningHandCard(rebuildLog: Bool = true) -> Bool {
+        let drew = BattleCardCombatEngine.drawNextOpeningHandCard(context: &self)
+        if drew {
+            finishMutation(rebuildLog: rebuildLog)
+        }
+        return drew
+    }
+
+    /// Recomputes which party owners skip card play this turn (call after paced opening deal).
+    public mutating func finalizeOpeningHand() {
+        BattleCardCombatEngine.finalizeOpeningHand(context: &self)
     }
 
     public func isCardPlayable(_ card: BattleCard) -> Bool {

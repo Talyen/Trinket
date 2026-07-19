@@ -39,10 +39,6 @@ public extension Keyword {
             color: DesignAssetColors.named("KeywordBlock"),
             symbolName: "shield.fill"
         )
-        public static let armor = VisualStyle(
-            color: DesignAssetColors.named("KeywordArmor"),
-            symbolName: "shield.lefthalf.filled"
-        )
         public static let health = VisualStyle(
             color: DesignAssetColors.named("KeywordHealth"),
             secondaryColor: ThemePalette.trinket.health,
@@ -107,7 +103,6 @@ public extension Keyword {
         case .burn: .burn
         case .stun: .stun
         case .block: .block
-        case .armor: .armor
         case .health: .health
         case .gold: .gold
         case .holy: .holy

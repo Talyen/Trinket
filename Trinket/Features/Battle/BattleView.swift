@@ -81,6 +81,7 @@ struct BattleView: View {
 
             if canRetreat {
                 Button(role: .destructive) {
+                    appState.sfxPlayer.play(SFXID.uiCancel, volume: appState.options.effectsVolume)
                     appState.endBattleReturningToOrigin()
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
@@ -95,53 +96,69 @@ struct BattleView: View {
         .accessibilityIdentifier(AccessibilityID.Battle.actionsMenu)
     }
 
-    @ViewBuilder
     private func outcomeContent(battleSession: BattleSession) -> some View {
-        if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
-            VictoryView(
-                enemyName: configuration.enemy?.name ?? "Enemy",
-                summary: victorySummary,
-                primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
-                onPrimaryAction: {
-                    if hasStageProgression {
-                        let didPersist = appState.completeActiveBattle(
-                            configuration,
-                            battleEarnedGold: victorySummary.rawBattleEarnedGold,
-                            materialRewards: victorySummary.materialRewards
-                        )
-                        if !didPersist {
-                            persistFailureMessage = StageMapMessage(
-                                title: "Couldn't Save Progress",
-                                message: "Your victory was not saved. Stay on this screen and try Continue again."
+        ZStack {
+            if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
+                VictoryView(
+                    enemyName: configuration.enemy?.name ?? "Enemy",
+                    summary: victorySummary,
+                    primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
+                    onPrimaryAction: {
+                        if hasStageProgression {
+                            let didPersist = appState.completeActiveBattle(
+                                configuration,
+                                battleEarnedGold: victorySummary.rawBattleEarnedGold,
+                                materialRewards: victorySummary.materialRewards
                             )
+                            if !didPersist {
+                                persistFailureMessage = StageMapMessage(
+                                    title: "Couldn't Save Progress",
+                                    message: "Your victory was not saved. Stay on this screen and try Continue again."
+                                )
+                            }
+                            return didPersist
+                        } else {
+                            appState.restartActiveBattle()
+                            return true
                         }
-                        return didPersist
-                    } else {
-                        appState.restartActiveBattle()
-                        return true
                     }
+                )
+                .transition(.opacity)
+            } else if battleSession.isShowingDefeat {
+                if let labyrinthNodeID = configuration.labyrinthNodeID {
+                    DefeatView(
+                        enemyName: configuration.enemy?.name ?? "Enemy",
+                        primaryButtonTitle: "Return to Map",
+                        onPrimaryAction: {
+                            appState.recordLabyrinthDefeat(nodeID: labyrinthNodeID)
+                            appState.endBattleReturningToOrigin()
+                        }
+                    )
+                    .transition(.opacity)
+                } else {
+                    DefeatView(
+                        enemyName: configuration.enemy?.name ?? "Enemy",
+                        onPrimaryAction: {
+                            appState.restartActiveBattle()
+                        }
+                    )
+                    .transition(.opacity)
                 }
-            )
-        } else if battleSession.isShowingDefeat {
-            if let labyrinthNodeID = configuration.labyrinthNodeID {
-                DefeatView(
-                    enemyName: configuration.enemy?.name ?? "Enemy",
-                    primaryButtonTitle: "Return to Map",
-                    onPrimaryAction: {
-                        appState.recordLabyrinthDefeat(nodeID: labyrinthNodeID)
-                        appState.endBattleReturningToOrigin()
-                    }
-                )
             } else {
-                DefeatView(
-                    enemyName: configuration.enemy?.name ?? "Enemy",
-                    onPrimaryAction: {
-                        appState.restartActiveBattle()
-                    }
-                )
+                battlefield(battleSession: battleSession)
+                    .transition(.opacity)
             }
+        }
+        .animation(TrinketMotion.Screen.crossfade, value: outcomePhase(for: battleSession))
+    }
+
+    private func outcomePhase(for battleSession: BattleSession) -> String {
+        if battleSession.isShowingVictory {
+            "victory"
+        } else if battleSession.isShowingDefeat {
+            "defeat"
         } else {
-            battlefield(battleSession: battleSession)
+            "battle"
         }
     }
 
@@ -359,6 +376,7 @@ private struct BattleCombatantProjectionPane: View {
                 maxHealth: snapshot.maxHealth,
                 mana: snapshot.mana,
                 maxMana: snapshot.maxMana,
+                borderAccentKeyword: snapshot.borderAccentKeyword,
                 hapticsEnabled: hapticsEnabled,
                 cinematicNamespace: cinematicNamespace,
                 recoilDirection: role == .enemy ? .up : .down,

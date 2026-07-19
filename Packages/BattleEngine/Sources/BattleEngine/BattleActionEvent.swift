@@ -26,7 +26,6 @@ public struct ActionEvent: Identifiable, Equatable {
         case cardsDrawn
         case leechHeal
         case shieldApplied
-        case mitigationApplied
         case shieldAbsorbed
         case controlActionSkipped
         case controlApplied
@@ -35,7 +34,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case purgeApplied
         case dodgeApplied
         case leechApplied
-        case mitigationHalved
+        case shieldHalved
         case deathsDoorTriggered
         case deathsDoorExpired
         case hasteApplied

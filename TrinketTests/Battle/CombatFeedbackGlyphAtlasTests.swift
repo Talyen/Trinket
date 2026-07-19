@@ -112,7 +112,7 @@ struct CombatFeedbackGlyphAtlasTests {
         #expect(CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.applied(.block)))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.dodge))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.cleanse(.bleed)))
-        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.halve(.armor)))
+        #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.halve(.block)))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.status(.criticalUp)))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.critical))
         #expect(!CombatFeedbackGlyphAtlas.wordAtlasCases(for: .normal).contains(.plain(.deathsDoor)))

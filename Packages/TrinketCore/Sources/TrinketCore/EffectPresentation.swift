@@ -19,7 +19,7 @@ public enum EffectPresentation {
         if let phrase = cleanseOrPurgePhrase(for: effect) {
             return phrase
         }
-        if let phrase = mitigationPhrase(for: effect) {
+        if let phrase = shieldHalvePhrase(for: effect) {
             return phrase
         }
         if let phrase = utilityPhrase(for: effect) {
@@ -55,8 +55,8 @@ public enum EffectPresentation {
             return "Consecrated"
         case .nextHolyStrike:
             return "Next Holy Strike"
-        case .burn, .poison, .bleed, .controlMeter, .shield, .mitigation,
-             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
+        case .burn, .poison, .bleed, .controlMeter, .shield,
+             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveShield:
             return ""
         }
     }
@@ -74,8 +74,6 @@ public enum EffectPresentation {
             return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
         case let .shield(keyword, buffer):
             return "\(keyword.rawValue): \(buffer)"
-        case let .mitigation(keyword, points):
-            return "\(keyword.rawValue): \(points)"
         default:
             return nil
         }
@@ -83,7 +81,7 @@ public enum EffectPresentation {
 
     private static func activeRecoveryPhrase(for effect: Effect) -> String? {
         switch effect {
-        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
+        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveShield:
             ""
         default:
             nil
@@ -116,8 +114,6 @@ public enum EffectPresentation {
         switch effect {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
-        case let .mitigation(.armor, points):
-            "gain \(points) Armor"
         case .haste:
             "gain Haste"
         case .thorns:
@@ -165,9 +161,9 @@ public enum EffectPresentation {
         }
     }
 
-    private static func mitigationPhrase(for effect: Effect) -> String? {
-        guard case .halveMitigation(.armor) = effect else { return nil }
-        return "halve the enemy's Armor"
+    private static func shieldHalvePhrase(for effect: Effect) -> String? {
+        guard case .halveShield(.block) = effect else { return nil }
+        return "halve the enemy's Block"
     }
 
     private static func utilityPhrase(for effect: Effect) -> String? {

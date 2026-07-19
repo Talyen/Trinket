@@ -36,7 +36,7 @@ struct BattleVictorySummaryTests {
             ]),
             pendingRewardItem: lootItem
         )
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
 
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -89,7 +89,7 @@ struct BattleVictorySummaryTests {
             roster: scaledRoster,
             stageReward: StageReward(gold: 0, itemTemplateIDs: [])
         )
-        let scaledSession = BattleSession()
+        let scaledSession = BattleSession(openingHandDrawStagger: 0)
         scaledSession.activeBattle = scaledConfiguration
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
         let scaledState = try #require(scaledSession.state)
@@ -139,7 +139,7 @@ struct BattleVictorySummaryTests {
             experienceBonusPercent: 20,
             pendingRewardItem: pendingItem
         )
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
         BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -178,7 +178,7 @@ struct BattleVictorySummaryTests {
             enemy: enemy,
             stageReward: StageReward(gold: 100, itemTemplateIDs: [])
         )
-        let session = BattleSession()
+        let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
         BattleSessionTestSupport.driveUntilOutcome(session)
 

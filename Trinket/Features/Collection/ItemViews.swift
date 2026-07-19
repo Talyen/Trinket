@@ -32,6 +32,7 @@ struct InventoryGridView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedFilter: InventoryFilter = .all
     @State private var selectedItem: InventoryItem?
+    @Namespace private var zoomNamespace
 
     private let columns = TrinketDesign.Metrics.collectionGridItems
 
@@ -56,6 +57,7 @@ struct InventoryGridView: View {
                                 )
                             }
                             .trinketQuietTapButtonStyle()
+                            .matchedTransitionSource(id: item.id, in: zoomNamespace)
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
@@ -88,6 +90,7 @@ struct InventoryGridView: View {
             NavigationStack {
                 ItemDetailView(item: item)
             }
+            .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
             .trinketDetailSheet()
         }
     }

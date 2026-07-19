@@ -28,7 +28,22 @@ public enum ChipChromeRole: String, CaseIterable, Sendable, Equatable {
 public enum CombatFeedbackPresentationRole: String, CaseIterable, Sendable, Equatable {
     case headline
     case secondary
-    case overflow
+}
+
+/// Horizontal rise path for one floating combat chip on a combatant.
+public enum CombatFeedbackLane: Int, CaseIterable, Sendable, Equatable {
+    case left = 0
+    case middle = 1
+    case right = 2
+
+    /// Tie-break when multiple lanes share the same earliest start: middle, then left, then right.
+    public var assignmentPriority: Int {
+        switch self {
+        case .middle: 0
+        case .left: 1
+        case .right: 2
+        }
+    }
 }
 
 /// One keyframe sample for a combat-chip motion track.
@@ -80,9 +95,6 @@ public struct CombatFeedbackChipStyle: Sendable, Equatable {
         case .secondary:
             style = .title2
             weight = .bold
-        case .overflow:
-            style = .callout
-            weight = .semibold
         }
         return .system(style, design: .rounded)
             .weight(weight)
@@ -306,8 +318,17 @@ public enum CombatFeedbackLayout: Sendable {
         return CGFloat(shifted % 10000) / 10000
     }
 
-    /// Individual chips kept before collapsing the rest into one overflow chip.
-    public static let maxVisibleIndividualChips = 5
+    /// Horizontal spread between adjacent lanes as a fraction of chip width.
+    public static let laneSpreadFraction: CGFloat = 1.15
+
+    public static func laneOffsetX(for lane: CombatFeedbackLane, chipWidth: CGFloat) -> CGFloat {
+        let spread = chipWidth * laneSpreadFraction
+        switch lane {
+        case .middle: return 0
+        case .left: return -spread
+        case .right: return spread
+        }
+    }
 
     public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {
         switch feedbackClass {

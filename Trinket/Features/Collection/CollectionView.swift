@@ -3,10 +3,13 @@ import TrinketContent
 import TrinketDesignSystem
 
 struct CollectionView: View {
+    private static let shelfPreviewLimit = 8
+
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
+    @Namespace private var zoomNamespace
 
     var body: some View {
         collectionBrowseContent
@@ -25,6 +28,7 @@ struct CollectionView: View {
                 NavigationStack {
                     ItemDetailView(item: item)
                 }
+                .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
                 .trinketDetailSheet()
                 .appFramePacingSignpost(
                     AppFramePacingSignposts.Name.sheetPresent,
@@ -44,6 +48,7 @@ struct CollectionView: View {
                         combatantID: context.combatantID
                     )
                 }
+                .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
                 .trinketDetailSheet()
                 .appFramePacingSignpost(
                     AppFramePacingSignposts.Name.sheetPresent,
@@ -60,7 +65,7 @@ struct CollectionView: View {
 
     private var collectionBrowseContent: some View {
         let inventoryState = appState.inventory
-        let shelfItems = Array(inventoryState.items.prefix(12))
+        let shelfItems = Array(inventoryState.items.prefix(Self.shelfPreviewLimit))
 
         return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
@@ -68,14 +73,18 @@ struct CollectionView: View {
                     title: "Heroes",
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
-                    combatants: appState.roster.collectionHeroes
+                    combatants: Array(
+                        appState.roster.collectionHeroes.prefix(Self.shelfPreviewLimit)
+                    )
                 )
 
                 combatantCategorySection(
                     title: "Companions",
                     accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
                     kind: .companion,
-                    combatants: appState.roster.collectionCompanions
+                    combatants: Array(
+                        appState.roster.collectionCompanions.prefix(Self.shelfPreviewLimit)
+                    )
                 )
 
                 if !inventoryState.items.isEmpty {
@@ -96,6 +105,7 @@ struct CollectionView: View {
                                 .collectionShelfCardWidth()
                             }
                             .trinketQuietTapButtonStyle()
+                            .matchedTransitionSource(id: item.id, in: zoomNamespace)
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
@@ -145,6 +155,7 @@ struct CollectionView: View {
                 ) {
                     selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
                 }
+                .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
                 .collectionShelfCardWidth()
             }
         }

@@ -242,6 +242,7 @@ extension AppState {
 
         if let unlockedID = applyResult.unlockedCombatantIDs.first {
             session.presentReveal(unlockedCombatantID: unlockedID)
+            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             return true
         }
 

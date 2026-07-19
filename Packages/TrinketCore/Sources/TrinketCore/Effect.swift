@@ -50,8 +50,6 @@ public enum Effect: Hashable, Sendable {
     case controlMeter(Keyword, Int, Int)
     /// Flat Block buffer. Stacks into a single pool; no timed duration.
     case shield(Keyword, Int)
-    /// Flat Armor points. Stacks into a single pool; no timed duration.
-    case mitigation(Keyword, Int)
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
@@ -61,7 +59,8 @@ public enum Effect: Hashable, Sendable {
     case cleanseRandom
     case purge(Keyword?)
     case purgeRandom
-    case halveMitigation(Keyword)
+    /// Halve the target's current Block pool (floor).
+    case halveShield(Keyword)
     case deathsDoor
     case haste(Int)
     case thorns(Keyword, Int, Int)
@@ -103,7 +102,6 @@ public enum Effect: Hashable, Sendable {
         case .bleed: .bleed
         case let .controlMeter(k, _, _): k
         case let .shield(k, _): k
-        case let .mitigation(k, _): k
         case let .instantHeal(k, _): k
         case let .leech(k, _, _): k
         case let .resourceGain(k, _): k
@@ -112,7 +110,7 @@ public enum Effect: Hashable, Sendable {
         case .cleanse(nil), .cleanseRandom: .health
         case let .purge(k?): k
         case .purge(nil), .purgeRandom: .purge
-        case let .halveMitigation(k): k
+        case let .halveShield(k): k
         case .deathsDoor: .deathsDoor
         case .haste: .physical
         case let .thorns(k, _, _): k
@@ -142,8 +140,8 @@ public enum Effect: Hashable, Sendable {
         case let .restoreManaOnHit(_, d): d
         case let .damageKeywordOverride(_, _, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor,
-             .shield, .mitigation, .nextHolyStrike:
+             .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
+             .shield, .nextHolyStrike:
             0
         }
     }
@@ -169,9 +167,9 @@ public enum Effect: Hashable, Sendable {
 
     public static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom, .marked:
+        case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked:
             .abilityTarget
-        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .shield, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike:
             .actor

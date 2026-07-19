@@ -36,7 +36,7 @@ enum AbilityCatalogSkillGenerated {
 
     static let haste = AbilityBuilder.buffOnly(
         id: "haste", name: "Haste", tier: .skill,
-        effects: [.mitigation(.armor, 2)]
+        effects: [.shield(.block, 2)]
     )
 
     static let healthPotion = AbilityBuilder.buffOnly(
@@ -46,7 +46,7 @@ enum AbilityCatalogSkillGenerated {
 
     static let stoneskinPotion = AbilityBuilder.buffOnly(
         id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
-        effects: [.mitigation(.armor, 3)]
+        effects: [.shield(.block, 3)]
     )
 
     static let tithe = AbilityBuilder.buffOnly(
@@ -56,7 +56,7 @@ enum AbilityCatalogSkillGenerated {
 
     static let plateMail = AbilityBuilder.buffOnly(
         id: "plate-mail", name: "Plate Mail", tier: .skill,
-        effects: [.mitigation(.armor, 3)]
+        effects: [.shield(.block, 3)]
     )
 
     static let all: [Ability] = [

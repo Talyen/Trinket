@@ -225,7 +225,7 @@ final class CombatFeedbackGlyphAtlas {
                         requests.append(.fragment(key, recipe))
                     }
                 }
-                // Word fragments stay headline-sized; secondary/overflow only shrink numerics.
+                // Word fragments stay headline-sized; secondary only shrinks numerics.
                 if role == .headline {
                     for word in Self.wordAtlasCases(for: typography).compactMap(\.composeText) {
                         let key = FragmentKey(face: face, text: word)
@@ -365,9 +365,6 @@ enum CombatFeedbackGlyphMetrics {
         case .secondary:
             style = .title2
             weight = .bold
-        case .overflow:
-            style = .callout
-            weight = .semibold
         }
         let textStyle = uiTextStyle(style)
         let category = uiContentSizeCategory(dynamicTypeSize)

@@ -38,8 +38,7 @@ struct EffectHandlersTickTests {
     }
 
     @Test(arguments: [
-        Effect.shield(.block, 5),
-        .mitigation(.armor, 2)
+        Effect.shield(.block, 5)
     ])
     func durationlessMitigationTicksLeaveStacksUntouched(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()

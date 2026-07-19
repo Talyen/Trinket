@@ -2,6 +2,7 @@ import BattleEngine
 import Foundation
 import Observation
 import TrinketContent
+import TrinketCore
 
 struct BattleCombatantPresentation: Equatable {
     let combatant: Combatant
@@ -9,6 +10,8 @@ struct BattleCombatantPresentation: Equatable {
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
+    /// Keyword for the single status border pulse, or `nil` for the neutral stroke.
+    let borderAccentKeyword: Keyword?
 }
 
 struct BattlePresentationSnapshot: Equatable {
@@ -41,7 +44,10 @@ struct BattlePresentationSnapshot: Equatable {
             health: state.health(of: combatant),
             maxHealth: state.maxHealth(of: combatant),
             mana: state.mana(of: combatant),
-            maxMana: state.maxMana(of: combatant)
+            maxMana: state.maxMana(of: combatant),
+            borderAccentKeyword: CombatantBorderAccent.keyword(
+                from: state.activeEffects(of: combatant)
+            )
         )
     }
 }

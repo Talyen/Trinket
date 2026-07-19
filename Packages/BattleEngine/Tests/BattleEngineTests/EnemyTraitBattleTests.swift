@@ -47,11 +47,11 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
-        let armor = skeleton.combatant.primaryStats.armorEffectivenessBonus
-        try #expect(physical.healthLost == 10 - armor)
-        // Holy weakness (30%) applies before toughness armor.
-        let holyBeforeArmor = Int((10.0 * 1.3).rounded(.up))
-        try #expect(holy.healthLost == holyBeforeArmor - armor)
+        let toughnessMitigation = skeleton.combatant.primaryStats.toughnessMitigation
+        try #expect(physical.healthLost == 10 - toughnessMitigation)
+        // Holy weakness (30%) applies before Toughness mitigation.
+        let holyBeforeMitigation = Int((10.0 * 1.3).rounded(.up))
+        try #expect(holy.healthLost == holyBeforeMitigation - toughnessMitigation)
         try #expect(holy.healthLost > physical.healthLost)
     }
 

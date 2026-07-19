@@ -19,7 +19,7 @@ struct CombatFeedbackChipPresentation {
         feedbackClass: CombatFeedbackClass
     ) -> CombatFeedbackChipPresentation {
         switch label {
-        case .amount, .percent, .overflow:
+        case .amount, .percent:
             let tint = trailingStyle(
                 keyword: keyword,
                 visualRole: visualRole,
@@ -106,8 +106,8 @@ struct CombatFeedbackChipPresentation {
             return dualAction(leading: beneficial, trailing: Keyword.mana.visualStyle)
         case .criticalUp, .thorns:
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
-        case .armorDown:
-            return dualAction(leading: negative, trailing: Keyword.armor.visualStyle)
+        case .blockDown:
+            return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
         case .hasted:
             return iconOnly(trailing: beneficial)
         case .marked:

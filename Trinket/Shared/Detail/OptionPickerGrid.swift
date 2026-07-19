@@ -9,6 +9,7 @@ struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let onSelect: (Item) -> Void
     let accessibilityIdentifier: (Item) -> String
     let accessibilityValue: ((Item) -> String)?
+    var zoomNamespace: Namespace.ID?
     @ViewBuilder let card: (Item, Bool) -> CardView
 
     init(
@@ -18,6 +19,7 @@ struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         onSelect: @escaping (Item) -> Void,
         accessibilityIdentifier: @escaping (Item) -> String,
         accessibilityValue: ((Item) -> String)? = nil,
+        zoomNamespace: Namespace.ID? = nil,
         @ViewBuilder card: @escaping (Item, Bool) -> CardView
     ) {
         self.items = items
@@ -26,6 +28,7 @@ struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.onSelect = onSelect
         self.accessibilityIdentifier = accessibilityIdentifier
         self.accessibilityValue = accessibilityValue
+        self.zoomNamespace = zoomNamespace
         self.card = card
     }
 
@@ -48,6 +51,7 @@ struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     }
                     .trinketQuietTapButtonStyle()
                     .disabled(!eligible)
+                    .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))
                     .trinketAccessibilityValue(accessibilityValue?(item))
                 }
@@ -63,6 +67,18 @@ private extension View {
     func trinketAccessibilityValue(_ value: String?) -> some View {
         if let value {
             accessibilityValue(value)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func optionalMatchedTransitionSource<ID: Hashable>(
+        id: ID,
+        in namespace: Namespace.ID?
+    ) -> some View {
+        if let namespace {
+            matchedTransitionSource(id: id, in: namespace)
         } else {
             self
         }

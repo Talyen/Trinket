@@ -26,8 +26,7 @@ public enum AbilityCatalogUltimate {
     public static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4)),
-            TargetedEffect(.mitigation(.armor, 3))
+            TargetedEffect(.shield(.block, 7))
         ]
     )
     public static let exorcism = Ability(
@@ -50,7 +49,7 @@ public enum AbilityCatalogUltimate {
     public static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.mitigation(.armor, 3)),
+            TargetedEffect(.shield(.block, 3)),
             TargetedEffect(.resourceGain(.gold, 4)),
             TargetedEffect(.instantHeal(.health, 2))
         ]
@@ -72,8 +71,7 @@ public enum AbilityCatalogUltimate {
     public static let manaBulwark = Ability(
         id: "mana-bulwark", name: "Mana Bulwark", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4)),
-            TargetedEffect(.mitigation(.armor, 3)),
+            TargetedEffect(.shield(.block, 7)),
             TargetedEffect(.resourceGain(.mana, 2)),
             TargetedEffect(.burn(2))
         ],
@@ -129,9 +127,9 @@ public enum AbilityCatalogUltimate {
     )
     public static let thornMail = Ability(
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
-        description: "Gain Armor and Thorns.",
+        description: "Gain Block and Thorns.",
         targetedEffects: [
-            TargetedEffect(.mitigation(.armor, 2)),
+            TargetedEffect(.shield(.block, 2)),
             TargetedEffect(.thorns(.bleed, 2, 6)),
             TargetedEffect(.bleed(1))
         ]

@@ -15,7 +15,10 @@ enum FramePacingMeasurementControl {
 /// Corner frame-pacing readout for local diagnostics. Under XCTest it publishes only
 /// a machine-readable accessibility node when explicitly enabled.
 struct DebugFPSOverlayModifier: ViewModifier {
-    @AppStorage(DebugPreferenceKey.showFPSOverlay) private var isEnabled = true
+    @AppStorage(DebugPreferenceKey.showFPSOverlay) private var isEnabled = false
+
+    /// Kill switch: keeps CADisplayLink off even if a stored preference is still true.
+    private static let isVisualOverlayEnabled = false
 
     private var enableFrameMetrics: Bool {
         AppEnvironment.shared.enableFrameMetrics
@@ -26,7 +29,7 @@ struct DebugFPSOverlayModifier: ViewModifier {
     }
 
     private var showVisualBadge: Bool {
-        isEnabled && !underXCTest
+        Self.isVisualOverlayEnabled && isEnabled && !underXCTest
     }
 
     func body(content: Content) -> some View {

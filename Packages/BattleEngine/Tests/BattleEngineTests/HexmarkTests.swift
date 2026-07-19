@@ -80,14 +80,14 @@ struct HexmarkTests {
         try #expect(!hasMarked(context.roster.activeEffects(for: enemy)))
     }
 
-    @Test func hexmarkSurvivesArmorRefreshOnFirstHit() throws {
-        let armor = ActiveEffect(
+    @Test func hexmarkSurvivesShieldAbsorptionOnFirstHit() throws {
+        let block = ActiveEffect(
             id: 1,
-            effect: .mitigation(.armor, 4),
-            remainingTicks: 6,
+            effect: .shield(.block, 4),
+            remainingTicks: 0,
             sourceActorID: "enemy"
         )
-        var context = makeContext(enemyEffects: [armor], nextEffectID: 2)
+        var context = makeContext(enemyEffects: [block], nextEffectID: 2)
         let hero = context.roster.hero.combatant
         let enemy = context.roster.enemy.combatant
 

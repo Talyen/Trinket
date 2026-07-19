@@ -200,7 +200,7 @@ struct BattleTurnEngineTests {
                 enemy: CombatantRuntime(
                     combatant: enemy,
                     initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .mitigation(.armor, 1), remainingTicks: 2)
+                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 2)
                     ]
                 )
             ),

@@ -14,6 +14,17 @@ struct CardActivationTests {
         #expect(CardActivationParticle.make(count: -1).isEmpty)
     }
 
+    @Test func fireworksParticlesArePreparedDeterministically() {
+        let first = CardActivationParticle.makeFireworks(count: 28)
+        let second = CardActivationParticle.makeFireworks(count: 28)
+
+        #expect(first == second)
+        #expect(first.count == 28)
+        #expect(CardActivationParticle.makeFireworks(count: -1).isEmpty)
+        // Upward hemisphere: every particle travels with non-positive Y.
+        #expect(first.allSatisfy { $0.vector.dy <= 0 })
+    }
+
     @Test func cardActivationRequestNormalizesKeywords() {
         let request = CardActivationRequest(
             artworkName: nil,

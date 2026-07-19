@@ -2,27 +2,27 @@ id	name	slot	keywords
 crossbow	Crossbow	weapon	physical,bleed,poison
 dagger	Dagger	weapon	physical,poison,bleed,leech
 double_axe	Double Axe	weapon	physical,bleed,leech
-flail	Flail	weapon	physical,stun,armor
+flail	Flail	weapon	physical,stun,block
 greatsword	Greatsword	weapon	physical,bleed,stun
 hatchet	Hatchet	weapon	physical,bleed,leech
-kite_shield	Kite Shield	weapon	block,armor,stun
+kite_shield	Kite Shield	weapon	block,stun
 longbow	Longbow	weapon	physical,bleed,poison
 longsword	Longsword	weapon	physical,bleed,holy
 mace	Mace	weapon	physical,stun,holy
-maul	Maul	weapon	physical,stun,armor
+maul	Maul	weapon	physical,stun,block
 recurve_bow	Recurve Bow	weapon	physical,bleed,poison
 shortbow	Shortbow	weapon	physical,bleed,poison
 shortsword	Shortsword	weapon	physical,bleed
 spellbook	Spellbook	weapon	burn,freeze,holy,gold,mana
 staff	Staff	weapon	burn,freeze,holy,block,mana
 wand	Wand	weapon	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor	physical,armor,health,poison,leech,bleed
-plate_armor	Plate Armor	armor	block,armor,health,holy,stun
+leather_armor	Leather Armor	armor	physical,block,health,poison,leech,bleed
+plate_armor	Plate Armor	armor	block,health,holy,stun
 emerald_amulet	Emerald Amulet	trinket	poison,health
 emerald_ring	Emerald Ring	trinket	poison,health
 ruby_amulet	Ruby Amulet	trinket	burn,health,leech,bleed
 ruby_ring	Ruby Ring	trinket	burn,health,leech,bleed
-sapphire_amulet	Sapphire Amulet	trinket	freeze,block,armor,mana
-sapphire_ring	Sapphire Ring	trinket	freeze,block,armor,mana
+sapphire_amulet	Sapphire Amulet	trinket	freeze,block,mana
+sapphire_ring	Sapphire Ring	trinket	freeze,block,mana
 topaz_amulet	Topaz Amulet	trinket	holy,gold,stun,block
 topaz_ring	Topaz Ring	trinket	holy,gold,stun,block

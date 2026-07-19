@@ -90,6 +90,7 @@ struct CurrentStageCard: View {
     private var primaryActionButton: some View {
         Button {
             actionFeedbackTrigger += 1
+            appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
             onPrimaryAction()
         } label: {
             Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)

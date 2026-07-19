@@ -136,21 +136,7 @@ struct CombatantDetailPane: View {
 
     @ViewBuilder
     private func combatantDetailBody(combatBuild: CombatBuild) -> some View {
-        DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
-            statRow(
-                "Health",
-                value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
-                accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
-            )
-            if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
-                statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
-            }
-            statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
-            statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
-            statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
-            statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
-            statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
-        }
+        statsSection(combatBuild: combatBuild)
 
         if let heroOrCompanionTrait {
             traitSection(
@@ -169,13 +155,7 @@ struct CombatantDetailPane: View {
         }
 
         if !activeEffectSummaries.isEmpty {
-            DetailSection("Active Effects") {
-                ForEach(activeEffectSummaries) { summary in
-                    KeywordDescriptionText(text: summary.text)
-                        .trinketTypography(.body)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            activeEffectsSection
         }
 
         DetailSection("Abilities") {
@@ -202,6 +182,42 @@ struct CombatantDetailPane: View {
         }
     }
 
+    private func statsSection(combatBuild: CombatBuild) -> some View {
+        DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                statCard {
+                    statRow(
+                        "Health",
+                        value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
+                        accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
+                    )
+                }
+
+                statCard {
+                    if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
+                        statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
+                    }
+                    statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
+                    statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
+                    statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
+                    statRow("Intellect", value: "\(combatBuild.combatant.primaryStats.intellect)")
+                    statRow("Wisdom", value: "\(combatBuild.combatant.primaryStats.wisdom)")
+                }
+            }
+        }
+    }
+
+    private var activeEffectsSection: some View {
+        DetailSection("Active Effects") {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(activeEffectSummaries) { summary in
+                    let parts = activeEffectCardParts(for: summary)
+                    DetailTraitRow(title: parts.title, description: parts.description)
+                }
+            }
+        }
+    }
+
     private func traitSection(
         traits: [CombatantTraitDefinition],
         sectionID: String,
@@ -212,7 +228,7 @@ struct CombatantDetailPane: View {
                 ForEach(traits) { trait in
                     DetailTraitRow(
                         title: trait.name,
-                        description: trait.description,
+                        description: detailDescription(trait.description),
                         descriptionAccessibilityID: descriptionID
                     )
                 }
@@ -255,6 +271,27 @@ struct CombatantDetailPane: View {
                 .foregroundStyle(.primary)
         }
         .accessibilityIdentifier(accessibilityIdentifier ?? title)
+    }
+
+    private func statCard(@ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .trinketSurface(.secondary)
+    }
+
+    private func activeEffectCardParts(for summary: EffectSummary) -> (title: String, description: String) {
+        if let separator = summary.text.range(of: ": ") {
+            let title = String(summary.text[..<separator.lowerBound])
+            let description = String(summary.text[separator.upperBound...])
+            return (detailDescription(title), detailDescription(description))
+        }
+        return (detailDescription(summary.text), detailDescription(summary.keyword.rulesText))
+    }
+
+    private func detailDescription(_ text: String) -> String {
+        text.hasSuffix(".") ? String(text.dropLast()) : text
     }
 }
 

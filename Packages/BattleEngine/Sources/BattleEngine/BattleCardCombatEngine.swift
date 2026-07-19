@@ -4,7 +4,8 @@ import TrinketCore
 
 /// Orchestrates player card plays, the enemy turn, and end-of-round effect ticks.
 public enum BattleCardCombatEngine {
-    public static func bootstrapDecksAndOpeningHand(context: inout BattleEngineContext) {
+    /// Shuffles loadout decks and clears hand state. Does not draw the opening hand.
+    public static func bootstrapDecks(context: inout BattleEngineContext) {
         context.heroDeck = CombatDeck.shuffled(
             from: context.hero.abilityLoadout,
             rng: &context.rng
@@ -15,8 +16,36 @@ public enum BattleCardCombatEngine {
         )
         context.hand = BattleHand()
         context.handBuffer = BattleHandBuffer()
-        drawOpeningHand(count: BattleHand.maxSize, context: &context)
         context.phase = .playerTurn
+        context.ownersSkippingThisPlayerTurn = []
+    }
+
+    /// Headless / test convenience: bootstrap decks and fill the opening hand immediately.
+    public static func bootstrapDecksAndOpeningHand(context: inout BattleEngineContext) {
+        bootstrapDecks(context: &context)
+        drawOpeningHand(context: &context)
+    }
+
+    /// Draws the full opening hand (up to `BattleHand.maxSize`) and refreshes skip owners.
+    public static func drawOpeningHand(context: inout BattleEngineContext) {
+        while drawNextOpeningHandCard(context: &context) {}
+        finalizeOpeningHand(context: &context)
+    }
+
+    /// Draws one opening-hand card using the same owner-pick rules as bulk opening draw.
+    /// Returns `false` when the hand is full or no eligible deck remains.
+    @discardableResult
+    public static func drawNextOpeningHandCard(context: inout BattleEngineContext) -> Bool {
+        guard context.hand.count < BattleHand.maxSize else { return false }
+        let eligible = [BattleParticipant.hero, .companion].filter { owner in
+            context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
+        }
+        guard let owner = eligible.randomElement(using: &context.rng) else { return false }
+        return drawOne(owner: owner, context: &context)
+    }
+
+    /// Call after a paced opening deal finishes so skip owners match a bulk draw.
+    public static func finalizeOpeningHand(context: inout BattleEngineContext) {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
     }
 
@@ -180,17 +209,6 @@ public enum BattleCardCombatEngine {
             }
         }
         return skipping
-    }
-
-    /// Draws `count` cards, each from a randomly chosen eligible owner (alive + non-empty deck).
-    private static func drawOpeningHand(count: Int, context: inout BattleEngineContext) {
-        for _ in 0 ..< count {
-            let eligible = [BattleParticipant.hero, .companion].filter { owner in
-                context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
-            }
-            guard let owner = eligible.randomElement(using: &context.rng) else { return }
-            _ = drawOne(owner: owner, context: &context)
-        }
     }
 
     /// Resolves simultaneous automatic draws one card at a time so open hand

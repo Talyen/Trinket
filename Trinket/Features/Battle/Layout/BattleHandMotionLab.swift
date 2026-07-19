@@ -461,8 +461,15 @@ private struct HandMotionPlayground: View {
         dealGeneration &+= 1
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(80))
-            withAnimation(configuration.deal) {
-                cards = Self.makeCards(count: count)
+            let dealt = Self.makeCards(count: count)
+            for card in dealt {
+                withAnimation(configuration.deal) {
+                    cards.append(card)
+                }
+                let stagger = configuration.cardDrawStagger
+                if stagger > 0 {
+                    try? await Task.sleep(for: .seconds(stagger))
+                }
             }
         }
     }

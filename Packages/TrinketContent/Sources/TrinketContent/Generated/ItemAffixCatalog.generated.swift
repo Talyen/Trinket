@@ -143,19 +143,19 @@ enum ItemAffixCatalogGenerated {
             id: "fortified",
             title: "Fortified",
             slot: .weapon,
-            keywords: [.armor],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor gained by 1", modifiers: [.armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Armor gained by 2", modifiers: [.armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "defenders",
             title: "Defender's",
             slot: .weapon,
-            keywords: [.block, .armor],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block gained by 1 and Armor gained by 1", modifiers: [.blockGained(1), .armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Block gained by 2 and Armor gained by 2", modifiers: [.blockGained(2), .armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 4", modifiers: [.blockGained(4)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "venomancers",
@@ -233,7 +233,7 @@ enum ItemAffixCatalogGenerated {
             id: "stalwart",
             title: "Stalwart",
             slot: .armor,
-            keywords: [.armor, .block],
+            keywords: [.block],
             weight: 12,
             basic: ItemAffixPower(description: "Increases Toughness by 1", modifiers: [.toughness(1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Toughness by 3", modifiers: [.toughness(3)], triggers: CombatTraitTriggers())
@@ -251,10 +251,10 @@ enum ItemAffixCatalogGenerated {
             id: "reinforced",
             title: "Reinforced",
             slot: .armor,
-            keywords: [.armor],
+            keywords: [.block],
             weight: 12,
-            basic: ItemAffixPower(description: "Increases Armor gained by 1", modifiers: [.armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Armor gained by 2", modifiers: [.armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "bulwark",
@@ -278,10 +278,10 @@ enum ItemAffixCatalogGenerated {
             id: "anchored",
             title: "Anchored",
             slot: .armor,
-            keywords: [.armor],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor gained by 1", modifiers: [.armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Armor gained by 2", modifiers: [.armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "vital",
@@ -296,7 +296,7 @@ enum ItemAffixCatalogGenerated {
             id: "emberguard",
             title: "Emberguard",
             slot: .armor,
-            keywords: [.burn, .armor],
+            keywords: [.burn, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Decreases Burn damage taken by 10%", modifiers: [.damageTakenPercent(.burn, 0.10)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Decreases Burn damage taken by 25%", modifiers: [.damageTakenPercent(.burn, 0.25)], triggers: CombatTraitTriggers())
@@ -332,7 +332,7 @@ enum ItemAffixCatalogGenerated {
             id: "guardians",
             title: "Guardian's",
             slot: .armor,
-            keywords: [.block, .armor],
+            keywords: [.block],
             weight: 8,
             basic: ItemAffixPower(description: "Increases Toughness by 1 and Block gained by 1", modifiers: [.toughness(1), .blockGained(1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Toughness by 2 and Block gained by 2", modifiers: [.toughness(2), .blockGained(2)], triggers: CombatTraitTriggers())
@@ -341,7 +341,7 @@ enum ItemAffixCatalogGenerated {
             id: "rimed",
             title: "Rimed",
             slot: .armor,
-            keywords: [.freeze, .armor],
+            keywords: [.freeze, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Decreases Freeze damage taken by 10%", modifiers: [.damageTakenPercent(.freeze, 0.10)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Decreases Freeze damage taken by 25%", modifiers: [.damageTakenPercent(.freeze, 0.25)], triggers: CombatTraitTriggers())
@@ -350,7 +350,7 @@ enum ItemAffixCatalogGenerated {
             id: "insulated",
             title: "Insulated",
             slot: .armor,
-            keywords: [.stun, .armor],
+            keywords: [.stun, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Decreases Stun damage taken by 10%", modifiers: [.damageTakenPercent(.stun, 0.10)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Decreases Stun damage taken by 25%", modifiers: [.damageTakenPercent(.stun, 0.25)], triggers: CombatTraitTriggers())
@@ -386,7 +386,7 @@ enum ItemAffixCatalogGenerated {
             id: "plated",
             title: "Plated",
             slot: .armor,
-            keywords: [.armor, .stun],
+            keywords: [.block, .stun],
             weight: 8,
             basic: ItemAffixPower(description: "Increases Toughness by 1 and Stun damage dealt by 1", modifiers: [.toughness(1), .damageDealt(.stun, 1)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increases Toughness by 2 and Stun damage dealt by 2", modifiers: [.toughness(2), .damageDealt(.stun, 2)], triggers: CombatTraitTriggers())
@@ -440,10 +440,10 @@ enum ItemAffixCatalogGenerated {
             id: "steadfast",
             title: "Steadfast",
             slot: .trinket,
-            keywords: [.armor, .block],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block gained by 1 and Armor gained by 1", modifiers: [.blockGained(1), .armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Block gained by 2 and Armor gained by 2", modifiers: [.blockGained(2), .armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 4", modifiers: [.blockGained(4)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "fatebound",
@@ -476,10 +476,10 @@ enum ItemAffixCatalogGenerated {
             id: "etched",
             title: "Etched",
             slot: .trinket,
-            keywords: [.armor],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor gained by 1", modifiers: [.armorGained(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increases Armor gained by 2", modifiers: [.armorGained(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "shocking",
@@ -674,19 +674,10 @@ enum ItemAffixCatalogGenerated {
             id: "cascading",
             title: "Cascading",
             slot: .armor,
-            keywords: [.block, .armor],
+            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Gains 1 Armor when your Block is broken", modifiers: [], triggers: CombatTraitTriggers(blockBrokenArmorFlat: 1)),
-            astral: ItemAffixPower(description: "Gains 2 Armor when your Block is broken", modifiers: [], triggers: CombatTraitTriggers(blockBrokenArmorFlat: 2))
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "undergird",
-            title: "Undergird",
-            slot: .armor,
-            keywords: [.armor, .block],
-            weight: 8,
-            basic: ItemAffixPower(description: "Gains 1 Block when Armor is gained", modifiers: [], triggers: CombatTraitTriggers(armorGainedBlock: 1)),
-            astral: ItemAffixPower(description: "Gains 2 Block when Armor is gained", modifiers: [], triggers: CombatTraitTriggers(armorGainedBlock: 2))
+            basic: ItemAffixPower(description: "Gains 1 Block when your Block is broken", modifiers: [], triggers: CombatTraitTriggers(blockBrokenBlockFlat: 1)),
+            astral: ItemAffixPower(description: "Gains 2 Block when your Block is broken", modifiers: [], triggers: CombatTraitTriggers(blockBrokenBlockFlat: 2))
         ),
         ItemAffixCatalogSupport.affix(
             id: "ablution",
