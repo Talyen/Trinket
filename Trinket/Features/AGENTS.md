@@ -4,7 +4,7 @@ Feature work belongs in the matching `Features/<flow>/` folder. Read `Docs/Agent
 
 - Use shared state through the environment; feature views may own transient local `@State` but not app or session stores.
 - Use `TrinketDesignSystem` chrome, colors, and shared views from `Trinket/Shared/` before creating a local abstraction. Never introduce one-off `Color` / system palette literals — extend the design system instead.
-- Add/reuse a stable `AccessibilityID` test selector and a smoke test for a new player flow. Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
+- Add/reuse a stable `AccessibilityID` test selector for a new player flow. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry, state-changing journey, or one-owner safety invariant). Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
 - Use the root task-scoped workflow for verification (`./Scripts/verify-changed.sh --isolate --paths …`). During feature iteration, run only the affected smoke target (`TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`), narrowing to `<SmokeClass>/<testMethod>` when one method directly owns the behavior; leave global style and broader suites to pre-push or CI. Bare `./Scripts/test.sh smoke` is the Homestead pre-push canary, not a generic feature check.
 
 ## Homestead UX contract
