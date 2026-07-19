@@ -201,6 +201,9 @@ print_agent() {
   if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
     printf 'UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.\n'
   fi
+  if [[ "$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE" == true ]]; then
+    printf 'Compile note: app compile tier skipped (no xcodebuild). Style PASS is not compile-clean — report the skip; CI build-for-testing owns Swift 6 / macro errors.\n'
+  fi
 }
 
 if [[ "$OUTPUT" == json ]]; then

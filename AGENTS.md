@@ -42,7 +42,7 @@ Read only the nested guides, context cards, and skills it selects. Rerun it only
 
 ## Commit, push, and CI babysit
 
-- Before commit/push: `./Scripts/agent-push-gate.sh` (or `verify-changed.sh --isolate --push-ready --paths …`).
-- After push to `main`: `./Scripts/agent-watch-ci.sh` until green (quiet status polls; do not stream `gh run watch` into the agent context). On failure, read the printed excerpt / failed job names only. Path-filtered green runs dispatch and watch full CI.
+- Before commit/push: run path-scoped `./Scripts/verify-changed.sh --isolate --paths …` (style + package/unit/smoke/compile as routed). Then `./Scripts/agent-push-gate.sh` for **generate/assert completeness only** (catalogs / `project.pbxproj`) — it is not a style or compile gate. Or combine with `verify-changed.sh --isolate --push-ready --paths …`.
+- After push to `main`: `./Scripts/agent-watch-ci.sh` until green (quiet status polls; do not stream `gh run watch` into the agent context). On failure, read failed job names, printed check annotations, and the short log excerpt. Path-filtered green runs dispatch and watch full CI.
 
 Never “fix” generated drift by hand-editing `project.pbxproj` or committing lossy asset re-encodes from CI. Regenerate with pinned tools (`./Scripts/ensure-ci-tools.sh` + `./Scripts/generate.sh --force-xcodegen`); use `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.

@@ -50,8 +50,9 @@ Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket 
 
 --push-ready switches generation asserts from --idempotent (task-scoped) to
 commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
-Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate; use this flag when
-you also want the path-scoped style/package/smoke plan in the same run.
+Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate (generate/assert only);
+use this flag when you also want the path-scoped style/package/smoke/compile plan
+in the same run.
 
 --quiet prints the selected checks, one PASS/FAIL line per check, the advisory
 change budget, and at most TRINKET_VERIFY_FAILURE_LINES (default 80) lines from a
@@ -113,6 +114,7 @@ trinket_build_verification_plan
 commands=()
 if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then commands=("${TRINKET_VERIFICATION_COMMANDS[@]}"); fi
 smoke_target_unresolved="$TRINKET_SMOKE_TARGET_UNRESOLVED"
+app_compile_skipped_no_xcode="$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE"
 
 if [[ ${#commands[@]} -eq 0 ]]; then
   if [[ "$PUSH_READY" == true ]]; then
@@ -129,6 +131,9 @@ if [[ ${#commands[@]} -eq 0 ]]; then
   else
     echo "Review docs/tooling changes directly; use ci-gate or a task-specific command when appropriate."
   fi
+  if [[ "$app_compile_skipped_no_xcode" == true ]]; then
+    echo "Compile note: app compile tier skipped (no xcodebuild). Style PASS is not compile-clean — report the skip; CI build-for-testing owns Swift 6 / macro errors."
+  fi
   run_change_budget
   exit 0
 fi
@@ -137,6 +142,9 @@ echo "Verification plan (${#commands[@]} sequential check(s)):"
 printf '  %s\n' "${commands[@]}"
 if [[ "$smoke_target_unresolved" == true ]]; then
   echo "UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke."
+fi
+if [[ "$app_compile_skipped_no_xcode" == true ]]; then
+  echo "Compile note: app compile tier skipped (no xcodebuild). Style PASS is not compile-clean — report the skip; CI build-for-testing owns Swift 6 / macro errors."
 fi
 if [[ "$DRY_RUN" == true ]]; then
   if [[ "$ISOLATE" == true ]]; then

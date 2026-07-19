@@ -4,8 +4,9 @@ Feature work belongs in the matching `Features/<flow>/` folder. Read `Docs/Agent
 
 - Use shared state through the environment; feature views may own transient local `@State` but not app or session stores.
 - Use `TrinketDesignSystem` chrome, colors, and shared views from `Trinket/Shared/` before creating a local abstraction. Never introduce one-off `Color` / system palette literals — extend the design system instead.
+- File-level `@ViewBuilder` helpers that call DesignSystem / view modifiers must be `@MainActor` (or live as methods on a `View`). Free nonisolated helpers fail Swift 6 concurrency under `build-for-testing` even when style is clean.
 - Add/reuse a stable `AccessibilityID` test selector for a new player flow. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry, state-changing journey, or one-owner safety invariant). Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
-- Use the root task-scoped workflow for verification (`./Scripts/verify-changed.sh --isolate --paths …`). During feature iteration, run only the affected smoke target (`TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`), narrowing to `<SmokeClass>/<testMethod>` when one method directly owns the behavior; leave global style and broader suites to pre-push or CI. Bare `./Scripts/test.sh smoke` is the Homestead pre-push canary, not a generic feature check.
+- Use the root task-scoped workflow for verification (`./Scripts/verify-changed.sh --isolate --paths …`). During feature iteration, run only the affected smoke target (`TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`), narrowing to `<SmokeClass>/<testMethod>` when one method directly owns the behavior; leave global style and broader suites to pre-push or CI. Bare `./Scripts/test.sh smoke` is the Homestead pre-push canary, not a generic feature check. When no smoke owner resolves, the path-scoped plan schedules compile-only `build.sh` (if `xcodebuild` is present) so Swift 6 errors are not style-only false greens.
 
 ## Homestead UX contract
 

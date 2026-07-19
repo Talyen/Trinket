@@ -26,13 +26,13 @@ This card adds the CI/project-generation exceptions:
   and CI (`assert-generated-output.sh` without `--idempotent` after force generate).
 - `--push-ready` on `verify-changed.sh` switches to commit-completeness (pinned
   tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
-  plus the normal style/package/smoke plan. Prefer `./Scripts/agent-push-gate.sh`
-  when you only need the generate/assert gate.
+  plus the normal style/package/smoke/compile plan. Prefer `./Scripts/agent-push-gate.sh`
+  when you only need the generate/assert gate — it does **not** run style or compile.
 - After push, agents must run `./Scripts/agent-watch-ci.sh` (quiet JSON polls by
   default — do not stream `gh run watch` into the agent context; use `--verbose`
-  only for humans). On failure, read failed job names + the short log excerpt.
-  Path-filtered green runs auto-dispatch a full `Trinket CI` `workflow_dispatch`
-  and watch until green.
+  only for humans). On failure, read failed job names, printed check-run
+  annotations, and the short log excerpt. Path-filtered green runs auto-dispatch a
+  full `Trinket CI` `workflow_dispatch` and watch until green.
 - `generate.sh` prefers `.tools/xcodegen`. `--force-xcodegen` (or
   `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so stale “project has not
   changed” cannot hide `project.pbxproj` drift. Agent push gate sets
@@ -57,13 +57,16 @@ This card adds the CI/project-generation exceptions:
   fail-fast when full.
 - Use a filtered command for intentionally narrow work; an affected player flow needs
   only the path-scoped plan from `verify-changed.sh` (style always when Swift changes;
-  package tests when packages are touched; focused smoke when UI changes). Bare `smoke`
-  is the pre-push Homestead canary; full unit, `smoke-full`, and exhaustive UI suites
-  remain pre-push or CI checks.
+  package tests when packages are touched; focused smoke when a SmokeClass resolves;
+  compile-only `build.sh` when feature/shared/model Swift has no unit or smoke owner).
+  Bare `smoke` is the pre-push Homestead canary; full unit, `smoke-full`, and exhaustive
+  UI suites remain pre-push or CI checks.
 - Use `--no-build` only after a matching successful build in the **same** DerivedData
   tenant; the wrappers reject stale inputs. Without Xcode 26/simulator, run the applicable
   generation, generated-output, boundary, style, and CI-gate checks and report skipped
-  build/test work.
+  build/test/compile work. Linux portable SwiftLint also skips SourceKit `custom_rules`
+  and can under-report idiomatic findings vs macOS CI — treat local style PASS as
+  provisional for CI parity.
 - CI (`pr.yml` / `ci.yml`) builds once, prunes DerivedData with
   `Scripts/prune-derived-data-cache.sh`, saves a run-scoped cache, and fans out unit /
   smoke / exhaustive UI via `.github/actions/test-job` (`--no-build`, rebuild-on-miss).
@@ -84,7 +87,16 @@ subgate as success.
 
 Path-scoped `verify-changed.sh` always includes style when Swift sources change, and
 always includes `test-package.sh` for each touched package — those failures never need
-a simulator.
+a simulator. Feature/Shared/Models paths with no resolved smoke owner also schedule
+compile-only `./Scripts/build.sh` when `xcodebuild` is present (generic simulator
+destination, no boot) so Swift 6 concurrency and Testing-macro errors are not
+style-only false greens. That tier does **not** expand QuickSmoke.
+
+**Linux / portable SwiftLint:** SourceKit `custom_rules` are skipped, and some
+idiomatic findings may not match macOS CI. Style PASS on Linux is not a substitute
+for CI macOS style. On GitHub Actions, `lint.sh` emits both `xcode` (log-visible)
+and `github-actions-logging` (Checks annotations) reporters so `agent-watch-ci`
+excerpts and annotations both show rule/file/line.
 
 ## Swift Testing compile checklist
 
@@ -92,3 +104,4 @@ When adding `@Test(arguments:)` cases (see `Docs/Platform/Testing.md`):
 
 1. `private` argument types ⇒ `private` test function.
 2. Argument / tuple element types ⇒ `Sendable` (typically also `Hashable`).
+3. Keep `#require` arguments simple; compute `first(where:)` / key-path lookups into a local before `#require`.

@@ -113,8 +113,12 @@ the shared warm cache. After generation, verify-changed runs
 `assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
 HEAD/commit check. Commit completeness is `./Scripts/agent-push-gate.sh` (also
 called from pre-push), `verify-changed.sh --push-ready`, `ci-gate.sh`, and CI.
+Push-gate is **generate/assert only** — not style or compile; path-scoped
+`verify-changed.sh` remains the pre-CI source gate (and schedules compile-only
+`build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
 After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI when
-path filters skipped substantive jobs). Task-scoped verification does not replace
+path filters skipped substantive jobs; on failure prints check annotations plus a
+short log excerpt). Task-scoped verification does not replace
 the pre-push or pre-merge gates.
 
 Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
@@ -223,7 +227,7 @@ platform-ban / exclusivity exit fails the gate (matching CI).
 | Tool | Config | Owns |
 |------|--------|------|
 | SwiftFormat | `.swiftformat` | Whitespace, commas, import order, trailing newlines, brace layout |
-| SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans |
+| SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans. On GitHub Actions, `lint.sh` uses dual reporters (`xcode` + `github-actions-logging`) so job logs and Checks annotations both show rule/file/line. Linux portable builds skip SourceKit custom_rules — treat style PASS there as provisional vs CI. |
 | UI style | `Scripts/check-ui-style.sh` | Product chrome **and colors** — glass/material/button styles, raw RGB/`UIColor`/`#colorLiteral`, SwiftUI system color literals, app-bundle/`Color("…")` names, and `.accentColor`; route through `TrinketDesign` |
 | Platform bans | `Scripts/check-platform-api-bans.sh` | `NavigationView` / `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` / `@ObservedObject` (SourceKit-free) |
 | Exclusivity | `Scripts/check-exclusivity-footguns.sh` | `inout` of `self.` / likely stored properties without a local copy (`ExclusivityCheck: allow`) |

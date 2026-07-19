@@ -31,7 +31,9 @@ fi
 
 extra_args=()
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-  extra_args+=(--reporter github-actions-logging)
+  # Dual reporters: `xcode` keeps rule/file/line in job logs (agent-watch-ci
+  # excerpts); `github-actions-logging` posts Checks annotations.
+  extra_args+=(--reporter xcode --reporter github-actions-logging)
 fi
 
 if [ ${#extra_args[@]} -gt 0 ]; then

@@ -86,4 +86,6 @@ Local and CI expect **Xcode 26+**. Cloud or remote agents may lack the simulator
 
 Do not fail an audit solely because Instruments, Simulator, or `xcodebuild` is unavailable.
 
+**Linux style under-approx:** portable SwiftLint skips SourceKit `custom_rules` and can miss findings macOS CI reports. A local style PASS is provisional — report it as such; do not claim CI lint parity. App compile (`build.sh` / package tests / unit) is similarly skipped without `xcodebuild`; say so in the audit handoff.
+
 **`rg` path required in Cursor cloud shells:** those environments expose a readable stdin socket, so pathless `rg` waits on stdin forever. Always pass an explicit path (usually `.`) or scoped directories.

@@ -119,6 +119,9 @@ if ! command -v xcodegen >/dev/null 2>&1; then
   echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
   report_change_budget
   echo "=== Agent push gate passed ==="
+  echo "Note: push-gate is generate/assert completeness only — not style or compile."
+  echo "Pre-CI source checks: ./Scripts/verify-changed.sh --isolate --paths …"
+  echo "Tip: after push, run ./Scripts/agent-watch-ci.sh"
   exit 0
 fi
 
@@ -135,4 +138,6 @@ fi
 
 report_change_budget
 echo "=== Agent push gate passed ==="
+echo "Note: push-gate is generate/assert completeness only — not style or compile."
+echo "Pre-CI source checks: ./Scripts/verify-changed.sh --isolate --paths …"
 echo "Tip: after push, run ./Scripts/agent-watch-ci.sh"

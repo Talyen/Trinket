@@ -25,6 +25,8 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 
 - **Naming:** `@Test func behaviorWhenCondition()` — no `test` prefix required.
 - **Assertions:** `#expect`; `try #require` / `#require` to unwrap; `Issue.record` for unconditional failures.
+  - Keep `#require` arguments simple `Optional`s (or values that expand cleanly). Compute rich expressions first — e.g. `let node = collection.first(where: \.flag); try #require(node)` — so Swift Testing macros do not emit “missing try” compile errors.
+  - Prefer key-path `first(where:)` / `contains(where:)` forms when SwiftLint `prefer_key_path` applies; still split before `#require`.
 - **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants.
   - If the argument type is a `private` nested enum/struct, the `@Test` function must also be
     `private` (Swift rejects a more-visible method that exposes a private parameter type).

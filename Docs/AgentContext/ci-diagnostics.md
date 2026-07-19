@@ -49,6 +49,12 @@ Markdown, annotations, and attachments for the failure category, issue, source
 location, and suggested action. Inspect raw xcodebuild logs only when the aggregate
 category is `unknown` (or a report explicitly escalates to raw-log inspection).
 
+For GitHub Actions failures, `./Scripts/agent-watch-ci.sh` already prints failed job
+names, check-run annotations (SwiftLint / compiler), and a short `--log-failed`
+tail. Prefer those annotations over scraping the full log when the excerpt only
+shows “Found N violation(s)” without a path — style findings often live in
+annotations when `github-actions-logging` is enabled.
+
 The test and package command scopes are unchanged: diagnostics describe the existing
 `test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
 verification or the pre-push/pre-merge gates.

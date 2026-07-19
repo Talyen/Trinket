@@ -33,6 +33,8 @@ TRINKET_NEEDS_PROJECT_GENERATION=false
 TRINKET_NEEDS_STYLE=false
 TRINKET_NEEDS_UNIT=false
 TRINKET_NEEDS_SMOKE=false
+# True when feature/shared/model Swift would need app compile but xcodebuild is absent.
+TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
 TRINKET_SMOKE_TARGET_UNRESOLVED=false
 
 trinket_add_unique() {
@@ -104,6 +106,7 @@ trinket_reset_classification() {
   TRINKET_NEEDS_STYLE=false
   TRINKET_NEEDS_UNIT=false
   TRINKET_NEEDS_SMOKE=false
+  TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
   TRINKET_SMOKE_TARGET_UNRESOLVED=false
 }
 
@@ -367,6 +370,19 @@ trinket_build_verification_plan() {
     for package in "${TRINKET_PACKAGES[@]}"; do
       trinket_add_command "./Scripts/test-package.sh $package"
     done
+  fi
+  # App compile gap-fill: Features/Shared/Models set NEEDS_SMOKE even when no
+  # SmokeClass resolves, which used to leave style-only plans that miss Swift 6
+  # concurrency / Testing-macro compile errors. build.sh is compile-only
+  # (generic simulator destination, no boot) and does not expand smoke.
+  # Skip scheduling when unit or a resolved smoke target already compiles the app.
+  if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_UNIT" != true ]] \
+    && (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )); then
+    if command -v xcodebuild >/dev/null 2>&1; then
+      trinket_add_command "SKIP_GENERATE=1 ./Scripts/build.sh"
+    else
+      TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=true
+    fi
   fi
   if [[ "$TRINKET_NEEDS_UNIT" == true ]]; then
     trinket_add_command "SKIP_GENERATE=1 ./Scripts/test.sh unit"

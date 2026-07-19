@@ -3,7 +3,8 @@
 # filters skipped the real suite. Agents must run this after pushing to main.
 #
 # Quiet by default: poll status JSON only (no streamed watch logs). On failure,
-# print failed job names and a short --log-failed excerpt — not the full run log.
+# print failed job names, check-run annotations, and a short --log-failed excerpt
+# — not the full run log.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -23,7 +24,8 @@ Usage: ./Scripts/agent-watch-ci.sh [options]
 
 Polls the GitHub Actions run for the current (or given) commit until it
 finishes. Prints compact status only (no live log stream). On failure, prints
-failed job names and a short log excerpt. If the run only executed the path-
+failed job names, check-run annotations (SwiftLint / compiler), and a short log
+excerpt. If the run only executed the path-
 filter job, optionally dispatches a full workflow_dispatch run and watches that.
 
 Options:
@@ -147,12 +149,40 @@ run_is_path_filtered_only() {
 
 print_failure_triage() {
   local run_id="$1"
+  local repo
+  repo="$(repo_slug)"
   echo "Failed jobs:" >&2
   gh run view "$run_id" --json jobs --jq '
     .jobs[]
     | select(.conclusion == "failure")
     | "  - \(.name)"
   ' >&2 || true
+  echo "" >&2
+  echo "Check annotations (failed jobs):" >&2
+  # SwiftLint github-actions-logging and xcodebuild diagnostics often land here
+  # rather than in the last N log lines. Actions job id == check-run id.
+  local job_id annotation_lines=0
+  while read -r job_id; do
+    [[ -z "$job_id" ]] && continue
+    while read -r line; do
+      [[ -z "$line" ]] && continue
+      echo "  $line" >&2
+      annotation_lines=$((annotation_lines + 1))
+      if (( annotation_lines >= FAILURE_LOG_LINES )); then
+        break 2
+      fi
+    done < <(
+      gh api "repos/${repo}/check-runs/${job_id}/annotations" --jq '
+        .[]? | "\(.path // "?"):\(.start_line // 0): \(.annotation_level): \(.message)"
+      ' 2>/dev/null || true
+    )
+  done < <(
+    gh api "repos/${repo}/actions/runs/${run_id}/jobs" --paginate \
+      --jq '.jobs[] | select(.conclusion == "failure") | .id' 2>/dev/null || true
+  )
+  if (( annotation_lines == 0 )); then
+    echo "  (none or could not fetch check-run annotations)" >&2
+  fi
   echo "" >&2
   echo "Log excerpt (last ${FAILURE_LOG_LINES} lines of failed steps):" >&2
   # Full --log-failed can be huge; keep a short tail for agent context.
