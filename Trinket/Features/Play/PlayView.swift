@@ -322,6 +322,10 @@ private struct PlayEncounterCoversModifier: ViewModifier {
 
 /// Bridges MainActor UI closures into Binding's `@Sendable` get/set without requiring
 /// session types to be `Sendable`.
+///
+/// Concurrency-Safety: `@unchecked Sendable` — the boxed closures capture
+/// MainActor UI/session state and are only invoked from Binding get/set on the
+/// MainActor presentation path; they are never called from a concurrent executor.
 private struct UncheckedSendableBox<Value>: @unchecked Sendable {
     let value: Value
 

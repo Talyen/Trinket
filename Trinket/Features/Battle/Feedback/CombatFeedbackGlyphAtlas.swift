@@ -64,6 +64,9 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
+    /// Concurrency-Safety: `@unchecked Sendable` — `CGImage` bitmaps are immutable
+    /// after rasterization; detached bake workers only create glyphs that the
+    /// MainActor atlas then stores.
     struct Glyph: @unchecked Sendable {
         let image: CGImage
         let width: CGFloat
@@ -84,6 +87,9 @@ final class CombatFeedbackGlyphAtlas {
         let text: String
     }
 
+    /// Concurrency-Safety: `@unchecked Sendable` — value payload for detached bake
+    /// results; carries immutable `Glyph` bitmaps plus hashable keys back to the
+    /// MainActor atlas merge.
     enum PreparedGlyph: @unchecked Sendable {
         case symbol(SymbolKey, Glyph)
         case fragment(FragmentKey, Glyph)
@@ -171,6 +177,8 @@ final class CombatFeedbackGlyphAtlas {
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: scale
             )
+            // Concurrency-Safety: detached CPU rasterization must not block
+            // MainActor; results are immutable PreparedGlyph values merged here.
             let prepared = await Task.detached(priority: .utility) {
                 Self.bake(requests)
             }.value

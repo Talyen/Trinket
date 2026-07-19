@@ -243,7 +243,11 @@ final class PreparedArtworkCache {
 }
 
 /// Sendable decode seam so concurrent warmup tasks never capture MainActor state.
-private final class DecodeBox: @unchecked Sendable {
+///
+/// Concurrency-Safety: checked `Sendable` — only stores an already-`@Sendable`
+/// decode closure; task-group workers call that closure without capturing
+/// `PreparedArtworkCache` MainActor state.
+private final class DecodeBox: Sendable {
     let decode: @Sendable (String) async -> PreparedArtwork
 
     init(_ decode: @escaping @Sendable (String) async -> PreparedArtwork) {
@@ -251,6 +255,9 @@ private final class DecodeBox: @unchecked Sendable {
     }
 }
 
+/// Concurrency-Safety: `@unchecked Sendable` — `name` is a value type and
+/// `image` is immutable after `byPreparingForDisplay()`; task-group workers only
+/// produce instances that the MainActor cache then retains.
 struct PreparedArtwork: @unchecked Sendable {
     let name: String
     let image: UIImage?
