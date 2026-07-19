@@ -11,7 +11,8 @@ final class SmokeCollectionTests: SeededSmokeUITestCase {
     }
 
     func testFreshStartCollectionHidesInventorySection() {
-        collection.assertLoaded()
+        // Cold launch onto Collection under smoke-full can exceed the 3s deep-link default.
+        collection.assertLoaded(timeout: 8)
         assertExists(AccessibilityID.Collection.heroesCategory)
         assertExists(AccessibilityID.Collection.companionsCategory)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
