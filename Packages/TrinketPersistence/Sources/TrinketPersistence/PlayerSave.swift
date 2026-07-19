@@ -85,7 +85,6 @@ public struct PlayerSave: Equatable, Sendable {
         self.aspects = aspects
         self.labyrinth = labyrinth
     }
-
 }
 
 extension PlayerSave: Codable {

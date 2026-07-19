@@ -58,11 +58,11 @@ struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     }
 }
 
-extension View {
+private extension View {
     @ViewBuilder
-    fileprivate func trinketAccessibilityValue(_ value: String?) -> some View {
+    func trinketAccessibilityValue(_ value: String?) -> some View {
         if let value {
-            self.accessibilityValue(value)
+            accessibilityValue(value)
         } else {
             self
         }

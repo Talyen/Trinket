@@ -68,11 +68,11 @@ struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     }
 }
 
-extension View {
+private extension View {
     @ViewBuilder
-    fileprivate func trinketAccessibilityCombine(_ combine: Bool) -> some View {
+    func trinketAccessibilityCombine(_ combine: Bool) -> some View {
         if combine {
-            self.accessibilityElement(children: .combine)
+            accessibilityElement(children: .combine)
         } else {
             self
         }
