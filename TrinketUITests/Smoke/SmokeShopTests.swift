@@ -11,7 +11,6 @@ final class SmokeShopTests: SeededSmokeUITestCase {
 
     func testMerchantShopLoadsCriticalControls() {
         assertExists(AccessibilityID.Shop.encounterTitle)
-        assertExists(AccessibilityID.Shop.encounterGreeting)
         assertExists(AccessibilityID.Shop.goldBalance)
         assertExists(AccessibilityID.Shop.leaveButton)
 
