@@ -278,6 +278,7 @@ private enum UnlockRevealPhase: Int, Comparable {
     }
 }
 
+@MainActor
 @ViewBuilder
 private func mysteryPersistFailureBanner(
     _ message: String?,
