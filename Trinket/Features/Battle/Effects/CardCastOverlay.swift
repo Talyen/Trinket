@@ -102,8 +102,11 @@ struct CardActivationParticle: Equatable {
             case .radial:
                 dissolveNoise(column: index, row: 61)
             case .fireworks:
-                let wave = CGFloat(index % waveCount) / CGFloat(waveCount)
-                min(1, wave + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount)))
+                min(
+                    1,
+                    CGFloat(index % waveCount) / CGFloat(waveCount)
+                        + dissolveNoise(column: index, row: 61) * (1 / CGFloat(waveCount))
+                )
             }
             return Self(
                 originXNoise: dissolveNoise(column: index, row: 13),
