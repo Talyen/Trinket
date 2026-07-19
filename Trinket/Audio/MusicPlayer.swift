@@ -102,9 +102,11 @@ final class MusicPlayer {
         currentRequest = nil
 
         let duration = fadeDuration
+        // Defer stop so cancelActiveFades / deinit cannot orphan a still-playing
+        // outgoing player when the ramp Task is cancelled mid-fade.
         fadeTask = Task { @MainActor [weak self] in
+            defer { oldPlayer?.stop() }
             await self?.ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: duration)
-            oldPlayer?.stop()
         }
     }
 
@@ -116,13 +118,13 @@ final class MusicPlayer {
 
         let duration = fadeDuration
         fadeTask = Task { @MainActor [weak self] in
+            defer { oldPlayer?.stop() }
             await self?.ramp(
                 oldPlayer: oldPlayer,
                 newPlayer: newPlayer,
                 targetVolume: targetVolume,
                 duration: duration
             )
-            oldPlayer?.stop()
         }
     }
 
