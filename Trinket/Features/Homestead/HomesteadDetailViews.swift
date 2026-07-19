@@ -30,12 +30,17 @@ struct HomesteadNodeDetailView: View {
             title: definition.title,
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
-            HomesteadDetailHero(
-                definition: definition,
-                status: status,
+            DetailHeroHeader(
+                title: definition.title,
                 baseHeight: baseHeight,
-                overscroll: overscroll
-            )
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.snugSpacing
+            ) {
+                HomesteadBuildingArtwork(definition: definition, variant: .full)
+                    .saturation(status.isUnlocked ? 1 : 0)
+                    .opacity(status.isUnlocked ? 1 : 0.66)
+            }
         } bodyContent: {
             VStack(alignment: .leading, spacing: bodyStackSpacing) {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
@@ -73,34 +78,6 @@ struct HomesteadNodeDetailView: View {
     private func buildOrUpgrade() {
         build.perform(definition, saveStore: appState.playerSave) { _ in
             appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
-        }
-    }
-}
-
-struct HomesteadDetailHero: View {
-    let definition: HomesteadNodeDefinition
-    let status: HomesteadProjectStatus
-    let baseHeight: CGFloat
-    let overscroll: CGFloat
-
-    var body: some View {
-        OverscrollHeroContainer(
-            baseHeight: baseHeight,
-            overscroll: overscroll,
-            alignment: .bottomLeading,
-            artworkBlend: .bottom(into: .canvas)
-        ) {
-            HomesteadBuildingArtwork(definition: definition, variant: .full)
-                .saturation(status.isUnlocked ? 1 : 0)
-                .opacity(status.isUnlocked ? 1 : 0.66)
-        } overlay: {
-            Text(definition.title)
-                .trinketTypography(.screenDisplay)
-                .lineLimit(2)
-                .trinketOnArtText(.title)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.bottom, TrinketDesign.Metrics.snugSpacing)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         }
     }
 }

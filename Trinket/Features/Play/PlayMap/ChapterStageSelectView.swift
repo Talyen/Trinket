@@ -24,11 +24,27 @@ struct ChapterStageSelectView: View {
             title: chapter.title,
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
-            ChapterJourneyHero(
-                chapter: chapter,
+            DetailHeroHeader(
+                eyebrow: "Chapter \(chapter.number)".uppercased(),
+                title: chapter.title,
+                titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
+                    number: chapter.number
+                ),
                 baseHeight: baseHeight,
-                overscroll: overscroll
-            )
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.largeSpacing
+            ) {
+                if let art = ArtCatalog.backgroundArtByID[chapter.id]
+                    ?? ArtCatalog.backgroundArtByID["chapter-1"] {
+                    Image.preparedAsset(named: art.imageName)
+                        .resizable()
+                        .scaledToFill()
+                        .decorativePreparedArtwork()
+                } else {
+                    chapter.theme.tint
+                }
+            }
         } bodyContent: {
             VStack(spacing: 0) {
                 ChapterStageList(
@@ -132,50 +148,5 @@ struct ChapterStageSelectView: View {
     private func updateMusicPreview() {
         let activeStage = appState.journey.activeStageID.flatMap(GameContent.stage(id:))
         appState.battle.setMusicPreview(for: activeStage)
-    }
-}
-
-private struct ChapterJourneyHero: View {
-    let chapter: Chapter
-    let baseHeight: CGFloat
-    let overscroll: CGFloat
-
-    private var art: BackgroundArtReference? {
-        ArtCatalog.backgroundArtByID[chapter.id]
-            ?? ArtCatalog.backgroundArtByID["chapter-1"]
-    }
-
-    var body: some View {
-        OverscrollHeroContainer(
-            baseHeight: baseHeight,
-            overscroll: overscroll,
-            alignment: .bottomLeading,
-            artworkBlend: .bottom(into: .canvas)
-        ) {
-            if let art {
-                Image.preparedAsset(named: art.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .decorativePreparedArtwork()
-
-            } else {
-                chapter.theme.tint
-            }
-        } overlay: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.denseSpacing) {
-                Text("Chapter \(chapter.number)".uppercased())
-                    .trinketTypography(.eyebrow)
-                    .trinketOnArtText(.eyebrow)
-
-                Text(chapter.title)
-                    .trinketTypography(.screenDisplay)
-                    .trinketOnArtText(.title)
-                    .accessibilityIdentifier(
-                        AccessibilityID.Play.chapterTitle(number: chapter.number)
-                    )
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.bottom, TrinketDesign.Metrics.largeSpacing)
-        }
     }
 }
