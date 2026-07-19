@@ -30,7 +30,7 @@ Prefer extending an existing keep method over a new class. Push rules/persistenc
 
 ## Launch args
 
-Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, `completedStages`, `mapScrollTarget`.
+Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, `completedStages`.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
 

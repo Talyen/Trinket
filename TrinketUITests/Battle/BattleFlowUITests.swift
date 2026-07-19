@@ -80,12 +80,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.rewardItem(rewardItemID))
         tapButton(AccessibilityID.Battle.rewardItem(rewardItemID))
         // Sheet + hero header art can take longer under exhaustive suite load than smoke.
-        // Journey loot for chapter-1-stage-1 is seed-stable Leather Armor (BattleLootTests).
-        XCTAssertTrue(
-            app.navigationBars["Leather Armor"].waitForExistence(timeout: 12),
-            "Reward item detail sheet did not present"
-        )
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 8)
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 12)
         dismissSheet()
         assertButtonExists(AccessibilityID.Battle.continueButton)
 

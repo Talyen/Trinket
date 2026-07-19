@@ -25,10 +25,6 @@ enum TestLaunchArg {
         ["-completed-stages", stageIDs.joined(separator: ",")]
     }
 
-    static func mapScrollTarget(_ targetID: String) -> [String] {
-        ["-map-scroll-target", targetID]
-    }
-
     static func mysteryRecruit(eventID: String) -> [String] {
         ["-mystery-recruit-event", eventID]
     }

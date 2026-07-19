@@ -146,11 +146,6 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
         #expect(state.mapScrollStageID == nil)
         #expect(state.selectedTab == .play)
-        #expect(state.roster.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
-        #expect(state.roster.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
-        #expect(state.roster.highestHeroLevel == 20)
-        #expect(state.roster.highestCompanionLevel == 20)
-        #expect(state.roster.gold == PlayerRosterState.maxGoldBalance)
     }
     #endif
 

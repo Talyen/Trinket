@@ -10,8 +10,7 @@ final class ShopFlowUITests: TrinketUITestCase {
             "chapter-2-stage-3"
         ]))
 
-        assertExists(AccessibilityID.Shop.encounterTitle)
-        assertExists(AccessibilityID.Shop.goldBalance)
+        // Shell catalog (title/gold/leave/offers) lives in SmokeShopTests; wait once then journey.
         assertExists(AccessibilityID.Shop.leaveButton)
 
         let offerCards = app.buttons.matching(

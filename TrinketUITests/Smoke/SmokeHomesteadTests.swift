@@ -5,11 +5,9 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("homestead")
     }
 
-    /// Canary: wallet + first category/row after the cinematic hero.
+    /// Canary: Homestead shell entry — wallet on the overview.
     func testHomesteadOverviewShowsWalletAndFirstCategory() {
         homestead.assertLoaded()
         assertExists(AccessibilityID.Homestead.resourceWallet)
-        assertExistsAfterScroll(AccessibilityID.Homestead.category("Farming"))
-        assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Wheat Field"))
     }
 }

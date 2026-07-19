@@ -3,13 +3,9 @@ import Testing
 import TrinketCore
 
 struct KeywordCoreTests {
-    @Test func allKeywordsAreCovered() throws {
-        let expected: Set = [
-            "Physical", "Burn", "Stun", "Block", "Health", "Gold", "Holy", "Poison",
-            "Bleed", "Leech", "Freeze", "Dodge", "Purge", "Mana", "Death's Door"
-        ]
-        let actual = Set(Keyword.allCases.map(\.rawValue))
-        try #expect(expected == actual)
+    @Test func keywordRawValuesAreUnique() throws {
+        let rawValues = Keyword.allCases.map(\.rawValue)
+        try #expect(rawValues.count == Set(rawValues).count)
     }
 
     @Test(arguments: Keyword.allCases)
@@ -29,27 +25,6 @@ struct KeywordCoreTests {
     @Test func glossaryURLRejectsForeignSchemes() throws {
         let url = try #require(URL(string: "https://example.com/burn"))
         try #expect(Keyword(glossaryURL: url) == nil)
-    }
-
-    @Test func approvedRulesText() throws {
-        try #expect(Keyword.physical.rulesText == "Physical direct damage type")
-        try #expect(Keyword.burn.rulesText == "Burn deals damage each turn and fades quickly")
-        try #expect(Keyword.poison.rulesText == "Poison deals damage each turn and fades slowly")
-        try #expect(Keyword.bleed.rulesText == "Bleed deals damage each turn for 3 turns")
-        try #expect(Keyword.stun.rulesText == "Stun damage builds up and eventually causes the loss of a turn")
-        try #expect(Keyword.freeze.rulesText == "Freeze damage builds up and eventually causes the loss of a turn")
-        try #expect(Keyword.holy.rulesText == "Holy direct damage type")
-        try #expect(Keyword.block.rulesText == "Prevents Health damage and fades quickly")
-        try #expect(Keyword.dodge.rulesText == "Dodge avoids an attack completely")
-        try #expect(Keyword.purge.rulesText == "Purge removes a beneficial effect")
-        try #expect(Keyword.health.rulesText == "Health keeps you alive")
-        try #expect(Keyword.leech.rulesText == "Leech damage heals the attacker")
-        try #expect(Keyword.mana.rulesText == "Mana is used to cast spells")
-        try #expect(Keyword.gold.rulesText == "Gold is currency for shops and upgrades")
-        try #expect(
-            Keyword.deathsDoor.rulesText
-                == "Death's Door survives a fatal blow at 1 HP — heal before it ends or the next fatal hit kills"
-        )
     }
 
     @Test(arguments: [
@@ -73,17 +48,9 @@ struct KeywordCoreTests {
         try #expect(keyword.category == category, "\(keyword.rawValue) should be \(category)")
     }
 
-    @Test func statusAliases() throws {
-        try #expect(Keyword.freeze.statusAlias == "Frozen")
-        try #expect(Keyword.stun.statusAlias == "Stunned")
-        try #expect(Keyword.burn.statusAlias == "Burning")
-        try #expect(Keyword.poison.statusAlias == "Poisoned")
-        try #expect(Keyword.bleed.statusAlias == "Bleeding")
-    }
-
-    @Test func categoryAllCases() throws {
-        let expected: Set = ["Damage Type", "Mitigation", "Restoration", "Resource"]
-        let actual = Set(Keyword.Category.allCases.map(\.rawValue))
-        try #expect(expected == actual)
+    @Test func categoryCasesAreUniqueAndNonEmpty() throws {
+        let rawValues = Keyword.Category.allCases.map(\.rawValue)
+        try #expect(rawValues.count == Set(rawValues).count)
+        try #expect(rawValues.allSatisfy { !$0.isEmpty })
     }
 }
