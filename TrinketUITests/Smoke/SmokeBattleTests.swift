@@ -8,6 +8,7 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
     /// Load-only: deep-link opens stage 1-1 battle chrome.
     /// Hand-drag safety lives in `BattleFlowUITests` only.
     func testBattleLaunchScreenStartsStageOneOne() {
-        battle.assertActive()
+        // Cold launch + opening-hand deal can exceed the 3s deep-link default under smoke-full.
+        battle.assertActive(timeout: 8)
     }
 }
