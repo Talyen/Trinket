@@ -256,6 +256,23 @@ struct AppStateLabyrinthTests {
         #expect(state.activeMysteryEncounter?.labyrinthNodeID == reachableID)
     }
 
+    #if DEBUG
+    @Test func recordLabyrinthDefeatKeepsFailCountUnchangedWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        _ = state.enterLabyrinth()
+        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
+        let failCountBefore = state.labyrinth.nodes[combatNodeID]?.failCount ?? 0
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.recordLabyrinthDefeat(nodeID: combatNodeID))
+        #expect(state.labyrinth.nodes[combatNodeID]?.failCount == failCountBefore)
+
+        #expect(state.recordLabyrinthDefeat(nodeID: combatNodeID))
+        #expect(state.labyrinth.nodes[combatNodeID]?.failCount == failCountBefore + 1)
+    }
+    #endif
+
     private func firstReachableCombatNodeID(in state: AppState) -> String? {
         firstReachableNodeID(where: { $0.type.isCombat }, in: state)
     }

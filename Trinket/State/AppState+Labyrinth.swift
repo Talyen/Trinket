@@ -230,15 +230,18 @@ extension AppState {
         }
     }
 
-    func recordLabyrinthDefeat(nodeID: String) {
+    @discardableResult
+    func recordLabyrinthDefeat(nodeID: String) -> Bool {
         do {
             try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.recordDefeat(nodeID: nodeID, save: &save)
             }
+            return true
         } catch {
             appStateLogger.error(
                 "Failed to record Labyrinth defeat: \(error.localizedDescription, privacy: .public)"
             )
+            return false
         }
     }
 

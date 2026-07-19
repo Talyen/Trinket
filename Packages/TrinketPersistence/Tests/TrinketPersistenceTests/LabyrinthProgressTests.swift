@@ -307,4 +307,35 @@ struct LabyrinthProgressTests {
         #expect(reloaded.nodes.count == state.nodes.count)
         #expect(reloaded.worldSeed == 77)
     }
+
+    @Test func labyrinthHydrationToleratesDuplicateNodeIDs() throws {
+        let model = LabyrinthProgressModel()
+        model.worldSeed = 9
+        model.hasEntered = true
+        let first = LabyrinthNode(
+            id: "dup-node",
+            type: .battle,
+            enemyID: "slime",
+            depth: 1,
+            clusterID: "cluster",
+            isRevealed: true,
+            failCount: 0
+        )
+        let second = LabyrinthNode(
+            id: "dup-node",
+            type: .battle,
+            enemyID: "slime",
+            depth: 1,
+            clusterID: "cluster",
+            isRevealed: true,
+            failCount: 2
+        )
+        model.mapPayload = try JSONEncoder().encode(
+            LabyrinthMapPayload(clusters: [], nodes: [first, second])
+        )
+
+        let loaded = model.toPlayerLabyrinthState()
+        #expect(loaded.nodes.count == 1)
+        #expect(loaded.nodes["dup-node"]?.failCount == 2)
+    }
 }

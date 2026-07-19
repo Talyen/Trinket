@@ -11,7 +11,8 @@ struct BattleOutcomeShell<Content: View>: View {
     let primaryButtonTitle: String
     let primaryButtonAccessibilityIdentifier: String
     let primaryButtonTint: Color?
-    let onPrimaryAction: () -> Void
+    /// Returns `true` when the outcome action succeeded and the button should stay locked.
+    let onPrimaryAction: () -> Bool
 
     @State private var symbolAnimationCount = 0
     @State private var isCompleting = false
@@ -45,8 +46,7 @@ struct BattleOutcomeShell<Content: View>: View {
 
                 Button {
                     guard !isCompleting else { return }
-                    isCompleting = true
-                    onPrimaryAction()
+                    isCompleting = onPrimaryAction()
                 } label: {
                     Text(primaryButtonTitle)
                         .frame(maxWidth: .infinity)

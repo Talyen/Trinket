@@ -41,35 +41,33 @@ extension RosterModel {
         let unlocked = unlockedCombatants ?? []
         let heroIDs = Set(unlocked.filter { $0.role == "hero" }.map(\.combatantID))
         let companionIDs = Set(unlocked.filter { $0.role == "companion" }.map(\.combatantID))
-        let progressionValues = Dictionary(
-            uniqueKeysWithValues: (progressions ?? []).map {
-                ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
-            }
-        )
-        let wireAbilityValues = Dictionary(
-            uniqueKeysWithValues: (abilityLoadouts ?? []).map {
-                ($0.combatantID, WireAbilityLoadout(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
-            }
-        )
-        let wireEquipmentValues = Dictionary(
-            uniqueKeysWithValues: (equipmentLoadouts ?? []).map {
-                ($0.combatantID, WireEquipmentLoadout(itemIDsBySlot: Dictionary(uniqueKeysWithValues: ($0.slots ?? []).map { ($0.slotID, $0.itemID) })))
-            }
-        )
-        let statValues = Dictionary(
-            uniqueKeysWithValues: (primaryStats ?? []).map {
-                (
-                    $0.combatantID,
-                    PrimaryStats(
-                        strength: $0.strength,
-                        agility: $0.agility,
-                        toughness: $0.toughness,
-                        intellect: $0.intellect,
-                        wisdom: $0.wisdom
-                    )
+        // Last-wins folding: duplicate SwiftData child rows must not trap before sanitizer.
+        let progressionValues = Dictionary(lastWins: (progressions ?? []).map {
+            ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
+        })
+        let wireAbilityValues = Dictionary(lastWins: (abilityLoadouts ?? []).map {
+            ($0.combatantID, WireAbilityLoadout(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
+        })
+        let wireEquipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map {
+            (
+                $0.combatantID,
+                WireEquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: ($0.slots ?? []).map {
+                    ($0.slotID, $0.itemID)
+                }))
+            )
+        })
+        let statValues = Dictionary(lastWins: (primaryStats ?? []).map {
+            (
+                $0.combatantID,
+                PrimaryStats(
+                    strength: $0.strength,
+                    agility: $0.agility,
+                    toughness: $0.toughness,
+                    intellect: $0.intellect,
+                    wisdom: $0.wisdom
                 )
-            }
-        )
+            )
+        })
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
@@ -245,7 +243,7 @@ extension LabyrinthProgressModel {
             deepestDepth: max(0, deepestDepth),
             hasEntered: hasEntered,
             clusters: payload.clusters,
-            nodes: Dictionary(uniqueKeysWithValues: payload.nodes.map { ($0.id, $0) }),
+            nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) }),
             discoveredBiomeIDs: Set(discoveredBiomeIDs),
             discoveredModifierIDs: Set(discoveredModifierIDs),
             claimedMilestoneDepths: Set(claimedMilestoneDepths)
@@ -295,5 +293,15 @@ extension Array {
         parent keyPath: ReferenceWritableKeyPath<Element, Parent?>
     ) {
         forEach { $0[keyPath: keyPath] = parent }
+    }
+}
+
+private extension Dictionary {
+    /// Builds a dictionary without trapping on duplicate keys (corrupt / synced rows).
+    init(lastWins pairs: [(Key, Value)]) {
+        self.init(minimumCapacity: pairs.count)
+        for (key, value) in pairs {
+            self[key] = value
+        }
     }
 }

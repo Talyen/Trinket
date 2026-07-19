@@ -190,7 +190,9 @@ public final class PlayerSaveStore {
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
             }
-        } else {
+        } else if pendingRollbackSnapshot == nil {
+            // Keep the last persisted snapshot across coalesced deferred mutations so a
+            // failed flush rolls back past every unsaved change, not only the latest one.
             pendingRollbackSnapshot = snapshot
         }
     }
