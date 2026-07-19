@@ -4,21 +4,24 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 ## Modules
 
-- **BattleEngine** — Core simulation. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
-- **BalanceSweepCLI** — Headless bulk balance sweeps (non-user-facing). Invoke with `./Scripts/balance-sweep.sh`.
+Products from `Package.swift`:
+
+- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
+- **BattleBalanceTools** — App-unlinked library for headless simulation, balance policies, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
+- **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
 ## Key types
 
-| Type | Role |
-|------|------|
-| `BattleState` | Mutable simulation state; `playCard` / `endTurn` drive combat |
-| `BattleCard` / `BattleHand` / `BattleHandBuffer` / `CombatDeck` | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in a hidden FIFO buffer |
-| `BattleCardCombatEngine` | Opening draw, play resolution, enemy turn, end-of-round effect tick |
-| `BattleSimulator` | Headless autoplay loop for balance sweeps |
-| `BalanceSweepRunner` | Stratified Monte Carlo sweep + markdown reports |
-| `BattleEffectHandler` | Protocol for effect application/tick logic |
-| `EffectHandlers` | Registry of all handlers, keyed by `EffectKind` |
-| `CombatantRuntime` | Per-combatant runtime state (HP, mana, active effects) |
+| Type | Target | Role |
+|------|--------|------|
+| `BattleState` | BattleEngine | Mutable simulation state; `playCard` / `endTurn` drive combat |
+| `BattleCard` / `BattleHand` / `BattleHandBuffer` / `CombatDeck` | BattleEngine | Player ability cards drawn from Hero/Companion loadout decks; overflow waits in a hidden FIFO buffer |
+| `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect tick |
+| `BattleEffectHandler` | BattleEngine | Protocol for effect application/tick logic |
+| `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |
+| `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
+| `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |
+| `BalanceSweepRunner` | BattleBalanceTools | Stratified Monte Carlo sweep + markdown reports |
 
 ## Hand and layout contracts
 
