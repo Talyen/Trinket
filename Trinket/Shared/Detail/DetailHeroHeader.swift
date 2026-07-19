@@ -96,16 +96,14 @@ extension DetailHeroHeader where Footer == EmptyView {
         bottomPadding: CGFloat = TrinketDesign.Metrics.largeSpacing,
         @ViewBuilder art: @escaping () -> Art
     ) {
-        self.init(
-            eyebrow: eyebrow,
-            title: title,
-            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
-            baseHeight: baseHeight,
-            overscroll: overscroll,
-            horizontalPadding: horizontalPadding,
-            bottomPadding: bottomPadding,
-            art: art,
-            footer: { EmptyView() }
-        )
+        self.eyebrow = eyebrow
+        self.title = title
+        self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
+        self.baseHeight = baseHeight
+        self.overscroll = overscroll
+        self.horizontalPadding = horizontalPadding
+        self.bottomPadding = bottomPadding
+        self.art = art
+        footer = { EmptyView() }
     }
 }
