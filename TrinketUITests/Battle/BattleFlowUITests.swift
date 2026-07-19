@@ -1,6 +1,38 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
+    func testSuccessfulCardReleaseRemovesOneCardWithoutOpeningDetail() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+
+        if battle.waitForMidBattleOrVictory() {
+            throw XCTSkip("Stage 1-1 already resolved; covered by the victory test")
+        }
+
+        let cards = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+        )
+        let countBefore = cards.count
+        let card = cards.firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+        let origin = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        origin.press(
+            forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240))
+        )
+
+        let deadline = Date().addingTimeInterval(3)
+        while cards.count == countBefore, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertEqual(cards.count, countBefore - 1, "A successful play must remove one card")
+        XCTAssertFalse(
+            combatantDetail.header(for: "Knight").exists,
+            "Playing a card must not open combatant detail"
+        )
+    }
+
     /// Hand drag onto a combatant must not open details; tap still works after.
     /// Single owner for this safety invariant (not in smoke).
     func testHandDragReleaseOnCombatantDoesNotOpenDetail() throws {

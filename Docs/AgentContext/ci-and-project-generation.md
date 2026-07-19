@@ -3,8 +3,8 @@
 Use for XcodeGen, build/test commands, CI workflows, simulator problems, or release tooling.
 
 The root workflow owns task-scoped routing: start with
-`./Scripts/agent-context.sh --paths <file...>` for a human briefing (`--json` is
-machine-readable and `--agent` is the concise handoff form), then preview the
+`./Scripts/agent-context.sh --agent --paths <file...>` for a concise briefing
+(`--json` is machine-readable), then preview the
 selected checks with `./Scripts/verify-changed.sh --dry-run --isolate --paths <same files>` and
 run them by omitting `--dry-run`. Agents **always** pass `--isolate`. Without `--paths`,
 both commands inspect the entire working tree; use that mode only when the tree
@@ -28,9 +28,11 @@ This card adds the CI/project-generation exceptions:
   tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
   plus the normal style/package/smoke plan. Prefer `./Scripts/agent-push-gate.sh`
   when you only need the generate/assert gate.
-- After push, agents must run `./Scripts/agent-watch-ci.sh`. Path-filtered green
-  runs (only Path filter executed) auto-dispatch a full `Trinket CI`
-  `workflow_dispatch` and watch until green.
+- After push, agents must run `./Scripts/agent-watch-ci.sh` (quiet JSON polls by
+  default — do not stream `gh run watch` into the agent context; use `--verbose`
+  only for humans). On failure, read failed job names + the short log excerpt.
+  Path-filtered green runs auto-dispatch a full `Trinket CI` `workflow_dispatch`
+  and watch until green.
 - `generate.sh` prefers `.tools/xcodegen`. `--force-xcodegen` (or
   `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so stale “project has not
   changed” cannot hide `project.pbxproj` drift. Agent push gate sets
@@ -39,6 +41,10 @@ This card adds the CI/project-generation exceptions:
   binary refreshes.
 - `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
   wrapper tests so a single verification run does not regenerate the project repeatedly.
+- Completed task-scoped and push-gate runs print an advisory `change-budget.sh`
+  report. It excludes generated output and never fails solely for size; warnings
+  require a necessity explanation. Use `verify-changed.sh --quiet` for PASS/FAIL
+  lines and bounded failure excerpts rather than streaming successful command logs.
 - Generation uses a **shared** lock at `.DerivedData/.generate.lock` with
   `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS` (default 120). On timeout, fail fast — do not
   kill the holder. XcodeGen cache stays at `.DerivedData/XcodeGen.cache`.

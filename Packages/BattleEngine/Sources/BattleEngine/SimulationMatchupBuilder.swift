@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore

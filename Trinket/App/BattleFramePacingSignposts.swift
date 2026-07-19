@@ -20,9 +20,11 @@ enum BattleFramePacingSignposts {
         static let chipHostApply: StaticString = "ChipHostApply"
         static let feedbackRasterBuild: StaticString = "FeedbackRasterBuild"
         static let ultimateCinematic: StaticString = "UltimateCinematic"
-        static let cardCommit: StaticString = "CardCommit"
+        static let playCardEngine: StaticString = "PlayCardEngine"
+        static let playCardProjection: StaticString = "PlayCardProjection"
+        static let playCardFeedback: StaticString = "PlayCardFeedback"
+        static let playCardRejected: StaticString = "PlayCardRejected"
         static let turnTransition: StaticString = "TurnTransition"
-        static let audioPlayback: StaticString = "AudioPlayback"
         static let performanceScenario: StaticString = "PerformanceScenario"
     }
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Watch GitHub Actions for the current commit; dispatch a full CI run when path
 # filters skipped the real suite. Agents must run this after pushing to main.
+#
+# Quiet by default: poll status JSON only (no streamed watch logs). On failure,
+# print failed job names and a short --log-failed excerpt — not the full run log.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -10,24 +13,33 @@ SHA=""
 DISPATCH_IF_FILTERED=true
 WORKFLOW_NAME="Trinket CI"
 SCOPE="standard"
-POLL_SECONDS=5
+POLL_SECONDS="${TRINKET_CI_WATCH_POLL_SECONDS:-30}"
+VERBOSE=false
+FAILURE_LOG_LINES="${TRINKET_CI_WATCH_FAILURE_LINES:-80}"
 
 usage() {
   cat <<'EOF'
 Usage: ./Scripts/agent-watch-ci.sh [options]
 
-Watches the GitHub Actions run for the current (or given) commit until it
-finishes. If the run only executed the path-filter job (all test/codegen jobs
-skipped), optionally dispatches a full workflow_dispatch run and watches that.
+Polls the GitHub Actions run for the current (or given) commit until it
+finishes. Prints compact status only (no live log stream). On failure, prints
+failed job names and a short log excerpt. If the run only executed the path-
+filter job, optionally dispatches a full workflow_dispatch run and watches that.
 
 Options:
   --ref <branch>           Branch to watch (default: current branch)
   --sha <commit>           Commit SHA (default: HEAD)
   --no-dispatch-if-filtered  Do not auto-dispatch when jobs were path-filtered
   --scope <standard|exhaustive>  workflow_dispatch scope (default: standard)
+  --poll-seconds <n>       Status poll interval (default: 30, or TRINKET_CI_WATCH_POLL_SECONDS)
+  --verbose                Stream `gh run watch` (noisy; humans only — avoid for agents)
   -h, --help
 
 Requires: gh authenticated for this repo.
+
+Agent tip: run this in the background or await its exit; do not scrape live logs.
+On failure, use the printed excerpt (or `gh run view <id> --log-failed`) — not the
+full run log.
 EOF
 }
 
@@ -48,6 +60,14 @@ while [[ $# -gt 0 ]]; do
     --scope)
       SCOPE="${2:-}"
       shift 2
+      ;;
+    --poll-seconds)
+      POLL_SECONDS="${2:-}"
+      shift 2
+      ;;
+    --verbose)
+      VERBOSE=true
+      shift
       ;;
     -h | --help)
       usage
@@ -73,6 +93,10 @@ if [[ -z "$SHA" ]]; then
   SHA="$(git rev-parse HEAD)"
 fi
 
+repo_slug() {
+  gh repo view --json nameWithOwner -q .nameWithOwner
+}
+
 wait_for_run_id() {
   local sha="$1"
   local attempts=0
@@ -94,8 +118,6 @@ wait_for_run_id() {
 
 run_is_path_filtered_only() {
   local run_id="$1"
-  # True when every substantive job (anything except path filter) was skipped/cancelled,
-  # or no substantive jobs exist.
   local non_skipped
   non_skipped="$(
     gh run view "$run_id" --json jobs --jq '
@@ -123,22 +145,81 @@ run_is_path_filtered_only() {
   return 1
 }
 
-watch_run() {
+print_failure_triage() {
   local run_id="$1"
-  echo "Watching CI run $run_id (https://github.com/$(gh repo view --json nameWithOwner -q .nameWithOwner)/actions/runs/$run_id)"
-  if gh run watch "$run_id" --exit-status; then
-    echo "CI run $run_id succeeded."
-    return 0
-  fi
-  echo "CI run $run_id failed." >&2
   echo "Failed jobs:" >&2
   gh run view "$run_id" --json jobs --jq '
     .jobs[]
     | select(.conclusion == "failure")
     | "  - \(.name)"
   ' >&2 || true
-  echo "Triage: ./Scripts/ci-diagnostics.sh (or gh run view $run_id --log-failed)" >&2
+  echo "" >&2
+  echo "Log excerpt (last ${FAILURE_LOG_LINES} lines of failed steps):" >&2
+  # Full --log-failed can be huge; keep a short tail for agent context.
+  if ! gh run view "$run_id" --log-failed 2>/dev/null | tail -n "$FAILURE_LOG_LINES" >&2; then
+    echo "(could not fetch --log-failed; try: gh run view $run_id --log-failed)" >&2
+  fi
+  echo "" >&2
+  echo "Triage: Docs/AgentContext/ci-diagnostics.md | gh run view $run_id --log-failed" >&2
+}
+
+watch_run_quiet() {
+  local run_id="$1"
+  local url status conclusion summary last_summary=""
+  url="https://github.com/$(repo_slug)/actions/runs/$run_id"
+  echo "Polling CI run $run_id ($url) every ${POLL_SECONDS}s (quiet)"
+
+  while true; do
+    status="$(gh run view "$run_id" --json status --jq .status)"
+    conclusion="$(gh run view "$run_id" --json conclusion --jq '.conclusion // empty')"
+    summary="$(
+      gh run view "$run_id" --json status,conclusion,jobs --jq '
+        (.status // "?") as $s
+        | (.conclusion // "-") as $c
+        | ([.jobs[]? | select(.status == "in_progress") | .name] | join(", ")) as $active
+        | ([.jobs[]? | select(.conclusion == "success") ] | length) as $ok
+        | ([.jobs[]? | select(.conclusion == "failure") ] | length) as $fail
+        | ([.jobs[]? | select(.conclusion == "skipped") ] | length) as $skip
+        | "status=\($s) conclusion=\($c) ok=\($ok) fail=\($fail) skip=\($skip)"
+          + (if $active == "" then "" else " active=\($active)" end)
+      '
+    )"
+    if [[ "$summary" != "$last_summary" ]]; then
+      echo "  $summary"
+      last_summary="$summary"
+    fi
+
+    if [[ "$status" == "completed" ]]; then
+      if [[ "$conclusion" == "success" ]]; then
+        echo "CI run $run_id succeeded."
+        return 0
+      fi
+      echo "CI run $run_id failed (conclusion=$conclusion)." >&2
+      print_failure_triage "$run_id"
+      return 1
+    fi
+    sleep "$POLL_SECONDS"
+  done
+}
+
+watch_run_verbose() {
+  local run_id="$1"
+  echo "Streaming CI run $run_id (verbose)"
+  if gh run watch "$run_id" --exit-status; then
+    echo "CI run $run_id succeeded."
+    return 0
+  fi
+  echo "CI run $run_id failed." >&2
+  print_failure_triage "$run_id"
   return 1
+}
+
+watch_run() {
+  if [[ "$VERBOSE" == true ]]; then
+    watch_run_verbose "$1"
+  else
+    watch_run_quiet "$1"
+  fi
 }
 
 echo "=== Agent CI watch: ref=$REF sha=${SHA:0:12} ==="
@@ -150,7 +231,6 @@ if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
   gh workflow run "$WORKFLOW_NAME" --ref "$REF" -f "scope=$SCOPE"
   sleep "$POLL_SECONDS"
   if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
-    # workflow_dispatch may attach to the same SHA; also try latest on branch.
     RUN_ID="$(
       gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --limit 1 --json databaseId \
         --jq '.[0].databaseId // empty'

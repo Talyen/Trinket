@@ -2,11 +2,11 @@
 
 **Goal:** Find custom sizing, layout, typography, and scale patterns that diverge from Apple/SwiftUI-native APIs (or from tokens already in `TrinketDesignSystem`), then migrate the highest-ROI cluster toward platform standards without losing justified game UI.
 
-**Siblings:** interaction/a11y → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md). Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md`.
+Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md`.
 
 ## Intent
 
-Inventory custom vs tokenized vs justified-custom, then fix **one** cluster — prefer adopting existing DesignSystem tokens over inventing new systems. When the right-sized remedy is a shared DesignSystem API or layout helper rather than N call-site patches, prefer that — and propose it when significant per [README.md](README.md).
+Inventory custom vs tokenized vs justified-custom, then fix **one** cluster. Prefer existing DesignSystem tokens. Add a shared token/helper only for at least three current uses, and only when removing call-site surface outweighs the new API; otherwise simplify locally.
 
 **Principles:** one spacing scale (`TrinketDesign.Metrics`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
 
@@ -41,7 +41,3 @@ Prefer `TrinketDesign.Metrics`, `Corners`, `.trinketTypography`, `.trinketSurfac
 ## Probe hints
 
 Hardcoded stack spacing / padding; point-sized fonts; `GeometryReader` / `PreferenceKey` / custom `Layout`; duplicated `GridItem(.adaptive)`; DesignSystem adoption gaps; fixed text bands (`cardLabelReservedHeight`, `minimumScaleFactor`).
-
-## Verify
-
-`check-ui-style.sh` + lint; `test-package.sh TrinketDesignSystem` for chrome/motion/typography; focused unit/smoke when app layout or identifiers change. When Simulator is available, spot-check the supported visual layout on the chosen screen.

@@ -1,8 +1,8 @@
 import Foundation
 
 /// Display-link pacing normalized to the refresh period observed during the sample.
-/// XCTest's native hitch metric remains the authoritative render-pipeline measurement;
-/// this report supplies raw, scenario-addressable diagnostics.
+/// This report supplies raw, scenario-addressable diagnostics; it is not an
+/// authoritative render-pipeline hitch metric.
 struct FramePacingReport: Equatable, Sendable {
     static let schemaVersion = 4
 

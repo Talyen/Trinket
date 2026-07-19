@@ -84,8 +84,7 @@ enum CombatFeedbackPresentationFactory {
         availableAt: Date,
         expiresAt: Date
     ) -> CombatFeedbackItem {
-        let recipe = TrinketMotion.Battle.chip(for: prepared.feedbackClass)
-        return CombatFeedbackItem(
+        CombatFeedbackItem(
             id: prepared.id,
             sourceEventIDs: prepared.sourceEventIDs,
             actionGroupID: actionGroupID,
@@ -98,8 +97,7 @@ enum CombatFeedbackPresentationFactory {
             visualRole: prepared.visualRole,
             label: prepared.label,
             secondaryText: prepared.secondaryText,
-            spawnSeed: prepared.id,
-            lifetime: recipe.lifetime,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
             reactionKind: prepared.reactionKind
@@ -115,8 +113,7 @@ enum CombatFeedbackPresentationFactory {
         availableAt: Date,
         expiresAt: Date
     ) -> CombatFeedbackItem {
-        let recipe = TrinketMotion.Battle.chip(for: .buff)
-        return CombatFeedbackItem(
+        CombatFeedbackItem(
             id: firstDropped.id &+ 0x4000_0000,
             sourceEventIDs: dropped.flatMap(\.sourceEventIDs),
             actionGroupID: actionGroupID,
@@ -129,8 +126,7 @@ enum CombatFeedbackPresentationFactory {
             visualRole: .keyword,
             label: .overflow(dropped.count),
             secondaryText: nil,
-            spawnSeed: firstDropped.id,
-            lifetime: recipe.lifetime,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
             reactionKind: .none

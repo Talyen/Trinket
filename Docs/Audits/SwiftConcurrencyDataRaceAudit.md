@@ -4,7 +4,7 @@
 
 ## Intent
 
-Start with a strict-concurrency build when available, then investigate diagnostics and high-risk candidates. Fix a bounded set of confirmed issues; a clean pass is valid. If several hits share one isolation or ownership model, prefer that root-cause remedy over N local annotations — and propose when significant per [README.md](README.md).
+Start with strict-concurrency diagnostics when available, then investigate high-risk candidates. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Fix one bounded cluster; significant isolation changes are proposals.
 
 ## Hard stops
 
@@ -32,7 +32,3 @@ Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Presenc
 ## Probe hints
 
 Mutable `static var`; `@unchecked Sendable` / `nonisolated(unsafe)`; `DispatchQueue.main`/`global`; cooperative-pool blocking (`sleep`, `Thread.sleep`, sync `Data(contentsOf:)`); unstructured `Task` / `Task.detached` on stores and shell; isolation escapes (`@preconcurrency`, `assumeIsolated`, continuations).
-
-## Verify
-
-`build.sh` is the primary Sendable/isolation check (toolchain permitting); `lint.sh` + boundaries; focused unit / `TrinketPersistence` package tests when stores are touched.

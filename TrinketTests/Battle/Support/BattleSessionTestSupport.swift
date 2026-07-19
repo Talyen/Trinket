@@ -75,7 +75,7 @@ enum BattleSessionTestSupport {
                     at: date,
                     journey: journey,
                     homestead: homestead
-                )
+                ).earnedGold
                 if earnedGold != nil {
                     break
                 }
@@ -156,6 +156,6 @@ enum BattleSessionTestSupport {
             at: date,
             journey: journey,
             homestead: homestead
-        )
+        ).earnedGold
     }
 }

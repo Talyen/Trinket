@@ -67,23 +67,6 @@ private struct CardCastEffectPlayground: View {
                     parameterSlider("Fade start variation", value: $configuration.fadeStartVariation, range: 0 ... 0.6, format: "%.2f")
                 }
 
-                Section("Shape & Style") {
-                    Picker("Shape", selection: $configuration.particleShape) {
-                        ForEach(CardCastParticleShape.allCases) { shape in
-                            Text(shape.title).tag(shape)
-                        }
-                    }
-                    Picker("Style", selection: $configuration.particleStyle) {
-                        ForEach(CardCastParticleStyle.allCases) { style in
-                            Text(style.title).tag(style)
-                        }
-                    }
-                    parameterSlider("Outline width", value: $configuration.particleOutlineWidth, range: 0.25 ... 4, format: "%.2f pt")
-                    parameterSlider("Glow scale", value: $configuration.particleGlowScale, range: 1 ... 4, format: "%.2f×")
-                    parameterSlider("Glow opacity", value: $configuration.particleGlowOpacity, range: 0 ... 1, format: "%.2f")
-                    parameterSlider("Spark length", value: $configuration.particleSparkLength, range: 0.5 ... 5, format: "%.2f×")
-                }
-
                 Section("Motion Falloff") {
                     parameterSlider("Age ease power", value: $configuration.particleAgeEasePower, range: 0.5 ... 4, format: "%.2f")
                     parameterSlider("Size shrink", value: $configuration.particleSizeShrink, range: 0 ... 1, format: "%.2f")

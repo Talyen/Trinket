@@ -6,35 +6,20 @@ import TrinketDesignSystem
 @MainActor
 @Observable
 final class BattleCastPresentationState {
-    private(set) var requests: [CardActivationRequest] = []
+    private(set) var request: CardActivationRequest?
 
-    func append(_ request: CardActivationRequest, enforceProductionCap: Bool = true) {
-        requests.append(request)
-        guard enforceProductionCap else { return }
-        let maximum = TrinketMotion.Battle.maxConcurrentCardCasts
-        if requests.count > maximum {
-            requests.removeFirst(requests.count - maximum)
-        }
+    func append(_ request: CardActivationRequest) {
+        self.request = request
     }
 
     func remove(id: UUID) {
-        requests.removeAll { $0.id == id }
+        guard request?.id == id else { return }
+        request = nil
     }
 
     func reset() {
-        requests.removeAll(keepingCapacity: true)
+        request = nil
     }
-}
-
-/// DEBUG isolation knobs for cast/dissolve. Production always uses `.full`.
-enum CardCastWorkload: Equatable, Sendable {
-    case full
-    /// Card face + cast transforms only (no mask, no particles).
-    case faceOnly
-    /// Noise threshold mask over a solid stand-in (no ability art, no particles).
-    case maskOnly
-    /// Particle Canvas only (no face, no mask).
-    case particlesOnly
 }
 
 struct CardActivationRequest: Equatable, Identifiable {
@@ -51,7 +36,6 @@ struct CardActivationRequest: Equatable, Identifiable {
     let keywords: [Keyword]
     let particleCount: Int
     let particles: [CardActivationParticle]
-    let workload: CardCastWorkload
 
     init(
         id: UUID = UUID(),
@@ -64,8 +48,7 @@ struct CardActivationRequest: Equatable, Identifiable {
         scale: CGFloat,
         perspective: CGFloat = 0.35,
         keywords: [Keyword],
-        particleCount: Int = TrinketMotion.Battle.cardCastParticleCount,
-        workload: CardCastWorkload = .full
+        particleCount: Int = TrinketMotion.Battle.cardCastParticleCount
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -82,7 +65,6 @@ struct CardActivationRequest: Equatable, Identifiable {
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
         self.particleCount = particleCount
-        self.workload = workload
         particles = CardActivationParticle.make(count: particleCount)
     }
 }
@@ -121,90 +103,64 @@ struct CardActivationParticle: Equatable {
 /// All active casts share one display-linked clock. Per-request cleanup remains
 /// independently cancellable when a cast disappears early.
 struct CardCastEffectsLayer: View {
-    let requests: [CardActivationRequest]
+    let request: CardActivationRequest?
     let onFinished: (UUID) -> Void
 
-    var body: some View {
-        ZStack {
-            // Keep TimelineView resident across casts. Remounting it on every
-            // append was a measured hitch in repeated-card-casts (maxConcurrent=1
-            // replaces the prior request, so the schedule pauses while idle).
-            TimelineView(.animation(paused: requests.isEmpty)) { timeline in
-                ZStack {
-                    ForEach(requests) { request in
-                        cast(request, at: timeline.date)
-                    }
-                }
-            }
+    private static let idleRequest = CardActivationRequest(
+        artworkName: nil,
+        center: .zero,
+        size: .zero,
+        rotation: 0,
+        verticalTilt: 0,
+        scale: 1,
+        keywords: [.physical]
+    )
 
-            ForEach(requests) { request in
-                Color.clear
-                    .frame(width: 0, height: 0)
-                    .task(id: request.id) {
-                        let elapsed = Date.now.timeIntervalSince(request.startedAt)
-                        let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
-                        try? await Task.sleep(for: .seconds(remaining))
-                        guard !Task.isCancelled else { return }
-                        onFinished(request.id)
-                    }
-            }
+    var body: some View {
+        // The complete SwiftUI effect tree stays mounted while idle. A play only
+        // replaces immutable request data and wakes the shared animation clock.
+        TimelineView(.animation(paused: request == nil)) { timeline in
+            let displayedRequest = request ?? Self.idleRequest
+            let progress = request.map {
+                cardActivationProgress(elapsed: timeline.date.timeIntervalSince($0.startedAt))
+            } ?? 0
+            cast(displayedRequest, progress: progress)
+                .opacity(request == nil ? 0 : 1)
+        }
+        .task(id: request?.id) {
+            guard let request else { return }
+            let elapsed = Date.now.timeIntervalSince(request.startedAt)
+            let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
+            try? await Task.sleep(for: .seconds(remaining))
+            guard !Task.isCancelled else { return }
+            onFinished(request.id)
         }
         .allowsHitTesting(false)
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.cardCast,
-            isActive: !requests.isEmpty
+            isActive: request != nil
         )
     }
 
-    private func cast(_ request: CardActivationRequest, at date: Date) -> some View {
-        let progress = cardActivationProgress(elapsed: date.timeIntervalSince(request.startedAt))
-        return castContent(request, progress: progress)
-            // Match BattleAbilityCardView handoff order: scale → rotate → position.
-            .scaleEffect(request.scale)
-            .rotationEffect(.radians(request.rotation), anchor: .bottom)
-            .rotation3DEffect(
-                .degrees(request.verticalTilt),
-                axis: (x: 1, y: 0, z: 0),
-                anchor: .bottom,
-                perspective: request.perspective
-            )
-            .position(x: request.center.x, y: request.center.y)
-    }
-
-    @ViewBuilder
-    private func castContent(_ request: CardActivationRequest, progress: CGFloat) -> some View {
-        switch request.workload {
-        case .full:
-            BattleDissolveEffect(
-                progress: progress,
-                keywords: request.keywords,
-                size: request.size,
-                particles: request.particles
-            ) {
-                BattleAbilityCardFace(artworkName: request.artworkName)
-            }
-        case .faceOnly:
+    private func cast(_ request: CardActivationRequest, progress: CGFloat) -> some View {
+        BattleDissolveEffect(
+            progress: progress,
+            keywords: request.keywords,
+            size: request.size,
+            particles: request.particles
+        ) {
             BattleAbilityCardFace(artworkName: request.artworkName)
-                .frame(width: request.size.width, height: request.size.height)
-        case .maskOnly:
-            BattleDissolveEffect(
-                progress: progress,
-                keywords: request.keywords,
-                size: request.size,
-                particles: []
-            ) {
-                Rectangle().fill(TrinketDesign.Colors.Overlay.paper)
-            }
-        case .particlesOnly:
-            CardActivationParticles(
-                progress: progress,
-                keywords: request.keywords,
-                cardSize: request.size,
-                particles: request.particles
-            )
-            .frame(width: request.size.width + 180, height: request.size.height + 180)
-            .frame(width: request.size.width, height: request.size.height)
         }
+        // Match BattleAbilityCardView handoff order: scale → rotate → position.
+        .scaleEffect(request.scale)
+        .rotationEffect(.radians(request.rotation), anchor: .bottom)
+        .rotation3DEffect(
+            .degrees(request.verticalTilt),
+            axis: (x: 1, y: 0, z: 0),
+            anchor: .bottom,
+            perspective: request.perspective
+        )
+        .position(x: request.center.x, y: request.center.y)
     }
 }
 
@@ -214,46 +170,8 @@ struct CardCastPresentationLane: View {
     let presentation: BattleCastPresentationState
 
     var body: some View {
-        CardCastEffectsLayer(requests: presentation.requests) { requestID in
+        CardCastEffectsLayer(request: presentation.request) { requestID in
             presentation.remove(id: requestID)
-        }
-    }
-}
-
-enum CardCastParticleShape: String, CaseIterable, Identifiable {
-    case circle
-    case square
-    case diamond
-    case spark
-
-    var id: String {
-        rawValue
-    }
-
-    var title: String {
-        switch self {
-        case .circle: "Circle"
-        case .square: "Square"
-        case .diamond: "Diamond"
-        case .spark: "Spark"
-        }
-    }
-}
-
-enum CardCastParticleStyle: String, CaseIterable, Identifiable {
-    case solid
-    case outline
-    case softGlow
-
-    var id: String {
-        rawValue
-    }
-
-    var title: String {
-        switch self {
-        case .solid: "Solid"
-        case .outline: "Outline"
-        case .softGlow: "Soft glow"
         }
     }
 }
@@ -286,12 +204,6 @@ struct CardCastEffectConfiguration {
     var particleSizeVariation: CGFloat = 2.0
     var fadeStart: CGFloat = 0.20
     var fadeStartVariation: CGFloat = 0
-    var particleShape: CardCastParticleShape = .circle
-    var particleStyle: CardCastParticleStyle = .solid
-    var particleOutlineWidth: CGFloat = 1.0
-    var particleGlowScale: CGFloat = 2.2
-    var particleGlowOpacity: CGFloat = 0.35
-    var particleSparkLength: CGFloat = 2.4
     var particleAgeEasePower: CGFloat = 2.50
     var particleSizeShrink: CGFloat = 0.30
     var particleFadeExponent: CGFloat = 1.35
@@ -460,9 +372,7 @@ struct CardCastEffectsPrewarmView: View {
             if let artworkName {
                 await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
             }
-            if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-                await CardDissolveTexture.prepare()
-            }
+            await CardDissolveTexture.prepare()
             // Cover mask onset (dissolveDuration fraction) plus a few particle ticks.
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }

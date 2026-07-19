@@ -1,10 +1,9 @@
 import XCTest
 
-/// Full-fidelity Battle workloads. The dedicated runner repeats the matrix and compares
-/// raw reports; XCTest's native hitch metric captures the Core Animation render pipeline.
+/// Battle frame-pacing gates. Real play and drag handling use actual XCUI gestures;
+/// component scenarios isolate which synchronous stage still misses the budget.
 final class BattlePerformanceUITests: TrinketUITestCase {
     private static var scenarioDuration: TimeInterval {
-        // Mirror `BattlePerformanceTiming.uiTestWaitSeconds` (UITest target cannot import app).
         ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" ? 3.2 : 7.2
     }
 
@@ -13,127 +12,27 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         return max(1, Int(raw) ?? 1)
     }
 
-    func test01Idle() {
-        run(scenario: "idle")
+    func test01RealCardPlay() {
+        run(scenario: "real-card-play")
     }
 
     func test02HandDragCancel() {
         run(scenario: "hand-drag-cancel")
     }
 
-    func test03FirstCardCastCold() {
-        run(scenario: "first-card-cast-cold")
+    func test03EngineAndHand() {
+        run(scenario: "engine-hand")
     }
 
-    func test03bRealCardPlay() {
-        run(scenario: "real-card-play")
+    func test04EngineAndFeedback() {
+        run(scenario: "engine-feedback")
     }
 
-    func test03cPlayEngineHand() {
-        run(scenario: "play-engine-hand")
-    }
-
-    func test03dPlayFeedbackOnly() {
-        run(scenario: "play-feedback-only")
-    }
-
-    func test03ePlayCastOnly() {
-        run(scenario: "play-cast-only")
-    }
-
-    func test03e1PlayCastFaceOnly() {
-        run(scenario: "play-cast-face-only")
-    }
-
-    func test03e2PlayCastMaskOnly() {
-        run(scenario: "play-cast-mask-only")
-    }
-
-    func test03e3PlayCastParticlesOnly() {
-        run(scenario: "play-cast-particles-only")
-    }
-
-    func test03fPlaySwingOnly() {
-        run(scenario: "play-swing-only")
-    }
-
-    func test03gPlayStackDirect() {
-        run(scenario: "play-stack-direct")
-    }
-
-    func test03g1PlayStackNoSwing() {
-        run(scenario: "play-stack-no-swing")
-    }
-
-    func test03g2PlayStackNoFeedback() {
-        run(scenario: "play-stack-no-feedback")
-    }
-
-    func test03g3PlayStackNoCast() {
-        run(scenario: "play-stack-no-cast")
-    }
-
-    func test03hPlayRealNoCast() {
-        run(scenario: "play-real-no-cast")
-    }
-
-    func test03h1PlayRealNoSwing() {
-        run(scenario: "play-real-no-swing")
-    }
-
-    func test03h2PlayRealNoFeedback() {
-        run(scenario: "play-real-no-feedback")
-    }
-
-    func test03iPlayCastHeldPose() {
-        run(scenario: "play-cast-held-pose")
-    }
-
-    func test04RepeatedCardCasts() {
-        run(scenario: "repeated-card-casts")
-    }
-
-    func test05MaximumConcurrentCasts() {
-        run(scenario: "maximum-concurrent-casts")
-    }
-
-    func test06DenseFeedback() {
-        run(scenario: "dense-feedback")
-    }
-
-    func test06aFeedbackChipsOnly() {
-        run(scenario: "feedback-chips-only")
-    }
-
-    func test06a1FeedbackRasterCold() {
-        run(scenario: "feedback-raster-cold")
-    }
-
-    func test06a2FeedbackRasterWarm() {
-        run(scenario: "feedback-raster-warm")
-    }
-
-    func test06bFeedbackReactionsOnly() {
-        run(scenario: "feedback-reactions-only")
-    }
-
-    func test06cKeywordBurstsOnly() {
-        run(scenario: "keyword-bursts-only")
-    }
-
-    func test07TurnTransitionAndHandReflow() {
+    func test05TurnTransition() {
         run(scenario: "turn-transition")
     }
 
-    func test08UltimateCinematic() {
-        run(scenario: "ultimate-cinematic")
-    }
-
-    func test09AudioPlayback() {
-        run(scenario: "audio-playback")
-    }
-
-    func test10CombinedWorstCase() {
+    func test06CombinedProductionWorstCase() {
         run(scenario: "combined-worst-case")
     }
 
@@ -146,6 +45,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
     private func runOnce(scenario: String, iteration: Int) {
         launchApp(arguments: TestLaunchArg.allForBattlePerformance(scenario))
         battle.assertActive(timeout: 8)
+        let gesture = prepareGesture(for: scenario)
 
         let start = app.buttons[AccessibilityID.Debug.battlePerformanceStart]
         XCTAssertTrue(start.waitForExistence(timeout: Self.defaultTimeout))
@@ -155,13 +55,19 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         XCTAssertTrue(metrics.waitForExistence(timeout: Self.defaultTimeout))
 
         tapWhenReady(start)
+        XCTAssertTrue(
+            waitForStatus(status, prefix: "measuring:\(scenario)"),
+            "Scenario did not enter its measurement window: \(status.value ?? "missing")"
+        )
+        perform(gesture)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.scenarioDuration))
 
-        let rasterStatus = status.value as? String ?? ""
+        let scenarioStatus = status.value as? String ?? ""
         XCTAssertTrue(
-            rasterStatus.hasPrefix("complete:\(scenario):"),
-            "Scenario did not complete: \(rasterStatus)"
+            scenarioStatus.hasPrefix("complete:\(scenario):"),
+            "Scenario did not complete: \(scenarioStatus)"
         )
+        validate(gesture)
         guard let payload = metrics.value as? String,
               let report = FramePacingReport.parseAccessibilityValue(payload) else {
             XCTFail("No measured frame report was captured for \(scenario)")
@@ -170,27 +76,102 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         let minimumSamples = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
             ? 60
             : 120
-        XCTAssertGreaterThanOrEqual(
-            report.sampleCount,
-            minimumSamples,
-            "Sampler did not capture enough delivered frames: \(report.accessibilityValue)"
-        )
-        record(report: report, scenario: scenario, iteration: iteration, rasterStatus: rasterStatus)
-    }
-
-    private func record(
-        report: FramePacingReport,
-        scenario: String,
-        iteration: Int,
-        rasterStatus: String
-    ) {
+        XCTAssertGreaterThanOrEqual(report.sampleCount, minimumSamples)
         PerformanceReportRecorder.record(
             report,
             scenario: scenario,
             suite: "battle",
             iteration: iteration,
-            metadata: ["rasterStatus": rasterStatus],
+            metadata: ["scenarioStatus": scenarioStatus],
             in: self
         )
+    }
+
+    private enum Gesture {
+        case none
+        case play(origin: XCUICoordinate, initialCardCount: Int)
+        case cancel(origin: XCUICoordinate, initialCardCount: Int)
+    }
+
+    private func prepareGesture(for scenario: String) -> Gesture {
+        switch scenario {
+        case "real-card-play":
+            let cards = handCards()
+            let card = cards.firstMatch
+            XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+            return .play(origin: screenCoordinate(for: card), initialCardCount: cards.count)
+        case "hand-drag-cancel":
+            let cards = handCards()
+            let card = cards.firstMatch
+            XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+            return .cancel(origin: screenCoordinate(for: card), initialCardCount: cards.count)
+        default:
+            return .none
+        }
+    }
+
+    private func perform(_ gesture: Gesture) {
+        switch gesture {
+        case .none:
+            return
+        case let .play(origin, _):
+            drag(from: origin, offset: CGVector(dx: 0, dy: -120))
+        case let .cancel(origin, _):
+            drag(from: origin, offset: CGVector(dx: 48, dy: -20))
+        }
+    }
+
+    private func validate(_ gesture: Gesture) {
+        switch gesture {
+        case .none:
+            return
+        case let .play(_, initialCardCount):
+            XCTAssertTrue(
+                waitUntil { self.handCards().count == initialCardCount - 1 },
+                "A successful release did not remove exactly one card"
+            )
+        case let .cancel(_, initialCardCount):
+            XCTAssertEqual(
+                handCards().count,
+                initialCardCount,
+                "Cancel gestures changed hand membership"
+            )
+        }
+    }
+
+    private func handCards() -> XCUIElementQuery {
+        app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+        )
+    }
+
+    private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {
+        let frame = element.frame
+        return app.coordinate(withNormalizedOffset: .zero).withOffset(
+            CGVector(dx: frame.midX, dy: frame.midY)
+        )
+    }
+
+    private func drag(from origin: XCUICoordinate, offset: CGVector) {
+        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(offset))
+    }
+
+    private func waitForStatus(
+        _ element: XCUIElement,
+        prefix: String,
+        timeout: TimeInterval = 4
+    ) -> Bool {
+        waitUntil(timeout: timeout) { (element.value as? String)?.hasPrefix(prefix) == true }
+    }
+
+    private func waitUntil(timeout: TimeInterval = 3, condition: () -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if condition() {
+                return true
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        } while Date() < deadline
+        return condition()
     }
 }

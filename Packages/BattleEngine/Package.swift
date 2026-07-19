@@ -2,6 +2,24 @@
 
 import PackageDescription
 
+let balanceToolSources = [
+    "BalanceAbilityContrastRunner.swift",
+    "BalanceAffixContrastRunner.swift",
+    "BalanceContrastSupport.swift",
+    "BalanceMarkdownReporter.swift",
+    "BalanceStatsAggregator.swift",
+    "BalanceSweepConfig.swift",
+    "BalanceSweepRunner.swift",
+    "BattleSimulator.swift",
+    "PlayerPolicy.swift",
+    "SimulationMatchupBuilder.swift",
+    "SimulationTierProfile.swift",
+]
+
+let balanceToolTestSources = [
+    "BattleSimulatorTests.swift",
+]
+
 let package = Package(
     name: "BattleEngine",
     platforms: [
@@ -12,6 +30,10 @@ let package = Package(
         .library(
             name: "BattleEngine",
             targets: ["BattleEngine"]
+        ),
+        .library(
+            name: "BattleBalanceTools",
+            targets: ["BattleBalanceTools"]
         ),
         .executable(
             name: "BalanceSweepCLI",
@@ -26,11 +48,18 @@ let package = Package(
     targets: [
         .target(
             name: "BattleEngine",
-            dependencies: ["TrinketCore", "TrinketContent"]
+            dependencies: ["TrinketCore", "TrinketContent"],
+            exclude: balanceToolSources
+        ),
+        .target(
+            name: "BattleBalanceTools",
+            dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"],
+            path: "Sources/BattleEngine",
+            sources: balanceToolSources
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
-            dependencies: ["BattleEngine", "TrinketContent"]
+            dependencies: ["BattleBalanceTools", "BattleEngine", "TrinketContent"]
         ),
         .testTarget(
             name: "BattleEngineTests",
@@ -39,7 +68,19 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
-            ]
+            ],
+            exclude: balanceToolTestSources
+        ),
+        .testTarget(
+            name: "BattleBalanceToolsTests",
+            dependencies: [
+                "BattleBalanceTools",
+                "BattleEngine",
+                "TrinketCore",
+                "TrinketContent",
+            ],
+            path: "Tests/BattleEngineTests",
+            sources: balanceToolTestSources
         ),
     ]
 )

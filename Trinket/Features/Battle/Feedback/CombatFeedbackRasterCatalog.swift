@@ -171,7 +171,6 @@ enum CombatFeedbackRasterCatalog {
         availableAt: Date,
         expiresAt: Date
     ) -> CombatFeedbackItem {
-        let recipe = TrinketMotion.Battle.chip(for: source.feedbackClass)
         let roleBias = switch presentationRole {
         case .headline: 0
         case .secondary: 0x1000_0000
@@ -190,8 +189,7 @@ enum CombatFeedbackRasterCatalog {
             visualRole: source.visualRole,
             label: source.label,
             secondaryText: source.secondaryText,
-            spawnSeed: source.id,
-            lifetime: recipe.lifetime,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
             reactionKind: source.reactionKind

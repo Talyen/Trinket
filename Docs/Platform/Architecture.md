@@ -169,7 +169,13 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Swift Testing unit + XCTest UI (tiered via `.xctestplan` files)
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
-- Battle presentation is SwiftUI; SpriteKit is not in use yet
+- Battle presentation is SwiftUI; SpriteKit is not in use
+- Battle simulation and fine-grained observable projections remain in `BattleSession`. `playCard` mutates
+  the stored state, publishes one presentation snapshot plus feedback/outcome work, and returns a typed
+  rejection/commit result. `BattleView` then publishes the owner swing and release-time cast in causal order.
+- Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated raster host.
+- Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
+  `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
 - Package tests run via `./Scripts/test.sh unit` in addition to `TrinketTests`
 
 ### Standing platform rules

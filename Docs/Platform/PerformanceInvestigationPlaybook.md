@@ -2,11 +2,11 @@
 
 Use this for measured frame-pacing, memory, battery, or lifecycle regressions. Static review can identify leads; it cannot prove that a SwiftUI surface is slow or that a change improved it.
 
-## App frame-pacing contract
+## Frame-pacing contract
 
-The current automated target is the 60 Hz Simulator lane. Every maintained scenario must average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. A future physical-device lane will use the same refresh-normalized reports at 120 Hz; physical ProMotion evidence, not Simulator extrapolation, decides that goal.
+The 60 Hz Simulator gate requires every maintained scenario to average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. Battle card play and drag handling have stricter five-repetition requirements: every repetition must maintain a 1% low of at least 59 FPS, record zero missed deadlines and severe stalls, and keep maximum frame duration at or below 20 ms.
 
-`-enable-frame-metrics` is measurement-only. It must never remove, replace, shorten, or mute Battle work. Full card dissolve, Canvas particles, keyword bursts, Ultimate cinematics, haptics configuration, and SFX execution remain on the production paths during measurement.
+`-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 
 Run the exclusive matrix:
 
@@ -14,120 +14,100 @@ Run the exclusive matrix:
 ./Scripts/performance.sh
 ```
 
-The runner takes a repository-wide performance lock, limits Simulator UI concurrency to one, uses an isolated simulator/DerivedData tenant, and records exactly one measured report for every scenario.
+The runner takes the repository performance lock and uses isolated Simulator and DerivedData state. A formal Battle capture uses five repetitions:
+
+```sh
+TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
+```
 
 Artifacts are written under `.DerivedData/PerformanceResults/<UTC timestamp>/`:
 
-- `TestResults/`: xcresult, native `XCTHitchMetric`, logs, and JSON attachments.
-- `reports.json`: one raw custom display-link report per scenario.
-- `environment.json`: Xcode, host, commit, and dirty-state metadata.
-- `summary.md`: gate results plus nonblocking frame-time and missed-deadline diagnostics.
+- `TestResults/`: xcresult, logs, and JSON attachments;
+- `reports.json`: raw display-link frame reports and scenario metadata;
+- `environment.json`: Xcode, host, git state, Simulator/runtime, seed, and repetition metadata;
+- `summary.md`: individual gate results and frame-time diagnostics;
+- `aggregate.json` and `aggregate.md`: every repetition plus median and spread.
+
+The current runtime does not reliably export `XCTHitchMetric`; the broken exporter is intentionally absent. Do not substitute a custom `CADisplayLink` sample for an authoritative render-pipeline hitch metric. Capture Instruments Animation Hitches and Time Profiler traces when diagnosing a failure.
 
 ## Coverage inventory
 
 | Product area | Automated performance coverage |
 |---|---|
 | App startup | Native `XCTApplicationLaunchMetric` from terminated state to responsive Play UI |
-| Global navigation | Repeated Play → Collection → Homestead → Options → Play tab transitions |
-| Collection | Combatant-detail sheet presentation/dismissal from the Collection root |
-| Homestead | Project-detail push/pop using the seeded Wheat Field route |
-| Campaign / Stage Select | Repeated mode-hub ↔ Stage Select pushes and Stage Select enemy-detail sheets |
-| Battle entry | Real Stage 1-1 CTA handoff to live Battle chrome and retreat back to Stage Select |
-| Battle | Idle, hand interaction, casts, feedback, particles, turn transitions, Ultimate, audio, and combined stress |
-| Victory / rewards | Deep-linked victory chrome settle (`victory-reward-reveal`) |
-| Mystery | Deep-linked mystery entrance settle (`mystery-encounter-reveal`) |
+| Global navigation | Repeated Play → Collection → Homestead → Options → Play transitions |
+| Collection | Combatant-detail sheet presentation/dismissal |
+| Homestead | Seeded project-detail push/pop |
+| Campaign | Stage Select navigation, enemy detail, and real Battle entry/retreat |
+| Battle | Six scenarios covering real play, drag return, engine/hand, feedback, turn transition, and combined work |
+| Victory / mystery | Deterministic reveal-settle scenarios |
 
-The local matrix covers the major app roots, highest-value transitions, battle stress, and post-battle / mystery reveal settle. It does not yet model Shop/Labyrinth end-to-end journeys, persistence recovery, CloudKit/network variability, long-session memory/thermal behavior, or production population trends. Add those as separate deterministic scenarios rather than folding unrelated work into an existing measurement.
+The local matrix does not model CloudKit/network variability, persistence recovery, long-session memory or thermal behavior, or production population trends. Add those as separate deterministic scenarios instead of changing an existing scenario's production behavior.
 
-## Deterministic scenario matrix
+## Battle scenario matrix
 
-Core app journeys use normal UI taps and production navigation:
+The Battle matrix is deliberately small:
 
-1. Cold launch to responsive Play UI (native launch metric; no display-link baseline row).
-2. Repeated tab round trips across every app root.
-3. Collection combatant detail presentation/dismissal.
-4. Homestead project detail push/pop.
-5. Play mode hub to Campaign Stage Select push/pop.
-6. Stage Select enemy detail presentation/dismissal.
-7. Stage Select CTA to a live Stage 1-1 Battle and retreat back to Stage Select.
-8. Deep-linked victory reward reveal settle.
-9. Deep-linked mystery encounter entrance settle.
+1. `real-card-play`: a real press, drag, armed release, immediate removal/reflow, feedback, swing, audio/haptics, and SwiftUI cast.
+2. `hand-drag-cancel`: repeated real press/drag/cancel gestures and spring return without changing hand membership.
+3. `engine-hand`: card resolution, direct stored-state mutation, and projection publication without feedback decoration.
+4. `engine-feedback`: card resolution plus production feedback publication.
+5. `turn-transition`: production end-turn and hand projection work.
+6. `combined-worst-case`: feedback, engine, swing, and the normal SwiftUI cast together.
 
-Every scenario drives the normal Battle SwiftUI and `BattleSession` presentation paths:
+All use the deterministic Battle performance fixture. Component cases isolate ownership boundaries; they are not alternate product implementations. Removed face-only, mask-only, particle-only, retained-host, owner-option, and synthetic-stack cases must not be reintroduced unless a new trace demonstrates a specific need.
 
-1. Idle Battle.
-2. Continuous hand drag/cancel motion.
-3. First card cast without the cast-effect prewarm.
-4. Production drag-to-release `playCard` path (forced lift → `beginPlay` → hand remove + feedback + cast + attack swing).
-5. Play-commit isolation (diagnostic; not baseline-enforced): `play-engine-hand`, `play-feedback-only`, `play-cast-only`, `play-cast-face-only`, `play-cast-mask-only`, `play-cast-particles-only`, `play-swing-only`, plus stacked-commit probes (`play-stack-direct`, `play-stack-no-*`, `play-real-no-*`, `play-cast-held-pose`).
-6. Repeated warmed card casts.
-7. Maximum configured concurrent card casts.
-8. Feedback chips in isolation.
-9. Feedback-raster cold activation with an empty bounded pool.
-10. Feedback-raster warm activation with the first production label set prepared.
-11. Combatant reactions and haptics in isolation.
-12. Keyword bursts in isolation.
-13. Dense combat feedback plus keyword bursts.
-14. Turn transition and hand reflow.
-15. Full Ultimate cinematic.
-16. Real SFX playback path (audio is not disabled).
-17. Combined worst case.
+For fast iteration, set `TRINKET_PERFORMANCE_QUICK=1`. Omit quick mode for formal artifacts. The display-link sampler discards its configured warmup after reset; deterministic stimulus begins only after the harness reports `measuring:`.
 
-The scenario launch argument changes stimulus only: `-battle-performance-scenario <name>`. It is DEBUG-only UI tooling and is not a gameplay mode.
+## Signals
 
-For fast local isolation loops, set `TRINKET_PERFORMANCE_QUICK=1` (≈2.5s measure / ≈3.2s UITest wait). `Scripts/test.sh performance` forwards it into XCTest via `TEST_RUNNER_TRINKET_PERFORMANCE_QUICK`, and UITests also pass `-battle-performance-quick` into the app. Omit quick mode for formal `performance.sh` comparable artifacts.
-
-The display-link sampler discards a short warmup after every reset so cadence can stabilize (`0.75s` full / `0.35s` quick). All deterministic stimulus must begin after that warmup. Otherwise an immediate cold transition or cast is absent from the custom 1% report even though the native hitch metric may still observe it.
-
-## Signals and acceptance
-
-`XCTApplicationLaunchMetric` is authoritative for cold-start responsiveness. `XCTHitchMetric(application:)` is authoritative for the render pipeline during measured journeys. The display-link report is diagnostic and refresh-normalized:
+The display-link report describes delivered callbacks:
 
 | Signal | Meaning |
 |---|---|
-| `expectedFPS` | Refresh cadence observed from `CADisplayLink.targetTimestamp` |
-| `averageFPS` | Secondary throughput signal; not a guarantee of smoothness |
-| `p95FrameMs`, `p99FrameMs` | Diagnostic long-tail delivered-frame durations |
+| `expectedFPS` | Cadence observed from `CADisplayLink.targetTimestamp` |
+| `averageFPS` | Secondary throughput signal, not a smoothness guarantee |
+| `p95FrameMs`, `p99FrameMs` | Long-tail delivered-frame durations |
 | `onePercentLowFPS` | Average delivered FPS across the slowest 1% of frames |
 | `missedDeadlineCount` / ratio | Intervals at least 1.5 observed display periods |
 | `estimatedMissedFrameCount` | Estimated presentation opportunities lost across long intervals |
 | `severeStallCount` | Intervals at least three observed display periods |
+| `maxFrameMs` | Longest delivered interval |
 
-Do not describe an average as a “60 FPS floor.” A run can average 60 and still hitch. The enforced 60 Hz goals in `Performance/Baselines/simulator-60.json` are average FPS ≥59, 1% low FPS ≥59, and zero severe stalls for each single measured scenario report. p95/p99 frame times and missed-deadline measurements remain visible diagnostics but do not fail the gate.
+Do not describe an average as a “60 FPS floor.” The five-run hard gate evaluates each card-play and drag repetition, not only the median.
+
+## Ordered Battle investigation
+
+Run these stages without skipping ahead:
+
+1. `engine-hand`: verify engine resolution plus projection construction/publication fits within 8 ms and the scenario passes its frame gate.
+2. `engine-feedback`: determine whether feedback publication is the added cost.
+3. `real-card-play` and `hand-drag-cancel`: measure normal gestures, fan reflow, and full presentation.
+4. `turn-transition` and `combined-worst-case`: confirm adjacent Battle behavior did not regress.
+
+If engine/hand fails, profile and simplify engine mutation or projection invalidation before touching rendering. If engine/hand passes and engine/feedback fails, make feedback publication one pass: build each item once, partition immediate/scheduled items while deriving the earliest wake, compute reactions and SFX once, apply the host once, and update one timer. Preserve `availableAt`, expiration, stagger, SFX, reactions, and keyword timing.
+
+Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
 ## Investigation loop
 
-1. Reproduce the exact failing scenario with the same Xcode, runtime, and Simulator/device.
-2. Compare the single report with its native hitch trace and app-attributed signposts before treating movement as causal.
-3. Profile a release-like build with Animation Hitches and Time Profiler. Signposts use subsystem `com.trinket.framepacing`, category `BattleEffects`, with intervals for cast, burst, feedback, chip publish/flush/host-apply, feedback-raster builds, Ultimate, and scenario plus metadata events for card commit, turn transition, and audio playback. Scenario completion metadata includes bounded raster-pool entries, estimated bytes, hits, builds, and evictions.
-4. Identify an app-attributed stack or rendering phase. Simulator scheduling noise alone is not an app regression.
-5. Make one hypothesis-driven change without changing visible Battle behavior.
-6. Re-run the same scenario matrix and compare native hitch data, raw reports, and the calibrated reference.
+1. Reproduce the exact failing scenario with the same source, optimized build settings, seed, duration, Xcode, runtime, and Simulator.
+2. Compare all five individual reports and their aggregate. A median must not hide a failing repetition.
+3. Profile the failing stage with Animation Hitches and Time Profiler. DEBUG signposts in subsystem `com.trinket.framepacing` separately identify engine resolution, projection publication, feedback preparation, and return to the next display callback. None alone represents the full rendered frame.
+4. Identify an app-attributed stack, observation invalidation, layout pass, or rendering phase. Simulator scheduling noise alone is not an app regression.
+5. Make one small change that removes work or code while preserving/improving intended gameplay feel.
+6. Run the focused stage again, then the full six-scenario Battle matrix.
 
-Hotspot order includes app launch, destination construction during navigation, Stage Select → Battle state initialization, card cast/dissolve, keyword particle bursts, feedback chips (publish → UIKit host activation + surrounding observed reactions/bursts — not full-string bake / warm glyph blit), continuous hand motion/reflow, Ultimate presentation, and audio resource/playback work. Prefer pausing idle animation clocks, bounding concurrent Canvas work, compositor-friendly transforms/opacity, and prewarming only imminent resources. Cast dissolve: keep `compositingGroup` on the masked face only (not particles), step-stable threshold masks, and prewarm the real ability-card face + mask + particle path (launch + battle hand) so first play is not a cold combined mount. Chip signposts: `ChipPublish`, `ChipFlush`, `ChipHostApply`, plus `FeedbackRasterBuild` on compose miss. Navigation signposts (category `AppNavigation`): `TabSwitch`, `SheetPresent`, `NavigationPush`, `StageSelectBattleActivate`.
+Prefer direct stored-state mutation, one projection publication, narrow observation, cached immutable geometry, equatable static faces, bounded/preallocated resources, and parked idle clocks. Delete dead wrappers and redundant passes before adding abstractions.
 
-Multimodal combat feedback fires on the impact frame with chips (SFX, hit reactions, and keyword bursts). Do not reintroduce frame-splitting without an explicit UX approval — isolation matrix evidence shows chips alone are not the hitch source; hand drag, overlapping casts, and stacked commits are.
+## Device and production evidence
 
-Stacked-commit probes (`play-stack-*`, `play-real-no-*`) show two interactions dominate `real-card-play`: forced-drag release ⊕ feedback host apply (~60 ms when cast is omitted), and hand-reflow springs ⊕ cast mount (~45 ms when feedback is omitted). Alone, engine/feedback/cast/swing stay near 60/16.7 once warm. Do not suppress sibling hand reflow to “win” the commit frame — that is UX-facing fan settle. Further commit-frame splitting remains UX-gated.
+Simulator evidence is the implementation gate for the current migration, not physical-device validation. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
 
-## Physical-device and production lanes
+MetricKit `MXAnimationMetric.hitchTimeRatio` remains production trend evidence. It complements—and does not replace—reproducible local scenarios and Instruments traces.
 
-The app already opts into ProMotion with `CADisableMinimumFrameDurationOnPhone`. Before claiming 120 FPS:
+## Reporting
 
-1. Pin at least one supported ProMotion iPhone and OS version.
-2. Run the same scenarios with expected cadence derived from the display link, not a hard-coded 8.33 ms assumption.
-3. Capture Animation Hitches / Time Profiler traces on-device and define a separate `device-120` baseline.
-4. Add thermal-state, Low Power Mode, and repeated warm-run metadata.
+Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all five individual results, aggregate spread, failing stage, Instruments evidence when available, production LOC before/after, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
 
-MetricKit `MXAnimationMetric.hitchTimeRatio` is subscribed in-process via `MetricKitHitchSubscriber` for real-player trend detection. It complements—and must not replace—reproducible local scenarios or Instruments traces. The physical-device lane baseline lives at `Performance/Baselines/device-120.json` (`mode: observe` until a pinned ProMotion device validates enforce).
-
-## Guardrails and reporting
-
-- Do not move battle simulation off `@MainActor`, add weak captures, erase views, or rewrite layout because a static probe found a pattern.
-- Do not defer visible destination body content to “win” the first transition frame. Empty chrome that fills in a tick later reads as a flash of incomplete UI and feels worse than a hitch. Prefer prewarming imminent resources and narrowing observation invalidation instead.
-- Verify scene-background behavior through the actual battle/session lifecycle.
-- Profiling is not a correctness test; add focused correctness coverage when a fix changes state or lifecycle semantics.
-- If hardware, Instruments, or a reproducible signal is unavailable, record the limitation and do not claim an improvement.
-- Report device/runtime, Xcode, scenario, iteration spread, native hitch result, raw before/after data, identified cause, changed files, and verification.
-
-Apple references: [XCTHitchMetric](https://developer.apple.com/documentation/xctest/xcthitchmetric), [Optimize for variable refresh-rate displays](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays), and [MXAnimationMetric hitch time ratio](https://developer.apple.com/documentation/metrickit/mxanimationmetric/hitchtimeratio).
+Apple references: [Animation hitches](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app), [Optimize for variable refresh-rate displays](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays), and [MXAnimationMetric hitch time ratio](https://developer.apple.com/documentation/metrickit/mxanimationmetric/hitchtimeratio).

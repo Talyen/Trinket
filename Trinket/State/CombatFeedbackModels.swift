@@ -30,7 +30,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let visualRole: CombatFeedbackVisualRole
     let label: CombatFeedbackChipLabel
     let secondaryText: String?
-    let spawnSeed: Int
     let lifetime: TimeInterval
     let availableAt: Date
     let expiresAt: Date
@@ -39,6 +38,27 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     /// Derived display string for tests, accessibility, and debug tooling.
     var text: String {
         label.displayString
+    }
+
+    func scheduled(at date: Date) -> CombatFeedbackItem {
+        CombatFeedbackItem(
+            id: id,
+            sourceEventIDs: sourceEventIDs,
+            actionGroupID: actionGroupID,
+            presentationIndex: presentationIndex,
+            groupResultCount: groupResultCount,
+            presentationRole: presentationRole,
+            targetID: targetID,
+            feedbackClass: feedbackClass,
+            keyword: keyword,
+            visualRole: visualRole,
+            label: label,
+            secondaryText: secondaryText,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
+            availableAt: date,
+            expiresAt: date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
+            reactionKind: reactionKind
+        )
     }
 }
 

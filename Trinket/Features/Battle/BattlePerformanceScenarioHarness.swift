@@ -1,51 +1,34 @@
 #if DEBUG
-import BattleEngine
 import SwiftUI
-import TrinketCore
-import TrinketDesignSystem
 
-/// Explicit, test-only workload driver. It invokes production Battle presentation paths
-/// and never swaps effects for cheaper test implementations.
+/// A small measurement shell around production battle UI. Finger-driven scenarios
+/// are stimulated by XCUI; component gates use the same session mutation methods.
 struct BattlePerformanceScenarioHarness: View {
     let scenario: BattlePerformanceScenario
     let appState: AppState
     let battleSession: BattleSession
     let battleSize: CGSize
     let castPresentation: BattleCastPresentationState
-    let forcedDrag: BattleForcedDragState
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
 
     @State private var status = "ready"
-    @State private var generation = 0
     @State private var task: Task<Void, Never>?
-
-    private static var measurementDuration: Duration {
-        BattlePerformanceTiming.harnessMeasure
-    }
-
-    private static var measurementWarmup: Duration {
-        BattlePerformanceTiming.harnessWarmup
-    }
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            Button {
-                start()
-            } label: {
+            Button(action: start) {
                 Image(systemName: "play.fill")
                     .foregroundStyle(.clear)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(status == "running")
+            .disabled(status != "ready")
             .accessibilityIdentifier(AccessibilityID.Debug.battlePerformanceStart)
 
             Text(status)
                 .font(.system(size: 1))
                 .foregroundStyle(.clear)
-                // UIStyleCheck: allow - Hidden status probe exists only for performance UI-test automation.
+                // UIStyleCheck: allow - Hidden status probe exists only for performance automation.
                 .frame(width: 1, height: 1)
                 .accessibilityIdentifier(AccessibilityID.Debug.battlePerformanceStatus)
                 .accessibilityValue(status)
@@ -53,7 +36,7 @@ struct BattlePerformanceScenarioHarness: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.performanceScenario,
-            isActive: status == "running"
+            isActive: status.hasPrefix("measuring:")
         )
         .onDisappear {
             task?.cancel()
@@ -62,91 +45,52 @@ struct BattlePerformanceScenarioHarness: View {
     }
 
     private func start() {
-        task?.cancel()
-        generation &+= 1
-        let runGeneration = generation
-        status = "running"
-        forcedDrag.clear()
+        status = "priming:\(scenario.rawValue)"
         castPresentation.reset()
         battleSession.clearFeedback()
         battleSession.clearSpectacle()
-        CombatFeedbackRasterPool.shared.removeAll()
         CombatFeedbackRasterPool.shared.resetDiagnostics()
-        let scenarioDriver = driver
-        if scenario != .feedbackRasterCold {
-            scenarioDriver.prepareFeedbackRasters(runGeneration: runGeneration)
-            CombatFeedbackRasterPool.shared.resetDiagnostics()
-        }
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.performanceScenario,
-            detail: "phase=start scenario=\(scenario.rawValue) run=\(runGeneration)"
-        )
 
-        task = Task { @MainActor in
-            await battlePerformancePrimeChipHostPipeline(
-                scenario: scenario,
-                battleSession: battleSession,
-                runGeneration: runGeneration
-            )
-            battleSession.clearFeedback()
-            CombatFeedbackChipBridge.publish(.reset)
-            reseedFeedbackRastersAfterPrime(runGeneration: runGeneration)
-            NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
-            try? await Task.sleep(for: Self.measurementWarmup)
-            guard !Task.isCancelled, runGeneration == generation else { return }
-            let clock = ContinuousClock()
-            let startedAt = clock.now
-            await scenarioDriver.perform(runGeneration: runGeneration)
-            let elapsed = startedAt.duration(to: clock.now)
-            if elapsed < Self.measurementDuration {
-                try? await Task.sleep(for: Self.measurementDuration - elapsed)
-            }
-            guard !Task.isCancelled, runGeneration == generation else { return }
-            forcedDrag.clear()
-            markScenarioComplete(runGeneration: runGeneration)
-        }
-    }
-
-    private func reseedFeedbackRastersAfterPrime(runGeneration: Int) {
-        if scenario == .feedbackRasterCold {
-            CombatFeedbackRasterPool.shared.removeAll()
-            CombatFeedbackRasterPool.shared.resetDiagnostics()
-        } else if scenario == .feedbackRasterWarm
-            || scenario == .feedbackChipsOnly
-            || scenario == .denseFeedback {
-            driver.prepareFeedbackRasters(runGeneration: runGeneration)
-            CombatFeedbackRasterPool.shared.resetDiagnostics()
-        }
-    }
-
-    private func markScenarioComplete(runGeneration: Int) {
-        let rasterSnapshot = CombatFeedbackRasterPool.shared.snapshot()
-        status = "complete:\(scenario.rawValue):\(runGeneration)"
-            + ":rasterEntries=\(rasterSnapshot.entryCount)"
-            + ":rasterBytes=\(rasterSnapshot.estimatedByteCount)"
-            + ":rasterHits=\(rasterSnapshot.hitCount)"
-            + ":rasterBuilds=\(rasterSnapshot.buildCount)"
-            + ":rasterEvictions=\(rasterSnapshot.evictionCount)"
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.performanceScenario,
-            detail: "phase=complete scenario=\(scenario.rawValue) run=\(runGeneration) "
-                + "rasterEntries=\(rasterSnapshot.entryCount) rasterHits=\(rasterSnapshot.hitCount) "
-                + "rasterBytes=\(rasterSnapshot.estimatedByteCount) "
-                + "rasterBuilds=\(rasterSnapshot.buildCount) rasterEvictions=\(rasterSnapshot.evictionCount)"
-        )
-    }
-
-    private var driver: BattlePerformanceScenarioDriver {
-        BattlePerformanceScenarioDriver(
+        let driver = BattlePerformanceScenarioDriver(
             scenario: scenario,
             appState: appState,
             battleSession: battleSession,
             battleSize: battleSize,
-            castPresentation: castPresentation,
-            forcedDrag: forcedDrag,
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
+            castPresentation: castPresentation
         )
+        task = Task { @MainActor in
+            await battlePerformancePrimeChipHostPipeline(
+                scenario: scenario,
+                battleSession: battleSession
+            )
+            NotificationCenter.default.post(name: FramePacingMeasurementControl.reset, object: nil)
+            try? await Task.sleep(for: BattlePerformanceTiming.harnessWarmup)
+            guard !Task.isCancelled else { return }
+
+            status = "measuring:\(scenario.rawValue)"
+            let clock = ContinuousClock()
+            let startedAt = clock.now
+            let failure = driver.perform()
+            let elapsed = startedAt.duration(to: clock.now)
+            if elapsed < BattlePerformanceTiming.harnessMeasure {
+                try? await Task.sleep(for: BattlePerformanceTiming.harnessMeasure - elapsed)
+            }
+            guard !Task.isCancelled else { return }
+            if let failure {
+                status = "failed:\(scenario.rawValue):\(failure)"
+            } else {
+                markComplete()
+            }
+        }
+    }
+
+    private func markComplete() {
+        let raster = CombatFeedbackRasterPool.shared.snapshot()
+        status = "complete:\(scenario.rawValue)"
+            + ":scenarioSeed=\(battleSession.activeBattle?.rngSeed ?? 0)"
+            + ":rasterHits=\(raster.hitCount)"
+            + ":rasterMisses=\(raster.missCount)"
+            + ":rasterBuilds=\(raster.buildCount)"
     }
 }
 #endif

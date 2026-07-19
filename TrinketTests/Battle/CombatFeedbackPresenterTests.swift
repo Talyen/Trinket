@@ -143,21 +143,20 @@ struct CombatFeedbackPresenterTests {
         #expect(items[1].chipPresentation.trailingSymbolName == "figure.run")
     }
 
-    @Test func actionGroupTimingSharesAvailabilityAndStaggersTargets() {
+    @Test func presenterLeavesVisualQueueTimingToBattleSession() {
         let now = Date(timeIntervalSince1970: 1000)
         let sharedGroup = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical),
                 makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed, actionID: 1)
             ],
-            at: now,
-            stagger: 0.055
+            at: now
         )
         #expect(sharedGroup[0].availableAt == now)
         #expect(sharedGroup[1].availableAt == now)
         #expect(sharedGroup.map(\.actionGroupID) == [1, 1])
 
-        let staggered = CombatFeedbackPresenter.makeItems(
+        let acrossTargets = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical),
                 makeEvent(
@@ -168,11 +167,10 @@ struct CombatFeedbackPresenterTests {
                     targetID: "hero"
                 )
             ],
-            at: now,
-            stagger: 0.055
+            at: now
         )
-        #expect(staggered[0].availableAt == now)
-        #expect(staggered[1].availableAt == now.addingTimeInterval(0.055))
+        #expect(acrossTargets[0].availableAt == now)
+        #expect(acrossTargets[1].availableAt == now)
     }
 
     @Test func keepsDistinctFeedbackSeparateAcrossTargetsKindsAndDamageClasses() {
@@ -222,9 +220,9 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(directAndStatus.map(\.feedbackClass) == [.directDamage, .dot])
-        #expect(directAndStatus[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
-        // DoT and direct damage share the normal chip lifetime recipe.
-        #expect(directAndStatus[1].lifetime == TrinketMotion.Battle.chip(for: .directDamage).lifetime)
+        #expect(directAndStatus.allSatisfy {
+            $0.lifetime == TrinketMotion.Battle.chipDisplayDuration
+        })
     }
 
     @Test func assignsPriorityAndOverflowMetadataDeterministically() {

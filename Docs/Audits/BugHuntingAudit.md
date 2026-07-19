@@ -2,18 +2,14 @@
 
 **Goal:** Find and fix real defects with targeted probes — no file-by-file browsing.
 
-**Siblings:** concurrency → [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyDataRaceAudit.md); dead code → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md); persistence → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md).
-
 ## Intent
 
-Confirm candidate defects and fix up to three highest-value bugs (or one shared root cause). A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites — only chase hits from this pass; defer P4/P5 by default. Prefer the root-cause remedy over N local patches when related bugs share ownership or an invariant; if that remedy is a significant refactor or architecture change, propose and stop per [README.md](README.md).
+Confirm candidate defects and fix one shared root cause or up to three genuinely local bugs. Stop before the cumulative work becomes a refactor. A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites; defer P4/P5 by default. Significant structural remedies are proposals per [README.md](README.md).
 
 ## Hard stops
 
 - Do not rename/restyle or opportunistically refactor unrelated code. Fix the confirmed bug’s root cause; larger structural remedies are proposals, not unsupervised rewrites.
-- Do not expand into speculative backlog; do not touch manifests (unless a stale catalog ref), assets, music, or hand-edit `Generated/*`.
-- Do not alter `accessibilityIdentifier` values unless removing the control.
-- Do not weaken `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`.
+- Do not expand into speculative backlog or touch manifests/assets/music unless they directly cause the confirmed defect.
 
 ## Confirmation policy
 
@@ -35,7 +31,3 @@ Confirm candidate defects and fix up to three highest-value bugs (or one shared 
 ## Probe hints
 
 Retain cycles / lifetime (stored closures, Tasks, Timers, delegates); silent `try?` on save / battle outcome / state transitions; `.task` subtasks that outlive cancellation; bounds / `.first!`; grant/reward/completeStage idempotency. Add a focused regression only when it distinguishes the defect from existing coverage.
-
-## Verify
-
-Focused package/unit/smoke for the touched area per `AGENTS.md`; always `lint.sh` + boundaries.

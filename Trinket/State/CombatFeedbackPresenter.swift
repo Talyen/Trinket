@@ -7,8 +7,7 @@ import TrinketDesignSystem
 enum CombatFeedbackPresenter {
     static func makeItems(
         from events: [ActionEvent],
-        at date: Date,
-        stagger: TimeInterval = 0
+        at date: Date
     ) -> [CombatFeedbackItem] {
         let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
@@ -24,7 +23,7 @@ enum CombatFeedbackPresenter {
             grouped[item.targetID, default: []].append(item)
         }
 
-        return targetOrder.enumerated().flatMap { groupIndex, targetID -> [CombatFeedbackItem] in
+        return targetOrder.flatMap { targetID -> [CombatFeedbackItem] in
             let sorted = (grouped[targetID] ?? []).sorted { lhs, rhs in
                 let lhsPriority = CombatFeedbackClassification.displayPriority(for: lhs.feedbackClass)
                 let rhsPriority = CombatFeedbackClassification.displayPriority(for: rhs.feedbackClass)
@@ -34,11 +33,8 @@ enum CombatFeedbackPresenter {
                 return lhsPriority < rhsPriority
             }
             guard let actionGroupID = sorted.first?.actionID else { return [] }
-            let availableAt = date.addingTimeInterval(TimeInterval(groupIndex) * stagger)
-            let groupLifetime = sorted
-                .map { TrinketMotion.Battle.chip(for: $0.feedbackClass).lifetime }
-                .max() ?? 0
-            let expiresAt = availableAt.addingTimeInterval(groupLifetime)
+            let availableAt = date
+            let expiresAt = availableAt.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration)
             return CombatFeedbackPresentationFactory.makeItems(
                 from: sorted.map {
                     CombatFeedbackPresentationFactory.Source(

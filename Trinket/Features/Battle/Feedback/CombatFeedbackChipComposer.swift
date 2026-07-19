@@ -237,7 +237,7 @@ enum CombatFeedbackChipComposer {
     private static func makeTextGlyphs(
         for text: String,
         face: CombatFeedbackGlyphAtlas.Face,
-        recipe: CombatFeedbackMotionRecipe,
+        recipe: CombatFeedbackChipStyle,
         atlas: CombatFeedbackGlyphAtlas
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
         // Numeric chips pass digit characters; word chips pass one whole-word fragment.

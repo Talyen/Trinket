@@ -41,6 +41,10 @@ def main() -> int:
             records.append(record)
 
     records.sort(key=lambda item: (str(item.get("scenario")), int(item.get("iteration", 0))))
+    environment_path = args.results_dir.parent / "environment.json"
+    environment = json.loads(environment_path.read_text()) if environment_path.exists() else {}
+    for record in records:
+        record["environment"] = environment
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps({"reports": records}, indent=2, sort_keys=True) + "\n")
     print(f"Collected {len(records)} app performance reports into {args.output}")

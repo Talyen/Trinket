@@ -40,4 +40,37 @@ struct CombatFeedbackRasterCatalogTests {
         }
         #expect(pool.snapshot().hitCount == catalog.count)
     }
+
+    @Test @MainActor func warmHostApplyUsesPreallocatedLayersAndParksItsIdleClock() async throws {
+        await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
+            dynamicTypeSize: .large,
+            displayScale: 2
+        )
+        let pool = CombatFeedbackRasterPool(capacity: CombatFeedbackRasterPool.defaultCapacity)
+        let canvasItems = Array(
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().prefix(
+                CombatFeedbackRasterUIView.preallocatedSlotCount
+            )
+        )
+        let chips = try canvasItems.map { canvasItem in
+            let raster = try #require(pool.prepare(
+                for: canvasItem,
+                dynamicTypeSize: .large,
+                displayScale: 2
+            ))
+            return (canvasItem: canvasItem, raster: Optional(raster))
+        }
+        let host = CombatFeedbackRasterUIView(
+            frame: CGRect(x: 0, y: 0, width: 240, height: 180)
+        )
+        CombatFeedbackRasterHostDiagnostics.reset()
+
+        host.apply(chips: chips)
+
+        #expect(CombatFeedbackRasterHostDiagnostics.snapshot().warmPathAllocationCount == 0)
+        #expect(!CombatFeedbackRasterUIView.isMotionClockPaused)
+        host.apply(chips: [])
+        #expect(CombatFeedbackRasterUIView.isMotionClockPaused)
+        #expect(pool.snapshot().isPrepareClockPaused)
+    }
 }

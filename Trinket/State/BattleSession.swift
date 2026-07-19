@@ -6,6 +6,21 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+enum BattleCardPlayResolution: Equatable, Sendable {
+    case rejected
+    case committed(earnedGold: Int?)
+
+    var earnedGold: Int? {
+        guard case let .committed(earnedGold) = self else { return nil }
+        return earnedGold
+    }
+
+    var didCommit: Bool {
+        guard case .committed = self else { return false }
+        return true
+    }
+}
+
 /// Owns battle simulation state and UI-facing presentation: overlays, outcome screens,
 /// feedback, spectacle (Skill callouts / Ultimate cinematics), and music preview.
 @MainActor
@@ -80,15 +95,13 @@ final class BattleSession {
     @ObservationIgnored
     var pendingAutoEndTask: Task<Void, Never>?
     @ObservationIgnored
-    var pendingFeedbackPruneTask: Task<Void, Never>?
+    var feedbackScheduler: BattleFeedbackScheduler?
     /// Next prune fire time for the long-lived prune loop (no per-publish Task alloc).
     @ObservationIgnored
     var nextFeedbackPruneAt: Date?
+    /// Next visual start for each combatant's independent floating-text queue.
     @ObservationIgnored
-    var pendingFeedbackPresentationLoopTask: Task<Void, Never>?
-    /// Staggered action-group wake times for multimodal at `availableAt`.
-    @ObservationIgnored
-    var pendingFeedbackPresentationDates: [Date] = []
+    var nextFeedbackVisualStartByTargetID: [String: Date] = [:]
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
@@ -110,12 +123,6 @@ final class BattleSession {
     /// Test seam for outcome timing. Production derives the delay from active spectacle.
     @ObservationIgnored
     var outcomePresentationDelayOverride: TimeInterval?
-
-    #if DEBUG
-    /// Performance harness isolation: engine/hand updates without chips, SFX, or reactions.
-    @ObservationIgnored
-    var performanceSuppressFeedbackPresentation = false
-    #endif
 
     /// Beat after the last playable card so feedback can show before the turn advances.
     static let autoEndTurnDelay: TimeInterval = 0.4
@@ -273,8 +280,6 @@ final class BattleSession {
     }
 
     func pruneExpiredFeedback(at date: Date = .now, notifyPresentation: Bool = true) {
-        // Multimodal catch-up belongs to the presentation loop at `availableAt`.
-        // Running it here stacked SFX/reactions onto prune frames and missed 60 Hz.
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
         }
@@ -287,8 +292,11 @@ final class BattleSession {
             }
         }
         let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
-        let expiredRawIDs = feedbackEventRecordedAt.compactMap { eventID, recordedAt in
-            date.timeIntervalSince(recordedAt) >= maxRawLifetime ? eventID : nil
+        let expiredRawIDs: [Int] = feedbackEventRecordedAt.compactMap { entry -> Int? in
+            let (eventID, recordedAt) = entry
+            guard date.timeIntervalSince(recordedAt) >= maxRawLifetime else { return nil }
+            let hasScheduledItem = activeFeedbackItems.contains { $0.sourceEventIDs.contains(eventID) }
+            return hasScheduledItem ? nil : eventID
         }
         for eventID in expiredRawIDs {
             removeFeedbackEvent(eventID, noteChange: false)
@@ -338,44 +346,6 @@ final class BattleSession {
         state?.isCardPlayable(card) ?? false
     }
 
-    /// Plays a card from hand. Returns earned gold when an already-claimed stage
-    /// victory should auto-complete without showing the victory screen.
-    @discardableResult
-    func playCard(
-        cardID: Int,
-        at date: Date = .now,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
-    ) -> Int? {
-        cancelPendingAutoEnd()
-        pruneExpiredFeedback(at: date, notifyPresentation: false)
-        autoEndJourney = journey
-        autoEndHomestead = homestead
-        guard activeCinematic == nil,
-              !isShowingVictory,
-              !isShowingDefeat,
-              var battleState = state else {
-            // No new events — still publish if prune dropped expired chips.
-            noteFeedbackPresentationChanged()
-            return nil
-        }
-
-        do {
-            let events = try battleState.playCard(cardID: cardID, rebuildLog: false)
-            installBattleState(battleState)
-            presentResolvedEvents(events, at: date)
-            let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
-            if earnedGold == nil {
-                scheduleAutoEndIfNeeded()
-            }
-            return earnedGold
-        } catch {
-            noteFeedbackPresentationChanged()
-            playSFX(SFXID.uiDeny)
-            return nil
-        }
-    }
-
     /// Ends the player turn (enemy acts, effects tick, draw). Returns earned gold
     /// when an already-claimed stage victory should auto-complete.
     @discardableResult
@@ -393,16 +363,17 @@ final class BattleSession {
             return nil
         }
 
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.turnTransition,
-            detail: "phase=begin hand=\(battleState.hand.count)"
+        let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
+            BattleFramePacingSignposts.Name.turnTransition
         )
+        defer {
+            BattleFramePacingSignposts.signposter.endInterval(
+                BattleFramePacingSignposts.Name.turnTransition,
+                transitionInterval
+            )
+        }
         let events = battleState.endTurn(rebuildLog: false)
         installBattleState(battleState)
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.turnTransition,
-            detail: "phase=resolved events=\(events.count) hand=\(battleState.hand.count)"
-        )
         // Draw SFX only when the round completed and cards were dealt for the next turn.
         if battleState.phase == .playerTurn {
             playSFX(SFXID.abilityDraw)

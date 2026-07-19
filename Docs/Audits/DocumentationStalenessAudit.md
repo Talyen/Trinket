@@ -4,7 +4,7 @@
 
 ## Intent
 
-Discover markdown from the repository (do not trust a hardcoded file count). Fix confirmed Critical and Moderate drift within one coherent doc area. A pass with no contradiction is valid. If several stale claims share one outdated architecture or toolchain assumption, prefer correcting that shared source of truth — and propose when significant per [README.md](README.md).
+Discover markdown mechanically (do not trust a hardcoded count), but do not load it wholesale. Use capped probes, open only candidate files and nearby source-of-truth lines, and fix Critical/Moderate drift in one coherent area. A pass with no contradiction is valid.
 
 ## Hard stops
 
@@ -24,14 +24,10 @@ Discover markdown from the repository (do not trust a hardcoded file count). Fix
 
 **Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; smoke class count via `ls TrinketUITests/Smoke/Smoke*.swift`; canonical names from [Architecture.md](../Platform/Architecture.md).
 
-**Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
+**Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. Recheck edited links and factual claims against their listed source of truth. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
 
 **Audit hygiene:** if an audit contains embedded run logs, Done tables, or “Last execution” trackers, remove them and restore procedural guide shape per [README.md](README.md).
 
 ## Probe hints
 
-Inventory `*.md` (skip Generated / DerivedData / tools / Raw Assets). Look for cited repo paths, relative `.md` links, version/toolchain claims, time-sensitive language (“in progress”, “soon”, “phase N”), and audit tracker residue (`Last execution`, `**Done**`, `Audit run:`).
-
-## Verify
-
-Confirm fixed paths exist; re-check relative links from each edited file; spot-check versions against `project.yml` / Package.swift and smoke counts against the filesystem.
+Inventory paths without printing full contents (skip Generated / DerivedData / tools / Raw Assets). Rank broken-path/link/version and tracker-residue candidates, inspect only the strongest few, and stop when the selected doc area is clean.

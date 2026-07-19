@@ -18,7 +18,3 @@ Run the enforced boundary gate. For each failure, make the ownership-correct rep
 Primary gate: `./Scripts/check-module-boundaries.sh` → **0 violations**. The gate is the executable source of truth; package graph and app-layer rules live in Architecture.md. Use explicit imports per package; `./Scripts/apply-explicit-imports.py` may bootstrap imports after a refactor.
 
 **Fixes:** move a shared type to the existing lowest common owner only when ownership is genuinely shared; move presentation code out of a forbidden layer, preserving dependency direction; never disable or weaken the gate. Do not paper over wrong ownership with an import that leaves the type in the forbidden layer.
-
-## Verify
-
-`check-module-boundaries.sh`, `lint.sh`, and `build.sh` if imports changed across targets (toolchain permitting).

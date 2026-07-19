@@ -1,3 +1,4 @@
+import BattleBalanceTools
 import BattleEngine
 import Foundation
 import TrinketContent
@@ -16,7 +17,6 @@ enum BalanceSweepCLI {
                 """
                 Running balance sweep mode=\(config.mode.rawValue) \
                 \(config.battlesPerTier)/tier seed=\(config.seed) jobs=\(config.resolvedJobs) …
-
                 """.utf8
             ))
 
@@ -68,7 +68,6 @@ enum BalanceSweepCLI {
           --max-rounds <n>         Stall cap rounds (default: 100)
           --max-actions <n>        Stall cap actions (default: 500)
           --help                   Show this help
-
         """
     }
 

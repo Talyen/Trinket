@@ -24,6 +24,22 @@ struct BattleCardGridLayoutTests {
         #expect(metrics.enemySize == .zero)
     }
 
+    @Test func feedbackAnchorsStayAtAuthoredCardCenters() {
+        let container = CGSize(width: 390, height: 700)
+        let metrics = BattleCardGridLayout.metrics(in: container)
+        let anchors = BattleCardGridLayout.feedbackAnchors(
+            containerWidth: container.width,
+            layout: metrics
+        )
+        let partyY = metrics.enemySize.height + metrics.cardSpacing + metrics.partySize.height / 2
+
+        #expect(anchors.enemy == CGPoint(x: container.width / 2, y: metrics.enemySize.height / 2))
+        #expect(anchors.hero.y == partyY)
+        #expect(anchors.companion.y == partyY)
+        #expect(anchors.hero.x + anchors.companion.x == container.width)
+        #expect(anchors.companion.x - anchors.hero.x == metrics.partySize.width + metrics.cardSpacing)
+    }
+
     private func assertRelationships(
         _ metrics: BattleCardGridLayout.Metrics,
         in containerSize: CGSize,

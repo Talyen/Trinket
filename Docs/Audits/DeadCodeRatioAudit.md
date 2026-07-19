@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package. If many unused symbols share one dead surface or misplaced API layer, prefer that cohesive cleanup — and propose when significant per [README.md](README.md).
+Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package. A successful fix must report authored LOC, declarations, files, or exported API removed; moving the same surface is not dead-code reduction.
 
 ## Hard stops
 
@@ -26,7 +26,3 @@ Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoti
 ## Probe hints
 
 Lint unused/dead warnings; `public` API in package Sources; empty/stub unit or UI test files (no `@Test` / `#expect` / `func test`).
-
-## Verify
-
-`lint.sh` + boundaries + `build.sh` (toolchain permitting); `test.sh unit` if non-trivial deletions; `generate.sh` if manifests touched.

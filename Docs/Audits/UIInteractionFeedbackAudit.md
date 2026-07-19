@@ -4,16 +4,13 @@
 
 **Goal:** Find confirmed interaction, feedback, and accessibility defects that static types do not catch.
 
-**Siblings:** UI test speed/tier → [E2ETestQualityAudit.md](E2ETestQualityAudit.md); layout/typography/DesignSystem → [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
-
 ## Intent
 
-Select one affected flow, confirm a navigation/feedback/accessibility defect by exercising it or using focused UI-test evidence, and make a bounded set of clear fixes. A clean pass is valid. If several defects in the flow share one interaction or feedback pattern, prefer that root-cause remedy — and propose when significant per [README.md](README.md).
+Select one affected flow, confirm a navigation/feedback/accessibility defect, and make a bounded fix. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Significant shared patterns remain proposals.
 
 ## Hard stops
 
 - Do not restyle unrelated chrome or expand into layout/typography/DesignSystem migrations (AppleNativeUI owns those).
-- Do not change `accessibilityIdentifier` strings unless removing the control.
 - iPhone portrait-first; skip iPad-only hover work unless product scope expands.
 - Do not expand a selected-flow check into a full-tab manual pass; skip unavailable Simulator/device checks without failing the audit.
 - Do not expand into UI test rewrites (E2E owns those).
@@ -33,7 +30,3 @@ Select one affected flow, confirm a navigation/feedback/accessibility defect by 
 ## Probe hints
 
 Sheets/covers/alerts/menus; tap/long-press/drag gestures; `accessibilityIdentifier` selectors and visible labels; prioritize a confirmed missing dismiss, stuck state, unclear visible control, or gesture conflict.
-
-## Verify
-
-`lint.sh`; `test.sh smoke` if identifiers or tab flows changed (toolchain permitting).

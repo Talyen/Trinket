@@ -242,9 +242,12 @@ extension AppState {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil
     ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
+        let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
+            ? UInt64.random(in: UInt64.min ... UInt64.max)
+            : BattlePerformanceFixture.seed
+        return ActiveBattleConfiguration.make(
             resumeToken: resumeToken,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            rngSeed: rngSeed,
             hero: hero,
             companion: companion,
             rosterState: roster,

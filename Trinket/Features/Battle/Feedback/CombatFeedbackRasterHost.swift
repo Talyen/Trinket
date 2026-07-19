@@ -9,12 +9,14 @@ struct CombatFeedbackRasterSlot: View {
     @Environment(\.layoutDirection) private var layoutDirection
 
     let combatantID: String
+    let cardHeight: CGFloat
     let dynamicTypeSize: DynamicTypeSize
     let displayScale: CGFloat
 
     var body: some View {
         CombatFeedbackRasterHost(
             combatantID: combatantID,
+            cardHeight: cardHeight,
             dynamicTypeSize: dynamicTypeSize,
             layoutDirection: layoutDirection,
             displayScale: displayScale
@@ -25,12 +27,14 @@ struct CombatFeedbackRasterSlot: View {
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     let combatantID: String
+    let cardHeight: CGFloat
     let dynamicTypeSize: DynamicTypeSize
     let layoutDirection: LayoutDirection
     let displayScale: CGFloat
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
+        view.cardHeight = cardHeight
         CombatFeedbackChipBridge.register(
             view,
             combatantID: combatantID,
@@ -42,6 +46,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: CombatFeedbackRasterUIView, context _: Context) {
+        uiView.cardHeight = cardHeight
         CombatFeedbackChipBridge.register(
             uiView,
             combatantID: combatantID,
@@ -58,24 +63,26 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 
 final class CombatFeedbackRasterUIView: UIView {
     private final class ChipLayer {
-        let imageView: UIImageView
+        let layer: CALayer
         var canvasItem: CombatFeedbackCanvasItem
         let rasterIdentity: ObjectIdentifier
 
         init(
-            imageView: UIImageView,
+            layer: CALayer,
             canvasItem: CombatFeedbackCanvasItem,
             rasterIdentity: ObjectIdentifier
         ) {
-            self.imageView = imageView
+            self.layer = layer
             self.canvasItem = canvasItem
             self.rasterIdentity = rasterIdentity
         }
     }
 
+    static let preallocatedSlotCount = CombatFeedbackLayout.maxVisibleIndividualChips + 1
+
     private var layersByID: [Int: ChipLayer] = [:]
-    private var reusableImageViews: [UIImageView] = []
-    private var cachedUIImages: [ObjectIdentifier: UIImage] = [:]
+    private var reusableLayers: [CALayer] = []
+    var cardHeight: CGFloat = 0
 
     /// True while any chip is mounted (used by the bridge flush filter).
     var isPresenting: Bool {
@@ -91,6 +98,11 @@ final class CombatFeedbackRasterUIView: UIView {
         super.init(frame: frame)
         isUserInteractionEnabled = false
         clipsToBounds = false
+        for _ in 0 ..< Self.preallocatedSlotCount {
+            let chipLayer = makeLayer()
+            layer.addSublayer(chipLayer)
+            reusableLayers.append(chipLayer)
+        }
     }
 
     @available(*, unavailable)
@@ -102,6 +114,11 @@ final class CombatFeedbackRasterUIView: UIView {
     @MainActor
     static func prewarmMotionClock() {
         CombatFeedbackChipMotionClock.prewarm()
+    }
+
+    @MainActor
+    static var isMotionClockPaused: Bool {
+        CombatFeedbackChipMotionClock.isPaused
     }
 
     @MainActor
@@ -146,127 +163,90 @@ final class CombatFeedbackRasterUIView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         for layer in layersByID.values {
-            layer.imageView.center = CGPoint(x: bounds.midX, y: bounds.midY)
+            layer.layer.position = CGPoint(x: bounds.midX, y: bounds.midY)
         }
     }
 
     fileprivate func tickMotion(at date: Date) {
         for layer in layersByID.values {
-            let pose = compositorPose(for: layer.canvasItem, at: date)
-            layer.imageView.layer.transform = pose.transform
-            layer.imageView.layer.opacity = Float(pose.opacity)
+            let pose = compositorPose(
+                for: layer.canvasItem,
+                chipSize: layer.layer.bounds.size,
+                at: date
+            )
+            layer.layer.transform = pose.transform
+            layer.layer.opacity = Float(pose.opacity)
         }
     }
 
     private func insert(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster) {
-        let imageView = reusableImageViews.popLast() ?? makeImageView()
-        let rasterID = ObjectIdentifier(raster)
-        if let cached = cachedUIImages[rasterID] {
-            imageView.image = cached
+        let chipLayer: CALayer
+        if let reusable = reusableLayers.popLast() {
+            chipLayer = reusable
         } else {
-            let image = UIImage(cgImage: raster.image, scale: raster.displayScale, orientation: .up)
-            cachedUIImages[rasterID] = image
-            imageView.image = image
+            chipLayer = makeLayer()
+            layer.addSublayer(chipLayer)
+            CombatFeedbackRasterHostDiagnostics.noteWarmPathAllocation()
         }
-        imageView.bounds = CGRect(origin: .zero, size: raster.pointSize)
-        imageView.center = CGPoint(x: bounds.midX, y: bounds.midY)
-        imageView.layer.removeAllAnimations()
+        let rasterID = ObjectIdentifier(raster)
+        chipLayer.contents = raster.image
+        chipLayer.contentsScale = raster.displayScale
+        chipLayer.bounds = CGRect(origin: .zero, size: raster.pointSize)
+        chipLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        chipLayer.removeAllAnimations()
         // Same recipe sampling as the old CAKeyframe path; driven by the shared
         // display-link clock so publish does not install animation groups.
-        let pose = compositorPose(for: canvasItem, at: .now)
-        imageView.layer.transform = pose.transform
-        imageView.layer.opacity = Float(pose.opacity)
-        addSubview(imageView)
+        let pose = compositorPose(
+            for: canvasItem,
+            chipSize: raster.pointSize,
+            at: .now
+        )
+        chipLayer.transform = pose.transform
+        chipLayer.opacity = Float(pose.opacity)
+        chipLayer.isHidden = false
 
         layersByID[canvasItem.id] = ChipLayer(
-            imageView: imageView,
+            layer: chipLayer,
             canvasItem: canvasItem,
             rasterIdentity: rasterID
         )
     }
 
-    private func makeImageView() -> UIImageView {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleToFill
-        imageView.isUserInteractionEnabled = false
-        return imageView
+    private func makeLayer() -> CALayer {
+        let chipLayer = CALayer()
+        chipLayer.contentsGravity = .resize
+        chipLayer.isHidden = true
+        return chipLayer
     }
 
     private func recycleLayer(id: Int) {
         guard let layer = layersByID.removeValue(forKey: id) else { return }
-        layer.imageView.layer.removeAllAnimations()
-        layer.imageView.removeFromSuperview()
-        layer.imageView.image = nil
-        layer.imageView.alpha = 1
-        layer.imageView.transform = .identity
-        layer.imageView.layer.transform = CATransform3DIdentity
-        layer.imageView.layer.opacity = 1
-        reusableImageViews.append(layer.imageView)
+        layer.layer.removeAllAnimations()
+        layer.layer.contents = nil
+        layer.layer.transform = CATransform3DIdentity
+        layer.layer.opacity = 1
+        layer.layer.isHidden = true
+        reusableLayers.append(layer.layer)
     }
 
     private func compositorPose(
         for canvasItem: CombatFeedbackCanvasItem,
+        chipSize: CGSize,
         at date: Date
     ) -> (transform: CATransform3D, opacity: Double) {
         let item = canvasItem.item
-        let recipe = TrinketMotion.Battle.chip(for: item.feedbackClass)
-        let count = max(1, item.groupResultCount)
-        let spacing = CombatFeedbackLayout.presentationSpacing(forCount: count)
-        let jitter = CombatFeedbackLayout.horizontalOffset(
-            seed: item.spawnSeed,
-            jitter: recipe.horizontalJitter
+        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
+            cardHeight: cardHeight,
+            chipHeight: chipSize.height
         )
-        let laneOffset = CombatFeedbackLayout.presentationOffset(
-            index: item.presentationIndex,
-            count: count,
-            spacing: spacing
-        )
-        let fanOffset = CombatFeedbackLayout.presentationHorizontalFan(
-            index: item.presentationIndex,
-            count: count
-        )
-        let floatScale = CombatFeedbackLayout.floatTravelScale(forCount: count)
-        var state = CombatFeedbackMotionSampler.state(
+        let state = CombatFeedbackMotionSampler.state(
             for: item,
-            recipe: recipe,
+            travelDistance: travelDistance,
             at: date
         )
-        state.verticalOffset *= Double(floatScale)
-        state.horizontalOffset *= Double(floatScale)
-
-        let rawX = state.horizontalOffset + jitter + fanOffset
-        let rawY = state.verticalOffset + laneOffset
-        let clamped = clampToSlot(
-            x: rawX,
-            y: rawY,
-            scale: state.scale,
-            chipSize: layersByID[canvasItem.id]?.imageView.bounds.size
-                ?? CGSize(width: 80, height: 40)
-        )
         let transform = CGAffineTransform.identity
-            .translatedBy(x: clamped.x, y: clamped.y)
-            .rotated(by: CGFloat(state.rotation * .pi / 180))
-            .scaledBy(x: state.scale, y: state.scale)
+            .translatedBy(x: 0, y: state.verticalOffset)
         return (CATransform3DMakeAffineTransform(transform), state.opacity)
-    }
-
-    /// Keeps chip centers inside the feedback slot so dense packs do not drift
-    /// under the portrait or past the card edges.
-    private func clampToSlot(
-        x: CGFloat,
-        y: CGFloat,
-        scale: Double,
-        chipSize: CGSize
-    ) -> CGPoint {
-        let margin: CGFloat = 4
-        let halfW = max(chipSize.width * CGFloat(scale) / 2, 12)
-        let halfH = max(chipSize.height * CGFloat(scale) / 2, 12)
-        let limitX = max(0, bounds.width / 2 - halfW - margin)
-        let limitY = max(0, bounds.height / 2 - halfH - margin)
-        return CGPoint(
-            x: min(max(x, -limitX), limitX),
-            y: min(max(y, -limitY), limitY)
-        )
     }
 }
 
@@ -282,15 +262,21 @@ private enum CombatFeedbackChipMotionClock {
         weak var view: CombatFeedbackRasterUIView?
     }
 
+    static var isPaused: Bool {
+        displayLink?.isPaused ?? true
+    }
+
     static func register(_ view: CombatFeedbackRasterUIView) {
         hosts[ObjectIdentifier(view)] = WeakHost(view: view)
         ensureDisplayLink()
+        displayLink?.isPaused = false
     }
 
     static func unregister(_ view: CombatFeedbackRasterUIView) {
         hosts.removeValue(forKey: ObjectIdentifier(view))
-        // Keep the display link resident once started. Recreating CADisplayLink on
-        // the next ChipHostApply was a measured publish-frame stall.
+        if hosts.isEmpty {
+            displayLink?.isPaused = true
+        }
     }
 
     /// Starts the shared motion clock before the first measured chip publish.
@@ -302,6 +288,7 @@ private enum CombatFeedbackChipMotionClock {
         guard displayLink == nil else { return }
         let link = CADisplayLink(target: tickTarget, selector: #selector(TickTarget.tick(_:)))
         link.add(to: .main, forMode: .common)
+        link.isPaused = hosts.isEmpty
         displayLink = link
     }
 
@@ -318,6 +305,32 @@ private enum CombatFeedbackChipMotionClock {
         for key in stale {
             hosts.removeValue(forKey: key)
         }
+        if hosts.isEmpty {
+            displayLink?.isPaused = true
+        }
+    }
+}
+
+struct CombatFeedbackHostSnapshot: Equatable, Sendable {
+    let warmPathAllocationCount: Int
+}
+
+@MainActor
+enum CombatFeedbackRasterHostDiagnostics {
+    private static var warmPathAllocationCount = 0
+
+    static func noteWarmPathAllocation() {
+        warmPathAllocationCount += 1
+    }
+
+    static func reset() {
+        warmPathAllocationCount = 0
+    }
+
+    static func snapshot() -> CombatFeedbackHostSnapshot {
+        CombatFeedbackHostSnapshot(
+            warmPathAllocationCount: warmPathAllocationCount
+        )
     }
 }
 

@@ -4,12 +4,10 @@
 
 ## Intent
 
-Confirm unexpected effect ownership and fix a bounded set of high-value seam violations. A clean pass is valid; do not introduce an abstraction merely to move a harmless hit. If several hits share one missing designated seam, prefer proposing that seam over N local relocations — see [README.md](README.md).
+Confirm unexpected effect ownership and fix a bounded set of high-value violations using existing seams. A clean pass is valid. A new seam requires repeated confirmed violations, at least three current uses or an enforced boundary, and proposal approval per [README.md](README.md).
 
 ## Hard stops
 
-- Do not retune balance or change player-facing copy.
-- Do not weaken battle RNG determinism (`rngSeed: 0` in tests).
 - Audio `try?` + log is acceptable; do not “fix” it into crashing paths.
 - Release-shaped CloudKit checklist work belongs in `Docs/Platform/CloudKitPreShipChecklist.md` — not this audit.
 
@@ -39,7 +37,3 @@ Confirm unexpected effect ownership and fix a bounded set of high-value seam vio
 ## Probe hints
 
 Unseeded randomness / `UUID()` / `Date()` in BattleEngine and Core; `UserDefaults`; `FileManager` / encoder I/O; AV types; CloudKit symbols. Triage against the allowlist — do not expect a flat zero.
-
-## Verify
-
-Boundaries + lint; `test-package.sh BattleEngine` and/or `TrinketPersistence` when those packages are touched.

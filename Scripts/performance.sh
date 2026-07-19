@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 LOCK_DIR=".DerivedData/.performance.lock"
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 OUTPUT_DIR="${TRINKET_PERFORMANCE_OUTPUT_DIR:-.DerivedData/PerformanceResults/$TIMESTAMP}"
-# Default one measured report per scenario. Override for diagnostic multi-rep:
+# Default one measured report per scenario. Use five repetitions for formal comparison:
 #   TRINKET_PERFORMANCE_REPETITIONS=5 ./Scripts/performance.sh
 REPETITIONS="${TRINKET_PERFORMANCE_REPETITIONS:-1}"
 
@@ -68,18 +68,19 @@ TRINKET_PERFORMANCE_REPETITIONS="$REPETITIONS" \
 RESULTS_DIR="$OUTPUT_DIR/TestResults" \
 ./Scripts/test.sh performance
 
-if [[ "$REPETITIONS" -gt 1 ]]; then
-  echo "Diagnostic multi-rep complete. Gate compare expects one report/scenario; skipping enforce compare."
-  python3 Scripts/collect-performance-results.py \
-    "$OUTPUT_DIR/TestResults" \
-    "$OUTPUT_DIR/reports.json"
-  echo "App performance artifacts: $OUTPUT_DIR"
-  exit 0
-fi
-
 python3 Scripts/collect-performance-results.py \
   "$OUTPUT_DIR/TestResults" \
   "$OUTPUT_DIR/reports.json"
+if [[ "$REPETITIONS" -gt 1 ]]; then
+  python3 Scripts/aggregate-performance-results.py \
+    --results "$OUTPUT_DIR/reports.json" \
+    --output "$OUTPUT_DIR/aggregate.json" \
+    --summary "$OUTPUT_DIR/aggregate.md" \
+    --expected-repetitions "$REPETITIONS"
+  echo "Repeated app performance artifacts: $OUTPUT_DIR"
+  exit 0
+fi
+
 python3 Scripts/compare-performance.py \
   --baseline Performance/Baselines/simulator-60.json \
   --results "$OUTPUT_DIR/reports.json" \

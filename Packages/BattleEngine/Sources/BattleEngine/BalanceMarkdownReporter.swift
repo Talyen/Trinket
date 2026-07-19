@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 
 public enum BalanceMarkdownReporter {

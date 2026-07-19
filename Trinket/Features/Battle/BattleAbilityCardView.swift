@@ -13,17 +13,11 @@ struct BattleAbilityCardView: View {
     var configuration: BattleHandMotionConfiguration = .init()
     let restingCenter: CGPoint
     let hapticsEnabled: Bool
-    /// Lab-only forced drag (cancel-replay). When non-nil, gestures are disabled.
-    var forcedDragTranslation: CGSize?
-    /// Lab/harness: bump while forced-dragging to commit via production `beginPlay`.
-    var forcedPlayCommitGeneration: Int = 0
     let onTap: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     var onAttackWindUp: (() -> Void)?
     var onAttackCancel: (() -> Void)?
-    /// Clears harness forced-drag after a synthetic play commit is consumed.
-    var onForcedPlayConsumed: (() -> Void)?
 
     @State private var dragTranslation: CGSize = .zero
     @State private var predictedEndTranslation: CGSize = .zero
@@ -34,22 +28,14 @@ struct BattleAbilityCardView: View {
     @State private var playArmFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
-    @State private var lastConsumedForcedPlayGeneration = 0
 
     private var playDragThreshold: CGFloat {
         configuration.playDragThreshold
     }
 
-    private var effectiveDragTranslation: CGSize {
-        forcedDragTranslation ?? dragTranslation
-    }
-
-    private var isActivelyHeld: Bool {
-        forcedDragTranslation != nil || isDragging
-    }
-
     var body: some View {
         BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
+            .equatable()
             .frame(width: width, height: height)
             .opacity(isPlayable ? 1 : 0.45)
             .brightness(isPlayArmed ? configuration.armedBrightness : 0)
@@ -66,23 +52,22 @@ struct BattleAbilityCardView: View {
             .scaleEffect(x: activeScale.width, y: activeScale.height)
             .rotationEffect(.degrees(activeRotation), anchor: .bottom)
             .rotation3DEffect(
-                .degrees(isActivelyHeld ? verticalTilt : 0),
+                .degrees(isDragging ? verticalTilt : 0),
                 axis: (x: 1, y: 0, z: 0),
                 anchor: .bottom,
                 perspective: configuration.perspective
             )
             .offset(activeOffset)
             .shadow(
-                color: isActivelyHeld ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-                radius: isActivelyHeld ? configuration.cardHeldShadowRadius : 0,
-                y: isActivelyHeld ? configuration.cardHeldShadowY : 0
+                color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+                radius: configuration.cardHeldShadowRadius,
+                y: configuration.cardHeldShadowY
             )
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged(updateDrag)
                     .onEnded(endDrag)
             )
-            .allowsHitTesting(forcedDragTranslation == nil)
             .trinketSensoryFeedback(
                 .selection,
                 trigger: playArmFeedbackToken,
@@ -93,48 +78,6 @@ struct BattleAbilityCardView: View {
                 trigger: denyFeedbackToken,
                 enabled: hapticsEnabled
             )
-            .onChange(of: forcedDragTranslation) { _, forced in
-                guard let forced else {
-                    isPlayArmed = false
-                    if didAnnounceWindUp {
-                        didAnnounceWindUp = false
-                        onAttackCancel?()
-                    }
-                    onInteractionChanged(false)
-                    return
-                }
-                if !didExceedTapSlop,
-                   BattleHandLayout.exceedsTapSlop(
-                       translation: forced,
-                       minimumDistance: configuration.dragMinimumDistance
-                   ) {
-                    didExceedTapSlop = true
-                    if !didAnnounceWindUp {
-                        didAnnounceWindUp = true
-                        onAttackWindUp?()
-                    }
-                }
-                let armed = BattleHandLayout.shouldRemainPlayArmed(
-                    translation: forced,
-                    isPlayable: isPlayable,
-                    threshold: playDragThreshold,
-                    playArmReleaseRatio: configuration.playArmReleaseRatio,
-                    armedHorizontalAllowance: configuration.armedHorizontalAllowance,
-                    currentlyArmed: isPlayArmed
-                )
-                if armed, !isPlayArmed {
-                    playArmFeedbackToken &+= 1
-                }
-                isPlayArmed = armed
-                onInteractionChanged(true)
-            }
-            .onChange(of: forcedPlayCommitGeneration) { _, generation in
-                guard generation > lastConsumedForcedPlayGeneration,
-                      forcedDragTranslation != nil else { return }
-                lastConsumedForcedPlayGeneration = generation
-                beginPlay()
-                onForcedPlayConsumed?()
-            }
             .onDisappear {
                 onInteractionChanged(false)
             }
@@ -146,8 +89,8 @@ struct BattleAbilityCardView: View {
     private var activeOffset: CGSize {
         let resting = restingTranslation
         return CGSize(
-            width: resting.width + (isActivelyHeld ? effectiveDragTranslation.width : 0),
-            height: resting.height + (isActivelyHeld ? effectiveDragTranslation.height : 0)
+            width: resting.width + (isDragging ? dragTranslation.width : 0),
+            height: resting.height + (isDragging ? dragTranslation.height : 0)
         )
     }
 
@@ -156,9 +99,9 @@ struct BattleAbilityCardView: View {
     }
 
     private var activeRotation: Double {
-        guard isActivelyHeld else { return restingRotation }
+        guard isDragging else { return restingRotation }
         return restingRotation + BattleHandLayout.heldTilt(
-            translation: effectiveDragTranslation,
+            translation: dragTranslation,
             predictedEndTranslation: predictedEndTranslation,
             cardWidth: width,
             maximumDegrees: configuration.effectiveHeldTiltDegrees
@@ -168,7 +111,7 @@ struct BattleAbilityCardView: View {
     private var verticalTilt: Double {
         min(
             max(
-                Double(-effectiveDragTranslation.height / height) * configuration.verticalTiltGain,
+                Double(-dragTranslation.height / height) * configuration.verticalTiltGain,
                 -configuration.verticalTiltClamp
             ),
             configuration.verticalTiltClamp
@@ -176,7 +119,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        guard isActivelyHeld else { return CGSize(width: 1, height: 1) }
+        guard isDragging else { return CGSize(width: 1, height: 1) }
         var base = configuration.cardHeldScale
         if isPlayArmed {
             base += configuration.armedScaleBoost
@@ -189,7 +132,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func updateDrag(_ value: DragGesture.Value) {
-        guard forcedDragTranslation == nil else { return }
         if !isDragging {
             withAnimation(configuration.cardPress) {
                 isDragging = true
@@ -249,7 +191,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
-        guard forcedDragTranslation == nil else { return }
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
             didExceedTapSlop: didExceedTapSlop,
@@ -294,7 +235,7 @@ struct BattleAbilityCardView: View {
         // positions to (avoids per-frame geometry probe invalidation while dragging).
         let center = BattleHandLayout.releaseCenter(
             restingCenter: restingCenter,
-            dragTranslation: effectiveDragTranslation
+            dragTranslation: dragTranslation
         )
         let request = CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
@@ -306,21 +247,28 @@ struct BattleAbilityCardView: View {
             perspective: configuration.perspective,
             keywords: card.ability.keywords
         )
+        let hadWindUp = didAnnounceWindUp
+        didAnnounceWindUp = false
+        // End parent-held state before publishing the hand mutation. Otherwise
+        // this card's onDisappear performs nested state work during sibling reflow.
+        onInteractionChanged(false)
         let didPlay = onPlay(request)
         if didPlay {
-            // Cast commits swing via BattleView; clear wind-up flag without cancel.
-            didAnnounceWindUp = false
-            onInteractionChanged(false)
             return
         }
+        didAnnounceWindUp = hadWindUp
         returnDrag()
     }
 }
 
-struct BattleAbilityCardFace: View {
+struct BattleAbilityCardFace: View, Equatable {
     let artworkName: String?
 
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+
+    nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.artworkName == rhs.artworkName
+    }
 
     var body: some View {
         Group {

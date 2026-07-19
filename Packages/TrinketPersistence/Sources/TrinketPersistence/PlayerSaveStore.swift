@@ -48,32 +48,35 @@ public final class PlayerSaveStore {
     #endif
 
     public var journey: JourneyProgressState {
-        get { currentSave.journey }
+        get { root.journey?.toJourneyProgressState() ?? .initial }
         set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
     }
 
     public var roster: PlayerRosterState {
-        get { currentSave.roster }
+        get {
+            let inventory = root.inventory?.toPlayerInventoryState() ?? .freshStart
+            return root.roster?.toPlayerRosterState(inventory: inventory) ?? .freshStart
+        }
         set { mutate { $0.roster = newValue } }
     }
 
     public var inventory: PlayerInventoryState {
-        get { currentSave.inventory }
+        get { root.inventory?.toPlayerInventoryState() ?? .freshStart }
         set { mutate { $0.inventory = newValue } }
     }
 
     public var homestead: PlayerHomesteadState {
-        get { currentSave.homestead }
+        get { root.homestead?.toPlayerHomesteadState() ?? .freshStart }
         set { mutate { $0.homestead = newValue } }
     }
 
     public var aspects: PlayerAspectsState {
-        get { currentSave.aspects }
+        get { root.aspects?.toPlayerAspectsState() ?? .freshStart }
         set { mutate { $0.aspects = PlayerSaveSanitizer.sanitizeAspects(newValue) } }
     }
 
     public var labyrinth: PlayerLabyrinthState {
-        get { currentSave.labyrinth }
+        get { root.labyrinth?.toPlayerLabyrinthState() ?? .freshStart }
         set { mutate { $0.labyrinth = PlayerSaveSanitizer.sanitizeLabyrinth(newValue) } }
     }
 

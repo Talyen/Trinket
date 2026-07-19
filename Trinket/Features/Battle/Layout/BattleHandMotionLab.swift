@@ -13,10 +13,8 @@ private struct HandMotionPlayground: View {
     @State private var showFanLabels = false
     @State private var cards: [BattleCard] = HandMotionPlayground.makeCards(count: 5)
     @State private var dealGeneration = 0
-    @State private var forcedDrag = BattleForcedDragState()
     @State private var releasePose: CardActivationRequest?
     @State private var copiedBannerVisible = false
-    @State private var cancelDemoTask: Task<Void, Never>?
     @State private var releasePoseTask: Task<Void, Never>?
 
     var body: some View {
@@ -47,7 +45,6 @@ private struct HandMotionPlayground: View {
             rebuildHand(count: Int(cardCount.rounded()))
         }
         .onDisappear {
-            cancelDemoTask?.cancel()
             releasePoseTask?.cancel()
         }
     }
@@ -75,8 +72,7 @@ private struct HandMotionPlayground: View {
                     },
                     hapticsEnabled: false,
                     battleFrame: battleFrame,
-                    configuration: configuration,
-                    forcedDrag: forcedDrag
+                    configuration: configuration
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -configuration.bottomRise)
@@ -244,7 +240,6 @@ private struct HandMotionPlayground: View {
             Toggle("Show threshold guides", isOn: $showThresholdGuides)
             Toggle("Show fan angle labels", isOn: $showFanLabels)
             Button("Replay Deal") { replayDeal() }
-            Button("Replay Cancel") { replayCancel() }
             Button("Clear Release Pose") { releasePose = nil }
                 .disabled(releasePose == nil)
         }
@@ -439,8 +434,6 @@ private struct HandMotionPlayground: View {
                 }
             }
             Button("Reset Defaults") {
-                cancelDemoTask?.cancel()
-                forcedDrag.clear()
                 releasePose = nil
                 configuration = BattleHandMotionConfiguration()
                 includeUnplayableCard = true
@@ -457,15 +450,11 @@ private struct HandMotionPlayground: View {
     // MARK: - Actions
 
     private func rebuildHand(count: Int) {
-        cancelDemoTask?.cancel()
-        forcedDrag.clear()
         cards = Self.makeCards(count: max(1, min(5, count)))
         dealGeneration &+= 1
     }
 
     private func replayDeal() {
-        cancelDemoTask?.cancel()
-        forcedDrag.clear()
         releasePose = nil
         let count = Int(cardCount.rounded())
         cards = []
@@ -478,30 +467,7 @@ private struct HandMotionPlayground: View {
         }
     }
 
-    private func replayCancel() {
-        cancelDemoTask?.cancel()
-        releasePose = nil
-        guard let target = cards.first(where: { card in
-            !(includeUnplayableCard && card.id == cards.first?.id)
-        }) ?? cards.first else { return }
-
-        let lift = CGSize(width: 0, height: -(configuration.playDragThreshold * 0.85))
-        withAnimation(configuration.cardPress) {
-            forcedDrag.set(cardID: target.id, translation: lift)
-        }
-
-        cancelDemoTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(450))
-            guard !Task.isCancelled else { return }
-            withAnimation(configuration.cardReturn) {
-                forcedDrag.clear()
-            }
-        }
-    }
-
     private func handleSuccessfulPlay(card: BattleCard, request: CardActivationRequest) -> Bool {
-        cancelDemoTask?.cancel()
-        forcedDrag.clear()
         releasePoseTask?.cancel()
         releasePose = request
         cards.removeAll { $0.id == card.id }

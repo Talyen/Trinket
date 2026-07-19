@@ -2,17 +2,15 @@
 
 **Goal:** Improve confirmed UI-test reliability, signal, and tier fit without weakening product coverage.
 
-**Siblings:** unit/package → [UnitTestAudit.md](UnitTestAudit.md); product interaction/a11y → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md). Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
+Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Intent
 
-Confirm P0–P2 UI-test candidates with a focused current run, then make a bounded set of fixes. A clean pass is valid. If several flakes or weak assertions share one page-object or harness gap, prefer that root-cause remedy — and propose when significant per [README.md](README.md).
+Confirm P0–P2 candidates with one focused class/method run, then prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it.
 
 ## Hard stops
 
 - XCTest stays for `TrinketUITests/` (`XCUIApplication`). Do not migrate UI tests to Swift Testing.
-- Do not remove `accessibilityIdentifier` values used by UI tests.
-- Do not weaken battle determinism.
 - Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals.
 - Do not invent wall-clock budgets that conflict with Testing.md / `AGENTS.md` (smoke is a short UI-only plan).
 - Do not expand into unit XCTest→Testing migration (UnitTestAudit + `check-swift-testing-migration.sh`).
@@ -39,14 +37,10 @@ Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer `
 
 ## Domain rules
 
-UI tests run **serially** on a single simulator — do not assume parallel UI execution when “fixing” flakes. Prefer page objects (`PlayScreen`, `TabBar`, …) over raw identifier strings. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
+UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
 
-**Allowed fixes:** shorten excessive waits after deep-link launch; move multi-step assertions from smoke → exhaustive; replace scroll hunts with launch args; use page objects / `assertExists` consistently.
+**Allowed fixes:** delete duplicate journeys/assertions; shorten excessive waits after deep-link launch; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; replace scroll hunts with launch args; reuse page objects / `assertExists` consistently.
 
 ## Probe hints
 
 `Task.sleep` / long `waitForExistence`; scroll-hunt helpers; existence-only asserts; launch-arg coverage; smoke vs exhaustive test weight; `UserDefaults.standard` / `continueAfterFailure` isolation smells. Timing history (`test-timing.sh`) is a lead, not proof.
-
-## Verify
-
-`lint.sh` + boundaries; `test.sh smoke`; targeted `test.sh ui <ClassName>` if an exhaustive class was touched. Skip smoke/UI when the simulator is absent; note skips.

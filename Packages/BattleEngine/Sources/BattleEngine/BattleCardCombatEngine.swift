@@ -235,6 +235,7 @@ public enum BattleCardCombatEngine {
     /// Returns defeated-owner cards from hand/buffer to their decks so dead
     /// companion/hero cards cannot permanently fill hand slots.
     private static func discardDefeatedOwnerCards(context: inout BattleEngineContext) {
+        guard !context.roster.hero.isAlive || !context.roster.companion.isAlive else { return }
         let survivingHand = context.hand.cards.filter { context.roster[$0.owner].isAlive }
         for card in context.hand.cards where !context.roster[card.owner].isAlive {
             putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
@@ -255,6 +256,7 @@ public enum BattleCardCombatEngine {
     /// Moves buffered cards into the hand in FIFO order until the hand is full.
     /// Skips defeated-owner cards (defensive; callers also purge before promote).
     private static func promoteFromBuffer(context: inout BattleEngineContext) {
+        guard !context.handBuffer.isEmpty else { return }
         while !context.hand.isFull {
             guard let card = context.handBuffer.dequeue() else { return }
             guard context.roster[card.owner].isAlive else {

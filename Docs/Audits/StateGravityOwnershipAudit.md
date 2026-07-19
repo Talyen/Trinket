@@ -2,11 +2,9 @@
 
 **Goal:** Pull misplaced rules, persistence, and presentation logic out of gravity wells (`AppState`, fat sessions, mega-views) into the owners defined by Architecture — without inventing new hubs.
 
-**Siblings:** package/layer import gate → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md); copy-paste screens → [DuplicateFeatureSurfaceAudit.md](DuplicateFeatureSurfaceAudit.md); ceremony / wrappers → [InelegantSlopAudit.md](InelegantSlopAudit.md); persistence correctness → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md); combat/RNG seams → [SideEffectSurfaceAudit.md](SideEffectSurfaceAudit.md).
-
 ## Intent
 
-Confirm one cohesive ownership drift cluster: logic that accumulated in `Trinket/State`, a giant feature view, or a facade hub that Architecture says should stay thin. Restore ownership to the existing package or layer. A clean pass is valid. Local moves that fully restore ownership may ship in-pass; significant extractions, package moves, or hub splits are propose-and-stop per [README.md](README.md).
+Confirm one ownership-drift cluster and restore it to an existing owner. Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
 
 ## What “state gravity” means here
 
@@ -25,11 +23,9 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 
 ## Hard stops
 
-- Do not invent a new package, DI container, or second app-wide store to “fix” gravity.
 - Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, catalog/codegen boundaries, Options/`UserDefaults` vs `PlayerSave`.
 - Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
-- Do not change player-facing balance, copy, or `accessibilityIdentifier` values unless required to restore a broken boundary.
 - Prefer ImportCoupling when the only issue is a failing `check-module-boundaries.sh` row with an obvious one-file fix.
 
 ## Confirm before fixing
@@ -41,7 +37,7 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 
 ## Restoration order
 
-1. **Move** pure rules into `BattleEngine` / `TrinketCore` with package tests proving behavior.
+1. **Move** pure rules into `BattleEngine` / `TrinketCore`; reuse or relocate the existing semantic test owner rather than duplicating it.
 2. **Move** persistence policy into `TrinketPersistence` store slices / sanitizer / models — keep `PlayerSaveStore` a thin facade.
 3. **Keep** tab orchestration, launch args, and cross-feature session wiring on `AppState` / thin `*Session` types in `Trinket/State`.
 4. **Keep** active-battle config and victory orchestration in `BattleShell/` (must not import `Features/`).
@@ -71,7 +67,3 @@ Follow Architecture ownership and app-layer imports:
 ## Probe hints
 
 Size/`AppState+*` surface area; methods on `AppState` / `BattleSession` that encode battle math, reward policy, or save sanitizing; feature views that call persistence APIs with inline business rules; growth of `BattleState` / `PlayerSaveStore` type bodies; new `*Manager`/`*Coordinator` types beside existing sessions. Cross-check against Architecture module and hub tables before proposing a move.
-
-## Verify
-
-`check-module-boundaries.sh` + `lint.sh` always. Package tests for moved rules (`test-package.sh BattleEngine` / `TrinketPersistence` as touched). Focused `test.sh unit` / smoke when `AppState` or feature flows change. `build.sh` when imports move across targets (toolchain permitting).

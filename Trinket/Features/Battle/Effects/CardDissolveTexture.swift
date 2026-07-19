@@ -177,8 +177,7 @@ enum CardDissolveTexture {
     /// Baked alpha mask for a quantized dissolve progress (no SwiftUI filter chain).
     ///
     /// Production and warm paths sync-bake on a rare cache miss so cast and
-    /// enemy-death dissolves keep the noise wipe. Only the cold-cast performance
-    /// scenario returns a provisional fade so measurement stays honest.
+    /// enemy-death dissolves keep the noise wipe.
     static func thresholdMaskImage(
         progress: CGFloat,
         edgeDepthWeight: CGFloat = 0.86,
@@ -202,15 +201,6 @@ enum CardDissolveTexture {
         )
         if let cached = cache.cachedThresholdImage(key: key) {
             return cached
-        }
-        if AppEnvironment.shared.battlePerformanceScenario == .firstCardCastCold {
-            // Schedule the full bake off-actor; do not block the cold measurement path.
-            _ = prewarmTask(
-                edgeDepthWeight: edgeDepthWeight,
-                noiseWeight: noiseWeight,
-                cellSize: clampedCell
-            )
-            return cache.provisionalThresholdImage(progressStep: step)
         }
         return bakeThresholdMaskImage(
             progress: progress,

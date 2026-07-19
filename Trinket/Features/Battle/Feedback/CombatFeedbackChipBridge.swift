@@ -7,9 +7,9 @@ import TrinketDesignSystem
 enum CombatFeedbackChipBridge {
     private static var hosts: [ObjectIdentifier: WeakHost] = [:]
     private static var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
-    private static var pendingAvailabilityTask: Task<Void, Never>?
-    /// Future `availableAt` wake times for the long-lived availability loop.
-    private static var pendingAvailabilityDates: [Date] = []
+    private static var availabilityTimer: Timer?
+    private static let availabilityTimerTarget = AvailabilityTimerTarget()
+    private static var nextAvailabilityDate: Date?
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
@@ -86,60 +86,53 @@ enum CombatFeedbackChipBridge {
         case .reset:
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
-            pendingAvailabilityDates.removeAll(keepingCapacity: true)
+            nextAvailabilityDate = nil
         }
 
         // Refresh applies visible chips immediately (compose on miss).
         refreshHosts(for: affectedTargets)
-        noteAvailabilityWakeTimes()
+        updateAvailabilityWakeTime()
     }
 
-    /// Publish frames only record future `availableAt` dates. A single long-lived
-    /// loop sleeps until those dates — no Task cancel/realloc on every insert.
-    private static func noteAvailabilityWakeTimes() {
+    /// Publish frames only update a resident timer's fire date. No idle polling or
+    /// per-publish Task allocation is required.
+    private static func updateAvailabilityWakeTime() {
         let now = Date()
-        let dates = Set(itemsByTarget.values.flatMap(\.values).compactMap { item in
-            item.availableAt > now ? item.availableAt : nil
-        }).sorted()
-        pendingAvailabilityDates = dates
-        ensureAvailabilityLoopRunning()
-    }
-
-    private static func ensureAvailabilityLoopRunning() {
-        guard pendingAvailabilityTask == nil else { return }
-        pendingAvailabilityTask = Task { @MainActor in
-            while !Task.isCancelled {
-                guard let fireAt = pendingAvailabilityDates.first else {
-                    // Must stay interruptible: a 1s park made staggered chips miss
-                    // their lifetime after publish bumped new availableAt dates.
-                    try? await Task.sleep(for: .milliseconds(16))
-                    continue
-                }
-                let delay = fireAt.timeIntervalSinceNow
-                if delay > 0.016 {
-                    // Chunk long waits so an earlier availableAt published mid-sleep
-                    // is observed within one display frame.
-                    try? await Task.sleep(for: .milliseconds(16))
-                    continue
-                }
-                if delay > 0 {
-                    try? await Task.sleep(for: .seconds(delay))
-                }
-                guard !Task.isCancelled else { return }
-                // Cleared / reset while sleeping — do not refresh from a stale wake.
-                guard let currentFirst = pendingAvailabilityDates.first else { continue }
-                if currentFirst > fireAt {
-                    continue
-                }
-                pendingAvailabilityDates.removeAll { $0 <= fireAt }
-                let targets = Set(itemsByTarget.compactMap { targetID, items in
-                    items.values.contains { $0.availableAt <= fireAt && fireAt < $0.expiresAt }
-                        ? targetID
-                        : nil
-                })
-                refreshHosts(for: targets)
+        var earliest: Date?
+        for items in itemsByTarget.values {
+            for item in items.values where item.availableAt > now {
+                earliest = min(earliest ?? item.availableAt, item.availableAt)
             }
         }
+        nextAvailabilityDate = earliest
+        scheduleAvailabilityTimer()
+    }
+
+    private static func scheduleAvailabilityTimer() {
+        if availabilityTimer == nil {
+            let timer = Timer(
+                timeInterval: 86400,
+                target: availabilityTimerTarget,
+                selector: #selector(AvailabilityTimerTarget.fire),
+                userInfo: nil,
+                repeats: false
+            )
+            timer.fireDate = .distantFuture
+            RunLoop.main.add(timer, forMode: .common)
+            availabilityTimer = timer
+        }
+        availabilityTimer?.fireDate = nextAvailabilityDate ?? .distantFuture
+    }
+
+    fileprivate static func availabilityTimerDidFire() {
+        let now = Date.now
+        let targets = Set(itemsByTarget.compactMap { targetID, items in
+            items.values.contains { $0.availableAt <= now && now < $0.expiresAt }
+                ? targetID
+                : nil
+        })
+        refreshHosts(for: targets)
+        updateAvailabilityWakeTime()
     }
 
     private static func refreshHosts(for targetIDs: Set<String>) {
@@ -205,5 +198,12 @@ enum CombatFeedbackChipBridge {
             }
         }
         view.apply(chips: chips)
+    }
+}
+
+@MainActor
+private final class AvailabilityTimerTarget: NSObject {
+    @objc func fire() {
+        CombatFeedbackChipBridge.availabilityTimerDidFire()
     }
 }

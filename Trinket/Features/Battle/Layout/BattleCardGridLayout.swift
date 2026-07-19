@@ -21,6 +21,25 @@ enum BattleCardGridLayout {
         let handReservedHeight: CGFloat
     }
 
+    struct FeedbackAnchors: Equatable {
+        let enemy: CGPoint
+        let hero: CGPoint
+        let companion: CGPoint
+    }
+
+    static func feedbackAnchors(containerWidth: CGFloat, layout: Metrics) -> FeedbackAnchors {
+        let centerX = containerWidth / 2
+        let partyCenterY = layout.enemySize.height
+            + layout.cardSpacing
+            + layout.partySize.height / 2
+        let partyCenterOffset = (layout.partySize.width + layout.cardSpacing) / 2
+        return FeedbackAnchors(
+            enemy: CGPoint(x: centerX, y: layout.enemySize.height / 2),
+            hero: CGPoint(x: centerX - partyCenterOffset, y: partyCenterY),
+            companion: CGPoint(x: centerX + partyCenterOffset, y: partyCenterY)
+        )
+    }
+
     static func metrics(in containerSize: CGSize, handReservedHeight: CGFloat = handReservedHeight) -> Metrics {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
         let innerHeight = max(

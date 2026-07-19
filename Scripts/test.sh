@@ -432,6 +432,11 @@ XCODEBUILD_ARGS=(
   -derivedDataPath "$DERIVED_DATA_PATH"
   -resultBundlePath "$RESULT_BUNDLE_PATH"
 )
+if [[ "$MODE" == "performance" ]]; then
+  # Keep DEBUG-only deterministic instrumentation while compiling the measured
+  # app and test bundles with release-style Swift optimization.
+  XCODEBUILD_ARGS+=(SWIFT_OPTIMIZATION_LEVEL=-O)
+fi
 if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
   XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
 fi

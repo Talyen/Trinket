@@ -1,4 +1,5 @@
 import BattleEngine
+import Observation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
@@ -9,14 +10,12 @@ struct BattleView: View {
     @Environment(\.displayScale) private var displayScale
     @State private var persistFailureMessage: StageMapMessage?
     @State private var castPresentation = BattleCastPresentationState()
-    @State private var performanceForcedDrag = BattleForcedDragState()
     /// Offscreen first-hand cast prime so production play does not cold-mount
     /// card face + mask + particles together.
     @State private var handCastPrewarmArtwork: String?
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
-    @State private var suppressCombatantTaps = false
-    @State private var handInteractionGeneration = 0
+    @State private var interactionState = BattleInteractionState()
     @Namespace private var cinematicNamespace
 
     private let configuration: ActiveBattleConfiguration
@@ -159,15 +158,17 @@ struct BattleView: View {
                     layout: layout,
                     enemyPane: projectedCombatantPane(.enemy),
                     heroPane: projectedCombatantPane(.hero),
-                    companionPane: projectedCombatantPane(.companion)
+                    companionPane: projectedCombatantPane(.companion),
+                    interactionState: interactionState
                 )
-                .allowsHitTesting(!suppressCombatantTaps)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+                feedbackOverlay(layout: layout, battleSession: battleSession)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 BattleHandProjectionLane(
                     presentation: battleSession.presentation,
                     battleSize: geometry.size,
-                    forcedDrag: performanceForcedDrag,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onAttackWindUp: beginPartyAttackWindUp(for:),
@@ -204,8 +205,7 @@ struct BattleView: View {
                         appState: appState,
                         battleSession: battleSession,
                         battleSize: geometry.size,
-                        castPresentation: castPresentation,
-                        forcedDrag: performanceForcedDrag
+                        castPresentation: castPresentation
                     )
                     .zIndex(20)
                 }
@@ -216,27 +216,32 @@ struct BattleView: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
-    private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
-        BattleFramePacingSignposts.event(
-            BattleFramePacingSignposts.Name.cardCommit,
-            detail: "card=\(card.id) ability=\(card.ability.id) owner=\(card.owner)"
+    private func feedbackOverlay(
+        layout: BattleCardGridLayout.Metrics,
+        battleSession: BattleSession
+    ) -> BattlefieldFeedbackOverlay {
+        BattlefieldFeedbackOverlay(
+            layout: layout,
+            enemyID: battleSession.state?.enemy.id,
+            heroID: battleSession.state?.hero.id,
+            companionID: battleSession.state?.companion.id
         )
-        let didPlay = playCard(cardID: card.id)
-        guard didPlay else { return false }
-        #if DEBUG
-        let scenario = AppEnvironment.shared.battlePerformanceScenario
-        let skipSwing = scenario == .playRealNoSwing
-        let skipCast = scenario == .playRealNoCast
-        #else
-        let skipSwing = false
-        let skipCast = false
-        #endif
-        if !skipSwing, let combatantID = appState.battle.combatantID(for: card.owner) {
+    }
+
+    private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
+        let outcome = appState.battle.playCard(
+            cardID: card.id,
+            journey: appState.journey,
+            homestead: appState.homestead
+        )
+        guard case let .committed(earnedGold) = outcome else { return false }
+        if let earnedGold {
+            completeClaimedStageVictoryIfNeeded(earnedGold: earnedGold)
+        }
+        if let combatantID = appState.battle.combatantID(for: card.owner) {
             appState.battle.commitAttackSwing(for: combatantID)
         }
-        if !skipCast {
-            castPresentation.append(request)
-        }
+        castPresentation.append(request)
         return true
     }
 
@@ -248,19 +253,6 @@ struct BattleView: View {
     private func cancelPartyAttack(for card: BattleCard) {
         guard let combatantID = appState.battle.combatantID(for: card.owner) else { return }
         appState.battle.cancelAttack(for: combatantID)
-    }
-
-    private func playCard(cardID: Int) -> Bool {
-        let wasInHand = appState.battle.hand.contains { $0.id == cardID }
-        guard wasInHand else { return false }
-        if let earnedGold = appState.battle.playCard(
-            cardID: cardID,
-            journey: appState.journey,
-            homestead: appState.homestead
-        ) {
-            completeClaimedStageVictoryIfNeeded(earnedGold: earnedGold)
-        }
-        return !appState.battle.hand.contains { $0.id == cardID }
     }
 
     private func wireAutoEndTurn(_ battleSession: BattleSession) {
@@ -312,7 +304,7 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant) {
-        guard !suppressCombatantTaps,
+        guard !interactionState.suppressCombatantTaps,
               let battleState = appState.battle.state else { return }
         appState.battle.presentCombatantDetail(
             CombatantCardDetail.battleSnapshot(
@@ -325,19 +317,14 @@ struct BattleView: View {
     }
 
     private func updateCombatantTapSuppression(_ isHandInteracting: Bool) {
-        if isHandInteracting {
-            handInteractionGeneration &+= 1
-            suppressCombatantTaps = true
-            return
-        }
-
-        let generation = handInteractionGeneration
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(BattleHandLayout.combatantTapSuppressionGrace))
-            guard generation == handInteractionGeneration else { return }
-            suppressCombatantTaps = false
-        }
+        interactionState.suppressCombatantTaps = isHandInteracting
     }
+}
+
+@MainActor
+@Observable
+final class BattleInteractionState {
+    var suppressCombatantTaps = false
 }
 
 private struct BattleCombatantProjectionPane: View {
@@ -388,7 +375,6 @@ private struct BattleHandProjectionLane: View {
 
     let presentation: BattlePresentationState
     let battleSize: CGSize
-    let forcedDrag: BattleForcedDragState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     let onAttackWindUp: (BattleCard) -> Void
@@ -416,7 +402,6 @@ private struct BattleHandProjectionLane: View {
             hapticsEnabled: appState.options.hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
             configuration: .init(),
-            forcedDrag: forcedDrag,
             onCardInteractionChanged: onInteractionChanged,
             onAttackWindUp: onAttackWindUp,
             onAttackCancel: onAttackCancel
@@ -475,7 +460,7 @@ private extension BattleView {
         // Start prune / multimodal loops, paced raster prepare, and the chip motion
         // clock before the first chip publish so that frame only bumps dates /
         // enqueues work / inserts layers.
-        appState.battle.scheduleFeedbackPruneIfNeeded(at: .now)
+        appState.battle.prepareFeedbackScheduler()
         CombatFeedbackRasterPool.shared.prewarmPacedPrepareLoop()
         CombatFeedbackRasterUIView.prewarmMotionClock()
         let handArtNames = appState.battle.hand.compactMap { $0.ability.artReference?.imageName }
@@ -483,57 +468,7 @@ private extension BattleView {
         Task { @MainActor in
             await PreparedArtworkCache.shared.prepareAndPin(names: handArtNames)
         }
-        // Prime the full cast stack with the lead hand card (invisible). Skip the
-        // cold-cast performance scenario so its measurement stays honest.
-        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-            handCastPrewarmArtwork = handArtNames[0]
-        }
-    }
-}
-
-@MainActor
-enum BattlePresentationWarmup {
-    private static var preparedEffectsKey: String?
-
-    static func prepare(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) {
-        Task { @MainActor in
-            await prepareAndWait(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-        }
-    }
-
-    static func prepareAndWait(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) async {
-        let key = "\(dynamicTypeSize)|\(Int((displayScale * 100).rounded()))"
-        preparedEffectsKey = key
-        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-            await CardDissolveTexture.prepare()
-        }
-        await CombatFeedbackRasterPool.shared.prewarmInfrastructureAndWait(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-    }
-
-    static func prepareForLaunch(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) async {
-        let key = "\(dynamicTypeSize)|\(Int((displayScale * 100).rounded()))"
-        preparedEffectsKey = key
-        if AppEnvironment.shared.battlePerformanceScenario != .firstCardCastCold {
-            await CardDissolveTexture.prepare()
-        }
-        await CombatFeedbackRasterPool.shared.prewarmInfrastructureAndWait(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
+        // Prime the full cast stack with the lead hand card (invisible).
+        handCastPrewarmArtwork = handArtNames[0]
     }
 }

@@ -106,7 +106,7 @@ extension BattleSession {
         if !deferredFeedbackEvents.isEmpty {
             deferredFeedbackEvents = []
         }
-        recordFeedbackEvents(deferred, at: date, stagger: TrinketMotion.Battle.ultimateChipStagger)
+        recordFeedbackEvents(deferred, at: date)
         presentDeferredOutcomeIfNeeded(at: date)
     }
 
@@ -293,14 +293,9 @@ extension BattleSession {
     }
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
-        #if DEBUG
-        if performanceSuppressFeedbackPresentation {
-            return
-        }
-        #endif
         let nonMilestone = events.filter { $0.kind != .milestone }
         guard let state else {
-            recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
+            recordFeedbackEvents(nonMilestone, at: date)
             return
         }
         let heroID = state.hero.id
@@ -318,7 +313,7 @@ extension BattleSession {
                 actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
             ) ?? false
             if autoSkip {
-                recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
+                recordFeedbackEvents(nonMilestone, at: date)
                 return
             }
             deferredFeedbackEvents = nonMilestone
@@ -328,7 +323,7 @@ extension BattleSession {
             return
         }
 
-        recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
+        recordFeedbackEvents(nonMilestone, at: date)
         presentCallouts(from: nonMilestone, heroID: heroID, companionID: companionID, at: date)
     }
 
@@ -518,12 +513,10 @@ extension BattleSession {
         clearFeedback()
         clearSpectacle()
         clearOutcomePresentation()
-        pendingFeedbackPruneTask?.cancel()
-        pendingFeedbackPruneTask = nil
+        feedbackScheduler?.invalidate()
+        feedbackScheduler = nil
         nextFeedbackPruneAt = nil
-        pendingFeedbackPresentationLoopTask?.cancel()
-        pendingFeedbackPresentationLoopTask = nil
-        pendingFeedbackPresentationDates.removeAll(keepingCapacity: true)
+        nextFeedbackVisualStartByTargetID.removeAll(keepingCapacity: true)
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false

@@ -2,11 +2,9 @@
 
 **Goal:** Remove confirmed unsafe typing escapes in non-test, non-generated source without replacing valid invariants with vague fallbacks.
 
-**Siblings:** silent save / orchestration `try?` → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md); concurrency bypasses → [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyDataRaceAudit.md).
-
 ## Intent
 
-Find unsafe escapes via compiler/linter output and targeted probes. Fix a bounded set of confirmed issues; a clean pass is valid. If several escapes share one typing or validation seam, prefer that root-cause remedy over N local patches — and propose when significant per [README.md](README.md).
+Find unsafe escapes via compiler/linter output and targeted probes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. Fix one bounded cluster; a clean pass is valid, and significant typing seams remain proposals.
 
 ## Hard stops
 
@@ -34,7 +32,3 @@ Find unsafe escapes via compiler/linter output and targeted probes. Fix a bounde
 ## Probe hints
 
 `as!`, `try!`, force-unwrap candidates, `fatalError` / `preconditionFailure`, banned observation APIs, `swiftlint:disable`, existential `Any` in models/persistence.
-
-## Verify
-
-`lint.sh` + boundaries + `build.sh` (toolchain permitting); `test-package.sh TrinketPersistence` if persistence typing changed.

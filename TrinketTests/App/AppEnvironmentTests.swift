@@ -57,7 +57,7 @@ struct AppEnvironmentTests {
             "-map-scroll-target", "chapter-gate-placeholder-2",
             "-mystery-recruit-event", "recruit-ranger",
             "-enable-frame-metrics",
-            "-battle-performance-scenario", "dense-feedback"
+            "-battle-performance-scenario", "engine-feedback"
         ])
         #expect(env.resetState)
         #expect(env.seedTestProgress)
@@ -69,7 +69,7 @@ struct AppEnvironmentTests {
         #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.enableFrameMetrics)
-        #expect(env.battlePerformanceScenario == .denseFeedback)
+        #expect(env.battlePerformanceScenario == .engineFeedback)
 
         #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
         #expect(Self.parse(arguments: ["-map-scroll-target", ""]).mapScrollTarget == nil)

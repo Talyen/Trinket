@@ -157,10 +157,9 @@ struct CombatSFXMapperTests {
             visualRole: visualRole,
             label: label,
             secondaryText: secondary,
-            spawnSeed: id,
-            lifetime: 0.8,
+            lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: .now,
-            expiresAt: .now.addingTimeInterval(0.8),
+            expiresAt: .now.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
             reactionKind: .none
         )
     }

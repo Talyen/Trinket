@@ -1,52 +1,18 @@
 import Foundation
 
 enum BattlePerformanceScenario: String, CaseIterable, Sendable {
-    case idle
     case handDragCancel = "hand-drag-cancel"
-    case firstCardCastCold = "first-card-cast-cold"
     case realCardPlay = "real-card-play"
-    /// Engine + hand remove only (no cast, swing, chips, or multimodal).
-    case playEngineHand = "play-engine-hand"
-    /// Combat feedback chips + multimodal only (no cast, swing, or engine play).
-    case playFeedbackOnly = "play-feedback-only"
-    /// Warm cast dissolve only (no engine, swing, or feedback).
-    case playCastOnly = "play-cast-only"
-    /// Cast face + transforms only (diagnostic).
-    case playCastFaceOnly = "play-cast-face-only"
-    /// Dissolve mask over a solid stand-in (diagnostic).
-    case playCastMaskOnly = "play-cast-mask-only"
-    /// Cast particle Canvas only (diagnostic).
-    case playCastParticlesOnly = "play-cast-particles-only"
-    /// Attack wind-up → swing only (no cast, engine, or feedback).
-    case playSwingOnly = "play-swing-only"
-    /// Full production commit without forced-drag release (engine + feedback + swing + identity cast).
-    case playStackDirect = "play-stack-direct"
-    /// Forced-drag beginPlay without cast append.
-    case playRealNoCast = "play-real-no-cast"
-    /// Forced-drag beginPlay without attack swing.
-    case playRealNoSwing = "play-real-no-swing"
-    /// Forced-drag beginPlay with feedback presentation suppressed.
-    case playRealNoFeedback = "play-real-no-feedback"
-    /// Engine + feedback + cast (no swing, no forced drag).
-    case playStackNoSwing = "play-stack-no-swing"
-    /// Engine + cast + swing with feedback suppressed (no forced drag).
-    case playStackNoFeedback = "play-stack-no-feedback"
-    /// Engine + feedback + swing (no cast, no forced drag).
-    case playStackNoCast = "play-stack-no-cast"
-    /// Cast using held-pose transforms (scale/tilt) without engine commit.
-    case playCastHeldPose = "play-cast-held-pose"
-    case repeatedCardCasts = "repeated-card-casts"
-    case maximumConcurrentCasts = "maximum-concurrent-casts"
-    case feedbackChipsOnly = "feedback-chips-only"
-    case feedbackRasterCold = "feedback-raster-cold"
-    case feedbackRasterWarm = "feedback-raster-warm"
-    case feedbackReactionsOnly = "feedback-reactions-only"
-    case keywordBurstsOnly = "keyword-bursts-only"
-    case denseFeedback = "dense-feedback"
+    case engineHand = "engine-hand"
+    case engineFeedback = "engine-feedback"
     case turnTransition = "turn-transition"
-    case ultimateCinematic = "ultimate-cinematic"
-    case audioPlayback = "audio-playback"
     case combinedWorstCase = "combined-worst-case"
+}
+
+enum BattlePerformanceFixture {
+    /// Shared by every Battle performance launch so isolation variants resolve
+    /// the same hand, playable card, and feedback events.
+    static let seed: UInt64 = 0x5452_494E
 }
 
 struct AppEnvironment {

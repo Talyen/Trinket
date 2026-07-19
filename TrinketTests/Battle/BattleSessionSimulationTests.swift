@@ -109,6 +109,25 @@ struct BattleSessionSimulationTests {
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
 
+    @Test func playCardDistinguishesSuccessfulNonVictoryFromRejection() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
+
+        let committed = session.playCard(
+            cardID: card.id,
+            journey: .initial,
+            homestead: .freshStart
+        )
+        let rejected = session.playCard(
+            cardID: Int.max,
+            journey: .initial,
+            homestead: .freshStart
+        )
+
+        #expect(committed == .committed(earnedGold: nil))
+        #expect(rejected == .rejected)
+    }
+
     @Test func presentationProjectionTracksSimulationWithoutExposingLogStorage() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let configurationID = try #require(session.activeBattle?.id)
@@ -184,8 +203,7 @@ struct BattleSessionSimulationTests {
                 feedbackEvent(id: 1, amount: 1),
                 feedbackEvent(id: 2, amount: 2)
             ],
-            at: now,
-            stagger: 0
+            at: now
         )
 
         #expect(session.activeFeedbackItems.count == 1)
@@ -199,8 +217,7 @@ struct BattleSessionSimulationTests {
                 feedbackEvent(id: 3, amount: 1),
                 feedbackEvent(id: 4, amount: 2)
             ],
-            at: now,
-            stagger: 0
+            at: now
         )
         let item = try #require(session.activeFeedbackItems.first)
         session.pruneExpiredFeedback(at: item.availableAt)
@@ -208,6 +225,35 @@ struct BattleSessionSimulationTests {
         session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.01))
         #expect(session.activeFeedbackItems.isEmpty)
         #expect(session.feedbackEventRecordedAt.isEmpty)
+    }
+
+    @Test func feedbackVisualsQueuePerTargetAtOneTenthSecondIntervals() {
+        let session = BattleSession()
+        let now = Date(timeIntervalSince1970: 100)
+        session.recordFeedbackEvents(
+            [
+                feedbackEvent(id: 1, amount: 1, keyword: .bleed),
+                feedbackEvent(id: 2, amount: 2, keyword: .burn),
+                feedbackEvent(id: 3, amount: 3, keyword: .poison),
+                feedbackEvent(id: 4, amount: 4, keyword: .burn, targetID: "hero")
+            ],
+            at: now
+        )
+
+        let enemyStarts = session.activeFeedbackItems
+            .filter { $0.targetID == "enemy" }
+            .map(\.availableAt)
+            .sorted()
+        let heroStart = session.activeFeedbackItems.first { $0.targetID == "hero" }?.availableAt
+        #expect(enemyStarts == [
+            now,
+            now.addingTimeInterval(0.1),
+            now.addingTimeInterval(0.2)
+        ])
+        #expect(heroStart == now)
+        #expect(session.activeFeedbackItems.allSatisfy {
+            $0.expiresAt.timeIntervalSince($0.availableAt) == 1
+        })
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
@@ -244,12 +290,12 @@ struct BattleSessionSimulationTests {
         #expect(session.canEndTurn)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
-            let earned = session.playCard(
+            let resolution = session.playCard(
                 cardID: card.id,
                 journey: .initial,
                 homestead: .freshStart
             )
-            if earned != nil || session.outcome != nil {
+            if resolution.earnedGold != nil || session.outcome != nil {
                 return
             }
         }
@@ -286,7 +332,12 @@ struct BattleSessionSimulationTests {
         Issue.record("Auto-end turn did not resolve within the test timeout")
     }
 
-    private func feedbackEvent(id: Int, amount: Int) -> ActionEvent {
+    private func feedbackEvent(
+        id: Int,
+        amount: Int,
+        keyword: Keyword = .bleed,
+        targetID: String = "enemy"
+    ) -> ActionEvent {
         ActionEvent(
             id: id,
             kind: .status,
@@ -294,10 +345,10 @@ struct BattleSessionSimulationTests {
             actorName: "Hero",
             abilityID: "bleed",
             abilityName: "Bleed",
-            targetID: "enemy",
-            targetName: "Enemy",
+            targetID: targetID,
+            targetName: targetID.capitalized,
             amount: amount,
-            keyword: .bleed
+            keyword: keyword
         )
     }
 }

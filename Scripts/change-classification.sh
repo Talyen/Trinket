@@ -334,7 +334,7 @@ trinket_build_verification_plan() {
 
   if [[ "$push_ready" == true ]]; then
     # Commit completeness: regenerate with pinned XcodeGen (force), then assert vs HEAD.
-    # Mid-task verify keeps --idempotent so uncommitted generation remains OK.
+    # Task-scoped verify keeps --idempotent so uncommitted generation remains OK.
     if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
       trinket_add_command "./Scripts/generate.sh --assets --force-xcodegen"
       trinket_add_command "./Scripts/assert-generated-output.sh --assets"

@@ -59,13 +59,6 @@ struct BattleCombatantPane: View {
                             )
                     }
                     .clipShape(TrinketDesign.cardShape)
-
-                    // Floating combat text may extend past the card frame so long
-                    // labels (e.g. Death's Door) and rise paths are not clipped.
-                    CombatantFeedbackLane(
-                        combatantID: combatant.id,
-                        bottomInset: resourceBarsReservedHeight + 8
-                    )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(TrinketDesign.cardShape)
@@ -313,27 +306,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         case .some(.none), nil:
             .impact(weight: .light)
         }
-    }
-}
-
-private struct CombatantFeedbackLane: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
-    let combatantID: String
-    let bottomInset: CGFloat
-
-    var body: some View {
-        // Always-mounted UIKit host; chip publishes arrive via CombatFeedbackChipBridge
-        // so chip publishes do not rebuild this lane or BattleView chrome.
-        CombatFeedbackRasterSlot(
-            combatantID: combatantID,
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-        .padding(.horizontal, 8)
-        .padding(.bottom, bottomInset)
-        .padding(.top, 8)
-        .allowsHitTesting(false)
     }
 }
 

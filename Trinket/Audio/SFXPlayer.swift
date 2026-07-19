@@ -54,6 +54,7 @@ final class SFXPlayer {
     private let isDisabled: Bool
     private var hasConfiguredSession = false
     private var engineIsRunning = false
+    private var preparedVoicesArePlaying = false
     private let engine = AVAudioEngine()
     private var preparedVoicesByID: [String: [PreparedSFXVoice]] = [:]
     private var buffersByID: [String: AVAudioPCMBuffer] = [:]
@@ -82,7 +83,6 @@ final class SFXPlayer {
         if !ensureReady(for: ids) {
             return
         }
-
         let gain = max(0, volume)
         for id in ids {
             guard let clip = SFXCatalog.clipsByID[id],
@@ -94,9 +94,6 @@ final class SFXPlayer {
             voice.node.volume = min(Float(gain * max(0, clip.volumeGain)), 1)
             // `.interrupts` replaces any in-flight buffer without a synchronous stop().
             voice.node.scheduleBuffer(voice.buffer, at: nil, options: .interrupts)
-            if !voice.node.isPlaying {
-                voice.node.play()
-            }
         }
     }
 
@@ -109,7 +106,9 @@ final class SFXPlayer {
             (preparedVoicesByID[id]?.count ?? 0) < desiredCount
         }
         guard !idsNeedingWork.isEmpty else {
-            _ = ensureEngineRunning()
+            if ensureEngineRunning() {
+                startPreparedVoicesIfNeeded()
+            }
             return
         }
 
@@ -127,8 +126,11 @@ final class SFXPlayer {
             }
             preparedVoicesByID[id] = voices
         }
+        preparedVoicesArePlaying = false
         engine.prepare()
-        _ = ensureEngineRunning()
+        if ensureEngineRunning() {
+            startPreparedVoicesIfNeeded()
+        }
     }
 
     func stopAll() {
@@ -137,6 +139,7 @@ final class SFXPlayer {
                 voice.node.stop()
             }
         }
+        preparedVoicesArePlaying = false
     }
 
     private func ensureReady(for ids: [String]) -> Bool {
@@ -147,7 +150,9 @@ final class SFXPlayer {
             configureSessionIfNeeded()
             _ = ensureEngineRunning()
         }
-        return ensureEngineRunning()
+        guard ensureEngineRunning() else { return false }
+        startPreparedVoicesIfNeeded()
+        return true
     }
 
     private func preparedBuffer(for clip: SFXClip) -> AVAudioPCMBuffer? {
@@ -201,6 +206,7 @@ final class SFXPlayer {
             engineIsRunning = true
             return true
         }
+        preparedVoicesArePlaying = false
         do {
             try engine.start()
             engineIsRunning = true
@@ -212,6 +218,16 @@ final class SFXPlayer {
             )
             return false
         }
+    }
+
+    private func startPreparedVoicesIfNeeded() {
+        guard !preparedVoicesArePlaying else { return }
+        for voices in preparedVoicesByID.values {
+            for voice in voices {
+                voice.node.play()
+            }
+        }
+        preparedVoicesArePlaying = true
     }
 }
 

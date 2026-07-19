@@ -95,5 +95,5 @@ else
   echo "  (none; review docs/tooling directly)"
 fi
 if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
-  echo "  UI note: choose the closest existing Smoke* class or add focused coverage; do not substitute bare smoke."
+  echo "  UI note: apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke."
 fi

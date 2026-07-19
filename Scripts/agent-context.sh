@@ -132,11 +132,32 @@ print_agent() {
     printf '  (none)\n'
   fi
 
+  print_path_summary() {
+    local label="$1"
+    shift
+    local count=$#
+    (( count > 0 )) || return 0
+    printf '%s (%d):\n' "$label" "$count"
+    if (( count <= 8 )); then
+      printf '  %s\n' "$@"
+      return 0
+    fi
+    printf '%s\n' "$@" | awk -F/ '
+      {
+        key = $1
+        if (($1 == "Docs" || $1 == "Packages" || $1 == "Trinket") && NF > 1) key = $1 "/" $2
+        counts[key]++
+      }
+      END { for (key in counts) printf "  %s: %d path(s)\n", key, counts[key] }
+    ' | sort
+    printf '  (use --json for the complete path list)\n'
+  }
+
   if (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then
-    printf 'Authored paths:\n  %s\n' "${TRINKET_AUTHORED_PATHS[@]}"
+    print_path_summary 'Authored paths' "${TRINKET_AUTHORED_PATHS[@]}"
   fi
   if (( ${#TRINKET_GENERATED_PATHS[@]} > 0 )); then
-    printf 'Generated/processed paths (do not hand-edit):\n  %s\n' "${TRINKET_GENERATED_PATHS[@]}"
+    print_path_summary 'Generated/processed paths (do not hand-edit)' "${TRINKET_GENERATED_PATHS[@]}"
   fi
 
   printf 'Boundary warnings:\n'
@@ -151,12 +172,14 @@ print_agent() {
 
   printf 'Verification (agents: always --isolate):\n'
   if [[ "$PATH_MODE" == explicit ]]; then
-    printf '  ./Scripts/verify-changed.sh --isolate --paths'
-    local path
-    for path in "${TRINKET_CHANGED_PATHS[@]}"; do
-      printf ' %s' "$path"
-    done
-    printf '\n'
+    if (( ${#TRINKET_CHANGED_PATHS[@]} <= 8 )); then
+      printf '  ./Scripts/verify-changed.sh --isolate --paths'
+      local path
+      for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %s' "$path"; done
+      printf '\n'
+    else
+      printf '  ./Scripts/verify-changed.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"
+    fi
   else
     printf '  ./Scripts/verify-changed.sh --isolate\n'
   fi
@@ -176,7 +199,7 @@ print_agent() {
     printf '  (none; review docs/tooling directly)\n'
   fi
   if [[ "$TRINKET_SMOKE_TARGET_UNRESOLVED" == true ]]; then
-    printf 'UI note: no single smoke owner could be inferred for every path; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke.\n'
+    printf 'UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.\n'
   fi
 }
 

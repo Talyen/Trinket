@@ -24,7 +24,7 @@ Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate:
 Without --paths, classifies the whole working tree. With --paths, only those
 paths drive whether --assets is included.
 
-Agents: run this after mid-task verify and before commit/push.
+Agents: run this after the task-scoped handoff verification and before commit/push.
 Pre-push also calls this script.
 
 Env:
@@ -69,6 +69,15 @@ export PATH="$PWD/.tools:$PATH"
 export TRINKET_REQUIRE_PINNED_TOOLS=1
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+
+report_change_budget() {
+  if [[ "$PATH_MODE" == "explicit" ]]; then
+    ./Scripts/change-budget.sh --paths "${TRINKET_CHANGED_PATHS[@]}"
+  else
+    ./Scripts/change-budget.sh
+  fi
+}
+
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 && "$PATH_MODE" == "working-tree" ]]; then
   # Clean tree still re-generate + assert so committed outputs match pinned tools.
   echo "Working tree clean; regenerating to assert commit completeness."
@@ -108,6 +117,7 @@ if ! command -v xcodegen >/dev/null 2>&1; then
     exit 1
   fi
   echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
+  report_change_budget
   echo "=== Agent push gate passed ==="
   exit 0
 fi
@@ -123,5 +133,6 @@ else
   ./Scripts/assert-generated-output.sh
 fi
 
+report_change_budget
 echo "=== Agent push gate passed ==="
 echo "Tip: after push, run ./Scripts/agent-watch-ci.sh"

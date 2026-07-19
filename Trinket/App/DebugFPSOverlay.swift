@@ -156,7 +156,9 @@ final class FramePacingMetricsProbe {
         window.rootViewController = root
         window.isHidden = false
 
-        monitor.start(publishesAutomatically: true) { [weak self] report in
+        // Measurement publishes once, after its display link is paused. Periodic
+        // main-thread sorting would otherwise create the stalls being measured.
+        monitor.start(publishesAutomatically: false) { [weak self] report in
             self?.metricsLabel?.accessibilityValue = report.accessibilityValue
         }
 

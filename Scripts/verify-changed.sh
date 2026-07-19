@@ -13,11 +13,13 @@ source Scripts/run-env.sh
 DRY_RUN=false
 ISOLATE=false
 PUSH_READY=false
+QUIET=false
 PATH_MODE="working-tree"
 declare -a requested_paths=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=true ;;
+    --quiet) QUIET=true ;;
     --isolate)
       ISOLATE=true
       TRINKET_ISOLATE=1
@@ -33,7 +35,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/verify-changed.sh [--dry-run] [--isolate] [--push-ready] [--paths <file> ...]
+Usage: ./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file> ...]
 
 Classifies task-scoped changes when --paths is supplied, otherwise all working-tree
 changes. It runs any required generation once, then the smallest focused
@@ -46,10 +48,14 @@ DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
 
---push-ready switches generation asserts from --idempotent (mid-task) to
+--push-ready switches generation asserts from --idempotent (task-scoped) to
 commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
 Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate; use this flag when
 you also want the path-scoped style/package/smoke plan in the same run.
+
+--quiet prints the selected checks, one PASS/FAIL line per check, the advisory
+change budget, and at most TRINKET_VERIFY_FAILURE_LINES (default 80) lines from a
+failed check. Full command output remains the default.
 USAGE
       exit 0
       ;;
@@ -72,6 +78,14 @@ USAGE
 done
 
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+
+run_change_budget() {
+  if [[ "$PATH_MODE" == "explicit" ]]; then
+    ./Scripts/change-budget.sh --paths "${TRINKET_CHANGED_PATHS[@]}"
+  else
+    ./Scripts/change-budget.sh
+  fi
+}
 
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
   if [[ "$PUSH_READY" == true ]]; then
@@ -111,24 +125,25 @@ if [[ ${#commands[@]} -eq 0 ]]; then
   fi
   echo "No source verification selected for the current changes."
   if [[ "$smoke_target_unresolved" == true ]]; then
-    echo "UI note: no single smoke owner could be inferred; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke."
-    echo "Run that focused smoke target directly before handoff."
+    echo "UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke."
   else
     echo "Review docs/tooling changes directly; use ci-gate or a task-specific command when appropriate."
   fi
+  run_change_budget
   exit 0
 fi
 
-echo "Verification plan (sequential):"
+echo "Verification plan (${#commands[@]} sequential check(s)):"
 printf '  %s\n' "${commands[@]}"
 if [[ "$smoke_target_unresolved" == true ]]; then
-  echo "UI note: no single smoke owner could be inferred for every path; choose the closest existing Smoke* class or add focused coverage. Do not substitute bare smoke."
+  echo "UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke."
 fi
 if [[ "$DRY_RUN" == true ]]; then
   if [[ "$ISOLATE" == true ]]; then
     TRINKET_SIM_SLOT_SKIP_ACQUIRE=1 trinket_run_env_init
     trinket_run_env_print
   fi
+  echo "Would report: ./Scripts/change-budget.sh"
   exit 0
 fi
 
@@ -143,7 +158,23 @@ if [[ "$ISOLATE" == true ]]; then
 fi
 
 for command in "${commands[@]}"; do
-  echo ""
-  echo "=== $command ==="
-  eval "$command"
+  if [[ "$QUIET" == true ]]; then
+    quiet_log=$(mktemp -t trinket-verify.XXXXXX)
+    if eval "$command" > "$quiet_log" 2>&1; then
+      echo "PASS: $command"
+      rm -f "$quiet_log"
+    else
+      status=$?
+      echo "FAIL: $command"
+      tail -n "${TRINKET_VERIFY_FAILURE_LINES:-80}" "$quiet_log"
+      rm -f "$quiet_log"
+      exit "$status"
+    fi
+  else
+    echo ""
+    echo "=== $command ==="
+    eval "$command"
+  fi
 done
+
+run_change_budget

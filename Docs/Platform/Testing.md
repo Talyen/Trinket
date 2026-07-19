@@ -37,21 +37,30 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
 - **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
 
-## Definition of done (new features)
+## Coverage decision (new and changed behavior)
 
-1. Rules/models → focused unit test in the owning package.
-2. New `Player*Store` API → write-through persistence test in `TrinketPersistenceTests`.
-3. New catalog content → invariant test in the matching `*CatalogTests` (`TrinketContentTests`).
-4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
-5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
-6. New user flow → stable `AccessibilityID` test selector (or existing id). Add or extend a UI test **only** when the keep/drop rubric below applies; prefer extending an existing smoke/exhaustive method over adding a new class. Keep assertions on visible UI state and interaction outcomes; do not test custom accessibility labels or values.
-7. Verify with the AGENTS Task→Command Router (toolchain permitting), using
+Verification does not imply authoring new tests. Add or expand coverage only when all are true:
+
+1. The change introduces or repairs a distinct, consequential behavior or invariant.
+2. No existing test already owns it.
+3. The proposed assertion would fail before the fix, except for genuinely new behavior.
+4. The cheapest suitable tier can express it without duplicating a stronger owner.
+5. An existing semantic matrix, journey, method, or file cannot absorb it more cheaply.
+
+Prefer extending an existing owner over adding a declaration, and a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
+
+**Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketTests`.
+
+New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer an existing smoke/exhaustive method over a new class; assert visible outcomes, not custom accessibility prose.
+
+Verify with the AGENTS Task→Command Router (toolchain permitting), using
    **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
-   - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
-   - **Package-only** change → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
-   - **App orchestration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>` (or full unit when cross-cutting)
-   - **Small UI feature** → `./Scripts/verify-changed.sh --isolate --paths <file...>` (style + closest focused smoke; package tests when packages are touched); use `<SmokeClass>/<testMethod>` when one method directly owns the behavior. If no class covers it, add or update one focused smoke test first.
-   - **Cross-cutting UI** → run the affected focused smoke classes during iteration (still via path-scoped verify so style is included). Full unit, bare smoke, `smoke-full`, and exhaustive UI suites remain pre-push / CI work via `ci-locally.sh` / PR workflows.
+
+- **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
+- **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
+- **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>`
+- **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
+- **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, bare smoke, `smoke-full`, and exhaustive UI remain pre-push/CI work.
 
 ## UI keep / drop rubric
 
@@ -71,7 +80,7 @@ Smoke = short shell canaries (`smoke-full` ≈ five lean methods). Exhaustive Fu
 
 Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`) and is a pre-push gate, not a generic feature check. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` (or `verify-changed --isolate`) for the affected feature. Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
 
-Battle frame pacing is not part of smoke. Run the exclusive single-report matrix with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records native `XCTHitchMetric` data and refresh-normalized raw deadline reports. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
+Battle frame pacing is not part of smoke. Run the exclusive single-report matrix with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix. The Frame Metrics node is an explicit machine bridge used only by the performance plan (not VoiceOver product semantics).
 

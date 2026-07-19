@@ -2,11 +2,9 @@
 
 **Goal:** Find and simplify hotspots of over-engineered, verbose, or un-pragmatic code — especially agent-produced “slop” — without a whole-repo rewrite.
 
-**Siblings:** dead symbols → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md); boundaries → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md); custom UI chrome → [AppleNativeUIAudit.md](AppleNativeUIAudit.md); copy-paste screens → [DuplicateFeatureSurfaceAudit.md](DuplicateFeatureSurfaceAudit.md); misplaced hub logic → [StateGravityOwnershipAudit.md](StateGravityOwnershipAudit.md); correctness bugs → [BugHuntingAudit.md](BugHuntingAudit.md).
-
 ## Intent
 
-Surface a small set of **confirmed** inelegant hotspots via size, structure, and pattern signals. Simplify one cohesive cluster so the result is shorter and clearer — without changing player-facing behavior unless the verbosity itself is the bug. Prefer deleting ceremony over inventing a new abstraction. When micro-inlines would leave a god file or duplicated pattern intact, prefer a cohesive-area refactor — and propose it when significant per [README.md](README.md).
+Surface a few **confirmed** hotspots via capped size/structure probes. Simplify one cluster so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md).
 
 ## What “slop” means here
 
@@ -29,8 +27,6 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 
 ## Hard stops
 
-- Do not change player-facing behavior, balance, copy, layout, or `accessibilityIdentifier` values unless removing dead UI.
-- Do not “simplify” by introducing a new package, framework, or DI container.
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, design-system tokens, catalog/codegen boundaries, or module import rules.
 - Do not rewrite battle pipeline math “for clarity” without package tests proving equivalence.
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
@@ -56,7 +52,3 @@ Skip load-bearing complexity (generated catalogs, damage pipeline, save wire for
 ## Probe hints
 
 Size/density ranking; ceremony names (`Factory`/`Manager`/`Helper`/…); single-conformer protocols; narrating doc comments; near-duplicate switches; banned observation/`#available`/`AnyView` regressions. Route design-chrome duplication through [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
-
-## Verify
-
-Focused package/unit/smoke for the touched area per `AGENTS.md`; always `lint.sh` + `check-module-boundaries.sh`. Design-system chrome moves also need `check-ui-style.sh`.

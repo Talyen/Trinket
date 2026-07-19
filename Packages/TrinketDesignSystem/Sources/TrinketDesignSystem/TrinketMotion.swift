@@ -175,18 +175,24 @@ public enum TrinketMotion: Sendable {
         public static let scrimFade: TimeInterval = 0.2
         public static let ultimateCollapse: TimeInterval = 0.28
 
-        /// Stagger between deferred Ultimate chips when the cinematic lands.
-        public static let ultimateChipStagger: TimeInterval = 0.055
+        /// Fixed delay between visual starts in one combatant's feedback queue.
+        public static let feedbackQueueStagger: TimeInterval = 0.1
 
-        /// Small stagger that lets compound results read as a sequence.
-        public static let feedbackStagger: TimeInterval = 0.035
-
-        /// Default chip display duration (direct damage). Prefer per-class recipes.
+        /// Every floating combat label uses the same presentation lifetime.
         public static let chipDisplayDuration: TimeInterval = 1.0
 
-        /// Longest chip lifetime (+ buffer) for delayed memory prune after recording.
+        /// Labels stay fully opaque until this final portion of their lifetime.
+        public static let chipFadeOutDuration: TimeInterval = 0.2
+
+        /// Maximum rise as a fraction of the corresponding combatant card height.
+        public static let chipTravelFraction: CGFloat = 0.42
+
+        /// Minimum clearance between the final label bounds and the card's top edge.
+        public static let chipTopClearance: CGFloat = 8
+
+        /// Lifetime buffer for delayed raw-event cleanup.
         public static var maxChipLifetime: TimeInterval {
-            chip(for: .critical).lifetime + 0.05
+            chipDisplayDuration + 0.05
         }
 
         /// Max concurrent keyword particle bursts per combatant pane.
@@ -210,8 +216,26 @@ public enum TrinketMotion: Sendable {
             .easeOut(duration: scrimFade)
         }
 
-        public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackMotionRecipe {
+        public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackChipStyle {
             CombatFeedbackChipRecipes.chip(for: feedbackClass)
+        }
+
+        /// Quadratic ease-out: full initial velocity that decelerates smoothly to rest.
+        public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
+            let progress = min(max(elapsed / chipDisplayDuration, 0), 1)
+            return 1 - pow(1 - progress, 2)
+        }
+
+        public static func chipOpacity(elapsed: TimeInterval) -> Double {
+            let fadeStart = chipDisplayDuration - chipFadeOutDuration
+            guard elapsed > fadeStart else { return 1 }
+            return min(max((chipDisplayDuration - elapsed) / chipFadeOutDuration, 0), 1)
+        }
+
+        public static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
+            let proportionalTravel = cardHeight * chipTravelFraction
+            let topSafeTravel = cardHeight / 2 - chipHeight / 2 - chipTopClearance
+            return max(0, min(proportionalTravel, topSafeTravel))
         }
 
         public static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {

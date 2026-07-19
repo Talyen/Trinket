@@ -90,8 +90,8 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     enum PrewarmRequest {
-        case symbol(SymbolKey, CombatFeedbackMotionRecipe)
-        case fragment(FragmentKey, CombatFeedbackMotionRecipe)
+        case symbol(SymbolKey, CombatFeedbackChipStyle)
+        case fragment(FragmentKey, CombatFeedbackChipStyle)
     }
 
     func removeAll() {
@@ -104,7 +104,7 @@ final class CombatFeedbackGlyphAtlas {
     func symbol(
         named symbolName: String,
         face: Face,
-        recipe: CombatFeedbackMotionRecipe
+        recipe: CombatFeedbackChipStyle
     ) -> Glyph? {
         let key = SymbolKey(face: face, symbolName: symbolName)
         if let glyph = symbols[key] {
@@ -120,7 +120,7 @@ final class CombatFeedbackGlyphAtlas {
     func fragment(
         _ text: String,
         face: Face,
-        recipe: CombatFeedbackMotionRecipe
+        recipe: CombatFeedbackChipStyle
     ) -> Glyph? {
         let key = FragmentKey(face: face, text: text)
         if let glyph = fragments[key] {
@@ -280,7 +280,7 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func bakeSymbol(
         named symbolName: String,
         face: Face,
-        recipe: CombatFeedbackMotionRecipe
+        recipe: CombatFeedbackChipStyle
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
@@ -300,7 +300,7 @@ final class CombatFeedbackGlyphAtlas {
     nonisolated static func bakeFragment(
         _ text: String,
         face: Face,
-        recipe: CombatFeedbackMotionRecipe
+        recipe: CombatFeedbackChipStyle
     ) -> Glyph? {
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,
@@ -352,7 +352,7 @@ final class CombatFeedbackGlyphAtlas {
 
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
-        recipe: CombatFeedbackMotionRecipe,
+        recipe: CombatFeedbackChipStyle,
         presentationRole: CombatFeedbackPresentationRole = .headline,
         dynamicTypeSize: DynamicTypeSize
     ) -> UIFont {

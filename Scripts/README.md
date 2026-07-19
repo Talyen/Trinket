@@ -94,13 +94,15 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 | Integration | `test.sh all` | Nightly / manual |
 | Battle performance | `performance.sh` | Exclusive repeated full-fidelity matrix; nightly calibration |
 
-For agent or local task handoffs, `./Scripts/agent-context.sh --paths <file...>`
+For agent or local task handoffs, `./Scripts/agent-context.sh --agent --paths <file...>`
 prints a compact briefing with applicable nested `AGENTS.md` guides, context
 cards/skills, generated-output and boundary warnings, and the verification route.
-Use `--json` for machine-readable output or `--agent` for a concise handoff.
+Use `--json` for machine-readable output; large agent briefings group paths and
+leave the complete list in JSON.
 Without `--paths`, it reports the entire working tree, which is useful only when the
 tree represents one task. Agents must run
-`./Scripts/verify-changed.sh --isolate --paths <file...>` (preview with `--dry-run`).
+`./Scripts/verify-changed.sh --isolate --paths <file...>` after the change stabilizes
+(preview with `--dry-run`; use `--quiet` for PASS/FAIL plus bounded failure excerpts).
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
@@ -112,8 +114,15 @@ the shared warm cache. After generation, verify-changed runs
 HEAD/commit check. Commit completeness is `./Scripts/agent-push-gate.sh` (also
 called from pre-push), `verify-changed.sh --push-ready`, `ci-gate.sh`, and CI.
 After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI when
-path filters skipped substantive jobs). Mid-task verify-changed intentionally does
-not replace the pre-push or pre-merge gates.
+path filters skipped substantive jobs). Task-scoped verification does not replace
+the pre-push or pre-merge gates.
+
+Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
+`change-budget.sh` report against HEAD: authored production/test/docs-tool LOC,
+new Swift files and types, and test declaration deltas. Generated output is excluded.
+Warnings never fail the change; agents explain the necessity and simpler rejected
+alternative. Declaration counts do not include expanded `@Test(arguments:)` cases,
+so use `test-timing.sh` for runtime decisions.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
 Generation uses a shared lock (timeout via `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS`,
@@ -177,7 +186,8 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
 | `./Scripts/changed-source-summary.sh [--paths <file...>]` | Summarize task-scoped or working-tree changes and focused agent route |
-| `./Scripts/verify-changed.sh [--dry-run] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; agents always pass `--isolate`; `--push-ready` uses commit-completeness asserts |
+| `./Scripts/change-budget.sh [--paths <file...>]` | Advisory authored LOC/file/type/test-declaration delta report against HEAD |
+| `./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; `--quiet` bounds output; agents always pass `--isolate` |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |

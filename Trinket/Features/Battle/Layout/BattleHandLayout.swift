@@ -27,10 +27,6 @@ enum BattleHandLayout {
     static let playDragThreshold: CGFloat = 80
     static let dragMinimumDistance: CGFloat = 12
     static let playArmReleaseRatio: CGFloat = 0.72
-    /// Keep combatant panes non-interactive after a hand lift ends so the same
-    /// finger-up cannot activate their detail Buttons.
-    static let combatantTapSuppressionGrace: Double = 0.15
-
     struct Metrics: Equatable {
         let cardWidth: CGFloat
         let cardHeight: CGFloat

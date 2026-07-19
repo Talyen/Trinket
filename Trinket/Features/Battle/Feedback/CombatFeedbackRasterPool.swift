@@ -1,4 +1,5 @@
 import CoreGraphics
+import QuartzCore
 import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
@@ -43,8 +44,13 @@ struct CombatFeedbackRasterPoolSnapshot: Equatable {
     let entryCount: Int
     let estimatedByteCount: Int
     let hitCount: Int
+    let missCount: Int
     let buildCount: Int
     let evictionCount: Int
+    let unexpectedClosedVocabularyBuildCount: Int
+    let numericMissCount: Int
+    let rasterAllocationCount: Int
+    let isPrepareClockPaused: Bool
 }
 
 /// Battle-scoped, bounded storage for composed feedback chips. Composition is a
@@ -60,9 +66,14 @@ final class CombatFeedbackRasterPool {
     private var rasters: [CombatFeedbackRasterKey: CombatFeedbackRaster] = [:]
     private var recency: [CombatFeedbackRasterKey] = []
     private var hitCount = 0
+    private var missCount = 0
     private var buildCount = 0
     private var evictionCount = 0
-    private var pacedPrepareLoopTask: Task<Void, Never>?
+    private var unexpectedClosedVocabularyBuildCount = 0
+    private var numericMissCount = 0
+    private var rasterAllocationCount = 0
+    private var pacedPrepareDisplayLink: CADisplayLink?
+    private lazy var pacedPrepareTarget = CombatFeedbackPacedPrepareTarget(pool: self)
     private var pendingPrepareQueue: [PendingPrepareRequest] = []
     private var preparedCatalogKey: String?
 
@@ -72,6 +83,7 @@ final class CombatFeedbackRasterPool {
         let layoutDirection: LayoutDirection
         let displayScale: CGFloat
         let onComplete: (@MainActor () -> Void)?
+        var nextIndex = 0
     }
 
     init(capacity: Int = defaultCapacity) {
@@ -129,6 +141,15 @@ final class CombatFeedbackRasterPool {
         if useFrameBudget {
             return nil
         }
+        missCount += 1
+        switch canvasItem.label {
+        case .amount, .percent, .overflow:
+            numericMissCount += 1
+        case .word where preparedCatalogKey != nil:
+            unexpectedClosedVocabularyBuildCount += 1
+        case .word:
+            break
+        }
 
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.feedbackRasterBuild
@@ -159,6 +180,7 @@ final class CombatFeedbackRasterPool {
             displayScale: scale
         )
         buildCount += 1
+        rasterAllocationCount += 1
         insert(raster, for: key)
         return raster
     }
@@ -235,43 +257,51 @@ final class CombatFeedbackRasterPool {
             )
         )
         ensurePacedPrepareLoopRunning()
+        pacedPrepareDisplayLink?.isPaused = false
     }
 
     private func ensurePacedPrepareLoopRunning() {
-        guard pacedPrepareLoopTask == nil else { return }
-        pacedPrepareLoopTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                guard let self else { return }
-                guard !pendingPrepareQueue.isEmpty else {
-                    // Interruptible park — a 1s sleep let cold chip misses expire
-                    // before compose + re-flush, so feedback text never appeared.
-                    try? await Task.sleep(for: .milliseconds(16))
-                    continue
-                }
-                let request = pendingPrepareQueue.removeFirst()
-                for canvasItem in request.canvasItems {
-                    guard !Task.isCancelled else { return }
-                    if cachedRaster(
-                        for: canvasItem,
-                        dynamicTypeSize: request.dynamicTypeSize,
-                        layoutDirection: request.layoutDirection,
-                        displayScale: request.displayScale
-                    ) != nil {
-                        continue
-                    }
-                    await Task.yield()
-                    try? await Task.sleep(for: .milliseconds(16))
-                    guard !Task.isCancelled else { return }
-                    _ = prepare(
-                        for: canvasItem,
-                        dynamicTypeSize: request.dynamicTypeSize,
-                        layoutDirection: request.layoutDirection,
-                        displayScale: request.displayScale
-                    )
-                }
-                request.onComplete?()
-            }
+        guard pacedPrepareDisplayLink == nil else { return }
+        let link = CADisplayLink(
+            target: pacedPrepareTarget,
+            selector: #selector(CombatFeedbackPacedPrepareTarget.tick)
+        )
+        link.add(to: .main, forMode: .common)
+        link.isPaused = pendingPrepareQueue.isEmpty
+        pacedPrepareDisplayLink = link
+    }
+
+    fileprivate func handlePacedPrepareTick() {
+        guard !pendingPrepareQueue.isEmpty else {
+            pacedPrepareDisplayLink?.isPaused = true
+            return
         }
+        var request = pendingPrepareQueue.removeFirst()
+        while request.nextIndex < request.canvasItems.count {
+            let canvasItem = request.canvasItems[request.nextIndex]
+            request.nextIndex += 1
+            if cachedRaster(
+                for: canvasItem,
+                dynamicTypeSize: request.dynamicTypeSize,
+                layoutDirection: request.layoutDirection,
+                displayScale: request.displayScale
+            ) != nil {
+                continue
+            }
+            _ = prepare(
+                for: canvasItem,
+                dynamicTypeSize: request.dynamicTypeSize,
+                layoutDirection: request.layoutDirection,
+                displayScale: request.displayScale
+            )
+            break
+        }
+        if request.nextIndex < request.canvasItems.count {
+            pendingPrepareQueue.insert(request, at: 0)
+        } else {
+            request.onComplete?()
+        }
+        pacedPrepareDisplayLink?.isPaused = pendingPrepareQueue.isEmpty
     }
 
     /// Starts paced glyph-atlas + closed-catalog prewarm for the current Dynamic Type / scale.
@@ -322,6 +352,7 @@ final class CombatFeedbackRasterPool {
         // Keep the paced-prepare loop alive across clears — restarting it on the
         // next miss allocated a Task on the measured ChipPublish frame.
         pendingPrepareQueue.removeAll(keepingCapacity: true)
+        pacedPrepareDisplayLink?.isPaused = true
         rasters.removeAll(keepingCapacity: true)
         recency.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil
@@ -334,8 +365,12 @@ final class CombatFeedbackRasterPool {
 
     func resetDiagnostics() {
         hitCount = 0
+        missCount = 0
         buildCount = 0
         evictionCount = 0
+        unexpectedClosedVocabularyBuildCount = 0
+        numericMissCount = 0
+        rasterAllocationCount = 0
     }
 
     func snapshot() -> CombatFeedbackRasterPoolSnapshot {
@@ -345,8 +380,13 @@ final class CombatFeedbackRasterPool {
                 $0 + $1.image.bytesPerRow * $1.image.height
             },
             hitCount: hitCount,
+            missCount: missCount,
             buildCount: buildCount,
-            evictionCount: evictionCount
+            evictionCount: evictionCount,
+            unexpectedClosedVocabularyBuildCount: unexpectedClosedVocabularyBuildCount,
+            numericMissCount: numericMissCount,
+            rasterAllocationCount: rasterAllocationCount,
+            isPrepareClockPaused: pacedPrepareDisplayLink?.isPaused ?? true
         )
     }
 
@@ -406,5 +446,18 @@ final class CombatFeedbackRasterPool {
             recency.remove(at: index)
         }
         recency.append(key)
+    }
+}
+
+@MainActor
+private final class CombatFeedbackPacedPrepareTarget: NSObject {
+    private weak var pool: CombatFeedbackRasterPool?
+
+    init(pool: CombatFeedbackRasterPool) {
+        self.pool = pool
+    }
+
+    @objc func tick() {
+        pool?.handlePacedPrepareTick()
     }
 }
