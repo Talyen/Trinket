@@ -36,8 +36,7 @@ struct ChapterStageSelectView: View {
                 bottomPadding: TrinketDesign.Metrics.largeSpacing
             ) {
                 if let art = ArtCatalog.backgroundArtByID[chapter.id]
-                    ?? ArtCatalog.backgroundArtByID["chapter-1"]
-                {
+                    ?? ArtCatalog.backgroundArtByID["chapter-1"] {
                     Image.preparedAsset(named: art.imageName)
                         .resizable()
                         .scaledToFill()
@@ -151,4 +150,3 @@ struct ChapterStageSelectView: View {
         appState.battle.setMusicPreview(for: activeStage)
     }
 }
-

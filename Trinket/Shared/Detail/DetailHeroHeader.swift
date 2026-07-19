@@ -5,7 +5,7 @@ import TrinketDesignSystem
 struct DetailHeroHeader<Art: View, Footer: View>: View {
     let eyebrow: String?
     let title: String
-    var titleAccessibilityIdentifier: String? = nil
+    var titleAccessibilityIdentifier: String?
     let baseHeight: CGFloat
     let overscroll: CGFloat
     /// Matches prior `.padding()` on portrait detail heroes.

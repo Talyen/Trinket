@@ -29,8 +29,7 @@ struct HomesteadView: View {
                 bottomPadding: TrinketDesign.Metrics.snugSpacing
             ) {
                 if let art = ArtCatalog.backgroundArtByID["homestead"]
-                    ?? ArtCatalog.backgroundArtByID["wheatField"]
-                {
+                    ?? ArtCatalog.backgroundArtByID["wheatField"] {
                     HomesteadFocalArtwork(art: art)
                 } else {
                     TrinketDesign.Colors.surface
