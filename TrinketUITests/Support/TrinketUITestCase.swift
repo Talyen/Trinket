@@ -243,14 +243,6 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertCombatantDetailSections(
-        timeout: TimeInterval = defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        combatantDetail.assertSections(timeout: timeout, file: file, line: line)
-    }
-
     func assertExists(
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
@@ -260,33 +252,6 @@ class TrinketUITestCase: XCTestCase {
         let element = app.descendants(matching: .any)[identifier]
         guard element.waitForExistence(timeout: timeout) else {
             fail("Element '\(identifier)' not found", file: file, line: line)
-            return
-        }
-    }
-
-    func assertItemCardExists(
-        _ itemName: String,
-        timeout: TimeInterval = defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
-        guard card.waitForExistence(timeout: timeout) else {
-            fail("Item card '\(itemName)' not found", file: file, line: line)
-            return
-        }
-    }
-
-    func assertItemCardExistsAfterScroll(
-        _ itemName: String,
-        maxAttempts: Int = 8,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
-        scrollUntilVisible(card, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
-        guard card.exists else {
-            fail("Item card '\(itemName)' not found", file: file, line: line)
             return
         }
     }

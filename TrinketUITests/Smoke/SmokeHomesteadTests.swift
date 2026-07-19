@@ -5,8 +5,7 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("homestead")
     }
 
-    /// Canary: wallet + first category/row after the cinematic hero. Cross-category
-    /// scroll coverage lives in `HomesteadFlowUITests`.
+    /// Canary: wallet + first category/row after the cinematic hero.
     func testHomesteadOverviewShowsWalletAndFirstCategory() {
         homestead.assertLoaded()
         assertExists(AccessibilityID.Homestead.resourceWallet)

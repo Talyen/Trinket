@@ -69,18 +69,6 @@ struct PlayScreen {
         assertElementExists(AccessibilityID.Play.exploreHub)
     }
 
-    func openAspects() {
-        openExplore()
-        app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
-        assertElementExists(AccessibilityID.Play.aspectsHub)
-    }
-
-    func openLabyrinth() {
-        openExplore()
-        app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
-        assertElementExists(AccessibilityID.Play.labyrinthMap)
-    }
-
     func openStage(_ actionID: String) {
         app.buttons[actionID].tap()
     }
