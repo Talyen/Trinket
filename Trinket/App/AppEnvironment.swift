@@ -131,8 +131,9 @@ struct AppEnvironment {
               arguments.indices.contains(idx + 1)
         else { return nil }
         let val = arguments[idx + 1]
+        // split omits empty subsequences, so "" / ":" yield no parts — never index [0].
         let parts = val.split(separator: ":", maxSplits: 1).map(String.init)
-        let kind = parts[0].lowercased()
+        guard let kind = parts.first?.lowercased() else { return nil }
         let id = parts.count == 2 ? parts[1] : ""
         switch kind {
         case "hero" where !id.isEmpty: return .heroDetail(id)

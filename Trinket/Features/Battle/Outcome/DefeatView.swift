@@ -4,7 +4,7 @@ import TrinketDesignSystem
 struct DefeatView: View {
     let enemyName: String
     var primaryButtonTitle: String = "Retry"
-    let onPrimaryAction: () -> Void
+    let onPrimaryAction: () -> Bool
 
     var body: some View {
         BattleOutcomeShell(

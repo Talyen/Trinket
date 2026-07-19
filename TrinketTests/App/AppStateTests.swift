@@ -22,12 +22,19 @@ struct AppStateTests {
         #expect(state.inventory == .freshStart)
     }
 
-    @Test func launchTabOverridesDefaultTab() throws {
+    @Test func launchTabOverridesDefaultTabAndSurvivesForeground() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"])
         )
 
         #expect(state.selectedTab == .homestead)
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
+        #expect(state.selectedTab == .homestead)
+
+        state.selectedTab = .collection
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
+        #expect(state.selectedTab == .collection)
     }
 
     @Test func collectionDetailLaunchScreensMapToCollectionPresentations() throws {

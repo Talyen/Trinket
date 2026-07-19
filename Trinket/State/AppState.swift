@@ -299,7 +299,9 @@ final class AppState {
             shellSession.flushPendingPersistence()
             Task { await playerSave.flushPendingSave() }
         case .active:
-            evaluateLaunchLanding()
+            // Launch tab is applied once during bootstrap / finishBootstrap.
+            // Re-forcing Play on every foreground would wipe the persisted shell tab.
+            break
         @unknown default:
             break
         }

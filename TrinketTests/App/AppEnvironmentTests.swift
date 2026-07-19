@@ -44,6 +44,10 @@ struct AppEnvironmentTests {
         #expect(Self.parse(arguments: ["-launch-screen", "hero:"]).launchScreen == nil)
         #expect(Self.parse(arguments: ["-launch-screen", "unknown:foo"]).launchScreen == nil)
         #expect(Self.parse(arguments: ["-launch-screen", "options:extra"]).launchScreen == .options)
+        // split omits empty subsequences; empty / colon-only values must not crash.
+        #expect(Self.parse(arguments: ["-launch-screen", ""]).launchScreen == nil)
+        #expect(Self.parse(arguments: ["-launch-screen", ":"]).launchScreen == nil)
+        #expect(Self.parse(arguments: ["-launch-screen", "::"]).launchScreen == nil)
     }
 
     @Test func commandLineFlagsParseAsSemanticGroups() {
