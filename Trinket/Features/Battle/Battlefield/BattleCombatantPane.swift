@@ -360,7 +360,7 @@ private struct CombatantSkillCalloutLane: View {
            callout.actorID == combatantID {
             SkillCalloutView(callout: callout)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(10)
+                .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
                 .allowsHitTesting(false)
         }
     }

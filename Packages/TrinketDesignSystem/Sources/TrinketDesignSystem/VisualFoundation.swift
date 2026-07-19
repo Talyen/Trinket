@@ -150,7 +150,7 @@ private struct SurfaceStyle {
             fill = palette.secondaryBackground
             stroke = palette.subtleStroke.opacity(0.7)
             strokeWidth = 1
-            padding = 14
+            padding = TrinketDesign.Metrics.snugSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .elevated:
@@ -178,21 +178,21 @@ private struct SurfaceStyle {
             fill = palette.elevatedBackground
             stroke = palette.accent.opacity(0.72)
             strokeWidth = 1.5
-            padding = 14
+            padding = TrinketDesign.Metrics.snugSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = ShadowStyle(color: palette.accent.opacity(0.18), radius: 10, y: 2)
         case .disabled:
             fill = palette.secondaryBackground
             stroke = palette.subtleStroke.opacity(0.45)
             strokeWidth = 1
-            padding = 14
+            padding = TrinketDesign.Metrics.snugSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .warning:
             fill = palette.warning.opacity(0.12)
             stroke = palette.warning.opacity(0.65)
             strokeWidth = 1
-            padding = 14
+            padding = TrinketDesign.Metrics.snugSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .reward:
@@ -206,14 +206,14 @@ private struct SurfaceStyle {
             fill = palette.panelSurface
             stroke = palette.subtleStroke
             strokeWidth = 1
-            padding = 18
+            padding = TrinketDesign.Metrics.homesteadBodySpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = palette.shadow
         case .popover:
             fill = palette.elevatedBackground
             stroke = palette.subtleStroke
             strokeWidth = 1
-            padding = 10
+            padding = TrinketDesign.Metrics.sectionHeaderSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = palette.shadow
         case .homesteadPanel:

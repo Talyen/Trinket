@@ -107,7 +107,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     private struct ScrollPresentation: Equatable {
         static var initial: ScrollPresentation {
             ScrollPresentation(
-                headerBaseHeight: 300,
+                headerBaseHeight: HeroHeaderLayout.minimumHeaderHeight,
                 heroOverscroll: 0,
                 titleOpacity: 0
             )
