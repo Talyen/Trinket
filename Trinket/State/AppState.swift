@@ -290,18 +290,20 @@ final class AppState {
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
         switch phase {
         case .background:
+            battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
             shellSession.flushPendingPersistence()
             Task { await playerSave.flushPendingSave() }
         case .inactive:
+            battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             shellSession.flushPendingPersistence()
             Task { await playerSave.flushPendingSave() }
         case .active:
             // Launch tab is applied once during bootstrap / finishBootstrap.
             // Re-forcing Play on every foreground would wipe the persisted shell tab.
-            break
+            battle.setSuspendedForScenePhase(false)
         @unknown default:
             break
         }

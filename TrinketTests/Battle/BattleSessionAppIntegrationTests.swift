@@ -176,4 +176,39 @@ struct BattleSessionAppIntegrationTests {
         shopState.battle.setMusicPreview(for: shopStage)
         #expect(shopState.battle.preview == nil)
     }
+
+    @Test func autoEndTurnDoesNotAdvanceWhileSuspendedForScenePhase() async throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            let resolution = session.playCard(
+                cardID: card.id,
+                journey: .initial,
+                homestead: .freshStart
+            )
+            if resolution.earnedGold != nil || session.outcome != nil {
+                return
+            }
+        }
+
+        #expect(session.canEndTurn)
+        #expect(!session.hasPlayableCard)
+        let tickBefore = try #require(session.state?.tickCount)
+
+        session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
+        session.setSuspendedForScenePhase(true)
+        try await Task.sleep(for: .milliseconds(40))
+        #expect(session.state?.tickCount == tickBefore)
+        #expect(session.isSuspendedForScenePhase)
+
+        session.setSuspendedForScenePhase(false)
+        for _ in 0 ..< 40 {
+            if session.state?.tickCount == tickBefore + 1 {
+                break
+            }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(session.state?.tickCount == tickBefore + 1)
+        #expect(!session.isSuspendedForScenePhase)
+    }
 }

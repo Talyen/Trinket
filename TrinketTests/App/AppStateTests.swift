@@ -37,6 +37,23 @@ struct AppStateTests {
         #expect(state.selectedTab == .collection)
     }
 
+    @Test func scenePhaseSuspendsAndResumesBattleAutoEnd() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
+        )
+        #expect(state.battle.activeBattle != nil)
+        #expect(!state.battle.isSuspendedForScenePhase)
+
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .inactive)
+        #expect(state.battle.isSuspendedForScenePhase)
+
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
+        #expect(state.battle.isSuspendedForScenePhase)
+
+        state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
+        #expect(!state.battle.isSuspendedForScenePhase)
+    }
+
     @Test func collectionDetailLaunchScreensMapToCollectionPresentations() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])

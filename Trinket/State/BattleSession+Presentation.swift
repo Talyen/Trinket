@@ -410,7 +410,8 @@ extension BattleSession {
 
     func scheduleAutoEndIfNeeded() {
         cancelPendingAutoEnd()
-        guard canEndTurn, !hasPlayableCard,
+        guard !isSuspendedForScenePhase,
+              canEndTurn, !hasPlayableCard,
               let journey = autoEndJourney,
               let homestead = autoEndHomestead else { return }
 
@@ -418,7 +419,7 @@ extension BattleSession {
         pendingAutoEndTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(settleDelay))
             guard let self, !Task.isCancelled else { return }
-            guard canEndTurn, !hasPlayableCard else { return }
+            guard !isSuspendedForScenePhase, canEndTurn, !hasPlayableCard else { return }
 
             if shouldTelegraphEnemyAttack(), let enemyID = state?.enemy.id {
                 publishFullAttack(for: enemyID)
@@ -427,7 +428,7 @@ extension BattleSession {
                 if impactDelay > 0 {
                     try? await Task.sleep(for: .seconds(impactDelay))
                     guard !Task.isCancelled else { return }
-                    guard canEndTurn, !hasPlayableCard else { return }
+                    guard !isSuspendedForScenePhase, canEndTurn, !hasPlayableCard else { return }
                 }
             }
 

@@ -94,6 +94,10 @@ final class BattleSession {
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []
     @ObservationIgnored
     var pendingAutoEndTask: Task<Void, Never>?
+    /// When true, delayed auto-end (and its enemy telegraph) must not advance combat.
+    /// Owned by AppState scene-phase reconciliation; independent of battle lifecycle.
+    @ObservationIgnored
+    private(set) var isSuspendedForScenePhase = false
     @ObservationIgnored
     var feedbackScheduler: BattleFeedbackScheduler?
     /// Next prune fire time for the long-lived prune loop (no per-publish Task alloc).
@@ -203,6 +207,18 @@ final class BattleSession {
         autoEndJourney = journey
         autoEndHomestead = homestead
         scheduleAutoEndIfNeeded()
+    }
+
+    /// Pauses or resumes delayed auto-end around app background / inactive.
+    /// Suspend cancels any in-flight auto-end; resume reschedules when still eligible.
+    func setSuspendedForScenePhase(_ suspended: Bool) {
+        guard isSuspendedForScenePhase != suspended else { return }
+        isSuspendedForScenePhase = suspended
+        if suspended {
+            cancelPendingAutoEnd()
+        } else {
+            scheduleAutoEndIfNeeded()
+        }
     }
 
     func presentBattleLog() {
