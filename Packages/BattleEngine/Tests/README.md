@@ -25,7 +25,7 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 |-------|-------|
 | `ControlMeterIntegrationTests` | Stun/freeze → skip via endTurn / unplayable cards |
 | `CleanseIntegrationTests` | Cleanse abilities via playCard |
-| `MitigationIntegrationTests` | Shield/armor through rounds |
+| `MitigationIntegrationTests` | Block/Toughness through rounds |
 | `RestorationIntegrationTests` | Heal/leech via playCard |
 | `StatIntegrationTests` | Stats → damage through playCard |
 
