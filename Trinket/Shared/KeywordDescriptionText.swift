@@ -63,7 +63,7 @@ private struct KeywordGlossaryPopover: View {
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(10)
+        .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
         .frame(maxWidth: 280, alignment: .leading)
         .trinketMaterial(.popover)
     }
