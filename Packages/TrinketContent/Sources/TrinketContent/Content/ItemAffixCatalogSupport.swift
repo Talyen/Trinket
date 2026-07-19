@@ -1,8 +1,8 @@
 import Foundation
 import TrinketCore
 
-public enum ItemAffixCatalogSupport {
-    public static func affix(
+enum ItemAffixCatalogSupport {
+    static func affix(
         id: String,
         title: String,
         slot: ItemSlot,

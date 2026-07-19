@@ -2,8 +2,8 @@ import Foundation
 import TrinketCore
 
 /// Hand-authored Aspects catalog (v1 damage set). Floor enemies reuse the existing enemy roster.
-public enum AspectCatalog {
-    public static let aspects: [AspectDefinition] = [
+enum AspectCatalog {
+    static let aspects: [AspectDefinition] = [
         AspectDefinition(
             id: .ironVein,
             title: "Iron Vein",
@@ -48,17 +48,17 @@ public enum AspectCatalog {
         )
     ]
 
-    public static let aspectsByID: [AspectID: AspectDefinition] = Dictionary(uniqueKeysWithValues: aspects.map { ($0.id, $0) })
+    static let aspectsByID: [AspectID: AspectDefinition] = Dictionary(uniqueKeysWithValues: aspects.map { ($0.id, $0) })
 
-    public static func aspect(id: AspectID) -> AspectDefinition? {
+    static func aspect(id: AspectID) -> AspectDefinition? {
         aspectsByID[id]
     }
 
-    public static func floors(for aspectID: AspectID) -> [AspectFloor] {
+    static func floors(for aspectID: AspectID) -> [AspectFloor] {
         floorsByAspectID[aspectID] ?? []
     }
 
-    public static func floor(aspectID: AspectID, floor: Int) -> AspectFloor? {
+    static func floor(aspectID: AspectID, floor: Int) -> AspectFloor? {
         floors(for: aspectID).first { $0.floor == floor }
     }
 

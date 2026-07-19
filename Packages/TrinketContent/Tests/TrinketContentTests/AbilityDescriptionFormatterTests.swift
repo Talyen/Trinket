@@ -1,5 +1,5 @@
 import Testing
-import TrinketContent
+@testable import TrinketContent
 
 struct AbilityDescriptionFormatterTests {
     @Test func representativeAbilityDescriptionsPreserveSemanticFormatting() throws {

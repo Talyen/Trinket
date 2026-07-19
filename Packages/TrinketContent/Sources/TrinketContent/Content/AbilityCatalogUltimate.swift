@@ -1,15 +1,15 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityCatalogUltimate {
-    public static let blizzard = Ability(
+enum AbilityCatalogUltimate {
+    static let blizzard = Ability(
         id: "blizzard", name: "Blizzard", tier: .ultimate,
         damageComponents: [
             DamageComponent(5, keyword: .freeze, bonusAmount: 3, condition: .enemyFrozen)
         ],
         manaCost: 4
     )
-    public static let combustion = Ability(
+    static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
         damageComponents: [
             DamageComponent(6, keyword: .burn, bonusAmount: 3, condition: .enemyBurning)
@@ -17,26 +17,26 @@ public enum AbilityCatalogUltimate {
         targetedEffects: [TargetedEffect(.burn(6))],
         manaCost: 4
     )
-    public static let concussiveShot = Ability(
+    static let concussiveShot = Ability(
         id: "concussive-shot", name: "Concussive Shot", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .stun)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 2), condition: .enemyStunned)],
         criticalChanceBonus: 0.10
     )
-    public static let crystalBulwark = Ability(
+    static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.shield(.block, 7))
         ]
     )
-    public static let exorcism = Ability(
+    static let exorcism = Ability(
         id: "exorcism", name: "Exorcism", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.purge(nil))],
         manaCost: 4,
         guaranteedCriticalIfEnemyBuffed: true
     )
-    public static let glacialWard = Ability(
+    static let glacialWard = Ability(
         id: "glacial-ward", name: "Glacial Ward", tier: .ultimate,
         description: "Gain Block and deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
@@ -46,7 +46,7 @@ public enum AbilityCatalogUltimate {
         ],
         manaCost: 3
     )
-    public static let goldenPlate = Ability(
+    static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.shield(.block, 3)),
@@ -54,7 +54,7 @@ public enum AbilityCatalogUltimate {
             TargetedEffect(.instantHeal(.health, 2))
         ]
     )
-    public static let hemorrhage = Ability(
+    static let hemorrhage = Ability(
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [
@@ -62,13 +62,13 @@ public enum AbilityCatalogUltimate {
         ],
         hasLeech: true
     )
-    public static let judgment = Ability(
+    static let judgment = Ability(
         id: "judgment", name: "Judgment", tier: .ultimate,
         description: "Deal 6 Holy damage.\nGain 1 Block.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.shield(.block, 1))]
     )
-    public static let manaBulwark = Ability(
+    static let manaBulwark = Ability(
         id: "mana-bulwark", name: "Mana Bulwark", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.shield(.block, 7)),
@@ -77,14 +77,14 @@ public enum AbilityCatalogUltimate {
         ],
         manaCost: 3
     )
-    public static let meteor = Ability(
+    static let meteor = Ability(
         id: "meteor", name: "Meteor", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(6))],
         manaCost: 5,
         criticalChanceBonus: 0.10
     )
-    public static let moltenBulwark = Ability(
+    static let moltenBulwark = Ability(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
         description: "Gain Block and deal 3 Burn damage.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
@@ -93,14 +93,14 @@ public enum AbilityCatalogUltimate {
             TargetedEffect(.burn(3))
         ]
     )
-    public static let packTactics = Ability(
+    static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
         damageComponents: [
             DamageComponent(5, keyword: .physical, bonusAmount: 2, condition: .allyBelowHalfHealth)
         ],
         hasLeech: true
     )
-    public static let panaceaPotion = Ability(
+    static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.cleanse(nil)),
@@ -108,7 +108,7 @@ public enum AbilityCatalogUltimate {
         ],
         manaCost: 3
     )
-    public static let phoenixFeather = Ability(
+    static let phoenixFeather = Ability(
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [
@@ -117,7 +117,7 @@ public enum AbilityCatalogUltimate {
         ],
         manaCost: 3
     )
-    public static let serratedArrowhead = Ability(
+    static let serratedArrowhead = Ability(
         id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [
@@ -125,7 +125,7 @@ public enum AbilityCatalogUltimate {
             TargetedEffect(.poison(3))
         ]
     )
-    public static let thornMail = Ability(
+    static let thornMail = Ability(
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
         description: "Gain Block and Thorns.",
         targetedEffects: [
@@ -135,7 +135,7 @@ public enum AbilityCatalogUltimate {
         ]
     )
 
-    public static let all: [Ability] = [
+    static let all: [Ability] = [
         blizzard,
         combustion,
         concussiveShot,

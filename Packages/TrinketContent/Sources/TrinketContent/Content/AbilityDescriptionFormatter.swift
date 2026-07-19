@@ -1,8 +1,8 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityDescriptionFormatter {
-    public static func format(_ ability: Ability) -> String {
+enum AbilityDescriptionFormatter {
+    static func format(_ ability: Ability) -> String {
         var clauses: [String] = []
 
         if ability.manaCost > 0 {

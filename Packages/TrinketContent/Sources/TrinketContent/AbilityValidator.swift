@@ -1,17 +1,17 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityValidator {
-    public struct Issue: Equatable, CustomStringConvertible {
-        public let abilityID: String
-        public let message: String
+enum AbilityValidator {
+    struct Issue: Equatable, CustomStringConvertible {
+        let abilityID: String
+        let message: String
 
-        public var description: String {
+        var description: String {
             "\(abilityID): \(message)"
         }
     }
 
-    public static let descriptionOverrideIDs: Set<String> = [
+    static let descriptionOverrideIDs: Set<String> = [
         "avatar-of-justice",
         "blackjack",
         "blood-offering",
@@ -22,7 +22,7 @@ public enum AbilityValidator {
         "thorn-mail"
     ]
 
-    public static func validate(_ ability: Ability) -> [Issue] {
+    static func validate(_ ability: Ability) -> [Issue] {
         var issues = validateEffectTargets(for: ability)
         issues.append(contentsOf: validatePairedDoTComponents(for: ability))
         issues.append(contentsOf: validateTierDamage(for: ability))
@@ -30,7 +30,7 @@ public enum AbilityValidator {
         return issues
     }
 
-    public static func validateCatalog() -> [Issue] {
+    static func validateCatalog() -> [Issue] {
         AbilityCatalog.all.flatMap(validate)
     }
 

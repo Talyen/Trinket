@@ -24,8 +24,8 @@ private func generatedItem(
     .gainGeneratedItem(baseTypeID: baseTypeID, guaranteedAffixIDs: guaranteedAffixIDs)
 }
 
-public enum MysteryEventPool {
-    public static let all: [MysteryEvent] = [
+enum MysteryEventPool {
+    static let all: [MysteryEvent] = [
         ev(
             id: "mana-berries",
             title: "Mana Berries",
@@ -290,11 +290,11 @@ public enum MysteryEventPool {
         )
     ]
 
-    public static func mysteryEvent(matching id: String) -> MysteryEvent? {
+    static func mysteryEvent(matching id: String) -> MysteryEvent? {
         all.first { $0.id == id } ?? RecruitMysteryEventPool.event(matching: id)
     }
 
-    public static func pickMysteryEvent(
+    static func pickMysteryEvent(
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         guard let event = all.randomElement(using: &randomNumberGenerator) else {
@@ -304,7 +304,7 @@ public enum MysteryEventPool {
     }
 
     /// Prefer an eligible recruit unlock; otherwise fall back to a branching mystery.
-    public static func pickEligibleMysteryEvent(
+    static func pickEligibleMysteryEvent(
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>,
         using randomNumberGenerator: inout some RandomNumberGenerator

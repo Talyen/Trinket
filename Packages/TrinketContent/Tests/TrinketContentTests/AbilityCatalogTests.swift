@@ -1,6 +1,6 @@
 import Testing
-import TrinketContent
 import TrinketCore
+@testable import TrinketContent
 
 struct AbilityCatalogTests {
     @Test func catalogIDsAreUniqueAndUnknownLookupReturnsNil() throws {

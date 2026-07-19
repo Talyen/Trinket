@@ -128,10 +128,8 @@ private struct OptionalAccessibilityIdentifierModifier: ViewModifier {
 /// inside scroll views. `.plain` still flashes while the finger is down during a
 /// scroll drag; this style keeps `Button` semantics (including tap-to-open) and
 /// ignores `isPressed` for visuals.
-public struct QuietTapButtonStyle: ButtonStyle {
-    public init() {}
-
-    public func makeBody(configuration: Configuration) -> some View {
+struct QuietTapButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
         configuration.label
     }
 }

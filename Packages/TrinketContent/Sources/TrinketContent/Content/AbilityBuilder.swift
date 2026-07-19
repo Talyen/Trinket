@@ -1,8 +1,8 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityBuilder {
-    public static func directHit(
+enum AbilityBuilder {
+    static func directHit(
         id: String,
         name: String,
         tier: AbilityTier,
@@ -28,7 +28,7 @@ public enum AbilityBuilder {
         )
     }
 
-    public static func buffOnly(
+    static func buffOnly(
         id: String,
         name: String,
         tier: AbilityTier,
@@ -46,7 +46,7 @@ public enum AbilityBuilder {
         )
     }
 
-    public static func multiDamage(
+    static func multiDamage(
         id: String,
         name: String,
         tier: AbilityTier,

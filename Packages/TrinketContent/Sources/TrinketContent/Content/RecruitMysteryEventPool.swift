@@ -26,8 +26,8 @@ private func recruit(
 }
 
 /// One-choice mystery encounters that unlock heroes and companions.
-public enum RecruitMysteryEventPool {
-    public static let all: [MysteryEvent] = [
+enum RecruitMysteryEventPool {
+    static let all: [MysteryEvent] = [
         recruit(
             id: "recruit-bear",
             combatantID: "bear",
@@ -150,16 +150,16 @@ public enum RecruitMysteryEventPool {
         )
     ]
 
-    public static func event(matching id: String) -> MysteryEvent? {
+    static func event(matching id: String) -> MysteryEvent? {
         all.first { $0.id == id }
     }
 
-    public static func event(unlocking combatantID: String) -> MysteryEvent? {
+    static func event(unlocking combatantID: String) -> MysteryEvent? {
         all.first { $0.unlockCombatantID == combatantID }
     }
 
     /// Recruit events whose combatant is not yet unlocked.
-    public static func eligible(
+    static func eligible(
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> [MysteryEvent] {
