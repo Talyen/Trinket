@@ -18,27 +18,14 @@ struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var hidesNavigationBar = false
 
-    /// Sub-picker / view-detail navigation state — owned here at the pane level so the
-    /// navigationDestination modifiers are at the root of whatever NavigationStack
-    /// is presenting this view. No nested UISheetPresentationControllers for loadout.
+    /// Loadout picker navigation state is owned here at the pane level so the picker
+    /// destinations are at the root of whatever NavigationStack presents this view.
+    /// Each picker owns its detail destination so Back returns to that picker grid.
     @State private var selectedItemSlot: ItemSlot?
     @State private var selectedAbilityTier: AbilityTier?
-    @State private var pendingItemEquip: PendingItemEquip?
-    @State private var selectedAbility: Ability?
     @State private var viewingAbility: ViewOnlyAbility?
     @State private var viewingItem: InventoryItem?
     @State private var selectionFeedbackTrigger = 0
-
-    /// Pairs the destination slot with the picked item so Equip does not re-read
-    /// `selectedItemSlot` from a nested navigation action (which can miss @State).
-    private struct PendingItemEquip: Hashable, Identifiable {
-        let slot: ItemSlot
-        let item: InventoryItem
-
-        var id: String {
-            "\(slot.rawValue)::\(item.id)"
-        }
-    }
 
     /// Distinct from `Ability` so view-only and loadout destinations do not collide.
     private struct ViewOnlyAbility: Hashable, Identifiable {
@@ -99,15 +86,14 @@ struct CombatantDetailPane: View {
         } bodyContent: {
             combatantDetailBody(combatBuild: combatBuild)
         }
-        // Sub-picker navigation — declared here so they land at the root of whichever
+        // Sub-picker navigation is declared here so it lands at the root of whichever
         // NavigationStack contains this pane (typically the Collection detail sheet).
-        // This keeps all presentation at the stack root.
         .navigationDestination(item: $selectedItemSlot) { slot in
             ItemSlotPickerView(
                 slot: slot,
                 equipmentLoadout: equipmentLoadout,
                 inventoryState: inventoryState,
-                onOpenDetail: { pendingItemEquip = PendingItemEquip(slot: slot, item: $0) }
+                onEquip: { equip($0, in: slot) }
             )
         }
         .navigationDestination(item: $selectedAbilityTier) { tier in
@@ -115,24 +101,7 @@ struct CombatantDetailPane: View {
                 combatant: combatant,
                 tier: tier,
                 selectedAbilityID: loadout.ability(for: tier)?.id,
-                onOpenDetail: { selectedAbility = $0 }
-            )
-        }
-        .navigationDestination(item: $pendingItemEquip) { pending in
-            ItemDetailView(
-                item: pending.item,
-                primaryActionTitle: "Equip \(pending.slot.displayName)",
-                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(pending.item.id),
-                dismissAfterPrimaryAction: true,
-                onPrimaryAction: { equip(pending.item, in: pending.slot) }
-            )
-        }
-        .navigationDestination(item: $selectedAbility) { ability in
-            AbilityDetailView(
-                ability: ability,
-                primaryActionTitle: "Select Ability",
-                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.selectAbility(ability.id),
-                onPrimaryAction: { select(ability) }
+                onSelectAbility: select
             )
         }
         .navigationDestination(item: $viewingAbility) { wrapper in
@@ -257,7 +226,6 @@ struct CombatantDetailPane: View {
     private func select(_ ability: Ability) {
         loadout = loadout.selecting(ability)
         selectionFeedbackTrigger += 1
-        selectedAbility = nil
         selectedAbilityTier = nil
     }
 
@@ -267,7 +235,6 @@ struct CombatantDetailPane: View {
         equipmentLoadout = updated
         appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
         selectionFeedbackTrigger += 1
-        pendingItemEquip = nil
         Task { @MainActor in
             await Task.yield()
             selectedItemSlot = nil

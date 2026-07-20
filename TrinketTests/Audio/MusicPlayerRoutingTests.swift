@@ -7,7 +7,6 @@ struct MusicPlayerRoutingTests {
     @Test func menuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: nil,
             activeBattle: nil,
             sceneIsActive: true,
             musicVolume: 0.75
@@ -22,17 +21,24 @@ struct MusicPlayerRoutingTests {
         (enemyID: "skeleton", expectedTrackKind: MusicTrackKind.battle, expectedContext: MusicContextKind.battle, expectedTrackID: nil as String?),
         (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant")
     ])
-    func battlePreviewPlaysExpectedTrack(
+    func activeBattlePlaysExpectedTrack(
         enemyID: String,
         expectedTrackKind: MusicTrackKind,
         expectedContext: MusicContextKind,
         expectedTrackID: String?
     ) throws {
         let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-5"
+        let battle = try ActiveBattleConfigurationTestSupport.make(
+            resumeToken: .journey(stageID: stageID),
+            rngSeed: 0,
+            hero: GameContent.heroes[0],
+            companion: GameContent.companions[0],
+            enemy: GameContent.enemy(matching: enemyID)?.combatant
+        )
+
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: stageID, enemyID: enemyID),
-            activeBattle: nil,
+            activeBattle: battle,
             sceneIsActive: true,
             musicVolume: 0.75
         )
@@ -48,28 +54,6 @@ struct MusicPlayerRoutingTests {
         }
     }
 
-    @Test func activeBattleTakesPriorityOverPreview() throws {
-        let battle = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: "chapter-1-stage-1"),
-            rngSeed: 0,
-            hero: GameContent.heroes[0],
-            companion: GameContent.companions[0],
-            enemy: GameContent.enemy(matching: "skeleton")?.combatant
-        )
-
-        let route = MusicRoute.resolve(
-            selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-5", enemyID: "the_blight_treant"),
-            activeBattle: battle,
-            sceneIsActive: true,
-            musicVolume: 0.75
-        )
-
-        let request = try trackRequest(from: route)
-        #expect(request.track.kind == .battle)
-        #expect(request.resumeKey.enemyID == "skeleton")
-    }
-
     @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
         let battle = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: "chapter-1-stage-5"),
@@ -81,7 +65,6 @@ struct MusicPlayerRoutingTests {
 
         let route = MusicRoute.resolve(
             selectedTab: .collection,
-            preview: nil,
             activeBattle: battle,
             sceneIsActive: true,
             musicVolume: 0.75
@@ -99,7 +82,6 @@ struct MusicPlayerRoutingTests {
     func silencePreservesPositionWhenSceneInactiveOrMuted(sceneIsActive: Bool, musicVolume: Double) {
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
             sceneIsActive: sceneIsActive,
             musicVolume: musicVolume

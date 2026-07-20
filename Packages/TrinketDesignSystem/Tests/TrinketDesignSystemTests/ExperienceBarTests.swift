@@ -1,8 +1,18 @@
 import Testing
 import TrinketCore
-import TrinketDesignSystem
+@testable import TrinketDesignSystem
 
 struct ExperienceBarTests {
+    @Test(arguments: [
+        (count: 0, expected: 0.0),
+        (count: 1, expected: 0.30),
+        (count: 2, expected: 0.15),
+        (count: 3, expected: 0.10)
+    ])
+    func segmentDurationsStayWithinFixedAnimationBudget(count: Int, expected: Double) throws {
+        try #expect(abs(ExperienceBar.segmentDuration(forSegmentCount: count) - expected) < 0.0001)
+    }
+
     @Test(arguments: [
         (
             pre: CombatantProgression(level: 2, currentXP: 35, requiredXP: 155),

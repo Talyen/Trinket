@@ -96,10 +96,6 @@ struct CombatFeedbackFloatMotionConfiguration: Equatable {
     var shakeAmplitude: Double = 0
     var shakeFrequency: Double = 8
 
-    // MARK: Lanes
-
-    var laneSpreadFraction: CGFloat = CombatFeedbackLayout.laneSpreadFraction
-
     // MARK: Travel
 
     func travelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
@@ -108,21 +104,11 @@ struct CombatFeedbackFloatMotionConfiguration: Equatable {
         return max(0, min(proportionalTravel, topSafeTravel))
     }
 
-    func laneOffsetX(for lane: CombatFeedbackLane, chipWidth: CGFloat) -> CGFloat {
-        let spread = chipWidth * laneSpreadFraction
-        switch lane {
-        case .middle: return 0
-        case .left: return -spread
-        case .right: return spread
-        }
-    }
-
     // MARK: Sampling
 
     func sample(
         elapsed: TimeInterval,
         seed: Int,
-        lane: CombatFeedbackLane,
         chipWidth: CGFloat,
         travelDistance: CGFloat
     ) -> Pose {
@@ -135,12 +121,11 @@ struct CombatFeedbackFloatMotionConfiguration: Equatable {
         let phase = Double(noise) * .pi * 2
         let arcSign: CGFloat = noise < 0.5 ? -1 : 1
 
-        let laneX = laneOffsetX(for: lane, chipWidth: chipWidth)
         let biasX = lateralBias * chipWidth
         let arcX = arcAmplitude * chipWidth * 4 * easedRise * (1 - easedRise) * arcSign
         let driftX = driftAmplitude * chipWidth
             * CGFloat(sin(2 * Double.pi * driftFrequency * Double(riseT) + phase))
-        let offsetX = laneX + biasX + arcX + driftX
+        let offsetX = biasX + arcX + driftX
 
         let riseProgress = verticalProgress(eased: easedRise)
         let ySign: CGFloat = verticalDirection == .up ? -1 : 1
@@ -192,9 +177,6 @@ struct CombatFeedbackFloatMotionConfiguration: Equatable {
         endRotation: \(fmt(endRotation))
         shakeAmplitude: \(fmt(shakeAmplitude))
         shakeFrequency: \(fmt(shakeFrequency))
-
-        // Lanes
-        laneSpreadFraction: \(fmt(laneSpreadFraction))
         """
     }
 

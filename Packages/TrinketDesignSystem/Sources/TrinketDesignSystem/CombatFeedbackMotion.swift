@@ -30,22 +30,6 @@ public enum CombatFeedbackPresentationRole: String, CaseIterable, Sendable, Equa
     case secondary
 }
 
-/// Horizontal rise path for one floating combat chip on a combatant.
-public enum CombatFeedbackLane: Int, CaseIterable, Sendable, Equatable {
-    case left = 0
-    case middle = 1
-    case right = 2
-
-    /// Tie-break when multiple lanes share the same earliest start: middle, then left, then right.
-    public var assignmentPriority: Int {
-        switch self {
-        case .middle: 0
-        case .left: 1
-        case .right: 2
-        }
-    }
-}
-
 /// One keyframe sample for a combat-chip motion track.
 public struct CombatFeedbackKeyframeSample: Sendable, Equatable {
     public let value: Double
@@ -311,23 +295,14 @@ public enum CombatantHitRecoilDirection: String, CaseIterable, Sendable, Equatab
 
 /// Shared constants for the fixed-anchor floating combat text presentation.
 public enum CombatFeedbackLayout: Sendable {
+    /// Minimum vertical clearance between simultaneously visible chips in one stream.
+    public static let streamGap: CGFloat = 4
+
     /// Stable pseudo-random value in `0...1` shared by non-pathing visual effects.
     public static func unitNoise(seed: Int) -> CGFloat {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15
         let shifted = mixed ^ (mixed >> 33)
         return CGFloat(shifted % 10000) / 10000
-    }
-
-    /// Horizontal spread between adjacent lanes as a fraction of chip width.
-    public static let laneSpreadFraction: CGFloat = 1.15
-
-    public static func laneOffsetX(for lane: CombatFeedbackLane, chipWidth: CGFloat) -> CGFloat {
-        let spread = chipWidth * laneSpreadFraction
-        switch lane {
-        case .middle: return 0
-        case .left: return -spread
-        case .right: return spread
-        }
     }
 
     public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {

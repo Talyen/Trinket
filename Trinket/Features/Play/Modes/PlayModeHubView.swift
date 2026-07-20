@@ -131,6 +131,7 @@ struct PlayModeArtworkCard: View {
     let symbolName: String?
     let artID: String
     let fallbackArtID: String
+    var isLocked = false
 
     private var art: BackgroundArtReference? {
         ArtCatalog.backgroundArtByID[artID]
@@ -139,12 +140,15 @@ struct PlayModeArtworkCard: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            if let art {
-                HomesteadFocalArtwork(art: art)
+            Group {
+                if let art {
+                    HomesteadFocalArtwork(art: art)
 
-            } else {
-                TrinketDesign.Colors.surface
+                } else {
+                    TrinketDesign.Colors.surface
+                }
             }
+            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 Text(title)
@@ -161,7 +165,7 @@ struct PlayModeArtworkCard: View {
 
                         Text(subtitle)
                             .trinketTypography(.secondaryBody)
-                            .lineLimit(2)
+                            .lineLimit(isLocked ? 3 : 2)
                     }
                     .trinketOnArtText(.eyebrow)
                 }

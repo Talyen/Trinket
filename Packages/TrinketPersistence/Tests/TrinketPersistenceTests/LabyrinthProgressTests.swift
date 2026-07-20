@@ -63,7 +63,7 @@ struct LabyrinthProgressTests {
         let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
         var legacy = PlayerLabyrinthState(
             worldSeed: 9,
-            mapVersion: 1,
+            mapVersion: 2,
             hasEntered: true,
             clusters: generated.clusters,
             nodes: generated.nodes
@@ -98,11 +98,18 @@ struct LabyrinthProgressTests {
         #expect(hasNoLegacyClusterModifiers)
         for floor in 1 ... 2 {
             let cluster = try #require(sanitized.clusters.first { $0.depthBand == floor })
+            let entryID = try #require(cluster.nodeIDs.first)
             let bossID = try #require(cluster.nodeIDs.last)
             #expect(sanitized.nodes[bossID]?.isCleared == true)
+            #expect(
+                hasClearedAdjacentPath(
+                    from: entryID,
+                    to: bossID,
+                    nodeIDs: cluster.nodeIDs,
+                    state: sanitized
+                )
+            )
         }
-        let currentFloorRouteID = try #require(migrated.outgoingIDs.first)
-        #expect(sanitized.isNodeReachable(currentFloorRouteID))
     }
 
     @Test @MainActor func labyrinthPersistsThroughStore() throws {
@@ -366,6 +373,100 @@ struct LabyrinthProgressTests {
         let loaded = model.toPlayerLabyrinthState()
         #expect(loaded.nodes.count == 1)
         #expect(loaded.nodes["dup-node"]?.enemyID == "skeleton")
+    }
+}
+
+private extension LabyrinthProgressTests {
+    func hasClearedAdjacentPath(
+        from sourceID: String,
+        to targetID: String,
+        nodeIDs: [String],
+        state: PlayerLabyrinthState
+    ) -> Bool {
+        var reached = Set([sourceID])
+        var frontier = [sourceID]
+        while let nodeID = frontier.popLast() {
+            guard let source = state.nodes[nodeID] else { continue }
+            for candidateID in nodeIDs where !reached.contains(candidateID) {
+                guard let candidate = state.nodes[candidateID],
+                      candidate.isCleared,
+                      areAdjacent(source, candidate)
+                else { continue }
+                reached.insert(candidateID)
+                frontier.append(candidateID)
+            }
+        }
+        return reached.contains(targetID)
+    }
+
+    func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
+        guard let sourcePosition = source.gridPosition,
+              let targetPosition = target.gridPosition
+        else { return false }
+        let rowDelta = targetPosition.row - sourcePosition.row
+        let columnDelta = targetPosition.column - sourcePosition.column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
+    }
+}
+
+extension LabyrinthProgressTests {
+    @Test func clearedHexMakesAllSixNeighborDirectionsReachable() {
+        let center = LabyrinthNode(
+            id: "center",
+            type: .battle,
+            depth: 1,
+            clusterID: "floor",
+            gridPosition: LabyrinthGridPosition(row: 1, column: 0),
+            isCleared: true,
+            isRevealed: true
+        )
+        let neighborPositions = [
+            "left": LabyrinthGridPosition(row: 1, column: -1),
+            "right": LabyrinthGridPosition(row: 1, column: 1),
+            "upLeft": LabyrinthGridPosition(row: 0, column: 0),
+            "upRight": LabyrinthGridPosition(row: 0, column: 1),
+            "downLeft": LabyrinthGridPosition(row: 2, column: -1),
+            "downRight": LabyrinthGridPosition(row: 2, column: 0)
+        ]
+        let neighbors = neighborPositions.map { id, position in
+            LabyrinthNode(
+                id: id,
+                type: .mystery,
+                depth: 1,
+                clusterID: "floor",
+                gridPosition: position,
+                isRevealed: true
+            )
+        }
+        let distant = LabyrinthNode(
+            id: "distant",
+            type: .mystery,
+            depth: 1,
+            clusterID: "floor",
+            gridPosition: LabyrinthGridPosition(row: 3, column: 0),
+            isRevealed: true
+        )
+        let otherFloor = LabyrinthNode(
+            id: "other-floor",
+            type: .mystery,
+            depth: 2,
+            clusterID: "other-floor",
+            gridPosition: LabyrinthGridPosition(row: 1, column: 1),
+            isRevealed: true
+        )
+        let allNodes = [center, distant, otherFloor] + neighbors
+        let state = PlayerLabyrinthState(
+            hasEntered: true,
+            nodes: Dictionary(uniqueKeysWithValues: allNodes.map { ($0.id, $0) })
+        )
+
+        for neighbor in neighbors {
+            #expect(state.isNodeReachable(neighbor.id))
+        }
+        #expect(!state.isNodeReachable(distant.id))
+        #expect(!state.isNodeReachable(otherFloor.id))
     }
 }
 

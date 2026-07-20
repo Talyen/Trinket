@@ -151,7 +151,8 @@ if git diff --quiet -- "${TRACKED_PATHS[@]}" \
 fi
 
 echo "ERROR: Generated output is stale or uncommitted." >&2
-echo "Run ./Scripts/generate.sh and commit the updated files (including Trinket.xcodeproj when project.yml changed)." >&2
+echo "If these are intentional task outputs, review them, commit or amend only the task scope, then rerun this gate." >&2
+echo "Otherwise run ./Scripts/generate.sh and investigate the unexpected drift (including Trinket.xcodeproj when project.yml changed)." >&2
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   echo "For art/music manifest edits, use ./Scripts/generate.sh --assets" >&2
 fi

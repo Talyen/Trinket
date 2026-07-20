@@ -248,7 +248,7 @@ struct BattleSessionSimulationTests {
         #expect(receivedUpdates.count == 1)
     }
 
-    @Test func feedbackVisualsQueueAcrossThreeLanesPreferringMiddle() {
+    @Test func feedbackVisualsUseIndependentPerTargetStreams() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)
         session.recordFeedbackEvents(
@@ -265,24 +265,24 @@ struct BattleSessionSimulationTests {
         let enemyItems = session.activeFeedbackItems
             .filter { $0.targetID == "enemy" }
             .sorted { $0.id < $1.id }
-        #expect(enemyItems.map(\.lane) == [.middle, .left, .right, .middle])
-        #expect(enemyItems.map(\.availableAt) == [
-            now,
-            now,
-            now,
-            now.addingTimeInterval(TrinketMotion.Battle.feedbackQueueStagger)
-        ])
+        let stagger = TrinketMotion.Battle.feedbackStreamStagger
+        for (index, item) in enemyItems.enumerated() {
+            let expected = stagger * Double(index)
+            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
+        }
 
-        // No battle state → party detection falls back to enemy lanes; single chip still middle.
+        // Each target owns its own stream clock.
         let heroItem = session.activeFeedbackItems.first { $0.targetID == "hero" }
-        #expect(heroItem?.lane == .middle)
         #expect(heroItem?.availableAt == now)
         #expect(session.activeFeedbackItems.allSatisfy {
-            $0.expiresAt.timeIntervalSince($0.availableAt) == TrinketMotion.Battle.chipDisplayDuration
+            abs(
+                $0.expiresAt.timeIntervalSince($0.availableAt)
+                    - TrinketMotion.Battle.chipDisplayDuration
+            ) < 0.001
         })
     }
 
-    @Test func feedbackVisualsQueueEightDistinctChipsInThreeWaves() {
+    @Test func feedbackVisualsQueueEveryDistinctChipInRapidSequence() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 200)
         let keywords: [Keyword] = [
@@ -297,19 +297,11 @@ struct BattleSessionSimulationTests {
 
         let items = session.activeFeedbackItems.sorted { $0.id < $1.id }
         #expect(items.count == 8)
-        let stagger = TrinketMotion.Battle.feedbackQueueStagger
-        #expect(items.prefix(3).map(\.availableAt) == [now, now, now])
-        #expect(items.dropFirst(3).prefix(3).map(\.availableAt) == [
-            now.addingTimeInterval(stagger),
-            now.addingTimeInterval(stagger),
-            now.addingTimeInterval(stagger)
-        ])
-        #expect(items.suffix(2).map(\.availableAt) == [
-            now.addingTimeInterval(stagger * 2),
-            now.addingTimeInterval(stagger * 2)
-        ])
-        #expect(Set(items.prefix(3).map(\.lane)) == Set(CombatFeedbackLane.allCases))
-        #expect(items.map(\.availableAt).max()?.timeIntervalSince(now) == stagger * 2)
+        let stagger = TrinketMotion.Battle.feedbackStreamStagger
+        for (index, item) in items.enumerated() {
+            let expected = stagger * Double(index)
+            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
+        }
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
@@ -410,11 +402,11 @@ struct BattleSessionSimulationTests {
 }
 
 @MainActor
-struct BattleSessionPartyFeedbackLaneTests {
-    @Test func partyFeedbackQueuesOnMiddleLaneOnly() throws {
+struct BattleSessionPartyFeedbackStreamTests {
+    @Test func partyFeedbackUsesOneIndependentStreamPerCombatant() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let now = Date(timeIntervalSince1970: 150)
-        let stagger = TrinketMotion.Battle.feedbackQueueStagger
+        let stagger = TrinketMotion.Battle.feedbackStreamStagger
         session.recordFeedbackEvents(
             [
                 partyFeedbackEvent(id: 1, amount: 1, keyword: .bleed, targetID: "hero"),
@@ -429,21 +421,18 @@ struct BattleSessionPartyFeedbackLaneTests {
         let heroItems = session.activeFeedbackItems
             .filter { $0.targetID == "hero" }
             .sorted { $0.id < $1.id }
-        #expect(heroItems.map(\.lane) == [.middle, .middle, .middle])
-        #expect(heroItems.map(\.availableAt) == [
-            now,
-            now.addingTimeInterval(stagger),
-            now.addingTimeInterval(stagger * 2)
-        ])
+        for (index, item) in heroItems.enumerated() {
+            let expected = stagger * Double(index)
+            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
+        }
 
         let companionItems = session.activeFeedbackItems
             .filter { $0.targetID == "companion" }
             .sorted { $0.id < $1.id }
-        #expect(companionItems.map(\.lane) == [.middle, .middle])
-        #expect(companionItems.map(\.availableAt) == [
-            now,
-            now.addingTimeInterval(stagger)
-        ])
+        for (index, item) in companionItems.enumerated() {
+            let expected = stagger * Double(index)
+            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
+        }
     }
 
     private func partyFeedbackEvent(

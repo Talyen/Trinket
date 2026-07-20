@@ -105,7 +105,7 @@ struct CombatHealthBar: View {
         let newHealth = Double(newValue)
 
         if newValue < oldValue {
-            withAnimation(.easeOut(duration: 0.22)) {
+            withAnimation(TrinketMotion.Content.fade) {
                 displayedHealth = newHealth
                 restoreOpacity = 0
             }
@@ -115,7 +115,7 @@ struct CombatHealthBar: View {
         } else if newValue > oldValue {
             restoreHealth = newHealth
             restoreOpacity = 0.85
-            withAnimation(.easeOut(duration: 0.22)) {
+            withAnimation(TrinketMotion.Content.fade) {
                 displayedHealth = newHealth
                 trailingHealth = newHealth
             }

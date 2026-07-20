@@ -7,7 +7,9 @@ struct AbilityTierPickerSheet: View {
     let combatant: Combatant
     let tier: AbilityTier
     let selectedAbilityID: String?
-    let onOpenDetail: (Ability) -> Void
+    let onSelectAbility: (Ability) -> Void
+
+    @State private var selectedAbility: Ability?
 
     private var abilities: [Ability] {
         let tierAbilities = combatant.abilityChoices.abilities(for: tier)
@@ -27,7 +29,7 @@ struct AbilityTierPickerSheet: View {
             isSelected: { ability in
                 ability.id == selectedAbilityID
             },
-            onSelect: onOpenDetail,
+            onSelect: { selectedAbility = $0 },
             accessibilityIdentifier: { ability in
                 AccessibilityID.LoadoutPicker.abilityCandidate(ability.id)
             },
@@ -41,5 +43,16 @@ struct AbilityTierPickerSheet: View {
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
         .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $selectedAbility) { ability in
+            AbilityDetailView(
+                ability: ability,
+                primaryActionTitle: "Select Ability",
+                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.selectAbility(ability.id),
+                onPrimaryAction: {
+                    onSelectAbility(ability)
+                    selectedAbility = nil
+                }
+            )
+        }
     }
 }

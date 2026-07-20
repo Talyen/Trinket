@@ -44,17 +44,29 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         return cluster(id: node.clusterID)
     }
 
-    /// A node is actionable when revealed, not cleared, and reachable from a cleared ancestor
-    /// (or it is the entrance's outgoing target).
+    /// A node is actionable when revealed, not cleared, and adjacent to a cleared hex.
+    /// Explicit outgoing links bridge the entrance and completed floors.
     public func isNodeReachable(_ nodeID: String) -> Bool {
         guard let node = nodes[nodeID], node.isRevealed, !node.isCleared else { return false }
         if node.id == LabyrinthGenerator.entranceNodeID {
             return false
         }
-        // Reachable if any cleared node lists it as outgoing.
         return nodes.values.contains { source in
-            source.isCleared && source.outgoingIDs.contains(nodeID)
+            source.isCleared
+                && (source.outgoingIDs.contains(nodeID) || isAdjacent(source, node))
         }
+    }
+
+    private func isAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
+        guard source.clusterID == target.clusterID,
+              let sourcePosition = source.gridPosition,
+              let targetPosition = target.gridPosition
+        else { return false }
+        let rowDelta = targetPosition.row - sourcePosition.row
+        let columnDelta = targetPosition.column - sourcePosition.column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 
     public func reachableNodeIDs() -> [String] {

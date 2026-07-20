@@ -6,18 +6,6 @@ import TrinketDesignSystem
 import TrinketPersistence
 
 extension BattleSession {
-    func setMusicPreview(for stage: Stage?) {
-        guard activeBattle == nil,
-              let stage,
-              let enemyID = stage.encounter.battleEnemyID
-        else {
-            preview = nil
-            return
-        }
-
-        preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
-    }
-
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
         overlayCombatantDetail = detail
     }
@@ -370,7 +358,6 @@ extension BattleSession {
 
     func clearAllPresentation() {
         clearOutcomePresentation()
-        preview = nil
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false
@@ -496,7 +483,7 @@ extension BattleSession {
         feedbackScheduler?.invalidate()
         feedbackScheduler = nil
         nextFeedbackPruneAt = nil
-        nextFeedbackVisualStartByTargetLane.removeAll(keepingCapacity: true)
+        nextFeedbackVisualStartByTarget.removeAll(keepingCapacity: true)
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false

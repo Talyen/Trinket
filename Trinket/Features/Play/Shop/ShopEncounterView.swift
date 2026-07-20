@@ -199,13 +199,13 @@ struct ShopEncounterView: View {
     }
 
     private func presentEntrance() {
-        withAnimation(.easeOut(duration: 0.35)) {
+        withAnimation(TrinketMotion.Content.entrance) {
             artAppeared = true
         }
-        withAnimation(.easeOut(duration: 0.4).delay(0.08)) {
+        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.entranceStagger)) {
             contentAppeared = true
         }
-        withAnimation(.easeOut(duration: 0.45).delay(0.16)) {
+        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.secondEntranceDelay)) {
             offersAppeared = true
         }
     }

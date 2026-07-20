@@ -104,7 +104,7 @@ public enum StageEncounter: Hashable, Sendable {
         case .mysteryEvent:
             "Approach"
         case .recruit:
-            "Meet Recruit"
+            "Recruit"
         }
     }
 

@@ -4,8 +4,9 @@ import TrinketDesignSystem
 
 struct TrinketMotionTests {
     @Test func rewardRevealTimingStaysBriefAndSequential() {
-        #expect(TrinketMotion.Reward.resourceStagger > 0)
-        #expect(TrinketMotion.Reward.resourceStagger < 0.2)
+        #expect(TrinketMotion.Reward.resourceStagger == 0.06)
+        #expect(TrinketMotion.Reward.itemRevealDelay == 0.08)
+        #expect(TrinketMotion.Reward.completionDelay == 0.10)
         #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
         #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
 
@@ -13,22 +14,19 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
-        #expect(TrinketMotion.Battle.feedbackQueueStagger == TrinketMotion.Battle.chipDisplayDuration)
-        #expect(TrinketMotion.Battle.feedbackLaneCount == 3)
-        #expect(CombatFeedbackLayout.laneSpreadFraction == 1.15)
-        #expect(CombatFeedbackLayout.laneOffsetX(for: .middle, chipWidth: 100) == 0)
-        let spread = 100 * CombatFeedbackLayout.laneSpreadFraction
-        #expect(CombatFeedbackLayout.laneOffsetX(for: .left, chipWidth: 100) == -spread)
-        #expect(CombatFeedbackLayout.laneOffsetX(for: .right, chipWidth: 100) == spread)
-        #expect(TrinketMotion.Battle.feedbackLanes(isPartyMember: true) == [.middle])
-        #expect(TrinketMotion.Battle.feedbackLanes(isPartyMember: false) == Array(CombatFeedbackLane.allCases))
+        #expect(TrinketMotion.Battle.feedbackStreamStagger > 0)
+        #expect(TrinketMotion.Battle.feedbackStreamStagger < TrinketMotion.Battle.chipDisplayDuration)
+        #expect(CombatFeedbackLayout.streamGap > 0)
         #expect(TrinketMotion.Battle.statusBorderPulseDuration > 0)
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity > 0)
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity < 1)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
         #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
-        #expect(TrinketMotion.Screen.crossfadeDuration > 0)
-        #expect(TrinketMotion.Screen.crossfadeDuration < 0.35)
+        #expect(TrinketMotion.Screen.crossfadeDuration == 0.20)
+        #expect(TrinketMotion.Content.fadeDuration == 0.20)
+        #expect(TrinketMotion.Content.entranceDuration == 0.35)
+        #expect(TrinketMotion.Content.entranceStagger == 0.08)
+        #expect(TrinketMotion.Content.secondEntranceDelay == 0.16)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
         #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(

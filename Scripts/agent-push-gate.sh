@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Commit-completeness gate for agents before commit/push.
+# Commit-completeness gate for agents after commit and before push.
 # Regenerates with pinned XcodeGen (forced), then asserts generated output vs HEAD.
 # Conditionally includes asset pipelines when classification says assets changed.
 set -euo pipefail
@@ -24,7 +24,7 @@ Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate:
 Without --paths, classifies the whole working tree. With --paths, only those
 paths drive whether --assets is included.
 
-Agents: run this after the task-scoped handoff verification and before commit/push.
+Agents: run this after committing the reviewed task scope and before pushing.
 Pre-push also calls this script.
 
 Env:

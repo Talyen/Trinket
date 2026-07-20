@@ -3,7 +3,7 @@ import TrinketCore
 
 /// Deterministic expanding floor generator for The Labyrinth.
 public enum LabyrinthGenerator {
-    public static let currentMapVersion = 2
+    public static let currentMapVersion = 3
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
 
@@ -140,33 +140,40 @@ public enum LabyrinthGenerator {
         let biome = pickBiome(excluding: previousBiomeID, using: &rng)
         let clusterID = "labyrinth-cluster-\(number)-\(biome.id.rawValue)"
         let count = Int.random(in: 7 ... 9, using: &rng)
-        let positions = gridPositions(nodeCount: count)
         let types = plannedTypes(
             count: count,
             hasEligibleRecruit: !eligibleRecruitEventIDs.isEmpty,
             using: &rng
         )
         var remainingRecruitIDs = eligibleRecruitEventIDs.shuffled(using: &rng)
-        var nodes = types.enumerated().map { index, type in
+        let payloads = types.map { type in
             let enemyID: String? = if type.isCombat {
                 type == .boss ? biome.bossEnemyID : pickEnemy(from: biome, using: &rng)
             } else {
                 nil
             }
             let recruitEventID = type == .recruit ? remainingRecruitIDs.popLast() : nil
-            return LabyrinthNode(
-                id: "\(clusterID)-n\(index)",
+            return (
                 type: type,
                 enemyID: enemyID,
+                modifierIDs: modifierIDs(for: type, using: &rng),
+                recruitEventID: recruitEventID
+            )
+        }
+        let positions = gridPositions(nodeCount: count, using: &rng)
+        let nodes = payloads.enumerated().map { index, payload in
+            LabyrinthNode(
+                id: "\(clusterID)-n\(index)",
+                type: payload.type,
+                enemyID: payload.enemyID,
                 depth: number,
                 clusterID: clusterID,
                 gridPosition: positions[index],
-                modifierIDs: modifierIDs(for: type, using: &rng),
-                recruitEventID: recruitEventID,
+                modifierIDs: payload.modifierIDs,
+                recruitEventID: payload.recruitEventID,
                 isRevealed: true
             )
         }
-        wireAdjacentRows(nodes: &nodes)
         let cluster = LabyrinthCluster(
             id: clusterID,
             biomeID: biome.id,
@@ -177,15 +184,120 @@ public enum LabyrinthGenerator {
         return GeneratedFloor(cluster: cluster, nodes: nodes, entryNodeIDs: [nodes[0].id])
     }
 
-    private static func gridPositions(nodeCount: Int) -> [LabyrinthGridPosition] {
-        let columnsByRow: [[Int]] = switch nodeCount {
-        case 7: [[0], [-1, 0], [-1, 0], [-1], [-2]]
-        case 8: [[0], [-1, 0], [-1, 0], [-2, -1], [-2]]
-        default: [[0], [-1, 0], [-2, -1, 0], [-2, -1], [-2]]
+    private static func gridPositions(
+        nodeCount: Int,
+        using rng: inout some RandomNumberGenerator
+    ) -> [LabyrinthGridPosition] {
+        let closesLoop = Int.random(in: 0 ..< 5, using: &rng) == 0
+        var depths = Array(4 ... 6)
+        depths.shuffle(using: &rng)
+
+        for depth in depths {
+            var bossPositions = boundedPositions(in: depth)
+            bossPositions.shuffle(using: &rng)
+            let middleCandidates = (1 ..< depth).flatMap(boundedPositions(in:))
+            var middleSets = combinations(
+                of: middleCandidates,
+                choosing: nodeCount - 2
+            )
+            middleSets.shuffle(using: &rng)
+
+            for boss in bossPositions {
+                for middle in middleSets {
+                    let positions = [LabyrinthGridPosition(row: 0, column: 0)] + middle + [boss]
+                    guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }
+                    return [positions[0]] + middle.sorted(by: gridPositionOrder) + [boss]
+                }
+            }
         }
-        return columnsByRow.enumerated().flatMap { row, columns in
-            columns.map { LabyrinthGridPosition(row: row, column: $0) }
+
+        preconditionFailure("Labyrinth floor constraints must produce a layout")
+    }
+
+    /// Limits projected center positions to five half-column slots, or three full hex columns.
+    private static func boundedPositions(in row: Int) -> [LabyrinthGridPosition] {
+        (-2 ... 2).compactMap { projectedColumn in
+            guard (projectedColumn - row).isMultiple(of: 2) else { return nil }
+            return LabyrinthGridPosition(
+                row: row,
+                column: (projectedColumn - row) / 2
+            )
         }
+    }
+
+    private static func combinations(
+        of positions: [LabyrinthGridPosition],
+        choosing count: Int
+    ) -> [[LabyrinthGridPosition]] {
+        guard count > 0 else { return [[]] }
+        guard positions.count >= count else { return [] }
+
+        var result: [[LabyrinthGridPosition]] = []
+        var selection: [LabyrinthGridPosition] = []
+
+        func appendCombinations(startingAt index: Int) {
+            if selection.count == count {
+                result.append(selection)
+                return
+            }
+            let remainingNeeded = count - selection.count
+            guard positions.count - index >= remainingNeeded else { return }
+            for candidateIndex in index ... positions.count - remainingNeeded {
+                selection.append(positions[candidateIndex])
+                appendCombinations(startingAt: candidateIndex + 1)
+                selection.removeLast()
+            }
+        }
+
+        appendCombinations(startingAt: 0)
+        return result
+    }
+
+    private static func isValidFloorShape(
+        _ positions: [LabyrinthGridPosition],
+        closesLoop: Bool
+    ) -> Bool {
+        let degrees = positions.map { source in
+            positions.count(where: { target in
+                source != target && areAdjacent(source, target)
+            })
+        }
+        guard degrees.first == 1,
+              degrees.last == 1,
+              degrees.allSatisfy({ $0 <= 3 }),
+              degrees.contains(3)
+        else { return false }
+
+        var reached: Set<LabyrinthGridPosition> = [positions[0]]
+        var frontier = [positions[0]]
+        while let source = frontier.popLast() {
+            for target in positions where areAdjacent(source, target) && reached.insert(target).inserted {
+                frontier.append(target)
+            }
+        }
+        guard reached.count == positions.count else { return false }
+
+        let edgeCount = degrees.reduce(0, +) / 2
+        let cycleCount = edgeCount - positions.count + 1
+        return cycleCount == (closesLoop ? 1 : 0)
+    }
+
+    private static func areAdjacent(
+        _ source: LabyrinthGridPosition,
+        _ target: LabyrinthGridPosition
+    ) -> Bool {
+        let rowDelta = target.row - source.row
+        let columnDelta = target.column - source.column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
+    }
+
+    private static func gridPositionOrder(
+        _ left: LabyrinthGridPosition,
+        _ right: LabyrinthGridPosition
+    ) -> Bool {
+        left.row == right.row ? left.column < right.column : left.row < right.row
     }
 
     private static func plannedTypes(
@@ -235,20 +347,6 @@ public enum LabyrinthGenerator {
             []
         }
         return ids.map { LabyrinthModifierID($0) }
-    }
-
-    private static func wireAdjacentRows(nodes: inout [LabyrinthNode]) {
-        for sourceIndex in nodes.indices {
-            guard let sourcePosition = nodes[sourceIndex].gridPosition else { continue }
-            for target in nodes {
-                guard let targetPosition = target.gridPosition,
-                      targetPosition.row == sourcePosition.row + 1
-                else { continue }
-                let columnDelta = targetPosition.column - sourcePosition.column
-                guard columnDelta == 0 || columnDelta == -1 else { continue }
-                nodes[sourceIndex].outgoingIDs.append(target.id)
-            }
-        }
     }
 
     private static func pickBiome(

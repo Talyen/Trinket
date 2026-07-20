@@ -200,7 +200,7 @@ extension AppState {
         )
     }
 
-    /// Clears preview, installs a fresh battle configuration, and syncs the tick loop.
+    /// Installs a fresh battle configuration and syncs the tick loop.
     func activateBattle(
         resumeToken: ActiveBattleResumeToken? = nil,
         hero: Combatant,
@@ -212,7 +212,6 @@ extension AppState {
         pendingRewardItem: InventoryItem? = nil,
         universalModifiers: [AffixModifier] = []
     ) {
-        battle.preview = nil
         if let resumeToken,
            battle.activatePreparedBattle(
                resumeToken: resumeToken,

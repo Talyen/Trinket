@@ -56,8 +56,7 @@ enum CombatFeedbackPresenter {
                     lifetime: TrinketMotion.Battle.chipDisplayDuration,
                     availableAt: availableAt,
                     expiresAt: expiresAt,
-                    reactionKind: prepared.reactionKind,
-                    lane: .middle
+                    reactionKind: prepared.reactionKind
                 )
             }
         }

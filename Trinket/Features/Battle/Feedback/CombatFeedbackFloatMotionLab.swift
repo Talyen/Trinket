@@ -20,10 +20,6 @@ private struct CombatFeedbackFloatMotionLab: View {
             case .enemy: "Enemy"
             }
         }
-
-        var isPartyMember: Bool {
-            self == .party
-        }
     }
 
     private enum ChipKind: String, CaseIterable {
@@ -76,7 +72,6 @@ private struct CombatFeedbackFloatMotionLab: View {
     private struct LabFloat: Identifiable {
         let id: Int
         let target: StageTarget
-        let lane: CombatFeedbackLane
         let kind: ChipKind
         let availableAt: Date
         let seed: Int
@@ -88,14 +83,8 @@ private struct CombatFeedbackFloatMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""
     @State private var floats: [LabFloat] = []
     @State private var nextFloatID = 1
-    @State private var partyLaneClocks = Array(
-        repeating: Date.distantPast,
-        count: TrinketMotion.Battle.feedbackLaneCount
-    )
-    @State private var enemyLaneClocks = Array(
-        repeating: Date.distantPast,
-        count: TrinketMotion.Battle.feedbackLaneCount
-    )
+    @State private var partyStreamClock = Date.distantPast
+    @State private var enemyStreamClock = Date.distantPast
     @State private var copiedBannerVisible = false
 
     private var selectedEnemy: Enemy? {
@@ -149,7 +138,7 @@ private struct CombatFeedbackFloatMotionLab: View {
 
                 HStack(alignment: .center, spacing: TrinketDesign.Metrics.extraLargeSpacing) {
                     targetStage(
-                        title: "Party · 1 lane",
+                        title: "Party · 1 stream",
                         target: .party,
                         aspectRatio: BattleCardGridLayout.partyAspectRatio,
                         combatant: selectedHero,
@@ -157,7 +146,7 @@ private struct CombatFeedbackFloatMotionLab: View {
                     )
 
                     targetStage(
-                        title: "Enemy · 3 lanes",
+                        title: "Enemy · 1 stream",
                         target: .enemy,
                         aspectRatio: BattleCardGridLayout.enemyAspectRatio,
                         combatant: selectedEnemy?.combatant,
@@ -170,7 +159,7 @@ private struct CombatFeedbackFloatMotionLab: View {
                     ForEach(ChipKind.allCases, id: \.self) { kind in
                         fireButton(kind.fireTitle, kind: kind)
                     }
-                    Button("Burst ×3") {
+                    Button("Burst ×7") {
                         fireBurst()
                     }
                     .trinketPrimaryActionButton(controlSize: .large)
@@ -214,8 +203,26 @@ private struct CombatFeedbackFloatMotionLab: View {
                         .frame(width: cardSize.width, height: cardSize.height)
                     }
 
-                    ForEach(floats.filter { $0.target == target }) { item in
-                        labChip(item, cardHeight: cardSize.height, at: now)
+                    let targetFloats = floats
+                        .filter { $0.target == target }
+                        .sorted {
+                            if $0.availableAt == $1.availableAt {
+                                return $0.id < $1.id
+                            }
+                            return $0.availableAt < $1.availableAt
+                        }
+                    let packedOffsets = packedLabOffsets(
+                        for: targetFloats,
+                        cardHeight: cardSize.height,
+                        at: now
+                    )
+                    ForEach(targetFloats) { item in
+                        labChip(
+                            item,
+                            cardHeight: cardSize.height,
+                            verticalOffset: packedOffsets[item.id] ?? 0,
+                            at: now
+                        )
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -237,15 +244,19 @@ private struct CombatFeedbackFloatMotionLab: View {
         }
     }
 
-    private func labChip(_ item: LabFloat, cardHeight: CGFloat, at date: Date) -> some View {
+    private func labChip(
+        _ item: LabFloat,
+        cardHeight: CGFloat,
+        verticalOffset: CGFloat,
+        at date: Date
+    ) -> some View {
         let recipe = TrinketMotion.Battle.chip(for: item.kind.feedbackClass)
-        let chipHeight: CGFloat = item.kind == .critical ? 44 : 36
-        let chipWidth: CGFloat = item.kind == .critical ? 88 : 72
+        let chipHeight = chipHeight(for: item.kind)
+        let chipWidth = chipWidth(for: item.kind)
         let travel = configuration.travelDistance(cardHeight: cardHeight, chipHeight: chipHeight)
         let pose = configuration.sample(
             elapsed: max(0, date.timeIntervalSince(item.availableAt)),
             seed: item.seed,
-            lane: item.lane,
             chipWidth: chipWidth,
             travelDistance: travel
         )
@@ -263,7 +274,7 @@ private struct CombatFeedbackFloatMotionLab: View {
         .trinketCombatFloatText()
         .scaleEffect(pose.scale)
         .rotationEffect(.degrees(pose.rotationDegrees))
-        .offset(x: pose.offsetX, y: pose.offsetY)
+        .offset(x: pose.offsetX, y: verticalOffset)
         .opacity(pose.opacity)
         .allowsHitTesting(false)
     }
@@ -304,10 +315,10 @@ private struct CombatFeedbackFloatMotionLab: View {
             ForEach(ChipKind.allCases, id: \.self) { kind in
                 Button("Fire \(kind.fireTitle)") { fire(kind: kind, on: focusTarget) }
             }
-            Button("Burst ×3 on focus") { fireBurst() }
+            Button("Burst ×7 on focus") { fireBurst() }
             Button("Clear Floats") {
                 floats.removeAll()
-                resetLaneClocks()
+                resetStreamClocks()
             }
             LabeledContent("Active floats", value: "\(floats.count)")
         }
@@ -384,24 +395,31 @@ private struct CombatFeedbackFloatMotionLab: View {
         selectedCandidate = candidate
         configuration = candidate.configuration
         floats.removeAll()
-        resetLaneClocks()
+        resetStreamClocks()
     }
 
     private func fireBurst() {
-        for kind in [ChipKind.physical, .burn, .critical] {
+        for kind in [
+            ChipKind.physical,
+            .burn,
+            .critical,
+            .heal,
+            .block,
+            .physical,
+            .critical
+        ] {
             fire(kind: kind, on: focusTarget)
         }
     }
 
     private func fire(kind: ChipKind, on target: StageTarget) {
         let now = Date()
-        let scheduled = schedule(target: target, at: now)
+        let start = schedule(target: target, at: now)
         let float = LabFloat(
             id: nextFloatID,
             target: target,
-            lane: scheduled.lane,
             kind: kind,
-            availableAt: scheduled.start,
+            availableAt: start,
             seed: nextFloatID
         )
         nextFloatID += 1
@@ -409,34 +427,48 @@ private struct CombatFeedbackFloatMotionLab: View {
         focusTarget = target
     }
 
-    private func schedule(
-        target: StageTarget,
-        at date: Date
-    ) -> (lane: CombatFeedbackLane, start: Date) {
-        var clocks = target == .party ? partyLaneClocks : enemyLaneClocks
-        let eligible = TrinketMotion.Battle.feedbackLanes(isPartyMember: target.isPartyMember)
-        let lane: CombatFeedbackLane =
-            if eligible.contains(.middle), clocks[CombatFeedbackLane.middle.rawValue] <= date {
-                .middle
-            } else {
-                eligible.min { lhs, rhs in
-                    let lhsStart = max(date, clocks[lhs.rawValue])
-                    let rhsStart = max(date, clocks[rhs.rawValue])
-                    if lhsStart != rhsStart {
-                        return lhsStart < rhsStart
-                    }
-                    return lhs.assignmentPriority < rhs.assignmentPriority
-                } ?? .middle
-            }
-
-        let start = max(date, clocks[lane.rawValue])
-        clocks[lane.rawValue] = start.addingTimeInterval(configuration.duration)
+    private func schedule(target: StageTarget, at date: Date) -> Date {
+        let clock = target == .party ? partyStreamClock : enemyStreamClock
+        let start = max(date, clock)
+        let next = start.addingTimeInterval(TrinketMotion.Battle.feedbackStreamStagger)
         if target == .party {
-            partyLaneClocks = clocks
+            partyStreamClock = next
         } else {
-            enemyLaneClocks = clocks
+            enemyStreamClock = next
         }
-        return (lane, start)
+        return start
+    }
+
+    private func packedLabOffsets(
+        for items: [LabFloat],
+        cardHeight: CGFloat,
+        at date: Date
+    ) -> [Int: CGFloat] {
+        let poses = items.map { item in
+            let height = chipHeight(for: item.kind)
+            let travel = configuration.travelDistance(cardHeight: cardHeight, chipHeight: height)
+            return configuration.sample(
+                elapsed: max(0, date.timeIntervalSince(item.availableAt)),
+                seed: item.seed,
+                chipWidth: chipWidth(for: item.kind),
+                travelDistance: travel
+            )
+        }
+        let offsets = CombatFeedbackRasterUIView.packedVerticalOffsets(
+            desired: poses.map(\.offsetY),
+            scaledHeights: zip(items, poses).map { item, pose in
+                chipHeight(for: item.kind) * pose.scale
+            }
+        )
+        return Dictionary(uniqueKeysWithValues: zip(items.map(\.id), offsets))
+    }
+
+    private func chipHeight(for kind: ChipKind) -> CGFloat {
+        kind == .critical ? 44 : 36
+    }
+
+    private func chipWidth(for kind: ChipKind) -> CGFloat {
+        kind == .critical ? 88 : 72
     }
 
     private func pruneExpired(at date: Date) {
@@ -444,15 +476,9 @@ private struct CombatFeedbackFloatMotionLab: View {
         floats.removeAll { date.timeIntervalSince($0.availableAt) > lifetime }
     }
 
-    private func resetLaneClocks() {
-        partyLaneClocks = Array(
-            repeating: Date.distantPast,
-            count: TrinketMotion.Battle.feedbackLaneCount
-        )
-        enemyLaneClocks = Array(
-            repeating: Date.distantPast,
-            count: TrinketMotion.Battle.feedbackLaneCount
-        )
+    private func resetStreamClocks() {
+        partyStreamClock = .distantPast
+        enemyStreamClock = .distantPast
     }
 
     private func fittedCardSize(in size: CGSize, aspectRatio: CGFloat) -> CGSize {

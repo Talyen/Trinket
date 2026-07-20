@@ -78,7 +78,9 @@ final class CombatFeedbackRasterUIView: UIView {
         }
     }
 
-    static let preallocatedSlotCount = TrinketMotion.Battle.feedbackLaneCount + 1
+    static let preallocatedSlotCount = Int(ceil(
+        TrinketMotion.Battle.chipDisplayDuration / TrinketMotion.Battle.feedbackStreamStagger
+    )) + 1
 
     private var layersByID: [Int: ChipLayer] = [:]
     private var reusableLayers: [CALayer] = []
@@ -176,17 +178,82 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     fileprivate func tickMotion(at date: Date) {
+        let orderedLayers = layersByID.values.sorted { lhs, rhs in
+            let lhsItem = lhs.canvasItem.item
+            let rhsItem = rhs.canvasItem.item
+            if lhsItem.availableAt == rhsItem.availableAt {
+                return lhsItem.id < rhsItem.id
+            }
+            return lhsItem.availableAt < rhsItem.availableAt
+        }
+        let states = orderedLayers.map { chipLayer in
+            let item = chipLayer.canvasItem.item
+            let travelDistance = TrinketMotion.Battle.chipTravelDistance(
+                cardHeight: cardHeight,
+                chipHeight: chipLayer.layer.bounds.height
+            )
+            return CombatFeedbackMotionSampler.state(
+                for: item,
+                travelDistance: travelDistance,
+                at: date
+            )
+        }
+        let verticalOffsets = Self.packedVerticalOffsets(
+            desired: states.map { CGFloat($0.verticalOffset) },
+            scaledHeights: zip(orderedLayers, states).map { chipLayer, state in
+                chipLayer.layer.bounds.height * CGFloat(state.scale)
+            }
+        )
+
         withLayerActionsDisabled {
-            for layer in layersByID.values {
-                let pose = compositorPose(
-                    for: layer.canvasItem,
-                    chipSize: layer.layer.bounds.size,
-                    at: date
-                )
-                layer.layer.transform = pose.transform
-                layer.layer.opacity = Float(pose.opacity)
+            for (index, chipLayer) in orderedLayers.enumerated() {
+                let state = states[index]
+                let transform = CGAffineTransform.identity
+                    .translatedBy(x: 0, y: verticalOffsets[index])
+                    .scaledBy(x: state.scale, y: state.scale)
+                chipLayer.layer.transform = CATransform3DMakeAffineTransform(transform)
+                chipLayer.layer.opacity = Float(state.opacity)
             }
         }
+    }
+
+    static func packedVerticalOffsets(
+        desired: [CGFloat],
+        scaledHeights: [CGFloat],
+        gap: CGFloat = CombatFeedbackLayout.streamGap
+    ) -> [CGFloat] {
+        guard desired.count == scaledHeights.count, desired.count > 1 else {
+            return desired
+        }
+        var resolved = desired
+        for index in stride(from: desired.count - 2, through: 0, by: -1) {
+            let maximumOlderOffset = resolved[index + 1]
+                - (scaledHeights[index] + scaledHeights[index + 1]) / 2
+                - gap
+            resolved[index] = min(resolved[index], maximumOlderOffset)
+        }
+        return resolved
+    }
+
+    private func compositorPose(
+        for canvasItem: CombatFeedbackCanvasItem,
+        chipSize: CGSize,
+        at date: Date
+    ) -> (transform: CATransform3D, opacity: Double) {
+        let item = canvasItem.item
+        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
+            cardHeight: cardHeight,
+            chipHeight: chipSize.height
+        )
+        let state = CombatFeedbackMotionSampler.state(
+            for: item,
+            travelDistance: travelDistance,
+            at: date
+        )
+        let transform = CGAffineTransform.identity
+            .translatedBy(x: 0, y: state.verticalOffset)
+            .scaledBy(x: state.scale, y: state.scale)
+        return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 
     private func insert(canvasItem: CombatFeedbackCanvasItem, raster: CombatFeedbackRaster) {
@@ -257,31 +324,6 @@ final class CombatFeedbackRasterUIView: UIView {
         CATransaction.setDisableActions(true)
         updates()
         CATransaction.commit()
-    }
-
-    private func compositorPose(
-        for canvasItem: CombatFeedbackCanvasItem,
-        chipSize: CGSize,
-        at date: Date
-    ) -> (transform: CATransform3D, opacity: Double) {
-        let item = canvasItem.item
-        let travelDistance = TrinketMotion.Battle.chipTravelDistance(
-            cardHeight: cardHeight,
-            chipHeight: chipSize.height
-        )
-        let state = CombatFeedbackMotionSampler.state(
-            for: item,
-            travelDistance: travelDistance,
-            at: date
-        )
-        let horizontalOffset = CombatFeedbackLayout.laneOffsetX(
-            for: item.lane,
-            chipWidth: chipSize.width
-        )
-        let transform = CGAffineTransform.identity
-            .translatedBy(x: horizontalOffset, y: state.verticalOffset)
-            .scaledBy(x: state.scale, y: state.scale)
-        return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 }
 

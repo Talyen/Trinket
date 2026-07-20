@@ -8,9 +8,10 @@ struct ItemSlotPickerView: View {
     let slot: ItemSlot
     let equipmentLoadout: EquipmentLoadout
     let inventoryState: PlayerInventoryState
-    let onOpenDetail: (InventoryItem) -> Void
+    let onEquip: (InventoryItem) -> Void
 
     @State private var itemOrder: [String] = []
+    @State private var selectedItem: InventoryItem?
 
     var body: some View {
         OptionPickerGrid(
@@ -18,7 +19,7 @@ struct ItemSlotPickerView: View {
             isSelected: { item in
                 item.id == equipmentLoadout.itemID(for: slot)
             },
-            onSelect: onOpenDetail,
+            onSelect: { selectedItem = $0 },
             accessibilityIdentifier: { item in
                 AccessibilityID.LoadoutPicker.itemCandidate(item.id)
             },
@@ -33,6 +34,18 @@ struct ItemSlotPickerView: View {
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $selectedItem) { item in
+            ItemDetailView(
+                item: item,
+                primaryActionTitle: "Equip \(slot.displayName)",
+                primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
+                dismissAfterPrimaryAction: true,
+                onPrimaryAction: {
+                    onEquip(item)
+                    selectedItem = nil
+                }
+            )
+        }
         .onAppear {
             if itemOrder.isEmpty {
                 itemOrder = entrySortedItems.map(\.id)

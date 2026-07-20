@@ -107,6 +107,10 @@ struct StageBattlePartyPickerSheet: View {
                 }
                 .scrollTargetLayout()
                 .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
+                .animation(
+                    .spring(response: 0.35, dampingFraction: 1),
+                    value: orderedCombatants(for: slot).map(\.id)
+                )
             }
             .contentMargins(
                 .horizontal,

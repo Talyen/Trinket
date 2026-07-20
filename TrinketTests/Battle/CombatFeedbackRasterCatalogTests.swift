@@ -4,6 +4,24 @@ import TrinketDesignSystem
 @testable import Trinket
 
 struct CombatFeedbackRasterCatalogTests {
+    @Test @MainActor func sevenChipStreamPacksMixedSizesWithoutOverlap() {
+        let desired: [CGFloat] = [-72, -66, -58, -47, -34, -18, 0]
+        let heights: [CGFloat] = [36, 44, 36, 36, 44, 36, 44]
+        let gap = CombatFeedbackLayout.streamGap
+
+        let packed = CombatFeedbackRasterUIView.packedVerticalOffsets(
+            desired: desired,
+            scaledHeights: heights
+        )
+
+        #expect(packed.count == 7)
+        #expect(packed.last == desired.last)
+        for index in 0 ..< packed.count - 1 {
+            let clearance = packed[index + 1] - packed[index]
+            #expect(clearance >= (heights[index] + heights[index + 1]) / 2 + gap)
+        }
+    }
+
     @Test @MainActor func closedCatalogFitsDefaultCapacityWithoutEviction() async {
         await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
             dynamicTypeSize: .large,
@@ -48,10 +66,9 @@ struct CombatFeedbackRasterCatalogTests {
         )
         let pool = CombatFeedbackRasterPool(capacity: CombatFeedbackRasterPool.defaultCapacity)
         let canvasItems = Array(
-            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().prefix(
-                CombatFeedbackRasterUIView.preallocatedSlotCount
-            )
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().prefix(7)
         )
+        #expect(canvasItems.count == 7)
         let chips = try canvasItems.map { canvasItem in
             let raster = try #require(pool.prepare(
                 for: canvasItem,

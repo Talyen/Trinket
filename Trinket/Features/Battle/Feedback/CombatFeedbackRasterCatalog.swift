@@ -167,8 +167,7 @@ enum CombatFeedbackRasterCatalog {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: availableAt,
             expiresAt: expiresAt,
-            reactionKind: source.reactionKind,
-            lane: .middle
+            reactionKind: source.reactionKind
         )
     }
 }

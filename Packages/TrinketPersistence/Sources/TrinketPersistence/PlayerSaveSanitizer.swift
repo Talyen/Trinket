@@ -284,16 +284,15 @@ public enum PlayerSaveSanitizer {
                   let entryID = cluster.nodeIDs.first,
                   let bossID = cluster.nodeIDs.last
             else { continue }
-            var nextID: String? = entryID
-            var visited = Set<String>()
-            while let nodeID = nextID, visited.insert(nodeID).inserted {
+            for nodeID in adjacentPath(
+                from: entryID,
+                to: bossID,
+                nodeIDs: cluster.nodeIDs,
+                nodes: nodes
+            ) {
                 guard var node = nodes[nodeID] else { break }
                 node.isCleared = true
                 nodes[nodeID] = node
-                if nodeID == bossID {
-                    break
-                }
-                nextID = node.outgoingIDs.sorted().first
             }
         }
     }
@@ -368,5 +367,58 @@ public enum PlayerSaveSanitizer {
             return LabyrinthGridPosition(row: max(1, (index + 1) / 3), column: 1)
         }
         return LabyrinthGridPosition(row: index / 3, column: index % 3)
+    }
+}
+
+private extension PlayerSaveSanitizer {
+    static func adjacentPath(
+        from sourceID: String,
+        to targetID: String,
+        nodeIDs: [String],
+        nodes: [String: LabyrinthNode]
+    ) -> [String] {
+        var frontier = [sourceID]
+        var nextIndex = 0
+        var predecessor: [String: String] = [:]
+        var visited: Set<String> = [sourceID]
+
+        while nextIndex < frontier.count {
+            let nodeID = frontier[nextIndex]
+            nextIndex += 1
+            if nodeID == targetID {
+                break
+            }
+            guard let source = nodes[nodeID] else {
+                continue
+            }
+
+            for candidateID in nodeIDs.sorted() {
+                guard !visited.contains(candidateID),
+                      let candidate = nodes[candidateID],
+                      areAdjacent(source, candidate)
+                else { continue }
+                visited.insert(candidateID)
+                predecessor[candidateID] = nodeID
+                frontier.append(candidateID)
+            }
+        }
+
+        guard visited.contains(targetID) else { return [] }
+        var path = [targetID]
+        while let first = path.first, let previous = predecessor[first] {
+            path.insert(previous, at: path.startIndex)
+        }
+        return path.first == sourceID ? path : []
+    }
+
+    static func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
+        guard let sourcePosition = source.gridPosition,
+              let targetPosition = target.gridPosition
+        else { return false }
+        let rowDelta = targetPosition.row - sourcePosition.row
+        let columnDelta = targetPosition.column - sourcePosition.column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 }

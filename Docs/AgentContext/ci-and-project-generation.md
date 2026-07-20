@@ -22,12 +22,17 @@ This card adds the CI/project-generation exceptions:
   generated-output check (`assert-generated-output.sh --idempotent`): regenerate
   must not change tracked outputs further. That answers “does this working tree
   match the manifests?” It does **not** require generated files to match HEAD —
-  commit completeness is `./Scripts/agent-push-gate.sh`, pre-push, `ci-gate.sh`,
-  and CI (`assert-generated-output.sh` without `--idempotent` after force generate).
+  use it before commit, then review and stage only the task's authored and generated
+  files. After commit, commit completeness is `./Scripts/agent-push-gate.sh`,
+  pre-push, `ci-gate.sh`, and CI (`assert-generated-output.sh` without
+  `--idempotent` after force generate). If the post-commit gate regenerates files,
+  review them, amend the commit, and rerun it.
 - `--push-ready` on `verify-changed.sh` switches to commit-completeness (pinned
   tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
   plus the normal style/package/smoke/compile plan. Prefer `./Scripts/agent-push-gate.sh`
-  when you only need the generate/assert gate — it does **not** run style or compile.
+  when you only need the post-commit generate/assert gate — it does **not** run
+  style or compile. Do not use `--push-ready` as a pre-commit consistency check;
+  intentional uncommitted generated output differs from HEAD by definition.
 - After push, agents must run `./Scripts/agent-watch-ci.sh` (quiet JSON polls by
   default — do not stream `gh run watch` into the agent context; use `--verbose`
   only for humans). On failure, read failed job names, printed check-run

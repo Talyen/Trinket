@@ -12,6 +12,13 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
         button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
         assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
+
+        // Back from a candidate detail should return to the tier grid, not the hero detail.
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
+
+        button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()
+        assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
         button(AccessibilityID.LoadoutPicker.selectAbility("block")).tap()
 
         let basicSlot = button(AccessibilityID.Equipment.basicAbilitySlot)
@@ -20,6 +27,14 @@ final class TabNavigationUITests: TrinketUITestCase {
             basicSlot.label.localizedCaseInsensitiveContains("Block"),
             "Equipped Basic ability name should remain visible on the slot label"
         )
+
+        scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
+        button("Weapon item slot").tap()
+        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
+        button(AccessibilityID.LoadoutPicker.itemCandidate("longsword-basic")).tap()
+        assertExists(AccessibilityID.LoadoutPicker.itemDetail("longsword-basic"))
+        goBack()
+        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
     }
 
     func testTabBarRoundTrip() {

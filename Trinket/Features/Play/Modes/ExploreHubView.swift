@@ -36,7 +36,7 @@ struct ExploreHubView: View {
                 NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
                     PlayModeArtworkCard(
                         title: "Labyrinth",
-                        subtitle: "Floor \(appState.labyrinth.currentFloorNumber)",
+                        subtitle: "Floor \(max(1, appState.labyrinth.currentFloorNumber))",
                         symbolName: nil,
                         artID: "gameModeLabyrinth",
                         fallbackArtID: "gameModeExplore"

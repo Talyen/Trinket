@@ -271,7 +271,6 @@ final class AppState {
         musicPlayer.update(
             route: MusicRoute.resolve(
                 selectedTab: selectedTab,
-                preview: battle.preview,
                 activeBattle: battle.activeBattle,
                 sceneIsActive: scenePhase == .active,
                 musicVolume: volume

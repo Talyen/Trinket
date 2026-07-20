@@ -1,26 +1,33 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 
 struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            return [
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
+            ]
+        }
+        return [GridItem(.flexible())]
+    }
 
     var body: some View {
-        List {
-            Section {
-                Text("Attune a Hero and Companion. Climb one Aspect at a time.")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-                    .listRowBackground(Color.clear)
-            }
-
-            Section("Damage Aspects") {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
                 ForEach(GameContent.aspects) { aspect in
-                    aspectRow(aspect)
+                    aspectCard(aspect)
                 }
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Aspects")
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground()
@@ -28,60 +35,46 @@ struct AspectsHubView: View {
     }
 
     @ViewBuilder
-    private func aspectRow(_ aspect: AspectDefinition) -> some View {
-        let cleared = appState.aspects.highestClearedFloor(for: aspect.id.rawValue)
-        let style = aspect.keyword.visualStyle
+    private func aspectCard(_ aspect: AspectDefinition) -> some View {
+        let isLocked = !isAspectUnlocked(aspect)
 
         NavigationLink {
             AspectClimbView(aspectID: aspect.id)
         } label: {
-            aspectLabel(
-                aspect,
-                style: style,
-                trailing: floorLabel(cleared: cleared, floorCount: aspect.floorCount)
+            PlayModeArtworkCard(
+                title: aspect.title,
+                subtitle: subtitle(for: aspect, isLocked: isLocked),
+                symbolName: nil,
+                artID: "aspect-\(aspect.id.rawValue)",
+                fallbackArtID: "gameModeExplore",
+                isLocked: isLocked
             )
         }
+        .disabled(isLocked)
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Play.aspectRow(aspect.id.rawValue))
     }
 
-    private func aspectLabel(
-        _ aspect: AspectDefinition,
-        style: Keyword.VisualStyle,
-        trailing: String?
-    ) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            Image(systemName: style.symbolName)
-                .trinketTypography(.button)
-                .foregroundStyle(style.prefersDarkForeground ? Color.primary : style.color)
-                .frame(width: 28, height: 28)
-                .trinketGlassChip()
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                Text(aspect.title)
-                    .trinketTypography(.button)
-                Text(aspect.epithet)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
-
-            if let trailing {
-                Text(trailing)
-                    .trinketTypography(.badge)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.trailing)
-            }
+    private func isAspectUnlocked(_ aspect: AspectDefinition) -> Bool {
+        let hasHero = appState.roster.heroes.contains {
+            $0.keywordProfile.contains(aspect.keyword)
         }
+        let hasCompanion = appState.roster.companions.contains {
+            $0.keywordProfile.contains(aspect.keyword)
+        }
+        return hasHero && hasCompanion
     }
 
-    private func floorLabel(cleared: Int, floorCount: Int) -> String {
-        if cleared >= floorCount {
-            return "Cleared"
+    private func subtitle(for aspect: AspectDefinition, isLocked: Bool) -> String {
+        if isLocked {
+            return "Requires at least one Hero and Companion with \(aspect.keyword.rawValue) abilities"
         }
-        if cleared == 0 {
-            return "Floor 1"
-        }
-        return "Floor \(min(cleared + 1, floorCount))"
+
+        let clearedFloors = min(
+            appState.aspects.highestClearedFloor(for: aspect.id.rawValue),
+            aspect.floorCount
+        )
+        let percentComplete = aspect.floorCount == 0 ? 0 : clearedFloors * 100 / aspect.floorCount
+        return "\(percentComplete)% complete · \(clearedFloors) / \(aspect.floorCount) Floors"
     }
 }

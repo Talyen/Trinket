@@ -34,14 +34,13 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let availableAt: Date
     let expiresAt: Date
     let reactionKind: CombatantHitReactionKind
-    let lane: CombatFeedbackLane
 
     /// Derived display string for tests, accessibility, and debug tooling.
     var text: String {
         label.displayString
     }
 
-    func scheduled(at date: Date, lane: CombatFeedbackLane) -> CombatFeedbackItem {
+    func scheduled(at date: Date) -> CombatFeedbackItem {
         CombatFeedbackItem(
             id: id,
             sourceEventIDs: sourceEventIDs,
@@ -58,8 +57,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: date,
             expiresAt: date.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
-            reactionKind: reactionKind,
-            lane: lane
+            reactionKind: reactionKind
         )
     }
 }

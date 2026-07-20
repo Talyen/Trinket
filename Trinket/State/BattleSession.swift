@@ -22,14 +22,13 @@ enum BattleCardPlayResolution: Equatable, Sendable {
 }
 
 /// Owns battle simulation state and UI-facing presentation: overlays, outcome screens,
-/// feedback, spectacle (Skill callouts / Ultimate cinematics), and music preview.
+/// feedback, spectacle (Skill callouts / Ultimate cinematics), and overlays.
 @MainActor
 @Observable
 final class BattleSession {
     var isShowingVictory = false
     var isShowingDefeat = false
     var victorySummary: BattleVictorySummary?
-    var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
     var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
@@ -119,9 +118,9 @@ final class BattleSession {
     /// Next prune fire time for the long-lived prune loop (no per-publish Task alloc).
     @ObservationIgnored
     var nextFeedbackPruneAt: Date?
-    /// Next visual start per combatant lane (left / middle / right).
+    /// Next visual start in each combatant's floating-feedback stream.
     @ObservationIgnored
-    var nextFeedbackVisualStartByTargetLane: [String: [Date]] = [:]
+    var nextFeedbackVisualStartByTarget: [String: Date] = [:]
     @ObservationIgnored
     var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored

@@ -85,7 +85,7 @@ struct StageMapPresentationTests {
         #expect(completedRows.isEmpty)
     }
 
-    @Test func labyrinthNodeAndConnectorStatesFollowReachabilitySelectionAndCompletion() {
+    @Test func labyrinthNodeStatesFollowReachabilityAndCompletion() {
         let source = LabyrinthNode(
             id: "source",
             type: .battle,
@@ -119,34 +119,10 @@ struct StageMapPresentationTests {
 
         #expect(LabyrinthMapPresentation.state(for: target, in: state) == .reachable)
         #expect(LabyrinthMapPresentation.state(for: locked, in: state) == .locked)
-        #expect(
-            LabyrinthMapPresentation.connectorState(
-                from: source,
-                to: target,
-                selectedNodeID: nil,
-                in: state
-            ) == .reachable
-        )
-        #expect(
-            LabyrinthMapPresentation.connectorState(
-                from: source,
-                to: target,
-                selectedNodeID: target.id,
-                in: state
-            ) == .selected
-        )
 
         var clearedTarget = target
         clearedTarget.isCleared = true
         state.nodes[target.id] = clearedTarget
         #expect(LabyrinthMapPresentation.state(for: clearedTarget, in: state) == .cleared)
-        #expect(
-            LabyrinthMapPresentation.connectorState(
-                from: source,
-                to: clearedTarget,
-                selectedNodeID: nil,
-                in: state
-            ) == .cleared
-        )
     }
 }

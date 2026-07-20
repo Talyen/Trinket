@@ -22,7 +22,6 @@ struct BattleSessionAppIntegrationTests {
         #expect(message == nil)
         let activeBattle = try #require(appState.battle.activeBattle)
         #expect(activeBattle.resumeToken == .journey(stageID: stage.id))
-        #expect(appState.battle.preview == nil)
     }
 
     @Test func startBattleIgnoresRequestWhenBattleAlreadyActive() throws {
@@ -71,14 +70,12 @@ struct BattleSessionAppIntegrationTests {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
-        appState.battle.preview = BattleMusicPreview(stageID: stage.id, enemyID: "skeleton")
         appState.battle.presentAbilityDetail(.slash)
         appState.battle.presentBattleLog()
 
         appState.battle.endBattle()
 
         #expect(appState.battle.activeBattle == nil)
-        #expect(appState.battle.preview == nil)
         #expect(appState.battle.overlayCombatantDetail == nil)
         #expect(appState.battle.overlayAbilityDetail == nil)
         #expect(appState.battle.isShowingBattleLog == false)
@@ -163,24 +160,6 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.pendingRewardItem == original.pendingRewardItem)
         #expect(restarted.rewardItems == original.rewardItems)
         #expect(restarted.id != original.id)
-    }
-
-    @Test func musicPreviewSetsForBattleStageAndClearsForActiveBattleOrNonBattle() throws {
-        let appState = try context.makeAppState()
-        let battleStage = try #require(GameContent.stages.first { $0.encounter.battleEnemyID != nil })
-
-        appState.battle.setMusicPreview(for: battleStage)
-        #expect(appState.battle.preview?.stageID == battleStage.id)
-        #expect(appState.battle.preview?.enemyID == battleStage.encounter.battleEnemyID)
-
-        _ = appState.startBattle(for: battleStage)
-        appState.battle.setMusicPreview(for: battleStage)
-        #expect(appState.battle.preview == nil)
-
-        let shopStage = try #require(GameContent.stages.first { $0.encounter == .shop })
-        let shopState = try context.makeAppState()
-        shopState.battle.setMusicPreview(for: shopStage)
-        #expect(shopState.battle.preview == nil)
     }
 
     @Test func autoEndTurnDoesNotAdvanceWhileSuspendedForScenePhase() async throws {

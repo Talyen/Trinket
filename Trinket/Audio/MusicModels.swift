@@ -1,15 +1,6 @@
 import Foundation
 import TrinketContent
 
-struct BattleMusicPreview: Equatable, Identifiable {
-    let stageID: String
-    let enemyID: String
-
-    var id: String {
-        "\(stageID):\(enemyID)"
-    }
-}
-
 enum MusicContextKind: Hashable {
     case menu
     case battle
@@ -53,7 +44,6 @@ enum MusicRoute: Equatable {
 
     static func resolve(
         selectedTab: AppTab,
-        preview: BattleMusicPreview?,
         activeBattle: ActiveBattleConfiguration?,
         sceneIsActive: Bool,
         musicVolume: Double
@@ -68,10 +58,6 @@ enum MusicRoute: Equatable {
 
         if let activeBattle, let enemyID = activeBattle.enemy?.id {
             return encounter(stageID: activeBattle.stageID, enemyID: enemyID)
-        }
-
-        if let preview {
-            return encounter(stageID: preview.stageID, enemyID: preview.enemyID)
         }
 
         return menuTrack()

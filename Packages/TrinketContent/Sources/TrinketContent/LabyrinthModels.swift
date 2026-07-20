@@ -185,7 +185,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .mystery, .event:
             "Approach"
         case .recruit:
-            "Meet"
+            "Recruit"
         case .craft:
             "Forge"
         }

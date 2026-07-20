@@ -6,8 +6,18 @@ enum StageSelectActiveCardLayout {
     case compact
 }
 
+enum StageSelectActiveCardTitlePlacement {
+    case footer
+    case artworkBottomLeading
+}
+
 /// Shared active encounter card used by linear Stage Select surfaces.
-struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
+struct StageSelectActiveCard<
+    Item: Identifiable,
+    Artwork: View,
+    PartyPickerSheet: View,
+    FooterAccessory: View
+>: View {
     @Environment(AppState.self) private var appState
 
     let presentation: StageSelectRowPresentation<Item>
@@ -16,10 +26,34 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
     let onPrimaryAction: () -> Void
     @ViewBuilder let artwork: () -> Artwork
     @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
+    @ViewBuilder let footerAccessory: () -> FooterAccessory
     var layout: StageSelectActiveCardLayout = .standard
+    var titlePlacement: StageSelectActiveCardTitlePlacement = .footer
 
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
+
+    init(
+        presentation: StageSelectRowPresentation<Item>,
+        isPrimaryActionDisabled: Bool,
+        onArtworkTap: @escaping () -> Void,
+        onPrimaryAction: @escaping () -> Void,
+        @ViewBuilder artwork: @escaping () -> Artwork,
+        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
+        layout: StageSelectActiveCardLayout = .standard,
+        titlePlacement: StageSelectActiveCardTitlePlacement = .footer,
+        @ViewBuilder footerAccessory: @escaping () -> FooterAccessory
+    ) {
+        self.presentation = presentation
+        self.isPrimaryActionDisabled = isPrimaryActionDisabled
+        self.onArtworkTap = onArtworkTap
+        self.onPrimaryAction = onPrimaryAction
+        self.artwork = artwork
+        self.partyPickerSheet = partyPickerSheet
+        self.footerAccessory = footerAccessory
+        self.layout = layout
+        self.titlePlacement = titlePlacement
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -39,17 +73,16 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
 
     private var artworkFrame: some View {
         Color.clear
-            .aspectRatio(layout == .compact ? 8.0 / 5.0 : 4.0 / 3.0, contentMode: .fit)
+            .aspectRatio(4.0 / 3.0, contentMode: .fit)
             .overlay {
                 GeometryReader { geometry in
                     artworkControl
                         .frame(width: geometry.size.width, height: geometry.size.height)
-                        .trinketArtworkBlend(layout == .compact ? .bottom(into: .surface) : .none)
                         .clipped()
                 }
             }
             .overlay(alignment: .bottomLeading) {
-                if layout == .compact {
+                if titlePlacement == .artworkBottomLeading {
                     artworkTitleBlock
                         .padding(TrinketDesign.Metrics.mediumSpacing)
                         .allowsHitTesting(false)
@@ -78,12 +111,13 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
         Group {
             if layout == .compact {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    compactDetailBlock
+                    if titlePlacement == .footer {
+                        titleBlock
+                    }
 
-                    actionControls
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    footerActionRow
                 }
-            } else {
+            } else if titlePlacement == .footer {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
                         titleBlock
@@ -91,16 +125,18 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
 
                         Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
+                        footerAccessory()
                         actionControls
                     }
 
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
                         titleBlock
 
-                        actionControls
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        footerActionRow
                     }
                 }
+            } else {
+                footerActionRow
             }
         }
         .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
@@ -149,21 +185,13 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
         }
     }
 
-    @ViewBuilder
-    private var compactDetailBlock: some View {
-        if let heading = presentation.activeDetailLines.first {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                Text(heading)
-                    .trinketTypography(.rowTitle)
-                    .foregroundStyle(.primary)
+    private var footerActionRow: some View {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            footerAccessory()
 
-                ForEach(Array(presentation.activeDetailLines.dropFirst().enumerated()), id: \.offset) { _, line in
-                    Text(line)
-                        .trinketTypography(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+            Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+
+            actionControls
         }
     }
 
@@ -214,6 +242,31 @@ struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet
         .trinketQuietTapButtonStyle()
         .disabled(appState.battle.activeBattle != nil)
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
+    }
+}
+
+extension StageSelectActiveCard where FooterAccessory == EmptyView {
+    init(
+        presentation: StageSelectRowPresentation<Item>,
+        isPrimaryActionDisabled: Bool,
+        onArtworkTap: @escaping () -> Void,
+        onPrimaryAction: @escaping () -> Void,
+        @ViewBuilder artwork: @escaping () -> Artwork,
+        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
+        layout: StageSelectActiveCardLayout = .standard,
+        titlePlacement: StageSelectActiveCardTitlePlacement = .footer
+    ) {
+        self.init(
+            presentation: presentation,
+            isPrimaryActionDisabled: isPrimaryActionDisabled,
+            onArtworkTap: onArtworkTap,
+            onPrimaryAction: onPrimaryAction,
+            artwork: artwork,
+            partyPickerSheet: partyPickerSheet,
+            layout: layout,
+            titlePlacement: titlePlacement,
+            footerAccessory: { EmptyView() }
+        )
     }
 }
 

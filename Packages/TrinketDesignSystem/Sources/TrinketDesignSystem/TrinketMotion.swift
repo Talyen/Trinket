@@ -6,16 +6,32 @@ import SwiftUI
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
     public enum Reward: Sendable {
-        public static let resourceStagger: TimeInterval = 0.12
-        public static let itemRevealDelay: TimeInterval = 0.18
-        public static let completionDelay: TimeInterval = 0.3
+        public static let resourceStagger: TimeInterval = 0.06
+        public static let itemRevealDelay: TimeInterval = 0.08
+        public static let completionDelay: TimeInterval = 0.10
 
         public static var stateChange: Animation {
-            .spring(response: 0.38, dampingFraction: 1.0)
+            .spring(response: 0.22, dampingFraction: 1.0)
         }
 
         public static var reveal: Animation {
-            .spring(response: 0.45, dampingFraction: 0.88)
+            .spring(response: 0.28, dampingFraction: 0.88)
+        }
+    }
+
+    /// Shared fades and staged entrances for ordinary screen content.
+    public enum Content: Sendable {
+        public static let fadeDuration: TimeInterval = 0.20
+        public static let entranceDuration: TimeInterval = 0.35
+        public static let entranceStagger: TimeInterval = 0.08
+        public static let secondEntranceDelay: TimeInterval = 0.16
+
+        public static var fade: Animation {
+            .easeOut(duration: fadeDuration)
+        }
+
+        public static var entrance: Animation {
+            .easeOut(duration: entranceDuration)
         }
     }
 
@@ -140,14 +156,8 @@ public enum TrinketMotion: Sendable {
         /// Every floating combat label uses the same presentation lifetime.
         public static let chipDisplayDuration: TimeInterval = 1.02
 
-        /// Per-lane interval between successive chip starts on one combatant.
-        /// Matches `chipDisplayDuration` so a lane finishes rise+fade before reuse.
-        public static var feedbackQueueStagger: TimeInterval {
-            chipDisplayDuration
-        }
-
-        /// Concurrent horizontal rise paths per combatant (left / middle / right).
-        public static let feedbackLaneCount = CombatFeedbackLane.allCases.count
+        /// Rapid FIFO cadence for successive chips in one combatant's vertical stream.
+        public static let feedbackStreamStagger: TimeInterval = 0.18
 
         /// Fraction of lifetime that stays fully opaque before fade begins.
         public static let chipOpaqueHoldFraction: Double = 0.64
@@ -232,12 +242,6 @@ public enum TrinketMotion: Sendable {
             return chipPeakScale + (chipEndScale - chipPeakScale) * CGFloat(u)
         }
 
-        /// Eligible horizontal rise paths for a combatant. Party uses middle only;
-        /// enemies use left / middle / right.
-        public static func feedbackLanes(isPartyMember: Bool) -> [CombatFeedbackLane] {
-            isPartyMember ? [.middle] : Array(CombatFeedbackLane.allCases)
-        }
-
         public static func chipOpacity(elapsed: TimeInterval) -> Double {
             let holdEnd = min(
                 chipDisplayDuration * chipOpaqueHoldFraction,
@@ -298,13 +302,13 @@ public enum TrinketMotion: Sendable {
         }
 
         public static var modifierIn: Animation {
-            .easeOut(duration: 0.22)
+            TrinketMotion.Content.fade
         }
     }
 
     /// Short opacity crossfades for full-screen content swaps (battle shell, outcomes).
     public enum Screen: Sendable {
-        public static let crossfadeDuration: TimeInterval = 0.22
+        public static let crossfadeDuration: TimeInterval = 0.20
 
         public static var crossfade: Animation {
             .easeOut(duration: crossfadeDuration)

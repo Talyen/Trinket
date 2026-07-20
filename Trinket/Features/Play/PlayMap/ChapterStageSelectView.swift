@@ -95,7 +95,6 @@ struct ChapterStageSelectView: View {
                 .opacity(0)
         }
         .onAppear {
-            updateMusicPreview()
             prepareActiveBattleRun()
             // Deep-link / restore paths skip the mode-card press prep. Finish
             // presentation warmup after the first committed frame, then await
@@ -119,7 +118,6 @@ struct ChapterStageSelectView: View {
             }
         }
         .onChange(of: appState.journey) { _, _ in
-            updateMusicPreview()
             prepareActiveBattleRun()
         }
         .onChange(of: appState.roster) { _, _ in
@@ -130,9 +128,6 @@ struct ChapterStageSelectView: View {
         }
         .onChange(of: appState.homestead) { _, _ in
             prepareActiveBattleRun()
-        }
-        .onDisappear {
-            appState.battle.setMusicPreview(for: nil)
         }
     }
 
@@ -150,7 +145,11 @@ struct ChapterStageSelectView: View {
         )
         .filter { !$0.isCompleted }
         .map { row in
-            let stage = appState.resolvedCampaignStage(row.stage)
+            // Keep the map artwork tied to the authored recruit event. The
+            // configured recruit can be resolved to a fallback only when the
+            // player takes the stage action; resolving it here makes the card
+            // artwork change as roster state settles during navigation.
+            let stage = row.stage
             return StageSelectRowPresentation(
                 item: stage,
                 isActive: row.isActionable,
@@ -179,11 +178,6 @@ struct ChapterStageSelectView: View {
     private func handlePrimaryAction(_ stage: Stage) {
         guard appState.journey.isActive(stage) else { return }
         onStageTap(stage)
-    }
-
-    private func updateMusicPreview() {
-        let activeStage = appState.journey.activeStageID.flatMap(GameContent.stage(id:))
-        appState.battle.setMusicPreview(for: activeStage)
     }
 
     private func artworkAccessibilityIdentifier(for stage: Stage) -> String {

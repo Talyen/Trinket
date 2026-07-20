@@ -110,21 +110,28 @@ struct LabyrinthMapView: View {
     }
 
     private func floorContent(_ cluster: LabyrinthCluster) -> some View {
-        ScrollView {
-            LabyrinthFloorMap(
-                cluster: cluster,
-                state: state,
-                selectedNodeID: selectedNodeID,
-                onSelectNode: { selectedNodeID = $0 },
-                onDismissSelection: { selectedNodeID = nil }
-            )
-            .id(cluster.id)
-            .transition(.opacity.combined(with: .offset(y: 12)))
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.smallSpacing)
-            .padding(.bottom, selectedNode == nil ? TrinketDesign.Metrics.extraLargeSpacing : 360)
+        GeometryReader { proxy in
+            ScrollView(.vertical) {
+                LabyrinthFloorMap(
+                    cluster: cluster,
+                    state: state,
+                    selectedNodeID: selectedNodeID,
+                    availableWidth: max(
+                        1,
+                        proxy.size.width - 2 * TrinketDesign.Metrics.contentMargin
+                    ),
+                    onSelectNode: { selectedNodeID = $0 },
+                    onDismissSelection: { selectedNodeID = nil }
+                )
+                .id(cluster.id)
+                .transition(.opacity.combined(with: .offset(y: 12)))
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.top, TrinketDesign.Metrics.smallSpacing)
+                .padding(.bottom, selectedNode == nil ? TrinketDesign.Metrics.extraLargeSpacing : 360)
+            }
+            .scrollIndicators(.hidden)
+            .defaultScrollAnchor(.top)
         }
-        .scrollIndicators(.hidden)
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
         .overlay(alignment: .bottom) {
             if let selectedNode {

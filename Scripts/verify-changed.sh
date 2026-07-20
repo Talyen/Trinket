@@ -50,6 +50,8 @@ Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket 
 
 --push-ready switches generation asserts from --idempotent (task-scoped) to
 commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
+Run it only after the task is committed; intentional pre-commit generated changes
+necessarily differ from HEAD.
 Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate (generate/assert only);
 use this flag when you also want the path-scoped style/package/smoke/compile plan
 in the same run.

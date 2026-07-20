@@ -111,8 +111,11 @@ DerivedData under `$DERIVED_DATA_PATH/packages/<name>/` so package builds can ru
 parallel. Humans/CI may omit `--isolate` to keep
 the shared warm cache. After generation, verify-changed runs
 `assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
-HEAD/commit check. Commit completeness is `./Scripts/agent-push-gate.sh` (also
-called from pre-push), `verify-changed.sh --push-ready`, `ci-gate.sh`, and CI.
+HEAD/commit check. Before commit, review and stage only the task's authored and
+generated files after this check passes. After commit, commit completeness is
+`./Scripts/agent-push-gate.sh` (also called from pre-push),
+`verify-changed.sh --push-ready`, `ci-gate.sh`, and CI. If the post-commit gate
+regenerates files, review them, amend the commit, and rerun it.
 Push-gate is **generate/assert only** — not style or compile; path-scoped
 `verify-changed.sh` remains the pre-CI source gate (and schedules compile-only
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
@@ -178,7 +181,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 
 | Script | Purpose |
 |--------|---------|
-| `./Scripts/agent-push-gate.sh` | Pinned tools + `generate --force-xcodegen` + assert vs HEAD (conditional `--assets`); agents before commit/push |
+| `./Scripts/agent-push-gate.sh` | Pinned tools + `generate --force-xcodegen` + assert vs HEAD (conditional `--assets`); agents after commit, before push |
 | `./Scripts/agent-watch-ci.sh` | Watch Actions for HEAD; dispatch full CI if path-filtered; agents after push |
 | `./Scripts/ensure-git-cliff.sh` | Install/run git-cliff (cached in `.tools/`) |
 | `./Scripts/release-notes.sh unreleased` | Preview unreleased changelog |

@@ -127,8 +127,20 @@ enum AccessibilityID {
             "Labyrinth Node \(nodeID)"
         }
 
+        static func labyrinthNodeArtwork(_ nodeID: String) -> String {
+            "Labyrinth Node \(nodeID) Artwork"
+        }
+
         static func labyrinthInspectorAction(_ nodeID: String) -> String {
             "Labyrinth Inspector Action \(nodeID)"
+        }
+
+        static func labyrinthModifier(_ modifierID: String) -> String {
+            "Labyrinth Modifier \(modifierID)"
+        }
+
+        static func labyrinthModifierPopover(_ modifierID: String) -> String {
+            "Labyrinth Modifier \(modifierID) Popover"
         }
     }
 

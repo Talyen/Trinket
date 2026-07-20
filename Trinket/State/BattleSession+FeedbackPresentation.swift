@@ -34,46 +34,16 @@ extension BattleSession {
         _ = scheduler()
     }
 
-    /// Picks a horizontal lane and sequential start for one chip on its target.
-    /// Party (hero/companion) uses middle only; enemies prefer middle when free,
-    /// otherwise earliest nextStart among all lanes (tie: middle > left > right).
+    /// Assigns the next FIFO start in one combatant's floating-feedback stream.
     private func scheduleFeedbackItem(
         _ item: CombatFeedbackItem,
         at date: Date
     ) -> CombatFeedbackItem {
-        var clocks = nextFeedbackVisualStartByTargetLane[item.targetID]
-            ?? Array(repeating: Date.distantPast, count: TrinketMotion.Battle.feedbackLaneCount)
-        if clocks.count != TrinketMotion.Battle.feedbackLaneCount {
-            clocks = Array(repeating: Date.distantPast, count: TrinketMotion.Battle.feedbackLaneCount)
-        }
-
-        let eligible = TrinketMotion.Battle.feedbackLanes(
-            isPartyMember: isPartyFeedbackTarget(item.targetID)
+        let start = max(date, nextFeedbackVisualStartByTarget[item.targetID] ?? .distantPast)
+        nextFeedbackVisualStartByTarget[item.targetID] = start.addingTimeInterval(
+            TrinketMotion.Battle.feedbackStreamStagger
         )
-        let lane: CombatFeedbackLane =
-            if eligible.contains(.middle), clocks[CombatFeedbackLane.middle.rawValue] <= date {
-                .middle
-            } else {
-                eligible.min { lhs, rhs in
-                    let lhsStart = max(date, clocks[lhs.rawValue])
-                    let rhsStart = max(date, clocks[rhs.rawValue])
-                    if lhsStart != rhsStart {
-                        return lhsStart < rhsStart
-                    }
-                    return lhs.assignmentPriority < rhs.assignmentPriority
-                } ?? .middle
-            }
-
-        let start = max(date, clocks[lane.rawValue])
-        clocks[lane.rawValue] = start.addingTimeInterval(TrinketMotion.Battle.feedbackQueueStagger)
-        nextFeedbackVisualStartByTargetLane[item.targetID] = clocks
-        return item.scheduled(at: start, lane: lane)
-    }
-
-    /// Hero/companion when battle state is available; otherwise treat as enemy (3 lanes).
-    private func isPartyFeedbackTarget(_ targetID: String) -> Bool {
-        guard let state else { return false }
-        return targetID == state.hero.id || targetID == state.companion.id
+        return item.scheduled(at: start)
     }
 
     private func updateFeedbackPruneDate(with latestExpiry: Date) {
@@ -141,7 +111,7 @@ extension BattleSession {
             || !presentedFeedbackIDs.isEmpty
         // Keep the reusable prune timer alive across clears.
         nextFeedbackPruneAt = nil
-        nextFeedbackVisualStartByTargetLane.removeAll(keepingCapacity: true)
+        nextFeedbackVisualStartByTarget.removeAll(keepingCapacity: true)
         feedbackScheduler?.park()
         pendingPartyCelebrateTask?.cancel()
         pendingPartyCelebrateTask = nil

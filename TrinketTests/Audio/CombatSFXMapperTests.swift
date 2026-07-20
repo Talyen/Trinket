@@ -160,8 +160,7 @@ struct CombatSFXMapperTests {
             lifetime: TrinketMotion.Battle.chipDisplayDuration,
             availableAt: .now,
             expiresAt: .now.addingTimeInterval(TrinketMotion.Battle.chipDisplayDuration),
-            reactionKind: .none,
-            lane: .middle
+            reactionKind: .none
         )
     }
 }

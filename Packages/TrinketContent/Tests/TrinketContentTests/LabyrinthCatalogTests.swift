@@ -115,7 +115,10 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func floorShapeStaysWithinPlanBounds() {
-        for seed in 0 ..< 40 {
+        var layoutSignatures = Set<String>()
+        var observedCycleCounts = Set<Int>()
+
+        for seed in 0 ..< 100 {
             let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
             for cluster in generated.clusters where cluster.depthBand > 0 {
                 let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
@@ -127,37 +130,74 @@ struct LabyrinthCatalogTests {
                 #expect(!nodes.contains { !$0.isRevealed })
                 #expect(nodes.allSatisfy { $0.modifierIDs.count <= 1 })
                 #expect(nodes.last?.modifierIDs.count == 1)
-                #expect(nodes.last?.gridPosition == LabyrinthGridPosition(row: 4, column: -2))
                 #expect(nodes.filter { !$0.type.isCombat }.count >= 2)
-                #expect(Set(nodes.compactMap(\.gridPosition?.row)) == Set(0 ... 4))
-                var reached = Set(nodes.prefix(1).map(\.id))
-                var frontier = Array(reached)
-                var incomingCounts: [String: Int] = [:]
+
+                let geometry = validateGeometry(of: nodes)
                 for node in nodes {
                     let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
                     let expectsModifier = node.type.isCombat || node.type == .shop || node.type == .craft
                     #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
-                    for outgoingID in node.outgoingIDs {
-                        let target = generated.nodes[outgoingID]
-                        #expect(target?.gridPosition?.row == (node.gridPosition?.row ?? -1) + 1)
-                        #expect(
-                            target?.gridPosition?.column == node.gridPosition?.column
-                                || target?.gridPosition?.column == (node.gridPosition?.column ?? 0) - 1
-                        )
-                        incomingCounts[outgoingID, default: 0] += 1
-                    }
+                    #expect(node.outgoingIDs.isEmpty)
                 }
-                while let id = frontier.popLast() {
-                    for outgoingID in generated.nodes[id]?.outgoingIDs ?? [] where reached.insert(outgoingID).inserted {
-                        frontier.append(outgoingID)
-                    }
-                }
-                #expect(reached == Set(nodes.map(\.id)))
-                #expect(nodes.contains { $0.outgoingIDs.count > 1 })
-                #expect(incomingCounts.values.contains { $0 > 1 })
+                observedCycleCounts.insert(geometry.cycleCount)
+                layoutSignatures.insert(geometry.signature)
             }
         }
+
+        #expect(layoutSignatures.count >= 10)
+        #expect(observedCycleCounts == [0, 1])
+    }
+
+    private func validateGeometry(of nodes: [LabyrinthNode]) -> (signature: String, cycleCount: Int) {
+        let positions = nodes.compactMap(\.gridPosition)
+        #expect(positions.count == nodes.count)
+        #expect(Set(positions).count == nodes.count)
+        let rows = positions.map(\.row)
+        let minimumRow = rows.min()
+        let maximumRow = rows.max()
+        #expect(minimumRow == 0)
+        #expect(nodes.first?.gridPosition?.row == minimumRow)
+        #expect(nodes.last?.gridPosition?.row == maximumRow)
+        #expect(rows.count(where: { $0 == minimumRow }) == 1)
+        #expect(rows.count(where: { $0 == maximumRow }) == 1)
+
+        let projectedColumns = positions.map { 2 * $0.column + $0.row }
+        #expect((projectedColumns.max() ?? 0) - (projectedColumns.min() ?? 0) <= 4)
+        let neighborsByID = Dictionary(uniqueKeysWithValues: nodes.map { node in
+            (node.id, nodes.filter { node.id != $0.id && areAdjacent(node, $0) }.map(\.id))
+        })
+        let degrees = nodes.map { neighborsByID[$0.id]?.count ?? 0 }
+        #expect(degrees.allSatisfy { $0 <= 3 })
+        #expect(degrees.first == 1)
+        #expect(degrees.last == 1)
+        #expect(degrees.contains(3))
+
+        var reached = Set(nodes.prefix(1).map(\.id))
+        var frontier = Array(reached)
+        while let id = frontier.popLast() {
+            for neighborID in neighborsByID[id] ?? [] where reached.insert(neighborID).inserted {
+                frontier.append(neighborID)
+            }
+        }
+        #expect(reached == Set(nodes.map(\.id)))
+        let cycleCount = degrees.reduce(0, +) / 2 - nodes.count + 1
+        #expect(cycleCount == 0 || cycleCount == 1)
+        return (
+            positions.map { "\($0.row):\($0.column)" }.joined(separator: "|"),
+            cycleCount
+        )
+    }
+
+    private func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
+        guard let sourcePosition = source.gridPosition,
+              let targetPosition = target.gridPosition
+        else { return false }
+        let rowDelta = targetPosition.row - sourcePosition.row
+        let columnDelta = targetPosition.column - sourcePosition.column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 
     @Test func recruitNodesRequireEligibleEvent() {
