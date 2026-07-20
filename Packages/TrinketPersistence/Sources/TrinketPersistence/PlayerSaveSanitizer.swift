@@ -10,7 +10,10 @@ public enum PlayerSaveSanitizer {
         sanitized.homestead = sanitizeHomestead(save.homestead)
         sanitized.journey = sanitizeJourney(save.journey)
         sanitized.aspects = sanitizeAspects(save.aspects)
-        sanitized.labyrinth = sanitizeLabyrinth(save.labyrinth)
+        sanitized.labyrinth = sanitizeLabyrinth(
+            save.labyrinth,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs(in: sanitized.roster)
+        )
         return sanitized
     }
 
@@ -90,11 +93,6 @@ public enum PlayerSaveSanitizer {
             if let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID }) {
                 sanitized.activeChapterID = stage.chapterID
             }
-        } else if let activeChapter = chapters.first(where: { $0.id == sanitized.activeChapterID }),
-                  !activeChapter.stages.isEmpty,
-                  activeChapter.stages.allSatisfy({ sanitized.completedStageIDs.contains($0.id) }) {
-            // Cleared chapter awaiting advance, or campaign finale — keep parked.
-            sanitized.activeStageID = nil
         } else if let firstIncomplete = chapters
             .flatMap(\.stages)
             .first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
@@ -195,26 +193,28 @@ public enum PlayerSaveSanitizer {
     public static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
         biomes: [LabyrinthBiomeDefinition] = GameContent.labyrinthBiomes,
-        modifiers: [LabyrinthModifierDefinition] = GameContent.labyrinthModifiers
+        modifiers: [LabyrinthModifierDefinition] = GameContent.labyrinthModifiers,
+        eligibleRecruitEventIDs: [String] = []
     ) -> PlayerLabyrinthState {
         let validBiomeIDs = Set(biomes.map(\.id.rawValue))
-        let validModifierIDs = Set(modifiers.map(\.id.rawValue))
         var sanitized = labyrinth
-        sanitized.deepestDepth = max(0, sanitized.deepestDepth)
-        sanitized.discoveredBiomeIDs = Set(sanitized.discoveredBiomeIDs.filter { validBiomeIDs.contains($0) })
-        sanitized.discoveredModifierIDs = Set(sanitized.discoveredModifierIDs.filter { validModifierIDs.contains($0) })
-        sanitized.claimedMilestoneDepths = Set(
-            sanitized.claimedMilestoneDepths.filter { LabyrinthCompletion.milestoneDepths.contains($0) }
-        )
+
+        if sanitized.hasEntered,
+           sanitized.hasMap,
+           sanitized.mapVersion < LabyrinthGenerator.currentMapVersion {
+            sanitized = regeneratedLabyrinth(
+                from: sanitized,
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            )
+        }
 
         sanitized.clusters = sanitized.clusters.compactMap { cluster in
             guard validBiomeIDs.contains(cluster.biomeID.rawValue) else { return nil }
-            let filteredModifiers = cluster.modifierIDs.filter { validModifierIDs.contains($0.rawValue) }
             return LabyrinthCluster(
                 id: cluster.id,
                 biomeID: cluster.biomeID,
                 depthBand: max(0, cluster.depthBand),
-                modifierIDs: filteredModifiers,
+                modifierIDs: [],
                 nodeIDs: cluster.nodeIDs
             )
         }
@@ -224,32 +224,149 @@ public enum PlayerSaveSanitizer {
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
         }
 
-        // Drop dangling outgoing edges; collapse legacy `.event` into `.mystery`.
-        for (id, node) in sanitized.nodes {
-            let outgoing = node.outgoingIDs.filter { sanitized.nodes[$0] != nil }
-            let failCount = max(0, node.failCount)
-            let depth = max(0, node.depth)
-            let type = node.type.canonical
-            if type != node.type || outgoing != node.outgoingIDs || failCount != node.failCount
-                || depth != node.depth {
-                sanitized.nodes[id] = LabyrinthNode(
-                    id: node.id,
-                    type: type,
-                    enemyID: node.enemyID,
-                    depth: depth,
-                    clusterID: node.clusterID,
-                    outgoingIDs: outgoing,
-                    isCleared: node.isCleared,
-                    isRevealed: node.isRevealed,
-                    failCount: failCount
-                )
-            }
+        // Drop dangling edges and migrate legacy cluster maps to visible node-level floors.
+        let existingNodes = sanitized.nodes
+        for (id, node) in existingNodes {
+            sanitized.nodes[id] = sanitizedLabyrinthNode(
+                node,
+                existingNodes: existingNodes,
+                cluster: sanitized.cluster(id: node.clusterID),
+                modifiers: modifiers
+            )
         }
 
         // If map is corrupt/empty after sanitize but player had entered, rebuild from seed.
         if sanitized.hasEntered, sanitized.nodes.isEmpty {
-            sanitized.ensureMap(seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed)
+            sanitized.ensureMap(
+                seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs
+            )
         }
+        sanitized.mapVersion = LabyrinthGenerator.currentMapVersion
         return sanitized
+    }
+
+    private static func regeneratedLabyrinth(
+        from legacy: PlayerLabyrinthState,
+        eligibleRecruitEventIDs: [String]
+    ) -> PlayerLabyrinthState {
+        let floorCount = max(1, legacy.currentFloorNumber)
+        let seed = legacy.worldSeed == 0 ? 0x4C41_4259 : legacy.worldSeed
+        let generated = LabyrinthGenerator.makeMap(
+            seed: seed,
+            floorCount: floorCount,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
+        var nodes = generated.nodes
+        for (id, legacyNode) in legacy.nodes where legacyNode.isCleared {
+            guard var node = nodes[id] else { continue }
+            node.isCleared = true
+            nodes[id] = node
+        }
+        ensureHistoricalFloorAccess(floorCount: floorCount, clusters: generated.clusters, nodes: &nodes)
+        return PlayerLabyrinthState(
+            worldSeed: seed,
+            mapVersion: LabyrinthGenerator.currentMapVersion,
+            hasEntered: legacy.hasEntered,
+            clusters: generated.clusters,
+            nodes: nodes
+        )
+    }
+
+    private static func ensureHistoricalFloorAccess(
+        floorCount: Int,
+        clusters: [LabyrinthCluster],
+        nodes: inout [String: LabyrinthNode]
+    ) {
+        guard floorCount > 1 else { return }
+        for floor in 1 ..< floorCount {
+            guard let cluster = clusters.first(where: { $0.depthBand == floor }),
+                  let entryID = cluster.nodeIDs.first,
+                  let bossID = cluster.nodeIDs.last
+            else { continue }
+            var nextID: String? = entryID
+            var visited = Set<String>()
+            while let nodeID = nextID, visited.insert(nodeID).inserted {
+                guard var node = nodes[nodeID] else { break }
+                node.isCleared = true
+                nodes[nodeID] = node
+                if nodeID == bossID {
+                    break
+                }
+                nextID = node.outgoingIDs.sorted().first
+            }
+        }
+    }
+
+    private static func sanitizedLabyrinthNode(
+        _ node: LabyrinthNode,
+        existingNodes: [String: LabyrinthNode],
+        cluster: LabyrinthCluster?,
+        modifiers: [LabyrinthModifierDefinition]
+    ) -> LabyrinthNode {
+        let depth = max(0, node.depth)
+        let type: LabyrinthNodeType = if node.type == .gate, depth > 0 {
+            .boss
+        } else {
+            node.type.canonical
+        }
+        let enemyID = type == .boss && node.enemyID == nil
+            ? cluster.flatMap { LabyrinthCatalog.biome(id: $0.biomeID)?.bossEnemyID }
+            : node.enemyID
+        return LabyrinthNode(
+            id: node.id,
+            type: type,
+            enemyID: enemyID,
+            depth: depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition ?? legacyGridPosition(for: node, in: cluster),
+            modifierIDs: normalizedModifierIDs(for: node, type: type, modifiers: modifiers),
+            recruitEventID: node.recruitEventID,
+            outgoingIDs: node.outgoingIDs.filter { existingNodes[$0] != nil },
+            isCleared: node.isCleared,
+            isRevealed: depth > 0 || node.isRevealed
+        )
+    }
+
+    private static func normalizedModifierIDs(
+        for node: LabyrinthNode,
+        type: LabyrinthNodeType,
+        modifiers: [LabyrinthModifierDefinition]
+    ) -> [LabyrinthModifierID] {
+        let applicable = modifiers.filter { $0.applies(to: type) }
+        if let existing = node.modifierIDs.compactMap({ id in
+            applicable.first { $0.id == id }
+        }).first {
+            return [existing.id]
+        }
+        guard !applicable.isEmpty else { return [] }
+        if type == .battle || type == .boss {
+            let index = Int(GameContent.stableSeed(for: node.id) % UInt64(applicable.count))
+            return [applicable[index].id]
+        }
+        return [applicable[0].id]
+    }
+
+    private static func eligibleRecruitEventIDs(in roster: PlayerRosterState) -> [String] {
+        GameContent.recruitEvents.compactMap { event in
+            guard let combatantID = event.unlockCombatantID,
+                  !roster.unlockedHeroIDs.contains(combatantID),
+                  !roster.unlockedCompanionIDs.contains(combatantID)
+            else { return nil }
+            return event.id
+        }
+    }
+
+    private static func legacyGridPosition(
+        for node: LabyrinthNode,
+        in cluster: LabyrinthCluster?
+    ) -> LabyrinthGridPosition {
+        guard let cluster,
+              let index = cluster.nodeIDs.firstIndex(of: node.id)
+        else { return LabyrinthGridPosition(row: 0, column: 1) }
+        if index == cluster.nodeIDs.count - 1 {
+            return LabyrinthGridPosition(row: max(1, (index + 1) / 3), column: 1)
+        }
+        return LabyrinthGridPosition(row: index / 3, column: index % 3)
     }
 }

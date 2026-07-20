@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-/// Hand-authored The Labyrinth biomes and named modifiers (player sees titles only).
+/// Hand-authored The Labyrinth biomes and named node modifiers.
 public enum LabyrinthCatalog {
     public static let biomes: [LabyrinthBiomeDefinition] = [
         LabyrinthBiomeDefinition(
@@ -85,106 +85,50 @@ public enum LabyrinthCatalog {
         biomesByID[id]
     }
 
-    // MARK: - Modifiers (titles only in UI)
+    // MARK: - Modifiers
 
     public static let modifiers: [LabyrinthModifierDefinition] = [
-        // Threat + bounty pairs (Q10A)
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("ironPressure"),
             title: "Iron Pressure",
-            epithet: "The stone pushes back",
-            category: .threat,
-            enemyPowerPercent: 20,
-            goldPercent: 20,
-            xpPercent: 20
+            effect: .damageDealt(keyword: .physical, amount: 1),
+            nodeTypes: [.battle, .boss]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("ashTithe"),
             title: "Ash Tithe",
-            epithet: "Heat takes its cut",
-            category: .affinity,
-            keywordBias: .burn,
-            enemyPowerPercent: 10,
-            goldPercent: 10
+            effect: .damageDealt(keyword: .burn, amount: 1),
+            nodeTypes: [.battle, .boss]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("bloodMarket"),
             title: "Blood Market",
-            epithet: "Every wound pays",
-            category: .affinity,
-            keywordBias: .bleed,
-            enemyPowerPercent: 10,
-            xpPercent: 15
+            effect: .damageDealt(keyword: .bleed, amount: 1),
+            nodeTypes: [.battle, .boss]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("gildedWhisper"),
             title: "Gilded Whisper",
-            epithet: "Fortune in the dark",
-            category: .encounter,
-            keywordBias: .gold,
-            goldPercent: 25,
-            guaranteedNodeType: .shop
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("bossMark"),
-            title: "Boss Mark",
-            epithet: "Something waits below",
-            category: .special,
-            enemyPowerPercent: 5,
-            goldPercent: 15,
-            itemDropBonusPercent: 20,
-            guaranteedNodeType: .boss
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("quietAltar"),
-            title: "Quiet Altar",
-            epithet: "A choice in the stone",
-            category: .special,
-            goldPercent: 5,
-            guaranteedNodeType: .mystery
+            effect: .goldRewardPercent(10),
+            nodeTypes: [.shop]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("astralSeam"),
             title: "Astral Seam",
-            epithet: "Rarity cracks open",
-            category: .bounty,
-            itemDropBonusPercent: 10,
-            astralChanceBonusPercent: 25
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("forgeVein"),
-            title: "Forge Vein",
-            epithet: "The anvil answers",
-            category: .special,
-            goldPercent: 5,
-            guaranteedNodeType: .craft
+            effect: .astralChancePercent(25),
+            nodeTypes: [.craft]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("serpentBloom"),
             title: "Serpent Bloom",
-            epithet: "Venom finds a way",
-            category: .affinity,
-            keywordBias: .poison,
-            enemyPowerPercent: 10,
-            xpPercent: 10
+            effect: .damageDealt(keyword: .poison, amount: 1),
+            nodeTypes: [.battle, .boss]
         ),
         LabyrinthModifierDefinition(
             id: LabyrinthModifierID("rimeTax"),
             title: "Rime Tax",
-            epithet: "Cold keeps what it takes",
-            category: .affinity,
-            keywordBias: .freeze,
-            enemyPowerPercent: 10,
-            goldPercent: 10
-        ),
-        LabyrinthModifierDefinition(
-            id: LabyrinthModifierID("stormToll"),
-            title: "Storm Toll",
-            epithet: "One blow, then silence",
-            category: .affinity,
-            keywordBias: .stun,
-            enemyPowerPercent: 15,
-            xpPercent: 10
+            effect: .damageDealt(keyword: .freeze, amount: 1),
+            nodeTypes: [.battle, .boss]
         )
     ]
 

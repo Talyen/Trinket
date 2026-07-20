@@ -147,13 +147,19 @@ struct BattleSessionAppIntegrationTests {
         )
         #expect(appState.startLabyrinthBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
-        #expect(original.experienceBonusPercent == appState.labyrinth.effects(for: combatNodeID).xpPercent)
+        let effects = appState.labyrinth.effects(for: combatNodeID)
+        #expect(original.universalModifiers.count == 1)
+        for (keyword, amount) in effects.damageDealtBonus {
+            #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == amount)
+            #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == amount)
+            #expect(original.enemyModifiers.damageDealtBonus(for: keyword) == amount)
+        }
 
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
         #expect(restarted.labyrinthNodeID == combatNodeID)
-        #expect(restarted.experienceBonusPercent == original.experienceBonusPercent)
+        #expect(restarted.universalModifiers == original.universalModifiers)
         #expect(restarted.pendingRewardItem == original.pendingRewardItem)
         #expect(restarted.rewardItems == original.rewardItems)
         #expect(restarted.id != original.id)

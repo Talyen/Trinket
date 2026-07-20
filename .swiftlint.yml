@@ -113,5 +113,6 @@ excluded:
   - .build
   # DEBUG feel-tuning lab; intentionally dense parameter surface.
   - Trinket/Features/Battle/Layout/BattleHandMotionLab.swift
+  - Trinket/Features/Battle/Feedback/CombatFeedbackFloatMotionLab.swift
 
 strict: true

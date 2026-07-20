@@ -78,23 +78,16 @@ final class JourneyProgressTests {
         try #expect((1 ... 2).contains(rewardItem.affixes.count))
     }
 
-    @Test func chapterCompletionParksUntilAdvanceToNextChapter() throws {
+    @Test func chapterCompletionAutomaticallyAdvancesToNextChapter() throws {
         var progress = JourneyProgressState.initial
 
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        try #expect(progress.activeStageID == nil)
-        try #expect(progress.activeChapterID == "chapter-1")
-        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
-        try #expect(progress.pendingNextChapter()?.id == "chapter-2")
-
-        let advanced = progress.advanceToNextChapter()
-        try #expect(advanced)
         try #expect(progress.activeStageID == "chapter-2-stage-1")
         try #expect(progress.activeChapterID == "chapter-2")
-        try #expect(progress.pendingNextChapter() == nil)
+        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
     }
 
     @Test func completeChapterMarksOnlyThatChapterDone() throws {
@@ -106,13 +99,9 @@ final class JourneyProgressTests {
         let lastStage = try #require(chapter1.stages.last)
         try #expect(progress.completedStageIDs == chapter1StageIDs)
         try #expect(progress.claimedRewardStageIDs == chapter1StageIDs)
-        try #expect(progress.activeStageID == nil)
-        try #expect(progress.activeChapterID == "chapter-1")
+        try #expect(progress.activeStageID == "chapter-2-stage-1")
+        try #expect(progress.activeChapterID == "chapter-2")
         try #expect(progress.lastCompletedStageID == lastStage.id)
-        try #expect(progress.isActiveChapterCleared())
-        if GameContent.chapters.count > 1 {
-            try #expect(progress.pendingNextChapter()?.id == "chapter-2")
-        }
     }
 
     @Test func completeAllStagesMarksEntireCampaignDone() throws {

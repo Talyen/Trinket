@@ -1,85 +1,67 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.dismiss) private var dismiss
     @State private var nodeMessage: StageMapMessage?
-    @State private var selectedModifier: LabyrinthModifierDefinition?
+    @State private var viewedFloor = 1
+    @State private var selectedNodeID: String?
 
     private var state: PlayerLabyrinthState {
         appState.labyrinth
     }
 
+    private var floors: [LabyrinthCluster] {
+        state.clusters.filter { $0.depthBand > 0 }.sorted { $0.depthBand < $1.depthBand }
+    }
+
+    private var viewedCluster: LabyrinthCluster? {
+        floors.first { $0.depthBand == viewedFloor }
+    }
+
+    private var selectedNode: LabyrinthNode? {
+        selectedNodeID.flatMap { state.node(id: $0) }
+    }
+
     var body: some View {
         Group {
-            if state.hasMap {
-                mapContent
+            if state.hasMap, let viewedCluster {
+                floorContent(viewedCluster)
             } else {
                 emptyState
             }
         }
-        .navigationTitle("The Labyrinth")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationTitle("Labyrinth")
+        .navigationBarTitleDisplayMode(.inline)
         .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Leave") {
-                    dismiss()
+            if state.hasMap {
+                ToolbarItem(placement: .topBarTrailing) {
+                    floorMenu
                 }
-                .accessibilityIdentifier(AccessibilityID.Play.labyrinthLeave)
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    LabyrinthAtlasView()
-                } label: {
-                    Text("Atlas")
-                }
-                .accessibilityIdentifier(AccessibilityID.Play.labyrinthAtlas)
             }
         }
         .onAppear {
             if !state.hasMap {
                 _ = appState.enterLabyrinth()
             }
+            viewedFloor = max(1, state.currentFloorNumber)
             appState.prepareReachableLabyrinthBattles()
         }
-        .onChange(of: appState.labyrinth) { _, _ in
+        .onChange(of: appState.labyrinth) { previous, current in
             appState.prepareReachableLabyrinthBattles()
-        }
-        .onChange(of: appState.roster) { _, _ in
-            appState.prepareReachableLabyrinthBattles()
-        }
-        .onChange(of: appState.inventory) { _, _ in
-            appState.prepareReachableLabyrinthBattles()
-        }
-        .onChange(of: appState.homestead) { _, _ in
-            appState.prepareReachableLabyrinthBattles()
-        }
-        .sheet(item: $selectedModifier) { modifier in
-            NavigationStack {
-                List {
-                    Section {
-                        Text(modifier.epithet)
-                            .trinketTypography(.secondaryBody)
-                            .foregroundStyle(.secondary)
-                    }
-                    Section("Effects") {
-                        ForEach(LabyrinthMapPresentation.modifierDetailLines(modifier), id: \.self) { line in
-                            Text(line)
-                                .trinketTypography(.body)
-                        }
-                    }
-                }
-                .navigationTitle(modifier.title)
-                .navigationBarTitleDisplayMode(.inline)
+            if current.currentFloorNumber > previous.currentFloorNumber {
+                selectedNodeID = nil
+                showFloor(current.currentFloorNumber)
+            } else if let selectedNodeID, current.node(id: selectedNodeID)?.isCleared == true {
+                self.selectedNodeID = nil
             }
-            .presentationDetents([.medium, .large])
         }
+        .onChange(of: appState.roster) { _, _ in appState.prepareReachableLabyrinthBattles() }
+        .onChange(of: appState.inventory) { _, _ in appState.prepareReachableLabyrinthBattles() }
+        .onChange(of: appState.homestead) { _, _ in appState.prepareReachableLabyrinthBattles() }
         .alert(item: $nodeMessage) { message in
             Alert(
                 title: Text(message.title),
@@ -89,15 +71,37 @@ struct LabyrinthMapView: View {
         }
     }
 
+    private var floorMenu: some View {
+        Menu {
+            ForEach(floors) { floor in
+                Button {
+                    showFloor(floor.depthBand)
+                } label: {
+                    if floor.depthBand == viewedFloor {
+                        Label("Floor \(floor.depthBand)", systemImage: "checkmark")
+                    } else {
+                        Text("Floor \(floor.depthBand)")
+                    }
+                }
+                .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloor(floor.depthBand))
+            }
+        } label: {
+            Text("Floor \(viewedFloor)")
+        }
+        .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloorMenu)
+    }
+
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("The Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+            Label("Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
         } description: {
             Text("The path remembers. Descend when you are ready.")
         } actions: {
             Button("Enter") {
                 if let message = appState.enterLabyrinth() {
                     nodeMessage = message
+                } else {
+                    viewedFloor = max(1, state.currentFloorNumber)
                 }
             }
             .trinketPrimaryActionButton()
@@ -105,101 +109,47 @@ struct LabyrinthMapView: View {
         }
     }
 
-    private var mapContent: some View {
+    private func floorContent(_ cluster: LabyrinthCluster) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
-                header
-
-                ForEach(visibleClusters) { cluster in
-                    LabyrinthMapClusterSection(
-                        cluster: cluster,
-                        state: state,
-                        onSelectModifier: { selectedModifier = $0 },
-                        onNodeMessage: { nodeMessage = $0 }
-                    )
-                }
-            }
+            LabyrinthFloorMap(
+                cluster: cluster,
+                state: state,
+                selectedNodeID: selectedNodeID,
+                onSelectNode: { selectedNodeID = $0 },
+                onDismissSelection: { selectedNodeID = nil }
+            )
+            .id(cluster.id)
+            .transition(.opacity.combined(with: .offset(y: 12)))
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+            .padding(.top, TrinketDesign.Metrics.smallSpacing)
+            .padding(.bottom, selectedNode == nil ? TrinketDesign.Metrics.extraLargeSpacing : 360)
         }
-    }
-
-    private var header: some View {
-        let focus = focusedCluster
-        let biome = focus.flatMap { GameContent.labyrinthBiome(id: $0.biomeID) }
-        let modifiers = LabyrinthCatalog.modifiers(ids: focus?.modifierIDs ?? [])
-        let style = biome?.keywordBias.visualStyle
-
-        return VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Depth \(state.deepestDepth)")
-                    .trinketTypography(.sectionTitle)
-                    .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
-                if state.deepestDepth >= 10 {
-                    Text("Atlas marked")
-                        .trinketTypography(.badge)
-                        .trinketGlassChip(.compact)
-                }
-            }
-
-            if let biome {
-                Text(biome.title)
-                    .trinketTypography(.cardTitle)
-                Text(biome.epithet)
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("The path remembers. Choose a way forward.")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-            }
-
-            if !modifiers.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(Array(modifiers.enumerated()), id: \.element.id) { index, modifier in
-                            Button {
-                                selectedModifier = modifier
-                            } label: {
-                                Text(modifier.title)
-                                    .trinketTypography(.badge)
-                            }
-                            .trinketGlassChip()
-                            .foregroundStyle(style?.color ?? .primary)
-                            .animation(
-                                TrinketMotion.Labyrinth.modifierIn.delay(
-                                    Double(index) * TrinketMotion.Labyrinth.modifierStagger
-                                ),
-                                value: focus?.id
-                            )
-                            .accessibilityIdentifier(
-                                AccessibilityID.Play.labyrinthModifier(modifier.id.rawValue)
-                            )
-                        }
-                    }
-                }
+        .scrollIndicators(.hidden)
+        .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
+        .overlay(alignment: .bottom) {
+            if let selectedNode {
+                LabyrinthNodeInspector(
+                    node: selectedNode,
+                    state: state,
+                    onMessage: { nodeMessage = $0 }
+                )
+                .frame(maxWidth: 340)
+                .padding(.bottom, TrinketDesign.Metrics.smallSpacing)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
+        .animation(TrinketMotion.Labyrinth.floorChange, value: viewedFloor)
+        .animation(TrinketMotion.Labyrinth.inspector, value: selectedNodeID)
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectedNodeID,
+            enabled: appState.options.hapticsEnabled
+        )
     }
 
-    private var focusedCluster: LabyrinthCluster? {
-        let reachable = state.reachableNodeIDs()
-        if let nodeID = reachable.first, let cluster = state.cluster(for: nodeID) {
-            return cluster
-        }
-        return visibleClusters.last
-    }
-
-    private var visibleClusters: [LabyrinthCluster] {
-        state.clusters
-            .filter { $0.depthBand > 0 }
-            .filter { cluster in
-                cluster.nodeIDs.contains { id in
-                    state.nodes[id]?.isRevealed == true
-                        || LabyrinthMapPresentation.isFogged(nodeID: id, in: state)
-                }
-            }
-            .sorted { $0.depthBand < $1.depthBand }
+    private func showFloor(_ floor: Int) {
+        guard floors.contains(where: { $0.depthBand == floor }) else { return }
+        selectedNodeID = nil
+        viewedFloor = floor
     }
 }

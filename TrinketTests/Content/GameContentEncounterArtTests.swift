@@ -12,24 +12,24 @@ struct GameContentEncounterArtTests {
         #expect(stage.encounterSubjectName == "Merchant's Shop")
     }
 
-    @Test func recruitMysteryStagesUseRoleArtAndHideExactReward() throws {
+    @Test func recruitStagesUseRoleArtAndHideExactReward() throws {
         let chapter = GameContent.chapters[0]
         let stage = try #require(chapter.stages.first { $0.id == "chapter-1-stage-2" })
 
-        #expect(stage.encounter == .mysteryEvent(eventID: "recruit-bear"))
+        #expect(stage.encounter == .recruit(eventID: "recruit-bear"))
         #expect(GameContent.encounterArtID(for: stage) == nil)
         let art = try #require(stage.encounterArtReference)
         #expect(art == ArtCatalog.encounterArtByID["mystery-recruit-companions"])
         #expect(stage.encounterCombatantArtReference == nil)
         #expect(stage.encounterSubjectName == "Mystery")
-        #expect(stage.encounterTypeTitle == "A New Friend")
+        #expect(stage.encounterTypeTitle == "Recruit")
         #expect(abs(stage.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
 
         let heroStage = try #require(chapter.stages.first { $0.id == "chapter-1-stage-4" })
         #expect(heroStage.encounterArtReference == ArtCatalog.encounterArtByID["mystery-recruit-heroes"])
         #expect(heroStage.encounterCombatantArtReference == nil)
         #expect(heroStage.encounterSubjectName == "Mystery")
-        #expect(heroStage.encounterTypeTitle == "A New Friend")
+        #expect(heroStage.encounterTypeTitle == "Recruit")
     }
 
     @Test func unmappedBattleStageUsesEnemyArt() throws {

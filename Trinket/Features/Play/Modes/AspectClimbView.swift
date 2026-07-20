@@ -6,8 +6,11 @@ import TrinketPersistence
 
 struct AspectClimbView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
+
     @State private var floorMessage: StageMapMessage?
-    @State private var scrollTarget: String?
 
     let aspectID: AspectID
 
@@ -19,13 +22,9 @@ struct AspectClimbView: View {
         GameContent.aspectFloors(for: aspectID)
     }
 
-    private var progress: PlayerAspectsState {
-        appState.aspects
-    }
-
     private var activeFloorNumber: Int {
         guard let aspect else { return 1 }
-        return progress.activeFloor(for: aspectID.rawValue, floorCount: aspect.floorCount)
+        return appState.aspects.activeFloor(for: aspectID.rawValue, floorCount: aspect.floorCount)
     }
 
     var body: some View {
@@ -34,11 +33,9 @@ struct AspectClimbView: View {
                 climbContent(aspect)
             } else {
                 ContentUnavailableView("Aspect Missing", systemImage: "sparkles")
+                    .trinketScreenBackground()
             }
         }
-        .navigationTitle(aspect?.title ?? "Aspect")
-        .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.aspectClimb(aspectID.rawValue))
         .alert(item: $floorMessage) { message in
             Alert(
@@ -48,11 +45,10 @@ struct AspectClimbView: View {
             )
         }
         .onAppear {
-            scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: activeFloorNumber)?.id
             prepareActiveFloorBattle()
+            warmActiveFloorPresentation()
         }
-        .onChange(of: activeFloorNumber) { _, newValue in
-            scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: newValue)?.id
+        .onChange(of: activeFloorNumber) { _, _ in
             prepareActiveFloorBattle()
         }
         .onChange(of: appState.roster) { _, _ in
@@ -66,129 +62,97 @@ struct AspectClimbView: View {
         }
     }
 
-    @ViewBuilder
     private func climbContent(_ aspect: AspectDefinition) -> some View {
-        let style = aspect.keyword.visualStyle
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    Label(aspect.epithet, systemImage: style.symbolName)
-                        .trinketTypography(.badge)
-                        .foregroundStyle(style.color)
-                    Text("Attune a Hero and Companion that match this Aspect.")
-                        .trinketTypography(.footnote)
-                        .foregroundStyle(.secondary)
-                    Text("Affinity gear helps — not required.")
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
-
-                LazyVStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                    ForEach(floors) { floor in
-                        floorCard(floor, aspect: aspect, style: style)
-                            .id(floor.id)
-                    }
-                }
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
-            .scrollTargetLayout()
-        }
-        .scrollPosition(id: $scrollTarget, anchor: .center)
-        .animation(.smooth, value: scrollTarget)
-    }
-
-    @ViewBuilder
-    private func floorCard(
-        _ floor: AspectFloor,
-        aspect: AspectDefinition,
-        style: Keyword.VisualStyle
-    ) -> some View {
-        let startable = progress.isFloorStartable(floor.floor, aspectID: aspect.id.rawValue)
-        let cleared = progress.isFloorCleared(floor.floor, aspectID: aspect.id.rawValue)
-        let unlocked = progress.isFloorUnlocked(
-            floor.floor,
-            aspectID: aspect.id.rawValue,
-            floorCount: aspect.floorCount
+        let rows = StageSelectRowPresentation<AspectFloor>.aspectRows(
+            for: aspect,
+            floors: floors,
+            progress: appState.aspects
         )
-        let isActive = startable
-        let isLocked = !startable && !cleared
 
-        VStack(alignment: .leading, spacing: isActive || !cleared ? TrinketDesign.Metrics.mediumSpacing : 6) {
-            HStack {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                    Text(
-                        GameContent.enemy(matching: floor.enemyID)?.isBoss == true
-                            ? "Boss · Floor \(floor.floor)"
-                            : "Floor \(floor.floor)"
+        return StageSelectScreen(
+            eyebrow: "ASPECT",
+            title: aspect.title,
+            subtitle: nil,
+            titleAccessibilityIdentifier: AccessibilityID.Play.aspectTitle(aspect.id.rawValue)
+        ) {
+            aspectHeroArtwork(for: aspect)
+        } content: {
+            Group {
+                if rows.isEmpty {
+                    completionState(for: aspect)
+                } else {
+                    StageSelectList(
+                        rows: rows,
+                        isPrimaryActionDisabled: { _ in
+                            appState.battle.activeBattle != nil || !isPartyAttuned(to: aspect)
+                        },
+                        onArtworkTap: showEnemyDetails,
+                        onPrimaryAction: { floor in
+                            if let message = appState.startAspectBattle(for: floor) {
+                                floorMessage = message
+                            }
+                        },
+                        artwork: { floor in
+                            AspectFloorArtwork(floor: floor, tint: aspect.keyword.visualStyle.color)
+                        },
+                        partyPickerSheet: { _ in
+                            StageBattlePartyPickerSheet(aspect: aspect)
+                        }
                     )
-                    .trinketTypography(isActive ? .sectionTitle : .cardTitle)
-                    if unlocked || cleared, let enemy = GameContent.enemy(matching: floor.enemyID) {
-                        Text(enemy.combatant.name)
-                            .trinketTypography(.secondaryBody)
-                            .foregroundStyle(.secondary)
-                    }
-                    if cleared {
-                        Text("Cleared")
-                            .trinketTypography(.badge)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                if cleared {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(TrinketDesign.Colors.success)
                 }
             }
-
-            if startable {
-                floorBattleControls(floor, aspect: aspect, tint: style.color)
-            }
+            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
         }
-        .trinketSurface(isActive ? .elevated : (cleared || unlocked ? .elevated : .denseRow))
-        .trinketLockedCardEffect(
-            isLocked: isLocked,
-            text: isLocked ? "Locked" : nil,
-            cornerRadius: TrinketDesign.Corners.card
-        )
-        .accessibilityIdentifier(AccessibilityID.Play.aspectFloor(aspect.id.rawValue, floor: floor.floor))
-        .animation(.smooth, value: startable)
     }
 
     @ViewBuilder
-    private func floorBattleControls(
-        _ floor: AspectFloor,
-        aspect: AspectDefinition,
-        tint: Color
-    ) -> some View {
-        BattlePartyInlinePicker(
-            aspect: aspect
-        )
-
-        Button {
-            appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
-            if let message = appState.startAspectBattle(for: floor) {
-                floorMessage = message
-            }
-        } label: {
-            Text("Begin Floor")
-                .frame(maxWidth: .infinity)
+    private func aspectHeroArtwork(for aspect: AspectDefinition) -> some View {
+        if let art = ArtCatalog.backgroundArtByID["aspect-\(aspect.id.rawValue)"] {
+            Image.preparedAsset(named: art.imageName)
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
+        } else {
+            aspect.keyword.visualStyle.color
         }
-        .trinketPrimaryActionButton(
-            tint: tint,
-            accessibilityIdentifier: AccessibilityID.Play.aspectBeginFloor(
-                aspect.id.rawValue,
-                floor: floor.floor
+    }
+
+    private func completionState(for aspect: AspectDefinition) -> some View {
+        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+            ContentUnavailableView(
+                "Aspect Cleared",
+                systemImage: "checkmark.seal.fill",
+                description: Text("All \(aspect.floorCount) floors are complete.")
             )
-        )
-        .disabled(
-            appState.battle.activeBattle != nil
-                || !AspectAttunement.evaluate(
-                    hero: appState.roster.activeHero,
-                    companion: appState.roster.activeCompanion,
-                    aspect: aspect
-                ).isReady
+
+            Button("Back to Aspects") {
+                dismiss()
+            }
+            .frame(maxWidth: .infinity)
+            .trinketPrimaryActionButton(
+                tint: aspect.keyword.visualStyle.color,
+                accessibilityIdentifier: AccessibilityID.Play.aspectCompletionBack(aspect.id.rawValue)
+            )
+        }
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+    }
+
+    private func isPartyAttuned(to aspect: AspectDefinition) -> Bool {
+        AspectAttunement.evaluate(
+            hero: appState.roster.activeHero,
+            companion: appState.roster.activeCompanion,
+            aspect: aspect
+        ).isReady
+    }
+
+    private func showEnemyDetails(for floor: AspectFloor) {
+        guard let encounter = ActiveBattleConfiguration.resolvedAspectEncounter(for: floor) else { return }
+        appState.battle.presentCombatantDetail(
+            CombatantCardDetail(
+                combatant: encounter.combatant,
+                inventoryState: appState.inventory
+            )
         )
     }
 
@@ -198,5 +162,52 @@ struct AspectClimbView: View {
             floor: activeFloorNumber
         ) else { return }
         appState.prepareAspectBattle(for: floor)
+    }
+
+    private func warmActiveFloorPresentation() {
+        Task { @MainActor in
+            await Task.yield()
+            await BattlePresentationWarmup.prepareAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+            appState.battle.prepareBattlePresentation(
+                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
+                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+            )
+            let token = ActiveBattleResumeToken.aspect(
+                aspectID: aspectID,
+                floor: activeFloorNumber
+            )
+            let names = appState.battle.preparedAbilityArtworkNames(for: token)
+            await PreparedArtworkCache.shared.prepareAndPin(names: names)
+        }
+    }
+}
+
+private struct AspectFloorArtwork: View {
+    let floor: AspectFloor
+    let tint: Color
+
+    @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
+
+    var body: some View {
+        ZStack {
+            if let combatant = GameContent.enemy(matching: floor.enemyID)?.combatant,
+               let art = combatant.artReference {
+                Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .decorativePreparedArtwork()
+            } else {
+                tint.opacity(0.14)
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: placeholderIconSize, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .symbolRenderingMode(.hierarchical)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .clipped()
     }
 }

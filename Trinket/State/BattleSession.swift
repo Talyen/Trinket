@@ -44,7 +44,9 @@ final class BattleSession {
     /// Optional UIKit chip-bridge hook. Feature chrome installs this so chip publishes
     /// update always-mounted hosts without invalidating SwiftUI battle chrome.
     @ObservationIgnored
-    var onFeedbackItemsChanged: ((CombatFeedbackUpdate) -> Void)?
+    private(set) var onFeedbackItemsChanged: ((CombatFeedbackUpdate) -> Void)?
+    @ObservationIgnored
+    private var feedbackBridgeOwnerID: UUID?
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     @ObservationIgnored
@@ -74,6 +76,20 @@ final class BattleSession {
                 clearRunState()
             }
         }
+    }
+
+    func installFeedbackBridge(
+        ownerID: UUID,
+        onChange: @escaping (CombatFeedbackUpdate) -> Void
+    ) {
+        feedbackBridgeOwnerID = ownerID
+        onFeedbackItemsChanged = onChange
+    }
+
+    func uninstallFeedbackBridge(ownerID: UUID) {
+        guard feedbackBridgeOwnerID == ownerID else { return }
+        feedbackBridgeOwnerID = nil
+        onFeedbackItemsChanged = nil
     }
 
     /// Authoritative simulation value. UI observes `presentation` instead, avoiding

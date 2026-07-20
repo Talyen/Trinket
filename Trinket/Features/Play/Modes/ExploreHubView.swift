@@ -1,64 +1,72 @@
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 
 /// Temporary Explore landing page. The eventual world map can replace this
 /// hub without changing the Play tab's top-level Campaign/Explore contract.
 struct ExploreHubView: View {
-    var body: some View {
-        List {
-            Section {
-                Text("Choose a path and make your own adventure.")
-                    .trinketTypography(.secondaryBody)
-                    .foregroundStyle(.secondary)
-                    .listRowBackground(Color.clear)
-            }
+    @Environment(AppState.self) private var appState
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-            Section("Available adventures") {
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            return [
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
+            ]
+        }
+        return [GridItem(.flexible())]
+    }
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
                 NavigationLink(value: PlayLaunchDestination.aspectsHub) {
-                    destinationRow(
+                    PlayModeArtworkCard(
                         title: "Aspects",
-                        subtitle: "Attune your party and climb one aspect at a time.",
-                        systemImage: "sparkles"
+                        subtitle: aspectsProgressSubtitle,
+                        symbolName: nil,
+                        artID: "aspect-aureateChoir",
+                        fallbackArtID: "gameModeExplore"
                     )
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
                 .trinketQuietTapButtonStyle()
 
                 NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
-                    destinationRow(
-                        title: "The Labyrinth",
-                        subtitle: "Descend a shifting path of encounters and rewards.",
-                        systemImage: "point.topleft.down.to.point.bottomright.curvepath"
+                    PlayModeArtworkCard(
+                        title: "Labyrinth",
+                        subtitle: "Floor \(appState.labyrinth.currentFloorNumber)",
+                        symbolName: nil,
+                        artID: "gameModeLabyrinth",
+                        fallbackArtID: "gameModeExplore"
                     )
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
                 .trinketQuietTapButtonStyle()
             }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
+        .scrollIndicators(.hidden)
         .navigationTitle("Explore")
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground()
         .accessibilityIdentifier(AccessibilityID.Play.exploreHub)
     }
 
-    private func destinationRow(
-        title: String,
-        subtitle: String,
-        systemImage: String
-    ) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                Text(title)
-                    .trinketTypography(.button)
-                Text(subtitle)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        } icon: {
-            Image(systemName: systemImage)
-                .foregroundStyle(TrinketDesign.Colors.accent)
+    private var aspectsProgressSubtitle: String {
+        let totalFloors = GameContent.aspects.reduce(0) { partialResult, aspect in
+            partialResult + aspect.floorCount
         }
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        let clearedFloors = GameContent.aspects.reduce(0) { partialResult, aspect in
+            partialResult + min(
+                appState.aspects.highestClearedFloor(for: aspect.id.rawValue),
+                aspect.floorCount
+            )
+        }
+        let percentComplete = totalFloors == 0 ? 0 : clearedFloors * 100 / totalFloors
+        return "\(percentComplete)% complete · \(clearedFloors) / \(totalFloors) Floors"
     }
 }

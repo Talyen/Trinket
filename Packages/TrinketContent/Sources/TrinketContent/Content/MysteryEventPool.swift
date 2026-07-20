@@ -290,8 +290,8 @@ enum MysteryEventPool {
         )
     ]
 
-    static func mysteryEvent(matching id: String) -> MysteryEvent? {
-        all.first { $0.id == id } ?? RecruitMysteryEventPool.event(matching: id)
+    static func event(matching id: String) -> MysteryEvent? {
+        all.first { $0.id == id }
     }
 
     static func pickMysteryEvent(
@@ -301,21 +301,5 @@ enum MysteryEventPool {
             preconditionFailure("MysteryEventPool.all must be non-empty")
         }
         return event
-    }
-
-    /// Prefer an eligible recruit unlock; otherwise fall back to a branching mystery.
-    static func pickEligibleMysteryEvent(
-        unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> MysteryEvent {
-        let recruits = RecruitMysteryEventPool.eligible(
-            unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
-        )
-        if let recruit = recruits.randomElement(using: &randomNumberGenerator) {
-            return recruit
-        }
-        return pickMysteryEvent(using: &randomNumberGenerator)
     }
 }

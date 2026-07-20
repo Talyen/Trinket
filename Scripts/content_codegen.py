@@ -28,7 +28,7 @@ TIER_SOURCE = {
 VALID_SLOTS = frozenset({"weapon", "armor", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 VALID_PATTERNS = frozenset({"direct_hit", "buff_only", "multi_damage"})
-VALID_ENCOUNTERS = frozenset({"battle", "event", "shop", "rest", "mystery"})
+VALID_ENCOUNTERS = frozenset({"battle", "event", "shop", "rest", "mystery", "recruit"})
 VALID_CHAPTER_THEMES = frozenset({"verdantForest"})
 VALID_HOMESTEAD_RESOURCES = frozenset(
     {"wood", "stone", "iron", "food", "herbs", "hide", "crystal", "gold"}
@@ -1280,6 +1280,11 @@ def render_stage_encounter(row: StageRow) -> str:
         if not event_id:
             raise ValueError(f"mystery encounter requires enemy_id (mystery event id) for {stage_id}")
         return f'.mysteryEvent(eventID: "{swift_escape(event_id)}")'
+    if row.encounter == "recruit":
+        event_id = row.enemy_id.strip()
+        if not event_id:
+            raise ValueError(f"recruit encounter requires enemy_id (recruit event id) for {stage_id}")
+        return f'.recruit(eventID: "{swift_escape(event_id)}")'
     stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
     raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
 
@@ -1315,15 +1320,17 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
         if row.encounter == "battle" and enemy_ids is not None and row.enemy_id not in enemy_ids:
             raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
-        if row.encounter == "mystery" and not row.enemy_id.strip():
-            raise ValueError(f"mystery encounter requires enemy_id (mystery event id) for {stage_id}")
-        if row.encounter not in {"battle", "mystery"} and row.enemy_id.strip():
-            raise ValueError(f"enemy_id only allowed for battle/mystery encounters at {stage_id}")
+        if row.encounter in {"mystery", "recruit"} and not row.enemy_id.strip():
+            raise ValueError(f"{row.encounter} encounter requires an event id for {stage_id}")
+        if row.encounter not in {"battle", "mystery", "recruit"} and row.enemy_id.strip():
+            raise ValueError(f"enemy_id only allowed for battle/mystery/recruit encounters at {stage_id}")
         if row.encounter == "battle" and (row.encounter_art_id.strip() or row.encounter_art_title.strip()):
             raise ValueError(f"encounter art fields only allowed for non-battle encounters at {stage_id}")
-        if row.encounter == "mystery" and (row.encounter_art_id.strip() or row.encounter_art_title.strip()):
+        if row.encounter in {"mystery", "recruit"} and (
+            row.encounter_art_id.strip() or row.encounter_art_title.strip()
+        ):
             raise ValueError(
-                f"mystery encounters use combatant art from the event; leave encounter art empty for {stage_id}"
+                f"{row.encounter} encounters use event art; leave encounter art empty for {stage_id}"
             )
         if bool(row.encounter_art_id.strip()) != bool(row.encounter_art_title.strip()):
             raise ValueError(

@@ -59,7 +59,7 @@ struct EncounterArtworkButton: View {
             .clipShape(TrinketDesign.cardShape)
             .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
             .accessibilityIdentifier(
-                stage.encounter.mysteryEventID == nil
+                stage.encounter.eventID == nil
                     ? "\(stage.mapLabel) Encounter Art"
                     : "\(stage.mapLabel) Mystery Art"
             )

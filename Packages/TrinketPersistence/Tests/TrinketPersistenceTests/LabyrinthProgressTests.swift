@@ -30,43 +30,79 @@ struct LabyrinthProgressTests {
         #expect(!state.reachableNodeIDs().isEmpty)
     }
 
-    @Test func markClearedExpandsPastGate() {
+    @Test func markClearedExpandsPastBossAndKeepsEarlierNodes() {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 21)
-        let reachable = state.reachableNodeIDs()
-        #expect(!reachable.isEmpty)
-
-        // Clear all non-gate reachable nodes first if needed, then clear toward gate.
-        // Directly clear a depth-1 gate after revealing it.
-        guard var gate = state.nodes.values.first(where: { $0.type == .gate && $0.depth == 1 }) else {
-            Issue.record("Missing depth-1 gate")
+        guard var boss = state.nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }) else {
+            Issue.record("Missing floor-1 boss")
             return
         }
-        gate.isRevealed = true
-        state.nodes[gate.id] = gate
-        // Make reachable by linking from a cleared node.
+        let unfinishedID = state.nodes.values.first(where: {
+            $0.depth == 1 && $0.id != boss.id && !$0.isCleared
+        })?.id
+        boss.isRevealed = true
+        state.nodes[boss.id] = boss
         if var entrance = state.nodes[LabyrinthGenerator.entranceNodeID] {
-            if !entrance.outgoingIDs.contains(gate.id) {
-                entrance.outgoingIDs.append(gate.id)
+            if !entrance.outgoingIDs.contains(boss.id) {
+                entrance.outgoingIDs.append(boss.id)
                 state.nodes[entrance.id] = entrance
             }
         }
-        state.markCleared(nodeID: gate.id)
-        #expect(state.nodes[gate.id]?.isCleared == true)
+        state.markCleared(nodeID: boss.id)
+        #expect(state.nodes[boss.id]?.isCleared == true)
         #expect(state.clusters.contains { $0.depthBand == 2 })
-        #expect(state.deepestDepth >= 1)
+        #expect(state.currentFloorNumber == 2)
+        state.markCleared(nodeID: boss.id)
+        #expect(state.currentFloorNumber == 2)
+        if let unfinishedID {
+            #expect(state.nodes[unfinishedID]?.isCleared == false)
+        }
     }
 
-    @Test func sanitizeDropsUnknownBiomeAndModifierIDs() {
-        var dirty = PlayerLabyrinthState.freshStart
-        dirty.ensureMap(seed: 3)
-        dirty.discoveredBiomeIDs.insert("missing-biome")
-        dirty.discoveredModifierIDs.insert("missing-modifier")
-        dirty.claimedMilestoneDepths.insert(999)
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(dirty)
-        #expect(!sanitized.discoveredBiomeIDs.contains("missing-biome"))
-        #expect(!sanitized.discoveredModifierIDs.contains("missing-modifier"))
-        #expect(!sanitized.claimedMilestoneDepths.contains(999))
+    @Test func sanitizeMigratesLegacyFloorLayoutGateAndModifiers() throws {
+        let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
+        var legacy = PlayerLabyrinthState(
+            worldSeed: 9,
+            mapVersion: 1,
+            hasEntered: true,
+            clusters: generated.clusters,
+            nodes: generated.nodes
+        )
+        let thirdFloor = try #require(legacy.clusters.first { $0.depthBand == 3 })
+        let clearedID = try #require(thirdFloor.nodeIDs.first)
+        var cleared = try #require(legacy.nodes[clearedID])
+        cleared.isCleared = true
+        legacy.nodes[clearedID] = LabyrinthNode(
+            id: cleared.id,
+            type: cleared.type,
+            enemyID: cleared.enemyID,
+            depth: cleared.depth,
+            clusterID: cleared.clusterID,
+            gridPosition: LabyrinthGridPosition(row: 99, column: 99),
+            modifierIDs: [LabyrinthModifierID("bossMark"), LabyrinthModifierID("ironPressure")],
+            recruitEventID: cleared.recruitEventID,
+            outgoingIDs: cleared.outgoingIDs,
+            isCleared: true,
+            isRevealed: true
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
+        let migrated = try #require(sanitized.nodes[clearedID])
+        #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
+        #expect(migrated.isCleared)
+        #expect(migrated.gridPosition != LabyrinthGridPosition(row: 99, column: 99))
+        #expect(migrated.modifierIDs.count == 1)
+        #expect(migrated.modifierIDs.first?.rawValue != "bossMark")
+        let clusterModifierIDs = sanitized.clusters.map(\.modifierIDs)
+        let hasNoLegacyClusterModifiers = clusterModifierIDs.allSatisfy(\.isEmpty)
+        #expect(hasNoLegacyClusterModifiers)
+        for floor in 1 ... 2 {
+            let cluster = try #require(sanitized.clusters.first { $0.depthBand == floor })
+            let bossID = try #require(cluster.nodeIDs.last)
+            #expect(sanitized.nodes[bossID]?.isCleared == true)
+        }
+        let currentFloorRouteID = try #require(migrated.outgoingIDs.first)
+        #expect(sanitized.isNodeReachable(currentFloorRouteID))
     }
 
     @Test @MainActor func labyrinthPersistsThroughStore() throws {
@@ -134,8 +170,7 @@ struct LabyrinthProgressTests {
                 clusterID: "audit",
                 outgoingIDs: [],
                 isCleared: false,
-                isRevealed: true,
-                failCount: 0
+                isRevealed: true
             )
             if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
                 entrance.outgoingIDs.append(restID)
@@ -156,15 +191,6 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func recordDefeatIncrementsFailCountWithoutClearing() throws {
-        var save = PlayerSave.fresh
-        save.labyrinth.ensureMap(seed: 8)
-        let nodeID = try #require(save.labyrinth.reachableNodeIDs().first)
-        LabyrinthCompletion.recordDefeat(nodeID: nodeID, save: &save)
-        #expect(save.labyrinth.nodes[nodeID]?.failCount == 1)
-        #expect(save.labyrinth.nodes[nodeID]?.isCleared == false)
-    }
-
     @Test func sanitizeCollapsesLegacyEventNodesToMystery() throws {
         var dirty = PlayerLabyrinthState.freshStart
         dirty.ensureMap(seed: 4)
@@ -178,8 +204,7 @@ struct LabyrinthProgressTests {
                 clusterID: node.clusterID,
                 outgoingIDs: node.outgoingIDs,
                 isCleared: node.isCleared,
-                isRevealed: true,
-                failCount: node.failCount
+                isRevealed: true
             )
         }
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(dirty)
@@ -236,11 +261,19 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func adjustedExperienceAwardAppliesModifierPercent() {
-        #expect(LabyrinthCompletion.adjustedExperienceAward(50, xpPercent: 0) == 50)
-        #expect(LabyrinthCompletion.adjustedExperienceAward(50, xpPercent: 20) == 60)
-        #expect(LabyrinthCompletion.adjustedExperienceAward(0, xpPercent: 20) == 0)
-        #expect(LabyrinthCompletion.adjustedExperienceAward(-5, xpPercent: 20) == 0)
+    @Test func gildedWhisperRoundsPositiveGoldBonusUp() {
+        let node = LabyrinthNode(
+            id: "gilded-shop",
+            type: .shop,
+            depth: 1,
+            clusterID: "gilded",
+            modifierIDs: [LabyrinthModifierID("gildedWhisper")]
+        )
+        let effects = LabyrinthModifierEffects.combining(
+            LabyrinthCatalog.modifiers(ids: node.modifierIDs),
+            biomeBias: .gold
+        )
+        #expect(LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects) == 4)
     }
 
     @Test func pendingCombatRewardItemMatchesCompletionGrantForBoss() throws {
@@ -274,7 +307,6 @@ struct LabyrinthProgressTests {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55
         model.hasEntered = true
-        model.deepestDepth = 3
         model.mapPayload = Data("{not-valid-labyrinth-json".utf8)
 
         let loaded = model.toPlayerLabyrinthState()
@@ -282,7 +314,6 @@ struct LabyrinthProgressTests {
         #expect(loaded.clusters.isEmpty)
         #expect(loaded.hasEntered)
         #expect(loaded.worldSeed == 55)
-        #expect(loaded.deepestDepth == 3)
 
         let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
         #expect(sanitized.hasMap)
@@ -318,17 +349,15 @@ struct LabyrinthProgressTests {
             enemyID: "slime",
             depth: 1,
             clusterID: "cluster",
-            isRevealed: true,
-            failCount: 0
+            isRevealed: true
         )
         let second = LabyrinthNode(
             id: "dup-node",
             type: .battle,
-            enemyID: "slime",
+            enemyID: "skeleton",
             depth: 1,
             clusterID: "cluster",
-            isRevealed: true,
-            failCount: 2
+            isRevealed: true
         )
         model.mapPayload = try JSONEncoder().encode(
             LabyrinthMapPayload(clusters: [], nodes: [first, second])
@@ -336,6 +365,85 @@ struct LabyrinthProgressTests {
 
         let loaded = model.toPlayerLabyrinthState()
         #expect(loaded.nodes.count == 1)
-        #expect(loaded.nodes["dup-node"]?.failCount == 2)
+        #expect(loaded.nodes["dup-node"]?.enemyID == "skeleton")
+    }
+}
+
+extension LabyrinthProgressTests {
+    @Test func legacyWireAtlasFieldsAreIgnoredAndNotResaved() throws {
+        var state = PlayerLabyrinthState.freshStart
+        state.ensureMap(seed: 91)
+        let currentData = try JSONEncoder().encode(WireLabyrinthState(state))
+        var object = try #require(
+            JSONSerialization.jsonObject(with: currentData) as? [String: Any]
+        )
+        object["deepestDepth"] = 50
+        object["discoveredBiomeIDs"] = ["scarCatacombs"]
+        object["discoveredModifierIDs"] = ["ironPressure"]
+        object["claimedMilestoneDepths"] = [5, 10, 25, 50]
+        object.removeValue(forKey: "mapVersion")
+        if var nodes = object["nodes"] as? [[String: Any]], !nodes.isEmpty {
+            nodes[0]["failCount"] = 4
+            object["nodes"] = nodes
+        }
+
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(WireLabyrinthState.self, from: legacyData)
+        let loaded = decoded.labyrinth()
+
+        #expect(loaded.clusters == state.clusters)
+        #expect(loaded.nodes == state.nodes)
+        #expect(loaded.mapVersion == 1)
+
+        let resaved = try JSONEncoder().encode(decoded)
+        let resavedObject = try #require(
+            JSONSerialization.jsonObject(with: resaved) as? [String: Any]
+        )
+        #expect(resavedObject["deepestDepth"] == nil)
+        #expect(resavedObject["discoveredBiomeIDs"] == nil)
+        #expect(resavedObject["discoveredModifierIDs"] == nil)
+        #expect(resavedObject["claimedMilestoneDepths"] == nil)
+        let resavedNodes = try #require(resavedObject["nodes"] as? [[String: Any]])
+        let omitsFailureCounts = resavedNodes.allSatisfy { $0["failCount"] == nil }
+        #expect(omitsFailureCounts)
+    }
+
+    @Test func depthFiveCompletionGrantsNoMilestoneBonus() {
+        let node = LabyrinthNode(
+            id: "depth-five-rest",
+            type: .rest,
+            depth: 5,
+            clusterID: "depth-five",
+            gridPosition: LabyrinthGridPosition(row: 0, column: 1),
+            isRevealed: true
+        )
+        let cluster = LabyrinthCluster(
+            id: node.clusterID,
+            biomeID: .scarCatacombs,
+            depthBand: 5,
+            modifierIDs: [],
+            nodeIDs: [node.id]
+        )
+        var save = PlayerSave.fresh
+        save.labyrinth = PlayerLabyrinthState(
+            worldSeed: 5,
+            hasEntered: true,
+            clusters: [cluster],
+            nodes: [node.id: node]
+        )
+        let expectedGold = LabyrinthCompletion.nonCombatGoldStipend(
+            for: node,
+            effects: save.labyrinth.effects(for: node.id)
+        )
+        let goldBefore = save.roster.gold
+
+        LabyrinthCompletion.complete(
+            nodeID: node.id,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+
+        #expect(save.roster.gold == goldBefore + expectedGold)
     }
 }

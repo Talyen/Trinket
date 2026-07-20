@@ -11,8 +11,8 @@ private struct BattleEnemyAttackMotionLab: View {
     @State private var recoverDuration = 0.45
     @State private var windUpOffsetY = -12.0
     @State private var swingOffsetY = 28.0
-    @State private var windUpScaleX = 0.96
-    @State private var windUpScaleY = 1.04
+    @State private var windUpScaleX = 0.98
+    @State private var windUpScaleY = 1.02
     @State private var swingScaleX = 1.05
     @State private var swingScaleY = 0.94
     @State private var windUpRotation = -4.0
@@ -175,8 +175,8 @@ private struct BattleEnemyAttackMotionLab: View {
         recoverDuration = 0.45
         windUpOffsetY = -12
         swingOffsetY = 28
-        windUpScaleX = 0.96
-        windUpScaleY = 1.04
+        windUpScaleX = 0.98
+        windUpScaleY = 1.02
         swingScaleX = 1.05
         swingScaleY = 0.94
         windUpRotation = -4

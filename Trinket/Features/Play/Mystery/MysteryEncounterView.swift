@@ -131,7 +131,9 @@ struct MysteryEncounterView: View {
             chapterNumber: session.stage.chapterNumber,
             stageNumber: session.stage.stageNumber,
             flavorText: session.stage.flavorText,
-            encounter: .mysteryEvent(eventID: session.event.id),
+            encounter: session.event.isRecruit
+                ? .recruit(eventID: session.event.id)
+                : .mysteryEvent(eventID: session.event.id),
             rewards: session.stage.rewards
         )
     }

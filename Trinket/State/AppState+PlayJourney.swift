@@ -195,7 +195,8 @@ extension AppState {
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward,
             experienceBonusPercent: activeBattle.experienceBonusPercent,
-            pendingRewardItem: activeBattle.pendingRewardItem
+            pendingRewardItem: activeBattle.pendingRewardItem,
+            universalModifiers: activeBattle.universalModifiers
         )
     }
 
@@ -208,7 +209,8 @@ extension AppState {
         enemyEncounterLevel: Int?,
         stageReward: StageReward?,
         experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil
+        pendingRewardItem: InventoryItem? = nil,
+        universalModifiers: [AffixModifier] = []
     ) {
         battle.preview = nil
         if let resumeToken,
@@ -228,7 +230,8 @@ extension AppState {
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward,
             experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: pendingRewardItem,
+            universalModifiers: universalModifiers
         )
     }
 
@@ -240,7 +243,8 @@ extension AppState {
         enemyEncounterLevel: Int?,
         stageReward: StageReward?,
         experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil
+        pendingRewardItem: InventoryItem? = nil,
+        universalModifiers: [AffixModifier] = []
     ) -> ActiveBattleConfiguration {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
@@ -257,22 +261,37 @@ extension AppState {
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward,
             experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: pendingRewardItem,
+            universalModifiers: universalModifiers
         )
     }
 
     @discardableResult
     func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
-        switch stage.encounter {
+        let resolvedStage = resolvedCampaignStage(stage)
+        return switch resolvedStage.encounter {
         case .battle:
-            startBattle(for: stage)
+            startBattle(for: resolvedStage)
         case .mysteryEvent:
-            beginMysteryEncounter(for: stage)
+            beginMysteryEncounter(for: resolvedStage)
+        case .recruit:
+            beginMysteryEncounter(
+                for: resolvedStage,
+                forcedEventID: resolvedStage.encounter.recruitEventID
+            )
         case .shop:
-            beginShopEncounter(for: stage)
+            beginShopEncounter(for: resolvedStage)
         case .event, .rest:
-            completeStageOrPersistFailure(stage)
+            completeStageOrPersistFailure(resolvedStage)
         }
+    }
+
+    func resolvedCampaignStage(_ stage: Stage) -> Stage {
+        GameContent.resolveRecruitStage(
+            stage,
+            unlockedHeroIDs: roster.unlockedHeroIDs,
+            unlockedCompanionIDs: roster.unlockedCompanionIDs
+        )
     }
 
     /// Completes a stage, returning a save-failure message when persistence fails.
@@ -299,23 +318,6 @@ extension AppState {
             )
         }
         return nil
-    }
-
-    @discardableResult
-    func advanceToNextChapter() -> Bool {
-        guard journey.pendingNextChapter() != nil else { return false }
-        do {
-            try playerSave.performBatchMutation { save in
-                _ = save.journey.advanceToNextChapter()
-            }
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to advance chapter: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
-        }
     }
 
     @discardableResult

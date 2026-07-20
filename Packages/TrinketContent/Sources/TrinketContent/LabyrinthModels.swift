@@ -45,14 +45,6 @@ public struct LabyrinthModifierID: RawRepresentable, Hashable, Codable, Sendable
     }
 }
 
-public enum LabyrinthModifierCategory: String, Codable, Hashable, Sendable {
-    case threat
-    case bounty
-    case affinity
-    case encounter
-    case special
-}
-
 public struct LabyrinthBiomeDefinition: Identifiable, Hashable, Sendable {
     public let id: LabyrinthBiomeID
     public let title: String
@@ -78,44 +70,43 @@ public struct LabyrinthBiomeDefinition: Identifiable, Hashable, Sendable {
     }
 }
 
+public enum LabyrinthModifierEffect: Hashable, Sendable {
+    case damageDealt(keyword: Keyword, amount: Int)
+    case goldRewardPercent(Int)
+    case astralChancePercent(Int)
+
+    public var description: String {
+        switch self {
+        case let .damageDealt(keyword, amount):
+            "\(keyword.rawValue.capitalized) damage is increased by \(amount)."
+        case let .goldRewardPercent(percent):
+            "Increases Gold rewards by \(percent)%."
+        case let .astralChancePercent(percent):
+            "Increases chance to find Astral items by \(percent)%."
+        }
+    }
+}
+
 public struct LabyrinthModifierDefinition: Identifiable, Hashable, Sendable {
     public let id: LabyrinthModifierID
     public let title: String
-    public let epithet: String
-    public let category: LabyrinthModifierCategory
-    /// Hidden Keyword bias for affinity / tint; nil when not affinity-flavored.
-    public let keywordBias: Keyword?
-    public let enemyPowerPercent: Int
-    public let goldPercent: Int
-    public let xpPercent: Int
-    public let itemDropBonusPercent: Int
-    public let astralChanceBonusPercent: Int
-    public let guaranteedNodeType: LabyrinthNodeType?
+    public let effect: LabyrinthModifierEffect
+    public let nodeTypes: Set<LabyrinthNodeType>
 
     public init(
         id: LabyrinthModifierID,
         title: String,
-        epithet: String,
-        category: LabyrinthModifierCategory,
-        keywordBias: Keyword? = nil,
-        enemyPowerPercent: Int = 0,
-        goldPercent: Int = 0,
-        xpPercent: Int = 0,
-        itemDropBonusPercent: Int = 0,
-        astralChanceBonusPercent: Int = 0,
-        guaranteedNodeType: LabyrinthNodeType? = nil
+        effect: LabyrinthModifierEffect,
+        nodeTypes: Set<LabyrinthNodeType>
     ) {
         self.id = id
         self.title = title
-        self.epithet = epithet
-        self.category = category
-        self.keywordBias = keywordBias
-        self.enemyPowerPercent = enemyPowerPercent
-        self.goldPercent = goldPercent
-        self.xpPercent = xpPercent
-        self.itemDropBonusPercent = itemDropBonusPercent
-        self.astralChanceBonusPercent = astralChanceBonusPercent
-        self.guaranteedNodeType = guaranteedNodeType
+        self.effect = effect
+        self.nodeTypes = nodeTypes
+    }
+
+    public func applies(to type: LabyrinthNodeType) -> Bool {
+        nodeTypes.contains(type.canonical)
     }
 }
 
@@ -125,6 +116,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case shop
     case rest
     case mystery
+    case recruit
     /// Legacy save value; sanitized to `.mystery`. Do not generate new event nodes.
     case event
     case craft
@@ -163,6 +155,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .shop: "Merchant's Shop"
         case .rest: "Shrine"
         case .mystery, .event: "Mystery"
+        case .recruit: "Recruit"
         case .craft: "Crafting Altar"
         case .gate: "Depth Gate"
         }
@@ -175,6 +168,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .shop: "bag.fill"
         case .rest: "tent.fill"
         case .mystery, .event: "sparkles"
+        case .recruit: "person.crop.circle.badge.plus"
         case .craft: "hammer.fill"
         case .gate: "arrow.down.to.line.compact"
         }
@@ -190,6 +184,8 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             "Rest"
         case .mystery, .event:
             "Approach"
+        case .recruit:
+            "Meet"
         case .craft:
             "Forge"
         }
@@ -199,9 +195,20 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         switch canonical {
         case .battle, .boss, .gate:
             true
-        case .shop, .rest, .mystery, .event, .craft:
+        case .shop, .rest, .mystery, .event, .recruit, .craft:
             false
         }
+    }
+}
+
+/// Stable axial hex-grid position for a Labyrinth node within one floor.
+public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
+    public let row: Int
+    public let column: Int
+
+    public init(row: Int, column: Int) {
+        self.row = row
+        self.column = column
     }
 }
 
@@ -211,11 +218,14 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
     public let enemyID: String?
     public let depth: Int
     public let clusterID: String
+    public let gridPosition: LabyrinthGridPosition?
+    public let modifierIDs: [LabyrinthModifierID]
+    /// Concealed recruit event payload; the map exposes only the Recruit type.
+    public let recruitEventID: String?
     /// Outgoing edge node ids within the same or next cluster.
     public var outgoingIDs: [String]
     public var isCleared: Bool
     public var isRevealed: Bool
-    public var failCount: Int
 
     public init(
         id: String,
@@ -223,20 +233,39 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         enemyID: String? = nil,
         depth: Int,
         clusterID: String,
+        gridPosition: LabyrinthGridPosition? = nil,
+        modifierIDs: [LabyrinthModifierID] = [],
+        recruitEventID: String? = nil,
         outgoingIDs: [String] = [],
         isCleared: Bool = false,
-        isRevealed: Bool = false,
-        failCount: Int = 0
+        isRevealed: Bool = false
     ) {
         self.id = id
         self.type = type
         self.enemyID = enemyID
         self.depth = depth
         self.clusterID = clusterID
+        self.gridPosition = gridPosition
+        self.modifierIDs = modifierIDs
+        self.recruitEventID = recruitEventID
         self.outgoingIDs = outgoingIDs
         self.isCleared = isCleared
         self.isRevealed = isRevealed
-        self.failCount = failCount
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        type = try container.decode(LabyrinthNodeType.self, forKey: .type)
+        enemyID = try container.decodeIfPresent(String.self, forKey: .enemyID)
+        depth = try container.decode(Int.self, forKey: .depth)
+        clusterID = try container.decode(String.self, forKey: .clusterID)
+        gridPosition = try container.decodeIfPresent(LabyrinthGridPosition.self, forKey: .gridPosition)
+        modifierIDs = try container.decodeIfPresent([LabyrinthModifierID].self, forKey: .modifierIDs) ?? []
+        recruitEventID = try container.decodeIfPresent(String.self, forKey: .recruitEventID)
+        outgoingIDs = try container.decodeIfPresent([String].self, forKey: .outgoingIDs) ?? []
+        isCleared = try container.decodeIfPresent(Bool.self, forKey: .isCleared) ?? false
+        isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed) ?? false
     }
 }
 
@@ -262,36 +291,28 @@ public struct LabyrinthCluster: Identifiable, Hashable, Codable, Sendable {
     }
 }
 
-/// Aggregated combat/reward modifiers for a cluster (rules-facing).
+/// Aggregated combat/reward modifiers for one Labyrinth node.
 public struct LabyrinthModifierEffects: Equatable, Sendable {
-    public var enemyPowerPercent: Int
+    public var damageDealtBonus: [Keyword: Int]
     public var goldPercent: Int
-    public var xpPercent: Int
-    public var itemDropBonusPercent: Int
     public var astralChanceBonusPercent: Int
     public var keywordBiases: Set<Keyword>
 
     public static let zero = LabyrinthModifierEffects(
-        enemyPowerPercent: 0,
+        damageDealtBonus: [:],
         goldPercent: 0,
-        xpPercent: 0,
-        itemDropBonusPercent: 0,
         astralChanceBonusPercent: 0,
         keywordBiases: []
     )
 
     public init(
-        enemyPowerPercent: Int,
+        damageDealtBonus: [Keyword: Int],
         goldPercent: Int,
-        xpPercent: Int,
-        itemDropBonusPercent: Int,
         astralChanceBonusPercent: Int,
         keywordBiases: Set<Keyword>
     ) {
-        self.enemyPowerPercent = enemyPowerPercent
+        self.damageDealtBonus = damageDealtBonus
         self.goldPercent = goldPercent
-        self.xpPercent = xpPercent
-        self.itemDropBonusPercent = itemDropBonusPercent
         self.astralChanceBonusPercent = astralChanceBonusPercent
         self.keywordBiases = keywordBiases
     }
@@ -303,13 +324,13 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
         var effects = LabyrinthModifierEffects.zero
         effects.keywordBiases.insert(biomeBias)
         for modifier in modifiers {
-            effects.enemyPowerPercent += modifier.enemyPowerPercent
-            effects.goldPercent += modifier.goldPercent
-            effects.xpPercent += modifier.xpPercent
-            effects.itemDropBonusPercent += modifier.itemDropBonusPercent
-            effects.astralChanceBonusPercent += modifier.astralChanceBonusPercent
-            if let bias = modifier.keywordBias {
-                effects.keywordBiases.insert(bias)
+            switch modifier.effect {
+            case let .damageDealt(keyword, amount):
+                effects.damageDealtBonus[keyword, default: 0] += amount
+            case let .goldRewardPercent(percent):
+                effects.goldPercent += percent
+            case let .astralChancePercent(percent):
+                effects.astralChanceBonusPercent += percent
             }
         }
         return effects

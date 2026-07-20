@@ -22,29 +22,18 @@ enum AccessibilityID {
         static let aspectsModeCard = "Aspects Mode Card"
         static let campaignModeCard = "Campaign Mode Card"
         static let exploreModeCard = "Explore Mode Card"
-        static let battlePartyInlinePicker = "Battle Party Inline Picker"
-        static let battlePartyHeroControl = "Battle Party Hero Control"
-        static let battlePartyCompanionControl = "Battle Party Companion Control"
+        static let battlePartyDone = "Battle Party Done"
         static let chapterPicker = "Campaign Chapter Picker"
-        static let chapterAdvance = "Campaign Chapter Advance"
         static let activeStageDetail = "Campaign Active Stage Detail"
         static let stagePartyControl = "Campaign Stage Party Control"
         static let stagePartyPickerSheet = "Campaign Stage Party Picker Sheet"
 
-        static func battlePartyPickerSheet(for role: String) -> String {
-            "Battle Party \(role) Picker Sheet"
+        static func battlePartyShelf(for role: String) -> String {
+            "Battle Party \(role) Shelf"
         }
 
-        static func battlePartyOption(for role: String, combatantName: String) -> String {
-            "Battle Party \(role) Option \(combatantName)"
-        }
-
-        static func battlePartyDetail(_ combatantID: String) -> String {
-            "Battle Party Detail \(combatantID)"
-        }
-
-        static func selectBattlePartyOption(for role: String, combatantID: String) -> String {
-            "Select Battle Party \(role) \(combatantID)"
+        static func battlePartyOption(for role: String, combatantID: String) -> String {
+            "Battle Party \(role) Option \(combatantID)"
         }
 
         static func chapterHeader(number: Int) -> String {
@@ -83,6 +72,10 @@ enum AccessibilityID {
             "Aspect \(aspectID) Climb"
         }
 
+        static func aspectTitle(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Title"
+        }
+
         static func aspectFloor(_ aspectID: String, floor: Int) -> String {
             "Aspect \(aspectID) Floor \(floor)"
         }
@@ -91,11 +84,29 @@ enum AccessibilityID {
             "Aspect \(aspectID) Begin Floor \(floor)"
         }
 
+        static func aspectFloorEnemyArt(_ aspectID: String, floor: Int) -> String {
+            "Aspect \(aspectID) Floor \(floor) Enemy Art"
+        }
+
+        static func aspectActiveFloorDetail(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Active Floor Detail"
+        }
+
+        static func aspectPartyControl(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Party Control"
+        }
+
+        static func aspectPartyPickerSheet(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Party Picker Sheet"
+        }
+
+        static func aspectCompletionBack(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Completion Back"
+        }
+
         static let labyrinthModeCard = "Labyrinth Mode Card"
         static let labyrinthMap = "Labyrinth Map"
-        static let labyrinthAtlas = "Labyrinth Atlas"
         static let labyrinthEnter = "Labyrinth Enter"
-        static let labyrinthLeave = "Labyrinth Leave"
         static let labyrinthRest = "Labyrinth Rest"
         static let labyrinthRestConfirm = "Labyrinth Rest Confirm"
         static let labyrinthRestLeave = "Labyrinth Rest Leave"
@@ -105,28 +116,19 @@ enum AccessibilityID {
         static let labyrinthCraftSkip = "Labyrinth Craft Skip"
         static let labyrinthCraftLeave = "Labyrinth Craft Leave"
         static let labyrinthCraftFailure = "Labyrinth Craft Failure"
-        static let labyrinthDepthBadge = "Labyrinth Depth Badge"
+        static let labyrinthFloorMenu = "Labyrinth Floor Menu"
+        static let labyrinthNodeInspector = "Labyrinth Node Inspector"
+
+        static func labyrinthFloor(_ floor: Int) -> String {
+            "Labyrinth Floor \(floor)"
+        }
 
         static func labyrinthNode(_ nodeID: String) -> String {
             "Labyrinth Node \(nodeID)"
         }
 
-        /// Primary node CTA (Fight / Visit / Rest / …). Prefer this over visible labels.
-        static func labyrinthNodeAction(_ nodeID: String) -> String {
-            "\(nodeID) labyrinth action"
-        }
-
-        /// Combat-only node CTA (Fight / Retry). Exhaustive battles should match this suffix.
-        static func labyrinthCombatAction(_ nodeID: String) -> String {
-            "\(nodeID) labyrinth combat action"
-        }
-
-        static func labyrinthModifier(_ modifierID: String) -> String {
-            "Labyrinth Modifier \(modifierID)"
-        }
-
-        static func labyrinthFogNode(_ nodeID: String) -> String {
-            "Labyrinth Fog \(nodeID)"
+        static func labyrinthInspectorAction(_ nodeID: String) -> String {
+            "Labyrinth Inspector Action \(nodeID)"
         }
     }
 

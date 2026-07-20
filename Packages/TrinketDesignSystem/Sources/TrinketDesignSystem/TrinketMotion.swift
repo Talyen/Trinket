@@ -138,7 +138,7 @@ public enum TrinketMotion: Sendable {
         public static let ultimateCollapse: TimeInterval = 0.28
 
         /// Every floating combat label uses the same presentation lifetime.
-        public static let chipDisplayDuration: TimeInterval = 1.0
+        public static let chipDisplayDuration: TimeInterval = 1.02
 
         /// Per-lane interval between successive chip starts on one combatant.
         /// Matches `chipDisplayDuration` so a lane finishes rise+fade before reuse.
@@ -149,14 +149,29 @@ public enum TrinketMotion: Sendable {
         /// Concurrent horizontal rise paths per combatant (left / middle / right).
         public static let feedbackLaneCount = CombatFeedbackLane.allCases.count
 
-        /// Labels stay fully opaque until this final portion of their lifetime.
-        public static let chipFadeOutDuration: TimeInterval = 0.2
+        /// Fraction of lifetime that stays fully opaque before fade begins.
+        public static let chipOpaqueHoldFraction: Double = 0.64
+
+        /// Fade length after the opaque hold (may finish slightly before lifetime end).
+        public static let chipFadeOutDuration: TimeInterval = 0.30
 
         /// Maximum rise as a fraction of the corresponding combatant card height.
-        public static let chipTravelFraction: CGFloat = 0.42
+        public static let chipTravelFraction: CGFloat = 0.44
 
         /// Minimum clearance between the final label bounds and the card's top edge.
         public static let chipTopClearance: CGFloat = 8
+
+        /// Spawn scale for the Ideal Core float punch.
+        public static let chipStartScale: CGFloat = 1.06
+
+        /// Peak scale shortly after spawn.
+        public static let chipPeakScale: CGFloat = 1.10
+
+        /// End scale as the chip settles while rising.
+        public static let chipEndScale: CGFloat = 0.96
+
+        /// Progress (0...1) at which scale reaches `chipPeakScale`.
+        public static let chipPeakProgress: Double = 0.10
 
         /// Lifetime buffer for delayed raw-event cleanup.
         public static var maxChipLifetime: TimeInterval {
@@ -198,10 +213,23 @@ public enum TrinketMotion: Sendable {
             CombatFeedbackChipRecipes.chip(for: feedbackClass)
         }
 
-        /// Quadratic ease-in: slow start that accelerates through the rise.
+        /// Quadratic ease-out: energetic start that decelerates through the rise.
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
             let progress = min(max(elapsed / chipDisplayDuration, 0), 1)
-            return pow(progress, 2)
+            let inverse = 1 - progress
+            return 1 - inverse * inverse
+        }
+
+        /// Scale envelope: soft punch to peak, then settle while rising.
+        public static func chipScale(elapsed: TimeInterval) -> CGFloat {
+            let t = min(max(elapsed / chipDisplayDuration, 0), 1)
+            let peakAt = min(max(chipPeakProgress, 0.001), 0.999)
+            if t <= peakAt {
+                let u = t / peakAt
+                return chipStartScale + (chipPeakScale - chipStartScale) * CGFloat(u)
+            }
+            let u = (t - peakAt) / (1 - peakAt)
+            return chipPeakScale + (chipEndScale - chipPeakScale) * CGFloat(u)
         }
 
         /// Eligible horizontal rise paths for a combatant. Party uses middle only;
@@ -211,9 +239,13 @@ public enum TrinketMotion: Sendable {
         }
 
         public static func chipOpacity(elapsed: TimeInterval) -> Double {
-            let fadeStart = chipDisplayDuration - chipFadeOutDuration
-            guard elapsed > fadeStart else { return 1 }
-            return min(max((chipDisplayDuration - elapsed) / chipFadeOutDuration, 0), 1)
+            let holdEnd = min(
+                chipDisplayDuration * chipOpaqueHoldFraction,
+                chipDisplayDuration - 0.001
+            )
+            guard elapsed > holdEnd else { return 1 }
+            let fadeLen = max(min(chipFadeOutDuration, chipDisplayDuration - holdEnd), 0.001)
+            return min(max((holdEnd + fadeLen - elapsed) / fadeLen, 0), 1)
         }
 
         public static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
@@ -244,6 +276,22 @@ public enum TrinketMotion: Sendable {
     /// The Labyrinth map motion (R-022c).
     public enum Labyrinth: Sendable {
         public static let modifierStagger: TimeInterval = 0.05
+
+        public static var selection: Animation {
+            .spring(response: 0.22, dampingFraction: 1)
+        }
+
+        public static var inspector: Animation {
+            .spring(response: 0.32, dampingFraction: 0.9)
+        }
+
+        public static var pathState: Animation {
+            .spring(response: 0.36, dampingFraction: 1)
+        }
+
+        public static var floorChange: Animation {
+            .spring(response: 0.38, dampingFraction: 1)
+        }
 
         public static var clusterReveal: Animation {
             .easeOut(duration: 0.28)

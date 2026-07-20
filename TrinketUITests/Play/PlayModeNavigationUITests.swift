@@ -18,11 +18,27 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
 
         app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
         assertExists(AccessibilityID.Play.aspectRow("ironVein"))
+
+        app.buttons[AccessibilityID.Play.aspectRow("ironVein")].tap()
+        assertExists(AccessibilityID.Play.aspectTitle("ironVein"))
+        assertExists(AccessibilityID.Play.aspectFloor("ironVein", floor: 1))
+        assertExists(AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1))
+        goBack()
+        assertExists(AccessibilityID.Play.aspectsHub)
+
         goBack()
         assertExists(AccessibilityID.Play.exploreHub)
 
         app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
         assertExists(AccessibilityID.Play.labyrinthMap)
+        assertExists(AccessibilityID.Play.labyrinthFloorMenu)
+        let entryNodeID = "labyrinth-cluster-1-scarCatacombs-n0"
+        app.buttons[AccessibilityID.Play.labyrinthNode(entryNodeID)].tap()
+        assertExists(AccessibilityID.Play.labyrinthNodeInspector)
+        assertExists(AccessibilityID.Play.labyrinthInspectorAction(entryNodeID))
+        let labyrinthMap = app.descendants(matching: .any)[AccessibilityID.Play.labyrinthMap]
+        labyrinthMap.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.15)).tap()
+        assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
         goBack()
         assertExists(AccessibilityID.Play.exploreHub)
     }

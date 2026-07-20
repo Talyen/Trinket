@@ -1,7 +1,4 @@
 id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
-mighty	Mighty	weapon	physical	12	Increases Strength by 1	Increases Strength by 3	strength:1	strength:3		
-nimble	Nimble	weapon	physical,bleed	12	Increases Agility by 1	Increases Agility by 3	agility:1	agility:3		
-arcane	Arcane	weapon	burn,freeze	12	Increases Intellect by 1	Increases Intellect by 3	intellect:1	intellect:3		
 keen	Keen	weapon	physical	12	Increases Physical damage dealt by 1	Increases Physical damage dealt by 3	damage_dealt:physical:1	damage_dealt:physical:3		
 serrated	Serrated	weapon	bleed	10	Increases Bleed damage dealt by 1	Increases Bleed damage dealt by 2	damage_dealt:bleed:1	damage_dealt:bleed:2		
 envenomed	Envenomed	weapon	poison	10	Increases Poison damage dealt by 1	Increases Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
@@ -10,22 +7,14 @@ consecrated	Consecrated	weapon	holy	8	Increases Holy damage dealt by 1	Increases
 glacial	Glacial	weapon	freeze	8	Increases Freeze damage dealt by 1	Increases Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2		
 concussive	Concussive	weapon	stun	8	Increases Stun damage dealt by 1	Increases Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2		
 lingering	Lingering	weapon	bleed	8	Increases Bleed duration by 1	Increases Bleed duration by 2	bleed_duration:1	bleed_duration:2		
-duelists	Duelist's	weapon	bleed,physical	8	Increases Agility by 1 and Bleed damage dealt by 1	Increases Agility by 2 and Bleed damage dealt by 2	agility:1|damage_dealt:bleed:1	agility:2|damage_dealt:bleed:2		
-crusaders	Crusader's	weapon	holy,physical	8	Increases Strength by 1 and Holy damage dealt by 1	Increases Strength by 2 and Holy damage dealt by 2	strength:1|damage_dealt:holy:1	strength:2|damage_dealt:holy:2		
-pyromancers	Pyromancer's	weapon	burn	8	Increases Intellect by 1 and Burn damage dealt by 1	Increases Intellect by 2 and Burn damage dealt by 2	intellect:1|damage_dealt:burn:1	intellect:2|damage_dealt:burn:2		
 sentinel	Sentinel	weapon	block	8	Increases Block gained by 1	Increases Block gained by 3	block_gained:1	block_gained:3		
 fortified	Fortified	weapon	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
 defenders	Defender's	weapon	block	8	Increases Block gained by 2	Increases Block gained by 4	block_gained:2	block_gained:4		
-venomancers	Venomancer's	weapon	poison	8	Increases Wisdom by 1 and Poison damage dealt by 1	Increases Wisdom by 2 and Poison damage dealt by 2	wisdom:1|damage_dealt:poison:1	wisdom:2|damage_dealt:poison:2		
-cryomancers	Cryomancer's	weapon	freeze	8	Increases Intellect by 1 and Freeze damage dealt by 1	Increases Intellect by 2 and Freeze damage dealt by 2	intellect:1|damage_dealt:freeze:1	intellect:2|damage_dealt:freeze:2		
-thunderers	Thunderer's	weapon	stun,physical	8	Increases Strength by 1 and Stun damage dealt by 1	Increases Strength by 2 and Stun damage dealt by 2	strength:1|damage_dealt:stun:1	strength:2|damage_dealt:stun:2		
 leeching	Leeching	weapon	leech	8	Increases Leech gained by 5%	Increases Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		
 sapping	Sapping	weapon	leech,bleed	8	Increases Bleed damage dealt by 1 and Leech healing by 1	Increases Bleed damage dealt by 2 and Leech healing by 2	damage_dealt:bleed:1|leech_healing:1	damage_dealt:bleed:2|leech_healing:2		
 caustic	Caustic	weapon	poison,burn	8	Increases Poison damage dealt by 1 and Burn damage dealt by 1	Increases Poison damage dealt by 2 and Burn damage dealt by 2	damage_dealt:poison:1|damage_dealt:burn:1	damage_dealt:poison:2|damage_dealt:burn:2		
 persistent	Persistent	weapon	poison	8	Increases Poison damage dealt by 1	Increases Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
 scorching	Scorching	weapon	burn,physical	8	Increases Physical damage dealt by 1 and Burn damage dealt by 1	Increases Physical damage dealt by 2 and Burn damage dealt by 2	damage_dealt:physical:1|damage_dealt:burn:1	damage_dealt:physical:2|damage_dealt:burn:2		
-stalwart	Stalwart	armor	block	12	Increases Toughness by 1	Increases Toughness by 3	toughness:1	toughness:3		
-devout	Devout	armor	holy	12	Increases Wisdom by 1	Increases Wisdom by 3	wisdom:1	wisdom:3		
 reinforced	Reinforced	armor	block	12	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
 bulwark	Bulwark	armor	block	12	Increases Block gained by 2	Increases Block gained by 5	block_gained:2	block_gained:5		
 warding	Warding	armor	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
@@ -35,13 +24,10 @@ emberguard	Emberguard	armor	burn,block	8	Decreases Burn damage taken by 10%	Decr
 antidotal	Antidotal	armor	poison,health	8	Decreases Poison damage taken by 10%	Decreases Poison damage taken by 25%	damage_taken_percent:poison:0.10	damage_taken_percent:poison:0.25		
 thick-skinned	Thick-Skinned	armor	bleed	8	Decreases Bleed damage taken by 10%	Decreases Bleed damage taken by 25%	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25		
 lifeweave	Lifeweave	armor	leech,health	8	Increases Leech healing by 1	Increases Leech healing by 3	leech_healing:1	leech_healing:3		
-guardians	Guardian's	armor	block	8	Increases Toughness by 1 and Block gained by 1	Increases Toughness by 2 and Block gained by 2	toughness:1|block_gained:1	toughness:2|block_gained:2		
 rimed	Rimed	armor	freeze,block	8	Decreases Freeze damage taken by 10%	Decreases Freeze damage taken by 25%	damage_taken_percent:freeze:0.10	damage_taken_percent:freeze:0.25		
 insulated	Insulated	armor	stun,block	8	Decreases Stun damage taken by 10%	Decreases Stun damage taken by 25%	damage_taken_percent:stun:0.10	damage_taken_percent:stun:0.25		
-sanctified	Sanctified	armor	holy,health	8	Increases Wisdom by 1 and Health restored by 1	Increases Wisdom by 2 and Health restored by 2	wisdom:1|health_restored:1	wisdom:2|health_restored:2		
 bloodbound	Bloodbound	armor	leech,bleed	8	Increases Leech healing by 1	Increases Leech healing by 3	leech_healing:1	leech_healing:3		
 enduring	Enduring	armor	health,block	8	Increases Maximum Health by 2 and Block gained by 1	Increases Maximum Health by 6 and Block gained by 2	maximum_health:2|block_gained:1	maximum_health:6|block_gained:2		
-plated	Plated	armor	block,stun	8	Increases Toughness by 1 and Stun damage dealt by 1	Increases Toughness by 2 and Stun damage dealt by 2	toughness:1|damage_dealt:stun:1	toughness:2|damage_dealt:stun:2		
 hale	Hale	trinket	health	10	Increases Maximum Health by 4	Increases Maximum Health by 12	maximum_health:4	maximum_health:12		
 lucky	Lucky	trinket	gold	10	Increases Gold gained by 1	Increases Gold gained by 2	gold_gained:1	gold_gained:2		
 vampiric	Vampiric	trinket	leech	8	Increases Leech gained by 5%	Increases Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		

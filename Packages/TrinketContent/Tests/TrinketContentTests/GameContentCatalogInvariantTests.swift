@@ -20,12 +20,17 @@ struct GameContentCatalogInvariantTests {
 
     @Test(arguments: GameContent.chapters.flatMap(\.stages))
     func mysteryStagesReferenceKnownEvents(stage: Stage) throws {
-        guard let eventID = stage.encounter.mysteryEventID else { return }
-        let event = try #require(
-            GameContent.mysteryEvent(matching: eventID),
-            "Stage \(stage.id) references unknown mystery event \(eventID)"
-        )
-        if event.isRecruit {
+        if let eventID = stage.encounter.mysteryEventID {
+            _ = try #require(
+                GameContent.mysteryEvent(matching: eventID),
+                "Stage \(stage.id) references unknown mystery event \(eventID)"
+            )
+        }
+        if let eventID = stage.encounter.recruitEventID {
+            let event = try #require(
+                GameContent.recruitEvent(matching: eventID),
+                "Stage \(stage.id) references unknown recruit event \(eventID)"
+            )
             _ = try #require(GameContent.combatant(forMysteryEvent: event))
         }
     }

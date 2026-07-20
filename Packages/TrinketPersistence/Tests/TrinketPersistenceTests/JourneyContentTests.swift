@@ -40,16 +40,16 @@ struct JourneyContentTests {
         }
 
         let chapterOne = GameContent.chapters[0]
-        try #expect(chapterOne.stages[1].encounter.mysteryEventID == "recruit-bear")
-        try #expect(chapterOne.stages[3].encounter.mysteryEventID == "recruit-ranger")
+        try #expect(chapterOne.stages[1].encounter.recruitEventID == "recruit-bear")
+        try #expect(chapterOne.stages[3].encounter.recruitEventID == "recruit-ranger")
         try #expect(chapterOne.stages.contains { $0.encounter == .shop } == false)
 
         let chapterTwo = GameContent.chapters[1]
-        try #expect(chapterTwo.stages[1].encounter.mysteryEventID == "recruit-rogue")
+        try #expect(chapterTwo.stages[1].encounter.recruitEventID == "recruit-rogue")
         try #expect(chapterTwo.stages[3].encounter == .shop)
 
         let chapterThree = GameContent.chapters[2]
-        try #expect(chapterThree.stages[1].encounter.mysteryEventID == "recruit-library-owl")
+        try #expect(chapterThree.stages[1].encounter.recruitEventID == "recruit-library-owl")
         try #expect(chapterThree.stages[3].encounter == .shop)
     }
 
@@ -63,7 +63,7 @@ struct JourneyContentTests {
         for (chapter, expectedIDs) in zip(GameContent.chapters, expectedEncounterIDs) {
             let actualIDs = chapter.stages.map { stage in
                 stage.encounter.battleEnemyID
-                    ?? stage.encounter.mysteryEventID
+                    ?? stage.encounter.eventID
                     ?? (stage.encounter == .shop ? "shop" : stage.encounter.title.lowercased())
             }
             try #expect(actualIDs == expectedIDs)

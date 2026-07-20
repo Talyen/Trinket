@@ -16,7 +16,8 @@ enum ActiveBattleConfigurationTestSupport {
         inventory: PlayerInventoryState = .initial,
         stageReward: StageReward? = nil,
         experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil
+        pendingRewardItem: InventoryItem? = nil,
+        universalModifiers: [AffixModifier] = []
     ) throws -> ActiveBattleConfiguration {
         ActiveBattleConfiguration.make(
             resumeToken: resumeToken,
@@ -29,7 +30,8 @@ enum ActiveBattleConfigurationTestSupport {
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward,
             experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem
+            pendingRewardItem: pendingRewardItem,
+            universalModifiers: universalModifiers
         )
     }
 }

@@ -18,7 +18,8 @@ struct LabyrinthCatalogTests {
         #expect(!GameContent.labyrinthModifiers.isEmpty)
         for modifier in GameContent.labyrinthModifiers {
             #expect(!modifier.title.isEmpty)
-            #expect(!modifier.epithet.isEmpty)
+            #expect(modifier.title.split(separator: " ").count <= 2)
+            #expect(!modifier.effect.description.isEmpty)
         }
     }
 
@@ -42,32 +43,32 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func expandBeyondGateAppendsNextBand() {
+    @Test func expandBeyondBossAppendsNextFloor() {
         let generated = LabyrinthGenerator.makeInitialMap(seed: 11)
         var clusters = generated.clusters
         var nodes = generated.nodes
-        guard let firstGate = nodes.values.first(where: { $0.type == .gate && $0.depth == 1 }) else {
-            Issue.record("Expected a depth-1 gate")
+        guard let firstBoss = nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }) else {
+            Issue.record("Expected a floor-1 boss")
             return
         }
-        var gate = firstGate
-        gate.isCleared = true
-        nodes[gate.id] = gate
-        LabyrinthGenerator.expandBeyondGate(
-            gateNodeID: gate.id,
+        var boss = firstBoss
+        boss.isCleared = true
+        nodes[boss.id] = boss
+        LabyrinthGenerator.expandBeyondBoss(
+            bossNodeID: boss.id,
             clusters: &clusters,
             nodes: &nodes,
             seed: 11
         )
         #expect(clusters.contains { $0.depthBand == 2 })
-        #expect(!(nodes[gate.id]?.outgoingIDs.isEmpty ?? true))
+        #expect(!(nodes[boss.id]?.outgoingIDs.isEmpty ?? true))
     }
 
-    @Test func modifierEffectsCombineThreatAndBounty() throws {
+    @Test func modifierEffectsCombineDamageAndBiomeLootBias() throws {
         let iron = try #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure")))
         let effects = LabyrinthModifierEffects.combining([iron], biomeBias: .physical)
-        #expect(effects.enemyPowerPercent == 20)
-        #expect(effects.goldPercent == 20)
+        #expect(effects.damageDealtBonus == [.physical: 1])
+        #expect(effects.goldPercent == 0)
         #expect(effects.keywordBiases.contains(.physical))
     }
 
@@ -95,43 +96,85 @@ struct LabyrinthCatalogTests {
         #expect(String(data: encoded, encoding: .utf8) == #""battle""#)
     }
 
-    @Test func threatModifiersAlwaysCarryBountyBump() {
-        // Expand a few maps so deeper bands (multi-modifier) appear, then assert
-        // every cluster with enemy-power threat also has a bounty-style bump.
-        for seed in [3, 11, 42, 77] as [UInt64] {
-            var clusters = LabyrinthGenerator.makeInitialMap(seed: seed).clusters
-            var nodes = LabyrinthGenerator.makeInitialMap(seed: seed).nodes
-            if var gate = nodes.values.first(where: { $0.type == .gate && $0.depth == 1 }) {
-                gate.isCleared = true
-                nodes[gate.id] = gate
-                LabyrinthGenerator.expandBeyondGate(
-                    gateNodeID: gate.id,
-                    clusters: &clusters,
-                    nodes: &nodes,
-                    seed: seed
-                )
-            }
-            for cluster in clusters where cluster.depthBand > 0 {
-                let mods = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
-                let hasThreatPower = mods.contains { $0.enemyPowerPercent > 0 }
-                guard hasThreatPower else { continue }
-                let hasBounty = mods.contains {
-                    $0.goldPercent > 0 || $0.xpPercent > 0 || $0.itemDropBonusPercent > 0
-                        || $0.astralChanceBonusPercent > 0 || $0.category == .bounty
-                        || $0.category == .affinity
+    @Test func modifierCatalogContainsOnlyApprovedDefinitions() {
+        #expect(Set(GameContent.labyrinthModifiers.map(\.id.rawValue)) == [
+            "ironPressure", "ashTithe", "bloodMarket", "gildedWhisper",
+            "astralSeam", "serpentBloom", "rimeTax"
+        ])
+        #expect(Dictionary(uniqueKeysWithValues: GameContent.labyrinthModifiers.map { modifier in
+            (modifier.title, modifier.effect.description)
+        }) == [
+            "Iron Pressure": "Physical damage is increased by 1.",
+            "Ash Tithe": "Burn damage is increased by 1.",
+            "Blood Market": "Bleed damage is increased by 1.",
+            "Gilded Whisper": "Increases Gold rewards by 10%.",
+            "Astral Seam": "Increases chance to find Astral items by 25%.",
+            "Serpent Bloom": "Poison damage is increased by 1.",
+            "Rime Tax": "Freeze damage is increased by 1."
+        ])
+    }
+
+    @Test func floorShapeStaysWithinPlanBounds() {
+        for seed in 0 ..< 40 {
+            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
+            for cluster in generated.clusters where cluster.depthBand > 0 {
+                let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
+                #expect(nodes.count >= 7)
+                #expect(nodes.count <= 9)
+                #expect(nodes.filter { $0.type == .boss }.count == 1)
+                #expect(nodes.first?.type == .battle)
+                #expect(nodes.last?.type == .boss)
+                #expect(!nodes.contains { !$0.isRevealed })
+                #expect(nodes.allSatisfy { $0.modifierIDs.count <= 1 })
+                #expect(nodes.last?.modifierIDs.count == 1)
+                #expect(nodes.last?.gridPosition == LabyrinthGridPosition(row: 4, column: -2))
+                #expect(nodes.filter { !$0.type.isCombat }.count >= 2)
+                #expect(Set(nodes.compactMap(\.gridPosition?.row)) == Set(0 ... 4))
+                var reached = Set(nodes.prefix(1).map(\.id))
+                var frontier = Array(reached)
+                var incomingCounts: [String: Int] = [:]
+                for node in nodes {
+                    let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
+                    #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
+                    let expectsModifier = node.type.isCombat || node.type == .shop || node.type == .craft
+                    #expect(node.modifierIDs.count == (expectsModifier ? 1 : 0))
+                    for outgoingID in node.outgoingIDs {
+                        let target = generated.nodes[outgoingID]
+                        #expect(target?.gridPosition?.row == (node.gridPosition?.row ?? -1) + 1)
+                        #expect(
+                            target?.gridPosition?.column == node.gridPosition?.column
+                                || target?.gridPosition?.column == (node.gridPosition?.column ?? 0) - 1
+                        )
+                        incomingCounts[outgoingID, default: 0] += 1
+                    }
                 }
-                #expect(hasBounty, "Cluster \(cluster.id) has threat without bounty")
+                while let id = frontier.popLast() {
+                    for outgoingID in generated.nodes[id]?.outgoingIDs ?? [] where reached.insert(outgoingID).inserted {
+                        frontier.append(outgoingID)
+                    }
+                }
+                #expect(reached == Set(nodes.map(\.id)))
+                #expect(nodes.contains { $0.outgoingIDs.count > 1 })
+                #expect(incomingCounts.values.contains { $0 > 1 })
             }
         }
     }
 
-    @Test func clusterSizeStaysWithinPlanBounds() {
+    @Test func recruitNodesRequireEligibleEvent() {
+        let withoutRecruit = LabyrinthGenerator.makeInitialMap(seed: 14)
+        #expect(withoutRecruit.nodes.values.allSatisfy { $0.type != .recruit })
+
+        var foundRecruit = false
         for seed in 0 ..< 40 {
-            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
-            for cluster in generated.clusters where cluster.depthBand > 0 {
-                #expect(cluster.nodeIDs.count >= 3)
-                #expect(cluster.nodeIDs.count <= 7)
+            let withRecruit = LabyrinthGenerator.makeInitialMap(
+                seed: UInt64(seed),
+                eligibleRecruitEventIDs: ["recruit-test-event"]
+            )
+            for node in withRecruit.nodes.values where node.type == .recruit {
+                foundRecruit = true
+                #expect(node.recruitEventID == "recruit-test-event")
             }
         }
+        #expect(foundRecruit)
     }
 }

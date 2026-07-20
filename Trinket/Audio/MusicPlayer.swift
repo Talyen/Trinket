@@ -28,6 +28,10 @@ final class MusicPlayer {
         fadeTask?.cancel()
     }
 
+    var hasActivePlayback: Bool {
+        currentPlayer != nil
+    }
+
     func update(route: MusicRoute, volume: Double) {
         guard !isDisabled else { return }
 
@@ -39,6 +43,13 @@ final class MusicPlayer {
         case let .track(request):
             play(request, volume: resolvedVolume)
         }
+    }
+
+    /// Live slider scrubbing: adjust gain only. Does not start, stop, or fade tracks.
+    func setVolume(_ volume: Double) {
+        guard !isDisabled, let currentPlayer, let currentRequest else { return }
+        let resolvedVolume = Float(max(0, min(volume, 1)))
+        currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
     }
 
     func stop() {

@@ -59,8 +59,11 @@ struct PlayModeHubView: View {
             }
         } label: {
             PlayModeArtworkCard(
-                mode: mode,
-                subtitle: subtitle(for: mode)
+                title: mode.title,
+                subtitle: subtitle(for: mode),
+                symbolName: mode.symbolName,
+                artID: mode.artID,
+                fallbackArtID: mode.fallbackArtID
             )
         }
         .trinketQuietTapButtonStyle()
@@ -122,13 +125,16 @@ struct PlayModeHubView: View {
     }
 }
 
-private struct PlayModeArtworkCard: View {
-    let mode: PlayModeHubView.Mode
+struct PlayModeArtworkCard: View {
+    let title: String
     let subtitle: String?
+    let symbolName: String?
+    let artID: String
+    let fallbackArtID: String
 
     private var art: BackgroundArtReference? {
-        ArtCatalog.backgroundArtByID[mode.artID]
-            ?? ArtCatalog.backgroundArtByID[mode.fallbackArtID]
+        ArtCatalog.backgroundArtByID[artID]
+            ?? ArtCatalog.backgroundArtByID[fallbackArtID]
     }
 
     var body: some View {
@@ -141,14 +147,14 @@ private struct PlayModeArtworkCard: View {
             }
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                Text(mode.title)
+                Text(title)
                     .trinketTypography(.screenDisplay)
                     .trinketOnArtText(.title)
                     .lineLimit(1)
 
                 if let subtitle {
                     HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        if let symbolName = mode.symbolName {
+                        if let symbolName {
                             Image(systemName: symbolName)
                                 .trinketTypography(.eyebrow)
                         }

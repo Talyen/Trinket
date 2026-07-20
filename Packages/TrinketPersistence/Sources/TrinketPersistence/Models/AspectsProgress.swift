@@ -46,7 +46,7 @@ public struct PlayerAspectsState: Equatable, Sendable {
         return false
     }
 
-    /// Clears every Aspect climb so all Aspects are unlocked.
+    /// Clears every Aspect climb.
     public mutating func unlockAll(aspects: [AspectDefinition] = GameContent.aspects) {
         highestClearedFloorByAspectID = Dictionary(
             uniqueKeysWithValues: aspects.map { ($0.id.rawValue, $0.floorCount) }

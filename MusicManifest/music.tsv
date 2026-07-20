@@ -7,7 +7,6 @@ battle	battle_1	music_battle_1	Raw Assets/Music/Battle 1.mp3	none	true	1.0
 battle	battle_2	music_battle_2	Raw Assets/Music/Battle 2.mp3	none	true	1.0
 battle	battle_3	music_battle_3	Raw Assets/Music/Battle 3.mp3	none	true	1.0
 battle	battle_4	music_battle_4	Raw Assets/Music/Battle 4.mp3	none	true	1.0
-battle	battle_5	music_battle_5	Raw Assets/Music/Battle 5.mp3	none	true	1.0
 boss	boss_blight_treant	music_boss_blight_treant	Raw Assets/Music/The Blight Treant.mp3	the_blight_treant	true	1.0
 boss	boss_forge_golem	music_boss_forge_golem	Raw Assets/Music/The Forge Golem.mp3	the_forge_golem	true	1.0
 boss	boss_frostwarden	music_boss_frostwarden	Raw Assets/Music/The Frostwarden.mp3	the_frostwarden	true	1.0

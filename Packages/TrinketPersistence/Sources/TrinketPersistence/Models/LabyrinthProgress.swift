@@ -2,38 +2,29 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Persistent The Labyrinth map + discovery meta.
+/// Persistent The Labyrinth map.
 public struct PlayerLabyrinthState: Equatable, Sendable {
     public var worldSeed: UInt64
-    public var deepestDepth: Int
+    public var mapVersion: Int
     public var hasEntered: Bool
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
-    public var discoveredBiomeIDs: Set<String>
-    public var discoveredModifierIDs: Set<String>
-    public var claimedMilestoneDepths: Set<Int>
 
     public static let freshStart = PlayerLabyrinthState()
     public static let testSeed = PlayerLabyrinthState()
 
     public init(
         worldSeed: UInt64 = 0,
-        deepestDepth: Int = 0,
+        mapVersion: Int = LabyrinthGenerator.currentMapVersion,
         hasEntered: Bool = false,
         clusters: [LabyrinthCluster] = [],
-        nodes: [String: LabyrinthNode] = [:],
-        discoveredBiomeIDs: Set<String> = [],
-        discoveredModifierIDs: Set<String> = [],
-        claimedMilestoneDepths: Set<Int> = []
+        nodes: [String: LabyrinthNode] = [:]
     ) {
         self.worldSeed = worldSeed
-        self.deepestDepth = deepestDepth
+        self.mapVersion = mapVersion
         self.hasEntered = hasEntered
         self.clusters = clusters
         self.nodes = nodes
-        self.discoveredBiomeIDs = discoveredBiomeIDs
-        self.discoveredModifierIDs = discoveredModifierIDs
-        self.claimedMilestoneDepths = claimedMilestoneDepths
     }
 
     public var hasMap: Bool {
@@ -70,51 +61,44 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         nodes.keys.filter { isNodeReachable($0) }.sorted()
     }
 
-    public mutating func ensureMap(seed: UInt64? = nil) {
+    public var currentFloorNumber: Int {
+        clusters.map(\.depthBand).max() ?? 0
+    }
+
+    public mutating func ensureMap(
+        seed: UInt64? = nil,
+        eligibleRecruitEventIDs: [String] = []
+    ) {
         guard !hasMap else { return }
         let resolvedSeed = seed ?? worldSeed
-        let generated = LabyrinthGenerator.makeInitialMap(seed: resolvedSeed == 0 ? 0x4C41_4259 : resolvedSeed)
+        let generated = LabyrinthGenerator.makeInitialMap(
+            seed: resolvedSeed == 0 ? 0x4C41_4259 : resolvedSeed,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
         worldSeed = resolvedSeed == 0 ? 0x4C41_4259 : resolvedSeed
         clusters = generated.clusters
         nodes = generated.nodes
-        deepestDepth = generated.deepestDepth
+        mapVersion = LabyrinthGenerator.currentMapVersion
         hasEntered = true
-        recordDiscoveries()
     }
 
-    public mutating func recordFail(nodeID: String) {
-        guard var node = nodes[nodeID] else { return }
-        node.failCount += 1
-        nodes[nodeID] = node
-    }
-
-    public mutating func markCleared(nodeID: String) {
+    public mutating func markCleared(
+        nodeID: String,
+        eligibleRecruitEventIDs: [String] = []
+    ) {
         guard var node = nodes[nodeID], !node.isCleared else { return }
         node.isCleared = true
         nodes[nodeID] = node
-        deepestDepth = max(deepestDepth, node.depth)
         LabyrinthGenerator.revealReachable(from: nodeID, nodes: &nodes)
 
-        if node.type == .gate {
-            LabyrinthGenerator.expandBeyondGate(
-                gateNodeID: nodeID,
+        if node.type.canonical == .boss {
+            LabyrinthGenerator.expandBeyondBoss(
+                bossNodeID: nodeID,
                 clusters: &clusters,
                 nodes: &nodes,
-                seed: worldSeed
+                seed: worldSeed,
+                eligibleRecruitEventIDs: eligibleRecruitEventIDs
             )
-        }
-        recordDiscoveries()
-    }
-
-    public mutating func recordDiscoveries() {
-        for cluster in clusters where cluster.depthBand > 0 {
-            // Discover biome/modifiers once any node in the cluster is revealed.
-            let revealed = cluster.nodeIDs.contains { nodes[$0]?.isRevealed == true }
-            guard revealed else { continue }
-            discoveredBiomeIDs.insert(cluster.biomeID.rawValue)
-            for modifierID in cluster.modifierIDs {
-                discoveredModifierIDs.insert(modifierID.rawValue)
-            }
         }
     }
 
@@ -124,7 +108,8 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         else {
             return .zero
         }
-        let modifiers = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
+        guard let node = node(id: nodeID) else { return .zero }
+        let modifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         return LabyrinthModifierEffects.combining(modifiers, biomeBias: biome.keywordBias)
     }
 }

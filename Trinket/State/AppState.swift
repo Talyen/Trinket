@@ -266,17 +266,27 @@ final class AppState {
         sfxPlayer.stopAll()
     }
 
-    func refreshMusic(scenePhase: ScenePhase) {
+    func refreshMusic(scenePhase: ScenePhase, volumeOverride: Double? = nil) {
+        let volume = volumeOverride ?? options.musicVolume
         musicPlayer.update(
             route: MusicRoute.resolve(
                 selectedTab: selectedTab,
                 preview: battle.preview,
                 activeBattle: battle.activeBattle,
                 sceneIsActive: scenePhase == .active,
-                musicVolume: options.musicVolume
+                musicVolume: volume
             ),
-            volume: options.musicVolume
+            volume: volume
         )
+    }
+
+    /// Options slider scrubbing: preview gain without persisting or mute-fading until commit.
+    func applyMusicVolumeLive(_ volume: Double, scenePhase: ScenePhase) {
+        if musicPlayer.hasActivePlayback {
+            musicPlayer.setVolume(volume)
+        } else if volume > 0 {
+            refreshMusic(scenePhase: scenePhase, volumeOverride: volume)
+        }
     }
 
     /// Always land on Play unless a UI-test launch override selected another tab/screen.

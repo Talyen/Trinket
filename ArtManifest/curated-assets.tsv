@@ -221,3 +221,11 @@ encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destina
 encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
 background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Game Mode Campaign.png	0.50	0.76
 background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Game Mode Explore.png	0.50	0.78
+background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/The Labyrinth.jpeg	0.50	0.50
+background	aspect-ironVein	bg_aspect_iron_vein	Raw Assets/Talent Backgrounds/Physical.jpeg	0.50	0.50
+background	aspect-cinderSpire	bg_aspect_cinder_spire	Raw Assets/Talent Backgrounds/Burn.jpeg	0.50	0.50
+background	aspect-serpentHollow	bg_aspect_serpent_hollow	Raw Assets/Talent Backgrounds/Nature.jpeg	0.50	0.50
+background	aspect-scarGallery	bg_aspect_scar_gallery	Raw Assets/Talent Backgrounds/Bleed.jpeg	0.50	0.50
+background	aspect-aureateChoir	bg_aspect_aureate_choir	Raw Assets/Talent Backgrounds/Mana.jpeg	0.50	0.50
+background	aspect-rimeVault	bg_aspect_rime_vault	Raw Assets/Talent Backgrounds/Freeze.jpeg	0.50	0.50
+background	aspect-stormAnvil	bg_aspect_storm_anvil	Raw Assets/Talent Backgrounds/Stun.jpeg	0.50	0.50

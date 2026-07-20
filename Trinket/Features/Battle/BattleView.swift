@@ -16,6 +16,7 @@ struct BattleView: View {
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
     @State private var interactionState = BattleInteractionState()
+    @State private var feedbackBridgeOwnerID = UUID()
     @Namespace private var cinematicNamespace
 
     private let configuration: ActiveBattleConfiguration
@@ -64,7 +65,7 @@ struct BattleView: View {
                 installChipBridge()
             }
             .onDisappear {
-                appState.battle.onFeedbackItemsChanged = nil
+                appState.battle.uninstallFeedbackBridge(ownerID: feedbackBridgeOwnerID)
                 CombatFeedbackRasterPool.shared.removeAll()
                 CombatFeedbackRasterPool.shared.resetDiagnostics()
             }
@@ -107,11 +108,14 @@ struct BattleView: View {
                 )
                 .transition(.opacity)
             } else if battleSession.isShowingDefeat {
-                if let labyrinthNodeID = configuration.labyrinthNodeID {
+                if configuration.labyrinthNodeID != nil {
                     DefeatView(
                         enemyName: configuration.enemy?.name ?? "Enemy",
                         primaryButtonTitle: "Return to Map",
-                        onPrimaryAction: { completeLabyrinthDefeat(nodeID: labyrinthNodeID) }
+                        onPrimaryAction: {
+                            appState.endBattleReturningToOrigin()
+                            return true
+                        }
                     )
                     .transition(.opacity)
                 } else {
@@ -142,26 +146,15 @@ struct BattleView: View {
             battleEarnedGold: summary.rawBattleEarnedGold,
             materialRewards: summary.materialRewards
         )
-        if !didPersist {
+        if didPersist {
+            appState.sfxPlayer.play(SFXID.uiBuySell, volume: appState.options.effectsVolume)
+        } else {
             persistFailureMessage = StageMapMessage(
                 title: "Couldn't Save Progress",
                 message: "Your victory was not saved. Stay on this screen and try Continue again."
             )
         }
         return didPersist
-    }
-
-    private func completeLabyrinthDefeat(nodeID: String) -> Bool {
-        let didPersist = appState.recordLabyrinthDefeat(nodeID: nodeID)
-        if !didPersist {
-            persistFailureMessage = StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "Your defeat was not saved. Stay on this screen and try Return to Map again."
-            )
-            return false
-        }
-        appState.endBattleReturningToOrigin()
-        return true
     }
 
     private func outcomePhase(for battleSession: BattleSession) -> String {
@@ -477,9 +470,10 @@ private struct BattleCinematicLane: View {
 
 private extension BattleView {
     func installChipBridge() {
-        appState.battle.onFeedbackItemsChanged = { update in
-            CombatFeedbackChipBridge.publish(update)
-        }
+        appState.battle.installFeedbackBridge(
+            ownerID: feedbackBridgeOwnerID,
+            onChange: CombatFeedbackChipBridge.publish
+        )
     }
 
     func prewarmBattlePresentationEffects() {

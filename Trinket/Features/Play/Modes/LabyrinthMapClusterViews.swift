@@ -1,261 +1,429 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+enum LabyrinthMapNodeState: Equatable {
+    case locked
+    case reachable
+    case cleared
+}
+
+enum LabyrinthConnectorState: Equatable {
+    case locked
+    case reachable
+    case cleared
+    case selected
+}
+
 enum LabyrinthMapPresentation {
-    enum ClusterDisplayNode: Identifiable {
-        case revealed(LabyrinthNode)
-        case fog(LabyrinthNode)
-
-        var id: String {
-            switch self {
-            case let .revealed(node), let .fog(node):
-                node.id
-            }
-        }
-    }
-
-    static func isFogged(nodeID: String, in state: PlayerLabyrinthState) -> Bool {
-        guard let node = state.nodes[nodeID], !node.isRevealed, !node.isCleared else { return false }
-        return state.nodes.values.contains { source in
-            source.isRevealed && source.outgoingIDs.contains(nodeID)
-        }
-    }
-
-    static func displayNodes(
+    static func floorNodes(
         for cluster: LabyrinthCluster,
         in state: PlayerLabyrinthState
-    ) -> [ClusterDisplayNode] {
-        cluster.nodeIDs.compactMap { id -> ClusterDisplayNode? in
-            guard let node = state.nodes[id] else { return nil }
-            if node.isRevealed {
-                return .revealed(node)
-            }
-            if isFogged(nodeID: id, in: state) {
-                return .fog(node)
-            }
-            return nil
-        }
-        .sorted { lhs, rhs in
-            let left = sortKey(lhs)
-            let right = sortKey(rhs)
-            if left.cleared != right.cleared {
-                return !left.cleared && right.cleared
-            }
-            return left.id < right.id
+    ) -> [LabyrinthNode] {
+        cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
+            let left = $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
+            let right = $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
+            return left.row == right.row ? left.column < right.column : left.row < right.row
         }
     }
 
-    static func nodeTitle(_ node: LabyrinthNode) -> String {
-        let type = node.type.canonical
-        if let enemyID = node.enemyID, let enemy = GameContent.enemy(matching: enemyID) {
-            return "\(type.title) · \(enemy.combatant.name)"
+    static func effectiveType(
+        for node: LabyrinthNode,
+        unlockedHeroIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>
+    ) -> LabyrinthNodeType {
+        guard node.type.canonical == .recruit else { return node.type.canonical }
+        let resolution = GameContent.resolveRecruitEncounter(
+            configuredEventID: node.recruitEventID,
+            encounterID: node.id,
+            unlockedHeroIDs: unlockedHeroIDs,
+            unlockedCompanionIDs: unlockedCompanionIDs
+        )
+        if case .mystery = resolution {
+            return .mystery
         }
-        return type.title
+        return .recruit
+    }
+
+    static func state(for node: LabyrinthNode, in labyrinth: PlayerLabyrinthState) -> LabyrinthMapNodeState {
+        if node.isCleared {
+            return .cleared
+        }
+        return labyrinth.isNodeReachable(node.id) ? .reachable : .locked
+    }
+
+    static func connectorState(
+        from source: LabyrinthNode,
+        to target: LabyrinthNode,
+        selectedNodeID: String?,
+        in labyrinth: PlayerLabyrinthState
+    ) -> LabyrinthConnectorState {
+        if selectedNodeID == source.id || selectedNodeID == target.id {
+            return .selected
+        }
+        if source.isCleared, target.isCleared {
+            return .cleared
+        }
+        if source.isCleared || labyrinth.isNodeReachable(target.id) {
+            return .reachable
+        }
+        return .locked
     }
 
     static func modifierDetailLines(_ modifier: LabyrinthModifierDefinition) -> [String] {
-        var lines: [String] = []
-        if modifier.enemyPowerPercent != 0 {
-            lines.append("Enemy power +\(modifier.enemyPowerPercent)%")
-        }
-        if modifier.goldPercent != 0 {
-            lines.append("Gold +\(modifier.goldPercent)%")
-        }
-        if modifier.xpPercent != 0 {
-            lines.append("Experience +\(modifier.xpPercent)%")
-        }
-        if modifier.itemDropBonusPercent != 0 {
-            lines.append("Item finds +\(modifier.itemDropBonusPercent)%")
-        }
-        if modifier.astralChanceBonusPercent != 0 {
-            lines.append("Astral chance +\(modifier.astralChanceBonusPercent)%")
-        }
-        if let bias = modifier.keywordBias {
-            lines.append("Spoils lean toward \(bias.rawValue)")
-        }
-        if let guaranteed = modifier.guaranteedNodeType?.canonical {
-            lines.append("Guarantees a \(guaranteed.title)")
-        }
-        if lines.isEmpty {
-            lines.append("Changes what you find in this cluster.")
-        }
-        return lines
+        [modifier.effect.description]
     }
 
-    private static func sortKey(_ entry: ClusterDisplayNode) -> (cleared: Bool, id: String) {
-        switch entry {
-        case let .revealed(node):
-            (node.isCleared, node.id)
-        case let .fog(node):
-            (false, node.id)
+    static func actionTitle(for _: LabyrinthNode, type: LabyrinthNodeType) -> String {
+        switch type.canonical {
+        case .battle: "Battle"
+        case .boss: "Challenge Boss"
+        case .shop: "Visit Shop"
+        case .rest: "Rest at Shrine"
+        case .mystery, .event: "Approach Mystery"
+        case .recruit: "Meet Recruit"
+        case .craft: "Use Crafting Altar"
+        case .gate: "Descend"
+        }
+    }
+
+    static func tint(for type: LabyrinthNodeType) -> Color {
+        switch type.canonical {
+        case .battle, .boss, .gate: TrinketDesign.Colors.encounterBattle
+        case .shop: TrinketDesign.Colors.encounterShop
+        case .rest: TrinketDesign.Colors.encounterRest
+        case .mystery, .event, .recruit, .craft: TrinketDesign.Colors.encounterEvent
         }
     }
 }
 
-struct LabyrinthMapClusterSection: View {
-    @Environment(AppState.self) private var appState
+struct LabyrinthFloorMap: View {
+    private static let hexRadius: CGFloat = 32
+    private static let verticalStep = hexRadius * 1.5
 
     let cluster: LabyrinthCluster
     let state: PlayerLabyrinthState
-    let onSelectModifier: (LabyrinthModifierDefinition) -> Void
-    let onNodeMessage: (StageMapMessage) -> Void
+    let selectedNodeID: String?
+    let onSelectNode: (String) -> Void
+    let onDismissSelection: () -> Void
+
+    private var nodes: [LabyrinthNode] {
+        LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
+    }
+
+    private var mapHeight: CGFloat {
+        let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
+        return CGFloat(lastRow) * Self.verticalStep + 104
+    }
 
     var body: some View {
-        let biome = GameContent.labyrinthBiome(id: cluster.biomeID)
-        let modifiers = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
-        let style = biome?.keywordBias.visualStyle
+        GeometryReader { proxy in
+            ZStack {
+                connectorCanvas(size: proxy.size)
 
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                Text(biome?.title ?? "Unknown Biome")
-                    .trinketTypography(.cardTitle)
-                if let epithet = biome?.epithet {
-                    Text(epithet)
-                        .trinketTypography(.caption)
-                        .foregroundStyle(.secondary)
+                Rectangle()
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: onDismissSelection)
+
+                ForEach(nodes) { node in
+                    LabyrinthMapNodeSeal(
+                        node: node,
+                        state: state,
+                        isSelected: selectedNodeID == node.id,
+                        onSelect: { onSelectNode(node.id) }
+                    )
+                    .position(point(for: node, size: proxy.size))
                 }
             }
+        }
+        .frame(height: mapHeight)
+    }
 
-            if !modifiers.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(modifiers) { modifier in
-                            Button {
-                                onSelectModifier(modifier)
-                            } label: {
-                                Text(modifier.title)
-                                    .trinketTypography(.badge)
-                            }
-                            .trinketGlassChip()
-                            .foregroundStyle(style?.color ?? .primary)
-                            .accessibilityIdentifier(
-                                AccessibilityID.Play.labyrinthModifier(modifier.id.rawValue)
-                            )
-                        }
+    private func connectorCanvas(size: CGSize) -> some View {
+        Canvas { context, _ in
+            for source in nodes {
+                for targetID in source.outgoingIDs {
+                    guard let target = state.nodes[targetID], target.clusterID == cluster.id else { continue }
+                    var path = Path()
+                    let connectorState = LabyrinthMapPresentation.connectorState(
+                        from: source,
+                        to: target,
+                        selectedNodeID: selectedNodeID,
+                        in: state
+                    )
+                    let color = switch connectorState {
+                    case .selected: TrinketDesign.Colors.accent
+                    case .cleared: TrinketDesign.Colors.success
+                    case .locked, .reachable: TrinketDesign.Colors.subtleStroke
                     }
-                }
-            }
-
-            LazyVStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                ForEach(LabyrinthMapPresentation.displayNodes(for: cluster, in: state)) { entry in
-                    switch entry {
-                    case let .revealed(node):
-                        LabyrinthMapNodeCard(
-                            node: node,
-                            tint: style?.color,
-                            state: state,
-                            onMessage: onNodeMessage
+                    let sourcePoint = point(for: source, size: size)
+                    let targetPoint = point(for: target, size: size)
+                    let delta = CGVector(
+                        dx: targetPoint.x - sourcePoint.x,
+                        dy: targetPoint.y - sourcePoint.y
+                    )
+                    let length = max(1, hypot(delta.dx, delta.dy))
+                    let edgeInset = Self.hexRadius - 2
+                    path.move(to: CGPoint(
+                        x: sourcePoint.x + delta.dx / length * edgeInset,
+                        y: sourcePoint.y + delta.dy / length * edgeInset
+                    ))
+                    path.addLine(to: CGPoint(
+                        x: targetPoint.x - delta.dx / length * edgeInset,
+                        y: targetPoint.y - delta.dy / length * edgeInset
+                    ))
+                    context.stroke(
+                        path,
+                        with: .color(color),
+                        style: StrokeStyle(
+                            lineWidth: connectorState == .selected ? 4 : 3,
+                            lineCap: .round,
+                            dash: connectorState == .locked ? [3, 3] : []
                         )
-                        .id(node.id)
-                    case let .fog(node):
-                        LabyrinthMapFogCard(node: node)
-                            .id(node.id)
-                    }
+                    )
                 }
             }
         }
-        .trinketSurface(.base)
-        .animation(TrinketMotion.Labyrinth.clusterReveal, value: cluster.id)
+        .animation(TrinketMotion.Labyrinth.pathState, value: state)
+        .allowsHitTesting(false)
     }
-}
 
-struct LabyrinthMapFogCard: View {
-    let node: LabyrinthNode
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            Label("Hidden path", systemImage: "eye.slash")
-                .trinketTypography(.button)
-                .foregroundStyle(.secondary)
-            Text("Clear a path to reveal")
-                .trinketTypography(.caption)
-                .foregroundStyle(.secondary)
+    private func point(for node: LabyrinthNode, size: CGSize) -> CGPoint {
+        let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
+        let rawX = Self.hexRadius * sqrt(3) * (
+            CGFloat(position.column) + CGFloat(position.row) / 2
+        )
+        let projectedXs = nodes.map { candidate -> CGFloat in
+            let candidatePosition = candidate.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
+            return Self.hexRadius * sqrt(3) * (
+                CGFloat(candidatePosition.column) + CGFloat(candidatePosition.row) / 2
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .trinketSurface(.secondary)
-        .opacity(0.55)
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthFogNode(node.id))
+        let horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
+        return CGPoint(
+            x: size.width / 2 + rawX - horizontalCenter,
+            y: CGFloat(position.row) * Self.verticalStep + 52
+        )
     }
 }
 
-struct LabyrinthMapNodeCard: View {
+private struct LabyrinthMapNodeSeal: View {
     @Environment(AppState.self) private var appState
 
     let node: LabyrinthNode
-    let tint: Color?
+    let state: PlayerLabyrinthState
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    private var visualState: LabyrinthMapNodeState {
+        LabyrinthMapPresentation.state(for: node, in: state)
+    }
+
+    private var type: LabyrinthNodeType {
+        LabyrinthMapPresentation.effectiveType(
+            for: node,
+            unlockedHeroIDs: appState.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: appState.roster.unlockedCompanionIDs
+        )
+    }
+
+    private var tint: Color {
+        LabyrinthMapPresentation.tint(for: type)
+    }
+
+    var body: some View {
+        Button(action: onSelect) {
+            ZStack {
+                LabyrinthHexagon()
+                    .strokeBorder(
+                        visualState == .locked
+                            ? TrinketDesign.Colors.subtleStroke
+                            : tint,
+                        lineWidth: visualState == .reachable ? 3 : 2
+                    )
+                if type == .boss {
+                    LabyrinthHexagon()
+                        .inset(by: 5)
+                        .strokeBorder(
+                            visualState == .locked ? TrinketDesign.Colors.subtleStroke : tint,
+                            lineWidth: 1.5
+                        )
+                }
+                if isSelected {
+                    LabyrinthHexagon()
+                        .inset(by: -4)
+                        .strokeBorder(TrinketDesign.Colors.accent, lineWidth: 2)
+                }
+                Image(systemName: symbolName)
+                    .trinketTypography(type == .boss ? .sectionTitle : .rowTitle)
+                    .foregroundStyle(
+                        visualState == .locked
+                            ? AnyShapeStyle(.secondary)
+                            : AnyShapeStyle(tint)
+                    )
+            }
+            .frame(width: 58, height: 66)
+            .frame(width: 92, height: 92)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
+        .disabled(visualState != .reachable)
+        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
+    }
+
+    private var symbolName: String {
+        switch visualState {
+        case .locked: "lock.fill"
+        case .reachable: type.symbolName
+        case .cleared: "checkmark"
+        }
+    }
+}
+
+private struct LabyrinthHexagon: InsettableShape {
+    var insetAmount: CGFloat = 0
+
+    func path(in rect: CGRect) -> Path {
+        let rect = rect.insetBy(dx: insetAmount, dy: insetAmount)
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width / sqrt(3), rect.height / 2)
+        var path = Path()
+        for index in 0 ..< 6 {
+            let angle = CGFloat(index) * .pi / 3 - .pi / 2
+            let point = CGPoint(
+                x: center.x + cos(angle) * radius,
+                y: center.y + sin(angle) * radius
+            )
+            if index == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        path.closeSubpath()
+        return path
+    }
+
+    func inset(by amount: CGFloat) -> LabyrinthHexagon {
+        var copy = self
+        copy.insetAmount += amount
+        return copy
+    }
+}
+
+private struct LabyrinthNodeButtonStyle: ButtonStyle {
+    let isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.9 : (isSelected ? 1.05 : 1))
+            .offset(y: isSelected && !configuration.isPressed ? -3 : 0)
+            .shadow(
+                color: TrinketDesign.Colors.Overlay.dragShadow.opacity(isSelected ? 1 : 0),
+                radius: isSelected ? 8 : 0,
+                y: isSelected ? 5 : 0
+            )
+            .animation(TrinketMotion.Labyrinth.selection, value: configuration.isPressed)
+            .animation(TrinketMotion.Labyrinth.selection, value: isSelected)
+    }
+}
+
+struct LabyrinthNodeInspector: View {
+    @Environment(AppState.self) private var appState
+
+    let node: LabyrinthNode
     let state: PlayerLabyrinthState
     let onMessage: (StageMapMessage) -> Void
 
+    private var type: LabyrinthNodeType {
+        LabyrinthMapPresentation.effectiveType(
+            for: node,
+            unlockedHeroIDs: appState.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: appState.roster.unlockedCompanionIDs
+        )
+    }
+
+    private var presentation: StageSelectRowPresentation<LabyrinthNode> {
+        StageSelectRowPresentation(
+            item: node,
+            isActive: true,
+            activeEyebrow: "Floor \(node.depth) · \(type.title)",
+            mapLabel: "Floor \(node.depth)",
+            title: subjectTitle,
+            activeDetailLines: detailLines,
+            encounterTypeTitle: type.title,
+            symbolName: type.symbolName,
+            tint: LabyrinthMapPresentation.tint(for: type),
+            primaryActionTitle: LabyrinthMapPresentation.actionTitle(for: node, type: type),
+            showsPartyPicker: type.isCombat,
+            isArtworkInteractive: false,
+            rowAccessibilityID: AccessibilityID.Play.labyrinthNode(node.id),
+            artworkAccessibilityID: "Labyrinth Node \(node.id) Artwork",
+            actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
+            activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
+            partyControlAccessibilityID: "Labyrinth Node \(node.id) Party Control"
+        )
+    }
+
     var body: some View {
-        let reachable = state.isNodeReachable(node.id)
-        let deadly = node.depth > max(appState.roster.highestHeroLevel + 2, 3)
-        let type = node.type.canonical
-
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            HStack {
-                Label(LabyrinthMapPresentation.nodeTitle(node), systemImage: type.symbolName)
-                    .trinketTypography(.button)
-                Spacer()
-                if node.isCleared {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(TrinketDesign.Colors.success)
-
-                } else if node.failCount > 0, reachable {
-                    Text("Retry")
-                        .trinketTypography(.badge)
-                        .foregroundStyle(TrinketDesign.Colors.warning)
+        StageSelectActiveCard(
+            presentation: presentation,
+            isPrimaryActionDisabled: appState.battle.activeBattle != nil,
+            onArtworkTap: {},
+            onPrimaryAction: {
+                if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
+                    onMessage(message)
                 }
-            }
+            },
+            artwork: {
+                LabyrinthNodeArtwork(node: node, type: type)
+            },
+            partyPickerSheet: {
+                StageBattlePartyPickerSheet()
+            },
+            layout: .compact
+        )
+        .trinketMaterial(.popover)
+        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNodeInspector)
+    }
 
-            if type == .boss, reachable, !node.isCleared {
-                Text("Boss")
-                    .trinketTypography(.badge)
-                    .foregroundStyle(TrinketDesign.Colors.arcane)
-            }
+    private var subjectTitle: String {
+        guard type.isCombat,
+              let enemyID = node.enemyID,
+              let enemy = GameContent.enemy(matching: enemyID)
+        else { return type.title }
+        return enemy.combatant.name
+    }
 
-            if deadly, reachable, !node.isCleared, type.isCombat {
-                Text("Deadly")
-                    .trinketTypography(.badge)
-                    .foregroundStyle(TrinketDesign.Colors.warning)
-            }
+    private var detailLines: [String] {
+        guard let modifier = LabyrinthCatalog.modifiers(ids: node.modifierIDs).first else { return [] }
+        return [modifier.title, modifier.effect.description]
+    }
+}
 
-            if reachable, !node.isCleared {
-                if type.isCombat {
-                    BattlePartyInlinePicker()
+private struct LabyrinthNodeArtwork: View {
+    let node: LabyrinthNode
+    let type: LabyrinthNodeType
+
+    var body: some View {
+        Group {
+            if type.isCombat,
+               let enemyID = node.enemyID,
+               let enemy = GameContent.enemy(matching: enemyID) {
+                CombatantArtwork(combatant: enemy.combatant, variant: .battle)
+            } else {
+                ZStack {
+                    LabyrinthMapPresentation.tint(for: type).opacity(0.16)
+                    Image(systemName: type.symbolName)
+                        .trinketTypography(.sectionDisplay)
+                        .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
+                        .symbolRenderingMode(.hierarchical)
                 }
-
-                Button {
-                    appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
-                    if type.isCombat {
-                        if let message = appState.startLabyrinthBattle(nodeID: node.id) {
-                            onMessage(message)
-                        }
-                    } else if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
-                        onMessage(message)
-                    }
-                } label: {
-                    Text(node.failCount > 0 ? "Retry" : type.primaryActionTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton(
-                    tint: tint ?? TrinketDesign.Colors.accent,
-                    accessibilityIdentifier: type.isCombat
-                        ? AccessibilityID.Play.labyrinthCombatAction(node.id)
-                        : AccessibilityID.Play.labyrinthNodeAction(node.id)
-                )
-                .disabled(appState.battle.activeBattle != nil)
             }
         }
-        .trinketSurface(node.isCleared ? .secondary : .elevated)
-        .trinketLockedCardEffect(
-            isLocked: !reachable && !node.isCleared,
-            text: !reachable && !node.isCleared ? "Locked" : nil,
-            cornerRadius: TrinketDesign.Corners.card
-        )
-        .opacity(node.isCleared ? 0.72 : 1)
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
     }
 }

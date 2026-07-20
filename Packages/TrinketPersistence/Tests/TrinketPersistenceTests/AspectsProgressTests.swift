@@ -154,31 +154,12 @@ struct AspectsProgressTests {
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 10)
     }
 
-    @Test func unlockGatesFollowIronVeinProgress() throws {
-        var progress = PlayerAspectsState()
-        let ironVein = try #require(GameContent.aspect(id: .ironVein))
-        let cinder = try #require(GameContent.aspect(id: .cinderSpire))
-        let rime = try #require(GameContent.aspect(id: .rimeVault))
-        #expect(AspectUnlock.isUnlocked(ironVein, progress: progress))
-        #expect(!AspectUnlock.isUnlocked(cinder, progress: progress))
-        for floor in 1 ... 5 {
-            _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
-        }
-        #expect(AspectUnlock.isUnlocked(cinder, progress: progress))
-        #expect(!AspectUnlock.isUnlocked(rime, progress: progress))
-        for floor in 6 ... 10 {
-            _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
-        }
-        #expect(AspectUnlock.isUnlocked(rime, progress: progress))
-    }
-
     @Test func unlockAllClearsEveryAspectClimb() {
         var progress = PlayerAspectsState.freshStart
         progress.unlockAll()
 
         for aspect in GameContent.aspects {
             #expect(progress.highestClearedFloor(for: aspect.id.rawValue) == aspect.floorCount)
-            #expect(AspectUnlock.isUnlocked(aspect, progress: progress))
         }
     }
 

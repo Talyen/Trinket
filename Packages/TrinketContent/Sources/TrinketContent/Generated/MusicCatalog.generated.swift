@@ -77,15 +77,6 @@ public enum MusicCatalog {
             volumeGain: 1.0
         ),
         MusicTrack(
-            id: "battle_5",
-            kind: .battle,
-            resourceName: "music_battle_5",
-            fileExtension: "m4a",
-            bossEnemyID: "",
-            isLooping: true,
-            volumeGain: 1.0
-        ),
-        MusicTrack(
             id: "boss_blight_treant",
             kind: .boss,
             resourceName: "music_boss_blight_treant",
@@ -135,7 +126,6 @@ public enum MusicCatalog {
         "battle_2",
         "battle_3",
         "battle_4",
-        "battle_5",
     ]
 
     public static let bossTrackIDByEnemyID: [String: String] = [

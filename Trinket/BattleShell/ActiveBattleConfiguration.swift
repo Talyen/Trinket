@@ -27,8 +27,8 @@ struct ActiveBattleConfiguration: Identifiable {
     let stageReward: StageReward?
     let rewardItems: [InventoryItem]
     let pendingRewardItem: InventoryItem?
-    /// Labyrinth modifier XP bonus percent applied to victory chrome and grants.
     let experienceBonusPercent: Int
+    let universalModifiers: [AffixModifier]
 
     var hasProgressionRewards: Bool {
         resumeToken != nil
@@ -80,15 +80,14 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     static func resolvedLabyrinthEncounter(
-        for node: LabyrinthNode,
-        effects: LabyrinthModifierEffects
+        for node: LabyrinthNode
     ) -> (combatant: Combatant, level: Int)? {
         guard let enemyID = node.enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
         return scaledEnemy(
             catalogEnemy,
-            level: LabyrinthCompletion.enemyLevel(for: node, effects: effects)
+            level: LabyrinthCompletion.enemyLevel(for: node)
         )
     }
 
@@ -150,9 +149,12 @@ struct ActiveBattleConfiguration: Identifiable {
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
         experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil
+        pendingRewardItem: InventoryItem? = nil,
+        universalModifiers: [AffixModifier] = []
     ) -> ActiveBattleConfiguration {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
+        var enemyModifiers = enemyBuild.modifiers
+        enemyModifiers.merge(universalModifiers)
         var rng = SeededRandomNumberGenerator(seed: rngSeed)
         let resolvedPendingRewardItem = pendingRewardItem
             ?? pendingAspectRewardItem(resumeToken: resumeToken, using: &rng)
@@ -169,24 +171,25 @@ struct ActiveBattleConfiguration: Identifiable {
                 combatant: hero,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.heroModifiers
+                additionalModifiers: homesteadEffects.heroModifiers + universalModifiers
             ),
             companion: partyMember(
                 combatant: companion,
                 rosterState: rosterState,
                 inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.companionModifiers
+                additionalModifiers: homesteadEffects.companionModifiers + universalModifiers
             ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
             highestHeroLevel: rosterState.highestHeroLevel,
             highestCompanionLevel: rosterState.highestCompanionLevel,
-            enemyModifiers: enemyBuild.modifiers,
+            enemyModifiers: enemyModifiers,
             inventoryState: inventoryState,
             stageReward: stageReward,
             rewardItems: rewardItems,
             pendingRewardItem: resolvedPendingRewardItem,
-            experienceBonusPercent: experienceBonusPercent
+            experienceBonusPercent: experienceBonusPercent,
+            universalModifiers: universalModifiers
         )
     }
 

@@ -25,7 +25,7 @@ enum GameContentChaptersGenerated {
                     chapterNumber: 1,
                     stageNumber: 2,
                     flavorText: "Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.",
-                    encounter: .mysteryEvent(eventID: "recruit-bear"),
+                    encounter: .recruit(eventID: "recruit-bear"),
                     rewards: .empty
                 ),
                 Stage(
@@ -43,7 +43,7 @@ enum GameContentChaptersGenerated {
                     chapterNumber: 1,
                     stageNumber: 4,
                     flavorText: "A bowstring hums once above the trail, and fletched arrows mark the safest path through the trees.",
-                    encounter: .mysteryEvent(eventID: "recruit-ranger"),
+                    encounter: .recruit(eventID: "recruit-ranger"),
                     rewards: .empty
                 ),
                 Stage(
@@ -78,7 +78,7 @@ enum GameContentChaptersGenerated {
                     chapterNumber: 2,
                     stageNumber: 2,
                     flavorText: "A silent figure slips through the torchlight, leaving warning marks scratched into the stone where the corridor grows dangerous.",
-                    encounter: .mysteryEvent(eventID: "recruit-rogue"),
+                    encounter: .recruit(eventID: "recruit-rogue"),
                     rewards: .empty
                 ),
                 Stage(
@@ -131,7 +131,7 @@ enum GameContentChaptersGenerated {
                     chapterNumber: 3,
                     stageNumber: 2,
                     flavorText: "Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.",
-                    encounter: .mysteryEvent(eventID: "recruit-library-owl"),
+                    encounter: .recruit(eventID: "recruit-library-owl"),
                     rewards: .empty
                 ),
                 Stage(

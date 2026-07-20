@@ -3,6 +3,7 @@ import TrinketDesignSystem
 
 struct OptionsView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
     @State private var actionErrorMessage: String?
     var body: some View {
@@ -21,7 +22,10 @@ struct OptionsView: View {
             Section("Audio") {
                 VolumeOptionRow(
                     title: "Music",
-                    value: $options.musicVolume
+                    value: $options.musicVolume,
+                    onLiveChange: { volume in
+                        appState.applyMusicVolumeLive(volume, scenePhase: scenePhase)
+                    }
                 )
 
                 VolumeOptionRow(

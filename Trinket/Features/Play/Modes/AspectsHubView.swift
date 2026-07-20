@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketPersistence
 
 struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
@@ -30,35 +29,25 @@ struct AspectsHubView: View {
 
     @ViewBuilder
     private func aspectRow(_ aspect: AspectDefinition) -> some View {
-        let unlocked = AspectUnlock.isUnlocked(aspect, progress: appState.aspects)
         let cleared = appState.aspects.highestClearedFloor(for: aspect.id.rawValue)
         let style = aspect.keyword.visualStyle
 
-        if unlocked {
-            NavigationLink {
-                AspectClimbView(aspectID: aspect.id)
-            } label: {
-                aspectLabel(aspect, style: style, trailing: floorLabel(cleared: cleared, floorCount: aspect.floorCount))
-            }
-            .accessibilityIdentifier(AccessibilityID.Play.aspectRow(aspect.id.rawValue))
-        } else {
+        NavigationLink {
+            AspectClimbView(aspectID: aspect.id)
+        } label: {
             aspectLabel(
                 aspect,
                 style: style,
-                trailing: nil,
-                locked: true,
-                lockText: "Locked"
+                trailing: floorLabel(cleared: cleared, floorCount: aspect.floorCount)
             )
-            .accessibilityIdentifier(AccessibilityID.Play.aspectRow(aspect.id.rawValue))
         }
+        .accessibilityIdentifier(AccessibilityID.Play.aspectRow(aspect.id.rawValue))
     }
 
     private func aspectLabel(
         _ aspect: AspectDefinition,
         style: Keyword.VisualStyle,
-        trailing: String?,
-        locked: Bool = false,
-        lockText: String? = nil
+        trailing: String?
     ) -> some View {
         HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             Image(systemName: style.symbolName)
@@ -84,11 +73,6 @@ struct AspectsHubView: View {
                     .multilineTextAlignment(.trailing)
             }
         }
-        .trinketLockedCardEffect(
-            isLocked: locked,
-            text: lockText
-        )
-        .animation(.smooth, value: locked)
     }
 
     private func floorLabel(cleared: Int, floorCount: Int) -> String {

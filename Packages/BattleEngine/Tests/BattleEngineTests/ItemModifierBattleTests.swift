@@ -71,41 +71,4 @@ struct ItemModifierBattleTests {
 
         try #expect(battle.health(of: battle.hero) == 14)
     }
-
-    @Test func equippedMightyAffixIncreasesStrengthBasedDamage() throws {
-        let mighty = try #require(GameContent.itemAffixDefinitions.first { $0.id == "mighty" })
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let item = InventoryItem(
-            id: "mighty-longsword",
-            baseType: baseType,
-            rarity: .basic,
-            displayName: baseType.name,
-            affixes: [mighty.resolved(for: .basic)]
-        )
-        var loadout = EquipmentLoadout()
-        loadout.equip(item)
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 20,
-            abilities: [.slash],
-            primaryStats: PrimaryStats(strength: 4)
-        )
-        let configuration = CombatBuildResolver.build(
-            combatant: hero,
-            equipmentLoadout: loadout,
-            inventory: [item]
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: configuration.combatant,
-            companion: Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: []),
-            enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: []),
-            heroModifiers: configuration.modifiers
-        )
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        try #expect(100 - battle.health(of: battle.enemy) == 2)
-    }
 }

@@ -24,12 +24,12 @@ enum CombatFeedbackAttackRecipes {
     static let lungeCardAttack = CombatantAttackReactionRecipe(
         kind: .attack,
         scaleX: [
-            .init(value: 0.96, duration: 0.40),
+            .init(value: 0.98, duration: 0.40),
             .init(value: 1.05, duration: 0.15),
             .init(value: 1.0, duration: 0.45)
         ],
         scaleY: [
-            .init(value: 1.04, duration: 0.40),
+            .init(value: 1.02, duration: 0.40),
             .init(value: 0.94, duration: 0.15),
             .init(value: 1.0, duration: 0.45)
         ],

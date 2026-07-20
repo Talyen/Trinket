@@ -8,13 +8,16 @@ extension AppState {
     func enterLabyrinth() -> StageMapMessage? {
         do {
             try playerSave.performBatchMutation { save in
-                save.labyrinth.ensureMap()
+                let eligibleRecruitEventIDs = LabyrinthCompletion.eligibleRecruitEventIDs(in: save)
+                save.labyrinth.ensureMap(
+                    eligibleRecruitEventIDs: eligibleRecruitEventIDs
+                )
             }
         } catch {
             appStateLogger.error(
                 "Failed to enter Labyrinth: \(error.localizedDescription, privacy: .public)"
             )
-            return StageMapMessage(title: "Labyrinth Error", message: "Could not open the Labyrinth.")
+            return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
         }
         return nil
     }
@@ -39,6 +42,17 @@ extension AppState {
             return beginShopEncounter(labyrinthNodeID: nodeID)
         case .mystery, .event:
             return beginMysteryEncounter(labyrinthNodeID: nodeID)
+        case .recruit:
+            let resolution = GameContent.resolveRecruitEncounter(
+                configuredEventID: node.recruitEventID,
+                encounterID: node.id,
+                unlockedHeroIDs: roster.unlockedHeroIDs,
+                unlockedCompanionIDs: roster.unlockedCompanionIDs
+            )
+            return beginMysteryEncounter(
+                labyrinthNodeID: nodeID,
+                forcedEventID: resolution.event.id
+            )
         case .rest:
             return beginLabyrinthRest(nodeID: nodeID)
         case .craft:
@@ -141,10 +155,7 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
         let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(
-            for: node,
-            effects: effects
-        ) else {
+        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
@@ -159,8 +170,8 @@ extension AppState {
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
-            experienceBonusPercent: effects.xpPercent,
-            pendingRewardItem: loot?.item
+            pendingRewardItem: loot?.item,
+            universalModifiers: labyrinthCombatModifiers(from: effects)
         )
         return nil
     }
@@ -175,10 +186,7 @@ extension AppState {
     private func prepareLabyrinthBattle(nodeID: String) {
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
         let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(
-            for: node,
-            effects: effects
-        ) else { return }
+        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else { return }
 
         let loot = ActiveBattleConfiguration.lootPackage(
             for: .labyrinth(nodeID: nodeID),
@@ -191,8 +199,8 @@ extension AppState {
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
-            experienceBonusPercent: effects.xpPercent,
-            pendingRewardItem: loot?.item
+            pendingRewardItem: loot?.item,
+            universalModifiers: labyrinthCombatModifiers(from: effects)
         ))
     }
 
@@ -228,25 +236,18 @@ extension AppState {
         }
     }
 
-    @discardableResult
-    func recordLabyrinthDefeat(nodeID: String) -> Bool {
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.recordDefeat(nodeID: nodeID, save: &save)
-            }
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to record Labyrinth defeat: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
-        }
-    }
-
     private func canBeginLabyrinthNodeEncounter() -> Bool {
         battle.activeBattle == nil
             && activeShopEncounter == nil
             && activeMysteryEncounter == nil
             && activeLabyrinthNodeSession == nil
+    }
+
+    private func labyrinthCombatModifiers(
+        from effects: LabyrinthModifierEffects
+    ) -> [AffixModifier] {
+        effects.damageDealtBonus
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageDealt($0.key, $0.value) }
     }
 }

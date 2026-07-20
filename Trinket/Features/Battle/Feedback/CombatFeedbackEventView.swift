@@ -23,6 +23,7 @@ struct CombatFeedbackCanvasItem: Identifiable {
 struct CombatFeedbackAnimationState: Equatable {
     var opacity = 1.0
     var verticalOffset = 0.0
+    var scale = 1.0
 }
 
 enum CombatFeedbackMotionSampler {
@@ -35,7 +36,8 @@ enum CombatFeedbackMotionSampler {
         return CombatFeedbackAnimationState(
             opacity: TrinketMotion.Battle.chipOpacity(elapsed: elapsed),
             verticalOffset: -Double(travelDistance)
-                * TrinketMotion.Battle.chipMotionProgress(elapsed: elapsed)
+                * TrinketMotion.Battle.chipMotionProgress(elapsed: elapsed),
+            scale: Double(TrinketMotion.Battle.chipScale(elapsed: elapsed))
         )
     }
 }

@@ -84,6 +84,66 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth.nodes[nodeID]?.isCleared == true)
     }
 
+    @Test func recruitNodeUsesConcealedRecruitEvent() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        _ = state.enterLabyrinth()
+        let event = try #require(GameContent.recruitEvents.first(where: { event in
+            guard let combatantID = event.unlockCombatantID else { return false }
+            return !state.roster.unlockedHeroIDs.contains(combatantID)
+                && !state.roster.unlockedCompanionIDs.contains(combatantID)
+        }))
+        let nodeID = try #require(state.labyrinth.reachableNodeIDs().first)
+        let node = try #require(state.labyrinth.nodes[nodeID])
+        var labyrinth = state.labyrinth
+        labyrinth.nodes[nodeID] = LabyrinthNode(
+            id: node.id,
+            type: .recruit,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: node.modifierIDs,
+            recruitEventID: event.id,
+            outgoingIDs: node.outgoingIDs,
+            isRevealed: true
+        )
+        state.labyrinth = labyrinth
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: nodeID) == nil)
+        #expect(state.activeMysteryEncounter?.event.id == event.id)
+        #expect(state.activeMysteryEncounter?.event.isRecruit == true)
+    }
+
+    @Test func recruitNodeFallsBackToMysteryOnlyForCompletedRoster() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        _ = state.enterLabyrinth()
+        let nodeID = try #require(state.labyrinth.reachableNodeIDs().first)
+        let node = try #require(state.labyrinth.nodes[nodeID])
+        var labyrinth = state.labyrinth
+        labyrinth.nodes[nodeID] = LabyrinthNode(
+            id: node.id,
+            type: .recruit,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            gridPosition: node.gridPosition,
+            modifierIDs: node.modifierIDs,
+            recruitEventID: "recruit-bear",
+            outgoingIDs: node.outgoingIDs,
+            isRevealed: true
+        )
+        state.labyrinth = labyrinth
+        state.roster = .testSeed
+
+        let storedNode = try #require(state.labyrinth.nodes[nodeID])
+        let effectiveType = LabyrinthMapPresentation.effectiveType(
+            for: storedNode,
+            unlockedHeroIDs: state.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: state.roster.unlockedCompanionIDs
+        )
+        #expect(effectiveType == .mystery)
+        #expect(state.handleLabyrinthNodeAction(nodeID: nodeID) == nil)
+        #expect(state.activeMysteryEncounter?.event.isRecruit == false)
+    }
+
     #if DEBUG
     @Test(arguments: ["shop", "rest", "craft"] as [String])
     func labyrinthEncounterFinishKeepsSessionOpenWhenPersistFails(kind: String) throws {
@@ -246,8 +306,7 @@ struct AppStateLabyrinthTests {
             clusterID: node.clusterID,
             outgoingIDs: node.outgoingIDs,
             isCleared: false,
-            isRevealed: true,
-            failCount: 0
+            isRevealed: true
         )
         labyrinth.nodes[reachableID] = node
         state.labyrinth = labyrinth
@@ -255,23 +314,6 @@ struct AppStateLabyrinthTests {
         #expect(state.handleLabyrinthNodeAction(nodeID: reachableID) == nil)
         #expect(state.activeMysteryEncounter?.labyrinthNodeID == reachableID)
     }
-
-    #if DEBUG
-    @Test func recordLabyrinthDefeatKeepsFailCountUnchangedWhenPersistFails() throws {
-        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
-        _ = state.enterLabyrinth()
-        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
-        let failCountBefore = state.labyrinth.nodes[combatNodeID]?.failCount ?? 0
-
-        playerSave.forcesNextSaveFailure = true
-        #expect(!state.recordLabyrinthDefeat(nodeID: combatNodeID))
-        #expect(state.labyrinth.nodes[combatNodeID]?.failCount == failCountBefore)
-
-        #expect(state.recordLabyrinthDefeat(nodeID: combatNodeID))
-        #expect(state.labyrinth.nodes[combatNodeID]?.failCount == failCountBefore + 1)
-    }
-    #endif
 
     private func firstReachableCombatNodeID(in state: AppState) -> String? {
         firstReachableNodeID(where: { $0.type.isCombat }, in: state)

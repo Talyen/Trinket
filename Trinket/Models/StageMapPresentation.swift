@@ -97,6 +97,91 @@ struct StageMapMessage: Identifiable {
     let message: String
 }
 
+/// View-only data shared by linear Play surfaces such as Campaign stages and Aspect floors.
+struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
+    let item: Item
+    let isActive: Bool
+    let activeEyebrow: String
+    let mapLabel: String
+    let title: String
+    let activeDetailLines: [String]
+    let encounterTypeTitle: String
+    let symbolName: String
+    let tint: Color
+    let primaryActionTitle: String
+    let showsPartyPicker: Bool
+    let isArtworkInteractive: Bool
+    let rowAccessibilityID: String
+    let artworkAccessibilityID: String
+    let actionAccessibilityID: String
+    let activeDetailAccessibilityID: String
+    let partyControlAccessibilityID: String
+
+    var id: Item.ID {
+        item.id
+    }
+
+}
+
+extension StageSelectRowPresentation where Item == AspectFloor {
+    static func aspectRows(
+        for aspect: AspectDefinition,
+        floors: [AspectFloor],
+        progress: PlayerAspectsState
+    ) -> [Self] {
+        let highestCleared = progress.highestClearedFloor(for: aspect.id.rawValue)
+        guard highestCleared < aspect.floorCount else { return [] }
+
+        let activeFloor = progress.activeFloor(
+            for: aspect.id.rawValue,
+            floorCount: aspect.floorCount
+        )
+        let tint = aspect.keyword.visualStyle.color
+
+        return floors.compactMap { floor in
+            guard floor.floor > highestCleared,
+                  let enemy = GameContent.enemy(matching: floor.enemyID)
+            else { return nil }
+
+            let encounter = StageEncounter.battle(enemyID: floor.enemyID)
+            let encounterTypeTitle = enemy.isBoss ? "Boss" : encounter.title
+            let mapLabel = "Floor \(floor.floor)"
+            return Self(
+                item: floor,
+                isActive: floor.floor == activeFloor,
+                activeEyebrow: "\(mapLabel) · \(encounterTypeTitle)",
+                mapLabel: mapLabel,
+                title: enemy.combatant.name,
+                activeDetailLines: [],
+                encounterTypeTitle: encounterTypeTitle,
+                symbolName: encounter.symbolName,
+                tint: tint,
+                primaryActionTitle: "Battle",
+                showsPartyPicker: true,
+                isArtworkInteractive: true,
+                rowAccessibilityID: AccessibilityID.Play.aspectFloor(
+                    aspect.id.rawValue,
+                    floor: floor.floor
+                ),
+                artworkAccessibilityID: AccessibilityID.Play.aspectFloorEnemyArt(
+                    aspect.id.rawValue,
+                    floor: floor.floor
+                ),
+                actionAccessibilityID: AccessibilityID.Play.aspectBeginFloor(
+                    aspect.id.rawValue,
+                    floor: floor.floor
+                ),
+                activeDetailAccessibilityID: AccessibilityID.Play.aspectActiveFloorDetail(
+                    aspect.id.rawValue
+                ),
+                partyControlAccessibilityID: AccessibilityID.Play.aspectPartyControl(
+                    aspect.id.rawValue
+                )
+            )
+        }
+    }
+}
+
 extension Stage {
     var mapLabel: String {
         "Stage \(chapterNumber)-\(stageNumber)"
@@ -108,11 +193,15 @@ extension Stage {
     }
 
     var mysteryEvent: MysteryEvent? {
-        guard let eventID = encounter.mysteryEventID else { return nil }
-        return GameContent.mysteryEvent(matching: eventID)
+        if let eventID = encounter.mysteryEventID {
+            return GameContent.mysteryEvent(matching: eventID)
+        }
+        guard let eventID = encounter.recruitEventID else { return nil }
+        return GameContent.recruitEvent(matching: eventID)
     }
 
     var recruitCombatant: Combatant? {
+        guard case .recruit = encounter else { return nil }
         guard let event = mysteryEvent else { return nil }
         return GameContent.combatant(forMysteryEvent: event)
     }
@@ -128,7 +217,7 @@ extension Stage {
         if case .battle = encounter {
             return nil
         }
-        if case .mysteryEvent = encounter {
+        if encounter.eventID != nil {
             if let recruit = recruitCombatant {
                 let artID = recruit.role == .companion
                     ? "mystery-recruit-companions"
@@ -145,27 +234,23 @@ extension Stage {
     var encounterSubjectName: String {
         switch encounter {
         case let .battle(enemyID):
-            return GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
+            GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
         case .event:
-            return GameContent.encounterArtTitle(for: self) ?? "Mystery"
+            GameContent.encounterArtTitle(for: self) ?? "Mystery"
         case .shop:
-            return GameContent.encounterArtTitle(for: self) ?? "Merchant"
+            GameContent.encounterArtTitle(for: self) ?? "Merchant"
         case .rest:
-            return GameContent.encounterArtTitle(for: self) ?? "Moonwell"
+            GameContent.encounterArtTitle(for: self) ?? "Moonwell"
         case .mysteryEvent:
-            if recruitCombatant != nil {
-                return "Mystery"
-            }
-            return mysteryEvent?.title ?? "Mystery"
+            mysteryEvent?.title ?? "Mystery"
+        case .recruit:
+            "Mystery"
         }
     }
 
     var encounterTypeTitle: String {
         if isBossEncounter {
             return "Boss"
-        }
-        if recruitCombatant != nil {
-            return "A New Friend"
         }
         return encounter.title
     }
@@ -185,7 +270,7 @@ extension StageEncounter {
         switch self {
         case .battle:
             TrinketDesign.Colors.encounterBattle
-        case .event, .mysteryEvent:
+        case .event, .mysteryEvent, .recruit:
             TrinketDesign.Colors.encounterEvent
         case .shop:
             TrinketDesign.Colors.encounterShop

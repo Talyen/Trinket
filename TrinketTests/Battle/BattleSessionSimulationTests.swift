@@ -228,6 +228,26 @@ struct BattleSessionSimulationTests {
         #expect(session.feedbackEventRecordedAt.isEmpty)
     }
 
+    @Test func staleFeedbackBridgeOwnerCannotUninstallCurrentHandler() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let staleOwnerID = UUID()
+        let currentOwnerID = UUID()
+        var receivedUpdates: [CombatFeedbackUpdate] = []
+
+        session.installFeedbackBridge(ownerID: staleOwnerID) { _ in }
+        session.installFeedbackBridge(ownerID: currentOwnerID) { update in
+            receivedUpdates.append(update)
+        }
+        session.uninstallFeedbackBridge(ownerID: staleOwnerID)
+
+        session.recordFeedbackEvents([feedbackEvent(id: 1, amount: 2)])
+        #expect(receivedUpdates.count == 1)
+
+        session.uninstallFeedbackBridge(ownerID: currentOwnerID)
+        session.recordFeedbackEvents([feedbackEvent(id: 2, amount: 3)])
+        #expect(receivedUpdates.count == 1)
+    }
+
     @Test func feedbackVisualsQueueAcrossThreeLanesPreferringMiddle() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)

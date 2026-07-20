@@ -777,6 +777,38 @@ public enum ArtCatalog {
             imageName: "bg_game_mode_explore",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.78)
         ),
+        "gameModeLabyrinth": BackgroundArtReference(
+            imageName: "bg_game_mode_labyrinth",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-ironVein": BackgroundArtReference(
+            imageName: "bg_aspect_iron_vein",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-cinderSpire": BackgroundArtReference(
+            imageName: "bg_aspect_cinder_spire",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-serpentHollow": BackgroundArtReference(
+            imageName: "bg_aspect_serpent_hollow",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-scarGallery": BackgroundArtReference(
+            imageName: "bg_aspect_scar_gallery",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-aureateChoir": BackgroundArtReference(
+            imageName: "bg_aspect_aureate_choir",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-rimeVault": BackgroundArtReference(
+            imageName: "bg_aspect_rime_vault",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "aspect-stormAnvil": BackgroundArtReference(
+            imageName: "bg_aspect_storm_anvil",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
     ]
 
     public static let encounterArtByID: [String: EncounterArtReference] = [

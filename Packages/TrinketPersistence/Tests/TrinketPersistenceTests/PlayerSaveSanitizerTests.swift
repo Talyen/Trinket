@@ -77,7 +77,7 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.activeChapterID == "chapter-1")
     }
 
-    @Test func sanitizeJourneyPreservesClearedChapterAwaitingAdvance() throws {
+    @Test func sanitizeJourneyAdvancesLegacyClearedChapter() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "chapter-1"
         journey.activeStageID = nil
@@ -86,9 +86,8 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        try #expect(sanitized.activeChapterID == "chapter-1")
-        try #expect(sanitized.activeStageID == nil)
-        try #expect(sanitized.pendingNextChapter()?.id == "chapter-2")
+        try #expect(sanitized.activeChapterID == "chapter-2")
+        try #expect(sanitized.activeStageID == "chapter-2-stage-1")
     }
 
     @Test func sanitizeJourneyMarksClaimedStagesAsCompleted() throws {

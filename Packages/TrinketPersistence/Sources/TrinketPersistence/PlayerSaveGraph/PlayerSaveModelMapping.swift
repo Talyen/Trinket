@@ -240,23 +240,17 @@ extension LabyrinthProgressModel {
         let payload = decodeMapPayload()
         return PlayerLabyrinthState(
             worldSeed: worldSeed,
-            deepestDepth: max(0, deepestDepth),
+            mapVersion: mapVersion,
             hasEntered: hasEntered,
             clusters: payload.clusters,
-            nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) }),
-            discoveredBiomeIDs: Set(discoveredBiomeIDs),
-            discoveredModifierIDs: Set(discoveredModifierIDs),
-            claimedMilestoneDepths: Set(claimedMilestoneDepths)
+            nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) })
         )
     }
 
     func update(from state: PlayerLabyrinthState) {
         worldSeed = state.worldSeed
-        deepestDepth = max(0, state.deepestDepth)
+        mapVersion = state.mapVersion
         hasEntered = state.hasEntered
-        discoveredBiomeIDs = state.discoveredBiomeIDs.sorted()
-        discoveredModifierIDs = state.discoveredModifierIDs.sorted()
-        claimedMilestoneDepths = state.claimedMilestoneDepths.sorted()
         let payload = LabyrinthMapPayload(
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id }

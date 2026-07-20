@@ -4,32 +4,6 @@ import TrinketContent
 import TrinketCore
 
 struct CombatBuildResolverTests {
-    @Test func equippedStatAffixesMergeIntoEffectiveStats() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let mighty = try #require(GameContent.itemAffixDefinitions.first { $0.id == "mighty" })
-
-        let item = InventoryItem(
-            id: "mighty-longsword",
-            baseType: baseType,
-            rarity: .basic,
-            displayName: baseType.name,
-            affixes: [mighty.resolved(for: .basic)]
-        )
-
-        var loadout = EquipmentLoadout()
-        loadout.equip(item)
-
-        let build = CombatBuildResolver.build(
-            combatant: knight,
-            equipmentLoadout: loadout,
-            inventory: [item]
-        )
-
-        try #expect(build.combatant.primaryStats.strength == knight.primaryStats.strength + 1)
-        try #expect(build.modifiers.damageDealtBonus(for: .physical) == 0)
-    }
-
     @Test func equippedDamageAffixesAggregateIntoModifierProfile() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })

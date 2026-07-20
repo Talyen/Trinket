@@ -72,24 +72,35 @@ struct TrinketMotionTests {
         }
     }
 
-    @Test func combatFeedbackUsesOneSecondAcceleratingRiseAndFinalFade() {
-        #expect(TrinketMotion.Battle.chipDisplayDuration == 1)
-        #expect(TrinketMotion.Battle.chipFadeOutDuration == 0.2)
+    @Test func combatFeedbackUsesIdealCoreEaseOutRisePunchAndFade() {
+        #expect(TrinketMotion.Battle.chipDisplayDuration == 1.02)
+        #expect(TrinketMotion.Battle.chipFadeOutDuration == 0.30)
+        #expect(TrinketMotion.Battle.chipOpaqueHoldFraction == 0.64)
+        #expect(TrinketMotion.Battle.chipTravelFraction == 0.44)
+        #expect(TrinketMotion.Battle.chipStartScale == 1.06)
+        #expect(TrinketMotion.Battle.chipPeakScale == 1.10)
+        #expect(TrinketMotion.Battle.chipEndScale == 0.96)
+        #expect(TrinketMotion.Battle.chipPeakProgress == 0.10)
+
         #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0) == 0)
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0.5) == 0.25)
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 1) == 1)
+        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 1.02) == 1)
+        // Ease-out covers more distance early than late.
+        let firstQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.255)
+        let secondQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.51) - firstQuarter
+        let lastQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 1.02)
+            - TrinketMotion.Battle.chipMotionProgress(elapsed: 0.765)
+        #expect(firstQuarter > secondQuarter)
+        #expect(secondQuarter > lastQuarter)
 
-        let firstQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.25)
-        let secondQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.5) - firstQuarter
-        let lastQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 1)
-            - TrinketMotion.Battle.chipMotionProgress(elapsed: 0.75)
-        #expect(firstQuarter < secondQuarter)
-        #expect(secondQuarter < lastQuarter)
+        #expect(TrinketMotion.Battle.chipScale(elapsed: 0) == 1.06)
+        #expect(TrinketMotion.Battle.chipScale(elapsed: 0.102) == 1.10)
+        #expect(TrinketMotion.Battle.chipScale(elapsed: 1.02) == 0.96)
 
+        let holdEnd = 1.02 * 0.64
         #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0) == 1)
-        #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0.8) == 1)
-        #expect(abs(TrinketMotion.Battle.chipOpacity(elapsed: 0.9) - 0.5) < 0.0001)
-        #expect(TrinketMotion.Battle.chipOpacity(elapsed: 1) == 0)
+        #expect(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd) == 1)
+        #expect(abs(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd + 0.15) - 0.5) < 0.0001)
+        #expect(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd + 0.30) == 0)
 
         let travel = TrinketMotion.Battle.chipTravelDistance(cardHeight: 200, chipHeight: 40)
         #expect(travel == 72)

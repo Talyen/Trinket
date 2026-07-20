@@ -60,6 +60,25 @@ struct AppStateAspectsTests {
         #expect(state.battle.activeBattle == nil)
     }
 
+    @Test func startAspectBattleAllowsNonIronAspectAtFreshProgress() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        let aspect = try #require(GameContent.aspect(id: .cinderSpire))
+        var roster = state.roster
+        let hero = try #require(GameContent.heroes.first { $0.keywordProfile.contains(aspect.keyword) })
+        let companion = try #require(
+            GameContent.companions.first { $0.keywordProfile.contains(aspect.keyword) }
+        )
+        roster.unlock(hero)
+        roster.unlock(companion)
+        roster.setActiveHero(hero)
+        roster.setActiveCompanion(companion)
+        state.roster = roster
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: aspect.id, floor: 1))
+        #expect(state.startAspectBattle(for: floor) == nil)
+        #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: aspect.id, floor: 1))
+    }
+
     @Test(arguments: [
         (floor: 3, clearFirst: false, expectedTitle: "Floor Locked"),
         (floor: 1, clearFirst: true, expectedTitle: "Floor Cleared")

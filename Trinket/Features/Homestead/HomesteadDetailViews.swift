@@ -76,9 +76,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
-        build.perform(definition, saveStore: appState.playerSave) { _ in
-            appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
-        }
+        build.perform(definition, saveStore: appState.playerSave)
     }
 }
 

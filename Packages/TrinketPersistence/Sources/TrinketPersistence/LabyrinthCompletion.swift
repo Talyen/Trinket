@@ -3,10 +3,8 @@ import TrinketContent
 import TrinketCore
 
 public enum LabyrinthCompletion {
-    public static let milestoneDepths: [Int] = [5, 10, 25, 50]
-
-    public static func enemyLevel(for node: LabyrinthNode, effects: LabyrinthModifierEffects) -> Int {
-        let base: Int = switch node.type.canonical {
+    public static func enemyLevel(for node: LabyrinthNode) -> Int {
+        switch node.type.canonical {
         case .boss:
             max(1, node.depth + 3)
         case .gate:
@@ -14,9 +12,6 @@ public enum LabyrinthCompletion {
         default:
             max(1, node.depth)
         }
-        // Soft power from threat modifiers: +1 level per 20% enemy power.
-        let bonusLevels = effects.enemyPowerPercent / 20
-        return base + bonusLevels
     }
 
     /// Non-combat node gold stipend (rest/shop/mystery/craft leave). Combat uses `BattleLoot`.
@@ -26,24 +21,23 @@ public enum LabyrinthCompletion {
     ) -> Int {
         let type = node.type.canonical
         let baseGold = switch type {
-        case .shop, .mystery, .event, .craft:
+        case .shop, .mystery, .event, .recruit, .craft:
             2 + node.depth
         case .rest:
             1 + node.depth / 2
         case .battle, .boss, .gate:
             0
         }
-        return max(0, baseGold + (baseGold * effects.goldPercent) / 100)
+        let percentage = max(0, effects.goldPercent)
+        let bonus = baseGold > 0 && percentage > 0
+            ? (baseGold * percentage + 99) / 100
+            : 0
+        return max(0, baseGold + bonus)
     }
 
     /// Gold cost for the thin Crafting Altar forge action.
     public static func craftAltarCost(for node: LabyrinthNode) -> Int {
         max(8, 6 + node.depth * 2)
-    }
-
-    /// Applies Labyrinth modifier XP bonuses to a base battle award.
-    public static func adjustedExperienceAward(_ base: Int, xpPercent: Int) -> Int {
-        StageCompletion.adjustedExperienceAward(base, xpPercent: xpPercent)
     }
 
     /// Stable inventory id for a node's Labyrinth find (forge or combat roll).
@@ -57,7 +51,7 @@ public enum LabyrinthCompletion {
         worldSeed: UInt64
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
-        let encounterLevel = enemyLevel(for: node, effects: effects)
+        let encounterLevel = enemyLevel(for: node)
         let enemyIsBoss = node.enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
         return BattleLoot.resolveLabyrinth(
             node: node,
@@ -89,11 +83,12 @@ public enum LabyrinthCompletion {
         loot: BattleLootPackage? = nil,
         save: inout PlayerSave
     ) {
-        save.labyrinth.ensureMap()
+        let eligibleRecruitEventIDs = eligibleRecruitEventIDs(in: save)
+        save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
         let effects = save.labyrinth.effects(for: nodeID)
-        let encounterLevel = enemyLevel(for: node, effects: effects)
+        let encounterLevel = enemyLevel(for: node)
 
         if node.type.isCombat {
             let resolvedLoot = loot ?? resolveCombatLoot(
@@ -109,13 +104,13 @@ public enum LabyrinthCompletion {
                 enemyLevel: encounterLevel,
                 to: hero,
                 roster: &save.roster,
-                xpPercent: effects.xpPercent
+                xpPercent: 0
             )
             StageCompletion.grantBattleExperience(
                 enemyLevel: encounterLevel,
                 to: companion,
                 roster: &save.roster,
-                xpPercent: effects.xpPercent
+                xpPercent: 0
             )
 
             let materials = materialRewards ?? resolvedLoot?.materials ?? []
@@ -143,8 +138,10 @@ public enum LabyrinthCompletion {
             }
         }
 
-        save.labyrinth.markCleared(nodeID: nodeID)
-        claimMilestonesIfNeeded(save: &save)
+        save.labyrinth.markCleared(
+            nodeID: nodeID,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
     }
 
     /// Spend gold at a Crafting Altar for a guaranteed generated item + clear the node.
@@ -155,7 +152,8 @@ public enum LabyrinthCompletion {
         companion: Combatant,
         save: inout PlayerSave
     ) -> Bool {
-        save.labyrinth.ensureMap()
+        let eligibleRecruitEventIDs = eligibleRecruitEventIDs(in: save)
+        save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
         guard let node = save.labyrinth.node(id: nodeID),
               node.type.canonical == .craft,
               !node.isCleared
@@ -168,25 +166,22 @@ public enum LabyrinthCompletion {
         grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
         save.homestead.grant([ResourceAmount(.wood, 1)])
         // Craft is non-combat: complete()/forge never grant battle XP here.
-        save.labyrinth.markCleared(nodeID: nodeID)
-        claimMilestonesIfNeeded(save: &save)
+        save.labyrinth.markCleared(
+            nodeID: nodeID,
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs
+        )
         _ = hero
         _ = companion
         return true
     }
 
-    public static func recordDefeat(nodeID: String, save: inout PlayerSave) {
-        save.labyrinth.ensureMap()
-        save.labyrinth.recordFail(nodeID: nodeID)
-    }
-
-    private static func claimMilestonesIfNeeded(save: inout PlayerSave) {
-        let depth = save.labyrinth.deepestDepth
-        for milestone in milestoneDepths where depth >= milestone {
-            if save.labyrinth.claimedMilestoneDepths.insert(milestone).inserted {
-                save.roster.grantGold(milestone * 2)
-                save.homestead.grant([ResourceAmount(.wood, max(1, milestone / 5))])
-            }
+    public static func eligibleRecruitEventIDs(in save: PlayerSave) -> [String] {
+        GameContent.recruitEvents.compactMap { event in
+            guard let combatantID = event.unlockCombatantID,
+                  !save.roster.unlockedHeroIDs.contains(combatantID),
+                  !save.roster.unlockedCompanionIDs.contains(combatantID)
+            else { return nil }
+            return event.id
         }
     }
 

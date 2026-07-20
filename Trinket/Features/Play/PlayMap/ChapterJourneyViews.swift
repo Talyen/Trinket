@@ -1,19 +1,25 @@
 import SwiftUI
-import TrinketContent
 import TrinketDesignSystem
 
-struct ChapterStageList: View {
-    let rows: [ChapterStageRowPresentation]
-    let onEnemyTap: (Stage) -> Void
-    let onPrimaryAction: (Stage) -> Void
+/// Shared active + future encounter list for linear Stage Select surfaces.
+struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
+    let rows: [StageSelectRowPresentation<Item>]
+    let isPrimaryActionDisabled: (Item) -> Bool
+    let onArtworkTap: (Item) -> Void
+    let onPrimaryAction: (Item) -> Void
+    @ViewBuilder let artwork: (Item) -> Artwork
+    @ViewBuilder let partyPickerSheet: (Item) -> PartyPickerSheet
 
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(rows) { row in
-                ChapterStageRow(
-                    presentation: row,
-                    onEnemyTap: { onEnemyTap(row.stage) },
-                    onPrimaryAction: { onPrimaryAction(row.stage) }
+            ForEach(rows) { presentation in
+                StageSelectRow(
+                    presentation: presentation,
+                    isPrimaryActionDisabled: isPrimaryActionDisabled(presentation.item),
+                    onArtworkTap: { onArtworkTap(presentation.item) },
+                    onPrimaryAction: { onPrimaryAction(presentation.item) },
+                    artwork: { artwork(presentation.item) },
+                    partyPickerSheet: { partyPickerSheet(presentation.item) }
                 )
             }
         }
@@ -22,66 +28,55 @@ struct ChapterStageList: View {
     }
 }
 
-private struct ChapterStageRow: View {
-    let presentation: ChapterStageRowPresentation
-    let onEnemyTap: () -> Void
+private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
+    let presentation: StageSelectRowPresentation<Item>
+    let isPrimaryActionDisabled: Bool
+    let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Void
+    @ViewBuilder let artwork: () -> Artwork
+    @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
 
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
-            Group {
-                if presentation.isActionable {
-                    CurrentStageCard(
-                        stage: presentation.stage,
-                        onEnemyTap: onEnemyTap,
-                        onPrimaryAction: onPrimaryAction
-                    )
-                } else {
-                    compactRow
-                }
+        Group {
+            if presentation.isActive {
+                StageSelectActiveCard(
+                    presentation: presentation,
+                    isPrimaryActionDisabled: isPrimaryActionDisabled,
+                    onArtworkTap: onArtworkTap,
+                    onPrimaryAction: onPrimaryAction,
+                    artwork: artwork,
+                    partyPickerSheet: partyPickerSheet
+                )
+            } else {
+                compactRow
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-        .accessibilityIdentifier(
-            AccessibilityID.Play.stageRow(
-                chapter: presentation.stage.chapterNumber,
-                stage: presentation.stage.stageNumber
-            )
-        )
+        .accessibilityIdentifier(presentation.rowAccessibilityID)
     }
 
     private var compactRow: some View {
-        compactRowLabel
-    }
-
-    private var compactRowLabel: some View {
         HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            EncounterArtwork(stage: presentation.stage)
-                // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps the five-stage path compact.
+            artwork()
+                // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps a linear path compact.
                 .frame(width: 74, height: 55.5)
                 .clipShape(TrinketDesign.cardShape)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                Text(presentation.stage.encounterSubjectName)
+                Text(presentation.title)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                StageMapMetaLine(stage: presentation.stage, showsEncounterIcon: true)
+                StageSelectMetaLine(presentation: presentation)
             }
 
             Spacer(minLength: TrinketDesign.Metrics.extraSmallSpacing)
-
-            if presentation.isCompleted {
-                Image(systemName: "checkmark")
-                    .trinketTypography(.navigation)
-                    .foregroundStyle(TrinketDesign.Colors.success)
-            }
         }
         .frame(minHeight: 68)
         .trinketSurface(.denseRow)
         .clipShape(TrinketDesign.cardShape)
-        .opacity(presentation.state == .future ? 0.72 : 1)
+        .opacity(0.72)
     }
 }

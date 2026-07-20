@@ -21,6 +21,26 @@ struct ActiveBattleConfigurationTests {
         #expect(configuration.enemyModifiers.controlResistancePercent > 0)
     }
 
+    @Test func universalDamageModifierAppliesToEveryCombatant() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let modifier = AffixModifier.damageDealt(.burn, 1)
+
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            universalModifiers: [modifier]
+        )
+
+        #expect(configuration.universalModifiers == [modifier])
+        #expect(configuration.hero.modifiers.damageDealtBonus(for: .burn) == 1)
+        #expect(configuration.companion.modifiers.damageDealtBonus(for: .burn) == 1)
+        #expect(configuration.enemyModifiers.damageDealtBonus(for: .burn) == 1)
+    }
+
     @Test func makePreservesStageMetadata() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })

@@ -2,6 +2,43 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
+/// Cinematic header and scrolling body shared by linear Stage Select surfaces.
+struct StageSelectScreen<HeroArt: View, Content: View>: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String?
+    let titleAccessibilityIdentifier: String?
+    @ViewBuilder let heroArt: () -> HeroArt
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        DetailHeroScrollShell(
+            title: title,
+            heroHeightPolicy: .cinematicLandscape
+        ) { baseHeight, overscroll in
+            DetailHeroHeader(
+                eyebrow: eyebrow,
+                title: title,
+                titleAccessibilityIdentifier: titleAccessibilityIdentifier,
+                baseHeight: baseHeight,
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.largeSpacing
+            ) {
+                heroArt()
+            } footer: {
+                if let subtitle {
+                    Text(subtitle)
+                        .trinketTypography(.secondaryBody)
+                        .trinketOnArtText(.eyebrow)
+                }
+            }
+        } bodyContent: {
+            content()
+        }
+    }
+}
+
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
@@ -15,50 +52,37 @@ struct ChapterStageSelectView: View {
         appState.playChapter
     }
 
-    private var pendingNextChapter: Chapter? {
-        appState.journey.pendingNextChapter()
-    }
-
     var body: some View {
-        DetailHeroScrollShell(
+        StageSelectScreen(
+            eyebrow: "Chapter \(chapter.number)".uppercased(),
             title: chapter.title,
-            heroHeightPolicy: .cinematicLandscape
-        ) { baseHeight, overscroll in
-            DetailHeroHeader(
-                eyebrow: "Chapter \(chapter.number)".uppercased(),
-                title: chapter.title,
-                titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
-                    number: chapter.number
-                ),
-                baseHeight: baseHeight,
-                overscroll: overscroll,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.largeSpacing
-            ) {
-                if let art = ArtCatalog.backgroundArtByID[chapter.id]
-                    ?? ArtCatalog.backgroundArtByID["chapter-1"] {
-                    Image.preparedAsset(named: art.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .decorativePreparedArtwork()
-                } else {
-                    chapter.theme.tint
-                }
+            subtitle: nil,
+            titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
+                number: chapter.number
+            )
+        ) {
+            if let art = ArtCatalog.backgroundArtByID[chapter.id]
+                ?? ArtCatalog.backgroundArtByID["chapter-1"] {
+                Image.preparedAsset(named: art.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .decorativePreparedArtwork()
+            } else {
+                chapter.theme.tint
             }
-        } bodyContent: {
-            VStack(spacing: 0) {
-                ChapterStageList(
-                    rows: stageRows,
-                    onEnemyTap: onEnemyTap,
-                    onPrimaryAction: handlePrimaryAction
-                )
-
-                if let pendingNextChapter {
-                    chapterAdvanceButton(to: pendingNextChapter)
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .padding(.top, TrinketDesign.Metrics.smallSpacing)
+        } content: {
+            StageSelectList(
+                rows: stageRows,
+                isPrimaryActionDisabled: { _ in false },
+                onArtworkTap: onEnemyTap,
+                onPrimaryAction: handlePrimaryAction,
+                artwork: { stage in
+                    EncounterArtwork(stage: stage)
+                },
+                partyPickerSheet: { _ in
+                    StageBattlePartyPickerSheet()
                 }
-            }
+            )
             .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
@@ -119,11 +143,37 @@ struct ChapterStageSelectView: View {
         appState.prepareBattle(for: stage)
     }
 
-    private var stageRows: [ChapterStageRowPresentation] {
+    private var stageRows: [StageSelectRowPresentation<Stage>] {
         ChapterStageRowPresentation.rows(
             for: chapter,
             progress: appState.journey
-        ).filter { !$0.isCompleted }
+        )
+        .filter { !$0.isCompleted }
+        .map { row in
+            let stage = appState.resolvedCampaignStage(row.stage)
+            return StageSelectRowPresentation(
+                item: stage,
+                isActive: row.isActionable,
+                activeEyebrow: stage.mapLabel,
+                mapLabel: stage.mapLabel,
+                title: stage.encounterSubjectName,
+                activeDetailLines: [],
+                encounterTypeTitle: stage.encounterTypeTitle,
+                symbolName: stage.encounter.symbolName,
+                tint: stage.encounter.mapTint,
+                primaryActionTitle: stage.encounter.primaryActionTitle,
+                showsPartyPicker: stage.encounter.battleEnemyID != nil,
+                isArtworkInteractive: stage.encounter.battleEnemyID != nil,
+                rowAccessibilityID: AccessibilityID.Play.stageRow(
+                    chapter: stage.chapterNumber,
+                    stage: stage.stageNumber
+                ),
+                artworkAccessibilityID: artworkAccessibilityIdentifier(for: stage),
+                actionAccessibilityID: StageMapID.stageAction(for: stage),
+                activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
+                partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl
+            )
+        }
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
@@ -131,22 +181,18 @@ struct ChapterStageSelectView: View {
         onStageTap(stage)
     }
 
-    private func chapterAdvanceButton(to nextChapter: Chapter) -> some View {
-        Button {
-            _ = appState.advanceToNextChapter()
-        } label: {
-            Label(
-                "Continue to Chapter \(nextChapter.number)",
-                systemImage: "arrow.right.circle.fill"
-            )
-            .frame(maxWidth: .infinity)
-        }
-        .trinketPrimaryActionButton(controlSize: .large)
-        .accessibilityIdentifier(AccessibilityID.Play.chapterAdvance)
-    }
-
     private func updateMusicPreview() {
         let activeStage = appState.journey.activeStageID.flatMap(GameContent.stage(id:))
         appState.battle.setMusicPreview(for: activeStage)
+    }
+
+    private func artworkAccessibilityIdentifier(for stage: Stage) -> String {
+        if stage.encounter.battleEnemyID != nil {
+            return "\(stage.mapLabel) Enemy Art"
+        }
+        if stage.encounter.eventID != nil {
+            return "\(stage.mapLabel) Mystery Art"
+        }
+        return "\(stage.mapLabel) Encounter Art"
     }
 }

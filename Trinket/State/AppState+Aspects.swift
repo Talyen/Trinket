@@ -12,13 +12,6 @@ extension AppState {
             return StageMapMessage(title: "Aspect Missing", message: "This Aspect is not ready yet.")
         }
 
-        guard AspectUnlock.isUnlocked(aspect, progress: aspects) else {
-            return StageMapMessage(
-                title: "Aspect Locked",
-                message: AspectUnlock.unlockHint(for: aspect)
-            )
-        }
-
         guard aspects.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue) else {
             if aspects.isFloorCleared(floor.floor, aspectID: floor.aspectID.rawValue) {
                 return StageMapMessage(
@@ -63,7 +56,6 @@ extension AppState {
     func prepareAspectBattle(for floor: AspectFloor) {
         guard battle.activeBattle == nil,
               let aspect = GameContent.aspect(id: floor.aspectID),
-              AspectUnlock.isUnlocked(aspect, progress: aspects),
               aspects.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue),
               AspectAttunement.evaluate(
                   hero: roster.activeHero,

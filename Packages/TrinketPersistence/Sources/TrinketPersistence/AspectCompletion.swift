@@ -77,30 +77,3 @@ public enum AspectCompletion {
         return resolveLoot(for: floor).item
     }
 }
-
-public enum AspectUnlock {
-    /// Iron Vein is available from the Explore hub. Other Aspects unlock from Iron Vein progress.
-    public static func isUnlocked(
-        _ aspect: AspectDefinition,
-        progress: PlayerAspectsState
-    ) -> Bool {
-        if aspect.id == .ironVein {
-            return true
-        }
-        let ironCleared = progress.highestClearedFloor(for: AspectID.ironVein.rawValue)
-        if aspect.id == .cinderSpire || aspect.id == .serpentHollow {
-            return ironCleared >= 5
-        }
-        return ironCleared >= 10
-    }
-
-    public static func unlockHint(for aspect: AspectDefinition) -> String {
-        if aspect.id == .ironVein {
-            return ""
-        }
-        if aspect.id == .cinderSpire || aspect.id == .serpentHollow {
-            return "Clear Iron Vein Floor 5"
-        }
-        return "Clear Iron Vein Floor 10"
-    }
-}

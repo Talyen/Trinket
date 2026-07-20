@@ -141,34 +141,27 @@ extension AppState {
         let event: MysteryEvent
         let sessionStage: Stage
         if let labyrinthNodeID {
-            var randomNumberGenerator = SeededRandomNumberGenerator(
-                seed: GameContent.stableSeed(for: "labyrinth-mystery-\(labyrinthNodeID)")
+            let picked = resolvedLabyrinthMysteryEvent(
+                nodeID: labyrinthNodeID,
+                forcedEventID: forcedEventID
             )
-            guard let picked = GameContent.resolveMysteryEncounterEvent(
-                authored: nil,
-                unlockedHeroIDs: roster.unlockedHeroIDs,
-                unlockedCompanionIDs: roster.unlockedCompanionIDs,
-                using: &randomNumberGenerator
-            ) else {
-                return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
-            }
             event = picked
             sessionStage = Self.syntheticLabyrinthStage(
                 nodeID: labyrinthNodeID,
-                encounter: .mysteryEvent(eventID: event.id)
+                encounter: event.isRecruit
+                    ? .recruit(eventID: event.id)
+                    : .mysteryEvent(eventID: event.id)
             )
         } else if let stage {
-            let authoredEvent = forcedEventID.flatMap { GameContent.mysteryEvent(matching: $0) }
+            let authoredEvent = forcedEventID.flatMap {
+                GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
+            }
                 ?? stage.mysteryEvent
             var pickRNG = SystemRandomNumberGenerator()
-            guard let picked = GameContent.resolveMysteryEncounterEvent(
+            let picked = GameContent.resolveMysteryEncounterEvent(
                 authored: authoredEvent,
-                unlockedHeroIDs: roster.unlockedHeroIDs,
-                unlockedCompanionIDs: roster.unlockedCompanionIDs,
                 using: &pickRNG
-            ) else {
-                return completeStageOrPersistFailure(stage)
-            }
+            )
             event = picked
             sessionStage = stage
         } else {
@@ -186,6 +179,22 @@ extension AppState {
             _ = resolveActiveMysteryChoice()
         }
         return nil
+    }
+
+    private func resolvedLabyrinthMysteryEvent(
+        nodeID: String,
+        forcedEventID: String?
+    ) -> MysteryEvent {
+        var randomNumberGenerator = SeededRandomNumberGenerator(
+            seed: GameContent.stableSeed(for: "labyrinth-mystery-\(nodeID)")
+        )
+        let authoredEvent = forcedEventID.flatMap {
+            GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
+        }
+        return GameContent.resolveMysteryEncounterEvent(
+            authored: authoredEvent,
+            using: &randomNumberGenerator
+        )
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
@@ -242,7 +251,6 @@ extension AppState {
 
         if let unlockedID = applyResult.unlockedCombatantIDs.first {
             session.presentReveal(unlockedCombatantID: unlockedID)
-            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             return true
         }
 
@@ -299,6 +307,7 @@ extension AppState {
             )
             return false
         }
+        sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
         activeMysteryEncounter = nil
         return true
     }
@@ -364,7 +373,7 @@ extension AppState {
             chapterID: "labyrinth",
             chapterNumber: 0,
             stageNumber: 0,
-            flavorText: "A path in The Labyrinth.",
+            flavorText: "A path through Labyrinth.",
             encounter: encounter,
             rewards: .empty
         )

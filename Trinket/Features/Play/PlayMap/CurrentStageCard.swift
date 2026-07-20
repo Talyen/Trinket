@@ -1,26 +1,29 @@
 import SwiftUI
-import TrinketContent
 import TrinketDesignSystem
 
-/// Active detail embedded in the Campaign stage row.
-struct CurrentStageCard: View {
+enum StageSelectActiveCardLayout {
+    case standard
+    case compact
+}
+
+/// Shared active encounter card used by linear Stage Select surfaces.
+struct StageSelectActiveCard<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
     @Environment(AppState.self) private var appState
 
-    let stage: Stage
-    let onEnemyTap: () -> Void
+    let presentation: StageSelectRowPresentation<Item>
+    let isPrimaryActionDisabled: Bool
+    let onArtworkTap: () -> Void
     let onPrimaryAction: () -> Void
+    @ViewBuilder let artwork: () -> Artwork
+    @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
+    var layout: StageSelectActiveCardLayout = .standard
 
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
 
-    private var hasBattleEnemy: Bool {
-        stage.encounter.battleEnemyID != nil
-    }
-
     var body: some View {
         VStack(spacing: 0) {
-            stageArtFrame
-
+            artworkFrame
             footerDock
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -30,56 +33,143 @@ struct CurrentStageCard: View {
         }
         .accessibilityElement(children: .contain)
         .sheet(isPresented: $isPartyPickerPresented) {
-            StageBattlePartyPickerSheet()
+            partyPickerSheet()
         }
     }
 
-    /// Full-bleed 4:3 encounter art with no chrome overlays.
-    private var stageArtFrame: some View {
+    private var artworkFrame: some View {
         Color.clear
-            .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
+            .aspectRatio(layout == .compact ? 8.0 / 5.0 : 4.0 / 3.0, contentMode: .fit)
             .overlay {
                 GeometryReader { geometry in
-                    stageArt
+                    artworkControl
                         .frame(width: geometry.size.width, height: geometry.size.height)
+                        .trinketArtworkBlend(layout == .compact ? .bottom(into: .surface) : .none)
                         .clipped()
+                }
+            }
+            .overlay(alignment: .bottomLeading) {
+                if layout == .compact {
+                    artworkTitleBlock
+                        .padding(TrinketDesign.Metrics.mediumSpacing)
+                        .allowsHitTesting(false)
                 }
             }
     }
 
-    private var footerDock: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-            titleBlock
-                .frame(maxWidth: .infinity, alignment: .leading)
+    @ViewBuilder
+    private var artworkControl: some View {
+        if presentation.isArtworkInteractive {
+            Button(action: onArtworkTap) {
+                artwork()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
+            .trinketQuietTapButtonStyle()
+            .accessibilityIdentifier(presentation.artworkAccessibilityID)
+        } else {
+            artwork()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityIdentifier(presentation.artworkAccessibilityID)
+        }
+    }
 
-            actionControls
-                .layoutPriority(1)
+    private var footerDock: some View {
+        Group {
+            if layout == .compact {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    compactDetailBlock
+
+                    actionControls
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                        titleBlock
+                            .fixedSize(horizontal: true, vertical: false)
+
+                        Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+
+                        actionControls
+                    }
+
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                        titleBlock
+
+                        actionControls
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                }
+            }
         }
         .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
-        .padding(TrinketDesign.Metrics.mediumSpacing)
+        .padding(layout == .compact ? TrinketDesign.Metrics.smallSpacing : TrinketDesign.Metrics.mediumSpacing)
         .background(TrinketDesign.Colors.surface)
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
+        .accessibilityIdentifier(presentation.activeDetailAccessibilityID)
     }
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-            Text(stage.mapLabel.uppercased())
+            Text(presentation.activeEyebrow.uppercased())
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
 
-            Text(stage.encounterSubjectName)
+            Text(presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
+
+            ForEach(Array(presentation.activeDetailLines.enumerated()), id: \.offset) { _, line in
+                Text(line)
+                    .trinketTypography(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var artworkTitleBlock: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            Text(presentation.title)
+                .trinketTypography(.sectionDisplay)
+                .trinketOnArtText(.title)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+
+            Text(presentation.activeEyebrow)
+                .trinketTypography(.caption)
+                .trinketOnArtText(.eyebrow)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+    }
+
+    @ViewBuilder
+    private var compactDetailBlock: some View {
+        if let heading = presentation.activeDetailLines.first {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                Text(heading)
+                    .trinketTypography(.rowTitle)
+                    .foregroundStyle(.primary)
+
+                ForEach(Array(presentation.activeDetailLines.dropFirst().enumerated()), id: \.offset) { _, line in
+                    Text(line)
+                        .trinketTypography(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
     }
 
     private var actionControls: some View {
         HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-            if hasBattleEnemy {
+            if presentation.showsPartyPicker {
                 partyPickerButton
             }
             primaryActionButton
@@ -90,19 +180,19 @@ struct CurrentStageCard: View {
     private var primaryActionButton: some View {
         Button {
             actionFeedbackTrigger += 1
-            appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
             onPrimaryAction()
         } label: {
-            Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)
+            Label(presentation.primaryActionTitle, systemImage: presentation.symbolName)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
         }
         .trinketPrimaryActionButton(
             controlSize: .regular,
-            tint: stage.encounter.mapTint,
-            labelColor: TrinketDesign.Colors.Overlay.paper
+            tint: presentation.tint,
+            labelColor: TrinketDesign.Colors.Overlay.paper,
+            accessibilityIdentifier: presentation.actionAccessibilityID
         )
-        .accessibilityIdentifier(StageMapID.stageAction(for: stage))
+        .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
@@ -122,57 +212,25 @@ struct CurrentStageCard: View {
                 .contentShape(Rectangle())
         }
         .trinketQuietTapButtonStyle()
-        .accessibilityIdentifier(AccessibilityID.Play.stagePartyControl)
-    }
-
-    @ViewBuilder
-    private var stageArt: some View {
-        if hasBattleEnemy {
-            Button(action: onEnemyTap) {
-                EncounterArtwork(stage: stage)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
-            .trinketQuietTapButtonStyle()
-            .accessibilityIdentifier(stageArtAccessibilityIdentifier)
-
-        } else {
-            EncounterArtwork(stage: stage)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .accessibilityIdentifier(stageArtAccessibilityIdentifier)
-        }
-    }
-
-    private var stageArtAccessibilityIdentifier: String {
-        if hasBattleEnemy {
-            return "\(stage.mapLabel) Enemy Art"
-        }
-        if case .mysteryEvent = stage.encounter {
-            return "\(stage.mapLabel) Mystery Art"
-        }
-        return "\(stage.mapLabel) Encounter Art"
+        .disabled(appState.battle.activeBattle != nil)
+        .accessibilityIdentifier(presentation.partyControlAccessibilityID)
     }
 }
 
-/// Shared stage index + type meta, with an optional encounter icon for compact rows.
-struct StageMapMetaLine: View {
-    let stage: Stage
-    var role: TypographyRole = .caption
-    var showsEncounterIcon = false
+/// Shared index + encounter meta line for compact future rows.
+struct StageSelectMetaLine<Item: Identifiable>: View {
+    let presentation: StageSelectRowPresentation<Item>
 
     var body: some View {
         HStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-            Text(stage.mapLabel)
+            Text(presentation.mapLabel)
             Text("·")
-
-            Text(stage.encounterTypeTitle)
-                .foregroundStyle(stage.encounter.mapTint)
-            if showsEncounterIcon {
-                Image(systemName: stage.encounter.symbolName)
-                    .foregroundStyle(stage.encounter.mapTint)
-            }
+            Text(presentation.encounterTypeTitle)
+                .foregroundStyle(presentation.tint)
+            Image(systemName: presentation.symbolName)
+                .foregroundStyle(presentation.tint)
         }
-        .trinketTypography(role)
+        .trinketTypography(.caption)
         .foregroundStyle(.secondary)
     }
 }

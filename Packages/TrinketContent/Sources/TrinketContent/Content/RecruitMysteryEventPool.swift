@@ -25,8 +25,8 @@ private func recruit(
     )
 }
 
-/// One-choice mystery encounters that unlock heroes and companions.
-enum RecruitMysteryEventPool {
+/// One-choice Recruit encounters that unlock heroes and companions.
+enum RecruitEventPool {
     static let all: [MysteryEvent] = [
         recruit(
             id: "recruit-bear",

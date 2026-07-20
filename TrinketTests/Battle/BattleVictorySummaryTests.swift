@@ -150,7 +150,7 @@ struct BattleVictorySummaryTests {
             homestead: .freshStart
         )
         let baseXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
-        let expectedXP = LabyrinthCompletion.adjustedExperienceAward(baseXP, xpPercent: 20)
+        let expectedXP = StageCompletion.adjustedExperienceAward(baseXP, xpPercent: 20)
 
         #expect(summary.experience == expectedXP)
         #expect(summary.companionExperience == expectedXP)

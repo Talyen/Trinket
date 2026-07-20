@@ -4,20 +4,21 @@ import TrinketCore
 
 struct MysteryEventCatalogTests {
     @Test func allMysteryEventsHaveUniqueIDs() throws {
-        let ids = GameContent.mysteryEvents.map(\.id)
+        let ids = (GameContent.mysteryEvents + GameContent.recruitEvents).map(\.id)
         try #expect(ids.count == Set(ids).count)
         try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
+        try #expect(GameContent.recruitEvent(matching: "nonexistent-event") == nil)
     }
 
     @Test func mysteryEventChoiceCountsMatchKind() throws {
-        for event in GameContent.branchingMysteryEvents {
+        for event in GameContent.mysteryEvents {
             try #expect(
                 event.choices.count == 2,
                 "Mystery event \(event.id) should have exactly 2 choices"
             )
             try #expect(event.unlockCombatantID == nil)
         }
-        for event in GameContent.recruitMysteryEvents {
+        for event in GameContent.recruitEvents {
             try #expect(
                 event.choices.count == 1,
                 "Recruit event \(event.id) should have exactly 1 choice"
@@ -33,7 +34,7 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func recruitEventsCoverEveryNonStarterCombatantExactlyOnce() throws {
-        let unlockIDs = GameContent.recruitMysteryEvents.compactMap(\.unlockCombatantID)
+        let unlockIDs = GameContent.recruitEvents.compactMap(\.unlockCombatantID)
         try #expect(unlockIDs.count == Set(unlockIDs).count)
 
         let expectedHeroes = Set(GameContent.heroes.map(\.id)).subtracting([PlayerRosterStarterIDs.hero])
@@ -44,8 +45,8 @@ struct MysteryEventCatalogTests {
 
     @Test func chapterRecruitCopyKeepsCombatantIdentityMysterious() throws {
         for stage in GameContent.chapters.flatMap(\.stages) {
-            guard let eventID = stage.encounter.mysteryEventID,
-                  let event = RecruitMysteryEventPool.event(matching: eventID),
+            guard let eventID = stage.encounter.recruitEventID,
+                  let event = RecruitEventPool.event(matching: eventID),
                   let combatant = GameContent.combatant(forMysteryEvent: event) else {
                 continue
             }
@@ -68,7 +69,7 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func allMysteryEventChoicesHaveUniqueIDsAndAtLeastOneEffect() throws {
-        for event in GameContent.mysteryEvents {
+        for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             let choiceIDs = event.choices.map(\.id)
             try #expect(
                 choiceIDs.count == Set(choiceIDs).count,
@@ -81,7 +82,7 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func artReferencesAreValid() throws {
-        for event in GameContent.mysteryEvents {
+        for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             guard let artID = event.artID else { continue }
             _ = try #require(
                 ArtCatalog.encounterArtByID[artID],
@@ -90,76 +91,51 @@ struct MysteryEventCatalogTests {
         }
     }
 
-    @Test func pickEligibleMysteryEventRespectsRosterUnlocks() throws {
-        var lockedRNG = SeededRandomNumberGenerator(seed: 7)
-        let lockedPick = GameContent.pickEligibleMysteryEvent(
+    @Test func recruitResolutionUsesConfiguredThenDeterministicFallback() throws {
+        let configured = try #require(GameContent.recruitEvent(matching: "recruit-bear"))
+        let configuredPick = GameContent.resolveRecruitEncounter(
+            configuredEventID: configured.id,
+            encounterID: "campaign-stage",
             unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
-            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
-            using: &lockedRNG
+            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion]
         )
-        try #expect(lockedPick.isRecruit)
-        try #expect(lockedPick.unlockCombatantID != PlayerRosterStarterIDs.hero)
-        try #expect(lockedPick.unlockCombatantID != PlayerRosterStarterIDs.companion)
+        try #expect(configuredPick == .recruit(configured))
 
-        var unlockedRNG = SeededRandomNumberGenerator(seed: 3)
-        let unlockedPick = GameContent.pickEligibleMysteryEvent(
+        let fallbackA = GameContent.resolveRecruitEncounter(
+            configuredEventID: configured.id,
+            encounterID: "campaign-stage",
+            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"]
+        )
+        let fallbackB = GameContent.resolveRecruitEncounter(
+            configuredEventID: configured.id,
+            encounterID: "campaign-stage",
+            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"]
+        )
+        try #expect(fallbackA == fallbackB)
+        try #expect(fallbackA.event.isRecruit)
+        try #expect(fallbackA.event.unlockCombatantID != "bear")
+    }
+
+    @Test func recruitResolutionUsesNonRecruitMysteryWhenRosterIsComplete() throws {
+        let resolution = GameContent.resolveRecruitEncounter(
+            configuredEventID: "recruit-bear",
+            encounterID: "completed-roster-stage",
             unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
-            unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
-            using: &unlockedRNG
+            unlockedCompanionIDs: Set(GameContent.companions.map(\.id))
         )
-        try #expect(!unlockedPick.isRecruit)
-        try #expect(GameContent.branchingMysteryEvents.contains(unlockedPick))
-    }
-
-    @Test func resolveMysteryEncounterEventKeepsAuthoredRecruitAuthoritative() throws {
-        let recruit = try #require(RecruitMysteryEventPool.event(matching: "recruit-bear"))
-        var rng = SeededRandomNumberGenerator(seed: 11)
-
-        let present = GameContent.resolveMysteryEncounterEvent(
-            authored: recruit,
-            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
-            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
-            using: &rng
-        )
-        try #expect(present == recruit)
-
-        let unavailable = GameContent.resolveMysteryEncounterEvent(
-            authored: recruit,
-            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
-            unlockedCompanionIDs: [PlayerRosterStarterIDs.companion, "bear"],
-            using: &rng
-        )
-        try #expect(unavailable == nil)
-    }
-
-    @Test func resolveMysteryEncounterEventPicksEligibleWhenUnauthored() throws {
-        var lockedRNG = SeededRandomNumberGenerator(seed: 19)
-        let lockedPick = try #require(
-            GameContent.resolveMysteryEncounterEvent(
-                authored: nil,
-                unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
-                unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
-                using: &lockedRNG
-            )
-        )
-        try #expect(lockedPick.isRecruit)
-
-        var unlockedRNG = SeededRandomNumberGenerator(seed: 23)
-        let unlockedPick = try #require(
-            GameContent.resolveMysteryEncounterEvent(
-                authored: nil,
-                unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
-                unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
-                using: &unlockedRNG
-            )
-        )
-        try #expect(!unlockedPick.isRecruit)
-        try #expect(GameContent.branchingMysteryEvents.contains(unlockedPick))
+        guard case let .mystery(event) = resolution else {
+            Issue.record("Expected a Mystery replacement")
+            return
+        }
+        try #expect(!event.isRecruit)
+        try #expect(GameContent.mysteryEvents.contains(event))
     }
 
     @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
         let knownBaseIDs = Set(GameContent.itemBaseTypes.map(\.id))
-        for event in GameContent.mysteryEvents {
+        for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             for choice in event.choices {
                 for effect in choice.effects {
                     guard case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs) = effect else {
@@ -181,7 +157,7 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func mysteryEffectsNeverSpendResources() throws {
-        for event in GameContent.mysteryEvents {
+        for event in GameContent.mysteryEvents + GameContent.recruitEvents {
             for choice in event.choices {
                 for effect in choice.effects {
                     switch effect {

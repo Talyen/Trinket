@@ -11,23 +11,14 @@ final class PlayMapUITests: TrinketUITestCase {
         ])
     }
 
-    func testChapterAdvanceContinuesFromClearedChapter() {
+    func testCompletedChapterAutomaticallyContinuesToNextChapter() {
         launchApp(arguments: chapterOneCompleteArgs)
 
         play.openCampaign()
-        play.assertCampaignLoaded(number: 1)
-        for stage in 1 ... 5 {
-            assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
-        }
-        assertDoesNotExist(AccessibilityID.Play.activeStageDetail)
-        assertDoesNotExist(AccessibilityID.Play.chapterPicker)
-
-        button(AccessibilityID.Play.chapterAdvance).tap()
-
+        play.assertCampaignLoaded(number: 2)
         play.assertChapterHeader(number: 2)
         assertExists(AccessibilityID.Play.chapterTitle(number: 2))
         assertExists(AccessibilityID.Play.activeStageDetail)
-        assertDoesNotExist(AccessibilityID.Play.chapterAdvance, timeout: 2)
     }
 
     func testNonBattleStubStageCanComplete() {
@@ -41,27 +32,31 @@ final class PlayMapUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
     }
 
-    /// Campaign compact party picker: confirm hero selection from combatant detail.
+    /// Campaign party picker: swap a hero directly from the shared carousel sheet.
     func testBattleUsesCompactPartyPicker() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.openCampaign()
 
-        assertDoesNotExist(AccessibilityID.Play.battlePartyInlinePicker)
         button(AccessibilityID.Play.stagePartyControl).tap()
         assertExists(AccessibilityID.Play.stagePartyPickerSheet)
-        assertExists(AccessibilityID.Play.battlePartyHeroControl)
+        assertExists(AccessibilityID.Play.battlePartyShelf(for: "Hero"))
+        assertExists(AccessibilityID.Play.battlePartyShelf(for: "Companion"))
 
-        button(AccessibilityID.Play.battlePartyHeroControl).tap()
-        assertExists(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard"))
-        button(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard")).tap()
-        assertExists(AccessibilityID.Play.battlePartyDetail("wizard"))
-        button(AccessibilityID.Play.selectBattlePartyOption(for: "Hero", combatantID: "wizard")).tap()
-        XCTAssertTrue(
-            button(AccessibilityID.Play.battlePartyHeroControl).label.localizedCaseInsensitiveContains("Wizard")
+        let heroOptionID = AccessibilityID.Play.battlePartyOption(
+            for: "Hero",
+            combatantID: "rogue"
         )
+        assertExists(heroOptionID)
+        button(heroOptionID).tap()
+        XCTAssertEqual(button(heroOptionID).value as? String, "Selected")
+        assertExists(AccessibilityID.Play.stagePartyPickerSheet)
 
-        dismissSheet()
+        button(AccessibilityID.Play.battlePartyDone).tap()
         assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 2)
+
+        button(AccessibilityID.Play.stagePartyControl).tap()
+        assertExists(AccessibilityID.Play.stagePartyPickerSheet)
+        XCTAssertEqual(button(heroOptionID).value as? String, "Selected")
     }
 }

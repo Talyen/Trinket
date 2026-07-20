@@ -280,6 +280,7 @@ final class CombatFeedbackRasterUIView: UIView {
         )
         let transform = CGAffineTransform.identity
             .translatedBy(x: horizontalOffset, y: state.verticalOffset)
+            .scaledBy(x: state.scale, y: state.scale)
         return (CATransform3DMakeAffineTransform(transform), state.opacity)
     }
 }
