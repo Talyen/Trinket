@@ -120,7 +120,6 @@ struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     var id: Item.ID {
         item.id
     }
-
 }
 
 extension StageSelectRowPresentation where Item == AspectFloor {
