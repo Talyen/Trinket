@@ -29,7 +29,6 @@ struct BattleCinematicPresentation: Equatable, Identifiable {
     let keyword: Keyword
     var phase: Phase
     let startedAt: Date
-    let skipArmedAt: Date
 }
 
 enum BattleSpectaclePolicy {

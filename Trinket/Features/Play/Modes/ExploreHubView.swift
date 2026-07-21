@@ -66,7 +66,6 @@ struct ExploreHubView: View {
                 aspect.floorCount
             )
         }
-        let percentComplete = totalFloors == 0 ? 0 : clearedFloors * 100 / totalFloors
-        return "\(percentComplete)% complete · \(clearedFloors) / \(totalFloors) Floors"
+        return "\(clearedFloors) / \(totalFloors) Floors"
     }
 }

@@ -61,7 +61,7 @@ struct BattleSpectacleSessionTests {
         let options = try OptionsStore(
             defaults: #require(UserDefaults(suiteName: "BattleSpectacleKillCinematic.\(UUID().uuidString)"))
         )
-        options.ultimateCinematicSkipPolicy = .always
+        options.ultimateCinematicShowPolicy = .always
         session.options = options
 
         let now = Date()
@@ -105,7 +105,7 @@ struct BattleSpectacleSessionTests {
         let options = try OptionsStore(
             defaults: #require(UserDefaults(suiteName: "BattleSpectacleSessionTests.\(UUID().uuidString)"))
         )
-        options.ultimateCinematicSkipPolicy = .always
+        options.ultimateCinematicShowPolicy = .always
         session.options = options
 
         let now = Date()
@@ -131,7 +131,7 @@ struct BattleSpectacleSessionTests {
         #expect(session.canEndTurn == false)
 
         session.markCinematicPlaying()
-        session.requestSkipCinematic(at: now.addingTimeInterval(TrinketMotion.Battle.ultimateSkipLockout + 0.01))
+        session.beginCinematicCollapse()
         #expect(session.activeCinematic?.phase == .collapsing)
 
         session.completeCinematicCollapse(at: now.addingTimeInterval(1))
@@ -147,6 +147,48 @@ struct BattleSpectacleSessionTests {
                 #expect(abs(later.timeIntervalSince(earlier) - stagger) < 0.001)
             }
         }
+    }
+
+    @Test func alwaysPolicyAutoSkipsUltimateCinematic() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            abilities: [.slash, .fireball, .bloodthorn]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                abilities: []
+            )
+        )
+        let options = try OptionsStore(
+            defaults: #require(UserDefaults(suiteName: "BattleSpectacleAlwaysSkip.\(UUID().uuidString)"))
+        )
+        options.ultimateCinematicShowPolicy = .never
+        session.options = options
+
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.bloodthorn.id,
+                on: session,
+                at: now
+            )
+        )
+        let beforeFeedbackCount = session.activeFeedbackItems.count
+        _ = session.playCard(
+            cardID: ultimate.id,
+            at: now,
+            journey: .initial,
+            homestead: .freshStart
+        )
+
+        #expect(session.activeCinematic == nil)
+        #expect(session.activeFeedbackItems.count > beforeFeedbackCount)
     }
 
     @Test func oncePerBattleShowsHeroUltimateOnceThenAutoSkips() throws {
@@ -168,7 +210,7 @@ struct BattleSpectacleSessionTests {
         let options = try OptionsStore(
             defaults: #require(UserDefaults(suiteName: "BattleSpectacleOncePerBattle.\(UUID().uuidString)"))
         )
-        options.ultimateCinematicSkipPolicy = .oncePerBattle
+        options.ultimateCinematicShowPolicy = .oncePerBattle
         session.options = options
 
         let firstUltimateAt = Date()
@@ -254,7 +296,7 @@ struct BattleSpectacleSessionTests {
         let options = try OptionsStore(
             defaults: #require(UserDefaults(suiteName: "BattleSpectacleStaleCollapse.\(UUID().uuidString)"))
         )
-        options.ultimateCinematicSkipPolicy = .always
+        options.ultimateCinematicShowPolicy = .always
         session.options = options
 
         let now = Date()

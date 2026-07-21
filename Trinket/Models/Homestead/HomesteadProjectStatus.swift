@@ -221,3 +221,19 @@ enum HomesteadTierCopy {
         return "\(nodeTitle) \(suffix)"
     }
 }
+
+/// Category-level construction progress for overview cards.
+struct HomesteadCategoryProgress {
+    let builtTiers: Int
+    let totalTiers: Int
+
+    var subtitle: String {
+        "\(builtTiers) / \(totalTiers)"
+    }
+
+    init(category: HomesteadNodeCategory, homestead: PlayerHomesteadState) {
+        let definitions = GameContent.homesteadNodes.filter { $0.category == category }
+        builtTiers = definitions.reduce(0) { $0 + homestead.tier(for: $1.id) }
+        totalTiers = definitions.reduce(0) { $0 + $1.maxTier }
+    }
+}

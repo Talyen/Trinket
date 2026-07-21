@@ -108,8 +108,6 @@ struct CombatFeedbackChipPresentation {
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
         case .blockDown:
             return dualAction(leading: negative, trailing: Keyword.block.visualStyle)
-        case .hasted:
-            return iconOnly(trailing: beneficial)
         case .marked:
             return iconOnly(trailing: negative)
         }

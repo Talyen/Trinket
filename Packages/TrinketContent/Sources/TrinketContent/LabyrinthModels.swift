@@ -163,12 +163,12 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
 
     public var symbolName: String {
         switch canonical {
-        case .battle: "bolt.fill"
+        case .battle: "flag.2.crossed"
         case .boss: "crown.fill"
         case .shop: "bag.fill"
         case .rest: "tent.fill"
         case .mystery, .event: "sparkles"
-        case .recruit: "person.crop.circle.badge.plus"
+        case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
         case .craft: "hammer.fill"
         case .gate: "arrow.down.to.line.compact"
         }

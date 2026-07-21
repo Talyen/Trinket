@@ -34,11 +34,6 @@ enum AbilityCatalogSkillGenerated {
         extras: [TargetedEffect(.resourceGain(.gold, 3))]
     )
 
-    static let haste = AbilityBuilder.buffOnly(
-        id: "haste", name: "Haste", tier: .skill,
-        effects: [.shield(.block, 2)]
-    )
-
     static let healthPotion = AbilityBuilder.buffOnly(
         id: "health-potion", name: "Health Potion", tier: .skill,
         effects: [.instantHeal(.health, 3)]
@@ -66,7 +61,6 @@ enum AbilityCatalogSkillGenerated {
         poisonDagger,
         sapArrow,
         roulette,
-        haste,
         healthPotion,
         stoneskinPotion,
         tithe,

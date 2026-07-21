@@ -14,24 +14,30 @@ struct ItemSlotPickerView: View {
     @State private var selectedItem: InventoryItem?
 
     var body: some View {
-        OptionPickerGrid(
-            items: orderedItems,
-            isSelected: { item in
-                item.id == equipmentLoadout.itemID(for: slot)
-            },
-            onSelect: { selectedItem = $0 },
-            accessibilityIdentifier: { item in
-                AccessibilityID.LoadoutPicker.itemCandidate(item.id)
-            },
-            card: { item, isSelected in
-                ItemCard(
-                    item: item,
-                    showsAffixCount: false,
-                    isSelected: isSelected
+        Group {
+            if orderedItems.isEmpty {
+                ContentUnavailableView("No Items to Equip", systemImage: "shippingbox")
+            } else {
+                OptionPickerGrid(
+                    items: orderedItems,
+                    isSelected: { item in
+                        item.id == equipmentLoadout.itemID(for: slot)
+                    },
+                    onSelect: { selectedItem = $0 },
+                    accessibilityIdentifier: { item in
+                        AccessibilityID.LoadoutPicker.itemCandidate(item.id)
+                    },
+                    card: { item, isSelected in
+                        ItemCard(
+                            item: item,
+                            showsAffixCount: false,
+                            isSelected: isSelected
+                        )
+                    }
                 )
+                .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
             }
-        )
-        .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
+        }
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedItem) { item in

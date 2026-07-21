@@ -312,9 +312,6 @@ public enum ArtCatalog {
         "golden-plate": AbilityArtReference(
             imageName: "ability_golden_plate_thumb"
         ),
-        "haste": AbilityArtReference(
-            imageName: "ability_haste_thumb"
-        ),
         "heal": AbilityArtReference(
             imageName: "ability_heal_thumb"
         ),
@@ -381,8 +378,8 @@ public enum ArtCatalog {
         "prayer": AbilityArtReference(
             imageName: "ability_prayer_thumb"
         ),
-        "predators-haste": AbilityArtReference(
-            imageName: "ability_predators_haste_thumb"
+        "predators-focus": AbilityArtReference(
+            imageName: "ability_predators_focus_thumb"
         ),
         "ray-of-frost": AbilityArtReference(
             imageName: "ability_ray_of_frost_thumb"

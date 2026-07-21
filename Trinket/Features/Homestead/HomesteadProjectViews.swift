@@ -107,14 +107,18 @@ struct HomesteadProjectSection: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     var zoomNamespace: Namespace.ID?
+    /// When false, only the project rows render (category title lives on the hero).
+    var showsCategoryHeader = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            Text(category.rawValue)
-                .trinketTypography(.sectionTitle)
-                .foregroundStyle(.primary)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
+            if showsCategoryHeader {
+                Text(category.rawValue)
+                    .trinketTypography(.sectionTitle)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
+            }
 
             LazyVStack(spacing: 0) {
                 ForEach(Array(definitions.enumerated()), id: \.element.id) { index, definition in

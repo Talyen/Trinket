@@ -6,7 +6,7 @@ import TrinketPersistence
 
 struct HomesteadView: View {
     @Environment(AppState.self) private var appState
-    @Namespace private var zoomNamespace
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private var homestead: PlayerHomesteadState {
         appState.homestead
@@ -14,6 +14,16 @@ struct HomesteadView: View {
 
     private var roster: PlayerRosterState {
         appState.roster
+    }
+
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            return [
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
+                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
+            ]
+        }
+        return [GridItem(.flexible())]
     }
 
     var body: some View {
@@ -40,27 +50,34 @@ struct HomesteadView: View {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
-                ForEach(HomesteadNodeCategory.allCases) { category in
-                    HomesteadProjectSection(
-                        category: category,
-                        definitions: definitions(in: category),
-                        homestead: homestead,
-                        roster: roster,
-                        zoomNamespace: zoomNamespace
-                    )
+                LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
+                    ForEach(HomesteadNodeCategory.allCases) { category in
+                        categoryCard(category)
+                    }
                 }
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             }
             .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
             .padding(.bottom, TrinketDesign.Metrics.tabBarContentClearance)
         }
-        .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
-            HomesteadNodeDetailView(definition: definition)
-                .navigationTransition(.zoom(sourceID: definition.id, in: zoomNamespace))
+        .navigationDestination(for: HomesteadNodeCategory.self) { category in
+            HomesteadCategoryView(category: category)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
     }
 
-    private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
-        GameContent.homesteadNodes.filter { $0.category == category }
+    private func categoryCard(_ category: HomesteadNodeCategory) -> some View {
+        let progress = HomesteadCategoryProgress(category: category, homestead: homestead)
+        return NavigationLink(value: category) {
+            PlayModeArtworkCard(
+                title: category.rawValue,
+                subtitle: progress.subtitle,
+                symbolName: "hammer.fill",
+                artID: category.artID,
+                fallbackArtID: category.artID
+            )
+        }
+        .trinketQuietTapButtonStyle()
+        .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
     }
 }

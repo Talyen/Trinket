@@ -9,7 +9,7 @@ frost_whelp	Frost Whelp	companion	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSna
 lizard_scout	Lizard Scout	companion	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	9	12	9	9	11	cold_blood
 panther	Panther	companion	15	0	bruiser	rendingSlash,fangs	serratedEdge,poisonDagger	packTactics,hemorrhage	12	12	10	8	8	razor_claws
 phoenix	Phoenix	companion	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	7	10	8	13	12	immortal_ember
-wolf	Wolf	companion	14	0	assassin	rendingSlash,fangs	venomFangs,predatorsHaste	packTactics,hemorrhage	10	12	10	7	11	pack_ferocity
+wolf	Wolf	companion	14	0	assassin	rendingSlash,fangs	venomFangs,predatorsFocus	packTactics,hemorrhage	10	12	10	7	11	pack_ferocity
 golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	8	9	11	8	14	loyal_comfort
 library_owl	Library Owl	companion	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	7	9	9	12	13	purifying_wisdom
 risen_skeleton	Risen Skeleton	companion	15	0	bruiser	slash,blackjack	bloodOffering,sunderArmor	faustianBargain,hemorrhage	12	10	11	9	8	unliving_frame

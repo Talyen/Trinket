@@ -1,70 +1,74 @@
 id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
-keen	Keen	weapon	physical	12	Increases Physical damage dealt by 1	Increases Physical damage dealt by 3	damage_dealt:physical:1	damage_dealt:physical:3		
-serrated	Serrated	weapon	bleed	10	Increases Bleed damage dealt by 1	Increases Bleed damage dealt by 2	damage_dealt:bleed:1	damage_dealt:bleed:2		
-envenomed	Envenomed	weapon	poison	10	Increases Poison damage dealt by 1	Increases Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
-smoldering	Smoldering	weapon	burn	10	Increases Burn damage dealt by 1	Increases Burn damage dealt by 2	damage_dealt:burn:1	damage_dealt:burn:2		
-consecrated	Consecrated	weapon	holy	8	Increases Holy damage dealt by 1	Increases Holy damage dealt by 3	damage_dealt:holy:1	damage_dealt:holy:3		
-glacial	Glacial	weapon	freeze	8	Increases Freeze damage dealt by 1	Increases Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2		
-concussive	Concussive	weapon	stun	8	Increases Stun damage dealt by 1	Increases Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2		
-lingering	Lingering	weapon	bleed	8	Increases Bleed duration by 1	Increases Bleed duration by 2	bleed_duration:1	bleed_duration:2		
-sentinel	Sentinel	weapon	block	8	Increases Block gained by 1	Increases Block gained by 3	block_gained:1	block_gained:3		
-fortified	Fortified	weapon	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
-defenders	Defender's	weapon	block	8	Increases Block gained by 2	Increases Block gained by 4	block_gained:2	block_gained:4		
-leeching	Leeching	weapon	leech	8	Increases Leech gained by 5%	Increases Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		
-sapping	Sapping	weapon	leech,bleed	8	Increases Bleed damage dealt by 1 and Leech healing by 1	Increases Bleed damage dealt by 2 and Leech healing by 2	damage_dealt:bleed:1|leech_healing:1	damage_dealt:bleed:2|leech_healing:2		
-caustic	Caustic	weapon	poison,burn	8	Increases Poison damage dealt by 1 and Burn damage dealt by 1	Increases Poison damage dealt by 2 and Burn damage dealt by 2	damage_dealt:poison:1|damage_dealt:burn:1	damage_dealt:poison:2|damage_dealt:burn:2		
-persistent	Persistent	weapon	poison	8	Increases Poison damage dealt by 1	Increases Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
-scorching	Scorching	weapon	burn,physical	8	Increases Physical damage dealt by 1 and Burn damage dealt by 1	Increases Physical damage dealt by 2 and Burn damage dealt by 2	damage_dealt:physical:1|damage_dealt:burn:1	damage_dealt:physical:2|damage_dealt:burn:2		
-reinforced	Reinforced	armor	block	12	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
-bulwark	Bulwark	armor	block	12	Increases Block gained by 2	Increases Block gained by 5	block_gained:2	block_gained:5		
-warding	Warding	armor	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
-anchored	Anchored	armor	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
-vital	Vital	armor	health	10	Increases Health restored by 1	Increases Health restored by 3	health_restored:1	health_restored:3		
-emberguard	Emberguard	armor	burn,block	8	Decreases Burn damage taken by 10%	Decreases Burn damage taken by 25%	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25		
-antidotal	Antidotal	armor	poison,health	8	Decreases Poison damage taken by 10%	Decreases Poison damage taken by 25%	damage_taken_percent:poison:0.10	damage_taken_percent:poison:0.25		
-thick-skinned	Thick-Skinned	armor	bleed	8	Decreases Bleed damage taken by 10%	Decreases Bleed damage taken by 25%	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25		
-lifeweave	Lifeweave	armor	leech,health	8	Increases Leech healing by 1	Increases Leech healing by 3	leech_healing:1	leech_healing:3		
-rimed	Rimed	armor	freeze,block	8	Decreases Freeze damage taken by 10%	Decreases Freeze damage taken by 25%	damage_taken_percent:freeze:0.10	damage_taken_percent:freeze:0.25		
-insulated	Insulated	armor	stun,block	8	Decreases Stun damage taken by 10%	Decreases Stun damage taken by 25%	damage_taken_percent:stun:0.10	damage_taken_percent:stun:0.25		
-bloodbound	Bloodbound	armor	leech,bleed	8	Increases Leech healing by 1	Increases Leech healing by 3	leech_healing:1	leech_healing:3		
-enduring	Enduring	armor	health,block	8	Increases Maximum Health by 2 and Block gained by 1	Increases Maximum Health by 6 and Block gained by 2	maximum_health:2|block_gained:1	maximum_health:6|block_gained:2		
-hale	Hale	trinket	health	10	Increases Maximum Health by 4	Increases Maximum Health by 12	maximum_health:4	maximum_health:12		
-lucky	Lucky	trinket	gold	10	Increases Gold gained by 1	Increases Gold gained by 2	gold_gained:1	gold_gained:2		
-vampiric	Vampiric	trinket	leech	8	Increases Leech gained by 5%	Increases Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		
-bloodstone	Bloodstone	trinket	leech,health	8	Increases Leech healing by 1	Increases Leech healing by 3	leech_healing:1	leech_healing:3		
-sparkling	Sparkling	trinket	holy,block	8	Increases Holy damage dealt by 1 and Block gained by 1	Increases Holy damage dealt by 3 and Block gained by 3	damage_dealt:holy:1|block_gained:1	damage_dealt:holy:3|block_gained:3		
-steadfast	Steadfast	trinket	block	8	Increases Block gained by 2	Increases Block gained by 4	block_gained:2	block_gained:4		
-fatebound	Fatebound	trinket	holy,gold	8	Increases Holy damage dealt by 1 and Gold gained by 1	Increases Holy damage dealt by 3 and Gold gained by 2	damage_dealt:holy:1|gold_gained:1	damage_dealt:holy:3|gold_gained:2		
-rime	Rime	trinket	freeze	8	Increases Freeze damage dealt by 1	Increases Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2		
-aegis	Aegis	trinket	block	8	Increases Block gained by 1	Increases Block gained by 3	block_gained:1	block_gained:3		
-etched	Etched	trinket	block	8	Increases Block gained by 1	Increases Block gained by 2	block_gained:1	block_gained:2		
-shocking	Shocking	trinket	stun	8	Increases Stun damage dealt by 1	Increases Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2		
-gilded	Gilded	trinket	gold,stun	8	Increases Gold gained by 1 and Stun damage dealt by 1	Increases Gold gained by 2 and Stun damage dealt by 2	gold_gained:1|damage_dealt:stun:1	gold_gained:2|damage_dealt:stun:2		
-heartward	Heartward	trinket	health	8	Increases Health restored by 1 and Maximum Health by 2	Increases Health restored by 3 and Maximum Health by 6	health_restored:1|maximum_health:2	health_restored:3|maximum_health:6		
-siphoning	Siphoning	trinket	leech	8	Increases Leech duration by 1	Increases Leech duration by 2	leech_duration:1	leech_duration:2		
-manabound	Manabound	trinket	mana,burn,freeze	8	Increases Maximum Mana by 2	Increases Maximum Mana by 6	maximum_mana:2	maximum_mana:6		
-beastbond	Beastbond	trinket	health	8	Increases Companion damage dealt by 1	Increases Companion damage dealt by 3	companion_damage_dealt:1	companion_damage_dealt:3		
-biting	Biting	trinket	bleed,leech	8	Increases Bleed duration by 1	Increases Bleed duration by 2	bleed_duration:1	bleed_duration:2		
-noxious	Noxious	trinket	poison	8	Increases Poison damage dealt by 1 and Gold gained by 1	Increases Poison damage dealt by 2 and Gold gained by 2	damage_dealt:poison:1|gold_gained:1	damage_dealt:poison:2|gold_gained:2		
-hallowed	Hallowed	trinket	holy,health	8	Increases Holy damage dealt by 1 and Health restored by 1	Increases Holy damage dealt by 3 and Health restored by 3	damage_dealt:holy:1|health_restored:1	damage_dealt:holy:3|health_restored:3		
-hoarfrost	Hoarfrost	trinket	freeze,block	8	Increases Freeze damage dealt by 1 and Block gained by 1	Increases Freeze damage dealt by 2 and Block gained by 3	damage_dealt:freeze:1|block_gained:1	damage_dealt:freeze:2|block_gained:3		
-stormforged	Stormforged	trinket	stun,gold	8	Increases Stun damage dealt by 1 and Gold gained by 1	Increases Stun damage dealt by 2 and Gold gained by 2	damage_dealt:stun:1|gold_gained:1	damage_dealt:stun:2|gold_gained:2		
-ashen	Ashen	trinket	burn,leech	8	Increases Burn damage dealt by 1 and Leech gained by 5%	Increases Burn damage dealt by 2 and Leech gained by 10%	damage_dealt:burn:1|leech_gained_percent:0.05	damage_dealt:burn:2|leech_gained_percent:0.10		
-infected	Infected	weapon	bleed,poison	8	Applies 1 Poison when Bleed is applied	Applies 2 Poison when Bleed is applied			on_bleed_apply_poison:1	on_bleed_apply_poison:2
-ashen_wake	Ashen Wake	weapon	burn,poison	8	Applies 1 Poison when Burn is applied	Applies 2 Poison when Burn is applied			on_burn_apply_poison:1	on_burn_apply_poison:2
-cauterize	Cauterize	weapon	bleed,burn	8	Deals 1 Burn damage when Bleed is applied	Deals 2 Burn damage when Bleed is applied			on_bleed_deal_burn_damage:1	on_bleed_deal_burn_damage:2
-contagion	Contagion	weapon	bleed,poison	8	Applies 1 Poison every third Bleed	Applies 2 Poison every third Bleed			every_nth_bleed_apply_poison:3:1	every_nth_bleed_apply_poison:3:2
-shatter	Shatter	weapon	freeze	8	Increases Freeze damage dealt by 1 while the enemy is Frozen	Increases Freeze damage dealt by 2 while the enemy is Frozen			freeze_damage_while_frozen:1	freeze_damage_while_frozen:2
+keen	Keen	weapon	physical	12	Increase Physical damage dealt by 1	Increase Physical damage dealt by 3	damage_dealt:physical:1	damage_dealt:physical:3		
+serrated	Serrated	weapon	bleed	10	Increase Bleed damage dealt by 1	Increase Bleed damage dealt by 2	damage_dealt:bleed:1	damage_dealt:bleed:2		
+envenomed	Envenomed	weapon	poison	10	Increase Poison damage dealt by 1	Increase Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
+smoldering	Smoldering	weapon	burn	10	Increase Burn damage dealt by 1	Increase Burn damage dealt by 2	damage_dealt:burn:1	damage_dealt:burn:2		
+consecrated	Consecrated	weapon	holy	8	Increase Holy damage dealt by 1	Increase Holy damage dealt by 3	damage_dealt:holy:1	damage_dealt:holy:3		
+glacial	Glacial	weapon	freeze	8	Increase Freeze damage dealt by 1	Increase Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2		
+concussive	Concussive	weapon	stun	8	Increase Stun damage dealt by 1	Increase Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2		
+lingering	Lingering	weapon	bleed	8	Increase Bleed duration by 1	Increase Bleed duration by 2	bleed_duration:1	bleed_duration:2		
+sentinel	Sentinel	weapon	block	8	Increase Block gained by 1	Increase Block gained by 3	block_gained:1	block_gained:3		
+fortified	Fortified	weapon	block	8	Increase Block gained by 1	Increase Block gained by 2	block_gained:1	block_gained:2		
+defenders	Defender's	weapon	block	8	Increase Block gained by 2	Increase Block gained by 4	block_gained:2	block_gained:4		
+leeching	Leeching	weapon	leech	8	Increase Leech gained by 5%	Increase Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		
+persistent	Persistent	weapon	poison	8	Increase Poison damage dealt by 1	Increase Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2		
+reinforced	Reinforced	armor	block	12	Increase Block gained by 1	Increase Block gained by 2	block_gained:1	block_gained:2		
+bulwark	Bulwark	armor	block	12	Increase Block gained by 2	Increase Block gained by 5	block_gained:2	block_gained:5		
+warding	Warding	armor	block	8	Increase Block gained by 1	Increase Block gained by 2	block_gained:1	block_gained:2		
+anchored	Anchored	armor	block	8	Increase Block gained by 1	Increase Block gained by 2	block_gained:1	block_gained:2		
+vital	Vital	armor	health	10	Increase Health restored by 1	Increase Health restored by 3	health_restored:1	health_restored:3		
+emberguard	Emberguard	armor	burn,block	8	Decrease Burn damage taken by 10%	Decrease Burn damage taken by 25%	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25		
+antidotal	Antidotal	armor	poison,health	8	Decrease Poison damage taken by 10%	Decrease Poison damage taken by 25%	damage_taken_percent:poison:0.10	damage_taken_percent:poison:0.25		
+thick-skinned	Thick-Skinned	armor	bleed	8	Decrease Bleed damage taken by 10%	Decrease Bleed damage taken by 25%	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25		
+lifeweave	Lifeweave	armor	leech,health	8	Increase Leech healing by 1	Increase Leech healing by 3	leech_healing:1	leech_healing:3		
+rimed	Rimed	armor	freeze,block	8	Decrease Freeze damage taken by 10%	Decrease Freeze damage taken by 25%	damage_taken_percent:freeze:0.10	damage_taken_percent:freeze:0.25		
+insulated	Insulated	armor	stun,block	8	Decrease Stun damage taken by 10%	Decrease Stun damage taken by 25%	damage_taken_percent:stun:0.10	damage_taken_percent:stun:0.25		
+bloodbound	Bloodbound	armor	leech,bleed	8	Increase Leech healing by 1	Increase Leech healing by 3	leech_healing:1	leech_healing:3		
+hale	Hale	trinket	health	10	Increase Maximum Health by 4	Increase Maximum Health by 12	maximum_health:4	maximum_health:12		
+lucky	Lucky	trinket	gold	10	Increase Gold gained by 1	Increase Gold gained by 2	gold_gained:1	gold_gained:2		
+vampiric	Vampiric	trinket	leech	8	Increase Leech gained by 5%	Increase Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10		
+bloodstone	Bloodstone	trinket	leech,health	8	Increase Leech healing by 1	Increase Leech healing by 3	leech_healing:1	leech_healing:3		
+steadfast	Steadfast	trinket	block	8	Increase Block gained by 2	Increase Block gained by 4	block_gained:2	block_gained:4		
+rime	Rime	trinket	freeze	8	Increase Freeze damage dealt by 1	Increase Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2		
+aegis	Aegis	trinket	block	8	Increase Block gained by 1	Increase Block gained by 3	block_gained:1	block_gained:3		
+etched	Etched	trinket	block	8	Increase Block gained by 1	Increase Block gained by 2	block_gained:1	block_gained:2		
+shocking	Shocking	trinket	stun	8	Increase Stun damage dealt by 1	Increase Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2		
+siphoning	Siphoning	trinket	leech	8	Increase Leech duration by 1	Increase Leech duration by 2	leech_duration:1	leech_duration:2		
+manabound	Manabound	trinket	mana,burn,freeze	8	Increase Maximum Mana by 2	Increase Maximum Mana by 6	maximum_mana:2	maximum_mana:6		
+beastbond	Beastbond	trinket	health	8	Increase Companion damage dealt by 1	Increase Companion damage dealt by 3	companion_damage_dealt:1	companion_damage_dealt:3		
+biting	Biting	trinket	bleed,leech	8	Increase Bleed duration by 1	Increase Bleed duration by 2	bleed_duration:1	bleed_duration:2		
+infected	Infected	weapon	bleed,poison	8	Apply 1 Poison when Bleed is applied	Apply 2 Poison when Bleed is applied			on_bleed_apply_poison:1	on_bleed_apply_poison:2
+ashen_wake	Ashen Wake	weapon	burn,poison	8	Apply 1 Poison when Burn is applied	Apply 2 Poison when Burn is applied			on_burn_apply_poison:1	on_burn_apply_poison:2
+cauterize	Cauterize	weapon	bleed,burn	8	Deal 1 Burn damage when Bleed is applied	Deal 2 Burn damage when Bleed is applied			on_bleed_deal_burn_damage:1	on_bleed_deal_burn_damage:2
+contagion	Contagion	weapon	bleed,poison	8	Apply 1 Poison every third Bleed	Apply 2 Poison every third Bleed			every_nth_bleed_apply_poison:3:1	every_nth_bleed_apply_poison:3:2
+shatter	Shatter	weapon	freeze	8	Increase Freeze damage dealt by 1 while the enemy is Frozen	Increase Freeze damage dealt by 2 while the enemy is Frozen			freeze_damage_while_frozen:1	freeze_damage_while_frozen:2
 brittle	Brittle	trinket	freeze	8	The enemy takes 1 additional damage while Frozen	The enemy takes 2 additional damage while Frozen			damage_while_target_frozen:1	damage_while_target_frozen:2
-executioners	Executioner's	weapon	physical	8	Increases Physical damage dealt by 1 against enemies below 30% Health	Increases Physical damage dealt by 2 against enemies below 30% Health			damage_below_health_percent:0.30:physical:1	damage_below_health_percent:0.30:physical:2
-riposte	Riposte	armor	physical	8	Increases damage dealt by 1 after Dodging	Increases damage dealt by 2 after Dodging			damage_after_dodge:1	damage_after_dodge:2
-relentless	Relentless	weapon	bleed	8	Refreshes Bleed duration on reapply	Refreshes Bleed duration on reapply			refresh_bleed_on_reapply:true	refresh_bleed_on_reapply:true
-cascading	Cascading	armor	block	8	Gains 1 Block when your Block is broken	Gains 2 Block when your Block is broken			on_block_broken_block:1	on_block_broken_block:2
-ablution	Ablution	armor	block,health	8	Cleanses 1 debuff from you when you gain Block, at most once every 6 seconds	Cleanses 1 debuff from you when you gain Block, at most once every 6 seconds			on_block_gained_cleanse:1:6	on_block_gained_cleanse:1:6
-aftershock	Aftershock	trinket	stun	8	Gains Haste for 1 second after the enemy is Stunned	Gains Haste for 2 seconds after the enemy is Stunned			on_enemy_stunned_haste:1	on_enemy_stunned_haste:2
-hexmark	Hexmark	weapon	physical	8	Applies Marked on the first hit each battle	Applies Marked on the first hit each battle			first_hit_apply_marked:true	first_hit_apply_marked:true
-packbond	Packbond	trinket	leech	8	Gains 5% Leech for 2 seconds when the Companion acts	Gains 10% Leech for 2 seconds when the Companion acts			on_companion_act_leech:0.05:2	on_companion_act_leech:0.10:2
+executioners	Executioner's	weapon	physical	8	Increase Physical damage dealt by 1 against enemies below 30% Health	Increase Physical damage dealt by 2 against enemies below 30% Health			damage_below_health_percent:0.30:physical:1	damage_below_health_percent:0.30:physical:2
+riposte	Riposte	armor	physical,dodge	8	Increase damage dealt by 1 after Dodging	Increase damage dealt by 2 after Dodging			damage_after_dodge:1	damage_after_dodge:2
+relentless	Relentless	weapon	bleed	8	Refresh Bleed duration on reapply	Refresh Bleed duration on reapply			refresh_bleed_on_reapply:true	refresh_bleed_on_reapply:true
+cascading	Cascading	armor	block	8	Gain 1 Block when your Block is broken	Gain 2 Block when your Block is broken			on_block_broken_block:1	on_block_broken_block:2
+hexmark	Hexmark	weapon	physical	8	Apply Marked on the first hit each battle	Apply Marked on the first hit each battle			first_hit_apply_marked:true	first_hit_apply_marked:true
 symbiosis	Symbiosis	trinket	health	8	Companions receive 10% of your Health restored	Companions receive 20% of your Health restored			companion_heal_share_percent:0.10	companion_heal_share_percent:0.20
-second_wind	Second Wind	armor	health	8	Restores 3 Health the first time your Health falls below 25%	Restores 6 Health the first time your Health falls below 25%			once_below_health_percent_heal:0.25:3	once_below_health_percent_heal:0.25:6
-deathgrip	Deathgrip	trinket	block,health	8	Gains 1 Block each action while Death's Door is active	Gains 2 Block each action while Death's Door is active			block_per_action_while_deaths_door:1	block_per_action_while_deaths_door:2
-frostburn	Frostburn	trinket	burn,freeze	8	Deals 1 Freeze damage every third Burn	Deals 2 Freeze damage every third Burn			every_nth_burn_tick_freeze_damage:3:1	every_nth_burn_tick_freeze_damage:3:2
+second_wind	Second Wind	armor	health	8	Restore 3 Health the first time your Health falls below 25%	Restore 6 Health the first time your Health falls below 25%			once_below_health_percent_heal:0.25:3	once_below_health_percent_heal:0.25:6
+deathgrip	Deathgrip	trinket	block,health	8	Gain 1 Block each action while Death's Door is active	Gain 2 Block each action while Death's Door is active			block_per_action_while_deaths_door:1	block_per_action_while_deaths_door:2
+frostburn	Frostburn	trinket	burn,freeze	8	Deal 1 Freeze damage every third Burn	Deal 2 Freeze damage every third Burn			every_nth_burn_tick_freeze_damage:3:1	every_nth_burn_tick_freeze_damage:3:2
+efficient	Efficient	weapon	mana	10	Decrease Mana costs by 10%	Decrease Mana costs by 25%	mana_cost_reduction_percent:0.10	mana_cost_reduction_percent:0.25		
+thrifty	Thrifty	trinket	mana	8	Decrease Mana costs by 10%	Decrease Mana costs by 25%	mana_cost_reduction_percent:0.10	mana_cost_reduction_percent:0.25		
+aetherward	Aetherward	trinket	mana	8	Gain 1 Block when you spend Mana	Gain 2 Block when you spend Mana			on_spend_mana_block:1	on_spend_mana_block:2
+martyrs	Martyr's	armor	holy	10	Decrease Holy damage taken by 10%	Decrease Holy damage taken by 25%	damage_taken_percent:holy:0.10	damage_taken_percent:holy:0.25		
+sanctum	Sanctum	armor	holy,block	8	Gain 1 Block when you deal Holy damage	Gain 2 Block when you deal Holy damage			on_holy_damage_block:1	on_holy_damage_block:2
+absolving	Absolving	trinket	holy	8	Cleanse 1 status effect when you deal Holy damage	Cleanse 1 status effect when you deal Holy damage			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
+beacon	Beacon	trinket	holy,health	8	Restore 1 Health when you deal Holy damage	Restore 3 Health when you deal Holy damage			on_holy_damage_heal:1	on_holy_damage_heal:3
+windfall	Windfall	trinket	gold	8	Restore 1 Health when you gain Gold	Restore 2 Health when you gain Gold			on_gain_gold_heal:1	on_gain_gold_heal:2
+payday	Payday	trinket	gold,dodge	8	Gain 1 Gold when you Dodge	Gain 2 Gold when you Dodge			on_dodge_gold:1	on_dodge_gold:2
+hardened	Hardened	armor	physical	10	Decrease Physical damage taken by 10%	Decrease Physical damage taken by 25%	damage_taken_percent:physical:0.10	damage_taken_percent:physical:0.25		
+retaliatory	Retaliatory	armor	physical	8	Reflect 10% of damage taken	Reflect 20% of damage taken			thorns_percent:0.10	thorns_percent:0.20
+shredding	Shredding	trinket	physical	8	Ignore 10% of enemy mitigation	Ignore 25% of enemy mitigation			ignore_enemy_mitigation_percent:0.10	ignore_enemy_mitigation_percent:0.25
+knockout	Knockout	trinket	stun	8	Deal 3 Physical damage when you Stun an enemy	Deal 5 Physical damage when you Stun an enemy			on_stun_deal_physical:3	on_stun_deal_physical:5
+dazed	Dazed	weapon	stun	8	The enemy takes 1 additional damage while Stunned	The enemy takes 2 additional damage while Stunned			damage_while_target_stunned:1	damage_while_target_stunned:2
+branding	Branding	trinket	stun	8	Apply Marked when the enemy is Stunned	Apply Marked when the enemy is Stunned			on_enemy_stunned_apply_marked:true	on_enemy_stunned_apply_marked:true
+evasive	Evasive	armor	dodge	10	Increase Dodge chance by 10%	Increase Dodge chance by 20%			dodge_chance_bonus:0.10	dodge_chance_bonus:0.20
+slippery	Slippery	armor	dodge,physical	8	Increase Dodge chance against Physical by 15%	Increase Dodge chance against Physical by 25%			physical_dodge_chance_bonus:0.15	physical_dodge_chance_bonus:0.25
+elusive	Elusive	trinket	dodge	8	Increase Dodge chance by 5%	Increase Dodge chance by 12%			dodge_chance_bonus:0.05	dodge_chance_bonus:0.12
+untouchable	Untouchable	armor	dodge,block	8	Gain 2 Block when you Dodge	Gain 4 Block when you Dodge			on_dodge_block:2	on_dodge_block:4
+nullifying	Nullifying	weapon	purge,holy	8	Purge 1 status effect when you deal Holy damage	Purge 1 status effect when you deal Holy damage			on_holy_damage_purge:1	on_holy_damage_purge:1

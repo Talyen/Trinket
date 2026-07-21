@@ -9,22 +9,19 @@ import UIKit
 /// then crossfades to a preloaded video when available.
 struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
-    let canSkip: Bool
     let effectsVolume: Double
     let namespace: Namespace.ID
     let onPlaying: () -> Void
-    let onRequestSkip: () -> Void
     let onAutoFinish: (Int) -> Void
     let onCollapseFinished: (Int) -> Void
 
     @State private var scrimOpacity = 0.0
     @State private var contentOpacity = 0.0
     @State private var showVideo = false
-    @State private var skipHintVisible = false
     @State private var didFinish = false
     @State private var collapseTask: Task<Void, Never>?
     @State private var fallbackHoldTask: Task<Void, Never>?
-    @State private var skipHintTask: Task<Void, Never>?
+    @State private var videoRevealTask: Task<Void, Never>?
     @ScaledMetric(relativeTo: .largeTitle) private var fallbackStarSize: CGFloat = 64
 
     private var ability: Ability? {
@@ -46,26 +43,7 @@ struct UltimateCinematicOverlay: View {
                     isSource: false
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if canSkip, skipHintVisible, cinematic.phase == .playing {
-                VStack {
-                    Spacer()
-                    Text("Tap to skip")
-                        .trinketTypography(.badge)
-                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper.opacity(0.9))
-                        .trinketGlassChip(.emphasis)
-                        .padding(.bottom, 36)
-                }
-                .transition(.opacity)
-                .allowsHitTesting(false)
-            }
         }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard canSkip else { return }
-            onRequestSkip()
-        }
-
         .accessibilityIdentifier("Ultimate Cinematic \(cinematic.abilityName)")
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.ultimateCinematic,
@@ -150,11 +128,9 @@ struct UltimateCinematicOverlay: View {
             contentOpacity = 1
         }
         onPlaying()
-        let didStartVideo = attemptVideoReveal()
-        // Always arm a watchdog — video end/failure notifications can stall forever
-        // with skip policy `.never`, soft-locking battle input and deferred victory.
-        scheduleFallbackHold(forVideo: didStartVideo)
-        scheduleSkipHint()
+        // Art-hold watchdog first; extend to video watchdog once playback starts.
+        scheduleFallbackHold(forVideo: false)
+        startVideoRevealIfNeeded()
     }
 
     private func runExit() {
@@ -162,14 +138,13 @@ struct UltimateCinematicOverlay: View {
         didFinish = true
         fallbackHoldTask?.cancel()
         fallbackHoldTask = nil
-        skipHintTask?.cancel()
-        skipHintTask = nil
+        videoRevealTask?.cancel()
+        videoRevealTask = nil
         BattleCinematicPlayer.shared.pause(abilityID: cinematic.abilityID)
         withAnimation(TrinketMotion.Battle.ultimateCollapseAnimation) {
             scrimOpacity = 0
             contentOpacity = 0
             showVideo = false
-            skipHintVisible = false
         }
         let collapseID = cinematic.id
         collapseTask?.cancel()
@@ -182,22 +157,26 @@ struct UltimateCinematicOverlay: View {
         }
     }
 
-    @discardableResult
-    private func attemptVideoReveal() -> Bool {
-        guard BattleCinematicPlayer.shared.hasVideo(for: cinematic.abilityID) else { return false }
-        guard BattleCinematicPlayer.shared.isReady(for: cinematic.abilityID) else { return false }
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showVideo = true
-        }
+    private func startVideoRevealIfNeeded() {
+        guard BattleCinematicPlayer.shared.hasVideo(for: cinematic.abilityID) else { return }
+        videoRevealTask?.cancel()
+        let abilityID = cinematic.abilityID
         let cinematicID = cinematic.id
-        BattleCinematicPlayer.shared.play(
-            abilityID: cinematic.abilityID,
-            effectsVolume: effectsVolume
-        ) {
-            guard !didFinish else { return }
-            onAutoFinish(cinematicID)
+        videoRevealTask = Task { @MainActor in
+            let ready = await BattleCinematicPlayer.shared.whenReady(abilityID: abilityID)
+            guard !Task.isCancelled, !didFinish, ready else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showVideo = true
+            }
+            BattleCinematicPlayer.shared.play(
+                abilityID: abilityID,
+                effectsVolume: effectsVolume
+            ) {
+                guard !didFinish else { return }
+                onAutoFinish(cinematicID)
+            }
+            scheduleFallbackHold(forVideo: true)
         }
-        return true
     }
 
     private func scheduleFallbackHold(forVideo: Bool = false) {
@@ -217,29 +196,13 @@ struct UltimateCinematicOverlay: View {
         }
     }
 
-    private func scheduleSkipHint() {
-        guard canSkip else { return }
-        skipHintTask?.cancel()
-        skipHintTask = Task { @MainActor in
-            let clock = SuspendingClock()
-            try? await clock.sleep(
-                for: .seconds(TrinketMotion.Battle.ultimateSkipLockout),
-                tolerance: .milliseconds(20)
-            )
-            guard !Task.isCancelled, !didFinish, cinematic.phase != .collapsing else { return }
-            withAnimation(.easeOut(duration: 0.2)) {
-                skipHintVisible = true
-            }
-        }
-    }
-
     private func cancelPendingOverlayTasks() {
         collapseTask?.cancel()
         collapseTask = nil
         fallbackHoldTask?.cancel()
         fallbackHoldTask = nil
-        skipHintTask?.cancel()
-        skipHintTask = nil
+        videoRevealTask?.cancel()
+        videoRevealTask = nil
     }
 
     private static func portraitFrame(in size: CGSize) -> CGSize {

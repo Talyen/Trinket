@@ -137,12 +137,18 @@ package extension DamagePipeline {
 
         let effects = context.roster.activeEffects(for: state.combatant)
         let profile = context.modifiers(for: state.combatant.id)
-        let effective = DefensePoolEngine.effectiveToughnessMitigation(
+        var effective = DefensePoolEngine.effectiveToughnessMitigation(
             for: state.combatant,
             effects: effects,
             profile: profile,
             in: context
         )
+        if let sourceActorID = state.sourceActorID {
+            let ignorePercent = min(1, context.modifiers(for: sourceActorID).ignoreEnemyMitigationPercent)
+            if ignorePercent > 0 {
+                effective = Int(floor(Double(effective) * (1 - ignorePercent)))
+            }
+        }
         let maxReduction = state.remaining / 2
         let reduction = min(effective, maxReduction)
         if reduction > 0 {

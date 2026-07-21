@@ -2,30 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct HasteHandler: BattleEffectHandler {
-    let kind: EffectKind = .haste
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        // Haste has no combat effect in turn-based card combat (action intervals removed).
-        _ = stacks
-        _ = keyword
-        return nil
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability _: Ability,
-        source _: Combatant,
-        target _: Combatant,
-        action _: ActionApplyContext,
-        in _: inout BattleEngineContext
-    ) -> EffectApplyOutcome {
-        // No-op: haste previously shortened action intervals, which no longer exist.
-        guard case .haste = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        return EffectApplyOutcome(events: [], didApply: false)
-    }
-}
-
 struct ThornsHandler: BattleEffectHandler {
     let kind: EffectKind = .thorns
 

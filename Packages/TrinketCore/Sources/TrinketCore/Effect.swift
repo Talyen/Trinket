@@ -62,7 +62,6 @@ public enum Effect: Hashable, Sendable {
     /// Halve the target's current Block pool (floor).
     case halveShield(Keyword)
     case deathsDoor
-    case haste(Int)
     case thorns(Keyword, Int, Int)
     case marked(Int, Int)
     case criticalChanceBonus(Double, Int)
@@ -75,11 +74,10 @@ public enum Effect: Hashable, Sendable {
     public static let bleedDoTTickCount = 3
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
     public static let abilityLeechPercent = 0.50
-    /// Legacy timed-buff leech percent (affix/packbond reactions that still grant a buff).
+    /// Legacy timed-buff leech percent.
     public static let standardLeechPercent = 0.10
     public static let standardLeechDuration = 6
     public static let standardThornsDuration = 6
-    public static let standardHasteDuration = 4
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2
     public static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
@@ -112,7 +110,6 @@ public enum Effect: Hashable, Sendable {
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
         case .deathsDoor: .deathsDoor
-        case .haste: .physical
         case let .thorns(k, _, _): k
         case .marked: .physical
         case .criticalChanceBonus: .physical
@@ -133,7 +130,6 @@ public enum Effect: Hashable, Sendable {
         switch self {
         case .bleed: Self.bleedDoTTickCount
         case let .leech(_, _, d): d
-        case let .haste(d): d
         case let .thorns(_, _, d): d
         case let .marked(_, d): d
         case let .criticalChanceBonus(_, d): d
@@ -170,7 +166,7 @@ public enum Effect: Hashable, Sendable {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked:
             .abilityTarget
         case .shield, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+             .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike:
             .actor
         }

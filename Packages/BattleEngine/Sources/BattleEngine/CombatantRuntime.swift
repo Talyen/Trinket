@@ -52,9 +52,6 @@ public struct CombatantRuntime: Hashable {
     /// Number of burn ticks this combatant has sourced this battle.
     public var burnTickCount: Int
 
-    /// Last battle round where Ablution cleansed a debuff for this combatant.
-    public var lastAblutionTick: Int?
-
     /// Round until which Toughness-based inherent DR is reduced by `mitigationShredMultiplier`.
     public var mitigationShredUntilTick: Int
 
@@ -76,7 +73,6 @@ public struct CombatantRuntime: Hashable {
         pendingDamageAfterDodge: Int = 0,
         bleedApplyCount: Int = 0,
         burnTickCount: Int = 0,
-        lastAblutionTick: Int? = nil,
         mitigationShredUntilTick: Int = 0,
         mitigationShredMultiplier: Double = 1
     ) {
@@ -91,7 +87,6 @@ public struct CombatantRuntime: Hashable {
         self.pendingDamageAfterDodge = pendingDamageAfterDodge
         self.bleedApplyCount = bleedApplyCount
         self.burnTickCount = burnTickCount
-        self.lastAblutionTick = lastAblutionTick
         self.mitigationShredUntilTick = mitigationShredUntilTick
         self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)

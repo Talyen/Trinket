@@ -39,9 +39,7 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
             amount: gain.amount,
             keyword: gain.keyword
         )
-        var events = [event]
-        events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
-        return EffectApplyOutcome(events: events, didApply: true)
+        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 

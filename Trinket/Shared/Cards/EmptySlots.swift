@@ -36,12 +36,7 @@ struct EmptyAbilitySlotCard: View {
 
 struct EmptyItemSlotCard: View {
     let slot: ItemSlot
-    var lockLabel: String?
     var reservesLabelSpace: Bool = true
-
-    private var isLocked: Bool {
-        lockLabel != nil
-    }
 
     var body: some View {
         VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
@@ -59,10 +54,9 @@ struct EmptyItemSlotCard: View {
                     }
                 }
                 .clipShape(TrinketDesign.cardShape)
-                .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
                 .trinketCardSurface()
 
-            Text(title)
+            Text("Empty \(slot.displayName)")
                 .trinketTypography(.cardLabel)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
@@ -70,9 +64,5 @@ struct EmptyItemSlotCard: View {
                 .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
-    }
-
-    private var title: String {
-        isLocked ? slot.displayName : "Empty \(slot.displayName)"
     }
 }

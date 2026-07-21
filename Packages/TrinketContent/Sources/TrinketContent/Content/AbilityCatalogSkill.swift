@@ -100,10 +100,9 @@ enum AbilityCatalogSkill {
             TargetedEffect(.cleanseRandom)
         ]
     )
-    static let predatorsHaste = Ability(
-        id: "predators-haste", name: "Predator's Haste", tier: .skill,
+    static let predatorsFocus = Ability(
+        id: "predators-focus", name: "Predator's Focus", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.haste(4)),
             TargetedEffect(.criticalChanceBonus(0.15, 6))
         ]
     )
@@ -171,7 +170,7 @@ enum AbilityCatalogSkill {
         manaPotion,
         manaShield,
         prayer,
-        predatorsHaste,
+        predatorsFocus,
         sageHeal,
         serratedEdge,
         smite,

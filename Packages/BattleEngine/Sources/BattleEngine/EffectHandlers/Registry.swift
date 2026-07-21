@@ -22,7 +22,6 @@ public enum EffectHandlers {
         .purgeRandom: CleansePurgeHandler(mode: .purgeRandom),
         .halveShield: HalveShieldHandler(),
         .deathsDoor: DeathsDoorHandler(),
-        .haste: HasteHandler(),
         .thorns: ThornsHandler(),
         .marked: MarkedHandler(),
         .criticalChanceBonus: CriticalChanceBonusHandler(),

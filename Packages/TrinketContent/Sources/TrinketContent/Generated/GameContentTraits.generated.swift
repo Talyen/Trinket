@@ -7,77 +7,77 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "oathbound",
             name: "Oathbound",
-            description: "Increases Block gained by 1.",
+            description: "Increase Block gained by 1.",
             modifiers: [.blockGained(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "cutpurse",
             name: "Cutpurse",
-            description: "Increases Gold gained by 1.",
+            description: "Increase Gold gained by 1.",
             modifiers: [.goldGained(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "arcane_focus",
             name: "Arcane Focus",
-            description: "Increases Burn and Freeze damage dealt by 1.",
+            description: "Increase Burn and Freeze damage dealt by 1.",
             modifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "pack_leader",
             name: "Pack Leader",
-            description: "Increases Companion damage dealt by 1.",
+            description: "Increase Companion damage dealt by 1.",
             modifiers: [.companionDamageDealt(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "soul_siphon",
             name: "Soul Siphon",
-            description: "Increases Leech duration by 2.",
+            description: "Increase Leech duration by 2.",
             modifiers: [.leechDuration(2)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "thick_hide",
             name: "Thick Hide",
-            description: "Increases Maximum Health by 2.",
+            description: "Increase Maximum Health by 2.",
             modifiers: [.maximumHealth(2)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "permafrost",
             name: "Permafrost",
-            description: "Increases Freeze damage dealt by 1.",
+            description: "Increase Freeze damage dealt by 1.",
             modifiers: [.damageDealt(.freeze, 1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "cold_blood",
             name: "Cold Blood",
-            description: "Increases Agility by 2.",
+            description: "Increase Agility by 2.",
             modifiers: [.agility(2)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "razor_claws",
             name: "Razor Claws",
-            description: "Increases Bleed damage dealt by 1.",
+            description: "Increase Bleed damage dealt by 1.",
             modifiers: [.damageDealt(.bleed, 1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "immortal_ember",
             name: "Immortal Ember",
-            description: "Increases Burn damage dealt by 1.",
+            description: "Increase Burn damage dealt by 1.",
             modifiers: [.damageDealt(.burn, 1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "pack_ferocity",
             name: "Pack Ferocity",
-            description: "Increases Bleed duration by 1.",
+            description: "Increase Bleed duration by 1.",
             modifiers: [.bleedDuration(1)],
             triggers: CombatTraitTriggers()
         ),
@@ -98,14 +98,14 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "unliving_frame",
             name: "Unliving Frame",
-            description: "Decreases Physical damage taken by 10%.",
+            description: "Decrease Physical damage taken by 10%.",
             modifiers: [.damageTakenPercent(.physical, 0.10)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "arcane_reservoir",
             name: "Arcane Reservoir",
-            description: "Increases Maximum Mana by 3.",
+            description: "Increase Maximum Mana by 3.",
             modifiers: [.maximumMana(3)],
             triggers: CombatTraitTriggers()
         ),
@@ -119,7 +119,7 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "iron_carapace",
             name: "Iron Carapace",
-            description: "Increases Block gained by 2.",
+            description: "Increase Block gained by 2.",
             modifiers: [.blockGained(2)],
             triggers: CombatTraitTriggers()
         ),
@@ -140,28 +140,28 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "quagmire",
             name: "Quagmire",
-            description: "Decreases Physical damage taken by 15%.",
+            description: "Decrease Physical damage taken by 15%.",
             modifiers: [.damageTakenPercent(.physical, 0.15)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "amorphous",
             name: "Amorphous",
-            description: "15% Dodge chance vs Physical damage. Decreases Bleed damage taken by 50%.",
+            description: "15% Dodge chance vs Physical damage. Decrease Bleed damage taken by 50%.",
             modifiers: [.damageTakenPercent(.bleed, 0.50)],
             triggers: CombatTraitTriggers(physicalDodgeChanceBonus: 0.15)
         ),
         CombatantTraitDefinition(
             id: "blazing_core",
             name: "Blazing Core",
-            description: "Decreases Burn damage taken by 40%. Increases Burn damage dealt by 1.",
+            description: "Decrease Burn damage taken by 40%. Increase Burn damage dealt by 1.",
             modifiers: [.damageTakenPercent(.burn, 0.40), .damageDealt(.burn, 1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "permafrost_shell",
             name: "Permafrost",
-            description: "Decreases Freeze damage taken by 40%. Increases Freeze damage dealt by 1.",
+            description: "Decrease Freeze damage taken by 40%. Increase Freeze damage dealt by 1.",
             modifiers: [.damageTakenPercent(.freeze, 0.40), .damageDealt(.freeze, 1)],
             triggers: CombatTraitTriggers()
         ),
@@ -175,7 +175,7 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "animated_plate",
             name: "Animated Plate",
-            description: "Increases Block gained by 3.",
+            description: "Increase Block gained by 3.",
             modifiers: [.blockGained(3)],
             triggers: CombatTraitTriggers()
         ),
@@ -196,7 +196,7 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "miasma",
             name: "Miasma",
-            description: "Decreases Poison damage taken by 25%.",
+            description: "Decrease Poison damage taken by 25%.",
             modifiers: [.damageTakenPercent(.poison, 0.25)],
             triggers: CombatTraitTriggers()
         ),
@@ -210,21 +210,21 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "living_furnace",
             name: "Living Furnace",
-            description: "Decreases Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.",
+            description: "Decrease Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.",
             modifiers: [.damageTakenPercent(.burn, 0.50), .damageDealt(.burn, 2)],
             triggers: CombatTraitTriggers(thornsPercent: 0.15)
         ),
         CombatantTraitDefinition(
             id: "absolute_zero",
             name: "Absolute Zero",
-            description: "Decreases Freeze damage taken by 50%. Increases Freeze damage dealt by 2.",
+            description: "Decrease Freeze damage taken by 50%. Increase Freeze damage dealt by 2.",
             modifiers: [.damageTakenPercent(.freeze, 0.50), .damageDealt(.freeze, 2)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "ironhide",
             name: "Ironhide",
-            description: "Passive 2 damage reduction. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.",
+            description: "Passive 2 damage reduction. Decrease Bleed damage taken by 50%. Increase Stun damage dealt by 1.",
             modifiers: [.damageTakenPercent(.bleed, 0.50), .damageDealt(.stun, 1)],
             triggers: CombatTraitTriggers(passiveMitigationFlat: 2)
         ),
@@ -280,7 +280,7 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "hollow_shell",
             name: "Hollow Shell",
-            description: "Decreases Bleed and Poison damage taken by 50%. Cannot be healed.",
+            description: "Decrease Bleed and Poison damage taken by 50%. Cannot be healed.",
             modifiers: [.damageTakenPercent(.bleed, 0.50), .damageTakenPercent(.poison, 0.50)],
             triggers: CombatTraitTriggers(cannotBeHealed: true)
         ),

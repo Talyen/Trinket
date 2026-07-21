@@ -148,19 +148,6 @@ struct PlayerRosterStateTests {
         try #expect(stored.itemID(for: .secondaryTrinket) == nil)
     }
 
-    @Test func inventorySlotUnlocksWhenSlotItemExists() throws {
-        let weapon = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
-        var inventory = PlayerInventoryState.freshStart
-
-        try #expect(!(inventory.hasItem(for: .weapon)))
-        try #expect(!(inventory.hasItem(for: .armor)))
-
-        inventory.items.append(weapon)
-
-        try #expect(inventory.hasItem(for: .weapon))
-        try #expect(!(inventory.hasItem(for: .armor)))
-    }
-
     @Test func highestLevelsFilterByRoleAndDefaultToOne() throws {
         var roster = PlayerRosterState.initial
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)

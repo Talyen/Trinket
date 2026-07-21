@@ -1,36 +1,36 @@
 id	name	description	modifiers	triggers
-oathbound	Oathbound	Increases Block gained by 1.	block_gained:1	
-cutpurse	Cutpurse	Increases Gold gained by 1.	gold_gained:1	
-arcane_focus	Arcane Focus	Increases Burn and Freeze damage dealt by 1.	damage_dealt:burn:1|damage_dealt:freeze:1	
-pack_leader	Pack Leader	Increases Companion damage dealt by 1.	companion_damage_dealt:1	
-soul_siphon	Soul Siphon	Increases Leech duration by 2.	leech_duration:2	
-thick_hide	Thick Hide	Increases Maximum Health by 2.	maximum_health:2	
-permafrost	Permafrost	Increases Freeze damage dealt by 1.	damage_dealt:freeze:1	
-cold_blood	Cold Blood	Increases Agility by 2.	agility:2	
-razor_claws	Razor Claws	Increases Bleed damage dealt by 1.	damage_dealt:bleed:1	
-immortal_ember	Immortal Ember	Increases Burn damage dealt by 1.	damage_dealt:burn:1	
-pack_ferocity	Pack Ferocity	Increases Bleed duration by 1.	bleed_duration:1	
+oathbound	Oathbound	Increase Block gained by 1.	block_gained:1	
+cutpurse	Cutpurse	Increase Gold gained by 1.	gold_gained:1	
+arcane_focus	Arcane Focus	Increase Burn and Freeze damage dealt by 1.	damage_dealt:burn:1|damage_dealt:freeze:1	
+pack_leader	Pack Leader	Increase Companion damage dealt by 1.	companion_damage_dealt:1	
+soul_siphon	Soul Siphon	Increase Leech duration by 2.	leech_duration:2	
+thick_hide	Thick Hide	Increase Maximum Health by 2.	maximum_health:2	
+permafrost	Permafrost	Increase Freeze damage dealt by 1.	damage_dealt:freeze:1	
+cold_blood	Cold Blood	Increase Agility by 2.	agility:2	
+razor_claws	Razor Claws	Increase Bleed damage dealt by 1.	damage_dealt:bleed:1	
+immortal_ember	Immortal Ember	Increase Burn damage dealt by 1.	damage_dealt:burn:1	
+pack_ferocity	Pack Ferocity	Increase Bleed duration by 1.	bleed_duration:1	
 loyal_comfort	Loyal Comfort	Restore 1 Health to the Hero when restoring Health.		on_restore_health_heal_hero:1
 purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_cleanse_heal:1
-unliving_frame	Unliving Frame	Decreases Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
-arcane_reservoir	Arcane Reservoir	Increases Maximum Mana by 3.	maximum_mana:3	
+unliving_frame	Unliving Frame	Decrease Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
+arcane_reservoir	Arcane Reservoir	Increase Maximum Mana by 3.	maximum_mana:3	
 fae_fortune	Fae Fortune	Restore 1 Health when gaining Gold.		on_gain_gold_heal:1
-iron_carapace	Iron Carapace	Increases Block gained by 2.	block_gained:2	
+iron_carapace	Iron Carapace	Increase Block gained by 2.	block_gained:2	
 unfeeling	Unfeeling	Stun and Freeze buildup is 30% slower.		control_resistance:0.30
 nimble	Nimble	12% increased Dodge chance.		dodge_chance_bonus:0.12
-quagmire	Quagmire	Decreases Physical damage taken by 15%.	damage_taken_percent:physical:0.15	
-amorphous	Amorphous	15% Dodge chance vs Physical damage. Decreases Bleed damage taken by 50%.	damage_taken_percent:bleed:0.50	physical_dodge_chance_bonus:0.15
-blazing_core	Blazing Core	Decreases Burn damage taken by 40%. Increases Burn damage dealt by 1.	damage_taken_percent:burn:0.40|damage_dealt:burn:1	
-permafrost_shell	Permafrost	Decreases Freeze damage taken by 40%. Increases Freeze damage dealt by 1.	damage_taken_percent:freeze:0.40|damage_dealt:freeze:1	
+quagmire	Quagmire	Decrease Physical damage taken by 15%.	damage_taken_percent:physical:0.15	
+amorphous	Amorphous	15% Dodge chance vs Physical damage. Decrease Bleed damage taken by 50%.	damage_taken_percent:bleed:0.50	physical_dodge_chance_bonus:0.15
+blazing_core	Blazing Core	Decrease Burn damage taken by 40%. Increase Burn damage dealt by 1.	damage_taken_percent:burn:0.40|damage_dealt:burn:1	
+permafrost_shell	Permafrost	Decrease Freeze damage taken by 40%. Increase Freeze damage dealt by 1.	damage_taken_percent:freeze:0.40|damage_dealt:freeze:1	
 ethereal	Ethereal	20% increased Dodge chance. Stun and Freeze buildup is 30% slower.		dodge_chance_bonus:0.20|control_resistance:0.30
-animated_plate	Animated Plate	Increases Block gained by 3.	block_gained:3	
+animated_plate	Animated Plate	Increase Block gained by 3.	block_gained:3	
 ambush	Ambush	First damaging hit each battle deals 2 bonus damage.		ambush_bonus:2
 grave_power	Grave Power	Leech healing is 50% stronger. Hemorrhage applies 1 extra Bleed potency.		leech_healing_multiplier:1.50|hemorrhage_bleed_bonus:1
-miasma	Miasma	Decreases Poison damage taken by 25%.	damage_taken_percent:poison:0.25	
+miasma	Miasma	Decrease Poison damage taken by 25%.	damage_taken_percent:poison:0.25	
 heartwood_renewal	Heartwood Renewal	Restore 1 Health every 6 seconds.		regeneration:1:6
-living_furnace	Living Furnace	Decreases Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.	damage_taken_percent:burn:0.50|damage_dealt:burn:2	thorns_percent:0.15
-absolute_zero	Absolute Zero	Decreases Freeze damage taken by 50%. Increases Freeze damage dealt by 2.	damage_taken_percent:freeze:0.50|damage_dealt:freeze:2	
-ironhide	Ironhide	Passive 2 damage reduction. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_mitigation:2
+living_furnace	Living Furnace	Decrease Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.	damage_taken_percent:burn:0.50|damage_dealt:burn:2	thorns_percent:0.15
+absolute_zero	Absolute Zero	Decrease Freeze damage taken by 50%. Increase Freeze damage dealt by 2.	damage_taken_percent:freeze:0.50|damage_dealt:freeze:2	
+ironhide	Ironhide	Passive 2 damage reduction. Decrease Bleed damage taken by 50%. Increase Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_mitigation:2
 holy_weakness	Holy Weakness	Takes 30% more Holy damage.	damage_taken_vulnerability:holy:0.30	
 scrawny	Scrawny	Takes 25% more Physical damage.	damage_taken_vulnerability:physical:0.25	
 desiccation	Desiccation	Takes 30% more Burn damage. Burn decays 50% slower on this enemy.	damage_taken_vulnerability:burn:0.30	burn_decay_slow:0.50
@@ -38,7 +38,7 @@ evaporation	Evaporation	Takes 30% more Burn damage.	damage_taken_vulnerability:b
 quenched	Quenched	Takes 35% more Freeze damage. Freeze buildup is 25% faster.	damage_taken_vulnerability:freeze:0.35	freeze_control_vulnerability:0.25
 kindling	Kindling	Takes 35% more Burn damage.	damage_taken_vulnerability:burn:0.35	
 cold_snuff	Cold Snuff	Takes 30% more Freeze damage.	damage_taken_vulnerability:freeze:0.30	
-hollow_shell	Hollow Shell	Decreases Bleed and Poison damage taken by 50%. Cannot be healed.	damage_taken_percent:bleed:0.50|damage_taken_percent:poison:0.50	cannot_be_healed:1
+hollow_shell	Hollow Shell	Decrease Bleed and Poison damage taken by 50%. Cannot be healed.	damage_taken_percent:bleed:0.50|damage_taken_percent:poison:0.50	cannot_be_healed:1
 splintering_frame	Splintering Frame	Takes 30% more Burn damage and 20% more Bleed damage.	damage_taken_vulnerability:burn:0.30|damage_taken_vulnerability:bleed:0.20	
 mortalfied	Mortalfied	Takes 30% more Holy damage.	damage_taken_vulnerability:holy:0.30	
 frail_vessel	Frail Vessel	Takes 25% more Physical damage and 15% more Burn damage. Toughness damage reduction is 15% less effective.	damage_taken_vulnerability:physical:0.25|damage_taken_vulnerability:burn:0.15	mitigation_effectiveness_penalty:0.15

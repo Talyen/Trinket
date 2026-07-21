@@ -1,9 +1,11 @@
 import Foundation
 import SwiftUI
 
-/// How Ultimate cinematics may be dismissed or limited.
-enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
+/// How Ultimate cinematics are shown before presentation.
+enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable {
+    /// Always present the full-screen Ultimate cinematic.
     case always
+    /// Never present the full-screen Ultimate cinematic.
     case never
     /// Show each of Hero and Companion's Ultimate cinematic once per battle; later casts auto-skip.
     case oncePerBattle
@@ -18,17 +20,31 @@ enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
         switch self {
         case .always: "Always"
         case .never: "Never"
-        case .oncePerBattle, .afterFirstView: "Show Once Per Battle"
+        case .oncePerBattle, .afterFirstView: "Once Per Battle"
         }
     }
 
     /// Cases shown in the Options picker (excludes legacy alias).
-    static var pickerCases: [UltimateCinematicSkipPolicy] {
+    static var pickerCases: [UltimateCinematicShowPolicy] {
         [.always, .never, .oncePerBattle]
     }
 
-    var normalized: UltimateCinematicSkipPolicy {
+    var normalized: UltimateCinematicShowPolicy {
         self == .afterFirstView ? .oncePerBattle : self
+    }
+
+    /// Maps a value stored under the former "Skip Ultimate Animations" framing.
+    static func migratedFromSkipPolicy(_ rawValue: String) -> UltimateCinematicShowPolicy {
+        switch UltimateCinematicShowPolicy(rawValue: rawValue)?.normalized {
+        case .always:
+            // Old "Always" meant always skip → never show.
+            .never
+        case .never:
+            // Old "Never" meant never skip → always show.
+            .always
+        case .oncePerBattle, .afterFirstView, .none:
+            .oncePerBattle
+        }
     }
 }
 
@@ -40,7 +56,7 @@ final class OptionsStore {
     @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
-    @ObservationIgnored private var ultimateSkipPolicyStorage: AppStorage<String>
+    @ObservationIgnored private var ultimateShowPolicyStorage: AppStorage<String>
 
     var musicVolume: Double {
         didSet { musicVolumeStorage.wrappedValue = musicVolume }
@@ -54,12 +70,12 @@ final class OptionsStore {
         didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
     }
 
-    var ultimateCinematicSkipPolicy: UltimateCinematicSkipPolicy {
+    var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
         didSet {
-            let normalized = ultimateCinematicSkipPolicy.normalized
-            ultimateSkipPolicyStorage.wrappedValue = normalized.rawValue
-            if ultimateCinematicSkipPolicy != normalized {
-                ultimateCinematicSkipPolicy = normalized
+            let normalized = ultimateCinematicShowPolicy.normalized
+            ultimateShowPolicyStorage.wrappedValue = normalized.rawValue
+            if ultimateCinematicShowPolicy != normalized {
+                ultimateCinematicShowPolicy = normalized
             }
         }
     }
@@ -67,6 +83,8 @@ final class OptionsStore {
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
+    static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
+    /// Former "Skip Ultimate Animations" key. Cleared after one-shot migration to show framing.
     static let ultimateCinematicSkipPolicyKey = "options.ultimateCinematicSkipPolicy"
     /// Removed: appearance preference. Kept so reset clears any leftover key.
     static let appearanceKey = "options.appearance"
@@ -89,46 +107,50 @@ final class OptionsStore {
             Self.hapticsEnabledKey,
             store: defaults
         )
-        ultimateSkipPolicyStorage = AppStorage(
-            wrappedValue: UltimateCinematicSkipPolicy.always.rawValue,
-            Self.ultimateCinematicSkipPolicyKey,
+
+        let resolvedPolicy = Self.resolveShowPolicy(from: defaults)
+        ultimateShowPolicyStorage = AppStorage(
+            wrappedValue: resolvedPolicy.rawValue,
+            Self.ultimateCinematicShowPolicyKey,
             store: defaults
         )
 
         musicVolume = musicVolumeStorage.wrappedValue
         effectsVolume = effectsVolumeStorage.wrappedValue
         hapticsEnabled = hapticsEnabledStorage.wrappedValue
-        let loadedPolicy = UltimateCinematicSkipPolicy(
-            rawValue: ultimateSkipPolicyStorage.wrappedValue
-        ) ?? .always
-        ultimateCinematicSkipPolicy = loadedPolicy.normalized
-        if loadedPolicy != ultimateCinematicSkipPolicy {
-            ultimateSkipPolicyStorage.wrappedValue = ultimateCinematicSkipPolicy.rawValue
-        }
+        ultimateCinematicShowPolicy = resolvedPolicy
+        ultimateShowPolicyStorage.wrappedValue = resolvedPolicy.rawValue
     }
 
-    /// Whether the player may tap-to-skip the cinematic currently on screen.
-    func canSkipUltimateCinematic() -> Bool {
-        switch ultimateCinematicSkipPolicy.normalized {
-        case .always, .oncePerBattle, .afterFirstView:
-            true
-        case .never:
-            false
-        }
-    }
-
-    /// Whether a new Ultimate from this actor should skip the full-screen cinematic
-    /// under the once-per-battle policy (Hero and Companion each get one show per battle).
+    /// Whether a new Ultimate from this actor should skip the full-screen cinematic.
     func shouldAutoSkipUltimateCinematic(
         actorID: String,
         actorsWhoPresentedThisBattle: Set<String>
     ) -> Bool {
-        switch ultimateCinematicSkipPolicy.normalized {
+        switch ultimateCinematicShowPolicy.normalized {
+        case .always:
+            false
         case .oncePerBattle, .afterFirstView:
             actorsWhoPresentedThisBattle.contains(actorID)
-        case .always, .never:
-            false
+        case .never:
+            true
         }
+    }
+
+    private static func resolveShowPolicy(from defaults: UserDefaults) -> UltimateCinematicShowPolicy {
+        if let raw = defaults.string(forKey: ultimateCinematicShowPolicyKey),
+           let policy = UltimateCinematicShowPolicy(rawValue: raw) {
+            return policy.normalized
+        }
+
+        if let legacyRaw = defaults.string(forKey: ultimateCinematicSkipPolicyKey) {
+            let migrated = UltimateCinematicShowPolicy.migratedFromSkipPolicy(legacyRaw)
+            defaults.set(migrated.rawValue, forKey: ultimateCinematicShowPolicyKey)
+            defaults.removeObject(forKey: ultimateCinematicSkipPolicyKey)
+            return migrated
+        }
+
+        return .oncePerBattle
     }
 
     private static var defaultMusicVolume: Double {

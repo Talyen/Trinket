@@ -1,22 +1,12 @@
 import SwiftUI
 import TrinketDesignSystem
 
-enum StageSelectActiveCardLayout {
-    case standard
-    case compact
-}
-
-enum StageSelectActiveCardTitlePlacement {
-    case footer
-    case artworkBottomLeading
-}
-
 /// Shared active encounter card used by linear Stage Select surfaces.
 struct StageSelectActiveCard<
     Item: Identifiable,
     Artwork: View,
     PartyPickerSheet: View,
-    FooterAccessory: View
+    ArtworkAccessory: View
 >: View {
     @Environment(AppState.self) private var appState
 
@@ -26,9 +16,7 @@ struct StageSelectActiveCard<
     let onPrimaryAction: () -> Void
     @ViewBuilder let artwork: () -> Artwork
     @ViewBuilder let partyPickerSheet: () -> PartyPickerSheet
-    @ViewBuilder let footerAccessory: () -> FooterAccessory
-    var layout: StageSelectActiveCardLayout = .standard
-    var titlePlacement: StageSelectActiveCardTitlePlacement = .footer
+    @ViewBuilder let artworkAccessory: () -> ArtworkAccessory
 
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
@@ -40,9 +28,7 @@ struct StageSelectActiveCard<
         onPrimaryAction: @escaping () -> Void,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
-        layout: StageSelectActiveCardLayout = .standard,
-        titlePlacement: StageSelectActiveCardTitlePlacement = .footer,
-        @ViewBuilder footerAccessory: @escaping () -> FooterAccessory
+        @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory
     ) {
         self.presentation = presentation
         self.isPrimaryActionDisabled = isPrimaryActionDisabled
@@ -50,9 +36,7 @@ struct StageSelectActiveCard<
         self.onPrimaryAction = onPrimaryAction
         self.artwork = artwork
         self.partyPickerSheet = partyPickerSheet
-        self.footerAccessory = footerAccessory
-        self.layout = layout
-        self.titlePlacement = titlePlacement
+        self.artworkAccessory = artworkAccessory
     }
 
     var body: some View {
@@ -81,12 +65,9 @@ struct StageSelectActiveCard<
                         .clipped()
                 }
             }
-            .overlay(alignment: .bottomLeading) {
-                if titlePlacement == .artworkBottomLeading {
-                    artworkTitleBlock
-                        .padding(TrinketDesign.Metrics.mediumSpacing)
-                        .allowsHitTesting(false)
-                }
+            .overlay(alignment: .topTrailing) {
+                artworkAccessory()
+                    .padding(TrinketDesign.Metrics.smallSpacing)
             }
     }
 
@@ -108,39 +89,28 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        Group {
-            if layout == .compact {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    if titlePlacement == .footer {
-                        titleBlock
-                    }
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                titleBlock
+                    .fixedSize(horizontal: true, vertical: false)
 
-                    footerActionRow
+                Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+
+                actionControls
+            }
+
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                titleBlock
+
+                HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    Spacer(minLength: 0)
+
+                    actionControls
                 }
-            } else if titlePlacement == .footer {
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        titleBlock
-                            .fixedSize(horizontal: true, vertical: false)
-
-                        Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
-
-                        footerAccessory()
-                        actionControls
-                    }
-
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-                        titleBlock
-
-                        footerActionRow
-                    }
-                }
-            } else {
-                footerActionRow
             }
         }
         .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-        .padding(layout == .compact ? TrinketDesign.Metrics.smallSpacing : TrinketDesign.Metrics.mediumSpacing)
+        .padding(TrinketDesign.Metrics.mediumSpacing)
         .background(TrinketDesign.Colors.surface)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(presentation.activeDetailAccessibilityID)
@@ -166,32 +136,6 @@ struct StageSelectActiveCard<
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }
-    }
-
-    private var artworkTitleBlock: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-            Text(presentation.title)
-                .trinketTypography(.sectionDisplay)
-                .trinketOnArtText(.title)
-                .lineLimit(2)
-                .minimumScaleFactor(0.75)
-
-            Text(presentation.activeEyebrow)
-                .trinketTypography(.caption)
-                .trinketOnArtText(.eyebrow)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-    }
-
-    private var footerActionRow: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-            footerAccessory()
-
-            Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
-
-            actionControls
         }
     }
 
@@ -245,16 +189,14 @@ struct StageSelectActiveCard<
     }
 }
 
-extension StageSelectActiveCard where FooterAccessory == EmptyView {
+extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
     init(
         presentation: StageSelectRowPresentation<Item>,
         isPrimaryActionDisabled: Bool,
         onArtworkTap: @escaping () -> Void,
         onPrimaryAction: @escaping () -> Void,
         @ViewBuilder artwork: @escaping () -> Artwork,
-        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
-        layout: StageSelectActiveCardLayout = .standard,
-        titlePlacement: StageSelectActiveCardTitlePlacement = .footer
+        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet
     ) {
         self.init(
             presentation: presentation,
@@ -263,9 +205,7 @@ extension StageSelectActiveCard where FooterAccessory == EmptyView {
             onPrimaryAction: onPrimaryAction,
             artwork: artwork,
             partyPickerSheet: partyPickerSheet,
-            layout: layout,
-            titlePlacement: titlePlacement,
-            footerAccessory: { EmptyView() }
+            artworkAccessory: { EmptyView() }
         )
     }
 }

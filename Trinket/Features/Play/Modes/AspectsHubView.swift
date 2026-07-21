@@ -67,14 +67,13 @@ struct AspectsHubView: View {
 
     private func subtitle(for aspect: AspectDefinition, isLocked: Bool) -> String {
         if isLocked {
-            return "Requires at least one Hero and Companion with \(aspect.keyword.rawValue) abilities"
+            return "Requires Hero/Companion with \(aspect.keyword.rawValue) abilities"
         }
 
         let clearedFloors = min(
             appState.aspects.highestClearedFloor(for: aspect.id.rawValue),
             aspect.floorCount
         )
-        let percentComplete = aspect.floorCount == 0 ? 0 : clearedFloors * 100 / aspect.floorCount
-        return "\(percentComplete)% complete · \(clearedFloors) / \(aspect.floorCount) Floors"
+        return "\(clearedFloors) / \(aspect.floorCount) Floors"
     }
 }

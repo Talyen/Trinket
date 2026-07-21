@@ -68,11 +68,11 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext,
         spendMana: Bool
     ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
         if spendMana {
-            spendManaIfNeeded(for: ability, actor: actor, context: &context)
+            events.append(contentsOf: spendManaIfNeeded(for: ability, actor: actor, context: &context))
         }
 
-        var events: [ActionEvent] = []
         let damageOutcome = applyDamageComponents(
             ability: ability,
             actor: actor,
@@ -131,11 +131,14 @@ public enum BattleTurnEngine {
         return .basic
     }
 
-    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) {
-        guard ability.manaCost > 0, actor.hasMana else { return }
+    @discardableResult
+    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) -> [ActionEvent] {
+        guard ability.manaCost > 0, actor.hasMana else { return [] }
         let cost = context.modifiers(for: actor.id).effectiveManaCost(for: ability)
-        guard cost > 0 else { return }
-        _ = context.spendMana(cost, for: actor)
+        guard cost > 0 else { return [] }
+        let spent = context.spendMana(cost, for: actor)
+        guard spent > 0 else { return [] }
+        return CombatReactionEngine.afterSpendMana(by: actor, in: &context)
     }
 }
 
@@ -411,9 +414,6 @@ extension BattleTurnEngine {
         guard var runtime = context.roster.runtime(for: actor) else { return [] }
         runtime.markActed()
         context.roster.update(runtime)
-        if actor.id == context.roster.companion.id {
-            return CombatReactionEngine.afterCompanionActed(in: &context)
-        }
         return []
     }
 

@@ -77,7 +77,7 @@ public enum StageEncounter: Hashable, Sendable {
     public var symbolName: String {
         switch self {
         case .battle:
-            "bolt.fill"
+            "flag.2.crossed"
         case .event:
             "sparkles"
         case .shop:
@@ -86,8 +86,8 @@ public enum StageEncounter: Hashable, Sendable {
             "tent.fill"
         case .mysteryEvent:
             "sparkles"
-        case .recruit:
-            "person.crop.circle.badge.plus"
+        case let .recruit(eventID):
+            GameContent.recruitEncounterSymbolName(forEventID: eventID)
         }
     }
 

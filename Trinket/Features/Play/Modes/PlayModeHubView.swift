@@ -73,12 +73,11 @@ struct PlayModeHubView: View {
     private func subtitle(for mode: Mode) -> String? {
         switch mode {
         case .campaign:
-            let chapter = appState.playChapter
             if let stageID = appState.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
-                return "Chapter \(chapter.number) · \(stage.mapLabel)"
+                return stage.mapLabel
             }
-            return "Chapter \(chapter.number) · Complete"
+            return "Chapter \(appState.playChapter.number) · Complete"
         case .explore:
             return nil
         }
@@ -151,11 +150,6 @@ struct PlayModeArtworkCard: View {
             .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                Text(title)
-                    .trinketTypography(.screenDisplay)
-                    .trinketOnArtText(.title)
-                    .lineLimit(1)
-
                 if let subtitle {
                     HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
                         if let symbolName {
@@ -169,6 +163,11 @@ struct PlayModeArtworkCard: View {
                     }
                     .trinketOnArtText(.eyebrow)
                 }
+
+                Text(title)
+                    .trinketTypography(.screenDisplay)
+                    .trinketOnArtText(.title)
+                    .lineLimit(1)
             }
             .padding(TrinketDesign.Metrics.largeSpacing)
         }

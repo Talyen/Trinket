@@ -106,7 +106,7 @@ public enum ActionEventFormatter {
             shieldHalvedDisplay(for: event)
         case .dodgeApplied:
             dodgeDisplay(for: event)
-        case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
+        case .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
              .damageKeywordOverrideApplied, .nextHolyStrikeApplied:
             signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .thornsTriggered, .markedConsumed:

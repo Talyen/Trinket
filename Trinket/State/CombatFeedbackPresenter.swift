@@ -309,8 +309,6 @@ enum CombatFeedbackPresenter {
         return switch effectKind {
         case .thornsApplied:
             StatusPresentation(label: .thorns, role: .beneficialStatus)
-        case .hasteApplied:
-            StatusPresentation(label: .hasted, role: .beneficialStatus)
         case .criticalChanceApplied:
             StatusPresentation(label: .criticalUp, role: .beneficialStatus)
         case .manaShieldApplied:

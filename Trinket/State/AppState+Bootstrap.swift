@@ -60,6 +60,11 @@ extension AppState {
         )
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
+        // Seeded UI launches hide Ultimate overlays so matched-geometry expand
+        // does not hide mid-battle chrome under the no-tap-skip policy.
+        if environment.seedTestProgress {
+            resolvedOptions.ultimateCinematicShowPolicy = .never
+        }
 
         let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
         let launchPlay = launchPlayDestination(for: environment.launchScreen)
@@ -105,6 +110,7 @@ extension AppState {
         defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
         defaults.removeObject(forKey: OptionsStore.appearanceKey)
+        defaults.removeObject(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
         defaults.removeObject(forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
         defaults.removeObject(forKey: OptionsStore.seenUltimateCinematicsKey)
     }

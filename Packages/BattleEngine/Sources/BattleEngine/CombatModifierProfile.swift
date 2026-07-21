@@ -54,18 +54,24 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageAfterDodgeBonus: Int
     public var refreshBleedOnReapply: Bool
     public var blockBrokenBlockFlat: Int
-    public var blockGainedCleanseCount: Int
-    public var blockGainedCleanseIntervalTicks: Int
-    public var enemyStunnedHasteDurationTicks: Int
     public var firstHitApplyMarked: Bool
-    public var companionActLeechPercent: Double
-    public var companionActLeechDurationTicks: Int
     public var companionHealSharePercent: Double
     public var onceBelowHealthPercentThreshold: Double
     public var onceBelowHealthPercentHeal: Int
     public var blockPerActionWhileDeathsDoor: Int
     public var everyNthBurnTickCount: Int
     public var everyNthBurnTickFreezeDamage: Int
+    public var spendManaBlockFlat: Int
+    public var holyDamageBlockFlat: Int
+    public var holyDamageCleanseCount: Int
+    public var holyDamageHealFlat: Int
+    public var dodgeGoldFlat: Int
+    public var ignoreEnemyMitigationPercent: Double
+    public var stunDealPhysicalFlat: Int
+    public var damageWhileTargetStunnedBonus: Int
+    public var enemyStunnedApplyMarked: Bool
+    public var dodgeBlockFlat: Int
+    public var holyDamagePurgeCount: Int
     public var traitDisplayName: String?
 
     public static let zero = CombatModifierProfile()
@@ -124,18 +130,24 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageAfterDodgeBonus: Int = 0,
         refreshBleedOnReapply: Bool = false,
         blockBrokenBlockFlat: Int = 0,
-        blockGainedCleanseCount: Int = 0,
-        blockGainedCleanseIntervalTicks: Int = 0,
-        enemyStunnedHasteDurationTicks: Int = 0,
         firstHitApplyMarked: Bool = false,
-        companionActLeechPercent: Double = 0,
-        companionActLeechDurationTicks: Int = 0,
         companionHealSharePercent: Double = 0,
         onceBelowHealthPercentThreshold: Double = 0,
         onceBelowHealthPercentHeal: Int = 0,
         blockPerActionWhileDeathsDoor: Int = 0,
         everyNthBurnTickCount: Int = 0,
         everyNthBurnTickFreezeDamage: Int = 0,
+        spendManaBlockFlat: Int = 0,
+        holyDamageBlockFlat: Int = 0,
+        holyDamageCleanseCount: Int = 0,
+        holyDamageHealFlat: Int = 0,
+        dodgeGoldFlat: Int = 0,
+        ignoreEnemyMitigationPercent: Double = 0,
+        stunDealPhysicalFlat: Int = 0,
+        damageWhileTargetStunnedBonus: Int = 0,
+        enemyStunnedApplyMarked: Bool = false,
+        dodgeBlockFlat: Int = 0,
+        holyDamagePurgeCount: Int = 0,
         traitDisplayName: String? = nil
     ) {
         self.statBonuses = statBonuses
@@ -189,18 +201,24 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageAfterDodgeBonus = damageAfterDodgeBonus
         self.refreshBleedOnReapply = refreshBleedOnReapply
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
-        self.blockGainedCleanseCount = blockGainedCleanseCount
-        self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
-        self.enemyStunnedHasteDurationTicks = enemyStunnedHasteDurationTicks
         self.firstHitApplyMarked = firstHitApplyMarked
-        self.companionActLeechPercent = companionActLeechPercent
-        self.companionActLeechDurationTicks = companionActLeechDurationTicks
         self.companionHealSharePercent = companionHealSharePercent
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
         self.everyNthBurnTickCount = everyNthBurnTickCount
         self.everyNthBurnTickFreezeDamage = everyNthBurnTickFreezeDamage
+        self.spendManaBlockFlat = spendManaBlockFlat
+        self.holyDamageBlockFlat = holyDamageBlockFlat
+        self.holyDamageCleanseCount = holyDamageCleanseCount
+        self.holyDamageHealFlat = holyDamageHealFlat
+        self.dodgeGoldFlat = dodgeGoldFlat
+        self.ignoreEnemyMitigationPercent = ignoreEnemyMitigationPercent
+        self.stunDealPhysicalFlat = stunDealPhysicalFlat
+        self.damageWhileTargetStunnedBonus = damageWhileTargetStunnedBonus
+        self.enemyStunnedApplyMarked = enemyStunnedApplyMarked
+        self.dodgeBlockFlat = dodgeBlockFlat
+        self.holyDamagePurgeCount = holyDamagePurgeCount
         self.traitDisplayName = traitDisplayName
     }
 
@@ -283,18 +301,24 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageAfterDodgeBonus += other.damageAfterDodgeBonus
         refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply
         blockBrokenBlockFlat += other.blockBrokenBlockFlat
-        blockGainedCleanseCount += other.blockGainedCleanseCount
-        blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)
-        enemyStunnedHasteDurationTicks = max(enemyStunnedHasteDurationTicks, other.enemyStunnedHasteDurationTicks)
         firstHitApplyMarked = firstHitApplyMarked || other.firstHitApplyMarked
-        companionActLeechPercent += other.companionActLeechPercent
-        companionActLeechDurationTicks = max(companionActLeechDurationTicks, other.companionActLeechDurationTicks)
         companionHealSharePercent += other.companionHealSharePercent
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
         blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor
         everyNthBurnTickCount = max(everyNthBurnTickCount, other.everyNthBurnTickCount)
         everyNthBurnTickFreezeDamage += other.everyNthBurnTickFreezeDamage
+        spendManaBlockFlat += other.spendManaBlockFlat
+        holyDamageBlockFlat += other.holyDamageBlockFlat
+        holyDamageCleanseCount += other.holyDamageCleanseCount
+        holyDamageHealFlat += other.holyDamageHealFlat
+        dodgeGoldFlat += other.dodgeGoldFlat
+        ignoreEnemyMitigationPercent += other.ignoreEnemyMitigationPercent
+        stunDealPhysicalFlat += other.stunDealPhysicalFlat
+        damageWhileTargetStunnedBonus += other.damageWhileTargetStunnedBonus
+        enemyStunnedApplyMarked = enemyStunnedApplyMarked || other.enemyStunnedApplyMarked
+        dodgeBlockFlat += other.dodgeBlockFlat
+        holyDamagePurgeCount += other.holyDamagePurgeCount
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
         }

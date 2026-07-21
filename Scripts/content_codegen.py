@@ -73,6 +73,8 @@ VALID_KEYWORDS = frozenset(
         "leech",
         "gold",
         "mana",
+        "dodge",
+        "purge",
     }
 )
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -440,6 +442,8 @@ def modifier_token_to_swift(token: str) -> str:
         return f".maximumMana({token.split(':', 1)[1]})"
     if token.startswith("leech_duration:"):
         return f".leechDuration({token.split(':', 1)[1]})"
+    if token.startswith("mana_cost_reduction_percent:"):
+        return f".manaCostReductionPercent({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
 
 
@@ -520,18 +524,8 @@ def triggers_swift(raw: str) -> str:
             values["refreshBleedOnReapply"] = token.split(":", 1)[1]
         elif token.startswith("on_block_broken_block:"):
             values["blockBrokenBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("on_block_gained_cleanse:"):
-            _, count, interval = token.split(":", 2)
-            values["blockGainedCleanseCount"] = count
-            values["blockGainedCleanseIntervalTicks"] = interval
-        elif token.startswith("on_enemy_stunned_haste:"):
-            values["enemyStunnedHasteDurationTicks"] = token.split(":", 1)[1]
         elif token.startswith("first_hit_apply_marked:"):
             values["firstHitApplyMarked"] = token.split(":", 1)[1]
-        elif token.startswith("on_companion_act_leech:"):
-            _, percent, duration = token.split(":", 2)
-            values["companionActLeechPercent"] = percent
-            values["companionActLeechDurationTicks"] = duration
         elif token.startswith("companion_heal_share_percent:"):
             values["companionHealSharePercent"] = token.split(":", 1)[1]
         elif token.startswith("once_below_health_percent_heal:"):
@@ -544,6 +538,28 @@ def triggers_swift(raw: str) -> str:
             _, count, amount = token.split(":", 2)
             values["everyNthBurnTickCount"] = count
             values["everyNthBurnTickFreezeDamage"] = amount
+        elif token.startswith("on_spend_mana_block:"):
+            values["spendManaBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_holy_damage_block:"):
+            values["holyDamageBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_holy_damage_cleanse:"):
+            values["holyDamageCleanseCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_holy_damage_heal:"):
+            values["holyDamageHealFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_dodge_gold:"):
+            values["dodgeGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("ignore_enemy_mitigation_percent:"):
+            values["ignoreEnemyMitigationPercent"] = token.split(":", 1)[1]
+        elif token.startswith("on_stun_deal_physical:"):
+            values["stunDealPhysicalFlat"] = token.split(":", 1)[1]
+        elif token.startswith("damage_while_target_stunned:"):
+            values["damageWhileTargetStunnedBonus"] = token.split(":", 1)[1]
+        elif token.startswith("on_enemy_stunned_apply_marked:"):
+            values["enemyStunnedApplyMarked"] = token.split(":", 1)[1]
+        elif token.startswith("on_dodge_block:"):
+            values["dodgeBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_holy_damage_purge:"):
+            values["holyDamagePurgeCount"] = token.split(":", 1)[1]
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     order = [
@@ -582,18 +598,24 @@ def triggers_swift(raw: str) -> str:
         "damageAfterDodgeBonus",
         "refreshBleedOnReapply",
         "blockBrokenBlockFlat",
-        "blockGainedCleanseCount",
-        "blockGainedCleanseIntervalTicks",
-        "enemyStunnedHasteDurationTicks",
         "firstHitApplyMarked",
-        "companionActLeechPercent",
-        "companionActLeechDurationTicks",
         "companionHealSharePercent",
         "onceBelowHealthPercentThreshold",
         "onceBelowHealthPercentHeal",
         "blockPerActionWhileDeathsDoor",
         "everyNthBurnTickCount",
         "everyNthBurnTickFreezeDamage",
+        "spendManaBlockFlat",
+        "holyDamageBlockFlat",
+        "holyDamageCleanseCount",
+        "holyDamageHealFlat",
+        "dodgeGoldFlat",
+        "ignoreEnemyMitigationPercent",
+        "stunDealPhysicalFlat",
+        "damageWhileTargetStunnedBonus",
+        "enemyStunnedApplyMarked",
+        "dodgeBlockFlat",
+        "holyDamagePurgeCount",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
     if not parts:

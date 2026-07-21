@@ -69,13 +69,6 @@ extension BattleSession {
         activeCinematic = cinematic
     }
 
-    func requestSkipCinematic(at date: Date = .now) {
-        guard let cinematic = activeCinematic else { return }
-        guard date >= cinematic.skipArmedAt else { return }
-        guard options?.canSkipUltimateCinematic() ?? true else { return }
-        beginCinematicCollapse(expectedID: cinematic.id)
-    }
-
     func completeCinematicCollapse(expectedID: Int? = nil, at date: Date = .now) {
         guard let cinematic = activeCinematic else { return }
         // Ignore stale collapse tasks from a prior cinematic (unstructured sleep can outlive
@@ -322,8 +315,7 @@ extension BattleSession {
             abilityName: event.abilityName,
             keyword: event.keyword,
             phase: .expanding,
-            startedAt: date,
-            skipArmedAt: date.addingTimeInterval(TrinketMotion.Battle.ultimateSkipLockout)
+            startedAt: date
         )
         BattleCinematicPlayer.shared.warm(abilityID: event.abilityID)
     }

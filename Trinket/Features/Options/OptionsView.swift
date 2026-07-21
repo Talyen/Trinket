@@ -52,12 +52,12 @@ struct OptionsView: View {
             }
 
             Section("Battle") {
-                Picker("Skip Ultimate Animations", selection: $options.ultimateCinematicSkipPolicy) {
-                    ForEach(UltimateCinematicSkipPolicy.pickerCases) { policy in
+                Picker("Show Animations", selection: $options.ultimateCinematicShowPolicy) {
+                    ForEach(UltimateCinematicShowPolicy.pickerCases) { policy in
                         Text(policy.displayName).tag(policy)
                     }
                 }
-                .accessibilityIdentifier("Ultimate Skip Policy Picker")
+                .accessibilityIdentifier("Show Animations Picker")
             }
 
             Section("Game Data") {

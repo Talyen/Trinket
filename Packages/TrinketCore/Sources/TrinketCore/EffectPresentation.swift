@@ -41,8 +41,6 @@ public enum EffectPresentation {
             return "Leech"
         case .deathsDoor:
             return "Death's Door"
-        case .haste:
-            return "Hasted"
         case .thorns:
             return "Thorns"
         case .marked:
@@ -114,8 +112,6 @@ public enum EffectPresentation {
         switch effect {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
-        case .haste:
-            "gain Haste"
         case .thorns:
             "gain Thorns"
         case .nextHolyStrike:

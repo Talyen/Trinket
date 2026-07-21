@@ -168,7 +168,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
-                skills: [.venomFangs, .predatorsHaste],
+                skills: [.venomFangs, .predatorsFocus],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),

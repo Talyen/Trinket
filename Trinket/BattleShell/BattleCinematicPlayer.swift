@@ -61,6 +61,36 @@ final class BattleCinematicPlayer {
         return item.status == .readyToPlay
     }
 
+    /// Waits until the warmed item is `.readyToPlay`, or returns `false` on failure / missing asset.
+    func whenReady(abilityID: String) async -> Bool {
+        warm(abilityID: abilityID)
+        guard playersByAbilityID[abilityID]?.currentItem != nil else { return false }
+
+        let clock = SuspendingClock()
+        let deadline = clock.now.advanced(by: .seconds(8))
+        while clock.now < deadline {
+            if Task.isCancelled {
+                return false
+            }
+            if let item = playersByAbilityID[abilityID]?.currentItem {
+                switch item.status {
+                case .readyToPlay:
+                    return true
+                case .failed:
+                    return false
+                case .unknown:
+                    break
+                @unknown default:
+                    break
+                }
+            } else {
+                return false
+            }
+            try? await clock.sleep(for: .milliseconds(40), tolerance: .milliseconds(20))
+        }
+        return isReady(for: abilityID)
+    }
+
     func play(
         abilityID: String,
         effectsVolume: Double,

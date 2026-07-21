@@ -19,7 +19,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case purgeRandom
     case halveShield
     case deathsDoor
-    case haste
     case thorns
     case marked
     case criticalChanceBonus
@@ -48,7 +47,6 @@ public extension Effect {
         case .purgeRandom: .purgeRandom
         case .halveShield: .halveShield
         case .deathsDoor: .deathsDoor
-        case .haste: .haste
         case .thorns: .thorns
         case .marked: .marked
         case .criticalChanceBonus: .criticalChanceBonus
@@ -66,7 +64,7 @@ public extension Effect {
             true
         case .shield, .leech, .cleanse, .purge,
              .instantHeal, .resourceGain, .drawCards, .cleanseRandom, .purgeRandom, .halveShield, .deathsDoor,
-             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
+             .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
              .nextHolyStrike:
             false
         }
@@ -76,7 +74,7 @@ public extension Effect {
     /// strip from enemies.
     var isRemovableBuff: Bool {
         switch self {
-        case .shield, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+        case .shield, .leech, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike:
             true
         default:
@@ -91,7 +89,7 @@ public extension Effect {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
              .leech, .deathsDoor,
-             .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
+             .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             true
         case .shield, .nextHolyStrike,
              .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,

@@ -65,14 +65,12 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func predatorsHasteIsNoOp() throws {
-        // Wolf lists Predator's Haste in skill choices; withAbilityLoadout resolves
-        // selections against choices, so panther cannot select this skill.
+    @Test func predatorsFocusAppliesCriticalChanceBonus() throws {
         let baseWolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let wolf = baseWolf.withAbilityLoadout(
             AbilityLoadout(
                 basic: baseWolf.abilityLoadout.basic,
-                skill: .predatorsHaste,
+                skill: .predatorsFocus,
                 ultimate: baseWolf.abilityLoadout.ultimate
             )
         )
@@ -91,8 +89,8 @@ struct BattleMechanicsTests {
         )
 
         try #expect(
-            !context.roster.activeEffects(for: wolf).contains {
-                if case .haste = $0.effect {
+            context.roster.activeEffects(for: wolf).contains {
+                if case .criticalChanceBonus = $0.effect {
                     return true
                 }
                 return false

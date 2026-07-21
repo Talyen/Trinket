@@ -243,17 +243,6 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
-    public var unlockLabel: String {
-        switch self {
-        case .weapon:
-            "Find a Weapon to Unlock"
-        case .armor:
-            "Find Armor to Unlock"
-        case .trinket, .secondaryTrinket:
-            "Find a Trinket to Unlock"
-        }
-    }
-
     public func accepts(_ baseTypeSlot: ItemSlot) -> Bool {
         baseTypeSlot == baseItemSlot
     }

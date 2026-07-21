@@ -272,4 +272,133 @@ struct AffixReactionBattleTests {
         try #expect(directLost == 4)
         try #expect(context.roster.runtime(for: heroCombatant)?.pendingDamageAfterDodge == 0)
     }
+
+    @Test func aetherwardGrantsBlockWhenSpendingMana() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(spendManaBlockFlat: 2)
+        )
+        let hero = context.roster.hero.combatant
+
+        let events = CombatReactionEngine.afterSpendMana(by: hero, in: &context)
+
+        try #expect(events.contains { $0.abilityName == "Aetherward" && $0.amount == 2 })
+        let block = context.roster.activeEffects(for: hero).contains { active in
+            if case let .shield(keyword, points) = active.effect {
+                return keyword == .block && points == 2
+            }
+            return false
+        }
+        try #expect(block)
+    }
+
+    @Test func holyDamageAffixesGrantBlockCleanseHealAndPurge() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                holyDamageBlockFlat: 1,
+                holyDamageCleanseCount: 1,
+                holyDamageHealFlat: 3,
+                holyDamagePurgeCount: 1
+            )
+        )
+        let hero = context.roster.hero.combatant
+        let enemy = context.roster.enemy.combatant
+
+        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .poison(2), remainingTicks: 2, sourceActorID: enemy.id)],
+            for: hero
+        )
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 2, effect: .criticalChanceBonus(0.5, 4), remainingTicks: 4, sourceActorID: enemy.id)],
+            for: enemy
+        )
+
+        let events = CombatReactionEngine.afterHolyDamageDealt(to: enemy, source: hero, in: &context)
+
+        try #expect(events.contains { $0.abilityName == "Sanctum" })
+        try #expect(events.contains { $0.abilityName == "Absolving" })
+        try #expect(events.contains { $0.abilityName == "Beacon" })
+        try #expect(events.contains { $0.abilityName == "Nullifying" })
+        try #expect(!context.roster.activeEffects(for: hero).map(\.effect).contains(where: \.isRemovableDebuff))
+        try #expect(!context.roster.activeEffects(for: enemy).map(\.effect).contains(where: \.isRemovableBuff))
+        try #expect(context.roster.health(for: hero) == 4)
+    }
+
+    @Test func paydayAndUntouchableFireWhenDodging() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(dodgeGoldFlat: 2, dodgeBlockFlat: 3)
+        )
+        let hero = context.roster.hero.combatant
+
+        let events = CombatReactionEngine.afterDodge(by: hero, in: &context)
+
+        try #expect(context.gold == 2)
+        try #expect(events.contains { $0.abilityName == "Payday" && $0.amount == 2 })
+        try #expect(events.contains { $0.abilityName == "Untouchable" && $0.amount == 3 })
+    }
+
+    @Test func knockoutAndBrandingFireWhenEnemyIsStunned() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 20,
+            heroModifiers: CombatModifierProfile(stunDealPhysicalFlat: 3, enemyStunnedApplyMarked: true)
+        )
+        let enemy = context.roster.enemy.combatant
+
+        let events = CombatReactionEngine.afterEnemyStunned(in: &context)
+
+        try #expect(context.roster.health(for: enemy) == 17)
+        try #expect(events.contains { $0.effectKind == .markedApplied })
+        let marked = context.roster.activeEffects(for: enemy).contains {
+            if case .marked = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #expect(marked)
+    }
+
+    @Test func shreddingIgnoresPortionOfEnemyMitigation() throws {
+        let options = DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+
+        var baselineContext = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 200,
+            targetPrimaryStats: PrimaryStats(toughness: 100)
+        )
+        let baselineHero = baselineContext.roster.hero.combatant
+        let baselineEnemy = baselineContext.roster.enemy.combatant
+        let baseline = baselineContext.resolveDamage(
+            DamageRequest(amount: 50, target: baselineEnemy, keyword: .physical, sourceActorID: baselineHero.id, options: options)
+        ).healthLost
+        try #expect(baseline == 30)
+
+        var shreddingContext = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 200,
+            targetPrimaryStats: PrimaryStats(toughness: 100),
+            heroModifiers: CombatModifierProfile(ignoreEnemyMitigationPercent: 0.5)
+        )
+        let shreddingHero = shreddingContext.roster.hero.combatant
+        let shreddingEnemy = shreddingContext.roster.enemy.combatant
+        let withShredding = shreddingContext.resolveDamage(
+            DamageRequest(amount: 50, target: shreddingEnemy, keyword: .physical, sourceActorID: shreddingHero.id, options: options)
+        ).healthLost
+        try #expect(withShredding == 40)
+    }
+
+    @Test func dazedAddsDamageWhileEnemyIsStunned() throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero(abilities: [
+                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
+            ]),
+            companion: passiveCompanion(),
+            enemy: passiveEnemy(),
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
+            ],
+            heroModifiers: CombatModifierProfile(damageWhileTargetStunnedBonus: 1)
+        )
+
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+
+        try #expect(100 - battle.health(of: battle.enemy) == 2)
+    }
 }

@@ -15,7 +15,7 @@ struct EquipmentSlotSummaryGrid: View {
     var body: some View {
         SlotSummaryGrid(
             slots: role.equipmentSlots,
-            isLocked: isLocked,
+            isLocked: { _ in false },
             hasItem: { equippedItem(for: $0) != nil },
             onSelect: onSelect,
             onView: onViewItem != nil ? { slot in
@@ -26,13 +26,7 @@ struct EquipmentSlotSummaryGrid: View {
             accessibilityIdentifier: { $0.accessibilityIdentifier },
             combinesAccessibilityChildren: true,
             card: { slot in
-                if isLocked(slot) {
-                    EmptyItemSlotCard(
-                        slot: slot,
-                        lockLabel: slot.unlockLabel,
-                        reservesLabelSpace: false
-                    )
-                } else if let item = equippedItem(for: slot) {
+                if let item = equippedItem(for: slot) {
                     ItemCard(
                         item: item,
                         showsAffixCount: false,
@@ -50,9 +44,5 @@ struct EquipmentSlotSummaryGrid: View {
 
     private func equippedItem(for slot: ItemSlot) -> InventoryItem? {
         inventoryState.item(matching: equipmentLoadout.itemID(for: slot))
-    }
-
-    private func isLocked(_ slot: ItemSlot) -> Bool {
-        !inventoryState.hasItem(for: slot)
     }
 }

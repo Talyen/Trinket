@@ -11,7 +11,6 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
 
         #expect(ArtworkBlendRecipe.perimeterInset == 0.22)
-        #expect(TrinketMotion.Battle.ultimateSkipLockout > 0)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
         #expect(TrinketMotion.Battle.feedbackStreamStagger > 0)

@@ -85,6 +85,27 @@ public extension GameContent {
         guard let combatantID = event.unlockCombatantID else { return nil }
         return heroes.first { $0.id == combatantID } ?? companions.first { $0.id == combatantID }
     }
+
+    /// Map glyph for a configured recruit event. Uses the authored combatant role;
+    /// does not run recruit resolution.
+    static func recruitEncounterSymbolName(forEventID eventID: String?) -> String {
+        guard let eventID,
+              let event = recruitEvent(matching: eventID),
+              let combatant = combatant(forMysteryEvent: event)
+        else {
+            return recruitEncounterSymbolName(for: .hero)
+        }
+        return recruitEncounterSymbolName(for: combatant.role)
+    }
+
+    static func recruitEncounterSymbolName(for role: Combatant.Role) -> String {
+        switch role {
+        case .companion:
+            "pawprint.fill"
+        case .hero, .enemy:
+            "person.2.fill"
+        }
+    }
 }
 
 public enum RecruitEncounterResolution: Equatable, Sendable {

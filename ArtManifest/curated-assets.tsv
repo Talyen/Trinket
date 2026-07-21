@@ -47,7 +47,6 @@ ability	frostbolt	ability_frostbolt	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.5
 ability	gamblers-shot	ability_gamblers_shot	Raw Assets/Abilities/Gambler's Shot.jpeg	0.50	0.50
 ability	glacial-ward	ability_glacial_ward	Raw Assets/Abilities/Glacial Ward.jpeg	0.50	0.50
 ability	golden-plate	ability_golden_plate	Raw Assets/Abilities/Golden Plate.jpeg	0.50	0.50
-ability	haste	ability_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
 ability	heal	ability_heal	Raw Assets/Abilities/Heal.jpeg	0.50	0.50
 ability	health-potion	ability_health_potion	Raw Assets/Abilities/Health Potion.png	0.50	0.50
 ability	hemorrhage	ability_hemorrhage	Raw Assets/Abilities/Hemorrhage.jpeg	0.50	0.50
@@ -70,7 +69,7 @@ ability	pixie-dust	ability_pixie_dust	Raw Assets/Abilities/Mana Crystals.jpeg	0.
 ability	plate-mail	ability_plate_mail	Raw Assets/Abilities/Plate Mail.png	0.50	0.50
 ability	poison-dagger	ability_poison_dagger	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50
 ability	prayer	ability_prayer	Raw Assets/Abilities/Prayer.jpeg	0.50	0.50
-ability	predators-haste	ability_predators_haste	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
+ability	predators-focus	ability_predators_focus	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
 ability	ray-of-frost	ability_ray_of_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
 ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Slash.png	0.50	0.50
 ability	roulette	ability_roulette	Raw Assets/Abilities/Roulette.jpeg	0.50	0.50

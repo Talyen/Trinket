@@ -10,8 +10,8 @@ Feature work belongs in the matching `Features/<flow>/` folder. Read `Docs/Agent
 
 ## Homestead UX contract
 
-- Art-led overview: full-bleed hero, compact seven-resource wallet, all nine projects grouped by live categories — no featured-project card or progressive filtering.
-- Project rows stay tappable in every state (including prerequisite-locked) and push native `NavigationStack` detail while retaining the tab bar.
+- Art-led overview: full-bleed hero, compact seven-resource wallet, and Play Mode–style category cards (Farming / Crafting / Alchemy / Training / Arcana) with tier-sum constructed progress — tapping a category pushes its project list.
+- Category list keeps hero (category art) + wallet, drops the in-content category header, and lists that category’s projects; project rows stay tappable in every state (including prerequisite-locked) and push native `NavigationStack` detail while retaining the tab bar.
 - Detail shows a single vertical tier path plus a persistent build/upgrade footer; build/upgrade is immediate with no confirmation dialog.
 - Dense content stays on solid semantic surfaces; keep glass/material for floating chrome and the detail footer.
 

@@ -90,7 +90,6 @@ enum CombatFeedbackChipLabel: Hashable {
 
 enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case thorns = "Thorns"
-    case hasted = "Hasted"
     case criticalUp = "Critical Up"
     case manaShield = "Mana Shield"
     case avatarOfJustice = "Avatar of Justice"

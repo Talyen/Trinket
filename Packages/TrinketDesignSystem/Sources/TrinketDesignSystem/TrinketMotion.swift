@@ -139,9 +139,6 @@ public enum TrinketMotion: Sendable {
         /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
         public static let ultimateVideoWatchdog: TimeInterval = 12.0
 
-        /// Delay before tap-to-skip is armed on an Ultimate cinematic.
-        public static let ultimateSkipLockout: TimeInterval = 0.45
-
         public static let skillCalloutIn: TimeInterval = 0.12
         public static let skillCalloutHold: TimeInterval = 0.25
         public static let skillCalloutOut: TimeInterval = 0.18

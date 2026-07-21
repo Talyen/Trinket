@@ -7,9 +7,8 @@ struct OptionsUltimateSkipPolicyTests {
     @Test func oncePerBattleAutoSkipsAfterActorPresented() throws {
         let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
-        options.ultimateCinematicSkipPolicy = .oncePerBattle
+        options.ultimateCinematicShowPolicy = .oncePerBattle
 
-        #expect(options.canSkipUltimateCinematic())
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
@@ -32,30 +31,50 @@ struct OptionsUltimateSkipPolicyTests {
 
     @Test func migratesLegacyAfterFirstViewToOncePerBattle() throws {
         let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.legacy.\(UUID().uuidString)"))
-        defaults.set(UltimateCinematicSkipPolicy.afterFirstView.rawValue, forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
+        defaults.set(UltimateCinematicShowPolicy.afterFirstView.rawValue, forKey: OptionsStore.ultimateCinematicShowPolicyKey)
         let options = OptionsStore(defaults: defaults)
-        #expect(options.ultimateCinematicSkipPolicy == .oncePerBattle)
+        #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
+    }
+
+    @Test func migratesLegacySkipFramingAlwaysNever() throws {
+        let defaults = try #require(
+            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.skipFraming.\(UUID().uuidString)")
+        )
+        defaults.set("always", forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
+
+        let options = OptionsStore(defaults: defaults)
+        #expect(options.ultimateCinematicShowPolicy == .never)
+        #expect(defaults.string(forKey: OptionsStore.ultimateCinematicSkipPolicyKey) == nil)
+        #expect(
+            defaults.string(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
+                == UltimateCinematicShowPolicy.never.rawValue
+        )
     }
 
     @Test(arguments: [
-        (UltimateCinematicSkipPolicy.never, false),
-        (.always, true)
+        (UltimateCinematicShowPolicy.always, false),
+        (.never, true)
     ])
-    func neverAndAlwaysPoliciesControlManualSkipWithoutAutoSkip(
-        policy: UltimateCinematicSkipPolicy,
-        canSkip: Bool
+    func alwaysAndNeverPoliciesControlAutoSkip(
+        policy: UltimateCinematicShowPolicy,
+        autoSkips: Bool
     ) throws {
         let defaults = try #require(
             UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(policy.rawValue).\(UUID().uuidString)")
         )
         let options = OptionsStore(defaults: defaults)
-        options.ultimateCinematicSkipPolicy = policy
-        #expect(options.canSkipUltimateCinematic() == canSkip)
+        options.ultimateCinematicShowPolicy = policy
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "hero",
+                actorsWhoPresentedThisBattle: []
+            ) == autoSkips
+        )
         #expect(
             options.shouldAutoSkipUltimateCinematic(
                 actorID: "hero",
                 actorsWhoPresentedThisBattle: ["hero"]
-            ) == false
+            ) == autoSkips
         )
     }
 }

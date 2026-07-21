@@ -136,6 +136,7 @@ package extension CombatReactionEngine {
 
         let profile = context.modifiers(for: sourceActorID)
         let targetIsFrozen = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .freeze)
+        let targetIsStunned = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .stun)
         var bonus = 0
 
         if damageKeyword == .freeze, targetIsFrozen {
@@ -144,6 +145,10 @@ package extension CombatReactionEngine {
         // Brittle is an aura from hero gear: the enemy takes extra damage from party hits.
         if source.role != .enemy, targetIsFrozen {
             bonus += context.heroModifiers.damageWhileTargetFrozenBonus
+        }
+        // Dazed is an aura from hero gear: the enemy takes extra damage from party hits while Stunned.
+        if source.role != .enemy, targetIsStunned {
+            bonus += context.heroModifiers.damageWhileTargetStunnedBonus
         }
         if profile.damageBelowHealthPercentBonus > 0,
            profile.damageBelowHealthPercentKeyword == damageKeyword,
@@ -184,7 +189,24 @@ package extension CombatReactionEngine {
         context.roster.mutateRuntime(for: hero) { $0.hasTriggeredHexmark = true }
         // Read roster after MarkedConsume / defense steps — do not reuse a stale
         // pipeline snapshot that may have dropped the new mark before write-back.
-        var effects = context.roster.activeEffects(for: state.combatant)
+        state.damageEvents.append(contentsOf: applyMarked(
+            to: state.combatant,
+            sourceActorID: hero.id,
+            actorName: hero.name,
+            abilityName: "Hexmark",
+            in: &context
+        ))
+        state.activeEffects = context.roster.activeEffects(for: state.combatant)
+    }
+
+    private static func applyMarked(
+        to target: Combatant,
+        sourceActorID: String,
+        actorName: String,
+        abilityName: String,
+        in context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        var effects = context.roster.activeEffects(for: target)
         effects.removeAll {
             if case .marked = $0.effect {
                 return true
@@ -195,28 +217,56 @@ package extension CombatReactionEngine {
                 id: context.consumeNextEffectID(),
                 effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
                 remainingTicks: Effect.standardMarkedDuration,
-                sourceActorID: hero.id
+                sourceActorID: sourceActorID
             )
         )
-        context.roster.setActiveEffects(effects, for: state.combatant)
-        state.activeEffects = effects
-        state.damageEvents.append(context.nextEvent(
+        context.roster.setActiveEffects(effects, for: target)
+        return [context.nextEvent(
             kind: .effect,
             effectKind: .markedApplied,
-            actorName: hero.name,
-            abilityName: "Hexmark",
-            target: state.combatant,
+            actorName: actorName,
+            abilityName: abilityName,
+            target: target,
             amount: Effect.standardMarkedBonus,
             keyword: .physical
-        ))
+        )]
     }
 
-    static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) {
-        let bonus = context.modifiers(for: combatant.id).damageAfterDodgeBonus
-        guard bonus > 0 else { return }
-        context.roster.mutateRuntime(for: combatant) { runtime in
-            runtime.pendingDamageAfterDodge += bonus
+    static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+        let profile = context.modifiers(for: combatant.id)
+        var events: [ActionEvent] = []
+
+        if profile.damageAfterDodgeBonus > 0 {
+            context.roster.mutateRuntime(for: combatant) { runtime in
+                runtime.pendingDamageAfterDodge += profile.damageAfterDodgeBonus
+            }
         }
+
+        if profile.dodgeGoldFlat > 0 {
+            let bonus = context.modifiers(for: combatant.id).goldGainedBonus
+            context.addGold(profile.dodgeGoldFlat, sourceActorID: combatant.id)
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .resourceGain,
+                actorName: combatant.name,
+                abilityName: "Payday",
+                target: combatant,
+                amount: profile.dodgeGoldFlat + bonus,
+                keyword: .gold
+            ))
+        }
+
+        if profile.dodgeBlockFlat > 0 {
+            events.append(contentsOf: applyBlock(
+                amount: profile.dodgeBlockFlat,
+                to: combatant,
+                source: combatant,
+                abilityName: "Untouchable",
+                in: &context
+            ))
+        }
+
+        return events
     }
 
     static func afterBlockBroken(
@@ -235,89 +285,118 @@ package extension CombatReactionEngine {
         )
     }
 
-    static func afterBlockGained(
-        by target: Combatant,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        let profile = context.modifiers(for: target.id)
-        guard profile.blockGainedCleanseCount > 0,
-              profile.blockGainedCleanseIntervalTicks > 0
-        else { return [] }
-
-        var effects = context.roster.activeEffects(for: target)
-        guard effects.contains(where: \.effect.isRemovableDebuff) else { return [] }
-        guard let runtime = context.roster.runtime(for: target) else { return [] }
-        if let lastTick = runtime.lastAblutionTick,
-           context.tickCount - lastTick < profile.blockGainedCleanseIntervalTicks {
-            return []
-        }
-
-        var events: [ActionEvent] = []
-        for _ in 0 ..< profile.blockGainedCleanseCount {
-            guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else { break }
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .cleanseApplied,
-                actorName: target.name,
-                abilityName: "Ablution",
-                target: target,
-                amount: 0,
-                keyword: removedKeyword
-            ))
-        }
-        guard !events.isEmpty else { return [] }
-        context.roster.setActiveEffects(effects, for: target)
-        let tick = context.tickCount
-        context.roster.mutateRuntime(for: target) { $0.lastAblutionTick = tick }
-        return events
-    }
-
     static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
-        let duration = context.heroModifiers.enemyStunnedHasteDurationTicks
-        guard duration > 0, context.roster.hero.isAlive else { return [] }
-        let hero = context.roster.hero.combatant
-        context.appendEffect(.haste(duration), to: hero, sourceID: hero.id, remainingTicks: duration)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .hasteApplied,
-            actorName: hero.name,
-            abilityName: "Aftershock",
-            target: hero,
-            amount: duration,
-            keyword: .physical
-        )]
-    }
-
-    static func afterCompanionActed(in context: inout BattleEngineContext) -> [ActionEvent] {
         let profile = context.heroModifiers
-        guard profile.companionActLeechPercent > 0,
-              profile.companionActLeechDurationTicks > 0,
+        guard profile.stunDealPhysicalFlat > 0 || profile.enemyStunnedApplyMarked,
               context.roster.hero.isAlive
         else { return [] }
 
         let hero = context.roster.hero.combatant
-        let adjusted = context.adjustedOutgoingEffect(
-            .leech(.leech, profile.companionActLeechPercent, profile.companionActLeechDurationTicks),
-            sourceID: hero.id
-        )
-        guard case let .leech(keyword, percent, duration) = adjusted else { return [] }
-        var effects = context.roster.activeEffects(for: hero)
-        effects.removeAll {
-            if case .leech = $0.effect {
-                return true
-            }; return false
+        let enemy = context.roster.enemy.combatant
+        guard context.roster.health(for: enemy) > 0 else { return [] }
+
+        var events = DoTDamage.resolveTick(
+            basePotency: profile.stunDealPhysicalFlat,
+            keyword: .physical,
+            target: enemy,
+            sourceActorID: hero.id,
+            in: &context
+        ).events
+
+        if profile.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: applyMarked(
+                to: enemy,
+                sourceActorID: hero.id,
+                actorName: hero.name,
+                abilityName: "Branding",
+                in: &context
+            ))
         }
-        context.roster.setActiveEffects(effects, for: hero)
-        context.appendEffect(.leech(keyword, percent, duration), to: hero, sourceID: hero.id, remainingTicks: duration)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .leechApplied,
-            actorName: hero.name,
-            abilityName: "Packbond",
-            target: hero,
-            amount: Int(percent * 100),
-            keyword: keyword
-        )]
+        return events
+    }
+
+    static func afterSpendMana(by actor: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+        let amount = context.modifiers(for: actor.id).spendManaBlockFlat
+        guard amount > 0 else { return [] }
+        return applyBlock(
+            amount: amount,
+            to: actor,
+            source: actor,
+            abilityName: "Aetherward",
+            in: &context
+        )
+    }
+
+    static func afterHolyDamageDealt(
+        to enemy: Combatant,
+        source: Combatant,
+        in context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        let profile = context.modifiers(for: source.id)
+        var events: [ActionEvent] = []
+
+        if profile.holyDamageBlockFlat > 0 {
+            events.append(contentsOf: applyBlock(
+                amount: profile.holyDamageBlockFlat,
+                to: source,
+                source: source,
+                abilityName: "Sanctum",
+                in: &context
+            ))
+        }
+
+        if profile.holyDamageCleanseCount > 0 {
+            var effects = context.roster.activeEffects(for: source)
+            for _ in 0 ..< profile.holyDamageCleanseCount {
+                guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else { break }
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .cleanseApplied,
+                    actorName: source.name,
+                    abilityName: "Absolving",
+                    target: source,
+                    amount: 0,
+                    keyword: removedKeyword
+                ))
+            }
+            context.roster.setActiveEffects(effects, for: source)
+        }
+
+        if profile.holyDamageHealFlat > 0 {
+            events.append(contentsOf: HealingEngine.resolveHeal(
+                HealRequest(
+                    amount: profile.holyDamageHealFlat,
+                    target: source,
+                    sourceActorID: source.id,
+                    logAs: .instantHeal(
+                        actorName: source.name,
+                        abilityName: "Beacon",
+                        keyword: .health,
+                        displayAmount: profile.holyDamageHealFlat
+                    )
+                ),
+                in: &context
+            ).events)
+        }
+
+        if profile.holyDamagePurgeCount > 0 {
+            var enemyEffects = context.roster.activeEffects(for: enemy)
+            for _ in 0 ..< profile.holyDamagePurgeCount {
+                guard let removedKeyword = EffectRemoval.removeRandomBuff(from: &enemyEffects, using: &context.rng) else { break }
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .purgeApplied,
+                    actorName: source.name,
+                    abilityName: "Nullifying",
+                    target: enemy,
+                    amount: 0,
+                    keyword: removedKeyword
+                ))
+            }
+            context.roster.setActiveEffects(enemyEffects, for: enemy)
+        }
+
+        return events
     }
 
     static func shareHeroHealWithCompanion(
@@ -418,7 +497,7 @@ package extension CombatReactionEngine {
         )
         guard case let .shield(keyword, buffer) = adjusted else { return [] }
         DefensePoolEngine.add(buffer, pool: .block, to: target, keyword: keyword, in: &context)
-        var events = [context.nextEvent(
+        return [context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
@@ -427,7 +506,5 @@ package extension CombatReactionEngine {
             amount: buffer,
             keyword: keyword
         )]
-        events.append(contentsOf: afterBlockGained(by: target, in: &context))
-        return events
     }
 }

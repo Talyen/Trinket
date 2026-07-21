@@ -201,7 +201,7 @@ private struct AspectFloorArtwork: View {
                     .decorativePreparedArtwork()
             } else {
                 tint.opacity(0.14)
-                Image(systemName: "bolt.fill")
+                Image(systemName: "flag.2.crossed")
                     .font(.system(size: placeholderIconSize, weight: .semibold))
                     .foregroundStyle(tint)
                     .symbolRenderingMode(.hierarchical)

@@ -456,7 +456,6 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 2, kind: .effect, effectKind: .resourceGain, amount: 2, keyword: .mana),
             makeEvent(id: 3, kind: .effect, effectKind: .manaShieldTriggered, amount: 1, keyword: .mana),
             makeEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .physical),
-            makeEvent(id: 5, kind: .effect, effectKind: .hasteApplied, amount: 2, keyword: .physical),
             makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
             makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block)
@@ -472,11 +471,6 @@ extension CombatFeedbackPresenterTests {
         #expect(thorns.leadingSymbolName == "arrowshape.up.fill")
         #expect(thorns.trailingSymbolName == "burst.fill")
         #expect(thorns.text == nil)
-
-        let hasted = try #require(byID[5]).chipPresentation
-        #expect(try #require(byID[5]).label == .word(.status(.hasted)))
-        #expect(hasted.leadingSymbolName == nil)
-        #expect(hasted.trailingSymbolName == "arrowshape.up.fill")
 
         let criticalUp = try #require(byID[6]).chipPresentation
         #expect(try #require(byID[6]).label == .word(.status(.criticalUp)))

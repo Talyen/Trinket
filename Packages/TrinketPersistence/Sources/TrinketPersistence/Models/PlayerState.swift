@@ -33,10 +33,6 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         let catalogSlot = slot.baseItemSlot
         return items.filter { $0.baseType.slot == catalogSlot }
     }
-
-    public func hasItem(for slot: ItemSlot) -> Bool {
-        items.contains { $0.baseType.slot == slot.baseItemSlot }
-    }
 }
 
 public struct PlayerRosterState: Equatable, Sendable {

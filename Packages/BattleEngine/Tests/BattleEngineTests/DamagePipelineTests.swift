@@ -20,7 +20,8 @@ struct DamagePipelineTests {
         "DeathsDoor",
         "Leech",
         "ControlMeter",
-        "ReactiveOnHit"
+        "ReactiveOnHit",
+        "HolyReaction"
     ]
 
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
@@ -103,7 +104,7 @@ struct DamagePipelineTests {
         let phases = DamagePipeline.steps.map(\.phase)
         try #expect(phases.filter { $0 == .stochastic }.count == 2)
         try #expect(phases.filter { $0 == .resolution }.count == 10)
-        try #expect(phases.filter { $0 == .post }.count == 3)
+        try #expect(phases.filter { $0 == .post }.count == 4)
         try #expect(DamagePipeline.steps.first?.phase == .stochastic)
         try #expect(DamagePipeline.steps.last?.phase == .post)
     }

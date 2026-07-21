@@ -450,11 +450,9 @@ private struct BattleCinematicLane: View {
         if let cinematic = battleSession.activeCinematic {
             UltimateCinematicOverlay(
                 cinematic: cinematic,
-                canSkip: appState.options.canSkipUltimateCinematic(),
                 effectsVolume: appState.options.effectsVolume,
                 namespace: namespace,
                 onPlaying: { battleSession.markCinematicPlaying() },
-                onRequestSkip: { battleSession.requestSkipCinematic() },
                 onAutoFinish: { cinematicID in
                     battleSession.beginCinematicCollapse(expectedID: cinematicID)
                 },

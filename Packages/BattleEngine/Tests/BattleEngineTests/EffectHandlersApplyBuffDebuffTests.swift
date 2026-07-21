@@ -69,30 +69,6 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(!(outcome.didApply))
             try #expect(outcome.events.isEmpty)
         }
-
-        do {
-            let hero = CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                primaryStats: PrimaryStats(agility: 20)
-            )
-            var battle = EffectHandlersTestSupport.makeBattle(hero: hero)
-            let outcome = EffectHandlersTestSupport.dispatch(
-                .haste(Effect.standardHasteDuration),
-                ability: CombatantFixtures.ability(),
-                source: battle.hero,
-                target: battle.hero,
-                battle: &battle
-            )
-            try #expect(!outcome.didApply)
-            try #expect(!battle.activeEffects(of: battle.hero).contains { active in
-                if case .haste = active.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.isEmpty)
-        }
     }
 
     // MARK: - Timed buffs

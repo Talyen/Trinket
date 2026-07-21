@@ -10,7 +10,7 @@ struct CombatantBorderAccentTests {
     @Test func ignoresBuffsControlBuildUpAndDoTs() {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTicks: 6),
-            ActiveEffect(id: 2, effect: .haste(4), remainingTicks: 4),
+            ActiveEffect(id: 2, effect: .thorns(.physical, 1, 4), remainingTicks: 4),
             ActiveEffect(id: 3, effect: .controlMeter(.stun, 4, 10), remainingTicks: 0),
             ActiveEffect(id: 4, effect: .marked(2, 3), remainingTicks: 3),
             ActiveEffect(id: 5, effect: .burn(4), remainingTicks: 0),

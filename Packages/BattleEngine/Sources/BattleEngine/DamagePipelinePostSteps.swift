@@ -22,6 +22,23 @@ package extension DamagePipeline {
         state.damageEvents.append(contentsOf: leechOutcome.events)
     }
 
+    static func applyHolyReaction(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        guard state.healthLost > 0,
+              state.damageKeyword == .holy,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy
+        else { return }
+        state.damageEvents.append(contentsOf: CombatReactionEngine.afterHolyDamageDealt(
+            to: state.combatant,
+            source: source.combatant,
+            in: &context
+        ))
+    }
+
     static func applyControlMeter(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext

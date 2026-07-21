@@ -1,43 +1,43 @@
 node_id	title	summary	symbol_name	tint	category	prerequisites	tier	cost	bonus_title	bonus_description
-wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		1	wood:5|herbs:5	Companion Health	Increases Companion Health by 2
-wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		2	wood:15|herbs:15	Companion Health	Increases Companion Health by 4
-wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		3	wood:20|herbs:20	Companion Health	Increases Companion Health by 6
-herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	1	wood:5|herbs:5	Health Restored	Increases Health restored by 1
-herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	2	wood:15|herbs:15	Health Restored	Increases Health restored by 2
-herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	3	wood:20|herbs:20	Health Restored	Increases Health restored by 3
-chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	1	wood:5|food:10	Hero Strength	Increases Hero Strength by 1
-chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	2	wood:15|food:20	Hero Strength	Increases Hero Strength by 2
-chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	3	wood:20|food:30	Hero Strength	Increases Hero Strength by 3
-pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	1	wood:5|food:10	Companion Toughness	Increases Companion Toughness by 1
-pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	2	wood:15|food:20	Companion Toughness	Increases Companion Toughness by 2
-pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	3	wood:20|food:30	Companion Toughness	Increases Companion Toughness by 3
-culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	1	food:10|herbs:5	Hero Health	Increases Hero Health by 2
-culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	2	food:20|herbs:15	Hero Health	Increases Hero Health by 4
-culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	3	food:30|herbs:20	Hero Health	Increases Hero Health by 6
-blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	1	stone:15|iron:20	Physical Damage	Increases Hero Physical damage dealt by 1
-blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	2	stone:25|iron:40	Physical Damage	Increases Hero Physical damage dealt by 2
-blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	3	stone:40|iron:60	Physical Damage	Increases Hero Physical damage dealt by 3
-woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	1	wood:5|hide:15	Freeze Ward	Reduces Freeze damage received by 1
-woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	2	wood:15|hide:25	Freeze Ward	Reduces Freeze damage received by 2
-woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	3	wood:20|hide:40	Freeze Ward	Reduces Freeze damage received by 3
-alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	1	stone:15|herbs:5	Poison Damage	Increases Hero Poison damage dealt by 1
-alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	2	stone:25|herbs:15	Poison Damage	Increases Hero Poison damage dealt by 2
-alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	3	stone:40|herbs:20	Poison Damage	Increases Hero Poison damage dealt by 3
-botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	1	herbs:5|crystal:10	Poison Resistance	Decreases Hero Poison damage taken by 10%
-botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	2	herbs:15|crystal:15	Poison Resistance	Decreases Hero Poison damage taken by 20%
-botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	3	herbs:20|crystal:25	Poison Resistance	Decreases Hero Poison damage taken by 30%
-crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	1	stone:15|crystal:10	Hero Intellect	Increases Hero Intellect by 1
-crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	2	stone:25|crystal:15	Hero Intellect	Increases Hero Intellect by 2
-crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	3	stone:40|crystal:25	Hero Intellect	Increases Hero Intellect by 3
-runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	1	iron:20|crystal:10	Mana Costs	Reduces Mana Costs by 5%
-runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	2	iron:40|crystal:15	Mana Costs	Reduces Mana Costs by 10%
-runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	3	iron:60|crystal:25	Mana Costs	Reduces Mana Costs by 15%
-hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	1	wood:5|hide:15	Companion Damage	Increases Companion damage dealt by 1
-hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	2	wood:15|hide:25	Companion Damage	Increases Companion damage dealt by 2
-hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	3	wood:20|hide:40	Companion Damage	Increases Companion damage dealt by 3
-agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	1	food:10|hide:15	Companion Agility	Increases Companion Agility by 1
-agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	2	food:20|hide:25	Companion Agility	Increases Companion Agility by 2
-agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	3	food:30|hide:40	Companion Agility	Increases Companion Agility by 3
+wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		1	wood:5|herbs:5	Companion Health	Increase Companion Health by 2
+wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		2	wood:15|herbs:15	Companion Health	Increase Companion Health by 4
+wheatField	Wheat Field	A first field that turns quiet earth into dependable stores.	leaf.fill	orange	farming		3	wood:20|herbs:20	Companion Health	Increase Companion Health by 6
+herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	1	wood:5|herbs:5	Health Restored	Increase Health restored by 1
+herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	2	wood:15|herbs:15	Health Restored	Increase Health restored by 2
+herbGarden	Herb Garden	A small medicinal garden for tonics, reagents, and green magic.	leaf.fill	green	farming	wheatField	3	wood:20|herbs:20	Health Restored	Increase Health restored by 3
+chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	1	wood:5|food:10	Hero Strength	Increase Hero Strength by 1
+chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	2	wood:15|food:20	Hero Strength	Increase Hero Strength by 2
+chickenCoop	Chicken Coop	A lively coop that keeps simple supplies moving between runs.	bird.fill	yellow	farming	wheatField	3	wood:20|food:30	Hero Strength	Increase Hero Strength by 3
+pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	1	wood:5|food:10	Companion Toughness	Increase Companion Toughness by 1
+pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	2	wood:15|food:20	Companion Toughness	Increase Companion Toughness by 2
+pasture	Pasture	Open grazing land for larger stores and slower, stronger support.	mountain.2.fill	mint	farming	chickenCoop:2	3	wood:20|food:30	Companion Toughness	Increase Companion Toughness by 3
+culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	1	food:10|herbs:5	Hero Health	Increase Hero Health by 2
+culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	2	food:20|herbs:15	Hero Health	Increase Hero Health by 4
+culinaryArts	Culinary Arts	A warm kitchen that turns the harvest into lasting strength.	frying.pan.fill	orange	crafting	herbGarden|chickenCoop	3	food:30|herbs:20	Hero Health	Increase Hero Health by 6
+blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	1	stone:15|iron:20	Physical Damage	Increase Hero Physical damage dealt by 1
+blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	2	stone:25|iron:40	Physical Damage	Increase Hero Physical damage dealt by 2
+blacksmithForge	Blacksmith's Forge	A working forge for hardware, weapons, and stronger construction.	hammer.fill	orange	crafting	pasture|culinaryArts	3	stone:40|iron:60	Physical Damage	Increase Hero Physical damage dealt by 3
+woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	1	wood:5|hide:15	Freeze Ward	Reduce Freeze damage received by 1
+woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	2	wood:15|hide:25	Freeze Ward	Reduce Freeze damage received by 2
+woolTailoring	Wool Tailoring	A loom shop that weaves padded wraps against winter chill.	scissors	yellow	crafting	blacksmithForge	3	wood:20|hide:40	Freeze Ward	Reduce Freeze damage received by 3
+alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	1	stone:15|herbs:5	Poison Damage	Increase Hero Poison damage dealt by 1
+alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	2	stone:25|herbs:15	Poison Damage	Increase Hero Poison damage dealt by 2
+alchemyLab	Alchemy Lab	A precise workspace for reagents, tonics, and restorative experiments.	testtube.2	mint	alchemy	herbGarden:2	3	stone:40|herbs:20	Poison Damage	Increase Hero Poison damage dealt by 3
+botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	1	herbs:5|crystal:10	Poison Resistance	Decrease Hero Poison damage taken by 10%
+botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	2	herbs:15|crystal:15	Poison Resistance	Decrease Hero Poison damage taken by 20%
+botanicalDistillation	Botanical Distillation	A still house that concentrates garden greens into potent reagents.	drop.triangle.fill	green	alchemy	alchemyLab	3	herbs:20|crystal:25	Poison Resistance	Decrease Hero Poison damage taken by 30%
+crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	1	stone:15|crystal:10	Hero Intellect	Increase Hero Intellect by 1
+crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	2	stone:25|crystal:15	Hero Intellect	Increase Hero Intellect by 2
+crystalGarden	Crystal Garden	A luminous garden where rare formations grow around quiet magic.	sparkles	cyan	alchemy	alchemyLab	3	stone:40|crystal:25	Hero Intellect	Increase Hero Intellect by 3
+runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	1	iron:20|crystal:10	Mana Costs	Reduce Mana Costs by 5%
+runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	2	iron:40|crystal:15	Mana Costs	Reduce Mana Costs by 10%
+runesmithWorkshop	Runesmith's Workshop	A careful workshop where metalwork and crystal study meet.	wand.and.sparkles	indigo	crafting	blacksmithForge:2|crystalGarden	3	iron:60|crystal:25	Mana Costs	Reduce Mana Costs by 15%
+hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	1	wood:5|hide:15	Companion Damage	Increase Companion damage dealt by 1
+hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	2	wood:15|hide:25	Companion Damage	Increase Companion damage dealt by 2
+hunterLodge	Hunter's Lodge	A trail lodge for companion drills and field craft.	scope	orange	training	blacksmithForge|pasture	3	wood:20|hide:40	Companion Damage	Increase Companion damage dealt by 3
+agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	1	food:10|hide:15	Companion Agility	Increase Companion Agility by 1
+agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	2	food:20|hide:25	Companion Agility	Increase Companion Agility by 2
+agilityTraining	Agility Training	A practice yard that sharpens companion footwork and reflexes.	figure.run	yellow	training	hunterLodge	3	food:30|hide:40	Companion Agility	Increase Companion Agility by 3
 detectMagic	Detect Magic	A quiet sanctum for sensing rare finds and unnatural threats.	sparkle.magnifyingglass	cyan	arcana	botanicalDistillation|crystalGarden	1	herbs:5|crystal:10	Astral Find	Find 5% more Astral items
 detectMagic	Detect Magic	A quiet sanctum for sensing rare finds and unnatural threats.	sparkle.magnifyingglass	cyan	arcana	botanicalDistillation|crystalGarden	2	herbs:15|crystal:15	Astral Find	Find 10% more Astral items
 detectMagic	Detect Magic	A quiet sanctum for sensing rare finds and unnatural threats.	sparkle.magnifyingglass	cyan	arcana	botanicalDistillation|crystalGarden	3	herbs:20|crystal:25	Astral Find	Find 15% more Astral items

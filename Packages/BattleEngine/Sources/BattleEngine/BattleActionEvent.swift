@@ -37,7 +37,6 @@ public struct ActionEvent: Identifiable, Equatable {
         case shieldHalved
         case deathsDoorTriggered
         case deathsDoorExpired
-        case hasteApplied
         case thornsApplied
         case thornsTriggered
         case markedApplied

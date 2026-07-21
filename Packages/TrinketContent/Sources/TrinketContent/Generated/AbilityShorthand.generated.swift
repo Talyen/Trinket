@@ -37,7 +37,6 @@ public extension Ability {
     static let gamblersShot = AbilityCatalogBasicGenerated.gamblersShot
     static let glacialWard = AbilityCatalogUltimate.glacialWard
     static let goldenPlate = AbilityCatalogUltimate.goldenPlate
-    static let haste = AbilityCatalogSkillGenerated.haste
     static let heal = AbilityCatalogSkill.heal
     static let healthPotion = AbilityCatalogSkillGenerated.healthPotion
     static let hemorrhage = AbilityCatalogUltimate.hemorrhage
@@ -60,7 +59,7 @@ public extension Ability {
     static let plateMail = AbilityCatalogSkillGenerated.plateMail
     static let poisonDagger = AbilityCatalogSkillGenerated.poisonDagger
     static let prayer = AbilityCatalogSkill.prayer
-    static let predatorsHaste = AbilityCatalogSkill.predatorsHaste
+    static let predatorsFocus = AbilityCatalogSkill.predatorsFocus
     static let rayOfFrost = AbilityCatalogBasicGenerated.rayOfFrost
     static let rendingSlash = AbilityCatalogBasic.rendingSlash
     static let roulette = AbilityCatalogSkillGenerated.roulette

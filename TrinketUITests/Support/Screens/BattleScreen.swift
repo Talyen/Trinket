@@ -68,7 +68,7 @@ struct BattleScreen {
     }
 
     /// Waits for mid-battle combatant chrome, or returns `true` if the battle already resolved.
-    /// Skips Ultimate cinematics when present so matched-geometry expand does not hide cards.
+    /// Waits out Ultimate cinematics when present so matched-geometry expand does not hide cards.
     /// Fails (rather than silently skipping) when neither mid-battle chrome nor victory appears.
     func waitForMidBattleOrVictory(
         combatantName: String = "Knight",
@@ -83,9 +83,8 @@ struct BattleScreen {
                 return true
             }
             if ultimateCinematic.exists {
-                // Default skip policy is `.always` in tests; tap to dismiss the overlay.
-                ultimateCinematic.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-                _ = ultimateCinematic.waitForNonExistence(timeout: 3)
+                // Seeded launches auto-skip; if a cinematic still appears, wait for natural end.
+                _ = ultimateCinematic.waitForNonExistence(timeout: 14)
                 continue
             }
             if card.exists {

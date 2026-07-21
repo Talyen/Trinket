@@ -52,18 +52,7 @@ public extension CombatTraitTriggers {
         profile.damageAfterDodgeBonus += damageAfterDodgeBonus
         profile.refreshBleedOnReapply = profile.refreshBleedOnReapply || refreshBleedOnReapply
         profile.blockBrokenBlockFlat += blockBrokenBlockFlat
-        profile.blockGainedCleanseCount += blockGainedCleanseCount
-        profile.blockGainedCleanseIntervalTicks = max(
-            profile.blockGainedCleanseIntervalTicks,
-            blockGainedCleanseIntervalTicks
-        )
-        profile.enemyStunnedHasteDurationTicks = max(
-            profile.enemyStunnedHasteDurationTicks,
-            enemyStunnedHasteDurationTicks
-        )
         profile.firstHitApplyMarked = profile.firstHitApplyMarked || firstHitApplyMarked
-        profile.companionActLeechPercent += companionActLeechPercent
-        profile.companionActLeechDurationTicks = max(profile.companionActLeechDurationTicks, companionActLeechDurationTicks)
         profile.companionHealSharePercent += companionHealSharePercent
         profile.onceBelowHealthPercentThreshold = max(
             profile.onceBelowHealthPercentThreshold,
@@ -73,6 +62,17 @@ public extension CombatTraitTriggers {
         profile.blockPerActionWhileDeathsDoor += blockPerActionWhileDeathsDoor
         profile.everyNthBurnTickCount = max(profile.everyNthBurnTickCount, everyNthBurnTickCount)
         profile.everyNthBurnTickFreezeDamage += everyNthBurnTickFreezeDamage
+        profile.spendManaBlockFlat += spendManaBlockFlat
+        profile.holyDamageBlockFlat += holyDamageBlockFlat
+        profile.holyDamageCleanseCount += holyDamageCleanseCount
+        profile.holyDamageHealFlat += holyDamageHealFlat
+        profile.dodgeGoldFlat += dodgeGoldFlat
+        profile.ignoreEnemyMitigationPercent += ignoreEnemyMitigationPercent
+        profile.stunDealPhysicalFlat += stunDealPhysicalFlat
+        profile.damageWhileTargetStunnedBonus += damageWhileTargetStunnedBonus
+        profile.enemyStunnedApplyMarked = profile.enemyStunnedApplyMarked || enemyStunnedApplyMarked
+        profile.dodgeBlockFlat += dodgeBlockFlat
+        profile.holyDamagePurgeCount += holyDamagePurgeCount
     }
 }
 
