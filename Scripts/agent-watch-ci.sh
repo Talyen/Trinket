@@ -114,6 +114,7 @@ wait_for_run_id() {
     fi
     attempts=$((attempts + 1))
     sleep "$POLL_SECONDS"
+  done
   return 1
 }
 
