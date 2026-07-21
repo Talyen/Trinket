@@ -46,12 +46,14 @@ struct MysteryEventCatalogTests {
     @Test func chapterRecruitCopyKeepsCombatantIdentityMysterious() throws {
         for stage in GameContent.chapters.flatMap(\.stages) {
             guard let eventID = stage.encounter.recruitEventID,
+                  !eventID.isEmpty,
+                  eventID != StageEncounter.randomCompanionRecruitID,
                   let event = RecruitEventPool.event(matching: eventID),
                   let combatant = GameContent.combatant(forMysteryEvent: event) else {
                 continue
             }
 
-            let copy = [stage.flavorText, event.title, event.narrative]
+            let copy = [event.title, event.narrative]
                 .joined(separator: " ")
                 .lowercased()
             let identityWords = combatant.name

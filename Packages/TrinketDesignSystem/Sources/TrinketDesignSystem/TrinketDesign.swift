@@ -39,7 +39,10 @@ public enum TrinketDesign {
         public static let encounterShop = DesignAssetColors.named("EncounterShop")
         public static let encounterRest = DesignAssetColors.named("EncounterRest")
 
-        public static let chapterVerdant = DesignAssetColors.named("ChapterVerdant")
+        public static let chapterForest = DesignAssetColors.named("ChapterForest")
+        public static let chapterDungeon = DesignAssetColors.named("ChapterDungeon")
+        public static let chapterDesert = DesignAssetColors.named("ChapterDesert")
+        public static let chapterTundra = DesignAssetColors.named("ChapterTundra")
 
         public enum Overlay {
             public static let ink = ThemePalette.trinket.overlayInk
@@ -79,6 +82,8 @@ public enum TrinketDesign {
         public static let collectionShelfHorizontalMargin: CGFloat = contentMargin
         public static let collectionShelfCardSpacing: CGFloat = 16
         public static let collectionShelfPeekRatio: CGFloat = 0.08
+        /// Peek-shelf card count for Collection browse and party picker shelves.
+        public static let collectionShelfPreviewLimit = 8
         /// Scroll bottom inset so Homestead content clears the floating tab bar.
         public static let tabBarContentClearance: CGFloat = 112
         /// Tighter tab-bar clearance for chapter stage-select path scroll.
@@ -117,6 +122,17 @@ public enum TrinketDesign {
                     spacing: largeSpacing
                 )
             ]
+        }
+
+        /// Mode / category hub cards: two columns on regular width, one on compact.
+        public static func hubGridItems(for horizontalSizeClass: UserInterfaceSizeClass?) -> [GridItem] {
+            if horizontalSizeClass == .regular {
+                return [
+                    GridItem(.flexible(), spacing: largeSpacing),
+                    GridItem(.flexible(), spacing: largeSpacing)
+                ]
+            }
+            return [GridItem(.flexible())]
         }
     }
 

@@ -43,7 +43,10 @@ struct MysteryEncounterView: View {
             .trinketDetailSheet()
         }
         .onAppear {
-            presentReadingEntrance()
+            EncounterReadingEntrance.present(
+                artAppeared: $artAppeared,
+                copyAppeared: $narrativeAppeared
+            )
         }
         .onDisappear {
             unlockRevealTask?.cancel()
@@ -57,12 +60,11 @@ struct MysteryEncounterView: View {
     }
 
     private var readingContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                recruitArtwork
-                    .opacity(artAppeared ? 1 : 0)
-                    .scaleEffect(artAppeared ? 1 : 0.94)
-
+        EncounterReadingShell(
+            artVisible: artAppeared,
+            copyVisible: narrativeAppeared,
+            artwork: { recruitArtwork },
+            copy: {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     Text(session.event.title)
                         .trinketTypography(.screenTitle)
@@ -74,9 +76,8 @@ struct MysteryEncounterView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
                 }
-                .opacity(narrativeAppeared ? 1 : 0)
-                .offset(y: narrativeAppeared ? 0 : 8)
-
+            },
+            content: {
                 if let choice = session.event.choices.first {
                     mysteryPersistFailureBanner(session.persistFailureMessage)
 
@@ -99,8 +100,7 @@ struct MysteryEncounterView: View {
                     .padding(.top, TrinketDesign.Metrics.smallSpacing)
                 }
             }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
-        }
+        )
     }
 
     @ViewBuilder
@@ -130,7 +130,6 @@ struct MysteryEncounterView: View {
             chapterID: session.stage.chapterID,
             chapterNumber: session.stage.chapterNumber,
             stageNumber: session.stage.stageNumber,
-            flavorText: session.stage.flavorText,
             encounter: session.event.isRecruit
                 ? .recruit(eventID: session.event.id)
                 : .mysteryEvent(eventID: session.event.id),
@@ -250,15 +249,6 @@ struct MysteryEncounterView: View {
         let catalog = GameContent.heroes + GameContent.companions
         guard let combatant = catalog.first(where: { $0.id == id }) else { return nil }
         return appState.roster.configuredCombatant(combatant)
-    }
-
-    private func presentReadingEntrance() {
-        withAnimation(TrinketMotion.Content.entrance) {
-            artAppeared = true
-        }
-        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.entranceStagger)) {
-            narrativeAppeared = true
-        }
     }
 }
 

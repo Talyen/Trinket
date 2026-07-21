@@ -32,6 +32,15 @@ struct AspectCatalogTests {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let frostWhelp = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
 
+        try #expect(AspectAttunement.matches(rogue, aspect: ironVein))
+        try #expect(AspectAttunement.matches(bear, aspect: ironVein))
+        try #expect(!AspectAttunement.matches(frostWhelp, aspect: ironVein))
+        try #expect(
+            AspectAttunement.canEnter(ironVein, heroes: [rogue], companions: [bear, frostWhelp])
+        )
+        try #expect(
+            !AspectAttunement.canEnter(ironVein, heroes: [rogue], companions: [frostWhelp])
+        )
         try #expect(AspectAttunement.evaluate(hero: rogue, companion: bear, aspect: ironVein) == .ready)
         try #expect(
             AspectAttunement.evaluate(hero: rogue, companion: frostWhelp, aspect: ironVein)
@@ -41,10 +50,20 @@ struct AspectCatalogTests {
 
     @Test func everyAspectHasAttunableHeroAndCompanion() throws {
         for aspect in GameContent.aspects {
-            let heroes = GameContent.heroes.filter { $0.keywordProfile.contains(aspect.keyword) }
-            let companions = GameContent.companions.filter { $0.keywordProfile.contains(aspect.keyword) }
+            let heroes = GameContent.heroes.filter { AspectAttunement.matches($0, aspect: aspect) }
+            let companions = GameContent.companions.filter {
+                AspectAttunement.matches($0, aspect: aspect)
+            }
             try #expect(!heroes.isEmpty, "\(aspect.title) needs a Hero with \(aspect.keyword.rawValue)")
             try #expect(!companions.isEmpty, "\(aspect.title) needs a Companion with \(aspect.keyword.rawValue)")
+            try #expect(
+                AspectAttunement.canEnter(
+                    aspect,
+                    heroes: GameContent.heroes,
+                    companions: GameContent.companions
+                ),
+                "\(aspect.title) needs roster unlock from catalog Heroes and Companions"
+            )
             let ready = heroes.contains { hero in
                 companions.contains { companion in
                     AspectAttunement.evaluate(hero: hero, companion: companion, aspect: aspect) == .ready

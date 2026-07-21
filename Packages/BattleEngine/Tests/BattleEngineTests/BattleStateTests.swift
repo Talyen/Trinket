@@ -49,7 +49,7 @@ struct BattleStateTests {
         try #expect(!(battle.isPartyDefeated))
 
         // Death's Door lasts N rounds; each endTurn advances one round.
-        for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
             _ = battle.endTurn()
         }
         // Expiry grace lasts through the round Death's Door fell off; advance once more to clear it.
@@ -64,7 +64,7 @@ struct BattleStateTests {
     }
 
     @Test func battleGoldTracksInitialBalanceAndResourceGains() throws {
-        let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.blackjack])
+        let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.steal])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
             companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
@@ -72,7 +72,7 @@ struct BattleStateTests {
             initialGold: 10
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        try #expect(battle.gold == 11)
+        try #expect(battle.gold == 13)
 
         var initialGoldBattle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
@@ -104,7 +104,7 @@ struct BattleStateTests {
             companion: wolfCompanion,
             enemy: defaultEnemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)
             ]
         )
         let source = battle.hero
@@ -164,13 +164,12 @@ struct BattleStateTests {
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
 
-        while !battle.isBattleOver {
-            if try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) == nil {
-                _ = battle.endTurn()
-            }
-        }
+        _ = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
+        // Lose-health costs still trigger Death's Door, so the hero survives at 1 HP.
+        try #expect(battle.health(of: battle.hero) == 1)
+        try #expect(battle.health(of: battle.companion) == 20)
         try #expect(!(battle.isPartyDefeated))
-        try #expect(battle.isEnemyDefeated)
+        try #expect(!(battle.isEnemyDefeated))
     }
 }

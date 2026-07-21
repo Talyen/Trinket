@@ -50,8 +50,9 @@ struct StageMapPresentationTests {
 
         #expect(rows[1].stage.encounterSubjectName == "Mystery")
         #expect(rows[1].stage.encounterTypeTitle == "Recruit")
-        #expect(rows[4].isBoss)
-        #expect(rows[4].stage.encounterTypeTitle == "Boss")
+        let bossRows = rows.filter(\.isBoss)
+        #expect(bossRows.count == 1)
+        #expect(bossRows[0].stage.encounterTypeTitle == "Boss")
     }
 
     @Test func aspectRowsHideClearedFloorsAndEndWithBossBeforeCompletion() throws {

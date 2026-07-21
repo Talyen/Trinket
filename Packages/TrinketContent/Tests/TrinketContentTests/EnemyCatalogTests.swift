@@ -37,16 +37,17 @@ struct EnemyCatalogTests {
 
     @Test func specialEnemyLoadoutsMatchTheirArchetypes() throws {
         let mimic = try #require(GameContent.enemies.first { $0.id == "mimic" })
-        try #expect(mimic.combatant.abilityLoadout.basic == .stab)
-        try #expect(mimic.combatant.abilityLoadout.skill == .serratedEdge)
+        try #expect(mimic.combatant.abilityLoadout.basic == .fangs)
+        try #expect(mimic.combatant.abilityLoadout.skill == .acidPotion)
         try #expect(mimic.combatant.abilityLoadout.ultimate == .hemorrhage)
 
         let bear = try #require(GameContent.enemies.first { $0.id == "the_iron_bear" })
         try #expect(bear.combatant.abilityLoadout.basic == .bash)
-        try #expect(bear.combatant.abilityLoadout.ultimate == .moltenBulwark)
+        try #expect(bear.combatant.abilityLoadout.skill == .sunder)
+        try #expect(bear.combatant.abilityLoadout.ultimate == .thornMail)
 
         let treant = try #require(GameContent.enemies.first { $0.id == "the_blight_treant" })
-        try #expect(treant.combatant.abilityLoadout.basic == .fangs)
+        try #expect(treant.combatant.abilityLoadout.basic == .causticJab)
     }
 
     @Test func idsAreUniqueAcrossCombatants() throws {

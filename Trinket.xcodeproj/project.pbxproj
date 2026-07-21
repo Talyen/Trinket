@@ -67,6 +67,7 @@
 				Detail/AbilityDetailView.swift,
 				Detail/AbilitySummaryGrid.swift,
 				Detail/AbilityTierPickerSheet.swift,
+				Detail/CategoryBrowseShelf.swift,
 				Detail/CombatantDetailPane.swift,
 				Detail/CombatantHealthDetail.swift,
 				Detail/DetailHeroHeader.swift,

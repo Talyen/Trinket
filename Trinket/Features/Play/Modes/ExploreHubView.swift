@@ -6,54 +6,36 @@ import TrinketDesignSystem
 /// hub without changing the Play tab's top-level Campaign/Explore contract.
 struct ExploreHubView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
-    private var columns: [GridItem] {
-        if horizontalSizeClass == .regular {
-            return [
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
-            ]
-        }
-        return [GridItem(.flexible())]
-    }
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
-                NavigationLink(value: PlayLaunchDestination.aspectsHub) {
-                    PlayModeArtworkCard(
-                        title: "Aspects",
-                        subtitle: aspectsProgressSubtitle,
-                        symbolName: nil,
-                        artID: "aspect-aureateChoir",
-                        fallbackArtID: "gameModeExplore"
-                    )
-                }
-                .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
-                .trinketQuietTapButtonStyle()
-
-                NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
-                    PlayModeArtworkCard(
-                        title: "Labyrinth",
-                        subtitle: "Floor \(max(1, appState.labyrinth.currentFloorNumber))",
-                        symbolName: nil,
-                        artID: "gameModeLabyrinth",
-                        fallbackArtID: "gameModeExplore"
-                    )
-                }
-                .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
-                .trinketQuietTapButtonStyle()
+        PlayModeHubScreen(
+            title: "Explore",
+            accessibilityIdentifier: AccessibilityID.Play.exploreHub
+        ) {
+            NavigationLink(value: PlayLaunchDestination.aspectsHub) {
+                PlayModeArtworkCard(
+                    title: "Aspects",
+                    subtitle: aspectsProgressSubtitle,
+                    symbolName: nil,
+                    artID: "aspect-aureateChoir",
+                    fallbackArtID: "gameModeExplore"
+                )
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
+            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
+            .trinketQuietTapButtonStyle()
+
+            NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
+                PlayModeArtworkCard(
+                    title: "Labyrinth",
+                    subtitle: "Floor \(max(1, appState.labyrinth.currentFloorNumber))",
+                    symbolName: nil,
+                    artID: "gameModeLabyrinth",
+                    fallbackArtID: "gameModeExplore"
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
+            .trinketQuietTapButtonStyle()
         }
-        .scrollIndicators(.hidden)
-        .navigationTitle("Explore")
-        .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.exploreHub)
     }
 
     private var aspectsProgressSubtitle: String {

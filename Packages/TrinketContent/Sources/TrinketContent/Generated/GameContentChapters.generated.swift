@@ -8,14 +8,13 @@ enum GameContentChaptersGenerated {
             id: "chapter-1",
             number: 1,
             title: "Forest",
-            theme: .verdantForest,
+            theme: .forest,
             stages: [
                 Stage(
                     id: "chapter-1-stage-1",
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 1,
-                    flavorText: "A soft green shape quivers beside the forest road, waiting in the grass.",
                     encounter: .battle(enemyID: "slime"),
                     rewards: .empty
                 ),
@@ -24,7 +23,6 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 2,
-                    flavorText: "Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.",
                     encounter: .recruit(eventID: "recruit-bear"),
                     rewards: .empty
                 ),
@@ -33,7 +31,6 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 3,
-                    flavorText: "A goblin scout darts between the roots, and the glade falls suddenly quiet.",
                     encounter: .battle(enemyID: "goblin"),
                     rewards: .empty
                 ),
@@ -42,7 +39,6 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    flavorText: "A bowstring hums once above the trail, and fletched arrows mark the safest path through the trees.",
                     encounter: .recruit(eventID: "recruit-ranger"),
                     rewards: .empty
                 ),
@@ -51,7 +47,46 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 5,
-                    flavorText: "At the forest center, the oldest roots twist around a dark crown.",
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-1-stage-6",
+                    chapterID: "chapter-1",
+                    chapterNumber: 1,
+                    stageNumber: 6,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-1-stage-7",
+                    chapterID: "chapter-1",
+                    chapterNumber: 1,
+                    stageNumber: 7,
+                    encounter: .battle(enemyID: "mud_elemental"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-1-stage-8",
+                    chapterID: "chapter-1",
+                    chapterNumber: 1,
+                    stageNumber: 8,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-1-stage-9",
+                    chapterID: "chapter-1",
+                    chapterNumber: 1,
+                    stageNumber: 9,
+                    encounter: .battle(enemyID: "will_o_wisp"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-1-stage-10",
+                    chapterID: "chapter-1",
+                    chapterNumber: 1,
+                    stageNumber: 10,
                     encounter: .battle(enemyID: "the_blight_treant"),
                     rewards: .empty
                 )
@@ -61,14 +96,13 @@ enum GameContentChaptersGenerated {
             id: "chapter-2",
             number: 2,
             title: "Dungeon",
-            theme: .verdantForest,
+            theme: .dungeon,
             stages: [
                 Stage(
                     id: "chapter-2-stage-1",
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 1,
-                    flavorText: "A skeleton guard rattles to life in the dungeon's first stone corridor.",
                     encounter: .battle(enemyID: "skeleton"),
                     rewards: .empty
                 ),
@@ -77,7 +111,6 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 2,
-                    flavorText: "A silent figure slips through the torchlight, leaving warning marks scratched into the stone where the corridor grows dangerous.",
                     encounter: .recruit(eventID: "recruit-rogue"),
                     rewards: .empty
                 ),
@@ -86,7 +119,6 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 3,
-                    flavorText: "A battered chest sits in the torchlight, and its lid blinks.",
                     encounter: .battle(enemyID: "mimic"),
                     rewards: .empty
                 ),
@@ -95,8 +127,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 4,
-                    flavorText: "A covered cart waits where the dungeon paths cross.",
-                    encounter: .shop,
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -104,7 +135,46 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 5,
-                    flavorText: "The dungeon doors groan open as the Iron Bear emerges from the buried forge.",
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-2-stage-6",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 6,
+                    encounter: .battle(enemyID: "necromancer"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-2-stage-7",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 7,
+                    encounter: .recruit(eventID: "random-companion"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-2-stage-8",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 8,
+                    encounter: .battle(enemyID: "living_armor"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-2-stage-9",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 9,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-2-stage-10",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 10,
                     encounter: .battle(enemyID: "the_iron_bear"),
                     rewards: .empty
                 )
@@ -114,15 +184,14 @@ enum GameContentChaptersGenerated {
             id: "chapter-3",
             number: 3,
             title: "Desert",
-            theme: .verdantForest,
+            theme: .desert,
             stages: [
                 Stage(
                     id: "chapter-3-stage-1",
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 1,
-                    flavorText: "A pale light slips between the ruined shelves and bars the way.",
-                    encounter: .battle(enemyID: "will_o_wisp"),
+                    encounter: .battle(enemyID: "fire_elemental"),
                     rewards: .empty
                 ),
                 Stage(
@@ -130,8 +199,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 2,
-                    flavorText: "Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.",
-                    encounter: .recruit(eventID: "recruit-library-owl"),
+                    encounter: .recruit(eventID: "recruit-phoenix"),
                     rewards: .empty
                 ),
                 Stage(
@@ -139,8 +207,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 3,
-                    flavorText: "Frost gathers across the old stone as an elemental rises.",
-                    encounter: .battle(enemyID: "frost_elemental"),
+                    encounter: .randomBattle,
                     rewards: .empty
                 ),
                 Stage(
@@ -148,8 +215,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 4,
-                    flavorText: "A lantern-lit merchant has made camp among the fallen stacks.",
-                    encounter: .shop,
+                    encounter: .recruit(eventID: "recruit-wizard"),
                     rewards: .empty
                 ),
                 Stage(
@@ -157,7 +223,134 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 5,
-                    flavorText: "The archive doors freeze shut as the Frostwarden descends.",
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-3-stage-6",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 6,
+                    encounter: .randomBattle,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-3-stage-7",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 7,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-3-stage-8",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 8,
+                    encounter: .randomBattle,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-3-stage-9",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 9,
+                    encounter: .recruit(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-3-stage-10",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 10,
+                    encounter: .battle(enemyID: "the_forge_golem"),
+                    rewards: .empty
+                )
+            ]
+        ),
+        Chapter(
+            id: "chapter-4",
+            number: 4,
+            title: "Tundra",
+            theme: .tundra,
+            stages: [
+                Stage(
+                    id: "chapter-4-stage-1",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 1,
+                    encounter: .battle(enemyID: "frost_elemental"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-2",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 2,
+                    encounter: .recruit(eventID: "recruit-frost-whelp"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-3",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 3,
+                    encounter: .randomBattle,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-4",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 4,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-5",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 5,
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-6",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 6,
+                    encounter: .randomBattle,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-7",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 7,
+                    encounter: .recruit(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-8",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 8,
+                    encounter: .randomBattle,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-9",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 9,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-4-stage-10",
+                    chapterID: "chapter-4",
+                    chapterNumber: 4,
+                    stageNumber: 10,
                     encounter: .battle(enemyID: "the_frostwarden"),
                     rewards: .empty
                 )

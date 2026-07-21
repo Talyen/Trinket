@@ -330,11 +330,11 @@ struct BattleSessionSimulationTests {
     @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
-        let tickWhilePlayable = try #require(session.state?.tickCount)
+        let tickWhilePlayable = try #require(session.state?.turnCount)
 
         session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
         try await Task.sleep(for: .milliseconds(30))
-        #expect(session.state?.tickCount == tickWhilePlayable)
+        #expect(session.state?.turnCount == tickWhilePlayable)
         #expect(session.canEndTurn)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
@@ -350,11 +350,11 @@ struct BattleSessionSimulationTests {
 
         #expect(session.canEndTurn)
         #expect(!session.hasPlayableCard)
-        let tickBefore = try #require(session.state?.tickCount)
+        let tickBefore = try #require(session.state?.turnCount)
 
         try await waitForAutoEndTurn(session, after: tickBefore)
 
-        #expect(session.state?.tickCount == tickBefore + 1)
+        #expect(session.state?.turnCount == tickBefore + 1)
     }
 
     @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
@@ -372,7 +372,7 @@ struct BattleSessionSimulationTests {
 
     private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async throws {
         for _ in 0 ..< 40 {
-            if session.state?.tickCount == tickBefore + 1 {
+            if session.state?.turnCount == tickBefore + 1 {
                 return
             }
             try await Task.sleep(for: .milliseconds(5))

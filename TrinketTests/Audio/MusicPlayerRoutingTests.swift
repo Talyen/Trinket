@@ -27,7 +27,7 @@ struct MusicPlayerRoutingTests {
         expectedContext: MusicContextKind,
         expectedTrackID: String?
     ) throws {
-        let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-5"
+        let stageID = enemyID == "skeleton" ? "chapter-1-stage-1" : "chapter-1-stage-10"
         let battle = try ActiveBattleConfigurationTestSupport.make(
             resumeToken: .journey(stageID: stageID),
             rngSeed: 0,
@@ -56,7 +56,7 @@ struct MusicPlayerRoutingTests {
 
     @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
         let battle = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: "chapter-1-stage-5"),
+            resumeToken: .journey(stageID: "chapter-1-stage-10"),
             rngSeed: 0,
             hero: GameContent.heroes[0],
             companion: GameContent.companions[0],

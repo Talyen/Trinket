@@ -22,8 +22,8 @@ package enum DeathsDoorEngine {
         }
         guard context.roster.hasConsumedDeathsDoor(for: combatant),
               let runtime = context.roster.runtime(for: combatant),
-              let expiredAt = runtime.deathsDoorExpiredAtTick,
-              expiredAt == context.tickCount
+              let expiredAt = runtime.deathsDoorExpiredAtTurn,
+              expiredAt == context.turnCount
         else { return false }
         return true
     }
@@ -57,11 +57,11 @@ package enum DeathsDoorEngine {
             runtime.currentHealth = 1
         }
 
-        let duration = BattleTiming.deathsDoorDurationTicks
+        let duration = BattleTiming.deathsDoorDurationTurns
         context.prependEffect(
             .deathsDoor,
             to: combatant,
-            remainingTicks: duration
+            remainingTurns: duration
         )
 
         let event = context.nextEvent(

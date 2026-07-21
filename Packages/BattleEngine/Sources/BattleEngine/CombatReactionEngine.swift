@@ -11,11 +11,11 @@ package enum CombatReactionEngine {
     ) -> Bool {
         guard context.modifiers(for: sourceActorID).refreshBleedOnReapply else { return false }
         var effects = context.roster.activeEffects(for: target)
-        let fullDuration = Effect.bleedDoTTickCount + context.modifiers(for: sourceActorID).bleedDurationBonus
+        let fullDuration = Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
         var didRefresh = false
         for index in effects.indices {
             guard case .bleed = effects[index].effect else { continue }
-            effects[index].remainingTicks = fullDuration
+            effects[index].remainingTurns = fullDuration
             didRefresh = true
         }
         guard didRefresh else { return false }
@@ -50,7 +50,7 @@ package enum CombatReactionEngine {
         }
 
         if profile.onBleedDealBurnDamage > 0 {
-            events.append(contentsOf: DoTDamage.resolveTick(
+            events.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: profile.onBleedDealBurnDamage,
                 keyword: .burn,
                 target: target,
@@ -103,8 +103,8 @@ package enum CombatReactionEngine {
               let source = context.roster.combatant(for: sourceActorID)
         else { return [] }
         let profile = context.modifiers(for: sourceActorID)
-        guard profile.everyNthBurnTickCount > 0,
-              profile.everyNthBurnTickFreezeDamage > 0
+        guard profile.everyNthBurnTurnCount > 0,
+              profile.everyNthBurnTurnFreezeDamage > 0
         else { return [] }
 
         var burnTickCount = 0
@@ -112,10 +112,10 @@ package enum CombatReactionEngine {
             runtime.burnTickCount += 1
             burnTickCount = runtime.burnTickCount
         }
-        guard burnTickCount.isMultiple(of: profile.everyNthBurnTickCount) else { return [] }
+        guard burnTickCount.isMultiple(of: profile.everyNthBurnTurnCount) else { return [] }
 
-        return DoTDamage.resolveTick(
-            basePotency: profile.everyNthBurnTickFreezeDamage,
+        return DoTDamage.resolveTurnDamage(
+            basePotency: profile.everyNthBurnTurnFreezeDamage,
             keyword: .freeze,
             target: target,
             sourceActorID: sourceActorID,
@@ -216,7 +216,7 @@ package extension CombatReactionEngine {
             ActiveEffect(
                 id: context.consumeNextEffectID(),
                 effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
-                remainingTicks: Effect.standardMarkedDuration,
+                remainingTurns: Effect.standardMarkedDuration,
                 sourceActorID: sourceActorID
             )
         )
@@ -295,7 +295,7 @@ package extension CombatReactionEngine {
         let enemy = context.roster.enemy.combatant
         guard context.roster.health(for: enemy) > 0 else { return [] }
 
-        var events = DoTDamage.resolveTick(
+        var events = DoTDamage.resolveTurnDamage(
             basePotency: profile.stunDealPhysicalFlat,
             keyword: .physical,
             target: enemy,

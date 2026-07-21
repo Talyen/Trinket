@@ -34,7 +34,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
 | Homestead tints | `HomesteadTint.color` | `HomesteadTintOrange` … |
 | Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` (+ gold via KeywordGold) |
-| Chapter | `TrinketDesign.Colors.chapterVerdant` | `ChapterVerdant` |
+| Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 
 Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.
 
@@ -87,6 +87,8 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `ArtworkPickerSelectionBadge` / `.trinketArtworkPickerSelectionBorder(isSelected:color:)` | Selected artwork picker checkmark + stroke |
 | `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger opaque paper lock with ink edge contrast |
+| `TrinketDesign.Metrics.collectionGridItems` / `.partyPickerGridItems` / `.hubGridItems(for:)` | Shared collection, party-picker, and size-class hub grids |
+| `TrinketDesign.Metrics.collectionShelfPreviewLimit` | Peek-shelf card count for Collection / party shelves |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketQuietTapButtonStyle()` | Tap without press dimming — prefer over `.plain` for artwork in scroll views |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |

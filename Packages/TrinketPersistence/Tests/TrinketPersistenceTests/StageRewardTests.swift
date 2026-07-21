@@ -167,7 +167,6 @@ struct StageRewardTests {
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            flavorText: "Test",
             encounter: .event,
             rewards: StageReward(gold: 10, itemTemplateIDs: [], materialRewards: [ResourceAmount(.wood, 2)])
         )

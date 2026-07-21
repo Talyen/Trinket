@@ -7,19 +7,13 @@ struct ThornsHandler: BattleEffectHandler {
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
-            if case let .thorns(_, amount, _) = active.effect {
+            if case let .thorns(amount) = active.effect {
                 return sum + amount
             }
             return sum
         }
         guard total > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .thorns(_, _, duration) = effect {
-                return duration
-            }
-            return nil
-        }
-        return EffectSummary(keyword: keyword, text: "Thorns: \(total) damage, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
+        return EffectSummary(keyword: keyword, text: "Thorns: \(total) (until next hit).")
     }
 
     func apply(
@@ -30,16 +24,27 @@ struct ThornsHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .thorns(keyword, amount, durationTicks) = effect else {
+        guard case let .thorns(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let strengthBonus = source.primaryStats.strength / 10
-        let adjustedAmount = amount + strengthBonus
+        let existing = context.roster.activeEffects(for: target).reduce(0) { sum, active in
+            if case let .thorns(stacks) = active.effect {
+                return sum + stacks
+            }
+            return sum
+        }
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .thorns = $0 {
+                return true
+            }
+            return false
+        }
+        let total = existing + amount
         context.appendEffect(
-            .thorns(keyword, adjustedAmount, durationTicks),
+            .thorns(total),
             to: target,
             sourceID: source.id,
-            remainingTicks: durationTicks
+            remainingTurns: 0
         )
         let event = context.nextEvent(
             kind: .effect,
@@ -47,8 +52,8 @@ struct ThornsHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: adjustedAmount,
-            keyword: keyword
+            amount: total,
+            keyword: .physical
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -69,7 +74,7 @@ struct MarkedHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .marked(bonus, durationTicks) = effect else {
+        guard case let .marked(bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
@@ -78,7 +83,7 @@ struct MarkedHandler: BattleEffectHandler {
             }
             return false
         }
-        context.appendEffect(.marked(bonus, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
+        context.appendEffect(.marked(bonus, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .markedApplied,
@@ -103,13 +108,13 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             return maxPercent
         }
         guard percent > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
             if case let .criticalChanceBonus(_, duration) = effect {
                 return duration
             }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
+        return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).")
     }
 
     func apply(
@@ -120,10 +125,17 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .criticalChanceBonus(percent, durationTicks) = effect else {
+        guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        context.appendEffect(.criticalChanceBonus(percent, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
+        // Refresh replaces prior Focused stacks so combat chance matches the summary's max.
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .criticalChanceBonus = $0 {
+                return true
+            }
+            return false
+        }
+        context.appendEffect(.criticalChanceBonus(percent, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .criticalChanceApplied,
@@ -148,13 +160,13 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             return maxAmount
         }
         guard amount > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
             if case let .restoreManaOnHit(_, duration) = effect {
                 return duration
             }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
+        return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).")
     }
 
     func apply(
@@ -165,10 +177,10 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .restoreManaOnHit(amount, durationTicks) = effect else {
+        guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        context.appendEffect(.restoreManaOnHit(amount, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
+        context.appendEffect(.restoreManaOnHit(amount, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .manaShieldApplied,
@@ -189,7 +201,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         guard let active = stacks.first,
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
         else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
             if case let .damageKeywordOverride(_, _, duration) = effect {
                 return duration
             }
@@ -197,7 +209,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "Consecrated: attacks deal \(overrideKeyword.rawValue) (+\(bonus)), \(BattleTiming.remainingDurationLabel(ticks: maxTicks))."
+            text: "Consecrated: attacks deal \(overrideKeyword.rawValue) (+\(bonus)), \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
         )
     }
 
@@ -209,7 +221,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .damageKeywordOverride(keyword, bonus, durationTicks) = effect else {
+        guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         ActiveEffectMutation.removeMatching(from: target, in: &context) {
@@ -219,10 +231,10 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
             return false
         }
         context.appendEffect(
-            .damageKeywordOverride(keyword, bonus, durationTicks),
+            .damageKeywordOverride(keyword, bonus, durationTurns),
             to: target,
             sourceID: source.id,
-            remainingTicks: durationTicks
+            remainingTurns: durationTurns
         )
         let event = context.nextEvent(
             kind: .effect,

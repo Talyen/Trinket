@@ -148,7 +148,7 @@ struct AppStateTests {
             #expect(state.selectedTab == .play)
         case "shop":
             let session = try #require(state.activeShopEncounter)
-            #expect(session.stage.id == "chapter-2-stage-4")
+            #expect(session.stage.id == "chapter-2-stage-5")
             #expect(!(session.offers.isEmpty))
             #expect(state.selectedTab == .play)
         case "mystery":
@@ -163,13 +163,16 @@ struct AppStateTests {
     }
 
     @Test func resetStateWipesPersistedSave() throws {
-        var save = PlayerSave.fresh
-        save.roster.gold = 99
-        let firstStore = try PlayerSaveStore(
-            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
-            disableCloudSync: true
-        )
-        try firstStore.performBatchMutation { $0 = save }
+        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL)
+        do {
+            var save = PlayerSave.fresh
+            save.roster.gold = 99
+            let firstStore = try PlayerSaveStore(
+                storeURL: storeURL,
+                disableCloudSync: true
+            )
+            try firstStore.performBatchMutation { $0 = save }
+        }
 
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-reset-state"])
@@ -179,7 +182,7 @@ struct AppStateTests {
         #expect(state.inventory == .freshStart)
 
         let reloadedStore = try PlayerSaveStore(
-            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
+            storeURL: storeURL,
             disableCloudSync: true
         )
         #expect(reloadedStore.roster == .freshStart)

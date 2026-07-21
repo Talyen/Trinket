@@ -11,10 +11,8 @@ check_no_import() {
   local reason="$3"
 
   while IFS= read -r file; do
-    if rg -q "$pattern" "$file"; then
-      violations+=("$file: $reason")
-    fi
-  done < <(find "$folder" -name '*.swift' -type f 2>/dev/null)
+    [[ -n "$file" ]] && violations+=("$file: $reason")
+  done < <(rg -l "$pattern" "$folder" -g '*.swift' 2>/dev/null || true)
 }
 
 # App layering: BattleShell must not reference Features.
@@ -29,10 +27,8 @@ check_no_import "Trinket/Models" 'State/' 'Models must not reference State/'
 
 # Packages must not import the app module.
 while IFS= read -r file; do
-  if rg -q '^import Trinket$' "$file"; then
-    violations+=("$file: packages must not import Trinket app module")
-  fi
-done < <(find Packages -name '*.swift' -type f 2>/dev/null)
+  [[ -n "$file" ]] && violations+=("$file: packages must not import Trinket app module")
+done < <(rg -l '^import Trinket$' Packages -g '*.swift' 2>/dev/null || true)
 
 # TrinketDesignSystem must depend on TrinketCore only.
 for forbidden in TrinketContent BattleEngine TrinketPersistence; do

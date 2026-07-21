@@ -92,9 +92,11 @@ enum CombatFeedbackStatusLabel: String, CaseIterable, Hashable {
     case thorns = "Thorns"
     case criticalUp = "Critical Up"
     case manaShield = "Mana Shield"
-    case avatarOfJustice = "Avatar of Justice"
+    case avatarOfJustice = "Avatar"
     case consecrated = "Consecrated"
     case nextHolyStrike = "Next Holy Strike"
+    case nextStrikeDouble = "Double Damage"
+    case evadeNextHit = "Evade"
     case marked = "Marked"
     case blockDown = "Block Down"
 }

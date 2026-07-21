@@ -198,7 +198,7 @@ package extension DamagePipeline {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: .shield(keyword, newBuffer),
-                remainingTicks: 0,
+                remainingTurns: 0,
                 sourceActorID: effects[index].sourceActorID
             )
         }

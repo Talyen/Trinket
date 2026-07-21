@@ -57,7 +57,7 @@ struct BattleLootTests {
     }
 
     @Test func bossJourneyLootIsAstral() throws {
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
         let package = BattleLoot.resolveJourney(stage: stage, encounterLevel: 5, enemyIsBoss: true)
         #expect(package.item.rarity == .astral)
     }

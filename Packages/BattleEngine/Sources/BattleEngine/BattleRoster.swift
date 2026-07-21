@@ -8,7 +8,7 @@ public enum BattleParticipant: CaseIterable, Sendable {
     case enemy
 
     /// Participants in effect-tick order for each end-of-round pass.
-    public static let effectTickOrder: [BattleParticipant] = [.enemy, .hero, .companion]
+    public static let effectTurnOrder: [BattleParticipant] = [.enemy, .hero, .companion]
 
     public var isPartyMember: Bool {
         switch self {

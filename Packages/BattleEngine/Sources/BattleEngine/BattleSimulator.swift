@@ -67,7 +67,7 @@ public enum BattleSimulator {
         var timedOut = false
 
         while !battle.isBattleOver {
-            if battle.tickCount >= maxRounds || actions >= maxActions {
+            if battle.turnCount >= maxRounds || actions >= maxActions {
                 timedOut = true
                 break
             }
@@ -93,7 +93,7 @@ public enum BattleSimulator {
 
         return BattleSimResult(
             outcome: outcome,
-            rounds: battle.tickCount,
+            rounds: battle.turnCount,
             actions: actions,
             timedOut: timedOut,
             partyHPRemainingFraction: partyHPFraction(in: battle),

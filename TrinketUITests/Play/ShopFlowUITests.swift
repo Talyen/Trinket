@@ -3,11 +3,12 @@ import XCTest
 /// Exhaustive merchant shop journey via deep link (kept out of smoke-full).
 final class ShopFlowUITests: TrinketUITestCase {
     func testMerchantShopBrowseDetailPurchaseAndLeaveUnlocksNextStage() {
-        // Deep-link opens stage 2-4 shop; prior stages completed so leave unlocks stage 5.
+        // Deep-link opens stage 2-5 shop; prior stages completed so leave unlocks stage 6.
         launchApp(arguments: TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
             "chapter-2-stage-1",
             "chapter-2-stage-2",
-            "chapter-2-stage-3"
+            "chapter-2-stage-3",
+            "chapter-2-stage-4"
         ]))
 
         // Shell catalog (title/gold/leave/offers) lives in SmokeShopTests; wait once then journey.

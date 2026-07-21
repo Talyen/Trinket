@@ -216,12 +216,6 @@ public enum ArtCatalog {
         "acid-potion": AbilityArtReference(
             imageName: "ability_acid_potion_thumb"
         ),
-        "antivenom-potion": AbilityArtReference(
-            imageName: "ability_antivenom_potion_thumb"
-        ),
-        "anvil": AbilityArtReference(
-            imageName: "ability_anvil_thumb"
-        ),
         "apple": AbilityArtReference(
             imageName: "ability_apple_thumb"
         ),
@@ -249,17 +243,8 @@ public enum ArtCatalog {
         "bounty-shot": AbilityArtReference(
             imageName: "ability_bounty_shot_thumb"
         ),
-        "bread": AbilityArtReference(
-            imageName: "ability_bread_thumb"
-        ),
         "briar-shield": AbilityArtReference(
             imageName: "ability_briar_shield_thumb"
-        ),
-        "burning-blade": AbilityArtReference(
-            imageName: "ability_burning_blade_thumb"
-        ),
-        "cauterize": AbilityArtReference(
-            imageName: "ability_cauterize_thumb"
         ),
         "caustic-jab": AbilityArtReference(
             imageName: "ability_caustic_jab_thumb"
@@ -285,9 +270,6 @@ public enum ArtCatalog {
         "dark-pact": AbilityArtReference(
             imageName: "ability_dark_pact_thumb"
         ),
-        "exorcism": AbilityArtReference(
-            imageName: "ability_exorcism_thumb"
-        ),
         "fangs": AbilityArtReference(
             imageName: "ability_fangs_thumb"
         ),
@@ -303,9 +285,6 @@ public enum ArtCatalog {
         "frostbolt": AbilityArtReference(
             imageName: "ability_frostbolt_thumb"
         ),
-        "gamblers-shot": AbilityArtReference(
-            imageName: "ability_gamblers_shot_thumb"
-        ),
         "glacial-ward": AbilityArtReference(
             imageName: "ability_glacial_ward_thumb"
         ),
@@ -315,29 +294,17 @@ public enum ArtCatalog {
         "heal": AbilityArtReference(
             imageName: "ability_heal_thumb"
         ),
-        "health-potion": AbilityArtReference(
-            imageName: "ability_health_potion_thumb"
-        ),
         "hemorrhage": AbilityArtReference(
             imageName: "ability_hemorrhage_thumb"
         ),
-        "holy-radiance": AbilityArtReference(
-            imageName: "ability_holy_radiance_thumb"
-        ),
         "ice-shot": AbilityArtReference(
             imageName: "ability_ice_shot_thumb"
-        ),
-        "judgment": AbilityArtReference(
-            imageName: "ability_judgment_thumb"
         ),
         "kindling": AbilityArtReference(
             imageName: "ability_kindling_thumb"
         ),
         "luck-potion": AbilityArtReference(
             imageName: "ability_luck_potion_thumb"
-        ),
-        "mana-bulwark": AbilityArtReference(
-            imageName: "ability_mana_bulwark_thumb"
         ),
         "mana-berries": AbilityArtReference(
             imageName: "ability_mana_berries_thumb"
@@ -375,9 +342,6 @@ public enum ArtCatalog {
         "poison-dagger": AbilityArtReference(
             imageName: "ability_poison_dagger_thumb"
         ),
-        "prayer": AbilityArtReference(
-            imageName: "ability_prayer_thumb"
-        ),
         "predators-focus": AbilityArtReference(
             imageName: "ability_predators_focus_thumb"
         ),
@@ -393,14 +357,8 @@ public enum ArtCatalog {
         "sage-heal": AbilityArtReference(
             imageName: "ability_sage_heal_thumb"
         ),
-        "sanctified-plate": AbilityArtReference(
-            imageName: "ability_sanctified_plate_thumb"
-        ),
         "sap-arrow": AbilityArtReference(
             imageName: "ability_sap_arrow_thumb"
-        ),
-        "serrated-arrowhead": AbilityArtReference(
-            imageName: "ability_serrated_arrowhead_thumb"
         ),
         "serrated-edge": AbilityArtReference(
             imageName: "ability_serrated_edge_thumb"
@@ -410,9 +368,6 @@ public enum ArtCatalog {
         ),
         "slash": AbilityArtReference(
             imageName: "ability_slash_thumb"
-        ),
-        "smelling-salts": AbilityArtReference(
-            imageName: "ability_smelling_salts_thumb"
         ),
         "smite": AbilityArtReference(
             imageName: "ability_smite_thumb"
@@ -438,7 +393,7 @@ public enum ArtCatalog {
         "sunburst": AbilityArtReference(
             imageName: "ability_sunburst_thumb"
         ),
-        "sunder-armor": AbilityArtReference(
+        "sunder": AbilityArtReference(
             imageName: "ability_sunder_armor_thumb"
         ),
         "thorn-mail": AbilityArtReference(
@@ -700,6 +655,10 @@ public enum ArtCatalog {
         ),
         "chapter-3": BackgroundArtReference(
             imageName: "bg_desert",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
+        ),
+        "chapter-4": BackgroundArtReference(
+            imageName: "bg_tundra",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "homestead": BackgroundArtReference(

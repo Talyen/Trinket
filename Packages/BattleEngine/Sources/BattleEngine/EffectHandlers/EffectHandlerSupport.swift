@@ -55,10 +55,10 @@ enum EffectRemoval {
 }
 
 enum TimedBuffSummary {
-    static func minRemainingTicks(in stacks: [ActiveEffect], duration: (Effect) -> Int?) -> Int {
+    static func minRemainingTurns(in stacks: [ActiveEffect], duration: (Effect) -> Int?) -> Int {
         stacks.compactMap { active -> Int? in
             guard let baseDuration = duration(active.effect) else { return nil }
-            return active.remainingTicks > 0 ? active.remainingTicks : baseDuration
+            return active.remainingTurns > 0 ? active.remainingTurns : baseDuration
         }.min() ?? 0
     }
 }

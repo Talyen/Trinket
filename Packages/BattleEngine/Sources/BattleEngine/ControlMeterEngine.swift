@@ -26,7 +26,7 @@ package enum ControlMeterEngine {
         }
         guard adjustedAmount > 0 else { return [] }
 
-        let threshold = controlMeterThreshold(for: combatant, in: context)
+        let threshold = threshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
@@ -66,7 +66,7 @@ package enum ControlMeterEngine {
         return []
     }
 
-    private static func controlMeterThreshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
+    public static func threshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
         combatant.primaryStats.controlMeterThreshold(
             baseMaxHealth: context.roster.maxHealth(for: combatant)
         )
@@ -157,7 +157,7 @@ package enum ControlMeterEngine {
             currentEffects[existingIndex] = ActiveEffect(
                 id: currentEffects[existingIndex].id,
                 effect: buildup,
-                remainingTicks: currentEffects[existingIndex].remainingTicks,
+                remainingTurns: currentEffects[existingIndex].remainingTurns,
                 sourceActorID: currentEffects[existingIndex].sourceActorID
             )
         } else {
@@ -165,7 +165,7 @@ package enum ControlMeterEngine {
                 ActiveEffect(
                     id: context.consumeNextEffectID(),
                     effect: buildup,
-                    remainingTicks: 0,
+                    remainingTurns: 0,
                     sourceActorID: update.sourceActorID
                 )
             )

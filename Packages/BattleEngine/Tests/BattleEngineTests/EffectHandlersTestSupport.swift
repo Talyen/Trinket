@@ -45,12 +45,12 @@ enum EffectHandlersTestSupport {
         _ active: ActiveEffect,
         target: Combatant,
         battle: inout BattleState
-    ) -> EffectTickOutcome {
+    ) -> EffectTurnOutcome {
         guard let handler = EffectHandlers.handler(for: active.effect.kind) else {
             preconditionFailure("Missing handler for \(active.effect.kind)")
         }
         return battle.withEngineContext { context in
-            handler.tick(active, on: target, in: &context)
+            handler.advanceTurn(active, on: target, in: &context)
         }
     }
 }

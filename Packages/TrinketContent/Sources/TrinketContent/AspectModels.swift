@@ -88,16 +88,31 @@ public enum AspectAttunement: Equatable, Sendable {
         }
     }
 
+    /// Whether a combatant's ability pool includes this Aspect's keyword.
+    public static func matches(_ combatant: Combatant, aspect: AspectDefinition) -> Bool {
+        combatant.keywordProfile.contains(aspect.keyword)
+    }
+
+    /// Hub unlock: roster has at least one matching Hero and Companion.
+    public static func canEnter(
+        _ aspect: AspectDefinition,
+        heroes: [Combatant],
+        companions: [Combatant]
+    ) -> Bool {
+        heroes.contains { matches($0, aspect: aspect) }
+            && companions.contains { matches($0, aspect: aspect) }
+    }
+
     /// v1: Hero and Companion must each have the Aspect keyword in their ability pool.
     public static func evaluate(
         hero: Combatant,
         companion: Combatant,
         aspect: AspectDefinition
     ) -> AspectAttunement {
-        if !hero.keywordProfile.contains(aspect.keyword) {
+        if !matches(hero, aspect: aspect) {
             return .missingHeroAffinity
         }
-        if !companion.keywordProfile.contains(aspect.keyword) {
+        if !matches(companion, aspect: aspect) {
             return .missingCompanionAffinity
         }
         return .ready

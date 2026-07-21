@@ -25,22 +25,22 @@ struct EffectSummaryBuilderTests {
         let expectedKeyword: Keyword?
         switch caseKind {
         case .burnActive:
-            effects = [ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)]
+            effects = [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)]
             expectedText = "Burn active"
             expectedKeyword = .burn
         case .bleedStacks:
             effects = [
-                ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 2),
-                ActiveEffect(id: 2, effect: .bleed(2), remainingTicks: 1)
+                ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 2),
+                ActiveEffect(id: 2, effect: .bleed(2), remainingTurns: 1)
             ]
             expectedText = "Bleed: 5 damage"
             expectedKeyword = nil
         case .shield:
-            effects = [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0)]
+            effects = [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)]
             expectedText = "Block: 5."
             expectedKeyword = nil
         case .leech:
-            effects = [ActiveEffect(id: 1, effect: .leech(.leech, 0.10, 6), remainingTicks: 6)]
+            effects = [ActiveEffect(id: 1, effect: .leech(.leech, 0.10, 6), remainingTurns: 6)]
             expectedText = "Leech: 10% leech, 6 turns left."
             expectedKeyword = nil
         case .deathsDoor:
@@ -48,7 +48,7 @@ struct EffectSummaryBuilderTests {
                 ActiveEffect(
                     id: 1,
                     effect: .deathsDoor,
-                    remainingTicks: BattleTiming.deathsDoorDurationTicks
+                    remainingTurns: BattleTiming.deathsDoorDurationTurns
                 )
             ]
             expectedText = "Death's Door: heal soon or the next fatal blow will end them."
@@ -65,12 +65,12 @@ struct EffectSummaryBuilderTests {
 
     @Test func stunBuildupAndTriggeredSummaries() throws {
         let buildup = EffectSummaryBuilder.build(for: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTurns: 0)
         ])
         try #expect(buildup.first?.text == "Stun Build-up: 3/10")
 
         let triggered = EffectSummaryBuilder.build(for: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
         ])
         try #expect(triggered.first?.text == "Stunned: action prevented.")
     }
@@ -81,8 +81,8 @@ struct EffectSummaryBuilderTests {
 
     @Test func multipleKeywordsYieldMultipleSummaries() throws {
         let effects = [
-            ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
-            ActiveEffect(id: 2, effect: .burn(2), remainingTicks: 3)
+            ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
+            ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 3)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.count == 2)

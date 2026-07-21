@@ -1,17 +1,17 @@
 # TrinketContent
 
-Game content catalogs — heroes, companions, enemies, abilities, items, stages, homestead nodes, and art/music/SFX references. Most content is manifest-driven (TSV → generated Swift).
+Game content catalogs — heroes, companions, enemies, abilities, items, stages, homestead nodes, and art/music/SFX references. Most data content is manifest-driven (TSV → generated Swift). Abilities are authored in Swift.
 
 ## Structure
 
-- **Content/** — Hand-written Swift for abilities that don't fit manifest patterns
-- **Generated/** — Auto-generated catalogs from manifest TSVs (do not edit directly)
+- **Content/** — Authored Swift, including all abilities in `AbilityCatalog{Basic,Skill,Ultimate}.swift`
+- **Generated/** — Auto-generated catalogs from manifests / ability shorthand (do not edit directly)
 
 ## Manifest sources
 
-| Manifest | Generates |
+| Manifest / source | Generates |
 |----------|-----------|
-| `ContentManifest/abilities.tsv` | `AbilityCatalog*.generated.swift`, `AbilityShorthand.generated.swift` |
+| `Content/AbilityCatalog{Basic,Skill,Ultimate}.swift` | `AbilityShorthand.generated.swift`, `AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) |
 | `ContentManifest/combatants.tsv` | `GameContentRoster.generated.swift` |
 | `ContentManifest/enemies.tsv` | `GameContentEnemies.generated.swift` |
 | `ContentManifest/stages.tsv` | `GameContentChapters.generated.swift`, `GameContentEncounterArt.generated.swift` |

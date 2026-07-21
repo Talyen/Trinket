@@ -3,6 +3,30 @@ import TrinketCore
 
 enum AbilityDescriptionFormatter {
     static func format(_ ability: Ability) -> String {
+        if let branches = ability.outcomeBranches, !branches.isEmpty {
+            let branchTexts = branches.map(formatBranch)
+            return joinOr(branchTexts)
+        }
+        return formatFixed(ability)
+    }
+
+    private static func formatBranch(_ branch: AbilityOutcomeBranch) -> String {
+        if branch.randomizeDamageKeywords {
+            let amount = branch.damageComponents.first?.amount ?? 0
+            return amount > 0 ? "Deal \(amount) Random damage" : ""
+        }
+        let ability = Ability(
+            id: "branch",
+            name: "branch",
+            tier: .basic,
+            damageComponents: branch.damageComponents,
+            targetedEffects: branch.targetedEffects
+        )
+        let text = formatFixed(ability)
+        return text.hasSuffix(".") ? String(text.dropLast()) : text
+    }
+
+    private static func formatFixed(_ ability: Ability) -> String {
         var clauses: [String] = []
 
         if ability.manaCost > 0 {
@@ -54,9 +78,6 @@ enum AbilityDescriptionFormatter {
 
     private static func formatTargetedEffect(_ targetedEffect: TargetedEffect) -> String {
         var phrase = EffectPresentation.applyPhrase(for: targetedEffect.effect)
-        if targetedEffect.target == .lowestHealthAlly, phrase.hasPrefix("restore ") {
-            phrase += " to whichever ally has less Health"
-        }
         if let condition = targetedEffect.condition {
             phrase += " if \(conditionPhrase(condition))"
         }
@@ -83,6 +104,19 @@ enum AbilityDescriptionFormatter {
         return damage.contains { $0.keyword == effect.keyword && $0.amount == potency }
     }
 
+    private static func joinOr(_ clauses: [String]) -> String {
+        guard let first = clauses.first else { return "" }
+        guard clauses.count > 1 else {
+            return first.hasSuffix(".") ? first : first + "."
+        }
+        if clauses.count == 2 {
+            return "\(first) or \(lowercaseFirst(clauses[1]))."
+        }
+        guard let last = clauses.last else { return "" }
+        let head = clauses.dropLast().joined(separator: ", ")
+        return "\(head), or \(lowercaseFirst(last))."
+    }
+
     private static func joinClauses(_ clauses: [String]) -> String {
         guard let first = clauses.first else { return "" }
         guard clauses.count > 1 else {
@@ -91,7 +125,8 @@ enum AbilityDescriptionFormatter {
 
         if first.hasPrefix("Lose ") || first.hasPrefix("costs ") {
             let tail = clauses.dropFirst().map(lowercaseFirst)
-            return capitalize(first) + ", " + joinWithAnd(tail) + "."
+            let joinedTail = joinWithAnd(tail)
+            return capitalize(first) + ". " + capitalize(joinedTail) + "."
         }
 
         return joinWithAnd(clauses.map(capitalize)) + "."

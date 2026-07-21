@@ -41,7 +41,7 @@ struct BattleConditionEvaluatorTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        let expiredBleed = ActiveEffect(id: 1, effect: .bleed(2), remainingTicks: 0, sourceActorID: hero.id)
+        let expiredBleed = ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0, sourceActorID: hero.id)
         var context = BattleEngineContext(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),

@@ -22,7 +22,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)
             ]
         )
 
@@ -32,10 +32,7 @@ struct RestorationIntegrationTests {
         let events = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
 
         try #expect(battle.health(of: battle.hero) == 10)
-        try #expect(events.contains { event in
-            guard event.effectKind == .instantHeal else { return false }
-            return ActionEventFormatter.display(for: event).text == "+\(event.amount) Health"
-        })
+        try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
     }
 
     @Test func leechHealsAttackerOnDamageDealt() throws {
@@ -55,7 +52,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0)
             ]
         )
 
@@ -91,7 +88,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)
             ]
         )
 

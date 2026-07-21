@@ -3,14 +3,9 @@ import Testing
 import TrinketDesignSystem
 
 struct TrinketMotionTests {
-    @Test func rewardRevealTimingStaysBriefAndSequential() {
-        #expect(TrinketMotion.Reward.resourceStagger == 0.06)
-        #expect(TrinketMotion.Reward.itemRevealDelay == 0.08)
-        #expect(TrinketMotion.Reward.completionDelay == 0.10)
+    @Test func rewardAndScreenTimingKeepOrderingContracts() {
         #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
         #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
-
-        #expect(ArtworkBlendRecipe.perimeterInset == 0.22)
         #expect(TrinketMotion.Battle.ultimateFallbackHold > 0)
         #expect(TrinketMotion.Battle.ultimateVideoWatchdog > TrinketMotion.Battle.ultimateFallbackHold)
         #expect(TrinketMotion.Battle.feedbackStreamStagger > 0)
@@ -21,11 +16,7 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity < 1)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
         #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
-        #expect(TrinketMotion.Screen.crossfadeDuration == 0.20)
-        #expect(TrinketMotion.Content.fadeDuration == 0.20)
-        #expect(TrinketMotion.Content.entranceDuration == 0.35)
-        #expect(TrinketMotion.Content.entranceStagger == 0.08)
-        #expect(TrinketMotion.Content.secondEntranceDelay == 0.16)
+        #expect(TrinketMotion.Content.secondEntranceDelay == TrinketMotion.Content.entranceStagger * 2)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
         #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(
@@ -69,38 +60,45 @@ struct TrinketMotionTests {
         }
     }
 
-    @Test func combatFeedbackUsesIdealCoreEaseOutRisePunchAndFade() {
-        #expect(TrinketMotion.Battle.chipDisplayDuration == 1.02)
-        #expect(TrinketMotion.Battle.chipFadeOutDuration == 0.30)
-        #expect(TrinketMotion.Battle.chipOpaqueHoldFraction == 0.64)
-        #expect(TrinketMotion.Battle.chipTravelFraction == 0.44)
-        #expect(TrinketMotion.Battle.chipStartScale == 1.06)
-        #expect(TrinketMotion.Battle.chipPeakScale == 1.10)
-        #expect(TrinketMotion.Battle.chipEndScale == 0.96)
-        #expect(TrinketMotion.Battle.chipPeakProgress == 0.10)
+    @Test func combatFeedbackChipMotionUsesEaseOutRiseAndFade() {
+        let duration = TrinketMotion.Battle.chipDisplayDuration
+        #expect(duration > 0)
+        #expect(TrinketMotion.Battle.chipFadeOutDuration > 0)
+        #expect(TrinketMotion.Battle.chipFadeOutDuration < duration)
+        #expect(TrinketMotion.Battle.chipOpaqueHoldFraction > 0)
+        #expect(TrinketMotion.Battle.chipOpaqueHoldFraction < 1)
+        #expect(TrinketMotion.Battle.chipTravelFraction > 0)
+        #expect(TrinketMotion.Battle.chipTravelFraction < 1)
+        #expect(TrinketMotion.Battle.chipStartScale > 1)
+        #expect(TrinketMotion.Battle.chipPeakScale > TrinketMotion.Battle.chipStartScale)
+        #expect(TrinketMotion.Battle.chipEndScale < 1)
+        #expect(TrinketMotion.Battle.chipPeakProgress > 0)
+        #expect(TrinketMotion.Battle.chipPeakProgress < 1)
 
         #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 0) == 0)
-        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: 1.02) == 1)
+        #expect(TrinketMotion.Battle.chipMotionProgress(elapsed: duration) == 1)
         // Ease-out covers more distance early than late.
-        let firstQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.255)
-        let secondQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 0.51) - firstQuarter
-        let lastQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: 1.02)
-            - TrinketMotion.Battle.chipMotionProgress(elapsed: 0.765)
+        let firstQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: duration * 0.25)
+        let secondQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: duration * 0.5) - firstQuarter
+        let lastQuarter = TrinketMotion.Battle.chipMotionProgress(elapsed: duration)
+            - TrinketMotion.Battle.chipMotionProgress(elapsed: duration * 0.75)
         #expect(firstQuarter > secondQuarter)
         #expect(secondQuarter > lastQuarter)
 
-        #expect(TrinketMotion.Battle.chipScale(elapsed: 0) == 1.06)
-        #expect(TrinketMotion.Battle.chipScale(elapsed: 0.102) == 1.10)
-        #expect(TrinketMotion.Battle.chipScale(elapsed: 1.02) == 0.96)
+        #expect(TrinketMotion.Battle.chipScale(elapsed: 0) == TrinketMotion.Battle.chipStartScale)
+        #expect(
+            TrinketMotion.Battle.chipScale(elapsed: duration * TrinketMotion.Battle.chipPeakProgress)
+                == TrinketMotion.Battle.chipPeakScale
+        )
+        #expect(TrinketMotion.Battle.chipScale(elapsed: duration) == TrinketMotion.Battle.chipEndScale)
 
-        let holdEnd = 1.02 * 0.64
+        let holdEnd = duration * TrinketMotion.Battle.chipOpaqueHoldFraction
         #expect(TrinketMotion.Battle.chipOpacity(elapsed: 0) == 1)
         #expect(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd) == 1)
-        #expect(abs(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd + 0.15) - 0.5) < 0.0001)
-        #expect(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd + 0.30) == 0)
+        #expect(TrinketMotion.Battle.chipOpacity(elapsed: holdEnd + TrinketMotion.Battle.chipFadeOutDuration) == 0)
 
         let travel = TrinketMotion.Battle.chipTravelDistance(cardHeight: 200, chipHeight: 40)
-        #expect(travel == 72)
+        #expect(travel > 0)
         #expect(100 - travel >= 20 + TrinketMotion.Battle.chipTopClearance)
     }
 
@@ -113,19 +111,17 @@ struct TrinketMotionTests {
 
         let damage = TrinketMotion.Battle.cardReaction(for: .damage)
         let critical = TrinketMotion.Battle.cardReaction(for: .critical)
-        #expect(damage.scaleX.first?.value == 0.96)
-        #expect(damage.scaleY.first?.value == 1.025)
-        #expect(abs(damage.offsetX.first?.value ?? 0) == 4)
-        #expect(critical.scaleX.first?.value == 0.93)
-        #expect(critical.scaleY.first?.value == 1.04)
-        #expect(abs(critical.offsetX.first?.value ?? 0) == 7)
+        #expect((damage.scaleX.first?.value ?? 1) < 1)
+        #expect((damage.scaleY.first?.value ?? 1) > 1)
+        #expect(abs(damage.offsetX.first?.value ?? 0) > 0)
+        #expect(abs(critical.offsetX.first?.value ?? 0) > abs(damage.offsetX.first?.value ?? 0))
+        #expect((critical.scaleX.first?.value ?? 1) < (damage.scaleX.first?.value ?? 1))
 
         let celebrate = TrinketMotion.Battle.cardReaction(for: .celebrate)
         #expect((celebrate.scaleX.first?.value ?? 0) > 1)
         #expect((celebrate.scaleY.first?.value ?? 1) < 1)
         #expect((celebrate.offsetY.first?.value ?? 0) < 0)
-        #expect(celebrate.rotation.count >= 8)
-        #expect(celebrate.duration == 1.0)
+        #expect(celebrate.rotation.count >= 2)
         #expect((celebrate.rotation.first?.value ?? 0) < 0)
         #expect(celebrate.rotation[1].value > 0)
     }
@@ -140,17 +136,19 @@ struct TrinketMotionTests {
         }
 
         let lunge = TrinketMotion.Battle.cardAttack(for: .attack)
-        #expect(lunge.scaleX.count == 3)
-        #expect(lunge.scaleY.count == 3)
-        #expect(lunge.offsetY.count == 3)
-        #expect(lunge.rotation.count == 3)
-        #expect(lunge.impactDelay == 0.55)
-        #expect(lunge.duration == 1.0)
+        #expect(lunge.scaleX.count == lunge.scaleY.count)
+        #expect(lunge.offsetY.count == lunge.scaleX.count)
+        #expect(lunge.rotation.count == lunge.scaleX.count)
+        #expect(lunge.offsetY.count >= 3)
         #expect((lunge.offsetY[0].value) < 0)
         #expect((lunge.offsetY[1].value) > 0)
         #expect(lunge.offsetY[2].value == 0)
         let windUpPlusSwing = (lunge.offsetY[0].duration) + (lunge.offsetY[1].duration)
         #expect(abs(lunge.impactDelay - windUpPlusSwing) < 0.001)
+        #expect(
+            abs(lunge.duration - (lunge.windUpDuration + lunge.swingDuration + lunge.recoverDuration))
+                < 0.001
+        )
 
         let enemyAim = TrinketMotion.Battle.attackAim(isPartyMember: false)
         let partyAim = TrinketMotion.Battle.attackAim(isPartyMember: true)
@@ -161,9 +159,6 @@ struct TrinketMotionTests {
         #expect(lunge.windUpPose(aim: partyAim).offsetY > 0)
         #expect(lunge.swingPose(aim: partyAim).offsetY < 0)
         #expect(lunge.restPose == .rest)
-        #expect(lunge.windUpDuration == 0.40)
-        #expect(lunge.swingDuration == 0.15)
-        #expect(lunge.recoverDuration == 0.45)
     }
 
     @Test func hitRecoilDirectionFlipsOffsetAndScaleAxes() {

@@ -26,7 +26,7 @@ Packages/
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
   TrinketTestSupport/       Shared unit-test fixtures (CombatantFixtures, SaveTestSupport, battle parties)
 
-ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.tsv, …
+ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
 ArtManifest/                curated-assets.tsv
 MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv

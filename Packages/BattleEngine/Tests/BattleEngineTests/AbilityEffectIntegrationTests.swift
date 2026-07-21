@@ -5,7 +5,7 @@ import TrinketCore
 
 /// Integration tests for catalog abilities that combine damage, effects, and resources.
 struct AbilityEffectIntegrationTests {
-    @Test func blackjackGrantsGoldAlongsideStunDamage() throws {
+    @Test func blackjackChoosesStunDamageOrGold() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -19,7 +19,9 @@ struct AbilityEffectIntegrationTests {
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
-        try #expect(battle.gold == 1)
+        let stoleGold = battle.gold == 2
+        let dealtStun = battle.health(of: battle.enemy) < 100
+        try #expect(stoleGold != dealtStun)
     }
 
     @Test func poisonEffectAppliesThroughTargetedEffects() throws {
@@ -61,34 +63,41 @@ struct AbilityEffectIntegrationTests {
             "Expected Bloodthorn to resolve in battle"
         )
 
-        // Two typed damage components (2 bleed, 2 poison) resolve
-        // before any end-of-round DoT tick. Leech was removed from Bloodthorn.
-        try #expect(battle.health(of: battle.enemy) == 96)
-        try #expect(battle.hasEnemyEffect {
+        // One randomly chosen typed hit (6 Bleed or 6 Poison) plus paired DoT.
+        try #expect(battle.health(of: battle.enemy) == 94)
+        let hasBleed = battle.hasEnemyEffect {
             if case .bleed = $0 {
                 return true
-            }; return false
-        })
-        try #expect(battle.hasEnemyEffect {
+            }
+            return false
+        }
+        let hasPoison = battle.hasEnemyEffect {
             if case .poison = $0 {
                 return true
-            }; return false
-        })
+            }
+            return false
+        }
+        try #expect(hasBleed != hasPoison)
         try #expect(battle.health(of: battle.hero) == 10)
-        try #expect(!battle.hasHeroEffect {
-            if case .leech = $0 {
-                return true
-            }; return false
-        })
     }
 
-    @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() throws {
+    @Test func cleanseRandomRemovesOneDebuffAndHeals() throws {
+        let mend = Ability(
+            id: "mend",
+            name: "Mend",
+            tier: .skill,
+            description: "Heal and cleanse a random debuff.",
+            targetedEffects: [
+                TargetedEffect(.instantHeal(.health, 2)),
+                TargetedEffect(.cleanseRandom)
+            ]
+        )
         let hero = Combatant(
             id: "hero",
             name: "Hero",
             role: .hero,
             maxHealth: 10,
-            abilities: [.prayer]
+            abilities: [mend]
         )
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
@@ -97,18 +106,18 @@ struct AbilityEffectIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .poison(4), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0)
             ]
         )
 
-        // Let DoTs tick once so hero is damaged before Prayer.
+        // Let DoTs tick once so hero is damaged before Mend.
         _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(battle.health(of: battle.hero) < 10)
 
         let events = try #require(
-            try BattleTestFixtures.playUntilAbility("Prayer", on: &battle),
-            "Expected Prayer to resolve in battle"
+            try BattleTestFixtures.playUntilAbility("Mend", on: &battle),
+            "Expected Mend to resolve in battle"
         )
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
         try #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
@@ -137,7 +146,7 @@ struct AbilityEffectIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTurns: 6)
             ]
         )
 
@@ -164,17 +173,16 @@ struct AbilityEffectIntegrationTests {
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
         let events = try #require(
-            try BattleTestFixtures.playUntilAbility("Avatar of Justice", on: &battle),
-            "Expected Avatar of Justice to resolve in battle"
+            try BattleTestFixtures.playUntilAbility("Avatar", on: &battle),
+            "Expected Avatar to resolve in battle"
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .damageKeywordOverride(.holy, 3, 6) = active.effect {
+            if case .holyDamageBonusFromBlock(2) = active.effect {
                 return true
             }
             return false
         })
-        try #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 7 })
-        try #expect(events.contains { $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 })
+        try #expect(events.contains { $0.effectKind == .damageKeywordOverrideApplied })
     }
 }

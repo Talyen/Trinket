@@ -69,12 +69,13 @@ public enum BattleTurnEngine {
         spendMana: Bool
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
+        let resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
         if spendMana {
-            events.append(contentsOf: spendManaIfNeeded(for: ability, actor: actor, context: &context))
+            events.append(contentsOf: spendManaIfNeeded(for: resolvedAbility, actor: actor, context: &context))
         }
 
         let damageOutcome = applyDamageComponents(
-            ability: ability,
+            ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
             matchup: matchup,
@@ -83,7 +84,7 @@ public enum BattleTurnEngine {
         events.append(contentsOf: damageOutcome.events)
 
         let appliedEffectLogs = applyTargetedEffects(
-            ability: ability,
+            ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
             matchup: matchup,
@@ -92,16 +93,16 @@ public enum BattleTurnEngine {
             events: &events
         )
 
-        let logKeyword = damageOutcome.logDamageKeyword ?? ability.logDamageKeyword
+        let logKeyword = damageOutcome.logDamageKeyword ?? resolvedAbility.logDamageKeyword
         events.append(
             context.nextEvent(
                 kind: .ability,
                 effectKind: nil,
                 actorID: actor.id,
                 actorName: actor.name,
-                abilityID: ability.id,
-                abilityName: ability.name,
-                abilityTier: ability.tier,
+                abilityID: resolvedAbility.id,
+                abilityName: resolvedAbility.name,
+                abilityTier: resolvedAbility.tier,
                 target: abilityTarget,
                 amount: damageOutcome.totalDealtToAbilityTarget,
                 keyword: logKeyword,
@@ -214,7 +215,14 @@ extension BattleTurnEngine {
                 && !isSelfHealthCost
                 && damageKeyword == .holy
                 && hasNextHolyStrike(for: actor, in: context)
-            if shouldConsumeNextHolyStrike {
+            let shouldConsumeNextStrikeDouble = amount > 0
+                && !isSelfHealthCost
+                && hasNextStrikeDouble(for: actor, in: context)
+                && !shouldConsumeNextHolyStrike
+            let shouldConsumeNextStrikeCritical = amount > 0
+                && !isSelfHealthCost
+                && hasNextStrikeCritical(for: actor, in: context)
+            if shouldConsumeNextHolyStrike || shouldConsumeNextStrikeDouble {
                 amount *= 2
             }
 
@@ -229,7 +237,9 @@ extension BattleTurnEngine {
                         : DamageOptions(
                             abilityCriticalChanceBonus: ability.criticalChanceBonus,
                             guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
+                            guaranteedCritical: shouldConsumeNextStrikeCritical,
                             qualifiesForAmbush: true,
+                            isAttackHit: true,
                             abilityHasLeech: ability.hasLeech
                         )
                 )
@@ -269,6 +279,11 @@ extension BattleTurnEngine {
                     sourceActorID: actor.id,
                     dealImmediateDamage: true
                 ))
+            } else if shouldConsumeNextStrikeDouble {
+                removeNextStrikeDouble(for: actor, in: &context)
+            }
+            if shouldConsumeNextStrikeCritical {
+                removeNextStrikeCritical(for: actor, in: &context)
             }
 
             // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
@@ -297,9 +312,16 @@ extension BattleTurnEngine {
         for actor: Combatant,
         in context: BattleEngineContext
     ) -> (keyword: Keyword, bonus: Int)? {
-        for active in context.roster.activeEffects(for: actor) where active.remainingTicks > 0 {
+        for active in context.roster.activeEffects(for: actor) where active.remainingTurns > 0 {
             if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
                 return (keyword, bonus)
+            }
+            if case .holyDamageBonusFromBlock = active.effect {
+                let block = DefensePoolEngine.points(
+                    in: context.roster.activeEffects(for: actor),
+                    pool: .block
+                )
+                return (.holy, block)
             }
         }
         return nil
@@ -326,6 +348,58 @@ extension BattleTurnEngine {
             if case .nextHolyStrike = $0.effect {
                 return true
             }; return false
+        }
+        context.roster.setActiveEffects(effects, for: actor)
+    }
+
+    private static func hasNextStrikeDouble(
+        for actor: Combatant,
+        in context: BattleEngineContext
+    ) -> Bool {
+        context.roster.activeEffects(for: actor).contains { active in
+            if case .nextStrikeDouble = active.effect {
+                return true
+            }
+            return false
+        }
+    }
+
+    private static func removeNextStrikeDouble(
+        for actor: Combatant,
+        in context: inout BattleEngineContext
+    ) {
+        var effects = context.roster.activeEffects(for: actor)
+        effects.removeAll {
+            if case .nextStrikeDouble = $0.effect {
+                return true
+            }
+            return false
+        }
+        context.roster.setActiveEffects(effects, for: actor)
+    }
+
+    private static func hasNextStrikeCritical(
+        for actor: Combatant,
+        in context: BattleEngineContext
+    ) -> Bool {
+        context.roster.activeEffects(for: actor).contains { active in
+            if case .nextStrikeCritical = active.effect {
+                return true
+            }
+            return false
+        }
+    }
+
+    private static func removeNextStrikeCritical(
+        for actor: Combatant,
+        in context: inout BattleEngineContext
+    ) {
+        var effects = context.roster.activeEffects(for: actor)
+        effects.removeAll {
+            if case .nextStrikeCritical = $0.effect {
+                return true
+            }
+            return false
         }
         context.roster.setActiveEffects(effects, for: actor)
     }
@@ -403,6 +477,9 @@ extension BattleTurnEngine {
         if case .drawCards = effect {
             return false
         }
+        if case .revive = effect {
+            return false
+        }
         return true
     }
 
@@ -442,6 +519,14 @@ extension BattleTurnEngine {
                 return enemy
             }
             return BattleConditionEvaluator.lowestHealthAlly(hero: hero, companion: companion, context: context)
+        case .defeatedAlly:
+            if context.roster.health(for: companion) <= 0 {
+                return companion
+            }
+            if context.roster.health(for: hero) <= 0 {
+                return hero
+            }
+            return companion
         }
     }
 }

@@ -4,14 +4,14 @@ import TrinketCore
 
 /// Passive enemy trait hooks that run during battle ticks and damage resolution.
 package enum EnemyTraitEngine {
-    package static func tickRegeneration(
+    package static func turnRegeneration(
         for combatant: Combatant,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.regenerationAmount > 0,
-              profile.regenerationIntervalTicks > 0,
-              context.tickCount.isMultiple(of: profile.regenerationIntervalTicks),
+              profile.regenerationIntervalTurns > 0,
+              context.turnCount.isMultiple(of: profile.regenerationIntervalTurns),
               context.roster.health(for: combatant) > 0
         else { return [] }
 
@@ -50,7 +50,7 @@ package enum EnemyTraitEngine {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: .shield(shieldKeyword, eroded),
-                remainingTicks: 0,
+                remainingTurns: 0,
                 sourceActorID: effects[index].sourceActorID
             )
             didErode = true
@@ -71,13 +71,13 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.mitigationShredDurationTicks > 0,
+        guard profile.mitigationShredDurationTurns > 0,
               profile.mitigationShredMultiplier > 0,
               profile.mitigationShredKeyword == keyword,
               var runtime = context.roster.runtime(for: combatant)
         else { return }
 
-        runtime.mitigationShredUntilTick = context.tickCount + profile.mitigationShredDurationTicks
+        runtime.mitigationShredUntilTurn = context.turnCount + profile.mitigationShredDurationTurns
         runtime.mitigationShredMultiplier = profile.mitigationShredMultiplier
         context.roster.update(runtime)
     }
@@ -100,7 +100,12 @@ package enum EnemyTraitEngine {
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: DamageOptions(applyDodge: false, isRetaliation: true)
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: true
+                )
             )
         )
         let events = outcome.events.map { event in

@@ -34,7 +34,7 @@ public enum CombatantLevelScaler {
             role: scaled.role,
             maxHealth: compensated.maxHealth,
             maxMana: compensated.maxMana,
-            actionIntervalTicks: scaled.actionIntervalTicks,
+            actionIntervalTurns: scaled.actionIntervalTurns,
             abilityChoices: scaled.abilityChoices,
             primaryStats: compensated.primaryStats,
             growthArchetype: scaled.growthArchetype
@@ -54,7 +54,7 @@ public enum CombatantLevelScaler {
             role: combatant.role,
             maxHealth: scaled.maxHealth,
             maxMana: scaled.maxMana,
-            actionIntervalTicks: combatant.actionIntervalTicks,
+            actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: combatant.abilityChoices,
             primaryStats: scaled.primaryStats,
             growthArchetype: combatant.growthArchetype

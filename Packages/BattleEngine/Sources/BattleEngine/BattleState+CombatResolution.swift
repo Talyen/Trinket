@@ -15,8 +15,10 @@ package extension BattleState {
             applyDodge: request.options.applyDodge,
             abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
+            guaranteedCritical: request.options.guaranteedCritical,
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush,
+            isAttackHit: request.options.isAttackHit,
             abilityHasLeech: request.options.abilityHasLeech,
             isHealthCost: request.options.isHealthCost
         )
@@ -65,7 +67,7 @@ package extension BattleState {
         target: Combatant,
         sourceActorID: String?
     ) -> CombatOutcome {
-        DoTDamage.resolveTick(
+        DoTDamage.resolveTurnDamage(
             basePotency: basePotency,
             keyword: keyword,
             target: target,

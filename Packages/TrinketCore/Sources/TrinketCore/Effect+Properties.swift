@@ -25,6 +25,18 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case restoreManaOnHit
     case damageKeywordOverride
     case nextHolyStrike
+    case nextStrikeDouble
+    case evadeNextHit
+    case convertManaToBlock
+    case shieldFromMana
+    case shieldFromGold
+    case maximumManaBonus
+    case nextStrikeCritical
+    case freezeNextAttacker
+    case multiplyDoT
+    case recurringDamage
+    case holyDamageBonusFromBlock
+    case revive
 }
 
 public extension Effect {
@@ -53,6 +65,18 @@ public extension Effect {
         case .restoreManaOnHit: .restoreManaOnHit
         case .damageKeywordOverride: .damageKeywordOverride
         case .nextHolyStrike: .nextHolyStrike
+        case .nextStrikeDouble: .nextStrikeDouble
+        case .evadeNextHit: .evadeNextHit
+        case .convertManaToBlock: .convertManaToBlock
+        case .shieldFromMana: .shieldFromMana
+        case .shieldFromGold: .shieldFromGold
+        case .maximumManaBonus: .maximumManaBonus
+        case .nextStrikeCritical: .nextStrikeCritical
+        case .freezeNextAttacker: .freezeNextAttacker
+        case .multiplyDoT: .multiplyDoT
+        case .recurringDamage: .recurringDamage
+        case .holyDamageBonusFromBlock: .holyDamageBonusFromBlock
+        case .revive: .revive
         }
     }
 
@@ -60,12 +84,9 @@ public extension Effect {
     /// strip from allies.
     var isRemovableDebuff: Bool {
         switch self {
-        case .burn, .poison, .bleed, .controlMeter, .marked:
+        case .burn, .poison, .bleed, .controlMeter, .marked, .recurringDamage:
             true
-        case .shield, .leech, .cleanse, .purge,
-             .instantHeal, .resourceGain, .drawCards, .cleanseRandom, .purgeRandom, .halveShield, .deathsDoor,
-             .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-             .nextHolyStrike:
+        default:
             false
         }
     }
@@ -75,25 +96,24 @@ public extension Effect {
     var isRemovableBuff: Bool {
         switch self {
         case .shield, .leech, .thorns, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike:
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .holyDamageBonusFromBlock:
             true
         default:
             false
         }
     }
 
-    /// True when this effect occupies a slot on the combatant and ticks down
-    /// its `remainingTicks` over time. Used by the "decrement duration" pass
-    /// in `tickEffects`.
-    var isTickable: Bool {
+    /// True when this effect occupies a slot on the combatant and advances
+    /// its `remainingTurns` over time.
+    var advancesEachTurn: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
              .leech, .deathsDoor,
-             .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
+             .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
+             .recurringDamage, .holyDamageBonusFromBlock:
             true
-        case .shield, .nextHolyStrike,
-             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveShield:
+        default:
             false
         }
     }
@@ -103,14 +123,15 @@ public extension Effect {
     var isInstant: Bool {
         switch self {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveShield:
+             .purge, .purgeRandom, .halveShield, .convertManaToBlock, .shieldFromMana,
+             .shieldFromGold, .multiplyDoT, .revive:
             true
         default:
             false
         }
     }
 
-    /// True for burn and poison, which decay their potency each tick instead
+    /// True for burn and poison, which decay their potency each turn instead
     /// of consuming duration.
     var isDecayingDoT: Bool {
         switch self {

@@ -131,7 +131,7 @@ public enum StageCompletion {
             if let loot {
                 return loot
             }
-            guard case .battle = stage.encounter else {
+            guard stage.encounter.isCombat else {
                 return nil
             }
             return BattleLoot.resolveJourney(
@@ -149,7 +149,7 @@ public enum StageCompletion {
                 homestead: save.homestead
             )
         )
-        if case .battle = stage.encounter {
+        if stage.encounter.isCombat {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
             grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
         }
@@ -179,7 +179,7 @@ public enum StageCompletion {
         in save: PlayerSave,
         chapters: [Chapter]
     ) -> Bool {
-        if case .battle = stage.encounter {
+        if stage.encounter.isCombat {
             let encounterLevel = resolvedEncounterLevel(for: stage, in: chapters)
             let enemyIsBoss = stage.encounter.battleEnemyID
                 .flatMap(GameContent.enemy(matching:))?.isBoss == true

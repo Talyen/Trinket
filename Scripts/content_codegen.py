@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,24 +13,16 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_DIR = ROOT / "ContentManifest"
 GENERATED_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Generated"
 CONTENT_DIR = ROOT / "Packages" / "TrinketContent" / "Sources" / "TrinketContent" / "Content"
-
-TIER_ENUM = {
-    "basic": "AbilityCatalogBasicGenerated",
-    "skill": "AbilityCatalogSkillGenerated",
-    "ultimate": "AbilityCatalogUltimateGenerated",
-}
-
-TIER_SOURCE = {
-    "basic": CONTENT_DIR / "AbilityCatalogBasic.swift",
-    "skill": CONTENT_DIR / "AbilityCatalogSkill.swift",
-    "ultimate": CONTENT_DIR / "AbilityCatalogUltimate.swift",
-}
+TRINKET_CONTENT_PACKAGE = ROOT / "Packages" / "TrinketContent"
 
 VALID_SLOTS = frozenset({"weapon", "armor", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
-VALID_PATTERNS = frozenset({"direct_hit", "buff_only", "multi_damage"})
-VALID_ENCOUNTERS = frozenset({"battle", "event", "shop", "rest", "mystery", "recruit"})
-VALID_CHAPTER_THEMES = frozenset({"verdantForest"})
+VALID_ENCOUNTERS = frozenset(
+    {"battle", "event", "shop", "rest", "mystery", "recruit", "random_battle"}
+)
+VALID_CHAPTER_THEMES = frozenset({"forest", "dungeon", "desert", "tundra"})
+# Recruit sentinel: empty id = any eligible unlock; this id = companion-only pool.
+RANDOM_COMPANION_RECRUIT_ID = "random-companion"
 VALID_HOMESTEAD_RESOURCES = frozenset(
     {"wood", "stone", "iron", "food", "herbs", "hide", "crystal", "gold"}
 )
@@ -100,29 +93,12 @@ class AffixRow:
 
 
 @dataclass
-class AbilityRow:
-    pattern: str
-    symbol: str
-    id: str
-    name: str
-    tier: str
-    amount: str = ""
-    keyword: str = ""
-    description: str = ""
-    effects: str = ""
-    damage_components: str = ""
-    extras: str = ""
-    leech: str = ""
-
-
-@dataclass
 class StageRow:
     chapter_id: str
     chapter_number: str
     chapter_title: str
     theme: str
     stage_number: str
-    flavor_text: str
     encounter: str
     enemy_id: str
     encounter_art_id: str = ""
@@ -238,33 +214,6 @@ def parse_trait_rows() -> list[TraitRow]:
     return [TraitRow(*row) for row in lines[1:]]
 
 
-def parse_ability_rows() -> list[AbilityRow]:
-    path = MANIFEST_DIR / "abilities.tsv"
-    lines = read_tsv(path)
-    header = lines[0]
-    expected = [
-        "pattern",
-        "symbol",
-        "id",
-        "name",
-        "tier",
-        "amount",
-        "keyword",
-        "description",
-        "effects",
-        "damage_components",
-        "extras",
-        "leech",
-    ]
-    if header != expected:
-        raise ValueError(f"{path} header mismatch: {header}")
-    rows: list[AbilityRow] = []
-    for raw in lines[1:]:
-        padded = raw + [""] * (len(expected) - len(raw))
-        rows.append(AbilityRow(*padded[: len(expected)]))
-    return rows
-
-
 def parse_stage_rows() -> list[StageRow]:
     path = MANIFEST_DIR / "stages.tsv"
     lines = read_tsv(path)
@@ -275,7 +224,6 @@ def parse_stage_rows() -> list[StageRow]:
         "chapter_title",
         "theme",
         "stage_number",
-        "flavor_text",
         "encounter",
         "enemy_id",
         "encounter_art_id",
@@ -473,7 +421,7 @@ def triggers_swift(raw: str) -> str:
         elif token.startswith("regeneration:"):
             _, amount, interval = token.split(":", 2)
             values["regenerationAmount"] = amount
-            values["regenerationIntervalTicks"] = interval
+            values["regenerationIntervalTurns"] = interval
         elif token.startswith("passive_mitigation:"):
             values["passiveMitigationFlat"] = token.split(":", 1)[1]
         elif token.startswith("thorns_percent:"):
@@ -490,7 +438,7 @@ def triggers_swift(raw: str) -> str:
             _, keyword, multiplier, duration = token.split(":", 3)
             values["mitigationShredKeyword"] = f".{keyword}"
             values["mitigationShredMultiplier"] = multiplier
-            values["mitigationShredDurationTicks"] = duration
+            values["mitigationShredDurationTurns"] = duration
         elif token.startswith("freeze_control_vulnerability:"):
             values["freezeControlVulnerabilityPercent"] = token.split(":", 1)[1]
         elif token.startswith("mitigation_effectiveness_penalty:"):
@@ -536,8 +484,8 @@ def triggers_swift(raw: str) -> str:
             values["blockPerActionWhileDeathsDoor"] = token.split(":", 1)[1]
         elif token.startswith("every_nth_burn_tick_freeze_damage:"):
             _, count, amount = token.split(":", 2)
-            values["everyNthBurnTickCount"] = count
-            values["everyNthBurnTickFreezeDamage"] = amount
+            values["everyNthBurnTurnCount"] = count
+            values["everyNthBurnTurnFreezeDamage"] = amount
         elif token.startswith("on_spend_mana_block:"):
             values["spendManaBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_block:"):
@@ -571,7 +519,7 @@ def triggers_swift(raw: str) -> str:
         "physicalDodgeChanceBonus",
         "ambushBonusDamage",
         "regenerationAmount",
-        "regenerationIntervalTicks",
+        "regenerationIntervalTurns",
         "passiveMitigationFlat",
         "thornsPercent",
         "cannotBeHealed",
@@ -580,7 +528,7 @@ def triggers_swift(raw: str) -> str:
         "shieldErosionTicks",
         "mitigationShredKeyword",
         "mitigationShredMultiplier",
-        "mitigationShredDurationTicks",
+        "mitigationShredDurationTurns",
         "freezeControlVulnerabilityPercent",
         "mitigationEffectivenessPenaltyPercent",
         "leechHealingMultiplier",
@@ -603,8 +551,8 @@ def triggers_swift(raw: str) -> str:
         "onceBelowHealthPercentThreshold",
         "onceBelowHealthPercentHeal",
         "blockPerActionWhileDeathsDoor",
-        "everyNthBurnTickCount",
-        "everyNthBurnTickFreezeDamage",
+        "everyNthBurnTurnCount",
+        "everyNthBurnTurnFreezeDamage",
         "spendManaBlockFlat",
         "holyDamageBlockFlat",
         "holyDamageCleanseCount",
@@ -626,172 +574,6 @@ def triggers_swift(raw: str) -> str:
 def modifiers_swift(raw: str) -> str:
     mods = [modifier_token_to_swift(token) for token in parse_modifier_tokens(raw)]
     return "[" + ", ".join(mods) + "]"
-
-
-def parse_effect_token(token: str) -> str:
-    target = None
-    if "@" in token:
-        token, target_name = token.split("@", 1)
-    else:
-        target_name = None
-
-    if token == "cleanse_random":
-        effect = ".cleanseRandom"
-    elif token == "purge":
-        effect = ".purge(nil)"
-    elif token == "cleanse":
-        effect = ".cleanse(nil)"
-    elif token.startswith("cleanse:"):
-        effect = f".cleanse(.{token.split(':', 1)[1]})"
-    elif token.startswith("burn:"):
-        effect = f".burn({token.split(':', 1)[1]})"
-    elif token.startswith("poison:"):
-        effect = f".poison({token.split(':', 1)[1]})"
-    elif token.startswith("bleed:"):
-        effect = f".bleed({token.split(':', 1)[1]})"
-    elif token.startswith("shield:"):
-        parts = token.split(":")
-        if len(parts) == 3:
-            _, kind, amount = parts
-            effect = f".shield(.{kind}, {amount})"
-        elif len(parts) == 4:
-            _, kind, amount, _duration = parts
-            effect = f".shield(.{kind}, {amount})"
-        else:
-            raise ValueError(f"Invalid shield token: {token}")
-    elif token.startswith("mitigation:"):
-        raise ValueError(
-            f"mitigation effect tokens are removed; convert Armor grants to shield:block:N ({token})"
-        )
-    elif token.startswith("instant_heal:"):
-        _, kind, amount = token.split(":", 2)
-        effect = f".instantHeal(.{kind}, {amount})"
-    elif token.startswith("resource_gain:"):
-        _, kind, amount = token.split(":", 2)
-        effect = f".resourceGain(.{kind}, {amount})"
-    elif token.startswith("thorns:"):
-        _, keyword, amount, duration = token.split(":", 3)
-        effect = f".thorns(.{keyword}, {amount}, {duration})"
-    elif token.startswith("damage_keyword_override:"):
-        _, keyword, bonus, duration = token.split(":", 3)
-        effect = f".damageKeywordOverride(.{keyword}, {bonus}, {duration})"
-    elif token.startswith("halve_shield:"):
-        effect = f".halveShield(.{token.split(':', 1)[1]})"
-    else:
-        raise ValueError(f"Unknown effect token: {token}")
-
-    if target_name:
-        return f"TargetedEffect({effect}, target: .{target_name})"
-    return f"TargetedEffect({effect})"
-
-
-def targeted_effects_swift(raw: str) -> list[str]:
-    if not raw:
-        return []
-    return [parse_effect_token(token.strip()) for token in raw.split("|") if token.strip()]
-
-
-def damage_components_swift(raw: str) -> list[str]:
-    if not raw:
-        return []
-    components: list[str] = []
-    for token in raw.split("|"):
-        token = token.strip()
-        if not token:
-            continue
-        parts = token.split(":")
-        if len(parts) == 2:
-            amount, keyword = parts
-            target = ".abilityTarget"
-        elif len(parts) == 3:
-            amount, keyword, target_name = parts
-            target = f".{target_name}"
-        else:
-            raise ValueError(f"Invalid damage component token: {token}")
-        if target == ".abilityTarget":
-            components.append(f"DamageComponent({amount}, keyword: .{keyword})")
-        else:
-            components.append(
-                f"DamageComponent({amount}, keyword: .{keyword}, target: {target})"
-            )
-    return components
-
-
-def optional_description(description: str) -> str:
-    if not description:
-        return ""
-    escaped = swift_escape(description)
-    return f',\n        description: "{escaped}"'
-
-
-def optional_leech(leech: str) -> str:
-    if leech.strip().lower() in {"1", "true", "yes"}:
-        return ",\n        hasLeech: true"
-    return ""
-
-
-def render_direct_hit(row: AbilityRow) -> str:
-    amount = row.amount or "0"
-    keyword = row.keyword or "physical"
-    extras = targeted_effects_swift(row.extras)
-    description = optional_description(row.description)
-    leech = optional_leech(row.leech)
-    if extras:
-        extras_arg = ", ".join(extras)
-        return (
-            f"    static let {row.symbol} = AbilityBuilder.directHit(\n"
-            f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-            f"        amount: {amount}, keyword: .{keyword}{description},\n"
-            f"        extras: [{extras_arg}]{leech}\n"
-            f"    )"
-        )
-    return (
-        f"    static let {row.symbol} = AbilityBuilder.directHit(\n"
-        f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        amount: {amount}, keyword: .{keyword}{description}{leech}\n"
-        f"    )"
-    )
-
-
-def effect_swift(token: str) -> str:
-    parsed = parse_effect_token(token.strip())
-    return parsed.removeprefix("TargetedEffect(").removesuffix(")")
-
-
-def render_buff_only(row: AbilityRow) -> str:
-    effects = ", ".join(effect_swift(token) for token in row.effects.split("|") if token.strip())
-    description = optional_description(row.description)
-    leech = optional_leech(row.leech)
-    return (
-        f"    static let {row.symbol} = AbilityBuilder.buffOnly(\n"
-        f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        effects: [{effects}]{description}{leech}\n"
-        f"    )"
-    )
-
-
-def render_multi_damage(row: AbilityRow) -> str:
-    damage = ", ".join(damage_components_swift(row.damage_components))
-    effects = ", ".join(targeted_effects_swift(row.effects))
-    description = optional_description(row.description)
-    leech = optional_leech(row.leech)
-    effects_clause = f",\n        effects: [{effects}]" if effects else ""
-    return (
-        f"    static let {row.symbol} = AbilityBuilder.multiDamage(\n"
-        f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        damageComponents: [{damage}]{effects_clause}{description}{leech}\n"
-        f"    )"
-    )
-
-
-def render_ability(row: AbilityRow) -> str:
-    if row.pattern == "direct_hit":
-        return render_direct_hit(row)
-    if row.pattern == "buff_only":
-        return render_buff_only(row)
-    if row.pattern == "multi_damage":
-        return render_multi_damage(row)
-    raise ValueError(f"Unsupported ability pattern '{row.pattern}' for {row.id}")
 
 
 TOP_LEVEL = re.compile(r"^(?P<kind>enum|struct|class|actor|extension)\s+")
@@ -884,48 +666,21 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
     write_generated_file(GENERATED_DIR / "ItemAffixCatalog.generated.swift", body)
 
 
-def generate_ability_tier_catalog(tier: str, rows: list[AbilityRow]) -> None:
-    enum_name = TIER_ENUM[tier]
-    tier_rows = [row for row in rows if row.tier == tier]
-    definitions = [render_ability(row) for row in tier_rows]
-    all_entries = ",\n        ".join(row.symbol for row in tier_rows)
-    body = (
-        f"enum {enum_name} {{\n"
-        + ("\n\n".join(definitions) if definitions else "")
-        + ("\n\n" if definitions else "")
-        + "    static let all: [Ability] = [\n"
-        + (f"        {all_entries}\n" if tier_rows else "")
-        + "    ]\n"
-        "}\n"
+def parse_hand_ability_symbols(path: Path) -> list[str]:
+    source = path.read_text()
+    return re.findall(
+        r"static let (\w+) = (?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()",
+        source,
     )
-    write_generated_file(GENERATED_DIR / f"AbilityCatalog{tier.capitalize()}.generated.swift", body)
-
-
-def parse_custom_ability_symbols(path: Path) -> list[tuple[str, str]]:
-    text = path.read_text()
-    return [(match.group(1), path.stem) for match in re.finditer(r"static let (\w+) = Ability\(", text)]
-
-
-def parse_generated_ability_symbols(path: Path) -> list[tuple[str, str]]:
-    text = path.read_text()
-    enum_match = re.search(r"enum (\w+)", text)
-    if not enum_match:
-        return []
-    enum_name = enum_match.group(1)
-    return [(match.group(1), enum_name) for match in re.finditer(r"static let (\w+) = AbilityBuilder", text)]
 
 
 def collect_ability_symbols() -> set[str]:
     symbols: set[str] = set()
-    for row in parse_ability_rows():
-        symbols.add(row.symbol)
     for tier in ("Basic", "Skill", "Ultimate"):
         hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
-        generated_path = GENERATED_DIR / f"AbilityCatalog{tier}.generated.swift"
-        symbols.update(symbol for symbol, _ in parse_custom_ability_symbols(hand_path))
-        if generated_path.exists():
-            symbols.update(symbol for symbol, _ in parse_generated_ability_symbols(generated_path))
+        symbols.update(parse_hand_ability_symbols(hand_path))
     return symbols
+
 
 
 def parse_ability_symbol_list(raw: str) -> list[str]:
@@ -1220,51 +975,6 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         triggers_swift(row.astral_triggers)
 
 
-def validate_ability_rows(rows: list[AbilityRow]) -> None:
-    seen_ids: set[str] = set()
-    seen_symbols_by_tier: dict[str, set[str]] = {tier: set() for tier in VALID_TIERS}
-
-    for row in rows:
-        if row.id in seen_ids:
-            raise ValueError(f"Duplicate ability id: {row.id}")
-        seen_ids.add(row.id)
-
-        if row.tier not in VALID_TIERS:
-            raise ValueError(f"Invalid ability tier '{row.tier}' for {row.id}")
-        if row.pattern not in VALID_PATTERNS:
-            raise ValueError(f"Invalid ability pattern '{row.pattern}' for {row.id}")
-
-        _validate_kebab_id("ability id", row.id, row.id)
-        _validate_swift_symbol("ability symbol", row.symbol, row.id)
-        _require_non_empty("ability name", row.name, row.id)
-
-        if row.symbol in seen_symbols_by_tier[row.tier]:
-            raise ValueError(f"Duplicate ability symbol '{row.symbol}' in tier {row.tier}")
-        seen_symbols_by_tier[row.tier].add(row.symbol)
-
-        if row.keyword and row.keyword not in VALID_KEYWORDS:
-            raise ValueError(f"Unknown ability keyword '{row.keyword}' for {row.id}")
-
-        if row.pattern == "direct_hit":
-            _require_non_empty("amount", row.amount, row.id)
-            _require_non_empty("keyword", row.keyword, row.id)
-            if not row.amount.isdigit():
-                raise ValueError(f"direct_hit amount for {row.id} must be an integer")
-            targeted_effects_swift(row.extras)
-        elif row.pattern == "buff_only":
-            _require_non_empty("effects", row.effects, row.id)
-            for token in row.effects.split("|"):
-                if token.strip():
-                    parse_effect_token(token.strip())
-        elif row.pattern == "multi_damage":
-            _require_non_empty("damage_components", row.damage_components, row.id)
-            damage_components_swift(row.damage_components)
-            targeted_effects_swift(row.effects)
-
-        # Ensure manifest rows codegen without DSL errors.
-        render_ability(row)
-
-
 def parse_item_templates(raw: str) -> str:
     if not raw.strip():
         return "[]"
@@ -1291,6 +1001,8 @@ def render_stage_encounter(row: StageRow) -> str:
         if not row.enemy_id.strip():
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
         return f'.battle(enemyID: "{swift_escape(row.enemy_id)}")'
+    if row.encounter == "random_battle":
+        return ".randomBattle"
     if row.encounter == "event":
         return ".event"
     if row.encounter == "shop":
@@ -1299,15 +1011,10 @@ def render_stage_encounter(row: StageRow) -> str:
         return ".rest"
     if row.encounter == "mystery":
         event_id = row.enemy_id.strip()
-        if not event_id:
-            raise ValueError(f"mystery encounter requires enemy_id (mystery event id) for {stage_id}")
         return f'.mysteryEvent(eventID: "{swift_escape(event_id)}")'
     if row.encounter == "recruit":
         event_id = row.enemy_id.strip()
-        if not event_id:
-            raise ValueError(f"recruit encounter requires enemy_id (recruit event id) for {stage_id}")
         return f'.recruit(eventID: "{swift_escape(event_id)}")'
-    stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
     raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
 
 
@@ -1318,7 +1025,6 @@ def render_stage(row: StageRow) -> str:
                     chapterID: "{swift_escape(row.chapter_id)}",
                     chapterNumber: {row.chapter_number},
                     stageNumber: {row.stage_number},
-                    flavorText: "{swift_escape(row.flavor_text)}",
                     encounter: {render_stage_encounter(row)},
                     rewards: .empty
                 )"""
@@ -1342,11 +1048,13 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
         if row.encounter == "battle" and enemy_ids is not None and row.enemy_id not in enemy_ids:
             raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
-        if row.encounter in {"mystery", "recruit"} and not row.enemy_id.strip():
-            raise ValueError(f"{row.encounter} encounter requires an event id for {stage_id}")
+        if row.encounter == "random_battle" and row.enemy_id.strip():
+            raise ValueError(f"random_battle must leave enemy_id empty at {stage_id}")
         if row.encounter not in {"battle", "mystery", "recruit"} and row.enemy_id.strip():
             raise ValueError(f"enemy_id only allowed for battle/mystery/recruit encounters at {stage_id}")
-        if row.encounter == "battle" and (row.encounter_art_id.strip() or row.encounter_art_title.strip()):
+        if row.encounter in {"battle", "random_battle"} and (
+            row.encounter_art_id.strip() or row.encounter_art_title.strip()
+        ):
             raise ValueError(f"encounter art fields only allowed for non-battle encounters at {stage_id}")
         if row.encounter in {"mystery", "recruit"} and (
             row.encounter_art_id.strip() or row.encounter_art_title.strip()
@@ -1677,7 +1385,6 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
 def validate_manifests() -> tuple[
     list[AffixRow],
     list[TraitRow],
-    list[AbilityRow],
     list[StageRow],
     list[CombatantRow],
     list[EnemyRow],
@@ -1686,7 +1393,6 @@ def validate_manifests() -> tuple[
 ]:
     affix_rows = parse_affix_rows()
     trait_rows = parse_trait_rows()
-    ability_rows = parse_ability_rows()
     combatant_rows = parse_combatant_rows()
     enemy_rows = parse_enemy_rows()
     stage_rows = parse_stage_rows()
@@ -1696,7 +1402,6 @@ def validate_manifests() -> tuple[
 
     validate_affix_rows(affix_rows)
     validate_trait_rows(trait_rows)
-    validate_ability_rows(ability_rows)
     validate_combatant_rows(combatant_rows, ability_symbols, {row.id for row in trait_rows})
     validate_enemy_rows(
         enemy_rows,
@@ -1710,7 +1415,6 @@ def validate_manifests() -> tuple[
     return (
         affix_rows,
         trait_rows,
-        ability_rows,
         stage_rows,
         combatant_rows,
         enemy_rows,
@@ -1719,21 +1423,120 @@ def validate_manifests() -> tuple[
     )
 
 
+
 def generate_ability_shorthand() -> None:
     entries: list[tuple[str, str]] = []
     for tier in ("Basic", "Skill", "Ultimate"):
         hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
-        generated_path = GENERATED_DIR / f"AbilityCatalog{tier}.generated.swift"
-        for symbol, enum_name in parse_custom_ability_symbols(hand_path):
+        for symbol in parse_hand_ability_symbols(hand_path):
             entries.append((symbol, f"AbilityCatalog{tier}.{symbol}"))
-        if generated_path.exists():
-            for symbol, enum_name in parse_generated_ability_symbols(generated_path):
-                entries.append((symbol, f"{enum_name}.{symbol}"))
 
     entries.sort(key=lambda item: item[0])
     lines = [f"    static let {symbol} = {target}" for symbol, target in entries]
     body = "extension Ability {\n" + "\n".join(lines) + "\n}\n"
     write_generated_file(GENERATED_DIR / "AbilityShorthand.generated.swift", body)
+
+
+def parse_authored_ability_inventory_rows() -> list[tuple[str, str, str]]:
+    """Regex-extract id/name/tier from hand ability catalogs (cross-check only)."""
+    rows: list[tuple[str, str, str]] = []
+    for tier_label, tier_enum in (
+        ("basic", "Basic"),
+        ("skill", "Skill"),
+        ("ultimate", "Ultimate"),
+    ):
+        source = (CONTENT_DIR / f"AbilityCatalog{tier_enum}.swift").read_text()
+        for match in re.finditer(
+            r'static let \w+ = (?:Ability\(|AbilityBuilder\.(?:directHit|buffOnly|multiDamage)\()\s*'
+            r'id: "([^"]+)",\s*name: "([^"]+)",\s*tier: \.(\w+)',
+            source,
+        ):
+            ability_id, name, tier = match.groups()
+            if tier != tier_label:
+                raise ValueError(
+                    f"Ability {ability_id} tier .{tier} does not match file AbilityCatalog{tier_enum}"
+                )
+            rows.append((ability_id, name, tier))
+    rows.sort(key=lambda item: (item[2], item[1].lower()))
+    return rows
+
+
+def generate_ability_inventory() -> None:
+    """Dump id/name/tier/summary from Swift Ability.summary for humans/agents."""
+    expected = parse_authored_ability_inventory_rows()
+    expected_ids = {ability_id for ability_id, _, _ in expected}
+
+    completed = subprocess.run(
+        [
+            "swift",
+            "run",
+            "--package-path",
+            str(TRINKET_CONTENT_PACKAGE),
+            "AbilityInventoryDump",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout or "").strip()
+        raise RuntimeError(
+            "AbilityInventoryDump failed"
+            + (f":\n{detail}" if detail else f" (exit {completed.returncode})")
+        )
+
+    tsv = completed.stdout
+    # SPM occasionally prints build banners on stdout; keep only the TSV block.
+    header = "id\tname\ttier\tsummary"
+    start = tsv.find(header)
+    if start < 0:
+        raise RuntimeError(
+            "AbilityInventoryDump stdout did not contain TSV header "
+            f"{header!r}. stdout={tsv!r} stderr={completed.stderr!r}"
+        )
+    tsv = tsv[start:].lstrip("\n")
+    if not tsv.endswith("\n"):
+        tsv += "\n"
+
+    lines = [line for line in tsv.splitlines() if line.strip()]
+    if not lines or lines[0] != header:
+        raise RuntimeError(f"AbilityInventoryDump produced unexpected header: {lines[:1]!r}")
+
+    dumped_ids: set[str] = set()
+    for line in lines[1:]:
+        parts = line.split("\t")
+        if len(parts) != 4:
+            raise RuntimeError(f"AbilityInventoryDump row must have 4 columns: {line!r}")
+        ability_id, name, tier, summary = parts
+        if not ability_id or not name or tier not in VALID_TIERS or not summary:
+            raise RuntimeError(f"AbilityInventoryDump row invalid: {line!r}")
+        if ability_id in dumped_ids:
+            raise RuntimeError(f"AbilityInventoryDump duplicate id: {ability_id}")
+        dumped_ids.add(ability_id)
+
+    if dumped_ids != expected_ids:
+        missing = sorted(expected_ids - dumped_ids)
+        extra = sorted(dumped_ids - expected_ids)
+        raise RuntimeError(
+            "AbilityInventoryDump IDs do not match authored catalogs: "
+            f"missing={missing!r} extra={extra!r}"
+        )
+
+    expected_by_id = {ability_id: (name, tier) for ability_id, name, tier in expected}
+    for line in lines[1:]:
+        ability_id, name, tier, _summary = line.split("\t")
+        expected_name, expected_tier = expected_by_id[ability_id]
+        if name != expected_name or tier != expected_tier:
+            raise RuntimeError(
+                f"AbilityInventoryDump metadata mismatch for {ability_id}: "
+                f"got name={name!r} tier={tier!r}, "
+                f"expected name={expected_name!r} tier={expected_tier!r}"
+            )
+
+    out = GENERATED_DIR / "AbilityInventory.generated.tsv"
+    out.write_text(tsv)
+
 
 
 def main() -> int:
@@ -1742,17 +1545,17 @@ def main() -> int:
         (
             affix_rows,
             trait_rows,
-            ability_rows,
             stage_rows,
             combatant_rows,
             enemy_rows,
             homestead_rows,
             item_base_rows,
         ) = validate_manifests()
+        ability_count = len(collect_ability_symbols())
         print(
             f"Validated {len(affix_rows)} affixes, "
             f"{len(trait_rows)} traits, "
-            f"{len(ability_rows)} manifest abilities, "
+            f"{ability_count} abilities, "
             f"{len(stage_rows)} stages, "
             f"{len(combatant_rows)} combatants, "
             f"{len(enemy_rows)} enemies, "
@@ -1762,13 +1565,13 @@ def main() -> int:
         return 0
     if command == "shorthand":
         generate_ability_shorthand()
-        print("Generated AbilityShorthand.generated.swift")
+        generate_ability_inventory()
+        print("Generated AbilityShorthand.generated.swift and AbilityInventory.generated.tsv")
         return 0
 
     (
         affix_rows,
         trait_rows,
-        ability_rows,
         stage_rows,
         combatant_rows,
         enemy_rows,
@@ -1777,8 +1580,6 @@ def main() -> int:
     ) = validate_manifests()
     generate_affix_catalog(affix_rows)
     generate_traits_catalog(trait_rows)
-    for tier in ("basic", "skill", "ultimate"):
-        generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
     generate_stages_index()
     generate_roster_catalog(combatant_rows)
@@ -1787,11 +1588,13 @@ def main() -> int:
     generate_item_bases_catalog(item_base_rows)
     generate_encounter_art_catalog(stage_rows)
     generate_ability_shorthand()
+    generate_ability_inventory()
     generate_ability_index()
+    ability_count = len(collect_ability_symbols())
     print(
         f"Generated {len(affix_rows)} affixes, "
         f"{len(trait_rows)} traits, "
-        f"{len(ability_rows)} manifest abilities, "
+        f"{ability_count} abilities, "
         f"{len(stage_rows)} stages, "
         f"{len(combatant_rows)} combatants, "
         f"{len(enemy_rows)} enemies, "

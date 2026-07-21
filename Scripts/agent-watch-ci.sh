@@ -114,26 +114,27 @@ wait_for_run_id() {
     fi
     attempts=$((attempts + 1))
     sleep "$POLL_SECONDS"
-  done
   return 1
 }
 
 run_is_path_filtered_only() {
   local run_id="$1"
+  local run_data
+  run_data="$(gh run view "$run_id" --json jobs 2>/dev/null || echo '{}')"
   local non_skipped
   non_skipped="$(
-    gh run view "$run_id" --json jobs --jq '
-      [.jobs[]
+    jq -r '
+      [.jobs[]?
         | select(.name != "changes / Path filter" and .name != "changes")
         | select(.conclusion != "skipped" and .conclusion != "cancelled")
-      ] | length'
+      ] | length' <<<"$run_data"
   )"
   local total
   total="$(
-    gh run view "$run_id" --json jobs --jq '
-      [.jobs[]
+    jq -r '
+      [.jobs[]?
         | select(.name != "changes / Path filter" and .name != "changes")
-      ] | length'
+      ] | length' <<<"$run_data"
   )"
   if [[ -z "$non_skipped" || -z "$total" ]]; then
     return 1
@@ -200,10 +201,12 @@ watch_run_quiet() {
   echo "Polling CI run $run_id ($url) every ${POLL_SECONDS}s (quiet)"
 
   while true; do
-    status="$(gh run view "$run_id" --json status --jq .status)"
-    conclusion="$(gh run view "$run_id" --json conclusion --jq '.conclusion // empty')"
+    local run_data
+    run_data="$(gh run view "$run_id" --json status,conclusion,jobs 2>/dev/null || echo '{}')"
+    status="$(jq -r '.status // "?"' <<<"$run_data")"
+    conclusion="$(jq -r '.conclusion // empty' <<<"$run_data")"
     summary="$(
-      gh run view "$run_id" --json status,conclusion,jobs --jq '
+      jq -r '
         (.status // "?") as $s
         | (.conclusion // "-") as $c
         | ([.jobs[]? | select(.status == "in_progress") | .name] | join(", ")) as $active
@@ -212,7 +215,7 @@ watch_run_quiet() {
         | ([.jobs[]? | select(.conclusion == "skipped") ] | length) as $skip
         | "status=\($s) conclusion=\($c) ok=\($ok) fail=\($fail) skip=\($skip)"
           + (if $active == "" then "" else " active=\($active)" end)
-      '
+      ' <<<"$run_data"
     )"
     if [[ "$summary" != "$last_summary" ]]; then
       echo "  $summary"

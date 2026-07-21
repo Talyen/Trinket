@@ -17,7 +17,7 @@ package enum DoTApplicator {
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveTick(
+            collected.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: potency,
                 keyword: keyword,
                 target: effectTarget,
@@ -36,7 +36,7 @@ package enum DoTApplicator {
                 ActiveEffect(
                     id: context.consumeNextEffectID(),
                     effect: effectCase(for: keyword, potency: potency),
-                    remainingTicks: 0,
+                    remainingTurns: 0,
                     sourceActorID: sourceActorID
                 )
             )
@@ -65,7 +65,7 @@ package enum DoTApplicator {
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
-            collected.append(contentsOf: DoTDamage.resolveTick(
+            collected.append(contentsOf: DoTDamage.resolveTurnDamage(
                 basePotency: potency,
                 keyword: .bleed,
                 target: effectTarget,
@@ -84,7 +84,7 @@ package enum DoTApplicator {
                 .bleed(potency),
                 to: effectTarget,
                 sourceID: sourceActorID,
-                remainingTicks: Effect.bleedDoTTickCount + context.modifiers(for: sourceActorID).bleedDurationBonus
+                remainingTurns: Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
             )
         }
         if !suppressAffixReactions {

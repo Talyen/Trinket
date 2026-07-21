@@ -126,7 +126,7 @@ private struct PlayBrowsingStack: View {
     private func prepareCampaignBattleResources() {
         if let stageID = appState.journey.activeStageID,
            let stage = GameContent.stage(id: stageID),
-           stage.encounter.battleEnemyID != nil {
+           stage.encounter.isCombat {
             appState.prepareBattle(for: stage)
         }
         Task { @MainActor in

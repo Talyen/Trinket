@@ -38,7 +38,7 @@ struct ItemModifierBattleTests {
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
-        try #expect(100 - battle.health(of: battle.enemy) == 2)
+        try #expect(100 - battle.health(of: battle.enemy) == (abilityID == "slash" ? 3 : 2))
     }
 
     @Test func equippedMaximumHealthAffixIncreasesStartingHealth() throws {

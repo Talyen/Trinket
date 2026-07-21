@@ -107,7 +107,8 @@ public enum ActionEventFormatter {
         case .dodgeApplied:
             dodgeDisplay(for: event)
         case .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
-             .damageKeywordOverrideApplied, .nextHolyStrikeApplied:
+             .damageKeywordOverrideApplied, .nextHolyStrikeApplied, .nextStrikeDoubleApplied,
+             .evadeNextHitApplied:
             signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .thornsTriggered, .markedConsumed:
             amountDisplay(emphasis: .damage, event: event, prefix: "-")

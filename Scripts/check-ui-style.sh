@@ -152,6 +152,7 @@ check_line() {
 while IFS= read -r file; do
   previous_line=""
   previous_context=""
+  declare -a context_lines=()
   line_number=0
   recent_button_window=0
 
@@ -172,9 +173,11 @@ while IFS= read -r file; do
     fi
 
     previous_line="$line"
-    previous_context="${previous_context}
-${line}"
-    previous_context="$(printf '%s\n' "$previous_context" | tail -n 5)"
+    context_lines+=("$line")
+    if (( ${#context_lines[@]} > 5 )); then
+      context_lines=("${context_lines[@]:1}")
+    fi
+    previous_context=$(IFS=$'\n'; echo "${context_lines[*]}")
   done < "$file"
 done < <(rg --files -g '*.swift' Trinket TrinketTests TrinketUITests Packages/TrinketDesignSystem/Sources)
 

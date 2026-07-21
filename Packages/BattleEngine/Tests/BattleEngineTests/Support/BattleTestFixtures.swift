@@ -53,14 +53,14 @@ enum BattleTestFixtures {
         name: String,
         role: Combatant.Role,
         maxHealth: Int = 20,
-        actionIntervalTicks: Int = 100
+        actionIntervalTurns: Int = 100
     ) -> Combatant {
         Combatant(
             id: id,
             name: name,
             role: role,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: []
         )
     }
@@ -71,14 +71,14 @@ enum BattleTestFixtures {
             name: "Enemy",
             role: .enemy,
             maxHealth: maxHealth,
-            actionIntervalTicks: 100
+            actionIntervalTurns: 100
         )
     }
 
     static func attackingEnemy(
         abilities: [Ability],
         maxHealth: Int = 100,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         id: String = "enemy"
     ) -> Combatant {
         Combatant(
@@ -86,7 +86,7 @@ enum BattleTestFixtures {
             name: "Enemy",
             role: .enemy,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: abilities
         )
     }
@@ -113,7 +113,7 @@ enum BattleTestFixtures {
             name: "Hero",
             role: .hero,
             maxHealth: 50,
-            actionIntervalTicks: 1,
+            actionIntervalTurns: 1,
             abilities: [keywordDamageAbility(id: "test-stun", name: "Test Stun", keyword: .stun, damage: damage)]
         )
     }
@@ -124,7 +124,7 @@ enum BattleTestFixtures {
             name: "Hero",
             role: .hero,
             maxHealth: 50,
-            actionIntervalTicks: 1,
+            actionIntervalTurns: 1,
             abilities: [keywordDamageAbility(id: "test-freeze", name: "Test Freeze", keyword: .freeze, damage: damage)]
         )
     }
@@ -165,7 +165,7 @@ enum BattleTestFixtures {
             companion: resolvedCompanion,
             enemy: resolvedEnemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: 0)
             ]
         )
     }
@@ -277,14 +277,14 @@ enum BattleTestFixtures {
         abilities: [Ability],
         stats: PrimaryStats = PrimaryStats(),
         maxHealth: Int = 20,
-        actionIntervalTicks: Int = 2
+        actionIntervalTurns: Int = 2
     ) -> Combatant {
         Combatant(
             id: id,
             name: id.capitalized,
             role: .hero,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: stats
         )
@@ -298,7 +298,7 @@ enum BattleTestFixtures {
             hero: hero,
             companion: passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: enemy ?? passiveCombatant(
-                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100
+                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTurns: 100
             )
         )
     }

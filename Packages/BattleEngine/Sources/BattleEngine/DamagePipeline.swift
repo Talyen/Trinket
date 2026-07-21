@@ -65,7 +65,8 @@ package enum DamagePipeline {
         }
 
         for step in steps {
-            if state.isRetaliation, step.name == "ReactiveOnHit" {
+            // Retaliation is a fixed rebound hit — skip on-hit reactives that would nest.
+            if state.isRetaliation, step.name == "ReactiveOnHit" || step.name == "HolyReaction" {
                 continue
             }
             onStep?(step.name)
@@ -93,8 +94,10 @@ package enum DamagePipeline {
             applyDodge: request.options.applyDodge,
             abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
+            guaranteedCritical: request.options.guaranteedCritical,
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush,
+            isAttackHit: request.options.isAttackHit,
             abilityHasLeech: request.options.abilityHasLeech,
             isHealthCost: request.options.isHealthCost
         )

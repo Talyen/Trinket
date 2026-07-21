@@ -78,7 +78,7 @@ package enum DefensePoolEngine {
     ) -> Int {
         var points = profile.passiveMitigationFlat + combatant.primaryStats.toughnessMitigation
         if let runtime = context.roster.runtime(for: combatant),
-           runtime.mitigationShredUntilTick > context.tickCount {
+           runtime.mitigationShredUntilTurn > context.turnCount {
             points = Int(floor(Double(points) * runtime.mitigationShredMultiplier))
         }
         if profile.mitigationEffectivenessPenaltyPercent > 0 {
@@ -104,7 +104,7 @@ package enum DefensePoolEngine {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: updated,
-                remainingTicks: 0,
+                remainingTurns: 0,
                 sourceActorID: effects[index].sourceActorID
             )
             context.roster.setActiveEffects(effects, for: target)
@@ -114,7 +114,7 @@ package enum DefensePoolEngine {
             pool.makeEffect(keyword: keyword ?? pool.defaultKeyword, amount: amount),
             to: target,
             sourceID: target.id,
-            remainingTicks: 0
+            remainingTurns: 0
         )
     }
 
@@ -132,7 +132,7 @@ package enum DefensePoolEngine {
                 pool.makeEffect(keyword: pool.defaultKeyword, amount: amount),
                 to: target,
                 sourceID: target.id,
-                remainingTicks: 0
+                remainingTurns: 0
             )
         }
     }

@@ -35,18 +35,12 @@ struct HomesteadProjectRow: View {
     }
 
     var body: some View {
-        Group {
-            if isLocked {
-                rowContent
-            } else {
-                NavigationLink(value: definition) {
-                    rowContent
-                        .optionalHomesteadZoomSource(id: definition.id, in: zoomNamespace)
-                }
-                .trinketQuietTapButtonStyle()
-            }
+        // Locked rows stay tappable so players can inspect prerequisites and the tier path.
+        NavigationLink(value: definition) {
+            rowContent
+                .optionalHomesteadZoomSource(id: definition.id, in: zoomNamespace)
         }
-
+        .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 

@@ -172,7 +172,7 @@ struct BattleCardCombatTests {
         battle.heroDeck.putOnBottom(.smite)
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)],
+                [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
                 for: context.roster.hero.combatant
             )
         }
@@ -289,7 +289,7 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
-        battle.tickCount = startingTick
+        battle.turnCount = startingTick
         // One open slot, tied owner counts (1 hero + 1 companion) → tie-break picks the open-slot owner.
         battle.hand = BattleHand()
         battle.handBuffer = BattleHandBuffer()
@@ -315,14 +315,14 @@ struct BattleCardCombatTests {
         )
         battle.withEngineContext { context in
             context.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)],
+                [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
                 for: context.enemy
             )
         }
         let before = battle.health(of: battle.enemy)
         let events = battle.endTurn()
 
-        try #expect(battle.tickCount == 1)
+        try #expect(battle.turnCount == 1)
         try #expect(events.filter { $0.kind == .status && $0.keyword == .burn }.count == 1)
         try #expect(battle.health(of: battle.enemy) < before)
     }

@@ -141,10 +141,10 @@ public final class PlayerSaveStore {
         context.autosaveEnabled = false
 
         if resetState {
-            PlayerSaveStoreConfiguration.clearSaveRoot(in: context, logger: logger)
+            try PlayerSaveStoreConfiguration.clearSaveRoot(in: context, logger: logger)
         }
 
-        if let existingRoot = PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
+        if let existingRoot = try PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
             root = existingRoot
             ensureRequiredGraph()
         } else {
@@ -244,20 +244,11 @@ public final class PlayerSaveStore {
     }
 
     private func resetRoot(with save: PlayerSave) throws {
-        do {
-            try context.delete(model: PlayerSaveRoot.self)
-            try context.save()
-        } catch {
-            logger.error(
-                "Failed to clear existing save root: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-
-        let newRoot = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(save))
-        context.insert(newRoot)
+        // Update the existing primary root in place. Delete+insert after a swallowed
+        // clear failure left duplicate `id == "primary"` rows so a later cold start
+        // could reload stale progress instead of the reset snapshot.
+        root.update(from: PlayerSaveSanitizer.sanitize(save))
         try saveGraph()
-
-        root = newRoot
         pendingRollbackSnapshot = nil
     }
 

@@ -8,14 +8,14 @@ struct BattleRosterTests {
         id: String,
         role: Combatant.Role,
         maxHealth: Int = 20,
-        actionIntervalTicks: Int? = nil
+        actionIntervalTurns: Int? = nil
     ) -> Combatant {
         Combatant(
             id: id,
             name: id.capitalized,
             role: role,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: []
         )
     }
@@ -24,11 +24,11 @@ struct BattleRosterTests {
         id: String,
         role: Combatant.Role,
         maxHealth: Int = 20,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         initialHealth: Int? = nil
     ) -> CombatantRuntime {
         CombatantRuntime(
-            combatant: combatant(id: id, role: role, maxHealth: maxHealth, actionIntervalTicks: actionIntervalTicks),
+            combatant: combatant(id: id, role: role, maxHealth: maxHealth, actionIntervalTurns: actionIntervalTurns),
             initialHealth: initialHealth
         )
     }
@@ -47,8 +47,8 @@ struct BattleRosterTests {
 
     // MARK: - Dispatch by Combatant identity
 
-    @Test func effectTickOrderIsEnemyHeroCompanion() throws {
-        try #expect(BattleParticipant.effectTickOrder == [.enemy, .hero, .companion])
+    @Test func effectTurnOrderIsEnemyHeroCompanion() throws {
+        try #expect(BattleParticipant.effectTurnOrder == [.enemy, .hero, .companion])
     }
 
     @Test func lookupHelpersResolveParticipantsByRoleAndID() throws {

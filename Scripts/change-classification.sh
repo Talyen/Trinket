@@ -209,7 +209,7 @@ trinket_classify_path() {
     Packages/TrinketTestSupport/*.swift|Packages/TrinketTestSupport/**/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      trinket_add_package TrinketTestSupport
+      TRINKET_NEEDS_UNIT=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     Trinket/State/*|Trinket/App/*|Trinket/BattleShell/*|TrinketTests/*|Trinket/Audio/*)

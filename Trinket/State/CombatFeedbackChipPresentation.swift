@@ -102,6 +102,10 @@ struct CombatFeedbackChipPresentation {
         switch status {
         case .avatarOfJustice, .consecrated, .nextHolyStrike:
             return dualAction(leading: beneficial, trailing: Keyword.holy.visualStyle)
+        case .nextStrikeDouble:
+            return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)
+        case .evadeNextHit:
+            return dualAction(leading: beneficial, trailing: Keyword.dodge.visualStyle)
         case .manaShield:
             return dualAction(leading: beneficial, trailing: Keyword.mana.visualStyle)
         case .criticalUp, .thorns:

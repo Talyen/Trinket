@@ -5,7 +5,11 @@ import TrinketCore
 struct ArtCatalogIntegrationTests {
     /// Abilities intentionally shipping without curated art yet (cinematic / placeholder path).
     private static let abilitiesAllowedWithoutArt: Set<String> = [
-        "avatar-of-justice"
+        "avatar-of-justice",
+        "earthquake",
+        "maul",
+        "pounce",
+        "shadowstep"
     ]
 
     // This cross-catalog invariant intentionally owns all art-reference domains.

@@ -12,14 +12,8 @@ enum AbilityValidator {
     }
 
     static let descriptionOverrideIDs: Set<String> = [
-        "avatar-of-justice",
-        "blackjack",
-        "blood-offering",
         "dark-pact",
-        "judgment",
-        "glacial-ward",
-        "molten-bulwark",
-        "thorn-mail"
+        "shadowstep"
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
@@ -64,9 +58,6 @@ enum AbilityValidator {
     }
 
     private static func validatePairedDoTComponents(for ability: Ability) -> [Issue] {
-        if ["mana-berries", "pixie-dust"].contains(ability.id) {
-            return []
-        }
         var issues: [Issue] = []
 
         for component in ability.damageComponents where component.target == .abilityTarget {
@@ -135,14 +126,10 @@ enum AbilityValidator {
 
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "bloodthorn":
-            total == 4
         case "blood-offering":
             total == 4
-        case "acid-potion", "ice-shot":
+        case "ice-shot":
             total == 2
-        case "blizzard", "pack-tactics":
-            total == 5
         default:
             false
         }

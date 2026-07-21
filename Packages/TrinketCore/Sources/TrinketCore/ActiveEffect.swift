@@ -3,13 +3,13 @@ import Foundation
 public struct ActiveEffect: Identifiable, Hashable, Sendable {
     public let id: Int
     public var effect: Effect
-    public var remainingTicks: Int
+    public var remainingTurns: Int
     public var sourceActorID: String?
 
-    public init(id: Int, effect: Effect, remainingTicks: Int, sourceActorID: String? = nil) {
+    public init(id: Int, effect: Effect, remainingTurns: Int, sourceActorID: String? = nil) {
         self.id = id
         self.effect = effect
-        self.remainingTicks = remainingTicks
+        self.remainingTurns = remainingTurns
         self.sourceActorID = sourceActorID
     }
 

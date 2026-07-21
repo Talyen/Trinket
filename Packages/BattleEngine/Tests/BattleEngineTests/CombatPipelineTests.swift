@@ -57,7 +57,7 @@ struct CombatPipelineTests {
         let shield = ActiveEffect(
             id: 1,
             effect: .shield(.block, 10),
-            remainingTicks: 3,
+            remainingTurns: 3,
             sourceActorID: "caster"
         )
         var context = makeContext(targetEffects: [shield])
@@ -100,7 +100,7 @@ struct CombatPipelineTests {
         try #expect(!(abilityEvents.isEmpty))
         try #expect(withAbilityLeech.roster.hero.currentHealth == beforeAbility + 5)
 
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 0.20, 3), remainingTicks: 3)
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 0.20, 3), remainingTurns: 3)
         var withEffect = makeContext()
         withEffect.roster.mutateRuntime(for: withEffect.roster.hero.combatant) { $0.currentHealth = 30 }
         withEffect.roster.setActiveEffects([leech], for: withEffect.roster.hero.combatant)
@@ -134,7 +134,7 @@ struct CombatPipelineTests {
 
     @Test(arguments: ["dot", "direct", "self"] as [String])
     func applyDamageLeechMatrix(mode: String) throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
@@ -212,7 +212,7 @@ struct CombatPipelineTests {
     @Test(arguments: [true, false])
     func stunBuildupTracksPostMitigationAndShieldAbsorbedHits(useShield: Bool) throws {
         if useShield {
-            let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
+            let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)
             var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
             let (lost, _) = context.applyTestDamage(
                 5,
@@ -248,7 +248,7 @@ struct CombatPipelineTests {
     }
 
     @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
         let outcome = context.resolveDamage(
             DamageRequest(
@@ -289,7 +289,7 @@ struct CombatPipelineTests {
     }
 
     @Test func guaranteedCriticalIfEnemyBuffedBypassesSoftCap() throws {
-        let buff = ActiveEffect(id: 1, effect: .shield(.block, 2), remainingTicks: 6)
+        let buff = ActiveEffect(id: 1, effect: .shield(.block, 2), remainingTurns: 6)
         // Seed whose first crit roll is in the 0.75...1.0 band that the soft cap
         // would reject — guaranteed path must still crit.
         var context = makeContext(targetEffects: [buff], seed: 1)
@@ -311,13 +311,12 @@ struct CombatPipelineTests {
     // MARK: - Pipeline ordering
 
     @Test func thornsRetaliationDoesNotRecurse() throws {
-        let thorns = ActiveEffect(id: 1, effect: .thorns(.physical, 5, 6), remainingTicks: 6)
+        let thorns = ActiveEffect(id: 1, effect: .thorns(5), remainingTurns: 0)
         var context = makeContext(
             targetMaxHealth: 200,
             targetEffects: [thorns],
             seed: 42
         )
-        context.roster.setActiveEffects([thorns], for: context.roster.hero.combatant)
 
         let (_, events) = context.applyTestDamage(
             10,
@@ -329,5 +328,46 @@ struct CombatPipelineTests {
 
         let thornsTriggers = events.filter { $0.effectKind == .thornsTriggered }
         try #expect(thornsTriggers.count == 1)
+        try #expect(!context.roster.activeEffects(for: context.roster.enemy.combatant).contains {
+            if case .thorns = $0.effect {
+                return true
+            }
+            return false
+        })
+    }
+
+    @Test func mutualThornsConsumeWithoutPingPong() throws {
+        let defenderThorns = ActiveEffect(id: 1, effect: .thorns(4), remainingTurns: 0)
+        let attackerThorns = ActiveEffect(id: 2, effect: .thorns(4), remainingTurns: 0)
+        var context = makeContext(
+            targetMaxHealth: 200,
+            targetEffects: [defenderThorns],
+            seed: 42
+        )
+        context.roster.setActiveEffects([attackerThorns], for: context.roster.hero.combatant)
+
+        let (_, events) = context.applyTestDamage(
+            10,
+            to: context.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: context.roster.hero.combatant.id,
+            applyDodge: false
+        )
+
+        let thornsTriggers = events.filter { $0.effectKind == .thornsTriggered }
+        // Defender thorns fire once; retaliation must not re-trigger attacker's thorns.
+        try #expect(thornsTriggers.count == 1)
+        try #expect(!context.roster.activeEffects(for: context.roster.enemy.combatant).contains {
+            if case .thorns = $0.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(context.roster.activeEffects(for: context.roster.hero.combatant).contains {
+            if case .thorns = $0.effect {
+                return true
+            }
+            return false
+        })
     }
 }

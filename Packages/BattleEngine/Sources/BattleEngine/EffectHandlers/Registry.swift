@@ -27,7 +27,19 @@ public enum EffectHandlers {
         .criticalChanceBonus: CriticalChanceBonusHandler(),
         .restoreManaOnHit: RestoreManaOnHitHandler(),
         .damageKeywordOverride: DamageKeywordOverrideHandler(),
-        .nextHolyStrike: NextHolyStrikeHandler()
+        .nextHolyStrike: NextHolyStrikeHandler(),
+        .nextStrikeDouble: NextStrikeDoubleHandler(),
+        .evadeNextHit: EvadeNextHitHandler(),
+        .convertManaToBlock: ConvertManaToBlockHandler(),
+        .shieldFromMana: ShieldFromManaHandler(),
+        .shieldFromGold: ShieldFromGoldHandler(),
+        .maximumManaBonus: MaximumManaBonusHandler(),
+        .nextStrikeCritical: NextStrikeCriticalHandler(),
+        .freezeNextAttacker: FreezeNextAttackerHandler(),
+        .multiplyDoT: MultiplyDoTHandler(),
+        .recurringDamage: RecurringDamageHandler(),
+        .holyDamageBonusFromBlock: HolyDamageBonusFromBlockHandler(),
+        .revive: ReviveHandler()
     ]
 
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {

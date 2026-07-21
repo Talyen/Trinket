@@ -4,34 +4,16 @@ import TrinketDesignSystem
 
 struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-
-    private var columns: [GridItem] {
-        if horizontalSizeClass == .regular {
-            return [
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
-            ]
-        }
-        return [GridItem(.flexible())]
-    }
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
-                ForEach(GameContent.aspects) { aspect in
-                    aspectCard(aspect)
-                }
+        PlayModeHubScreen(
+            title: "Aspects",
+            accessibilityIdentifier: AccessibilityID.Play.aspectsHub
+        ) {
+            ForEach(GameContent.aspects) { aspect in
+                aspectCard(aspect)
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
-        .scrollIndicators(.hidden)
-        .navigationTitle("Aspects")
-        .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.aspectsHub)
     }
 
     @ViewBuilder
@@ -56,13 +38,11 @@ struct AspectsHubView: View {
     }
 
     private func isAspectUnlocked(_ aspect: AspectDefinition) -> Bool {
-        let hasHero = appState.roster.heroes.contains {
-            $0.keywordProfile.contains(aspect.keyword)
-        }
-        let hasCompanion = appState.roster.companions.contains {
-            $0.keywordProfile.contains(aspect.keyword)
-        }
-        return hasHero && hasCompanion
+        AspectAttunement.canEnter(
+            aspect,
+            heroes: appState.roster.heroes,
+            companions: appState.roster.companions
+        )
     }
 
     private func subtitle(for aspect: AspectDefinition, isLocked: Bool) -> String {

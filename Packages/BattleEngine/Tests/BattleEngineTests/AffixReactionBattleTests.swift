@@ -78,7 +78,7 @@ struct AffixReactionBattleTests {
 
         let bleeds = battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }
         try #expect(bleeds.count == 1)
-        try #expect(bleeds.first?.remainingTicks == Effect.bleedDoTTickCount)
+        try #expect(bleeds.first?.remainingTurns == Effect.bleedDoTTurnCount)
     }
 
     @Test func frostburnDealsFreezeDamageEveryThirdBurnTick() throws {
@@ -87,11 +87,11 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(8), remainingTicks: 0, sourceActorID: "hero")
+                ActiveEffect(id: 1, effect: .burn(8), remainingTurns: 0, sourceActorID: "hero")
             ],
             heroModifiers: CombatModifierProfile(
-                everyNthBurnTickCount: 3,
-                everyNthBurnTickFreezeDamage: 1
+                everyNthBurnTurnCount: 3,
+                everyNthBurnTurnFreezeDamage: 1
             )
         )
 
@@ -118,7 +118,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 6)
             ],
             heroModifiers: CombatModifierProfile(blockBrokenBlockFlat: 4)
         )
@@ -151,7 +151,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(maxHealth: 20),
             enemy: enemy,
             activeCompanionEffects: [
-                ActiveEffect(id: 1, effect: .bleed(4), remainingTicks: 1, sourceActorID: "enemy")
+                ActiveEffect(id: 1, effect: .bleed(4), remainingTurns: 1, sourceActorID: "enemy")
             ],
             heroModifiers: CombatModifierProfile(companionHealSharePercent: 0.50)
         )
@@ -203,7 +203,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTurns: 0)
             ],
             heroModifiers: CombatModifierProfile(freezeDamageWhileFrozenBonus: 1)
         )
@@ -245,7 +245,7 @@ struct AffixReactionBattleTests {
         )
         context.roster.mutateRuntime(for: heroCombatant) { $0.pendingDamageAfterDodge = 3 }
 
-        let dotLost = DoTDamage.resolveTick(
+        let dotLost = DoTDamage.resolveTurnDamage(
             basePotency: 1,
             keyword: .burn,
             target: enemyCombatant,
@@ -305,11 +305,11 @@ struct AffixReactionBattleTests {
 
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(2), remainingTicks: 2, sourceActorID: enemy.id)],
+            [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 2, sourceActorID: enemy.id)],
             for: hero
         )
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 2, effect: .criticalChanceBonus(0.5, 4), remainingTicks: 4, sourceActorID: enemy.id)],
+            [ActiveEffect(id: 2, effect: .criticalChanceBonus(0.5, 4), remainingTurns: 4, sourceActorID: enemy.id)],
             for: enemy
         )
 
@@ -392,7 +392,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0)
             ],
             heroModifiers: CombatModifierProfile(damageWhileTargetStunnedBonus: 1)
         )

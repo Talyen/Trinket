@@ -119,12 +119,14 @@ SKIP_FILES = {
 }
 
 
+COMPILED_RULES = [
+    (module, re.compile("|".join(patterns)))
+    for module, patterns in IMPORT_RULES
+]
+
+
 def needed_imports(text: str) -> list[str]:
-    imports: list[str] = []
-    for module, patterns in IMPORT_RULES:
-        if any(re.search(pattern, text) for pattern in patterns):
-            imports.append(module)
-    return imports
+    return [module for module, pattern in COMPILED_RULES if pattern.search(text)]
 
 
 def import_sort_key(module: str) -> tuple[int, str]:
@@ -142,9 +144,11 @@ def normalize_imports(lines: list[str]) -> list[str]:
 
     for line in lines:
         if line.startswith("import "):
-            module = IMPORT_LINE.match(line).group(1)  # type: ignore[union-attr]
-            if module not in imports:
-                imports.append(module)
+            match = IMPORT_LINE.match(line)
+            if match:
+                module = match.group(1)
+                if module not in imports:
+                    imports.append(module)
             section = "imports"
             continue
 

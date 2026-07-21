@@ -478,8 +478,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.burn, .freeze],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 1 Freeze damage every third Burn", modifiers: [], triggers: CombatTraitTriggers(everyNthBurnTickCount: 3, everyNthBurnTickFreezeDamage: 1)),
-            astral: ItemAffixPower(description: "Deal 2 Freeze damage every third Burn", modifiers: [], triggers: CombatTraitTriggers(everyNthBurnTickCount: 3, everyNthBurnTickFreezeDamage: 2))
+            basic: ItemAffixPower(description: "Deal 1 Freeze damage every third Burn", modifiers: [], triggers: CombatTraitTriggers(everyNthBurnTurnCount: 3, everyNthBurnTurnFreezeDamage: 1)),
+            astral: ItemAffixPower(description: "Deal 2 Freeze damage every third Burn", modifiers: [], triggers: CombatTraitTriggers(everyNthBurnTurnCount: 3, everyNthBurnTurnFreezeDamage: 2))
         ),
         ItemAffixCatalogSupport.affix(
             id: "efficient",

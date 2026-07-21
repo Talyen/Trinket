@@ -5,21 +5,20 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 ## Folders
 
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
-- `ContentManifest/abilities.tsv`: manifest-driven abilities (`direct_hit`, `buff_only`, `multi_damage`).
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
 - `ContentManifest/combatants.tsv`: manifest-driven heroes and companions (ability choices + stats).
 - `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
 - `ContentManifest/item_bases.tsv`: manifest-driven weapon, armor, and trinket base types.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
+- `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: authored abilities (all tiers).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv`: generated full ability list (`id`, `name`, `tier`, `summary`) for humans/agents. `summary` is `Ability.summary` (player-facing effect text).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and companions from `combatants.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
 - `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift`: generated item base catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift`: generated stage encounter art overrides from `stages.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
 
@@ -36,41 +35,33 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `*_modifiers`: pipe-separated DSL tokens (e.g. `strength:1|damage_dealt:physical:1`). Empty when the affix is trigger-only.
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `refresh_bleed_on_reapply:true`). Empty for flat modifier affixes.
 
-### Abilities (`ContentManifest/abilities.tsv`)
+### Abilities (Swift catalogs)
 
-Tab-separated columns:
+Abilities are authored only in:
 
 ```text
-pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components	extras	leech
+Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift
+Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogSkill.swift
+Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift
 ```
 
-- `pattern`: `direct_hit`, `buff_only`, or `multi_damage`.
-- `tier`: `basic`, `skill`, or `ultimate`.
-- `description`: use `\n` for line breaks.
-- `effects` / `extras`: pipe-separated effect DSL (e.g. `shield:block:2:6`, `instant_heal:health:3`).
-- `damage_components`: pipe-separated `amount:keyword` or `amount:keyword:target` tokens.
-- `leech`: `true` when the ability has the Leech keyword (heals for 50% of damage dealt). Empty otherwise.
+- Prefer `AbilityBuilder.directHit` / `buffOnly` / `multiDamage` for repeated shapes; use `Ability(...)` when you need custom targeting, mana, conditionals, or other knobs builders do not cover.
+- After editing, run `./Scripts/generate.sh` to refresh `AbilityShorthand.generated.swift` and `AbilityInventory.generated.tsv`.
+- **List / understand all abilities:** read `Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary`) or `AbilityCatalog.all` — not a ContentManifest TSV.
 
-Custom abilities with unusual targeting, multi-step combos, or description overrides stay in the hand-written tier Swift files.
-
-### Ability authoring decision tree
-
-1. **Simple abilities** (single pattern, manifest DSL covers effects/damage): add a row to `ContentManifest/abilities.tsv`, then run `./Scripts/generate.sh`.
-2. **Complex abilities** (custom targeting, multi-step combos, prose overrides, or logic that does not map to `direct_hit` / `buff_only` / `multi_damage`): implement in `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`, then run `./Scripts/generate.sh` to refresh shorthand and catalogs.
-
-When unsure, start with `abilities.tsv`; move to the tier Swift files only when generation or tests show the manifest pattern is insufficient.
+Combatant and enemy manifests still reference abilities by Swift symbol (e.g. `slash`, `fireball`).
 
 ### Stages (`ContentManifest/stages.tsv`)
 
 Tab-separated columns:
 
 ```text
-chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	encounter_art_id	encounter_art_title
+chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	encounter_art_id	encounter_art_title
 ```
 
-- `theme`: chapter theme enum case (e.g. `verdantForest`).
-- `encounter`: `battle`, `event`, `shop`, `rest`, or `mystery`.
-- `enemy_id`: required for `battle` (enemy catalog id) and `mystery` (mystery event id); empty otherwise.
+- `theme`: chapter theme enum case (`forest`, `dungeon`, `desert`, `tundra`).
+- `encounter`: `battle`, `random_battle`, `event`, `shop`, `rest`, `mystery`, or `recruit`.
+- `enemy_id`: required for `battle` (enemy catalog id). For `mystery` / `recruit`, optional event id — empty mystery picks a random non-recruit event at runtime; empty recruit picks any eligible unlock; `random-companion` picks an eligible companion only. Leave empty for `random_battle` / shop / rest / event.
 - Combat rewards (item / gold / materials) are resolved at runtime by `BattleLoot`, not authored here.
 - `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
 

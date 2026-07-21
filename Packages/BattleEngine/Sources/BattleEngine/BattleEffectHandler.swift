@@ -15,11 +15,11 @@ public struct EffectApplyOutcome {
 }
 
 /// Result of dispatching a single `ActiveEffect` through a
-/// `BattleEffectHandler.tick`. The caller (`EffectTickEngine.tickEffects`)
-/// merges these into the per-tick event stream and the per-effect
+/// `BattleEffectHandler.advanceTurn`. The caller (`EffectTurnEngine.advanceEffects`)
+/// merges these into the per-turn event stream and the per-effect
 /// updated/removed list.
-public struct EffectTickOutcome {
-    /// Events to append to the per-tick event stream. May be empty.
+public struct EffectTurnOutcome {
+    /// Events to append to the per-turn event stream. May be empty.
     public var events: [ActionEvent] = []
 
     /// The handler's updated view of the active effect. When `nil`, the
@@ -27,7 +27,7 @@ public struct EffectTickOutcome {
     public var updatedStack: ActiveEffect?
 
     /// When `true`, the caller should drop this active effect from the
-    /// list after the per-handler tick pass.
+    /// list after the per-handler turn pass.
     public var removeAfter: Bool = false
 }
 
@@ -45,11 +45,11 @@ public protocol BattleEffectHandler: Sendable {
         action: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome
-    func tick(
+    func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleEngineContext
-    ) -> EffectTickOutcome
+    ) -> EffectTurnOutcome
     /// Builds the player-facing summary line for a stack of active effects
     /// of this kind, all sharing the same `keyword`. Returning `nil` means
     /// "this kind has no summary for this stack"; the builder will try the
@@ -58,25 +58,25 @@ public protocol BattleEffectHandler: Sendable {
 }
 
 public extension BattleEffectHandler {
-    /// Default: decrement `remainingTicks` for tickable buffs and debuffs that
-    /// do not override `tick`. Burn, Poison, Bleed, and ControlMeter
-    /// provide their own tick behavior.
-    func tick(
+    /// Default: decrement `remainingTurns` for tickable buffs and debuffs that
+    /// do not override `advanceTurn`. Burn, Poison, Bleed, and ControlMeter
+    /// provide their own turn behavior.
+    func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleEngineContext
-    ) -> EffectTickOutcome {
+    ) -> EffectTurnOutcome {
         _ = target; _ = context
         switch active.effect {
         case .burn, .poison, .bleed, .controlMeter, .deathsDoor:
-            return EffectTickOutcome()
+            return EffectTurnOutcome()
         default:
-            guard active.effect.isTickable else { return EffectTickOutcome() }
+            guard active.effect.advancesEachTurn else { return EffectTurnOutcome() }
             var updated = active
-            updated.remainingTicks -= 1
-            return EffectTickOutcome(
+            updated.remainingTurns -= 1
+            return EffectTurnOutcome(
                 updatedStack: updated,
-                removeAfter: updated.remainingTicks <= 0
+                removeAfter: updated.remainingTurns <= 0
             )
         }
     }

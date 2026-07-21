@@ -205,7 +205,7 @@ enum GameContentTraitsGenerated {
             name: "Heartwood Renewal",
             description: "Restore 1 Health every 6 seconds.",
             modifiers: [],
-            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTicks: 6)
+            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTurns: 6)
         ),
         CombatantTraitDefinition(
             id: "living_furnace",
@@ -317,7 +317,7 @@ enum GameContentTraitsGenerated {
             name: "Thermal Shock",
             description: "Takes 40% more Freeze damage. Freeze damage halves Toughness damage reduction until after its next action.",
             modifiers: [.damageTakenVulnerability(.freeze, 0.40)],
-            triggers: CombatTraitTriggers(mitigationShredKeyword: .freeze, mitigationShredMultiplier: 0.50, mitigationShredDurationTicks: 6)
+            triggers: CombatTraitTriggers(mitigationShredKeyword: .freeze, mitigationShredMultiplier: 0.50, mitigationShredDurationTurns: 6)
         ),
         CombatantTraitDefinition(
             id: "sunlit_fracture",

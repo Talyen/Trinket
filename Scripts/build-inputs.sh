@@ -13,7 +13,7 @@ generation_paths_newer_than() {
   done
 
   [[ ${#paths[@]} -gt 0 ]] || return 1
-  find "${paths[@]}" -type f -newer "$stamp" -print -quit 2>/dev/null
+  find "${paths[@]}" -type f -newer "$stamp" 2>/dev/null
 }
 
 content_generation_inputs=(

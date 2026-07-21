@@ -31,8 +31,8 @@ enum GameContentRosterGenerated {
             maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block],
-                skills: [.smite, .plateMail],
-                ultimates: [.avatarOfJustice, .sanctifiedPlate]
+                skills: [.smite, .sunder],
+                ultimates: [.avatarOfJustice, .moltenBulwark]
             ),
             primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
@@ -45,7 +45,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack],
                 skills: [.poisonDagger, .serratedEdge],
-                ultimates: [.hemorrhage, .concussiveShot]
+                ultimates: [.hemorrhage, .shadowstep]
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
             growthArchetype: .assassin
@@ -57,7 +57,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 10,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .rayOfFrost],
+                basics: [.manaBerries, .rayOfFrost],
                 skills: [.fireball, .frostbolt],
                 ultimates: [.meteor, .glacialWard]
             ),
@@ -70,8 +70,8 @@ enum GameContentRosterGenerated {
             role: .hero,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.bountyShot, .fireArrow],
-                skills: [.sapArrow, .venomArrow],
+                basics: [.venomArrow, .fireArrow],
+                skills: [.sapArrow, .bountyShot],
                 ultimates: [.packTactics, .concussiveShot]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
@@ -84,7 +84,7 @@ enum GameContentRosterGenerated {
             maxHealth: 16,
             maxMana: 9,
             abilityChoices: AbilityChoices(
-                basics: [.stab, .fangs],
+                basics: [.kindling, .fangs],
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.combustion, .faustianBargain]
             ),
@@ -100,9 +100,9 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 17,
             abilityChoices: AbilityChoices(
-                basics: [.bash, .block],
-                skills: [.spikedShield, .sunderArmor],
-                ultimates: [.crystalBulwark, .thornMail]
+                basics: [.maul, .fangs],
+                skills: [.briarShield, .sunder],
+                ultimates: [.earthquake, .thornMail]
             ),
             primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
@@ -141,8 +141,8 @@ enum GameContentRosterGenerated {
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
-                skills: [.serratedEdge, .poisonDagger],
-                ultimates: [.packTactics, .hemorrhage]
+                skills: [.pounce, .venomFangs],
+                ultimates: [.packTactics, .shadowstep]
             ),
             primaryStats: PrimaryStats(strength: 12, agility: 12, toughness: 10, intellect: 8, wisdom: 8),
             growthArchetype: .bruiser
@@ -154,7 +154,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .bash],
+                basics: [.kindling, .fireArrow],
                 skills: [.fireball, .cinderbloom],
                 ultimates: [.phoenixFeather, .combustion]
             ),
@@ -196,7 +196,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.wiseFrost, .stargaze],
                 skills: [.sageHeal, .cleanse],
-                ultimates: [.panaceaPotion, .exorcism]
+                ultimates: [.panaceaPotion, .crystalBulwark]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
             growthArchetype: .support
@@ -207,8 +207,8 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .blackjack],
-                skills: [.bloodOffering, .sunderArmor],
+                basics: [.slash, .stab],
+                skills: [.darkPact, .sunder],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 12, agility: 10, toughness: 11, intellect: 9, wisdom: 8),
@@ -223,7 +223,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
-                ultimates: [.manaBulwark, .combustion]
+                ultimates: [.meteor, .crystalBulwark]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
             growthArchetype: .mage
@@ -235,7 +235,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.pixieDust, .kindling],
+                basics: [.pixieDust, .manaBerries],
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
             ),

@@ -113,7 +113,7 @@ private struct PreparedAppRoot: View {
                 // progress fill) so a warm cache cannot dismiss before the bar runs.
                 await Task.yield()
                 let displayedAt = ContinuousClock.now
-                await BattlePresentationWarmup.prepareForLaunch(
+                await BattlePresentationWarmup.prepareAndWait(
                     dynamicTypeSize: dynamicTypeSize,
                     displayScale: displayScale
                 )

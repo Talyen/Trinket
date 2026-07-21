@@ -1,16 +1,41 @@
-chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	encounter_art_id	encounter_art_title
-chapter-1	1	Forest	verdantForest	1	A soft green shape quivers beside the forest road, waiting in the grass.	battle	slime		
-chapter-1	1	Forest	verdantForest	2	Heavy footsteps circle just beyond the brush, never drawing close enough to reveal their source.	recruit	recruit-bear
-chapter-1	1	Forest	verdantForest	3	A goblin scout darts between the roots, and the glade falls suddenly quiet.	battle	goblin		
-chapter-1	1	Forest	verdantForest	4	A bowstring hums once above the trail, and fletched arrows mark the safest path through the trees.	recruit	recruit-ranger
-chapter-1	1	Forest	verdantForest	5	At the forest center, the oldest roots twist around a dark crown.	battle	the_blight_treant		
-chapter-2	2	Dungeon	verdantForest	1	A skeleton guard rattles to life in the dungeon's first stone corridor.	battle	skeleton		
-chapter-2	2	Dungeon	verdantForest	2	A silent figure slips through the torchlight, leaving warning marks scratched into the stone where the corridor grows dangerous.	recruit	recruit-rogue
-chapter-2	2	Dungeon	verdantForest	3	A battered chest sits in the torchlight, and its lid blinks.	battle	mimic		
-chapter-2	2	Dungeon	verdantForest	4	A covered cart waits where the dungeon paths cross.	shop		destination-merchant-shop	Merchant's Shop
-chapter-2	2	Dungeon	verdantForest	5	The dungeon doors groan open as the Iron Bear emerges from the buried forge.	battle	the_iron_bear		
-chapter-3	3	Desert	verdantForest	1	A pale light slips between the ruined shelves and bars the way.	battle	will_o_wisp		
-chapter-3	3	Desert	verdantForest	2	Pages turn atop a ruined lectern as watchful eyes gleam from the rafters.	recruit	recruit-library-owl
-chapter-3	3	Desert	verdantForest	3	Frost gathers across the old stone as an elemental rises.	battle	frost_elemental		
-chapter-3	3	Desert	verdantForest	4	A lantern-lit merchant has made camp among the fallen stacks.	shop		destination-merchant-shop	Merchant's Shop
-chapter-3	3	Desert	verdantForest	5	The archive doors freeze shut as the Frostwarden descends.	battle	the_frostwarden		
+chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	encounter_art_id	encounter_art_title
+chapter-1	1	Forest	forest	1	battle	slime		
+chapter-1	1	Forest	forest	2	recruit	recruit-bear		
+chapter-1	1	Forest	forest	3	battle	goblin		
+chapter-1	1	Forest	forest	4	recruit	recruit-ranger		
+chapter-1	1	Forest	forest	5	shop		destination-merchant-shop	Merchant's Shop
+chapter-1	1	Forest	forest	6	mystery			
+chapter-1	1	Forest	forest	7	battle	mud_elemental		
+chapter-1	1	Forest	forest	8	mystery			
+chapter-1	1	Forest	forest	9	battle	will_o_wisp		
+chapter-1	1	Forest	forest	10	battle	the_blight_treant		
+chapter-2	2	Dungeon	dungeon	1	battle	skeleton		
+chapter-2	2	Dungeon	dungeon	2	recruit	recruit-rogue		
+chapter-2	2	Dungeon	dungeon	3	battle	mimic		
+chapter-2	2	Dungeon	dungeon	4	mystery			
+chapter-2	2	Dungeon	dungeon	5	shop		destination-merchant-shop	Merchant's Shop
+chapter-2	2	Dungeon	dungeon	6	battle	necromancer		
+chapter-2	2	Dungeon	dungeon	7	recruit	random-companion		
+chapter-2	2	Dungeon	dungeon	8	battle	living_armor		
+chapter-2	2	Dungeon	dungeon	9	mystery			
+chapter-2	2	Dungeon	dungeon	10	battle	the_iron_bear		
+chapter-3	3	Desert	desert	1	battle	fire_elemental		
+chapter-3	3	Desert	desert	2	recruit	recruit-phoenix		
+chapter-3	3	Desert	desert	3	random_battle			
+chapter-3	3	Desert	desert	4	recruit	recruit-wizard		
+chapter-3	3	Desert	desert	5	shop		destination-merchant-shop	Merchant's Shop
+chapter-3	3	Desert	desert	6	random_battle			
+chapter-3	3	Desert	desert	7	mystery			
+chapter-3	3	Desert	desert	8	random_battle			
+chapter-3	3	Desert	desert	9	recruit			
+chapter-3	3	Desert	desert	10	battle	the_forge_golem		
+chapter-4	4	Tundra	tundra	1	battle	frost_elemental		
+chapter-4	4	Tundra	tundra	2	recruit	recruit-frost-whelp		
+chapter-4	4	Tundra	tundra	3	random_battle			
+chapter-4	4	Tundra	tundra	4	mystery			
+chapter-4	4	Tundra	tundra	5	shop		destination-merchant-shop	Merchant's Shop
+chapter-4	4	Tundra	tundra	6	random_battle			
+chapter-4	4	Tundra	tundra	7	recruit			
+chapter-4	4	Tundra	tundra	8	random_battle			
+chapter-4	4	Tundra	tundra	9	mystery			
+chapter-4	4	Tundra	tundra	10	battle	the_frostwarden		

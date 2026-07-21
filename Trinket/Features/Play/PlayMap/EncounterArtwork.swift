@@ -40,7 +40,7 @@ struct EncounterArtworkButton: View {
     let onEnemyTap: () -> Void
 
     var body: some View {
-        if stage.encounter.battleEnemyID != nil {
+        if stage.encounter.isCombat {
             Button(action: onEnemyTap) {
                 artwork
             }

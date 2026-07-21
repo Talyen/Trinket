@@ -61,7 +61,7 @@ struct ActiveBattleConfiguration: Identifiable {
     static func resolvedEncounter(
         for stage: Stage
     ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = stage.encounter.battleEnemyID,
+        guard let enemyID = stage.resolvedBattleEnemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID),
               let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
@@ -102,7 +102,7 @@ struct ActiveBattleConfiguration: Identifiable {
         switch resumeToken {
         case let .journey(stageID):
             guard let stage = GameContent.stage(id: stageID),
-                  case .battle = stage.encounter
+                  stage.encounter.isCombat
             else { return nil }
             return BattleLoot.resolveJourney(
                 stage: stage,

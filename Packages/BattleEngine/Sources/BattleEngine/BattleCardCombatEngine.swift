@@ -125,11 +125,11 @@ public enum BattleCardCombatEngine {
         // End of round: advance round clock, tick effects once.
         for participant in BattleParticipant.allCases {
             context.roster.mutateRuntime(for: context.roster[participant].combatant) {
-                $0.deathsDoorExpiredAtTick = nil
+                $0.deathsDoorExpiredAtTurn = nil
             }
         }
-        context.tickCount += 1
-        events.append(contentsOf: EffectTickEngine.tickAll(context: &context, matchup: matchup))
+        context.turnCount += 1
+        events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context, matchup: matchup))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
@@ -221,7 +221,7 @@ public enum BattleCardCombatEngine {
         context: inout BattleEngineContext
     ) {
         var remaining: [BattleParticipant: Int] = [.hero: heroCount, .companion: companionCount]
-        let tieWinner: BattleParticipant = context.tickCount.isMultiple(of: 2) ? .hero : .companion
+        let tieWinner: BattleParticipant = context.turnCount.isMultiple(of: 2) ? .hero : .companion
 
         while true {
             let candidates = [BattleParticipant.hero, .companion].filter {

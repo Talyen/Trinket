@@ -101,7 +101,7 @@ struct TraitBattleTests {
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(2), remainingTicks: 6, sourceActorID: enemy.id)],
+            [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 6, sourceActorID: enemy.id)],
             for: hero
         )
 

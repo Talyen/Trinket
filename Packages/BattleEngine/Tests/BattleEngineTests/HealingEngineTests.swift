@@ -43,7 +43,7 @@ struct HealingEngineTests {
     }
 
     @Test func leechFromDamageHealsAndSetsLeechedFlag() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
@@ -71,7 +71,7 @@ struct HealingEngineTests {
     }
 
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
@@ -95,7 +95,7 @@ struct HealingEngineTests {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
-        context.prependEffect(.deathsDoor, to: hero, remainingTicks: BattleTiming.deathsDoorDurationTicks)
+        context.prependEffect(.deathsDoor, to: hero, remainingTurns: BattleTiming.deathsDoorDurationTurns)
 
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 10, target: hero, logAs: .silent),
@@ -114,7 +114,7 @@ struct HealingEngineTests {
             $0.currentHealth = 1
             $0.hasConsumedDeathsDoor = true
         }
-        context.prependEffect(.deathsDoor, to: hero, remainingTicks: BattleTiming.deathsDoorDurationTicks)
+        context.prependEffect(.deathsDoor, to: hero, remainingTurns: BattleTiming.deathsDoorDurationTurns)
 
         _ = HealingEngine.resolveHeal(
             HealRequest(amount: 20, target: hero, logAs: .silent),
@@ -154,7 +154,7 @@ struct HealingEngineTests {
 
         // Force crit via active critical-chance buff.
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)],
+            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)],
             for: source
         )
 
@@ -187,8 +187,8 @@ struct HealingEngineTests {
         let source = context.roster.hero.combatant
         context.roster.setActiveEffects(
             [
-                ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3),
-                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3),
+                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)
             ],
             for: source
         )
@@ -207,7 +207,7 @@ struct HealingEngineTests {
         var context = makeContext(seed: 1)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTicks: 6)],
+            [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)],
             for: context.roster.hero.combatant
         )
         let outcome = HealingEngine.resolveHeal(

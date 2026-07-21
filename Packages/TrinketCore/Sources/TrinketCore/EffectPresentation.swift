@@ -35,28 +35,10 @@ public enum EffectPresentation {
         if let phrase = activeRecoveryPhrase(for: active.effect) {
             return phrase
         }
-
-        switch active.effect {
-        case .leech:
-            return "Leech"
-        case .deathsDoor:
-            return "Death's Door"
-        case .thorns:
-            return "Thorns"
-        case .marked:
-            return "Marked"
-        case .criticalChanceBonus:
-            return "Focused"
-        case .restoreManaOnHit:
-            return "Mana Shield"
-        case .damageKeywordOverride:
-            return "Consecrated"
-        case .nextHolyStrike:
-            return "Next Holy Strike"
-        case .burn, .poison, .bleed, .controlMeter, .shield,
-             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveShield:
-            return ""
+        if let phrase = activeBuffPhrase(for: active.effect) {
+            return phrase
         }
+        return ""
     }
 
     private static func activeStatusPhrase(for effect: Effect) -> String? {
@@ -79,8 +61,44 @@ public enum EffectPresentation {
 
     private static func activeRecoveryPhrase(for effect: Effect) -> String? {
         switch effect {
-        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveShield:
+        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom,
+             .halveShield, .convertManaToBlock, .shieldFromMana, .shieldFromGold, .multiplyDoT, .revive:
             ""
+        default:
+            nil
+        }
+    }
+
+    private static func activeBuffPhrase(for effect: Effect) -> String? {
+        switch effect {
+        case .leech:
+            "Leech"
+        case .deathsDoor:
+            "Death's Door"
+        case let .thorns(stacks):
+            stacks == 1 ? "Thorns" : "Thorns (\(stacks))"
+        case .marked:
+            "Marked"
+        case .criticalChanceBonus:
+            "Focused"
+        case .restoreManaOnHit:
+            "Mana Shield"
+        case .damageKeywordOverride, .holyDamageBonusFromBlock:
+            "Consecrated"
+        case .nextHolyStrike:
+            "Next Holy Strike"
+        case .nextStrikeDouble:
+            "Next Strike Double"
+        case .nextStrikeCritical:
+            "Next Strike Critical"
+        case .evadeNextHit:
+            "Evade Next Hit"
+        case .freezeNextAttacker:
+            "Glacial Ward"
+        case .maximumManaBonus:
+            "Max Mana"
+        case let .recurringDamage(keyword, potency, _):
+            "\(keyword.rawValue): \(potency)"
         default:
             nil
         }
@@ -94,6 +112,12 @@ public enum EffectPresentation {
             statusPhrase(for: .poison, amount: amount)
         case let .bleed(amount):
             statusPhrase(for: .bleed, amount: amount)
+        case let .recurringDamage(keyword, amount, turns):
+            "deal \(amount) \(keyword.rawValue) damage each turn \(durationPhrase(turns: turns))"
+        case let .multiplyDoT(keyword, factor):
+            factor == 2
+                ? "double the enemy's \(keyword.rawValue)"
+                : "multiply the enemy's \(keyword.rawValue) by \(factor)"
         default:
             nil
         }
@@ -103,6 +127,8 @@ public enum EffectPresentation {
         switch effect {
         case let .controlMeter(keyword, _, _):
             "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
+        case .freezeNextAttacker:
+            "Freeze the next attacker"
         default:
             nil
         }
@@ -112,10 +138,22 @@ public enum EffectPresentation {
         switch effect {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
-        case .thorns:
-            "gain Thorns"
+        case let .thorns(stacks):
+            stacks == 1 ? "gain Thorns" : "gain \(stacks) Thorns"
         case .nextHolyStrike:
             "your next Holy attack deals double damage and applies Burning"
+        case .nextStrikeDouble:
+            "your next attack deals double damage"
+        case .nextStrikeCritical:
+            "your next attack is a guaranteed Critical Hit"
+        case .evadeNextHit:
+            "dodge the next attack"
+        case .convertManaToBlock:
+            "convert all Mana into Block"
+        case .shieldFromMana:
+            "gain Block equal to your Mana"
+        case let .shieldFromGold(goldPerBlock):
+            "gain 1 Block for every \(goldPerBlock) Gold"
         default:
             nil
         }
@@ -133,6 +171,10 @@ public enum EffectPresentation {
             "restore \(amount) Mana"
         case let .drawCards(count):
             count == 1 ? "draw 1 card" : "draw \(count) cards"
+        case let .maximumManaBonus(amount):
+            "increase Maximum Mana by \(amount)"
+        case let .revive(amount):
+            "revive an Ally to \(amount) Health"
         default:
             nil
         }
@@ -145,7 +187,7 @@ public enum EffectPresentation {
         case .cleanse(nil):
             "cleanse all debuffs"
         case .cleanseRandom:
-            "cleanse a random debuff"
+            "cleanse a status effect"
         case let .purge(keyword?):
             "purge \(keyword.rawValue)"
         case .purge(nil):
@@ -170,16 +212,18 @@ public enum EffectPresentation {
             "gain +\(Int(percent * 100))% Critical chance"
         case let .restoreManaOnHit(amount, _):
             "restore \(amount) Mana when you take damage"
-        case let .damageKeywordOverride(keyword, bonus, durationTicks):
-            "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(ticks: durationTicks))"
+        case let .damageKeywordOverride(keyword, bonus, durationTurns):
+            "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(turns: durationTurns))"
+        case let .holyDamageBonusFromBlock(durationTurns):
+            "gain Holy damage equal to your Block \(durationPhrase(turns: durationTurns))"
         default:
             nil
         }
     }
 
-    /// Duration values are player-facing turns (1 former tick = 1 turn).
-    private static func durationPhrase(ticks: Int) -> String {
-        ticks == 1 ? "for 1 turn" : "for \(ticks) turns"
+    /// Duration values are player-facing combat turns.
+    private static func durationPhrase(turns: Int) -> String {
+        turns == 1 ? "for 1 turn" : "for \(turns) turns"
     }
 
     private static func statusPhrase(for keyword: Keyword, amount _: Int) -> String {

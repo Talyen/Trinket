@@ -63,10 +63,11 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
-        guard state.healthLost > 0, let sourceActorID = state.sourceActorID else { return }
+        // Retaliation damage must never re-enter wards (mutual thorns ping-pong).
+        guard !state.isDodged, !state.isRetaliation, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
 
-        if let damageKeyword = state.damageKeyword {
+        if state.healthLost > 0, let damageKeyword = state.damageKeyword {
             EnemyTraitEngine.applyShieldErosion(
                 keyword: damageKeyword,
                 to: state.combatant,
@@ -77,49 +78,97 @@ package extension DamagePipeline {
                 to: state.combatant,
                 context: &context
             )
+            state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
+                damageTaken: state.healthLost,
+                defender: state.combatant,
+                attackerID: sourceActorID,
+                in: &context
+            ))
         }
 
-        state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
-            damageTaken: state.healthLost,
-            defender: state.combatant,
-            attackerID: sourceActorID,
-            in: &context
-        ))
+        if state.healthLost > 0 {
+            applyManaShieldOnHit(to: &state, in: &context)
+        }
 
-        applyActiveReactiveEffects(to: &state, attacker: attacker, in: &context)
+        // Thorns and freeze-next-attacker fire for direct attack hits (including fully blocked).
+        if state.isAttackHit {
+            applyOnHitWards(to: &state, attacker: attacker, in: &context)
+        }
     }
 
-    private static func applyActiveReactiveEffects(
+    private static func applyManaShieldOnHit(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        let activeEffects = context.roster.activeEffects(for: state.combatant)
+        for active in activeEffects {
+            guard case let .restoreManaOnHit(amount, _) = active.effect else { continue }
+            let restored = context.restoreMana(amount, to: state.combatant, sourceActorID: state.combatant.id)
+            guard restored > 0 else { continue }
+            state.damageEvents.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .manaShieldTriggered,
+                actorName: state.combatant.name,
+                abilityName: "Mana Shield",
+                target: state.combatant,
+                amount: restored,
+                keyword: .mana
+            ))
+        }
+    }
+
+    private static func applyOnHitWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
         in context: inout BattleEngineContext
     ) {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
+        var thornsStacks = 0
+        var shouldFreezeAttacker = false
         for active in activeEffects {
             switch active.effect {
-            case let .thorns(keyword, amount, _):
-                appendThornsRetaliation(
-                    amount: amount,
-                    keyword: keyword,
-                    attacker: attacker,
-                    to: &state,
-                    in: &context
-                )
-            case let .restoreManaOnHit(amount, _):
-                let restored = context.restoreMana(amount, to: state.combatant, sourceActorID: state.combatant.id)
-                guard restored > 0 else { continue }
-                state.damageEvents.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .manaShieldTriggered,
-                    actorName: state.combatant.name,
-                    abilityName: "Mana Shield",
-                    target: state.combatant,
-                    amount: restored,
-                    keyword: .mana
-                ))
+            case let .thorns(amount):
+                thornsStacks += amount
+            case .freezeNextAttacker:
+                shouldFreezeAttacker = true
             default:
                 continue
             }
+        }
+
+        // Consume wards before nested resolveDamage so mutual thorns cannot recurse
+        // even if a retaliation path forgets `isRetaliation`.
+        if thornsStacks > 0 {
+            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+                if case .thorns = $0 {
+                    return true
+                }
+                return false
+            }
+            appendThornsRetaliation(
+                amount: thornsStacks,
+                keyword: .physical,
+                attacker: attacker,
+                to: &state,
+                in: &context
+            )
+        }
+
+        if shouldFreezeAttacker {
+            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+                if case .freezeNextAttacker = $0 {
+                    return true
+                }
+                return false
+            }
+            let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
+            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                threshold,
+                keyword: .freeze,
+                to: attacker.combatant,
+                sourceActorID: state.combatant.id,
+                in: &context
+            ))
         }
     }
 
@@ -137,7 +186,12 @@ package extension DamagePipeline {
                 target: attacker.combatant,
                 keyword: keyword,
                 sourceActorID: state.combatant.id,
-                options: DamageOptions(applyDodge: false, isRetaliation: true)
+                options: DamageOptions(
+                    applyStatBonus: false,
+                    applyItemBonus: false,
+                    applyDodge: false,
+                    isRetaliation: true
+                )
             )
         )
         var thornsEvents = outcome.events

@@ -70,7 +70,7 @@ public enum BattleConditionEvaluator {
             guard active.effect.keyword == keyword else { return false }
             switch active.effect {
             case let .bleed(potency):
-                return potency > 0 && active.remainingTicks > 0
+                return potency > 0 && active.remainingTurns > 0
             case let .burn(potency), let .poison(potency):
                 return potency > 0
             default:

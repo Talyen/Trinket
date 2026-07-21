@@ -168,9 +168,9 @@ final class PlayerSaveStoreTests {
 
     @Test func sanitizerDropsRemovedStagesAndUsesCatalogOrderForLastCompletedStage() throws {
         var journey = JourneyProgressState.initial
-        journey.completedStageIDs = ["chapter-1-stage-5", "chapter-1-stage-9", "chapter-1-stage-10"]
-        journey.claimedRewardStageIDs = ["chapter-1-stage-5", "chapter-1-stage-10"]
-        journey.lastCompletedStageID = "chapter-1-stage-9"
+        journey.completedStageIDs = ["chapter-1-stage-5", "chapter-1-stage-99", "missing-stage"]
+        journey.claimedRewardStageIDs = ["chapter-1-stage-5", "chapter-1-stage-99"]
+        journey.lastCompletedStageID = "chapter-1-stage-99"
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 

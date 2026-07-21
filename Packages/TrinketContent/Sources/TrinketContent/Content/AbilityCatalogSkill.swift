@@ -2,182 +2,215 @@ import Foundation
 import TrinketCore
 
 enum AbilityCatalogSkill {
-    static let acidPotion = Ability(
+    static let acidPotion = AbilityBuilder.directHit(
         id: "acid-potion", name: "Acid Potion", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .poison)],
-        targetedEffects: [
-            TargetedEffect(.poison(2)),
-            TargetedEffect(.halveShield(.block), target: .enemy)
-        ],
-        manaCost: 1
+        amount: 3, keyword: .poison
     )
-    static let antivenomPotion = Ability(
-        id: "antivenom-potion", name: "Antivenom Potion", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.cleanse(.poison)),
-            TargetedEffect(.instantHeal(.health, 2))
-        ]
-    )
+
     static let bloodOffering = Ability(
         id: "blood-offering", name: "Blood Offering", tier: .skill,
-        description: "Lose 2 Health. Deal 4 Bleed damage.",
         damageComponents: [
-            DamageComponent(2, keyword: .physical, target: .actor),
+            DamageComponent(1, keyword: .physical, target: .actor),
             DamageComponent(4, keyword: .bleed)
         ],
         targetedEffects: [TargetedEffect(.bleed(4))]
     )
+
+    static let bountyShot = Ability(
+        id: "bounty-shot", name: "Bounty Shot", tier: .skill,
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .physical)]),
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
+        ]
+    )
+
     static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 5)),
-            TargetedEffect(.instantHeal(.health, 1))
-        ],
-        manaCost: 2
+            TargetedEffect(.shield(.block, 2)),
+            TargetedEffect(.thorns(2))
+        ]
     )
-    static let cauterize = Ability(
-        id: "cauterize", name: "Cauterize", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .burn)],
-        targetedEffects: [
-            TargetedEffect(.burn(3)),
-            TargetedEffect(.instantHeal(.health, 2))
-        ],
-        manaCost: 2
-    )
+
     static let cinderbloom = Ability(
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .burn)],
-        targetedEffects: [
-            TargetedEffect(.burn(3)),
-            TargetedEffect(.instantHeal(.health, 1))
-        ],
-        manaCost: 2
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)])
+        ]
     )
+
     static let cleanse = Ability(
         id: "cleanse", name: "Cleanse", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.cleanse(nil)),
+            TargetedEffect(.cleanseRandom),
             TargetedEffect(.instantHeal(.health, 2))
-        ],
-        manaCost: 2
+        ]
     )
+
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
-        damageComponents: [
-            DamageComponent(3, keyword: .freeze, bonusAmount: 2, condition: .enemyFrozen)
-        ],
-        manaCost: 2
+        damageComponents: [DamageComponent(2, keyword: .freeze)],
+        targetedEffects: [
+            TargetedEffect(.resourceGain(.mana, 1), condition: .enemyFrozen)
+        ]
     )
+
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
         description: "Lose 2 Health. Draw 2 cards.",
         damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
         targetedEffects: [TargetedEffect(.drawCards(2))]
     )
+
+    static let fireball = AbilityBuilder.directHit(
+        id: "fireball", name: "Fireball", tier: .skill,
+        amount: 3, keyword: .burn
+    )
+
+    static let frostbolt = AbilityBuilder.directHit(
+        id: "frostbolt", name: "Frostbolt", tier: .skill,
+        amount: 3, keyword: .freeze
+    )
+
     static let heal = Ability(
         id: "heal", name: "Heal", tier: .skill,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 3))],
-        manaCost: 1
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
     )
+
     static let manaPotion = Ability(
         id: "mana-potion", name: "Mana Potion", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.resourceGain(.mana, 2)),
-            TargetedEffect(.shield(.block, 2))
-        ]
+        targetedEffects: [TargetedEffect(.resourceGain(.mana, 3))]
     )
+
     static let manaShield = Ability(
         id: "mana-shield", name: "Mana Shield", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 3)),
-            TargetedEffect(.restoreManaOnHit(1, 6))
-        ]
+        targetedEffects: [TargetedEffect(.convertManaToBlock)]
     )
-    static let prayer = Ability(
-        id: "prayer", name: "Prayer", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.instantHeal(.health, 2)),
-            TargetedEffect(.cleanseRandom)
-        ]
+
+    static let plateMail = AbilityBuilder.buffOnly(
+        id: "plate-mail", name: "Plate Mail", tier: .skill,
+        effects: [.shield(.block, 3)]
     )
+
+    static let poisonDagger = AbilityBuilder.directHit(
+        id: "poison-dagger", name: "Poison Dagger", tier: .skill,
+        amount: 3, keyword: .poison
+    )
+
+    static let pounce = AbilityBuilder.directHit(
+        id: "pounce", name: "Pounce", tier: .skill,
+        amount: 3, keyword: .stun
+    )
+
     static let predatorsFocus = Ability(
         id: "predators-focus", name: "Predator's Focus", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.criticalChanceBonus(0.15, 6))
+        targetedEffects: [TargetedEffect(.nextStrikeCritical)]
+    )
+
+    static let roulette = Ability(
+        id: "roulette", name: "Roulette", tier: .skill,
+        outcomeBranches: [
+            AbilityOutcomeBranch(
+                damageComponents: [DamageComponent(3, keyword: .physical)],
+                randomizeDamageKeywords: true
+            ),
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
         ]
     )
+
     static let sageHeal = Ability(
         id: "sage-heal", name: "Sage Heal", tier: .skill,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 3), target: .lowestHealthAlly)],
-        manaCost: 2
+        outcomeBranches: [
+            AbilityOutcomeBranch(effects: [.instantHeal(.health, 3)]),
+            AbilityOutcomeBranch(effects: [.drawCards(2)])
+        ]
     )
+
+    static let sapArrow = AbilityBuilder.directHit(
+        id: "sap-arrow", name: "Sap Arrow", tier: .skill,
+        amount: 3, keyword: .stun
+    )
+
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .bleed)],
         targetedEffects: [TargetedEffect(.bleed(3))]
     )
+
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .holy)]
     )
+
     static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4)),
-            TargetedEffect(.thorns(.physical, 1, 6))
+            TargetedEffect(.shield(.block, 2)),
+            TargetedEffect(.thorns(2))
         ]
     )
+
     static let steal = Ability(
         id: "steal", name: "Steal", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .physical)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))],
-        criticalChanceBonus: 0.20
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))]
     )
-    static let sunderArmor = Ability(
-        id: "sunder-armor",
+
+    static let stoneskinPotion = AbilityBuilder.buffOnly(
+        id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
+        effects: [.shield(.block, 3)]
+    )
+
+    static let sunder = Ability(
+        id: "sunder",
         name: "Sunder",
         tier: .skill,
         damageComponents: [DamageComponent(3)],
         targetedEffects: [TargetedEffect(.halveShield(.block), target: .enemy)]
     )
-    static let venomArrow = Ability(
-        id: "venom-arrow", name: "Venom Arrow", tier: .skill,
-        damageComponents: [
-            DamageComponent(3, keyword: .poison, bonusAmount: 1, condition: .enemyPoisoned)
-        ],
-        targetedEffects: [TargetedEffect(.poison(3))]
-    )
-    static let venomFangs = Ability(
-        id: "venom-fangs", name: "Venom Fangs", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .poison)],
-        targetedEffects: [
-            TargetedEffect(.poison(2)),
-            TargetedEffect(.bleed(1), condition: .enemyPoisoned)
+
+    static let tithe = Ability(
+        id: "tithe", name: "Tithe", tier: .skill,
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .holy)]),
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
         ]
+    )
+
+    static let venomFangs = AbilityBuilder.directHit(
+        id: "venom-fangs", name: "Venom Fangs", tier: .skill,
+        amount: 2, keyword: .poison,
+        hasLeech: true
     )
 
     static let all: [Ability] = [
         acidPotion,
-        antivenomPotion,
         bloodOffering,
+        bountyShot,
         briarShield,
-        cauterize,
         cinderbloom,
         cleanse,
         coldSnap,
         darkPact,
+        fireball,
+        frostbolt,
         heal,
         manaPotion,
         manaShield,
-        prayer,
+        plateMail,
+        poisonDagger,
+        pounce,
         predatorsFocus,
+        roulette,
         sageHeal,
+        sapArrow,
         serratedEdge,
         smite,
         spikedShield,
         steal,
-        sunderArmor,
-        venomArrow,
+        stoneskinPotion,
+        sunder,
+        tithe,
         venomFangs
-    ] + AbilityCatalogSkillGenerated.all
+    ]
 }

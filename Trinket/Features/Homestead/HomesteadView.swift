@@ -16,16 +16,6 @@ struct HomesteadView: View {
         appState.roster
     }
 
-    private var columns: [GridItem] {
-        if horizontalSizeClass == .regular {
-            return [
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
-            ]
-        }
-        return [GridItem(.flexible())]
-    }
-
     var body: some View {
         DetailHeroScrollShell(
             title: "Homestead",
@@ -50,7 +40,10 @@ struct HomesteadView: View {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
-                LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
+                LazyVGrid(
+                    columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
+                    spacing: TrinketDesign.Metrics.largeSpacing
+                ) {
                     ForEach(HomesteadNodeCategory.allCases) { category in
                         categoryCard(category)
                     }

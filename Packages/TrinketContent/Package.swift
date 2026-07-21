@@ -13,6 +13,10 @@ let package = Package(
             name: "TrinketContent",
             targets: ["TrinketContent"]
         ),
+        .executable(
+            name: "AbilityInventoryDump",
+            targets: ["AbilityInventoryDump"]
+        ),
     ],
     dependencies: [
         .package(path: "../TrinketCore"),
@@ -20,7 +24,15 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketContent",
-            dependencies: ["TrinketCore"]
+            dependencies: ["TrinketCore"],
+            exclude: [
+                "Generated/AbilityInventory.generated.tsv",
+                "Generated/ArtSourceHashes.generated.tsv",
+            ]
+        ),
+        .executableTarget(
+            name: "AbilityInventoryDump",
+            dependencies: ["TrinketContent"]
         ),
         .testTarget(
             name: "TrinketContentTests",

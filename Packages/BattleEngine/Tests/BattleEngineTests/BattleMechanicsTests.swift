@@ -47,7 +47,7 @@ struct BattleMechanicsTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTicks: 6, sourceActorID: hero.id)]
+            enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTurns: 6, sourceActorID: hero.id)]
         )
 
         let outcome = context.resolveDamage(
@@ -90,11 +90,59 @@ struct BattleMechanicsTests {
 
         try #expect(
             context.roster.activeEffects(for: wolf).contains {
-                if case .criticalChanceBonus = $0.effect {
+                if case .nextStrikeCritical = $0.effect {
                     return true
                 }
                 return false
             }
         )
+    }
+
+    @Test func nextStrikeCriticalGuaranteesCritAndConsumes() throws {
+        let ability = Ability(
+            id: "test-crit-strike",
+            name: "Test Crit Strike",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical)]
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)]
+                ),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 2,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: hero,
+            matchup: matchup,
+            context: &context
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.isCritical)
+        try #expect(!(context.roster.activeEffects(for: hero).contains {
+            if case .nextStrikeCritical = $0.effect {
+                return true
+            }
+            return false
+        }))
     }
 }

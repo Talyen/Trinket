@@ -46,6 +46,8 @@ public struct ActionEvent: Identifiable, Equatable {
         case manaShieldTriggered
         case damageKeywordOverrideApplied
         case nextHolyStrikeApplied
+        case nextStrikeDoubleApplied
+        case evadeNextHitApplied
     }
 
     public let id: Int

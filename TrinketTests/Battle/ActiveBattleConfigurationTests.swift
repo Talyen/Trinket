@@ -156,12 +156,7 @@ struct ActiveBattleConfigurationTests {
 
     @Test func makePreservesJourneyScaledEnemyStats() throws {
         let chapter = try #require(GameContent.chapters.first)
-        let battleStages = chapter.stages.filter {
-            if case .battle = $0.encounter {
-                return true
-            }
-            return false
-        }
+        let battleStages = chapter.stages.filter(\.encounter.isCombat)
         let stage = try #require(battleStages.last)
         let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
         let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
@@ -187,5 +182,30 @@ struct ActiveBattleConfigurationTests {
         #expect(enemy.maxHealth > catalogEnemy.combatant.maxHealth)
         #expect(configuration.enemyEncounterLevel == encounter.level)
         #expect(configuration.enemyModifiers.controlResistancePercent >= 0)
+    }
+
+    @Test func randomBattleResolvesDeterministicNonBossEncounter() throws {
+        let stage = try #require(
+            GameContent.chapters
+                .flatMap(\.stages)
+                .first { stage in
+                    if case .randomBattle = stage.encounter {
+                        return true
+                    }
+                    return false
+                }
+        )
+        let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        let expectedEnemyID = try #require(stage.resolvedBattleEnemyID)
+
+        #expect(encounter.combatant.id == expectedEnemyID)
+        #expect(GameContent.enemy(matching: expectedEnemyID)?.isBoss == false)
+        #expect(stage.encounter.isCombat)
+        #expect(stage.encounter.battleEnemyID == nil)
+        #expect(stage.encounterCombatantArtReference != nil)
+        #expect(stage.encounterSubjectName == (GameContent.enemy(matching: expectedEnemyID)?.name ?? "Battle"))
+
+        let again = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        #expect(again.combatant.id == encounter.combatant.id)
     }
 }

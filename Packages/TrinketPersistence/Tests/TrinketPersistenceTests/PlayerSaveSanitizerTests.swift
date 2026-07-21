@@ -82,7 +82,7 @@ final class PlayerSaveSanitizerTests {
         journey.activeChapterID = "chapter-1"
         journey.activeStageID = nil
         journey.completedStageIDs = Set(GameContent.chapters[0].stages.map(\.id))
-        journey.lastCompletedStageID = "chapter-1-stage-5"
+        journey.lastCompletedStageID = "chapter-1-stage-10"
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 

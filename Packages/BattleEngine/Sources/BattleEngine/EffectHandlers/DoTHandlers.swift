@@ -18,14 +18,14 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
-    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
-        guard matches(active.effect) else { return EffectTickOutcome() }
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
+        guard matches(active.effect) else { return EffectTurnOutcome() }
         let slowPercent = context.modifiers(for: target.id).burnDecaySlowPercent
         let nextPotency = keyword == .burn
-            ? active.effect.potencyAfterTick(burnDecaySlowPercent: slowPercent)
-            : active.effect.potencyAfterTick()
+            ? active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
+            : active.effect.potencyAfterTurn()
         if nextPotency > 0 {
-            var events = DoTDamage.resolveTick(
+            var events = DoTDamage.resolveTurnDamage(
                 basePotency: nextPotency,
                 keyword: keyword,
                 target: target,
@@ -41,12 +41,12 @@ struct DecayingDoTHandler: BattleEffectHandler {
             }
             var updated = active
             updated.effect = effectCase(potency: nextPotency)
-            return EffectTickOutcome(events: events, updatedStack: updated)
+            return EffectTurnOutcome(events: events, updatedStack: updated)
         }
 
         var updated = active
         updated.effect = effectCase(potency: 0)
-        return EffectTickOutcome(updatedStack: updated, removeAfter: true)
+        return EffectTurnOutcome(updatedStack: updated, removeAfter: true)
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -98,11 +98,11 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
-        guard case let .bleed(potency) = active.effect, active.remainingTicks > 0 else {
-            return EffectTickOutcome()
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
+        guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
+            return EffectTurnOutcome()
         }
-        let events = DoTDamage.resolveTick(
+        let events = DoTDamage.resolveTurnDamage(
             basePotency: potency,
             keyword: .bleed,
             target: target,
@@ -110,17 +110,17 @@ struct BleedHandler: BattleEffectHandler {
             in: &context
         ).events
         var updated = active
-        updated.remainingTicks -= 1
-        return EffectTickOutcome(
+        updated.remainingTurns -= 1
+        return EffectTurnOutcome(
             events: events,
             updatedStack: updated,
-            removeAfter: updated.remainingTicks <= 0
+            removeAfter: updated.remainingTurns <= 0
         )
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, activeEffect in
-            guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTicks > 0 else {
+            guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTurns > 0 else {
                 return sum
             }
             return sum + potency

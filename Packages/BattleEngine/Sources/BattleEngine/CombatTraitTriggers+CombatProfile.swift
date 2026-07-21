@@ -13,7 +13,7 @@ public extension CombatTraitTriggers {
         profile.physicalDodgeChanceBonus += physicalDodgeChanceBonus
         profile.ambushBonusDamage += ambushBonusDamage
         profile.regenerationAmount += regenerationAmount
-        profile.regenerationIntervalTicks = max(profile.regenerationIntervalTicks, regenerationIntervalTicks)
+        profile.regenerationIntervalTurns = max(profile.regenerationIntervalTurns, regenerationIntervalTurns)
         profile.passiveMitigationFlat += passiveMitigationFlat
         profile.thornsPercent += thornsPercent
         profile.cannotBeHealed = profile.cannotBeHealed || cannotBeHealed
@@ -26,9 +26,9 @@ public extension CombatTraitTriggers {
             profile.mitigationShredKeyword = mitigationShredKeyword
         }
         profile.mitigationShredMultiplier = max(profile.mitigationShredMultiplier, mitigationShredMultiplier)
-        profile.mitigationShredDurationTicks = max(
-            profile.mitigationShredDurationTicks,
-            mitigationShredDurationTicks
+        profile.mitigationShredDurationTurns = max(
+            profile.mitigationShredDurationTurns,
+            mitigationShredDurationTurns
         )
         profile.freezeControlVulnerabilityPercent += freezeControlVulnerabilityPercent
         profile.mitigationEffectivenessPenaltyPercent += mitigationEffectivenessPenaltyPercent
@@ -60,8 +60,8 @@ public extension CombatTraitTriggers {
         )
         profile.onceBelowHealthPercentHeal += onceBelowHealthPercentHeal
         profile.blockPerActionWhileDeathsDoor += blockPerActionWhileDeathsDoor
-        profile.everyNthBurnTickCount = max(profile.everyNthBurnTickCount, everyNthBurnTickCount)
-        profile.everyNthBurnTickFreezeDamage += everyNthBurnTickFreezeDamage
+        profile.everyNthBurnTurnCount = max(profile.everyNthBurnTurnCount, everyNthBurnTurnCount)
+        profile.everyNthBurnTurnFreezeDamage += everyNthBurnTurnFreezeDamage
         profile.spendManaBlockFlat += spendManaBlockFlat
         profile.holyDamageBlockFlat += holyDamageBlockFlat
         profile.holyDamageCleanseCount += holyDamageCleanseCount

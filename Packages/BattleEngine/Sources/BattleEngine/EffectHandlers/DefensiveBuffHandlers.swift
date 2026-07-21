@@ -54,7 +54,7 @@ struct LeechHandler: BattleEffectHandler {
             return maxPercent
         }
         guard percent > 0 else { return nil }
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
+        let maxTicks = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
             if case let .leech(_, _, duration) = effect {
                 return duration
             }
@@ -62,7 +62,7 @@ struct LeechHandler: BattleEffectHandler {
         }
         return EffectSummary(
             keyword: keyword,
-            text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(BattleTiming.remainingDurationLabel(ticks: maxTicks))."
+            text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
         )
     }
 
@@ -92,7 +92,7 @@ struct LeechHandler: BattleEffectHandler {
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             to: target,
             sourceID: source.id,
-            remainingTicks: adjustedDuration + wisdomTicks
+            remainingTurns: adjustedDuration + wisdomTicks
         )
         let event = context.nextEvent(
             kind: .effect,
@@ -136,7 +136,7 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
             .nextHolyStrike,
             to: target,
             sourceID: source.id,
-            remainingTicks: 0
+            remainingTurns: 0
         )
         let event = context.nextEvent(
             kind: .effect,
@@ -146,6 +146,94 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
             target: target,
             amount: 0,
             keyword: .holy
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
+struct NextStrikeDoubleHandler: BattleEffectHandler {
+    let kind: EffectKind = .nextStrikeDouble
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard !stacks.isEmpty else { return nil }
+        return EffectSummary(keyword: keyword, text: "Next attack deals double damage.")
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleEngineContext
+    ) -> EffectApplyOutcome {
+        guard case .nextStrikeDouble = effect else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .nextStrikeDouble = $0 {
+                return true
+            }
+            return false
+        }
+        context.appendEffect(
+            .nextStrikeDouble,
+            to: target,
+            sourceID: source.id,
+            remainingTurns: 0
+        )
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .nextStrikeDoubleApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: 0,
+            keyword: .physical
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
+struct EvadeNextHitHandler: BattleEffectHandler {
+    let kind: EffectKind = .evadeNextHit
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard !stacks.isEmpty else { return nil }
+        return EffectSummary(keyword: keyword, text: "Dodge the next attack.")
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleEngineContext
+    ) -> EffectApplyOutcome {
+        guard case .evadeNextHit = effect else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .evadeNextHit = $0 {
+                return true
+            }
+            return false
+        }
+        context.appendEffect(
+            .evadeNextHit,
+            to: target,
+            sourceID: source.id,
+            remainingTurns: 0
+        )
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .evadeNextHitApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: 0,
+            keyword: .dodge
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

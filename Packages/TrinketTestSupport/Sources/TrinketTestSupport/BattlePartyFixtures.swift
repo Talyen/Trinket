@@ -24,20 +24,20 @@ public enum BattlePartyFixtures {
             hero: CombatantFixtures.combatant(
                 id: "hero",
                 role: .hero,
-                actionIntervalTicks: 1,
+                actionIntervalTurns: 1,
                 abilities: heroAbilities
             ),
             companion: CombatantFixtures.combatant(
                 id: "companion",
                 role: .companion,
-                actionIntervalTicks: 100,
+                actionIntervalTurns: 100,
                 abilities: []
             ),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: enemyMaxHealth,
-                actionIntervalTicks: 100,
+                actionIntervalTurns: 100,
                 abilities: []
             )
         )

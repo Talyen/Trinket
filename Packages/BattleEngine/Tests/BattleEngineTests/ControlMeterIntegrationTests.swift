@@ -94,7 +94,7 @@ struct ControlMeterIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0)
             ]
         )
 

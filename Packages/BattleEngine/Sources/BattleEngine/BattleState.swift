@@ -30,7 +30,7 @@ public struct BattleState {
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
     /// Round index. Advances once per full round (player turn + enemy turn + effect tick).
-    public var tickCount: Int
+    public var turnCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
     public var events: [ActionEvent]
@@ -62,7 +62,7 @@ public struct BattleState {
     public init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
-        tickCount: Int = 0,
+        turnCount: Int = 0,
         nextEffectID: Int,
         nextEventID: Int,
         events: [ActionEvent],
@@ -93,7 +93,7 @@ public struct BattleState {
         cachedMatchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         self.roster = roster
         self.rng = rng
-        self.tickCount = tickCount
+        self.turnCount = turnCount
         self.nextEffectID = nextEffectID
         self.nextEventID = nextEventID
         self.events = events
@@ -163,7 +163,7 @@ public struct BattleState {
         )
         nextEffectID = maxExistingEffectID + 1
         rng = SeededRandomNumberGenerator(seed: seed)
-        tickCount = 0
+        turnCount = 0
         nextEventID = 0
         events = []
         gold = initialGold

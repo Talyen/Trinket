@@ -44,11 +44,11 @@ for path in "${TRINKET_CHANGED_PATHS[@]}"; do
   if [[ -f "$path" ]] && ! git ls-files --error-unmatch -- "$path" >/dev/null 2>&1; then
     printf '%s\t0\t%s\n' "$(wc -l < "$path" | tr -d ' ')" "$path" >> "$stats"
     printf 'diff --git a/%s b/%s\n--- /dev/null\n+++ b/%s\n' "$path" "$path" "$path" >> "$patch"
-    sed 's/^/+/' "$path" >> "$patch"
+    LC_ALL=C sed 's/^/+/' "$path" >> "$patch"
   fi
 done
 
-awk \
+LC_ALL=C awk \
   -v prod_limit="${TRINKET_BUDGET_PROD_LOC_WARN:-250}" \
   -v test_limit="${TRINKET_BUDGET_TEST_LOC_WARN:-150}" \
   -v file_limit="${TRINKET_BUDGET_NEW_SWIFT_WARN:-2}" \

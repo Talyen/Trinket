@@ -167,17 +167,20 @@ if [[ "$ISOLATE" == true ]]; then
   export TRINKET_MAX_CONCURRENT_UI TRINKET_MAX_AGENT_SIMS
 fi
 
+quiet_log=""
+if [[ "$QUIET" == true ]]; then
+  quiet_log=$(mktemp -t trinket-verify.XXXXXX)
+  trap 'rm -f "$quiet_log"' EXIT INT TERM
+fi
+
 for command in "${commands[@]}"; do
   if [[ "$QUIET" == true ]]; then
-    quiet_log=$(mktemp -t trinket-verify.XXXXXX)
     if eval "$command" > "$quiet_log" 2>&1; then
       echo "PASS: $command"
-      rm -f "$quiet_log"
     else
       status=$?
       echo "FAIL: $command"
       tail -n "${TRINKET_VERIFY_FAILURE_LINES:-80}" "$quiet_log"
-      rm -f "$quiet_log"
       exit "$status"
     fi
   else

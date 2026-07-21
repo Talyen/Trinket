@@ -22,20 +22,20 @@ enum BattleSessionTestSupport {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
+            actionIntervalTurns: 1,
             abilities: [.slash]
         )
         let resolvedCompanion = companion ?? CombatantFixtures.combatant(
             id: "companion",
             role: .companion,
-            actionIntervalTicks: 100,
+            actionIntervalTurns: 100,
             abilities: []
         )
         let resolvedEnemy = enemy ?? CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 100,
+            actionIntervalTurns: 100,
             abilities: []
         )
         let session = BattleSession(

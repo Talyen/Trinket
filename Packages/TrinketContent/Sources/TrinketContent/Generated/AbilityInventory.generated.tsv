@@ -1,0 +1,72 @@
+id	name	tier	summary
+apple	Apple	basic	Restore 2 Health.
+bash	Bash	basic	Deal 2 Stun damage.
+blackjack	Blackjack	basic	Deal 2 Stun damage or steal 2 Gold.
+block	Block	basic	Gain 2 Block.
+caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
+fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
+fire-arrow	Fire Arrow	basic	Deal 1 Burn damage.
+ice-shot	Ice Shot	basic	Deal 2 Freeze damage.
+kindling	Kindling	basic	Deal 2 Burn damage.
+mana-berries	Mana Berries	basic	Restore 2 Mana.
+mana-crystals	Mana Crystals	basic	Increase Maximum Mana by 2.
+maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
+pixie-dust	Pixie Dust	basic	Deal 2 Burn damage or restore 2 Mana.
+ray-of-frost	Ray of Frost	basic	Deal 2 Freeze damage.
+rending-slash	Rend	basic	Deal 2 Bleed damage.
+shield-bash	Shield Bash	basic	Deal 1 Stun damage and Gain 1 Block.
+slash	Slash	basic	Deal 2 Physical damage.
+sniff-out	Sniff Out	basic	Mark the enemy.
+stab	Stab	basic	Deal 2 Physical damage.
+stargaze	Stargaze	basic	Deal 1 Freeze damage and Restore 1 Mana.
+venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
+wise-frost	Wise Frost	basic	Deal 2 Freeze damage or draw 1 card.
+acid-potion	Acid Potion	skill	Deal 3 Poison damage.
+blood-offering	Blood Offering	skill	Lose 1 Health. Deal 4 Bleed damage.
+bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold.
+briar-shield	Briar Shield	skill	Gain 2 Block and Gain 2 Thorns.
+cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
+cleanse	Cleanse	skill	Cleanse a status effect and Restore 2 Health.
+cold-snap	Cold Snap	skill	Deal 2 Freeze damage and Restore 1 Mana if the enemy is Frozen.
+dark-pact	Dark Pact	skill	Lose 2 Health. Draw 2 cards.
+fireball	Fireball	skill	Deal 3 Burn damage.
+frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
+heal	Heal	skill	Restore 3 Health.
+mana-potion	Mana Potion	skill	Restore 3 Mana.
+mana-shield	Mana Shield	skill	Convert all Mana into Block.
+plate-mail	Plate Mail	skill	Gain 3 Block.
+poison-dagger	Poison Dagger	skill	Deal 3 Poison damage.
+pounce	Pounce	skill	Deal 3 Stun damage.
+predators-focus	Predator's Focus	skill	Your next attack is a guaranteed Critical Hit.
+roulette	Roulette	skill	Deal 3 Random damage or steal 3 Gold.
+sage-heal	Sage Heal	skill	Restore 3 Health or draw 2 cards.
+sap-arrow	Sap Arrow	skill	Deal 3 Stun damage.
+serrated-edge	Serrated Edge	skill	Deal 3 Bleed damage.
+smite	Smite	skill	Deal 3 Holy damage.
+spiked-shield	Spiked Shield	skill	Gain 2 Block and Gain 2 Thorns.
+steal	Steal	skill	Steal 3 Gold.
+stoneskin-potion	Stoneskin Potion	skill	Gain 3 Block.
+sunder	Sunder	skill	Deal 3 Physical damage and Halve the enemy's Block.
+tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
+venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
+avatar-of-justice	Avatar	ultimate	Gain Holy damage equal to your Block for 2 turns.
+blessed-aegis	Blessed Aegis	ultimate	Deal 6 Holy damage or gain 6 Block.
+blizzard	Blizzard	ultimate	Deal 2 Freeze damage each turn for 2 turns.
+bloodthorn	Bloodthorn	ultimate	Deal 6 Bleed damage or deal 6 Poison damage.
+combustion	Combustion	ultimate	Deal 2 Burn damage and Double the enemy's Burn.
+concussive-shot	Concussive Shot	ultimate	Deal 6 Stun damage.
+crystal-bulwark	Crystal Bulwark	ultimate	Gain Block equal to your Mana.
+earthquake	Earthquake	ultimate	Deal 6 Stun damage.
+faustian-bargain	Faustian Bargain	ultimate	Lose 3 Health. Draw 3 cards.
+glacial-ward	Glacial Ward	ultimate	Gain 3 Block and Freeze the next attacker.
+golden-plate	Golden Plate	ultimate	Gain 1 Block for every 7 Gold.
+hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage.
+luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
+meteor	Meteor	ultimate	Deal 6 Burn damage.
+molten-bulwark	Molten Bulwark	ultimate	Deal 6 Burn damage or gain 6 Block.
+pack-tactics	Pack Tactics	ultimate	Draw 1 card, Draw 1 card and Restore 3 Health.
+panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs.
+phoenix-feather	Phoenix Feather	ultimate	Restore 3 Health and Revive an Ally to 3 Health.
+shadowstep	Shadowstep	ultimate	Your next attack deals double damage. Dodge the next attack.
+sunburst	Sunburst	ultimate	Deal 6 Holy damage or restore 6 Health.
+thorn-mail	Thorn Mail	ultimate	Gain 4 Block and Gain 4 Thorns.

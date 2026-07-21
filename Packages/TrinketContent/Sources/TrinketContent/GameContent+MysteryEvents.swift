@@ -11,11 +11,13 @@ public extension GameContent {
     }
 
     static func mysteryEvent(matching id: String) -> MysteryEvent? {
-        MysteryEventPool.event(matching: id)
+        guard !id.isEmpty else { return nil }
+        return MysteryEventPool.event(matching: id)
     }
 
     static func recruitEvent(matching id: String) -> MysteryEvent? {
-        RecruitEventPool.event(matching: id)
+        guard !id.isEmpty, id != StageEncounter.randomCompanionRecruitID else { return nil }
+        return RecruitEventPool.event(matching: id)
     }
 
     static func pickMysteryEvent(
@@ -32,18 +34,40 @@ public extension GameContent {
         authored ?? pickMysteryEvent(using: &randomNumberGenerator)
     }
 
+    /// Non-boss enemies eligible for journey `randomBattle` stages.
+    static var nonBossEnemies: [Enemy] {
+        enemies.filter { !$0.isBoss }
+    }
+
+    static func pickRandomNonBossEnemyID(forStageID stageID: String) -> String? {
+        var randomNumberGenerator = SeededRandomNumberGenerator(
+            seed: stableSeed(for: "random-battle-\(stageID)")
+        )
+        return nonBossEnemies
+            .map(\.id)
+            .sorted()
+            .randomElement(using: &randomNumberGenerator)
+    }
+
     static func resolveRecruitEncounter(
         configuredEventID: String?,
         encounterID: String,
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> RecruitEncounterResolution {
+        let roleFilter: Combatant.Role? =
+            configuredEventID == StageEncounter.randomCompanionRecruitID ? .companion : nil
         let eligible = RecruitEventPool.eligible(
             unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
+            unlockedCompanionIDs: unlockedCompanionIDs,
+            role: roleFilter
         )
-        if let configuredEventID,
-           let configured = RecruitEventPool.event(matching: configuredEventID),
+        let configuredID = configuredEventID.flatMap { id -> String? in
+            guard !id.isEmpty, id != StageEncounter.randomCompanionRecruitID else { return nil }
+            return id
+        }
+        if let configuredID,
+           let configured = RecruitEventPool.event(matching: configuredID),
            eligible.contains(configured) {
             return .recruit(configured)
         }
@@ -63,9 +87,9 @@ public extension GameContent {
         unlockedHeroIDs: Set<String>,
         unlockedCompanionIDs: Set<String>
     ) -> Stage {
-        guard let configuredEventID = stage.encounter.recruitEventID else { return stage }
+        guard case .recruit = stage.encounter else { return stage }
         let resolution = resolveRecruitEncounter(
-            configuredEventID: configuredEventID,
+            configuredEventID: stage.encounter.recruitEventID,
             encounterID: stage.id,
             unlockedHeroIDs: unlockedHeroIDs,
             unlockedCompanionIDs: unlockedCompanionIDs
@@ -75,7 +99,6 @@ public extension GameContent {
             chapterID: stage.chapterID,
             chapterNumber: stage.chapterNumber,
             stageNumber: stage.stageNumber,
-            flavorText: stage.flavorText,
             encounter: resolution.stageEncounter,
             rewards: stage.rewards
         )
@@ -89,7 +112,11 @@ public extension GameContent {
     /// Map glyph for a configured recruit event. Uses the authored combatant role;
     /// does not run recruit resolution.
     static func recruitEncounterSymbolName(forEventID eventID: String?) -> String {
+        if eventID == StageEncounter.randomCompanionRecruitID {
+            return recruitEncounterSymbolName(for: .companion)
+        }
         guard let eventID,
+              !eventID.isEmpty,
               let event = recruitEvent(matching: eventID),
               let combatant = combatant(forMysteryEvent: event)
         else {

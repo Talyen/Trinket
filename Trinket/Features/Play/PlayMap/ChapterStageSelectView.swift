@@ -134,7 +134,7 @@ struct ChapterStageSelectView: View {
     private func prepareActiveBattleRun() {
         guard let stageID = appState.journey.activeStageID,
               let stage = GameContent.stage(id: stageID),
-              stage.encounter.battleEnemyID != nil else { return }
+              stage.encounter.isCombat else { return }
         appState.prepareBattle(for: stage)
     }
 
@@ -161,8 +161,8 @@ struct ChapterStageSelectView: View {
                 symbolName: stage.encounter.symbolName,
                 tint: stage.encounter.mapTint,
                 primaryActionTitle: stage.encounter.primaryActionTitle,
-                showsPartyPicker: stage.encounter.battleEnemyID != nil,
-                isArtworkInteractive: stage.encounter.battleEnemyID != nil,
+                showsPartyPicker: stage.encounter.isCombat,
+                isArtworkInteractive: stage.encounter.isCombat,
                 rowAccessibilityID: AccessibilityID.Play.stageRow(
                     chapter: stage.chapterNumber,
                     stage: stage.stageNumber
@@ -181,7 +181,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func artworkAccessibilityIdentifier(for stage: Stage) -> String {
-        if stage.encounter.battleEnemyID != nil {
+        if stage.encounter.isCombat {
             return "\(stage.mapLabel) Enemy Art"
         }
         if stage.encounter.eventID != nil {

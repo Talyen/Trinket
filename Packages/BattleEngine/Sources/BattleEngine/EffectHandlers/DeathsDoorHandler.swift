@@ -25,16 +25,16 @@ struct DeathsDoorHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: [], didApply: false)
     }
 
-    func tick(
+    func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleEngineContext
-    ) -> EffectTickOutcome {
+    ) -> EffectTurnOutcome {
         var updated = active
-        updated.remainingTicks -= 1
-        if updated.remainingTicks <= 0 {
+        updated.remainingTurns -= 1
+        if updated.remainingTurns <= 0 {
             context.roster.mutateRuntime(for: target) {
-                $0.deathsDoorExpiredAtTick = context.tickCount
+                $0.deathsDoorExpiredAtTurn = context.turnCount
             }
             let event = context.nextEvent(
                 kind: .effect,
@@ -45,8 +45,8 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 amount: 0,
                 keyword: .deathsDoor
             )
-            return EffectTickOutcome(events: [event], removeAfter: true)
+            return EffectTurnOutcome(events: [event], removeAfter: true)
         }
-        return EffectTickOutcome(updatedStack: updated)
+        return EffectTurnOutcome(updatedStack: updated)
     }
 }

@@ -23,7 +23,7 @@ struct DoTDamageTests {
         )
     }
 
-    @Test func resolveTickStoresBasePotencyOnStack() throws {
+    @Test func resolveTurnDamageStoresBasePotencyOnStack() throws {
         var context = makeContext()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -38,7 +38,7 @@ struct DoTDamageTests {
     }
 
     @Test(arguments: [TickBonusCase.intellectStat, .itemDamageDealt])
-    private func resolveTickAppliesDamageBonuses(caseKind: TickBonusCase) throws {
+    private func resolveTurnDamageAppliesDamageBonuses(caseKind: TickBonusCase) throws {
         let context: BattleEngineContext
         let expectedHealthLost: Int
         switch caseKind {
@@ -54,7 +54,7 @@ struct DoTDamageTests {
         }
 
         var mutable = context
-        let outcome = DoTDamage.resolveTick(
+        let outcome = DoTDamage.resolveTurnDamage(
             basePotency: 4,
             keyword: .burn,
             target: mutable.roster.enemy.combatant,
@@ -67,9 +67,9 @@ struct DoTDamageTests {
         }
     }
 
-    @Test func resolveTickIncludesStatusEventWhenDamageDealt() throws {
+    @Test func resolveTurnDamageIncludesStatusEventWhenDamageDealt() throws {
         var context = makeContext()
-        let outcome = DoTDamage.resolveTick(
+        let outcome = DoTDamage.resolveTurnDamage(
             basePotency: 5,
             keyword: .burn,
             target: context.roster.enemy.combatant,

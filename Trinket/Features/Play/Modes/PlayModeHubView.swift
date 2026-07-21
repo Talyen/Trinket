@@ -9,38 +9,20 @@ import TrinketDesignSystem
 /// world map is being designed.
 struct PlayModeHubView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let onOpenCampaign: () -> Void
     let onOpenExplore: () -> Void
 
     @State private var committedSelection: Mode?
 
-    private var columns: [GridItem] {
-        if horizontalSizeClass == .regular {
-            return [
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing),
-                GridItem(.flexible(), spacing: TrinketDesign.Metrics.largeSpacing)
-            ]
-        }
-        return [GridItem(.flexible())]
-    }
-
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
-                modeCard(.campaign)
-                modeCard(.explore)
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
+        PlayModeHubScreen(
+            title: "Play",
+            accessibilityIdentifier: AccessibilityID.Play.modesScreen
+        ) {
+            modeCard(.campaign)
+            modeCard(.explore)
         }
-        .scrollIndicators(.hidden)
-        .navigationTitle("Play")
-        .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground()
-        .accessibilityIdentifier(AccessibilityID.Play.modesScreen)
         .trinketSensoryFeedback(
             .selection,
             trigger: committedSelection,

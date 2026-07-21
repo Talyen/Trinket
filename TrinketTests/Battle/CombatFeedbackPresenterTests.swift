@@ -499,7 +499,7 @@ extension CombatFeedbackPresenterTests {
                     keyword: .block,
                     actionID: 99,
                     abilityID: "avatar-of-justice",
-                    abilityName: "Avatar of Justice"
+                    abilityName: "Avatar"
                 ),
                 makeEvent(
                     id: 12,
@@ -509,7 +509,7 @@ extension CombatFeedbackPresenterTests {
                     keyword: .holy,
                     actionID: 99,
                     abilityID: "avatar-of-justice",
-                    abilityName: "Avatar of Justice"
+                    abilityName: "Avatar"
                 )
             ],
             at: .now

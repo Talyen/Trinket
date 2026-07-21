@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketDesignSystem
 
 struct CollectionView: View {
-    private static let shelfPreviewLimit = 8
-
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
@@ -65,7 +63,8 @@ struct CollectionView: View {
 
     private var collectionBrowseContent: some View {
         let inventoryState = appState.inventory
-        let shelfItems = Array(inventoryState.items.prefix(Self.shelfPreviewLimit))
+        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+        let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
 
         return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
@@ -74,7 +73,7 @@ struct CollectionView: View {
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
                     combatants: Array(
-                        appState.roster.collectionHeroes.prefix(Self.shelfPreviewLimit)
+                        appState.roster.collectionHeroes.prefix(shelfLimit)
                     )
                 )
 
@@ -83,16 +82,17 @@ struct CollectionView: View {
                     accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
                     kind: .companion,
                     combatants: Array(
-                        appState.roster.collectionCompanions.prefix(Self.shelfPreviewLimit)
+                        appState.roster.collectionCompanions.prefix(shelfLimit)
                     )
                 )
 
                 if !inventoryState.items.isEmpty {
-                    collectionCategorySection(
+                    CategoryBrowseShelf(
                         title: "Inventory",
-                        accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        destination: InventoryGridView()
+                        linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory
                     ) {
+                        InventoryGridView()
+                    } content: {
                         ForEach(shelfItems) { item in
                             Button {
                                 selectedItem = item
@@ -141,11 +141,12 @@ struct CollectionView: View {
         kind: CombatantDetailContext.Kind,
         combatants: [Combatant]
     ) -> some View {
-        collectionCategorySection(
+        CategoryBrowseShelf(
             title: title,
-            accessibilityIdentifier: accessibilityIdentifier,
-            destination: CollectionCombatantGridView(kind: kind)
+            linkAccessibilityIdentifier: accessibilityIdentifier
         ) {
+            CollectionCombatantGridView(kind: kind)
+        } content: {
             ForEach(combatants) { combatant in
                 CollectionCombatantButton(
                     combatant: combatant,
@@ -159,54 +160,5 @@ struct CollectionView: View {
                 .collectionShelfCardWidth()
             }
         }
-    }
-
-    private func collectionCategorySection(
-        title: String,
-        accessibilityIdentifier: String,
-        destination: some View,
-        @ViewBuilder shelf: () -> some View
-    ) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-            NavigationLink {
-                destination
-            } label: {
-                collectionCategoryHeader(title: title)
-            }
-            .trinketQuietTapButtonStyle()
-            .accessibilityIdentifier(accessibilityIdentifier)
-
-            horizontalShelf(content: shelf)
-        }
-    }
-
-    private func collectionCategoryHeader(title: String) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
-            Text(title)
-                .trinketTypography(.sectionTitle)
-                .foregroundStyle(.primary)
-            Image(systemName: "chevron.right")
-                .trinketTypography(.footnote)
-                .foregroundStyle(.secondary)
-            Spacer()
-        }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .contentShape(Rectangle())
-    }
-
-    private func horizontalShelf(@ViewBuilder content: () -> some View) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
-                content()
-            }
-            .scrollTargetLayout()
-            .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
-        }
-        .contentMargins(
-            .horizontal,
-            TrinketDesign.Metrics.collectionShelfHorizontalMargin,
-            for: .scrollContent
-        )
-        .scrollTargetBehavior(.viewAligned)
     }
 }

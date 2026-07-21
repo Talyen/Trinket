@@ -118,7 +118,6 @@ struct AppStateMysteryRecruitTests {
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            flavorText: "Audit mystery.",
             encounter: .mysteryEvent(eventID: event.id),
             rewards: .empty
         )

@@ -56,7 +56,7 @@ enum RecruitEventPool {
             id: "recruit-wizard",
             combatantID: "wizard",
             title: "Sparks Between the Trees",
-            narrative: "Runes hang in the air like fireflies. A wizard finishes a gesture, snuffs the last spark between two fingers, and looks faintly impressed that you didn't run.",
+            narrative: "Runes hang in the air like fireflies. A mage finishes a gesture, snuffs the last spark between two fingers, and looks faintly impressed that you didn't run.",
             choiceID: "welcome",
             choiceLabel: "Join our circle."
         ),
@@ -72,7 +72,7 @@ enum RecruitEventPool {
             id: "recruit-frost-whelp",
             combatantID: "frost_whelp",
             title: "A Chill in the Hollow",
-            narrative: "Frost feathers the leaves. A small dragonet sneezes a puff of rime, then butts your boot as if claiming a new den.",
+            narrative: "Rime feathers the leaves. A small dragonet sneezes a puff of ice, then butts your boot as if claiming a new den.",
             choiceID: "welcome",
             choiceLabel: "Come warm up with us."
         ),
@@ -96,7 +96,7 @@ enum RecruitEventPool {
             id: "recruit-phoenix",
             combatantID: "phoenix",
             title: "Embers in the Clearing",
-            narrative: "Ash swirls upward and becomes wings. A phoenix lands on a charred stump, leaves a warm feather in the dirt, and watches to see if you'll pick it up.",
+            narrative: "Ash swirls upward and becomes wings. A bright bird lands on a charred stump, leaves a warm feather in the dirt, and watches to see if you'll pick it up.",
             choiceID: "welcome",
             choiceLabel: "Rise with us."
         ),
@@ -159,13 +159,21 @@ enum RecruitEventPool {
     }
 
     /// Recruit events whose combatant is not yet unlocked.
+    /// When `role` is set, only events unlocking that role are eligible.
     static func eligible(
         unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
+        unlockedCompanionIDs: Set<String>,
+        role: Combatant.Role? = nil
     ) -> [MysteryEvent] {
         all.filter { event in
             guard let combatantID = event.unlockCombatantID else { return false }
-            return !unlockedHeroIDs.contains(combatantID) && !unlockedCompanionIDs.contains(combatantID)
+            guard !unlockedHeroIDs.contains(combatantID),
+                  !unlockedCompanionIDs.contains(combatantID)
+            else { return false }
+            guard let role else { return true }
+            let combatant = GameContent.heroes.first { $0.id == combatantID }
+                ?? GameContent.companions.first { $0.id == combatantID }
+            return combatant?.role == role
         }
     }
 }

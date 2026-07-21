@@ -42,7 +42,7 @@ struct BattleTurnEngineTests {
 
     @Test func consumeActionSkipEmitsEventRemovesEffectAndRecordsAction() throws {
         var (context, _) = makeContext(actorEffects: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
         ])
         let enemy = context.roster.enemy.combatant
         let before = try #require(context.roster.runtime(for: enemy)?.actionCount)
@@ -84,8 +84,8 @@ struct BattleTurnEngineTests {
                 hero: CombatantRuntime(
                     combatant: hero,
                     initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .deathsDoor, remainingTicks: 4),
-                        ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+                        ActiveEffect(id: 1, effect: .deathsDoor, remainingTurns: 4),
+                        ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
                     ],
                     hasConsumedDeathsDoor: true
                 ),
@@ -133,6 +133,56 @@ struct BattleTurnEngineTests {
         #expect(abilityEvent.abilityID == Ability.slash.id)
         #expect(abilityEvent.abilityName == Ability.slash.name)
         #expect(abilityEvent.abilityTier == Ability.slash.tier)
+    }
+
+    @Test func nextStrikeDoubleDoublesOutgoingDamageAndConsumes() throws {
+        let ability = Ability(
+            id: "test-strike",
+            name: "Test Strike",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical)]
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)]
+                ),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 2,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+        let healthBefore = context.roster.health(for: enemy)
+
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: hero,
+            matchup: matchup,
+            context: &context
+        )
+
+        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
+        try #expect(damageEvent.amount == 4)
+        try #expect(context.roster.health(for: enemy) == healthBefore - 4)
+        try #expect(!(context.roster.activeEffects(for: hero).contains {
+            if case .nextStrikeDouble = $0.effect {
+                return true
+            }
+            return false
+        }))
     }
 
     @Test func mixedDamageComponentsEmitExactFeedbackEventsAndOneLogSummary() {
@@ -200,7 +250,7 @@ struct BattleTurnEngineTests {
                 enemy: CombatantRuntime(
                     combatant: enemy,
                     initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 2)
+                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2)
                     ]
                 )
             ),

@@ -32,7 +32,7 @@ public struct CombatantRuntime: Hashable {
     public var hasConsumedDeathsDoor: Bool
 
     /// Round when Death's Door expired; lethal protection lasts through that round.
-    public var deathsDoorExpiredAtTick: Int?
+    public var deathsDoorExpiredAtTurn: Int?
 
     /// True after this combatant's ambush trait has added its first-strike bonus.
     public var hasTriggeredAmbush: Bool
@@ -53,7 +53,7 @@ public struct CombatantRuntime: Hashable {
     public var burnTickCount: Int
 
     /// Round until which Toughness-based inherent DR is reduced by `mitigationShredMultiplier`.
-    public var mitigationShredUntilTick: Int
+    public var mitigationShredUntilTurn: Int
 
     /// Multiplier applied to Toughness-based DR while shred is active (e.g. 0.5 halves it).
     public var mitigationShredMultiplier: Double
@@ -66,28 +66,28 @@ public struct CombatantRuntime: Hashable {
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
         hasConsumedDeathsDoor: Bool = false,
-        deathsDoorExpiredAtTick: Int? = nil,
+        deathsDoorExpiredAtTurn: Int? = nil,
         hasTriggeredAmbush: Bool = false,
         hasTriggeredSecondWind: Bool = false,
         hasTriggeredHexmark: Bool = false,
         pendingDamageAfterDodge: Int = 0,
         bleedApplyCount: Int = 0,
         burnTickCount: Int = 0,
-        mitigationShredUntilTick: Int = 0,
+        mitigationShredUntilTurn: Int = 0,
         mitigationShredMultiplier: Double = 1
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
         self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
-        self.deathsDoorExpiredAtTick = deathsDoorExpiredAtTick
+        self.deathsDoorExpiredAtTurn = deathsDoorExpiredAtTurn
         self.hasTriggeredAmbush = hasTriggeredAmbush
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredHexmark = hasTriggeredHexmark
         self.pendingDamageAfterDodge = pendingDamageAfterDodge
         self.bleedApplyCount = bleedApplyCount
         self.burnTickCount = burnTickCount
-        self.mitigationShredUntilTick = mitigationShredUntilTick
+        self.mitigationShredUntilTurn = mitigationShredUntilTurn
         self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
         currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
@@ -115,7 +115,13 @@ public struct CombatantRuntime: Hashable {
 
     public var maxMana: Int {
         guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus
+        let effectBonus = activeEffects.reduce(0) { sum, active in
+            if case let .maximumManaBonus(amount) = active.effect {
+                return sum + amount
+            }
+            return sum
+        }
+        return combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus + effectBonus
     }
 
     public var primaryStats: PrimaryStats {

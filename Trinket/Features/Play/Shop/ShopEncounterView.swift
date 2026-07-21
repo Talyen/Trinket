@@ -18,12 +18,11 @@ struct ShopEncounterView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                    merchantArtwork
-                        .opacity(artAppeared ? 1 : 0)
-                        .scaleEffect(artAppeared ? 1 : 0.94)
-
+            EncounterReadingShell(
+                artVisible: artAppeared,
+                copyVisible: contentAppeared,
+                artwork: { merchantArtwork },
+                copy: {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                         Text(session.stage.encounterSubjectName)
                             .trinketTypography(.screenTitle)
@@ -51,9 +50,8 @@ struct ShopEncounterView: View {
                                 .transition(.opacity)
                         }
                     }
-                    .opacity(contentAppeared ? 1 : 0)
-                    .offset(y: contentAppeared ? 0 : 8)
-
+                },
+                content: {
                     offerGrid
                         .opacity(offersAppeared ? 1 : 0)
                         .offset(y: offersAppeared ? 0 : 10)
@@ -69,8 +67,7 @@ struct ShopEncounterView: View {
                     .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
                     .padding(.top, TrinketDesign.Metrics.extraSmallSpacing)
                 }
-                .padding(TrinketDesign.Metrics.extraLargeSpacing)
-            }
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketScreenBackground()
             .navigationBarTitleDisplayMode(.inline)
@@ -99,7 +96,11 @@ struct ShopEncounterView: View {
             .trinketDetailSheet()
         }
         .onAppear {
-            presentEntrance()
+            EncounterReadingEntrance.present(
+                artAppeared: $artAppeared,
+                copyAppeared: $contentAppeared,
+                trailingAppeared: $offersAppeared
+            )
         }
         .trinketSensoryFeedback(
             .success,
@@ -195,18 +196,6 @@ struct ShopEncounterView: View {
             }
         } else {
             purchaseErrorFeedbackTrigger += 1
-        }
-    }
-
-    private func presentEntrance() {
-        withAnimation(TrinketMotion.Content.entrance) {
-            artAppeared = true
-        }
-        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.entranceStagger)) {
-            contentAppeared = true
-        }
-        withAnimation(TrinketMotion.Content.entrance.delay(TrinketMotion.Content.secondEntranceDelay)) {
-            offersAppeared = true
         }
     }
 }

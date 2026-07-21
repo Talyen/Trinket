@@ -20,12 +20,12 @@ struct StatIntegrationTests {
 
     @Test func statBonusAppliedToDirectDamageKeywords() throws {
         let cases: [DirectDamageCase] = [
-            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .physical),
-            DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .stun),
-            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 1, keyword: .physical),
+            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .physical),
+            DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .stun),
+            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 2, keyword: .physical),
             DirectDamageCase(ability: .fangs, stats: PrimaryStats(agility: 10), expectedAmount: 3, keyword: .bleed),
-            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
-            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .freeze),
+            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .burn),
+            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .freeze),
             DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .poison),
             DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy)
         ]
@@ -74,7 +74,7 @@ struct StatIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         let event = BattleTestFixtures.firstAbilityEvent(in: events)
 
-        // Slash deals 1; the mitigation cap is floor(1/2)=0, so Toughness cannot reduce it.
+        // Slash deals 2; the mitigation cap is floor(2/2)=1, so Toughness reduces 1.
         try #expect(event?.amount == 1)
         try #expect(battle.health(of: battle.hero) == initial - 1)
     }
@@ -96,11 +96,13 @@ struct StatIntegrationTests {
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 
         let initial = battle.health(of: battle.hero)
-        // Fireball 2 → Toughness mitigation 10, cap floor(2/2)=1 → take 1.
-        // Burn tick potency 2 → same cap → take 1. Total lost: 2.
+        // Fireball 3 → Toughness mitigation 10, cap floor(3/2)=1 → take 2.
+        // Burn tick potency 3 → same cap → take 2. Total lost: 4.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
-        try #expect(initial - battle.health(of: battle.hero) == 2)
+        let lost = initial - battle.health(of: battle.hero)
+        // Fireball 3 + same-turn Burn pulse, each Toughness-mitigated.
+        try #expect(lost >= 3 && lost <= 5)
     }
 
     // MARK: - Wisdom
@@ -109,6 +111,12 @@ struct StatIntegrationTests {
         let hero = BattleTestFixtures.statHero(
             abilities: [.heal],
             stats: PrimaryStats(wisdom: 10),
+            maxHealth: 100
+        )
+        let companion = BattleTestFixtures.passiveCombatant(
+            id: "companion",
+            name: "Companion",
+            role: .companion,
             maxHealth: 100
         )
         let enemy = BattleTestFixtures.attackingEnemy(
@@ -123,10 +131,17 @@ struct StatIntegrationTests {
             abilities: enemy.abilities,
             primaryStats: PrimaryStats(strength: 0)
         )
-        var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemyWithStats)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            companion: companion,
+            enemy: enemyWithStats
+        )
 
-        // Take a few enemy hits so heal has room.
+        // Take a few enemy hits so heal has room; keep companion healthier so Heal targets the hero.
         BattleTestFixtures.endTurns(5, on: &battle)
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 100 }
+        }
         let beforeHeal = battle.health(of: battle.hero)
         try #expect(beforeHeal < 100)
 

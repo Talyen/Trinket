@@ -12,7 +12,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         var battle = EffectHandlersTestSupport.makeBattle()
         if seedBlock {
             BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTicks: 0)],
+                [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)],
                 for: battle.enemy,
                 on: &battle
             )
@@ -74,31 +74,23 @@ struct EffectHandlersApplyBuffDebuffTests {
     // MARK: - Timed buffs
 
     @Test func thornsHandlerAppliesThornsAndEmitsEvent() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            primaryStats: PrimaryStats(strength: 20)
-        )
-        var battle = EffectHandlersTestSupport.makeBattle(hero: hero)
+        var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
-            .thorns(.physical, 5, Effect.standardThornsDuration),
+            .thorns(5),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
             target: battle.hero,
             battle: &battle
         )
-        let expectedAmount = 7
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case let .thorns(.physical, amount, duration) = active.effect {
-                return amount == expectedAmount
-                    && duration == Effect.standardThornsDuration
-                    && active.remainingTicks == Effect.standardThornsDuration
+            if case let .thorns(amount) = active.effect {
+                return amount == 5 && active.remainingTurns == 0
             }
             return false
         })
         try #expect(outcome.events.contains {
-            $0.effectKind == .thornsApplied && $0.amount == expectedAmount
+            $0.effectKind == .thornsApplied && $0.amount == 5
         })
     }
 
@@ -116,7 +108,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             if case let .marked(bonus, duration) = active.effect {
                 return bonus == Effect.standardMarkedBonus
                     && duration == Effect.standardMarkedDuration
-                    && active.remainingTicks == Effect.standardMarkedDuration
+                    && active.remainingTurns == Effect.standardMarkedDuration
             }
             return false
         })
@@ -147,6 +139,43 @@ struct EffectHandlersApplyBuffDebuffTests {
         })
     }
 
+    @Test func criticalChanceBonusReapplyRefreshesSingleStack() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let ability = CombatantFixtures.ability()
+        let first = EffectHandlersTestSupport.dispatch(
+            .criticalChanceBonus(0.15, 6),
+            ability: ability,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(first.didApply)
+        let second = EffectHandlersTestSupport.dispatch(
+            .criticalChanceBonus(0.20, 4),
+            ability: ability,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(second.didApply)
+        let focused = battle.activeEffects(of: battle.hero).filter {
+            if case .criticalChanceBonus = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #expect(focused.count == 1)
+        try #expect(focused.contains { active in
+            if case let .criticalChanceBonus(percent, duration) = active.effect {
+                return percent == 0.20 && duration == 4 && active.remainingTurns == 4
+            }
+            return false
+        })
+        try #expect(second.events.contains {
+            $0.effectKind == .criticalChanceApplied && $0.amount == 20
+        })
+    }
+
     @Test func timedBuffHandlersApplyStackAndEmitEvent() throws {
         do {
             var battle = EffectHandlersTestSupport.makeBattle()
@@ -160,7 +189,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(outcome.didApply)
             try #expect(battle.activeEffects(of: battle.hero).contains { active in
                 if case let .criticalChanceBonus(percent, duration) = active.effect {
-                    return percent == 0.15 && duration == 6 && active.remainingTicks == 6
+                    return percent == 0.15 && duration == 6 && active.remainingTurns == 6
                 }
                 return false
             })
@@ -181,7 +210,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(outcome.didApply)
             try #expect(battle.activeEffects(of: battle.hero).contains { active in
                 if case let .restoreManaOnHit(amount, duration) = active.effect {
-                    return amount == 3 && duration == 6 && active.remainingTicks == 6
+                    return amount == 3 && duration == 6 && active.remainingTurns == 6
                 }
                 return false
             })
@@ -202,13 +231,53 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(outcome.didApply)
             try #expect(battle.activeEffects(of: battle.hero).contains { active in
                 if case let .damageKeywordOverride(keyword, bonus, duration) = active.effect {
-                    return keyword == .holy && bonus == 3 && duration == 6 && active.remainingTicks == 6
+                    return keyword == .holy && bonus == 3 && duration == 6 && active.remainingTurns == 6
                 }
                 return false
             })
             try #expect(outcome.events.contains {
                 $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 && $0.keyword == .holy
             })
+        }
+    }
+
+    @Test func nextStrikeDoubleAndEvadeNextHitHandlersApply() throws {
+        do {
+            var battle = EffectHandlersTestSupport.makeBattle()
+            let outcome = EffectHandlersTestSupport.dispatch(
+                .nextStrikeDouble,
+                ability: CombatantFixtures.ability(),
+                source: battle.hero,
+                target: battle.hero,
+                battle: &battle
+            )
+            try #expect(outcome.didApply)
+            try #expect(battle.activeEffects(of: battle.hero).contains { active in
+                if case .nextStrikeDouble = active.effect {
+                    return true
+                }
+                return false
+            })
+            try #expect(outcome.events.contains { $0.effectKind == .nextStrikeDoubleApplied })
+        }
+
+        do {
+            var battle = EffectHandlersTestSupport.makeBattle()
+            let outcome = EffectHandlersTestSupport.dispatch(
+                .evadeNextHit,
+                ability: CombatantFixtures.ability(),
+                source: battle.hero,
+                target: battle.hero,
+                battle: &battle
+            )
+            try #expect(outcome.didApply)
+            try #expect(battle.activeEffects(of: battle.hero).contains { active in
+                if case .evadeNextHit = active.effect {
+                    return true
+                }
+                return false
+            })
+            try #expect(outcome.events.contains { $0.effectKind == .evadeNextHitApplied })
         }
     }
 }

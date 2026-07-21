@@ -72,7 +72,7 @@ struct DoTMechanicsTests {
     @Test func burnStacksMergeAndDecayTogether() throws {
         var battle = isolatedBattle(
             heroAbilities: [burnAbility(potency: 2)],
-            enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)]
+            enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)]
         )
 
         // End of round: burn 4 → 2.
@@ -90,7 +90,7 @@ struct DoTMechanicsTests {
 
     @Test func poisonEightDecaysToZero() throws {
         var battle = isolatedBattle(
-            enemyEffects: [ActiveEffect(id: 1, effect: .poison(8), remainingTicks: 0)]
+            enemyEffects: [ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0)]
         )
 
         var amounts: [Int] = []
@@ -160,7 +160,7 @@ struct DoTMechanicsTests {
             companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 5)
+                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5)
             ]
         )
 

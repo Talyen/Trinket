@@ -11,7 +11,7 @@ struct CleanseIntegrationTests {
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            abilities: [.cleanse]
+            abilities: [.panaceaPotion]
         )
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
@@ -20,13 +20,13 @@ struct CleanseIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
-                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
+                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6)
             ]
         )
 
-        _ = try BattleTestFixtures.playUntilAbility("Cleanse", on: &battle)
+        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
         try #expect(battle.hasHeroEffect {
@@ -56,8 +56,8 @@ struct CleanseIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
             ]
         )
 
@@ -99,7 +99,7 @@ struct CleanseIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)
             ]
         )
 

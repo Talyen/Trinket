@@ -49,7 +49,7 @@ enum PlayerSaveStoreConfiguration {
         }
     }
 
-    static func fetchRoot(in context: ModelContext, logger: Logger) -> PlayerSaveRoot? {
+    static func fetchRoot(in context: ModelContext, logger: Logger) throws -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>()
         do {
             return try context.fetch(descriptor).first { $0.id == "primary" }
@@ -57,11 +57,15 @@ enum PlayerSaveStoreConfiguration {
             logger.error(
                 "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
             )
-            return nil
+            // Fail closed: treating a read error as "no root" inserts a second primary
+            // row beside unrecovered data and can reload the wrong save on next launch.
+            throw PlayerSavePersistenceError.storeUnavailable(
+                "Couldn't read saved progress from this device."
+            )
         }
     }
 
-    static func clearSaveRoot(in context: ModelContext, logger: Logger) {
+    static func clearSaveRoot(in context: ModelContext, logger: Logger) throws {
         do {
             try context.delete(model: PlayerSaveRoot.self)
             try context.save()
@@ -69,6 +73,7 @@ enum PlayerSaveStoreConfiguration {
             logger.error(
                 "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
             )
+            throw PlayerSavePersistenceError.writeFailed
         }
     }
 }

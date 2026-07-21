@@ -269,7 +269,7 @@ extension AppState {
     func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
         let resolvedStage = resolvedCampaignStage(stage)
         return switch resolvedStage.encounter {
-        case .battle:
+        case .battle, .randomBattle:
             startBattle(for: resolvedStage)
         case .mysteryEvent:
             beginMysteryEncounter(for: resolvedStage)

@@ -1,16 +1,16 @@
 id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	positive_trait_id	negative_trait_id
-living_armor	Living Armor	15	false	tank	bash,spikedShield,crystalBulwark	11	8	13	7	11	animated_plate	hollow_shell
-mimic	Mimic	14	false	assassin	stab,serratedEdge,hemorrhage	10	12	9	8	11	ambush	splintering_frame
-mud_elemental	Mud Elemental	15	false	tank	block,briarShield,crystalBulwark	9	8	14	8	11	quagmire	desiccation
-necromancer	Necromancer	13	false	mage	manaBerries,bloodOffering,hemorrhage	7	9	8	14	12	grave_power	mortalfied
-plague_doctor	Plague Doctor	12	false	support	fangs,venomFangs,serratedArrowhead	8	10	9	9	14	miasma	frail_vessel
-skeleton	Skeleton	12	false	bruiser	slash,smite,blessedAegis	12	10	11	8	9	unfeeling	holy_weakness
-the_blight_treant	The Blight Treant	24	true	tank	fangs,briarShield,bloodthorn	18	14	26	16	26	heartwood_renewal	dryads_bane
-the_forge_golem	The Forge Golem	28	true	tank	bash,spikedShield,moltenBulwark	26	14	30	14	16	living_furnace	thermal_shock
+living_armor	Living Armor	15	false	tank	slash,plateMail,crystalBulwark	11	8	13	7	11	animated_plate	hollow_shell
+mimic	Mimic	14	false	assassin	fangs,acidPotion,hemorrhage	10	12	9	8	11	ambush	splintering_frame
+mud_elemental	Mud Elemental	15	false	tank	bash,briarShield,thornMail	9	8	14	8	11	quagmire	desiccation
+necromancer	Necromancer	13	false	mage	rendingSlash,bloodOffering,hemorrhage	7	9	8	14	12	grave_power	mortalfied
+plague_doctor	Plague Doctor	12	false	support	causticJab,poisonDagger,bloodthorn	8	10	9	9	14	miasma	frail_vessel
+skeleton	Skeleton	12	false	bruiser	slash,sunder,hemorrhage	12	10	11	8	9	unfeeling	holy_weakness
+the_blight_treant	The Blight Treant	24	true	tank	causticJab,briarShield,bloodthorn	18	14	26	16	26	heartwood_renewal	dryads_bane
+the_forge_golem	The Forge Golem	28	true	tank	bash,plateMail,moltenBulwark	26	14	30	14	16	living_furnace	thermal_shock
 the_frostwarden	The Frostwarden	24	true	mage	rayOfFrost,frostbolt,glacialWard	14	16	18	28	24	absolute_zero	sunlit_fracture
-the_iron_bear	The Iron Bear	27	true	bruiser	bash,spikedShield,moltenBulwark	28	16	26	14	16	ironhide	
-goblin	Goblin	11	false	assassin	slash,sapArrow,packTactics	9	13	9	8	11	nimble	scrawny
+the_iron_bear	The Iron Bear	27	true	bruiser	bash,sunder,thornMail	28	16	26	14	16	ironhide	
+goblin	Goblin	11	false	assassin	stab,roulette,concussiveShot	9	13	9	8	11	nimble	scrawny
 fire_elemental	Fire Elemental	12	false	mage	kindling,fireball,combustion	7	10	9	14	10	blazing_core	quenched
 frost_elemental	Frost Elemental	13	false	mage	rayOfFrost,coldSnap,glacialWard	8	9	11	13	9	permafrost_shell	kindling
-slime	Slime	15	false	tank	slash,briarShield,crystalBulwark	9	8	15	7	11	amorphous	evaporation
-will_o_wisp	Will-o-Wisp	12	false	mage	kindling,cauterize,phoenixFeather	7	12	9	13	9	ethereal	cold_snuff
+slime	Slime	15	false	tank	causticJab,acidPotion,panaceaPotion	9	8	15	7	11	amorphous	evaporation
+will_o_wisp	Will-o-Wisp	12	false	mage	iceShot,frostbolt,blizzard	7	12	9	13	9	ethereal	cold_snuff

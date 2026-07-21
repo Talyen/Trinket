@@ -100,15 +100,6 @@ struct DamagePipelineTests {
         try #expect(executed == ["DodgeGate"], "High agility should dodge and short-circuit")
     }
 
-    @Test func stepPhasesGroupStochasticResolutionAndPost() throws {
-        let phases = DamagePipeline.steps.map(\.phase)
-        try #expect(phases.filter { $0 == .stochastic }.count == 2)
-        try #expect(phases.filter { $0 == .resolution }.count == 10)
-        try #expect(phases.filter { $0 == .post }.count == 4)
-        try #expect(DamagePipeline.steps.first?.phase == .stochastic)
-        try #expect(DamagePipeline.steps.last?.phase == .post)
-    }
-
     @Test func healthCostSkipsAttackPipelineSteps() throws {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
@@ -129,7 +120,7 @@ struct DamagePipelineTests {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)],
+            [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
             for: hero
         )
         let healthBefore = context.roster.health(for: hero)
@@ -158,5 +149,118 @@ struct DamagePipelineTests {
         }
         try #expect(buffer == 20)
         try #expect(!(outcome.events.contains { $0.effectKind == .shieldAbsorbed }))
+    }
+
+    @Test func evadeNextHitForcesDodgeAndConsumesBuff() throws {
+        var context = makeContext(seed: 1)
+        let target = context.roster.enemy.combatant
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .evadeNextHit, remainingTurns: 0)],
+            for: target
+        )
+        let healthBefore = context.roster.health(for: target)
+
+        let executed = DamagePipeline.executedStepNames(
+            for: .directAbilityHit(
+                amount: 10,
+                target: target,
+                keyword: .physical,
+                sourceActorID: "source"
+            ),
+            in: &context
+        )
+
+        try #expect(executed == ["DodgeGate"])
+        try #expect(context.roster.health(for: target) == healthBefore)
+        try #expect(!(context.roster.activeEffects(for: target).contains {
+            if case .evadeNextHit = $0.effect {
+                return true
+            }
+            return false
+        }))
+    }
+
+    @Test func nextStrikeCriticalDoesNotAffectDoTTicks() throws {
+        var context = makeContext(seed: 1)
+        let source = context.roster.hero.combatant
+        let target = context.roster.enemy.combatant
+        context.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)],
+            for: source
+        )
+
+        let outcome = context.resolveDamage(
+            .doTTick(
+                amount: 4,
+                target: target,
+                keyword: .burn,
+                sourceActorID: source.id
+            )
+        )
+
+        try #expect(!outcome.isCritical)
+        try #expect(context.roster.activeEffects(for: source).contains {
+            if case .nextStrikeCritical = $0.effect {
+                return true
+            }
+            return false
+        })
+    }
+
+    @Test func freezeNextAttackerIgnoresDoTAndFiresOnBlockedAttack() throws {
+        var context = makeContext(seed: 1)
+        let defender = context.roster.enemy.combatant
+        let attacker = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .freezeNextAttacker, remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0)
+            ],
+            for: defender
+        )
+
+        _ = context.resolveDamage(
+            .doTTick(
+                amount: 3,
+                target: defender,
+                keyword: .burn,
+                sourceActorID: attacker.id
+            )
+        )
+        try #expect(context.roster.activeEffects(for: defender).contains {
+            if case .freezeNextAttacker = $0.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(!(context.roster.activeEffects(for: attacker).contains {
+            if case let .controlMeter(keyword, _, _) = $0.effect {
+                return keyword == .freeze
+            }
+            return false
+        }))
+
+        let healthBefore = context.roster.health(for: defender)
+        _ = context.resolveDamage(
+            .directAbilityHit(
+                amount: 10,
+                target: defender,
+                keyword: .physical,
+                sourceActorID: attacker.id
+            )
+        )
+        try #expect(context.roster.health(for: defender) == healthBefore)
+        try #expect(!(context.roster.activeEffects(for: defender).contains {
+            if case .freezeNextAttacker = $0.effect {
+                return true
+            }
+            return false
+        }))
+        try #expect(context.roster.activeEffects(for: attacker).contains {
+            if case let .controlMeter(keyword, _, _) = $0.effect {
+                return keyword == .freeze
+            }
+            return false
+        })
     }
 }

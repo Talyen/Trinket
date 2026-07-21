@@ -66,10 +66,8 @@ read_project_version() {
 write_project_version() {
   local marketing="$1"
   local build="$2"
-  sed -i \
-    -e "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"${marketing}\"/" \
-    -e "s/CURRENT_PROJECT_VERSION: \".*\"/CURRENT_PROJECT_VERSION: \"${build}\"/" \
-    project.yml
+  perl -pi '' -e "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"${marketing}\"/" project.yml
+  perl -pi '' -e "s/CURRENT_PROJECT_VERSION: \".*\"/CURRENT_PROJECT_VERSION: \"${build}\"/" project.yml
 }
 
 latest_tag() {

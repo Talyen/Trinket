@@ -37,6 +37,11 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
+    /// Keywords that can be selected by "Random damage" abilities.
+    public static var damageTypes: [Keyword] {
+        allCases.filter { $0.category == .damageType }
+    }
+
     /// Damage types and restoration heals (Health / Leech) can critical.
     /// Mitigation, resources, and Death's Door never roll or scale critical chance.
     public var allowsCriticalHits: Bool {

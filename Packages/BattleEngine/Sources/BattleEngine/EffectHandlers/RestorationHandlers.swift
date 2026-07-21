@@ -83,14 +83,15 @@ struct DrawCardsHandler: BattleEffectHandler {
         _ effect: Effect,
         ability: Ability,
         source: Combatant,
-        target _: Combatant,
+        target: Combatant,
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
+        let drawTarget = target
+        guard let owner = context.roster.participant(for: drawTarget), owner.isPartyMember else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
@@ -102,7 +103,7 @@ struct DrawCardsHandler: BattleEffectHandler {
             effectKind: .cardsDrawn,
             actorName: source.name,
             abilityName: ability.name,
-            target: source,
+            target: drawTarget,
             amount: drawn,
             keyword: .physical
         )

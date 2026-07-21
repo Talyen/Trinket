@@ -9,10 +9,15 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var applyDodge: Bool
     public var abilityCriticalChanceBonus: Double
     public var guaranteedCriticalIfEnemyBuffed: Bool
+    /// When true, skip the crit roll and force a critical (ability next-strike buffs).
+    public var guaranteedCritical: Bool
     /// When true, retaliation damage skips reactive on-hit effects (thorns ping-pong).
     public var isRetaliation: Bool
     /// When true, ambush trait bonus may apply on this damage (direct ability hits only).
     public var qualifiesForAmbush: Bool
+    /// When true, this is a direct attack hit (ability/enemy strike) — not DoT, retaliation, or costs.
+    /// On-hit wards (thorns, freeze-next-attacker) only fire for attack hits.
+    public var isAttackHit: Bool
     /// When true, heal the attacker for `Effect.abilityLeechPercent` of health lost.
     public var abilityHasLeech: Bool
     /// When true, treat as a fixed "Lose N Health" cost — exact HP, no attack pipeline.
@@ -24,8 +29,10 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyDodge: Bool = true,
         abilityCriticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
+        guaranteedCritical: Bool = false,
         isRetaliation: Bool = false,
         qualifiesForAmbush: Bool = false,
+        isAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
         isHealthCost: Bool = false
     ) {
@@ -34,16 +41,21 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.applyDodge = applyDodge
         self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+        self.guaranteedCritical = guaranteedCritical
         self.isRetaliation = isRetaliation
         self.qualifiesForAmbush = qualifiesForAmbush
+        self.isAttackHit = isAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
     }
 
     /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.
-    public static let directAbilityHit = DamageOptions(qualifiesForAmbush: true)
+    public static let directAbilityHit = DamageOptions(
+        qualifiesForAmbush: true,
+        isAttackHit: true
+    )
 
-    /// DoT tick: stat and item bonuses at resolution time; no dodge.
+    /// DoT tick: stat and item bonuses at resolution time; no dodge; not an attack hit.
     public static let doTTick = DamageOptions(
         applyStatBonus: true,
         applyItemBonus: true,
@@ -92,7 +104,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: DamageOptions(qualifiesForAmbush: true)
+            options: DamageOptions(qualifiesForAmbush: true, isAttackHit: true)
         )
     }
 

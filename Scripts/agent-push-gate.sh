@@ -99,10 +99,8 @@ if ! command -v xcodegen >/dev/null 2>&1; then
   echo "=== Agent push gate: assert content catalogs ==="
   TRACKED=(
     Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogBasic.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogSkill.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogUltimate.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift
@@ -113,7 +111,10 @@ if ! command -v xcodegen >/dev/null 2>&1; then
   )
   if ! git diff --quiet -- "${TRACKED[@]}"; then
     echo "ERROR: Generated content catalogs drifted. Commit the Generated/*.swift updates." >&2
-    git diff -- "${TRACKED[@]}" >&2 || true
+    echo "--- Diff summary ---" >&2
+    git diff --stat -- "${TRACKED[@]}" >&2 || true
+    echo "--- First 100 lines of diff ---" >&2
+    git diff -- "${TRACKED[@]}" | head -n 100 >&2 || true
     exit 1
   fi
   echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."

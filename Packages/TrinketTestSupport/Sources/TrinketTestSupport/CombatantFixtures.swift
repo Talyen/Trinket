@@ -7,7 +7,7 @@ public enum CombatantFixtures {
         id: String,
         role: Combatant.Role,
         maxHealth: Int = 50,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         abilities: [Ability] = [],
         primaryStats: PrimaryStats = PrimaryStats()
     ) -> Combatant {
@@ -16,7 +16,7 @@ public enum CombatantFixtures {
             name: id.capitalized,
             role: role,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: abilities,
             primaryStats: primaryStats
         )

@@ -87,7 +87,7 @@ final class JourneyProgressTests {
 
         try #expect(progress.activeStageID == "chapter-2-stage-1")
         try #expect(progress.activeChapterID == "chapter-2")
-        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
+        try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
     }
 
     @Test func completeChapterMarksOnlyThatChapterDone() throws {

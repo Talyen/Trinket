@@ -7,7 +7,12 @@ final class PlayMapUITests: TrinketUITestCase {
             "chapter-1-stage-2",
             "chapter-1-stage-3",
             "chapter-1-stage-4",
-            "chapter-1-stage-5"
+            "chapter-1-stage-5",
+            "chapter-1-stage-6",
+            "chapter-1-stage-7",
+            "chapter-1-stage-8",
+            "chapter-1-stage-9",
+            "chapter-1-stage-10"
         ])
     }
 
@@ -19,17 +24,6 @@ final class PlayMapUITests: TrinketUITestCase {
         play.assertChapterHeader(number: 2)
         assertExists(AccessibilityID.Play.chapterTitle(number: 2))
         assertExists(AccessibilityID.Play.activeStageDetail)
-    }
-
-    func testNonBattleStubStageCanComplete() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
-
-        play.openCampaign()
-        play.openStage(chapter: 1, stage: 2)
-
-        assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: 2))
-        assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
-        assertDoesNotExist(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
     }
 
     /// Campaign party picker: swap a hero directly from the shared carousel sheet.

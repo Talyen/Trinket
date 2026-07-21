@@ -320,6 +320,10 @@ enum CombatFeedbackPresenter {
             )
         case .nextHolyStrikeApplied:
             StatusPresentation(label: .nextHolyStrike, role: .beneficialStatus)
+        case .nextStrikeDoubleApplied:
+            StatusPresentation(label: .nextStrikeDouble, role: .beneficialStatus)
+        case .evadeNextHitApplied:
+            StatusPresentation(label: .evadeNextHit, role: .beneficialStatus)
         case .markedApplied:
             StatusPresentation(label: .marked, role: .negativeStatus)
         case .shieldHalved:

@@ -27,7 +27,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var physicalDodgeChanceBonus: Double
     public var ambushBonusDamage: Int
     public var regenerationAmount: Int
-    public var regenerationIntervalTicks: Int
+    public var regenerationIntervalTurns: Int
     public var passiveMitigationFlat: Int
     public var thornsPercent: Double
     public var cannotBeHealed: Bool
@@ -36,7 +36,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var shieldErosionTicks: Int
     public var mitigationShredKeyword: Keyword?
     public var mitigationShredMultiplier: Double
-    public var mitigationShredDurationTicks: Int
+    public var mitigationShredDurationTurns: Int
     public var freezeControlVulnerabilityPercent: Double
     public var mitigationEffectivenessPenaltyPercent: Double
     public var leechHealingMultiplier: Double
@@ -59,8 +59,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var onceBelowHealthPercentThreshold: Double
     public var onceBelowHealthPercentHeal: Int
     public var blockPerActionWhileDeathsDoor: Int
-    public var everyNthBurnTickCount: Int
-    public var everyNthBurnTickFreezeDamage: Int
+    public var everyNthBurnTurnCount: Int
+    public var everyNthBurnTurnFreezeDamage: Int
     public var spendManaBlockFlat: Int
     public var holyDamageBlockFlat: Int
     public var holyDamageCleanseCount: Int
@@ -103,7 +103,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         physicalDodgeChanceBonus: Double = 0,
         ambushBonusDamage: Int = 0,
         regenerationAmount: Int = 0,
-        regenerationIntervalTicks: Int = 0,
+        regenerationIntervalTurns: Int = 0,
         passiveMitigationFlat: Int = 0,
         thornsPercent: Double = 0,
         cannotBeHealed: Bool = false,
@@ -112,7 +112,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         shieldErosionTicks: Int = 0,
         mitigationShredKeyword: Keyword? = nil,
         mitigationShredMultiplier: Double = 0,
-        mitigationShredDurationTicks: Int = 0,
+        mitigationShredDurationTurns: Int = 0,
         freezeControlVulnerabilityPercent: Double = 0,
         mitigationEffectivenessPenaltyPercent: Double = 0,
         leechHealingMultiplier: Double = 1,
@@ -135,8 +135,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         onceBelowHealthPercentThreshold: Double = 0,
         onceBelowHealthPercentHeal: Int = 0,
         blockPerActionWhileDeathsDoor: Int = 0,
-        everyNthBurnTickCount: Int = 0,
-        everyNthBurnTickFreezeDamage: Int = 0,
+        everyNthBurnTurnCount: Int = 0,
+        everyNthBurnTurnFreezeDamage: Int = 0,
         spendManaBlockFlat: Int = 0,
         holyDamageBlockFlat: Int = 0,
         holyDamageCleanseCount: Int = 0,
@@ -174,7 +174,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.physicalDodgeChanceBonus = physicalDodgeChanceBonus
         self.ambushBonusDamage = ambushBonusDamage
         self.regenerationAmount = regenerationAmount
-        self.regenerationIntervalTicks = regenerationIntervalTicks
+        self.regenerationIntervalTurns = regenerationIntervalTurns
         self.passiveMitigationFlat = passiveMitigationFlat
         self.thornsPercent = thornsPercent
         self.cannotBeHealed = cannotBeHealed
@@ -183,7 +183,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.shieldErosionTicks = shieldErosionTicks
         self.mitigationShredKeyword = mitigationShredKeyword
         self.mitigationShredMultiplier = mitigationShredMultiplier
-        self.mitigationShredDurationTicks = mitigationShredDurationTicks
+        self.mitigationShredDurationTurns = mitigationShredDurationTurns
         self.freezeControlVulnerabilityPercent = freezeControlVulnerabilityPercent
         self.mitigationEffectivenessPenaltyPercent = mitigationEffectivenessPenaltyPercent
         self.leechHealingMultiplier = leechHealingMultiplier
@@ -206,8 +206,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
-        self.everyNthBurnTickCount = everyNthBurnTickCount
-        self.everyNthBurnTickFreezeDamage = everyNthBurnTickFreezeDamage
+        self.everyNthBurnTurnCount = everyNthBurnTurnCount
+        self.everyNthBurnTurnFreezeDamage = everyNthBurnTurnFreezeDamage
         self.spendManaBlockFlat = spendManaBlockFlat
         self.holyDamageBlockFlat = holyDamageBlockFlat
         self.holyDamageCleanseCount = holyDamageCleanseCount
@@ -268,7 +268,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         physicalDodgeChanceBonus += other.physicalDodgeChanceBonus
         ambushBonusDamage += other.ambushBonusDamage
         regenerationAmount += other.regenerationAmount
-        regenerationIntervalTicks = max(regenerationIntervalTicks, other.regenerationIntervalTicks)
+        regenerationIntervalTurns = max(regenerationIntervalTurns, other.regenerationIntervalTurns)
         passiveMitigationFlat += other.passiveMitigationFlat
         thornsPercent += other.thornsPercent
         cannotBeHealed = cannotBeHealed || other.cannotBeHealed
@@ -281,7 +281,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             mitigationShredKeyword = other.mitigationShredKeyword
         }
         mitigationShredMultiplier = max(mitigationShredMultiplier, other.mitigationShredMultiplier)
-        mitigationShredDurationTicks = max(mitigationShredDurationTicks, other.mitigationShredDurationTicks)
+        mitigationShredDurationTurns = max(mitigationShredDurationTurns, other.mitigationShredDurationTurns)
         freezeControlVulnerabilityPercent += other.freezeControlVulnerabilityPercent
         mitigationEffectivenessPenaltyPercent += other.mitigationEffectivenessPenaltyPercent
         leechHealingMultiplier *= other.leechHealingMultiplier
@@ -306,8 +306,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
         blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor
-        everyNthBurnTickCount = max(everyNthBurnTickCount, other.everyNthBurnTickCount)
-        everyNthBurnTickFreezeDamage += other.everyNthBurnTickFreezeDamage
+        everyNthBurnTurnCount = max(everyNthBurnTurnCount, other.everyNthBurnTurnCount)
+        everyNthBurnTurnFreezeDamage += other.everyNthBurnTurnFreezeDamage
         spendManaBlockFlat += other.spendManaBlockFlat
         holyDamageBlockFlat += other.holyDamageBlockFlat
         holyDamageCleanseCount += other.holyDamageCleanseCount

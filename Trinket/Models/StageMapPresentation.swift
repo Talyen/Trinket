@@ -206,14 +206,12 @@ extension Stage {
     }
 
     var encounterCombatantArtReference: CombatantArtReference? {
-        if case let .battle(enemyID) = encounter {
-            return GameContent.enemy(matching: enemyID)?.combatant.artReference
-        }
-        return nil
+        guard let enemyID = resolvedBattleEnemyID else { return nil }
+        return GameContent.enemy(matching: enemyID)?.combatant.artReference
     }
 
     var encounterArtReference: EncounterArtReference? {
-        if case .battle = encounter {
+        if encounter.isCombat {
             return nil
         }
         if encounter.eventID != nil {
@@ -234,6 +232,8 @@ extension Stage {
         switch encounter {
         case let .battle(enemyID):
             GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
+        case .randomBattle:
+            resolvedBattleEnemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
         case .event:
             GameContent.encounterArtTitle(for: self) ?? "Mystery"
         case .shop:
@@ -267,7 +267,7 @@ extension StageEncounter {
 
     var mapTint: Color {
         switch self {
-        case .battle:
+        case .battle, .randomBattle:
             TrinketDesign.Colors.encounterBattle
         case .event, .mysteryEvent, .recruit:
             TrinketDesign.Colors.encounterEvent

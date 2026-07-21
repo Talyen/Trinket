@@ -8,7 +8,7 @@ struct CombatantRuntimeTests {
         id: String = "hero",
         role: Combatant.Role = .hero,
         maxHealth: Int = 20,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         toughness: Int = 0,
         agility: Int = 0
     ) -> Combatant {
@@ -17,7 +17,7 @@ struct CombatantRuntimeTests {
             name: id.capitalized,
             role: role,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilities: [],
             primaryStats: PrimaryStats(agility: agility, toughness: toughness)
         )
@@ -52,7 +52,7 @@ struct CombatantRuntimeTests {
 
     @Test func initialActiveEffectsAreStored() throws {
         let combatant = makeCombatant()
-        let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)]
+        let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)]
         let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
         try #expect(runtime.activeEffects == initial)
     }
@@ -139,15 +139,15 @@ struct CombatantRuntimeTests {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
-            ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .poison(2), remainingTurns: 0)
         ])
         try #expect(runtime.activeEffects.count == 2)
 
         runtime.setEffects([
-            ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0),
-            ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTicks: 6)
+            ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .poison(2), remainingTurns: 0),
+            ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6)
         ])
         runtime.removeEffects { $0.effect.isDecayingDoT }
         try #expect(runtime.activeEffects.count == 1)

@@ -13,7 +13,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
     public let role: Role
     public let maxHealth: Int
     public let maxMana: Int
-    public let actionIntervalTicks: Int?
+    public let actionIntervalTurns: Int?
     public let abilityChoices: AbilityChoices
     public let primaryStats: PrimaryStats
     public let growthArchetype: GrowthArchetype
@@ -28,7 +28,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         role: Role,
         maxHealth: Int,
         maxMana: Int = 0,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         abilityChoices: AbilityChoices,
         primaryStats: PrimaryStats = PrimaryStats(),
         growthArchetype: GrowthArchetype = .bruiser
@@ -38,7 +38,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         self.role = role
         self.maxHealth = maxHealth
         self.maxMana = maxMana
-        self.actionIntervalTicks = actionIntervalTicks
+        self.actionIntervalTurns = actionIntervalTurns
         self.abilityChoices = abilityChoices
         self.primaryStats = primaryStats
         self.growthArchetype = growthArchetype
@@ -50,7 +50,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         role: Role,
         maxHealth: Int,
         maxMana: Int = 0,
-        actionIntervalTicks: Int? = nil,
+        actionIntervalTurns: Int? = nil,
         abilities: [Ability],
         primaryStats: PrimaryStats = PrimaryStats(),
         growthArchetype: GrowthArchetype = .bruiser
@@ -61,7 +61,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             role: role,
             maxHealth: maxHealth,
             maxMana: maxMana,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilityChoices: AbilityChoices(abilities: abilities),
             primaryStats: primaryStats,
             growthArchetype: growthArchetype
@@ -98,7 +98,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             role: role,
             maxHealth: maxHealth,
             maxMana: maxMana,
-            actionIntervalTicks: actionIntervalTicks,
+            actionIntervalTurns: actionIntervalTurns,
             abilityChoices: abilityChoices ?? self.abilityChoices,
             primaryStats: primaryStats ?? self.primaryStats,
             growthArchetype: growthArchetype

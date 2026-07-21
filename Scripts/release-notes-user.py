@@ -99,8 +99,8 @@ def simplify_line(line: str) -> str:
     line = re.sub(r"`([^`]+)`", r"\1", line)
     line = re.sub(r"\s+", " ", line).strip(" -•\t")
     for term in TECHNICAL_TERMS:
-        if term in line and term.startswith(("CI", " CI")):
-            continue
+        if term in line:
+            return ""
     return line
 
 

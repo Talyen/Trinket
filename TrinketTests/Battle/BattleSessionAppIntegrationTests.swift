@@ -109,7 +109,6 @@ struct BattleSessionAppIntegrationTests {
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            flavorText: "",
             encounter: .battle(enemyID: "missing-enemy"),
             rewards: .empty
         )
@@ -178,22 +177,22 @@ struct BattleSessionAppIntegrationTests {
 
         #expect(session.canEndTurn)
         #expect(!session.hasPlayableCard)
-        let tickBefore = try #require(session.state?.tickCount)
+        let tickBefore = try #require(session.state?.turnCount)
 
         session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
         session.setSuspendedForScenePhase(true)
         try await Task.sleep(for: .milliseconds(40))
-        #expect(session.state?.tickCount == tickBefore)
+        #expect(session.state?.turnCount == tickBefore)
         #expect(session.isSuspendedForScenePhase)
 
         session.setSuspendedForScenePhase(false)
         for _ in 0 ..< 40 {
-            if session.state?.tickCount == tickBefore + 1 {
+            if session.state?.turnCount == tickBefore + 1 {
                 break
             }
             try await Task.sleep(for: .milliseconds(5))
         }
-        #expect(session.state?.tickCount == tickBefore + 1)
+        #expect(session.state?.turnCount == tickBefore + 1)
         #expect(!session.isSuspendedForScenePhase)
     }
 }

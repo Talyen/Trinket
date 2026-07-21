@@ -7,6 +7,8 @@ public enum EffectTarget: Hashable, Sendable {
     case hero
     case companion
     case lowestHealthAlly
+    /// Prefer a defeated party ally (companion first, then hero).
+    case defeatedAlly
 }
 
 public struct DamageComponent: Hashable, Sendable {
@@ -53,7 +55,7 @@ public enum Effect: Hashable, Sendable {
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
-    /// Draw `Int` cards for the actor's deck (hero or companion). No-op for enemies.
+    /// Draw `Int` cards for the resolved effect target's deck (hero or companion).
     case drawCards(Int)
     case cleanse(Keyword?)
     case cleanseRandom
@@ -62,22 +64,46 @@ public enum Effect: Hashable, Sendable {
     /// Halve the target's current Block pool (floor).
     case halveShield(Keyword)
     case deathsDoor
-    case thorns(Keyword, Int, Int)
+    /// Physical thorns stacks. Each stack deals 1 Physical on the next hit received, then expires.
+    case thorns(Int)
     case marked(Int, Int)
     case criticalChanceBonus(Double, Int)
     case restoreManaOnHit(Int, Int)
-    /// Forces outgoing damage keywords to `keyword` and adds `bonus` damage for `durationTicks`.
+    /// Forces outgoing damage keywords to `keyword` and adds `bonus` damage for `durationTurns`.
     case damageKeywordOverride(Keyword, Int, Int)
     /// Next outgoing Holy damage instance deals double and applies Burning, then consumes.
     case nextHolyStrike
+    /// Next outgoing damaging hit (any keyword) deals double damage, then consumes.
+    case nextStrikeDouble
+    /// Next incoming attack that runs the dodge gate is a guaranteed dodge, then consumes.
+    case evadeNextHit
+    /// Spend all current Mana; gain that much Block.
+    case convertManaToBlock
+    /// Gain Block equal to current Mana (does not spend Mana).
+    case shieldFromMana
+    /// Gain Block equal to `gold / goldPerBlock` (floor).
+    case shieldFromGold(goldPerBlock: Int)
+    /// Battle-long maximum Mana bonus; also restores the same amount of current Mana.
+    case maximumManaBonus(Int)
+    /// Next outgoing damaging hit is a guaranteed critical, then consumes.
+    case nextStrikeCritical
+    /// Next enemy attack that hits you applies Frozen once, then consumes (fires even if Block absorbs).
+    case freezeNextAttacker
+    /// Multiply an existing DoT stack's potency (e.g. double Burn).
+    case multiplyDoT(Keyword, Int)
+    /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
+    case recurringDamage(Keyword, Int, Int)
+    /// Outgoing damage becomes Holy and gains bonus equal to current Block at hit time, for `durationTurns`.
+    case holyDamageBonusFromBlock(Int)
+    /// Revive a defeated ally to the given Health.
+    case revive(Int)
 
-    public static let bleedDoTTickCount = 3
+    public static let bleedDoTTurnCount = 3
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
     public static let abilityLeechPercent = 0.50
     /// Legacy timed-buff leech percent.
     public static let standardLeechPercent = 0.10
     public static let standardLeechDuration = 6
-    public static let standardThornsDuration = 6
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2
     public static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
@@ -110,39 +136,54 @@ public enum Effect: Hashable, Sendable {
         case .purge(nil), .purgeRandom: .purge
         case let .halveShield(k): k
         case .deathsDoor: .deathsDoor
-        case let .thorns(k, _, _): k
+        case .thorns: .physical
         case .marked: .physical
         case .criticalChanceBonus: .physical
         case .restoreManaOnHit: .mana
         case let .damageKeywordOverride(k, _, _): k
         case .nextHolyStrike: .holy
+        case .nextStrikeDouble: .physical
+        case .evadeNextHit: .dodge
+        case .convertManaToBlock, .shieldFromMana, .shieldFromGold: .block
+        case .maximumManaBonus: .mana
+        case .nextStrikeCritical: .physical
+        case .freezeNextAttacker: .freeze
+        case let .multiplyDoT(k, _): k
+        case let .recurringDamage(k, _, _): k
+        case .holyDamageBonusFromBlock: .holy
+        case .revive: .health
         }
     }
 
     public var potency: Int? {
         switch self {
         case let .burn(p), let .poison(p), let .bleed(p): p
+        case let .thorns(p): p
+        case let .recurringDamage(_, p, _): p
         default: nil
         }
     }
 
-    public var durationTicks: Int {
+    public var durationTurns: Int {
         switch self {
-        case .bleed: Self.bleedDoTTickCount
+        case .bleed: Self.bleedDoTTurnCount
         case let .leech(_, _, d): d
-        case let .thorns(_, _, d): d
         case let .marked(_, d): d
         case let .criticalChanceBonus(_, d): d
         case let .restoreManaOnHit(_, d): d
         case let .damageKeywordOverride(_, _, d): d
+        case let .recurringDamage(_, _, d): d
+        case let .holyDamageBonusFromBlock(d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
-             .shield, .nextHolyStrike:
+             .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .convertManaToBlock, .shieldFromMana, .shieldFromGold, .maximumManaBonus,
+             .nextStrikeCritical, .freezeNextAttacker, .multiplyDoT, .revive:
             0
         }
     }
 
-    public func potencyAfterTick(burnDecaySlowPercent: Double = 0) -> Int {
+    public func potencyAfterTurn(burnDecaySlowPercent: Double = 0) -> Int {
         switch self {
         case let .burn(potency):
             let normalNext = potency / 2
@@ -163,11 +204,18 @@ public enum Effect: Hashable, Sendable {
 
     public static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked:
+        case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
+             .multiplyDoT, .recurringDamage:
             .abilityTarget
-        case .shield, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .instantHeal:
+            .lowestHealthAlly
+        case .revive:
+            .defeatedAlly
+        case .shield, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride, .nextHolyStrike:
+             .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
+             .convertManaToBlock, .shieldFromMana, .shieldFromGold, .maximumManaBonus,
+             .nextStrikeCritical, .freezeNextAttacker, .holyDamageBonusFromBlock:
             .actor
         }
     }

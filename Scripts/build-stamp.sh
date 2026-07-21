@@ -26,6 +26,7 @@ touch_build_stamp() {
 package_test_scheme() {
   case "$1" in
     BattleEngine) printf '%s\n' 'BattleEngine-Package' ;;
+    TrinketContent) printf '%s\n' 'TrinketContent-Package' ;;
     *) printf '%s\n' "$1" ;;
   esac
 }

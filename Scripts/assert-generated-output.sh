@@ -61,10 +61,8 @@ done
 TRACKED_PATHS=(
   "Trinket.xcodeproj/project.pbxproj"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogBasic.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogSkill.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogUltimate.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
@@ -102,12 +100,9 @@ snapshot_tracked() {
   local path
   for path in "${TRACKED_PATHS[@]}"; do
     if [[ -d "$path" ]]; then
-      # shellcheck disable=SC2038
-      find "$path" -type f ! -name '.DS_Store' -print \
-        | LC_ALL=C sort \
-        | while IFS= read -r file; do
-            shasum -a 256 "$file"
-          done
+      find "$path" -type f ! -name '.DS_Store' -print0 \
+        | LC_ALL=C sort -z \
+        | xargs -0 shasum -a 256 2>/dev/null
     elif [[ -f "$path" ]]; then
       shasum -a 256 "$path"
     else
@@ -117,8 +112,12 @@ snapshot_tracked() {
 }
 
 print_tracked_diff_vs_head() {
-  git diff -- "${TRACKED_PATHS[@]}" >&2 || true
-  git diff --cached -- "${TRACKED_PATHS[@]}" >&2 || true
+  echo "--- Diff summary ---" >&2
+  git diff --stat -- "${TRACKED_PATHS[@]}" >&2 || true
+  git diff --cached --stat -- "${TRACKED_PATHS[@]}" >&2 || true
+  echo "--- First 100 lines of diff ---" >&2
+  git diff -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
+  git diff --cached -- "${TRACKED_PATHS[@]}" | head -n 100 >&2 || true
 }
 
 if [[ "$MODE" == "idempotent" ]]; then

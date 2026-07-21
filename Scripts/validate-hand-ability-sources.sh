@@ -10,9 +10,10 @@ while IFS= read -r file; do
   while IFS= read -r line; do
     if [[ "$line" =~ id:[[:space:]]*\"([^\"]+)\" ]]; then
       ability_id="${BASH_REMATCH[1]}"
-      if ! rg -q "id: \"$ability_id\"" "$content_dir"/AbilityCatalog*.swift \
-        && ! rg -q "^${ability_id}\t" ContentManifest/abilities.tsv; then
-        violations+=("$file: ability id '$ability_id' not found in hand catalogs or abilities.tsv")
+      if ! rg -q "id: \"$ability_id\"" "$content_dir"/AbilityCatalogBasic.swift \
+        "$content_dir"/AbilityCatalogSkill.swift \
+        "$content_dir"/AbilityCatalogUltimate.swift; then
+        violations+=("$file: ability id '$ability_id' not found in AbilityCatalog{Basic,Skill,Ultimate}.swift")
       fi
     fi
   done < <(rg 'id: "' "$file" -n || true)

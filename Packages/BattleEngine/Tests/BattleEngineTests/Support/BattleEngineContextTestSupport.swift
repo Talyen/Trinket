@@ -28,7 +28,8 @@ extension BattleEngineContext {
                     applyDodge: applyDodge,
                     abilityCriticalChanceBonus: abilityCriticalChanceBonus,
                     guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
-                    isRetaliation: isRetaliation
+                    isRetaliation: isRetaliation,
+                    isAttackHit: !isRetaliation
                 )
             )
         )

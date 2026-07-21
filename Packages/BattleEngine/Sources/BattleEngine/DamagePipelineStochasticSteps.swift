@@ -14,22 +14,46 @@ package extension DamagePipeline {
               context.roster.health(for: state.combatant) > 0,
               state.sourceActorID != nil
         else { return }
-        let chance = dodgeChance(for: state, in: context)
-        if Double.random(in: 0 ... 1, using: &context.rng) < chance {
-            state.damageEvents.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .dodgeApplied,
-                actorName: state.combatant.name,
-                abilityName: "Dodge",
-                target: state.combatant,
-                amount: 0,
-                keyword: .dodge,
-                appliedEffectSummaries: [],
-                milestone: nil
-            ))
-            state.isDodged = true
-            state.damageEvents.append(contentsOf: CombatReactionEngine.afterDodge(by: state.combatant, in: &context))
+
+        let hasEvadeNextHit = context.roster.activeEffects(for: state.combatant).contains {
+            if case .evadeNextHit = $0.effect {
+                return true
+            }
+            return false
         }
+        let dodged: Bool
+        if hasEvadeNextHit {
+            dodged = true
+        } else {
+            let chance = dodgeChance(for: state, in: context)
+            dodged = Double.random(in: 0 ... 1, using: &context.rng) < chance
+        }
+        guard dodged else { return }
+
+        if hasEvadeNextHit {
+            var effects = context.roster.activeEffects(for: state.combatant)
+            effects.removeAll {
+                if case .evadeNextHit = $0.effect {
+                    return true
+                }
+                return false
+            }
+            context.roster.setActiveEffects(effects, for: state.combatant)
+        }
+
+        state.damageEvents.append(context.nextEvent(
+            kind: .effect,
+            effectKind: .dodgeApplied,
+            actorName: state.combatant.name,
+            abilityName: "Dodge",
+            target: state.combatant,
+            amount: 0,
+            keyword: .dodge,
+            appliedEffectSummaries: [],
+            milestone: nil
+        ))
+        state.isDodged = true
+        state.damageEvents.append(contentsOf: CombatReactionEngine.afterDodge(by: state.combatant, in: &context))
     }
 
     static func dodgeChance(
@@ -67,7 +91,11 @@ package extension DamagePipeline {
         }
 
         // Guaranteed crits bypass the 0.75 soft cap and the RNG roll so
-        // "always Criticals if the enemy has a buff" is actually always.
+        // "always Criticals if the enemy has a buff" / next-strike critical are actually always.
+        if state.guaranteedCritical {
+            applyCritical(to: &state)
+            return
+        }
         if state.guaranteedCriticalIfEnemyBuffed,
            context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
             applyCritical(to: &state)

@@ -15,7 +15,7 @@ struct AbilityLoadoutTests {
     }
 
     @Test func unlockedFiltersTiersByProgressionLevel() throws {
-        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .sanctifiedPlate)
+        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .blessedAegis)
         let levelOne = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
 
         let unlocked = loadout.unlocked(for: levelOne)
@@ -26,12 +26,12 @@ struct AbilityLoadoutTests {
     }
 
     @Test func unlockedRestoresUltimateAtLevelSix() throws {
-        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .sanctifiedPlate)
+        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .blessedAegis)
         let levelSix = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         let unlocked = loadout.unlocked(for: levelSix)
 
-        try #expect(unlocked.abilities.map(\.id) == ["block", "plate-mail", "sanctified-plate"])
+        try #expect(unlocked.abilities.map(\.id) == ["block", "plate-mail", "blessed-aegis"])
     }
 
     @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() throws {

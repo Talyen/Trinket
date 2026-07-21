@@ -16,8 +16,10 @@ package struct DamageResolutionState {
     public let applyDodge: Bool
     public let abilityCriticalChanceBonus: Double
     public let guaranteedCriticalIfEnemyBuffed: Bool
+    public let guaranteedCritical: Bool
     public let isRetaliation: Bool
     public let qualifiesForAmbush: Bool
+    public let isAttackHit: Bool
     public let abilityHasLeech: Bool
     /// Fixed ability health cost — pipeline runs TakeDamage + DeathsDoor only.
     public let isHealthCost: Bool
@@ -68,8 +70,10 @@ package struct DamageResolutionState {
         applyDodge: Bool,
         abilityCriticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
+        guaranteedCritical: Bool = false,
         isRetaliation: Bool = false,
         qualifiesForAmbush: Bool = false,
+        isAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
         isHealthCost: Bool = false
     ) {
@@ -82,8 +86,10 @@ package struct DamageResolutionState {
         self.applyDodge = applyDodge
         self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+        self.guaranteedCritical = guaranteedCritical
         self.isRetaliation = isRetaliation
         self.qualifiesForAmbush = qualifiesForAmbush
+        self.isAttackHit = isAttackHit
         self.abilityHasLeech = abilityHasLeech
         self.isHealthCost = isHealthCost
     }

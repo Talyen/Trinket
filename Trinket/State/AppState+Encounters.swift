@@ -373,7 +373,6 @@ extension AppState {
             chapterID: "labyrinth",
             chapterNumber: 0,
             stageNumber: 0,
-            flavorText: "A path through Labyrinth.",
             encounter: encounter,
             rewards: .empty
         )

@@ -14,7 +14,7 @@ struct ShopPurchaseApplierTests {
         let result = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: visitToken,
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
 
@@ -27,7 +27,7 @@ struct ShopPurchaseApplierTests {
         #expect(item.displayName == offer.item.displayName)
         #expect(
             item.id == ShopPurchaseApplier.inventoryInstanceID(
-                stageID: "chapter-2-stage-4",
+                stageID: "chapter-2-stage-5",
                 offerID: offer.id,
                 visitToken: visitToken
             )
@@ -42,7 +42,7 @@ struct ShopPurchaseApplierTests {
         let result = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: "visit-a",
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
 
@@ -59,13 +59,13 @@ struct ShopPurchaseApplierTests {
         let first = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: visitToken,
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
         let second = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: visitToken,
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
 
@@ -85,13 +85,13 @@ struct ShopPurchaseApplierTests {
         let first = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: "visit-a",
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
         let second = ShopPurchaseApplier.purchase(
             offer: offer,
             visitToken: "visit-b",
-            stageID: "chapter-2-stage-4",
+            stageID: "chapter-2-stage-5",
             save: &save
         )
 
@@ -110,12 +110,12 @@ struct ShopPurchaseApplierTests {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
         let item = ItemGenerator().generate(
-            id: "chapter-2-stage-4-offer-0",
+            id: "chapter-2-stage-5-offer-0",
             templateID: "longsword-basic",
             baseType: baseType,
             rarity: .basic,
             using: &randomNumberGenerator
         )
-        return ShopOffer(id: "chapter-2-stage-4-offer-0", item: item, price: price)
+        return ShopOffer(id: "chapter-2-stage-5-offer-0", item: item, price: price)
     }
 }

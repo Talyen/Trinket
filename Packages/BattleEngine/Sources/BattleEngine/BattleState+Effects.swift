@@ -15,11 +15,11 @@ package extension BattleState {
             return .shield(
                 keyword, buffer + profile.blockGainedBonus
             )
-        case let .leech(keyword, percent, durationTicks):
+        case let .leech(keyword, percent, durationTurns):
             return .leech(
                 keyword,
                 percent + profile.leechGainedBonus,
-                durationTicks + profile.leechDurationBonus
+                durationTurns + profile.leechDurationBonus
             )
         default:
             return effect
@@ -30,7 +30,7 @@ package extension BattleState {
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
-        remainingTicks: Int
+        remainingTurns: Int
     ) {
         let effectID = consumeNextEffectID()
         roster.mutateRuntime(for: target) { runtime in
@@ -38,7 +38,7 @@ package extension BattleState {
                 ActiveEffect(
                     id: effectID,
                     effect: effect,
-                    remainingTicks: remainingTicks,
+                    remainingTurns: remainingTurns,
                     sourceActorID: sourceID
                 )
             )
@@ -49,7 +49,7 @@ package extension BattleState {
         _ effect: Effect,
         to target: Combatant,
         sourceID: String? = nil,
-        remainingTicks: Int
+        remainingTurns: Int
     ) {
         let effectID = consumeNextEffectID()
         roster.mutateRuntime(for: target) { runtime in
@@ -57,7 +57,7 @@ package extension BattleState {
                 ActiveEffect(
                     id: effectID,
                     effect: effect,
-                    remainingTicks: remainingTicks,
+                    remainingTurns: remainingTurns,
                     sourceActorID: sourceID
                 ),
                 at: 0

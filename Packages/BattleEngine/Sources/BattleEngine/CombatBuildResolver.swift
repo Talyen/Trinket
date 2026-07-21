@@ -32,7 +32,7 @@ public enum CombatBuildResolver {
             role: combatant.role,
             maxHealth: combatant.maxHealth,
             maxMana: combatant.maxMana,
-            actionIntervalTicks: combatant.actionIntervalTicks,
+            actionIntervalTurns: combatant.actionIntervalTurns,
             abilityChoices: combatant.abilityChoices,
             primaryStats: effectiveStats,
             growthArchetype: combatant.growthArchetype

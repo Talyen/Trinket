@@ -39,7 +39,7 @@ struct EffectHandlersApplyStatusTests {
         switch caseKind {
         case .specificPoison:
             BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
+                [ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0)],
                 for: battle.hero,
                 on: &battle
             )
@@ -47,9 +47,9 @@ struct EffectHandlersApplyStatusTests {
         case .allDebuffs:
             BattleStateTestFactory.seedActiveEffects(
                 [
-                    ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
-                    ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
-                    ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTicks: 6)
+                    ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+                    ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
+                    ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6)
                 ],
                 for: battle.hero,
                 on: &battle
@@ -57,7 +57,7 @@ struct EffectHandlersApplyStatusTests {
             return .cleanse(nil)
         case .stunPrevention:
             BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)],
+                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)],
                 for: battle.hero,
                 on: &battle
             )
@@ -65,8 +65,8 @@ struct EffectHandlersApplyStatusTests {
         case .randomOneOfTwo:
             BattleStateTestFactory.seedActiveEffects(
                 [
-                    ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
-                    ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0)
+                    ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+                    ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
                 ],
                 for: battle.hero,
                 on: &battle
@@ -135,8 +135,8 @@ struct EffectHandlersApplyStatusTests {
         case .specificBlock:
             BattleStateTestFactory.seedActiveEffects(
                 [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
-                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTicks: 6)
+                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
+                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTurns: 6)
                 ],
                 for: battle.enemy,
                 on: &battle
@@ -145,8 +145,8 @@ struct EffectHandlersApplyStatusTests {
         case .allBuffsLeaveDebuffs:
             BattleStateTestFactory.seedActiveEffects(
                 [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
-                    ActiveEffect(id: 2, effect: .poison(4), remainingTicks: 0)
+                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
+                    ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0)
                 ],
                 for: battle.enemy,
                 on: &battle
@@ -155,8 +155,8 @@ struct EffectHandlersApplyStatusTests {
         case .randomOneOfTwo:
             BattleStateTestFactory.seedActiveEffects(
                 [
-                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
-                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTicks: 6)
+                    ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
+                    ActiveEffect(id: 2, effect: .leech(.leech, 0.1, 6), remainingTurns: 6)
                 ],
                 for: battle.enemy,
                 on: &battle
