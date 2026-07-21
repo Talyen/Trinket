@@ -40,4 +40,9 @@ Prefer `TrinketDesign.Metrics`, `Corners`, `.trinketTypography`, `.trinketSurfac
 
 ## Probe hints
 
-Hardcoded stack spacing / padding; point-sized fonts; `GeometryReader` / `PreferenceKey` / custom `Layout`; duplicated `GridItem(.adaptive)`; DesignSystem adoption gaps; fixed text bands (`cardLabelReservedHeight`, `minimumScaleFactor`).
+- **Hardcoded Frame Bounds:** Search for `.frame(width: [0-9]+`, `.frame(height: [0-9]+`, or `.frame(minWidth: ..., fixedSize: ...)` in `Trinket/Features/` that restrict Dynamic Type layout scaling.
+- **Un-tokenized Colors & Materials:** Search for raw `Color(red:`, `Color(hex:`, `Color.init`, or inline `UIColor` bypassing `TrinketDesignSystem` design tokens and asset catalogs.
+- **Custom Shadows & Borders:** Search for inline `.shadow(color:`, `.shadow(radius:`, or `.border(` on container views where `.trinketSurface`, `.trinketGlassChip`, or `TrinketDesign.Corners` should be adopted.
+- **Typography & Font Scaling:** Search for point-sized `.font(.system(size:`, fixed `.font(.custom(`, or raw font declarations missing `@ScaledMetric` / `.trinketTypography(_:)`.
+- **Text Band & Container Truncation:** Search for `.minimumScaleFactor(0.<5)` or `lineLimit` locks causing text truncation in multiline labels; prefer `.fixedSize(horizontal: false, vertical: true)` or flexible container layout.
+- **Layout Machinery Gaps:** Search for `GeometryReader` / `PreferenceKey` / custom `Layout` types; verify whether `containerRelativeFrame`, adaptive `GridItem`, or `TrinketDesign.Metrics` can simplify call sites.

@@ -1,9 +1,10 @@
-#if DEBUG
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import UIKit
+
+#if DEBUG
 
 private struct CombatFeedbackFloatMotionLab: View {
     private enum StageTarget: String, CaseIterable, Identifiable {

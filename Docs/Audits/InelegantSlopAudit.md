@@ -51,4 +51,9 @@ Skip load-bearing complexity (generated catalogs, damage pipeline, save wire for
 
 ## Probe hints
 
-Size/density ranking; ceremony names (`Factory`/`Manager`/`Helper`/…); single-conformer protocols; narrating doc comments; near-duplicate switches; banned observation/`#available`/`AnyView` regressions. Route design-chrome duplication through [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
+- **Over-Nested SwiftUI Bodies:** Search for SwiftUI `body` implementations with indentation depth > 6 levels; extract sub-views or simplify conditional container stacks.
+- **Verbose & Redundant Switches:** Search for `switch` blocks in `State/` or `Features/` with identical branch bodies or redundant `default:` fallbacks on frozen enum types.
+- **Defensive Double-Unwrapping & Redundant Checks:** Search for `if let x = x, x != nil` or `guard let x = x else { return nil }` wrapping non-optional values or redundant optional checks.
+- **Explicit Type Annotation Noise:** Search for explicit type annotations on local variable declarations where Swift type inference is unambiguous (`let name: String = "..."`, `var items: [Item] = [Item]()`).
+- **Ceremony Naming & Single-Conformer Protocols:** Search regex `(struct|class|enum)\s+\w*(Manager|Helper|Coordinator|Wrapper|Factory)` and single-conformer `protocol` declarations; inline noun theater.
+- **Legacy Observation & Platform API Regressions:** Run `./Scripts/check-platform-api-bans.sh` to catch `@EnvironmentObject`, `@StateObject`, or `#available` regressions.

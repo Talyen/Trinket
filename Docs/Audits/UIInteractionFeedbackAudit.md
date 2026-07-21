@@ -29,4 +29,8 @@ Select one affected flow, confirm a navigation/feedback/accessibility defect, an
 
 ## Probe hints
 
-Sheets/covers/alerts/menus; tap/long-press/drag gestures; `accessibilityIdentifier` selectors and visible labels; prioritize a confirmed missing dismiss, stuck state, unclear visible control, or gesture conflict.
+- **Icon-Only Accessibility Labels:** Search `Trinket/Features/` for icon-only buttons (`Button { ... } label: { Image(systemName: ...) }` or `Image(systemName:)` tap targets) lacking explicit `.accessibilityLabel(...)` or `.accessibilityHint(...)`.
+- **Sensory & Haptic Feedback Coverage:** Search primary interactive tap handlers (`Button` actions in `BattleView`, `ShopEncounterView`, `LabyrinthMapClusterViews`) for missing `.trinketSensoryFeedback` or haptics options gating (`hapticsEnabled`).
+- **Interactive Control Press States:** Search custom button labels and card tap targets for missing `.trinketQuietTapButtonStyle()`, `.trinketPrimaryActionButton()`, or active pressed opacity modifiers.
+- **Navigation & Modal Dismiss Paths:** Search `.sheet` and `.fullScreenCover` presentations; verify every modal includes a visible toolbar/inline close button or explicit `dismiss()` binding.
+- **Rapid-Tap Action Debouncing:** Search primary action buttons (`startBattle`, `forgeCraft`, `claimRewards`); verify tap handlers set and check `isProcessing` state flags to prevent double-invocations.

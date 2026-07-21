@@ -34,4 +34,9 @@ Fix P0–P1 first; stop when the bounded area is clean.
 
 ## Probe hints
 
-`PlayerSaveStore` / `lastPersistenceError` / sanitizer / CloudKit wiring; debounce/coalesce/scheduleWrite; `try!`/`try?`/`fatalError` on persistence and orchestration paths; `completeStage` / grant / reward / Continue.
+- **Async Task Error Handling:** Search for `Task { try await ... }` or `Task { ... }` in `State/`, `Features/`, and `TrinketPersistence/` lacking `do { try ... } catch` or `lastPersistenceError` logging.
+- **Non-Atomic Persistence Mutations:** Search for multi-step store mutations where in-memory state (`AppState`, `PlayerSaveStore`) is updated prior to `performBatchMutation` / `scheduleDeferredSave()` without rollback on failure.
+- **Silent Decoding & Parsing Fallbacks:** Search for `try? JSONDecoder().decode` or `try? Data(contentsOf:)` where corrupt save data or session state is silently ignored without diagnostic logging or fallback surfacing.
+- **Presentation & Dismissal Cleanup Leaks:** Search for `.onDisappear` or `.sheet` / `.fullScreenCover` dismiss bindings; verify transient presentation state (`isResolvingChoice`, `stageMessage`, `activeBattle`) is cleanly reset when user drags to dismiss.
+- **Idempotency & Re-entrancy:** Search for stage completion, purchase, or crafting handlers (`completeStage`, `selectActiveMysteryItem`, `forgeActiveLabyrinthCraft`); verify duplicate triggers check boolean completion flags before granting rewards.
+- **Persistence Error Visibility:** Search `PlayerSaveStore` and `PlayerSaveSanitizer` for swallowed store unavailable / write failure errors (`lastPersistenceError`).

@@ -31,4 +31,9 @@ Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Presenc
 
 ## Probe hints
 
-Mutable `static var`; `@unchecked Sendable` / `nonisolated(unsafe)`; `DispatchQueue.main`/`global`; cooperative-pool blocking (`sleep`, `Thread.sleep`, sync `Data(contentsOf:)`); unstructured `Task` / `Task.detached` on stores and shell; isolation escapes (`@preconcurrency`, `assumeIsolated`, continuations).
+- **Unsynchronized Shared State:** Search for stored `static var` declarations across `Trinket/` and `Packages/`; verify protection via `@MainActor` or Swift 6 `Mutex`.
+- **Undocumented Isolation Escapes:** Search for `@unchecked Sendable` or `nonisolated(unsafe)`; verify every occurrence includes `/// Concurrency-Safety:` documentation and adequate synchronization.
+- **Main-Thread Hitches & Heavy Work Hops:** Search for heavy CPU work (image rasterization, json decoding, percentile analysis) running directly inside `@MainActor` methods without offloading to utility tasks.
+- **Unstructured Task Capture Leaks:** Search for `Task { ... }` inside stored properties or views; verify `@MainActor` state is weakly captured (`[weak self]`, `[weak session]`) or cancelled in `deinit` / `.onDisappear`.
+- **Cooperative Pool Thread Blocking:** Search for `Thread.sleep`, `usleep`, semaphores (`DispatchSemaphore`), or synchronous `Data(contentsOf:)` inside async contexts.
+- **Legacy `DispatchQueue` Bridges:** Search for `DispatchQueue.main.async`, `DispatchQueue.global()`, or `@preconcurrency import` that can be modernized with Swift Concurrency.

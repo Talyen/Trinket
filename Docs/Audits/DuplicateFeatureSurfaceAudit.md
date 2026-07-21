@@ -56,4 +56,7 @@ Keep intentional product differences (mystery vs shop rules, labyrinth vs explor
 
 ## Probe hints
 
-Compare `Features/Play/Modes/*Hub*`, encounter views (`Mystery`, `Shop`, labyrinth rest/craft), Collection/Homestead detail grids, `*InlinePicker` / `*SummaryGrid` / reward shells. Rank by near-duplicate `body` structure, shared empty-state copy patterns, and parallel private helpers. Prefer clusters with ≥2 clear twins over one-off similarity.
+- **Duplicated Card & Artwork Components:** Search for `Card` or `Artwork` struct definitions across `Trinket/Features/` and `Shared/`; compare `ItemCard`, `AbilityCard`, and `CombatantCard` for copy-pasted hover, border, or badge modifiers.
+- **Empty State & Placeholder Duplication:** Search for `ContentUnavailableView` or custom empty-state card placeholders across `Collection/`, `Homestead/`, and `Play/`; collapse repeated empty-state wrappers into `Trinket/Shared/`.
+- **Parallel Grid & Picker Scaffolding:** Compare `ItemViews.swift`, `CollectionCombatantGridView.swift`, `HomesteadCategoryView.swift`, and `BattlePartyInlinePicker.swift` for near-identical `LazyVGrid` and selection card wrappers.
+- **Encounter & Mode Hub Scaffolding:** Search `Features/Play/` for parallel `*HubView` or `*EncounterView` files; verify whether section stacks can adopt `PlayModeHubScreen` or `EncounterReadingShell`.

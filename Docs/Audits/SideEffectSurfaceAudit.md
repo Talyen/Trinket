@@ -36,4 +36,9 @@ Confirm unexpected effect ownership and fix a bounded set of high-value violatio
 
 ## Probe hints
 
-Unseeded randomness / `UUID()` / `Date()` in BattleEngine and Core; `UserDefaults`; `FileManager` / encoder I/O; AV types; CloudKit symbols. Triage against the allowlist — do not expect a flat zero.
+- **Unseeded Randomness & Entropy Leaks:** Search for `.random(`, `SystemRandomNumberGenerator`, `UUID()`, or `Date()` in `Packages/BattleEngine/` and `Packages/TrinketContent/`; verify all calculation paths consume injected RNG (`using: &context.rng`).
+- **Non-Deterministic Async Delays:** Search for un-seeded `Task.sleep` or timing dependencies inside battle calculations or simulation tests that compromise replay determinism.
+- **Direct System Clock Reads:** Search for `Date()`, `CFAbsoluteTimeGetCurrent()`, or `CACurrentMediaTime()` in duration/cooldown calculations in domain models instead of tick-based counters or monotonic clock abstractions.
+- **Global Singleton & Mutable State Access:** Search for `.shared` or global mutable state access (`AppState.shared`, `PlayerSaveStore.shared`) inside pure domain model functions or battle effect handlers.
+- **I/O & Persistence Seam Violations:** Search for `FileManager`, `Data(contentsOf:)`, `UserDefaults`, or `Encoder` calls outside `Packages/TrinketPersistence/` and `Trinket/Audio/`.
+- **AV & Media Seam Leaks:** Search for `import AVFoundation`, `AVPlayer`, or `AVAudioPlayer` outside `Trinket/Audio/` and `Trinket/BattleShell/`.

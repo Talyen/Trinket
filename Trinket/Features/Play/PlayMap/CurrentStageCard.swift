@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 
 /// Shared active encounter card used by linear Stage Select surfaces.

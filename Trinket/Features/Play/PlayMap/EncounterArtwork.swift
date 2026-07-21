@@ -33,35 +33,3 @@ struct EncounterArtwork: View {
         .clipped()
     }
 }
-
-struct EncounterArtworkButton: View {
-    let stage: Stage
-    let isLocked: Bool
-    let onEnemyTap: () -> Void
-
-    var body: some View {
-        if stage.encounter.isCombat {
-            Button(action: onEnemyTap) {
-                artwork
-            }
-            // UIStyleCheck: allow - Artwork opens enemy details without button chrome.
-            .trinketQuietTapButtonStyle()
-            .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
-
-        } else {
-            artwork
-        }
-    }
-
-    private var artwork: some View {
-        EncounterArtwork(stage: stage)
-            .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
-            .clipShape(TrinketDesign.cardShape)
-            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
-            .accessibilityIdentifier(
-                stage.encounter.eventID == nil
-                    ? "\(stage.mapLabel) Encounter Art"
-                    : "\(stage.mapLabel) Mystery Art"
-            )
-    }
-}

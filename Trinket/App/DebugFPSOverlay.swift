@@ -1,8 +1,9 @@
-#if DEBUG
 import QuartzCore
 import SwiftUI
 import TrinketDesignSystem
 import UIKit
+
+#if DEBUG
 
 enum DebugPreferenceKey {
     static let showFPSOverlay = "debug.showFPSOverlay"

@@ -30,4 +30,9 @@ Discover markdown mechanically (do not trust a hardcoded count), but do not load
 
 ## Probe hints
 
-Inventory paths without printing full contents (skip Generated / DerivedData / tools / Raw Assets). Rank broken-path/link/version and tracker-residue candidates, inspect only the strongest few, and stop when the selected doc area is clean.
+- **Code Snippet Drift:** Search markdown files (`Docs/`, `Packages/*/README.md`, `AGENTS.md`) for embedded code blocks (` ```swift `); verify referenced type names, method signatures, and parameter labels match production code.
+- **Script Flag Drift:** Search for `./Scripts/*.sh` command invocations documented in `Scripts/README.md` or `Docs/AgentContext/`; verify documented flags against executable script option parsers (`getopts` / `case "$1"`).
+- **Architecture & Directory Mismatches:** Cross-check file tree claims in `Docs/Platform/Architecture.md` against actual folder layout in `Trinket/` and `Packages/`.
+- **Broken Relative Links & Anchors:** Search for markdown file links (`[...](...)`) and heading anchors (`#anchor`); verify target file path existence and exact heading text matching.
+- **Project Parameter Staleness:** Verify `iOS 26.0`, `SWIFT_VERSION 6.0`, and package `swift-tools-version: 6.2` declarations across `AGENTS.md`, `project.yml`, and `Package.swift` files.
+- **Audit Tracker Residue:** Search `Docs/Audits/*.md` for embedded run logs, "Last execution" tables, or dated status notes, removing them per [README.md](README.md).

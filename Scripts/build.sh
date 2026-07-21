@@ -16,7 +16,8 @@ prepare_generated_inputs "$RESULTS_DIR"
 source ./Scripts/xcode-runner.sh
 
 # Compile-only: generic simulator destination avoids booting a concrete sim.
-xcode_runner_run "app-compile" \
+xcode_runner_run --label "app-compile" -- \
+  xcodebuild \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -sdk iphonesimulator \

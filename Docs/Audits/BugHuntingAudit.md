@@ -30,4 +30,9 @@ Confirm candidate defects and fix one shared root cause or up to three genuinely
 
 ## Probe hints
 
-Retain cycles / lifetime (stored closures, Tasks, Timers, delegates); silent `try?` on save / battle outcome / state transitions; `.task` subtasks that outlive cancellation; bounds / `.first!`; grant/reward/completeStage idempotency. Add a focused regression only when it distinguishes the defect from existing coverage.
+- **Collection Bounds & Subscript Risks:** Search for direct array subscripting `[index]` or `.remove(at: index)` in `BattleEngine` and `State/` lacking `indices.contains(index)` or `!isEmpty` protection.
+- **Rapid Tap & Double-Trigger State Races:** Search for interactive `Button` actions or `.onTapGesture` handlers mutating state (`appState.startStage`, `forgeActiveLabyrinthCraft`, `claimRewards`) that do not disable buttons during async execution.
+- **Leaked Timers & Un-cancelled Background Tasks:** Search for `Timer.publish`, `CADisplayLink`, or `Task { ... }` in stored properties; verify tasks are cancelled in `deinit` / `.onDisappear` or weakly capture `[weak self]`.
+- **Arithmetic Underflow / Overflow Risks:** Search for unchecked integer subtraction (`gold - cost`, `hp - damage`, `xp - cost`) where negative values could corrupt store values or cause overflow traps; check for `max(0, ...)` bounds.
+- **Silent `try?` on Orchestration Paths:** Search for `try?` on save, stage completion, or battle state transitions (allowing non-fatal audio playback in `Trinket/Audio/`).
+- **Orphaned Async Subtasks:** Search for `.task` blocks spawning detached or child tasks that outlive parent view cancellation.

@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 
 /// Shared active + future encounter list for linear Stage Select surfaces.

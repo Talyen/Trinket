@@ -18,3 +18,11 @@ Run the enforced boundary gate. For each failure, make the ownership-correct rep
 Primary gate: `./Scripts/check-module-boundaries.sh` → **0 violations**. The gate is the executable source of truth; package graph and app-layer rules live in Architecture.md. Use explicit imports per package; `./Scripts/apply-explicit-imports.py` may bootstrap imports after a refactor.
 
 **Fixes:** move a shared type to the existing lowest common owner only when ownership is genuinely shared; move presentation code out of a forbidden layer, preserving dependency direction; never disable or weaken the gate. Do not paper over wrong ownership with an import that leaves the type in the forbidden layer.
+
+## Probe hints
+
+- **Executable Boundary Gate:** Run `./Scripts/check-module-boundaries.sh` first.
+- **Cross-Feature Direct Imports:** Search `Trinket/Features/` for direct references or imports between sibling feature subfolders (e.g. `Features/Battle` importing `Features/Collection` directly instead of routing through `State/` or `Trinket/Shared/`).
+- **Forbidden Test Imports:** Search unit test targets for `@testable import` reaching into internal implementations across unauthorized package boundaries.
+- **Platform Framework Leaks:** Search `Packages/BattleEngine` and `Packages/TrinketPersistence` for UI-layer framework leaks (`import UIKit`, `import SwiftUI`, `import CoreGraphics`) where pure domain models should remain platform-agnostic.
+- **Explicit Import Completeness:** Run `./Scripts/apply-explicit-imports.py` to identify missing or un-normalized explicit package imports in app targets.

@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 enum AccessibilityID {
     enum Screen {

@@ -43,4 +43,8 @@ UI tests run **serially** on one simulator. Reuse existing page objects; do not 
 
 ## Probe hints
 
-`Task.sleep` / long `waitForExistence`; scroll-hunt helpers; existence-only asserts; launch-arg coverage; smoke vs exhaustive test weight; `UserDefaults.standard` / `continueAfterFailure` isolation smells. Timing history (`test-timing.sh`) is a lead, not proof.
+- **Hardcoded Wall-Clock Delays:** Search `TrinketUITests/` for `Thread.sleep`, `usleep`, `sleep(`, `Task.sleep`, or `XCTWaiter.wait` calls; replace arbitrary sleep delays with predicate expectations or `waitForExistence`.
+- **Brittle Index Element Queries:** Search for `.element(boundBy: [0-9]+)` or `.children(matching: .any).element(boundBy:)` in `TrinketUITests/Support/Screens/`; replace fragile index lookups with explicit `AccessibilityID` queries.
+- **Missing Accessibility Identifiers:** Search UI views in `Trinket/Features/` for interactive controls (`Button`, `Toggle`, `Slider`) that lack `.accessibilityIdentifier(...)`, forcing UI tests to rely on localized text matching.
+- **Excessive Timeout Margins:** Search for `waitForExistence(timeout: [0-9]+)` exceeding `defaultTimeout` (3s); shorten unnecessary 10s+ wait margins after deep-link launches.
+- **Smoke vs Exhaustive Duplication:** Compare `TrinketUITests/Smoke/` tests against `TrinketUITests/` journey suites; verify smoke tests only contain lightweight entry checks without repeating multi-step journey assertions.

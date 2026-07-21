@@ -1,8 +1,9 @@
-#if DEBUG
 import BattleEngine
 import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
+
+#if DEBUG
 
 @MainActor
 struct BattlePerformanceScenarioDriver {

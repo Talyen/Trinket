@@ -25,4 +25,9 @@ Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoti
 
 ## Probe hints
 
-Lint unused/dead warnings; `public` API in package Sources; empty/stub unit or UI test files (no `@Test` / `#expect` / `func test`).
+- **Unreferenced Types & Views:** Search for `struct `, `class `, or `enum ` declarations across `Trinket/Features/` and `Shared/`; perform `rg` call-site verification to find orphaned view components or models.
+- **Unused Enum Cases & Switch Branches:** Search domain enums in `BattleEngine` and `TrinketContent` for enum cases with zero construction or pattern-match references.
+- **Unread View State & Bindings:** Search for `@State private var`, `@Binding var`, or `@State var` in SwiftUI views that are written to but never read in `body` or logic methods.
+- **Uncalled Private/Internal Helpers:** Search for `private func` or `internal func` in large extensions (`AppState+*.swift`, `BattleSession+*.swift`, `VisualFoundation.swift`) that have zero call sites within their module.
+- **Package `public` Surface Demotion:** Search `Packages/*/Sources` for `public` structs, enums, or methods that are only consumed within their parent package, demoting them to `internal`.
+- **Empty / Stub Test Files:** Search for test files containing zero `@Test` cases or commented-out test bodies.

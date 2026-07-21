@@ -1,6 +1,7 @@
 import CoreGraphics
 import QuartzCore
 import SwiftUI
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 

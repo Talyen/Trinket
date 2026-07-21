@@ -45,4 +45,9 @@ Track authored declarations and expanded executions separately. A merge is succe
 
 ## Probe hints
 
-Inventory `@Test` declarations and expanded executions; compare semantic owners across package/app suites. Probe leftover XCTest, exact-count snapshots, round trips, `Task.sleep`, and timing hotspots. Confirm candidates with one focused current run; timing history is a lead, not proof.
+- **XCTest Import Check:** Run `./Scripts/check-swift-testing-migration.sh` to ensure unit/package targets import `Testing` rather than `XCTest`.
+- **Trivial Property & Round-Trip Tests:** Search unit test suites for tests asserting basic struct getters/setters, static member initialization, or plain-struct JSON encoding/decoding without domain logic.
+- **Timer Delays & Sleep Invocations:** Search unit test targets for `Task.sleep`, `Thread.sleep`, or `usleep`; replace real wall-clock delays with mock time providers or micro-delay polling.
+- **Fragile String Error Assertions:** Search for assertions checking `error.localizedDescription` or error string representations (`#expect("\(error)".contains(...))`); replace string matching with strongly-typed enum error assertions.
+- **Duplicate Tier Ownership:** Compare `TrinketTests/` against `Packages/*/Tests/`; verify app-level unit tests do not duplicate lower-level package rule matrix coverage.
+- **Catalog Snapshot Counts:** Search for exact static count assertions (`#expect(items.count == 42)`); replace snapshot counts with ID uniqueness and structural invariant assertions.

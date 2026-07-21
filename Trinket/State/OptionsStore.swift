@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import TrinketPersistence
 
 /// How Ultimate cinematics are shown before presentation.
 enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable {

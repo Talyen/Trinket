@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 
 extension ChapterTheme {

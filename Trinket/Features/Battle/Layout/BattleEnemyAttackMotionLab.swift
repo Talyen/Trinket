@@ -1,8 +1,9 @@
-#if DEBUG
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+
+#if DEBUG
 
 private struct BattleEnemyAttackMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""

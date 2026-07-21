@@ -1,4 +1,5 @@
 import CoreGraphics
+import TrinketContent
 
 enum BattleCoordinateSpace {
     /// Shared battle-field space for hand → cast presentation handoff.

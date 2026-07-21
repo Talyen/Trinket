@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 
 struct OptionsView: View {

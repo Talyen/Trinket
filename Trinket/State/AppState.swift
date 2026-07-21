@@ -6,8 +6,9 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-#if canImport(UIKit)
 import UIKit
+
+#if canImport(UIKit)
 #endif
 
 let appStateLogger = Logger(

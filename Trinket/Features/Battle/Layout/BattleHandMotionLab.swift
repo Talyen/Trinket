@@ -1,9 +1,10 @@
-#if DEBUG
 import BattleEngine
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 import UIKit
+
+#if DEBUG
 
 private struct HandMotionPlayground: View {
     @State private var configuration = BattleHandMotionConfiguration()

@@ -66,4 +66,9 @@ Follow Architecture ownership and app-layer imports:
 
 ## Probe hints
 
-Size/`AppState+*` surface area; methods on `AppState` / `BattleSession` that encode battle math, reward policy, or save sanitizing; feature views that call persistence APIs with inline business rules; growth of `BattleState` / `PlayerSaveStore` type bodies; new `*Manager`/`*Coordinator` types beside existing sessions. Cross-check against Architecture module and hub tables before proposing a move.
+- **Deep Binding Prop Drilling:** Search for `@Binding` or closure callbacks passed through ≥3 levels of view hierarchy (e.g. `PlayView` → `PlayBrowsingStack` → `PlayMap` → `StageNodeView`); prefer scoped `@Environment` or session bindings.
+- **Overly Broad Environment State Redraws:** Search for `@Environment(AppState.self)` or `@Bindable var session` in sub-views that only read 1 scalar property; evaluate extracting sub-views or scoped observation properties to reduce unnecessary re-evaluations.
+- **Transient UI State Leaks in Persistence:** Search `Packages/TrinketPersistence/` and `PlayerSaveStore.swift` for transient UI states (e.g., `isHovered`, `selectedItem`, `activeTab`, `scrollOffset`) that belong exclusively in view local `@State`.
+- **Misplaced Business Logic on `AppState` Extensions:** Search `AppState+*.swift` for inline damage calculations, gold cost math, or item generation logic that belongs in `BattleEngine` or `TrinketContent`.
+- **Hub Body Bloat:** Search `BattleState.swift` and `PlayerSaveStore.swift` for feature-specific public methods; verify whether logic belongs in domain effect handlers (`EffectHandlers/`) or store extensions.
+- **Invented Parallel Gravity Wells:** Search for regex `(struct|class)\s+\w*(Manager|Coordinator)` created alongside `AppState` for single-feature orchestration.

@@ -31,4 +31,9 @@ Find unsafe escapes via compiler/linter output and targeted probes. Prefer one v
 
 ## Probe hints
 
-`as!`, `try!`, force-unwrap candidates, `fatalError` / `preconditionFailure`, banned observation APIs, `swiftlint:disable`, existential `Any` in models/persistence.
+- **Force Casts & Force Tries:** Search for `as!` or `try!` in production source (`Trinket/` and `Packages/*/Sources`); verify fail-safe fallback or validation boundaries exist.
+- **Implicit Optional String Interpolation:** Search for `"\(.*?\?"` or `"\(.*?\!)"` in UI label text; ensure optionals are safely unwrapped to prevent `"Optional(...)"` display bugs in UI.
+- **Unsafe Numerical Type Conversions:** Search for `Int(doubleVal)`, `UInt(intVal)`, or `Int32(...)` without range checking or safe boundary clipping that can trap at runtime on overflow/negative inputs.
+- **Raw Enum Decoding Traps:** Search for `MyEnum(rawValue: str)!` or `init?(rawValue:)` unwraps in state decoding; ensure default cases or fallback enums handle corrupt/outdated persistence strings.
+- **Banned Legacy Observation APIs:** Run `./Scripts/check-platform-api-bans.sh` and search for `@EnvironmentObject`, `@StateObject`, or `@Published`.
+- **Fatal Error & Precondition Audit:** Search for `fatalError` or `preconditionFailure` in app orchestration layers (`Trinket/State`, `Trinket/Features`).

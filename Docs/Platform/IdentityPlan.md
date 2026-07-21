@@ -13,7 +13,7 @@ Canonical product + engineering guidance for Trinket identity, cross-device prog
 | 1 | What must identity unlock? | **Cross-device progress only** |
 | 2 | Google Sign-In? | **Skip** (not required) |
 | 3 | No iCloud on device? | **Fully playable local-only** |
-| 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion-apple-guidance) |
+| 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion--apple-guidance) |
 | 5 | Multi-device conflicts? | **Rely on CloudKit / SwiftData defaults** — no custom merge UI |
 | 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
 | 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |
