@@ -132,7 +132,7 @@ wait_for_run_id() {
   while (( attempts < 36 )); do
     run_id="$(
       gh run list --workflow "$WORKFLOW_NAME" --commit "$sha" --limit 5 --json databaseId,status,event,createdAt,headSha \
-        --jq 'sort_by(.createdAt) | reverse | map(select(.headSha == '"'"$sha"'")) | .[0].databaseId // empty'
+        --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty'
     )"
     if [[ -n "$run_id" ]]; then
       printf '%s\n' "$run_id"
