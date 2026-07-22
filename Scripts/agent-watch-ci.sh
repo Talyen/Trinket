@@ -87,12 +87,38 @@ if ! command -v gh >/dev/null 2>&1; then
   echo "gh is required for agent-watch-ci.sh" >&2
   exit 1
 fi
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required for agent-watch-ci.sh" >&2
+  exit 1
+fi
 
 if [[ -z "$REF" ]]; then
   REF="$(git rev-parse --abbrev-ref HEAD)"
 fi
 if [[ -z "$SHA" ]]; then
   SHA="$(git rev-parse HEAD)"
+fi
+if [[ ! "$SHA" =~ ^[0-9a-fA-F]{7,64}$ ]]; then
+  echo "--sha must be a hexadecimal commit prefix or SHA" >&2
+  exit 1
+fi
+requested_sha="$SHA"
+if ! resolved_sha="$(git rev-parse --verify "${requested_sha}^{commit}" 2>/dev/null)"; then
+  echo "--sha does not resolve to a commit: $requested_sha" >&2
+  exit 1
+fi
+SHA="$resolved_sha"
+if [[ "$SCOPE" != standard && "$SCOPE" != exhaustive ]]; then
+  echo "--scope must be standard or exhaustive" >&2
+  exit 1
+fi
+if [[ ! "$POLL_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "--poll-seconds must be a positive integer" >&2
+  exit 1
+fi
+if [[ ! "$FAILURE_LOG_LINES" =~ ^[1-9][0-9]*$ ]]; then
+  echo "TRINKET_CI_WATCH_FAILURE_LINES must be a positive integer" >&2
+  exit 1
 fi
 
 repo_slug() {
@@ -105,8 +131,8 @@ wait_for_run_id() {
   local run_id=""
   while (( attempts < 36 )); do
     run_id="$(
-      gh run list --commit "$sha" --limit 5 --json databaseId,status,event,createdAt \
-        --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty'
+      gh run list --workflow "$WORKFLOW_NAME" --commit "$sha" --limit 5 --json databaseId,status,event,createdAt,headSha \
+        --jq 'sort_by(.createdAt) | reverse | map(select(.headSha == '"'"$sha"'")) | .[0].databaseId // empty'
     )"
     if [[ -n "$run_id" ]]; then
       printf '%s\n' "$run_id"
@@ -265,13 +291,10 @@ if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
   gh workflow run "$WORKFLOW_NAME" --ref "$REF" -f "scope=$SCOPE"
   sleep "$POLL_SECONDS"
   if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
-    RUN_ID="$(
-      gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --limit 1 --json databaseId \
-        --jq '.[0].databaseId // empty'
-    )"
+    RUN_ID=""
   fi
   if [[ -z "${RUN_ID:-}" ]]; then
-    echo "Could not locate a CI run after dispatch." >&2
+    echo "Could not locate a CI run for $SHA after dispatch." >&2
     exit 1
   fi
 fi
@@ -293,9 +316,9 @@ if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID";
   while (( attempts < 36 )); do
     sleep "$POLL_SECONDS"
     CANDIDATE="$(
-      gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --event workflow_dispatch --limit 3 \
-        --json databaseId,status,createdAt \
-        --jq 'sort_by(.createdAt) | reverse | .[0].databaseId // empty'
+      gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --event workflow_dispatch --limit 10 \
+        --json databaseId,status,createdAt,headSha \
+        --jq 'sort_by(.createdAt) | reverse | map(select(.headSha == '"'"$SHA"'")) | .[0].databaseId // empty'
     )"
     if [[ -n "$CANDIDATE" && "$CANDIDATE" != "$BEFORE" && "$CANDIDATE" != "$RUN_ID" ]]; then
       DISPATCH_ID="$CANDIDATE"

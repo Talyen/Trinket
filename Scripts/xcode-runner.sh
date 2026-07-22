@@ -120,10 +120,13 @@ xcode_runner_write_manifest() {
   local report_prefix="$2"
   local exit_code="$3"
   local label="$4"
-  local safe_label manifest_path diagnostics_json=""
+  local manifest_path diagnostics_json="" result_stem
 
-  safe_label="$(xcode_runner_sanitize_label "$label")"
-  manifest_path="$(dirname "$result_bundle")/${safe_label}-invocation.json"
+  result_stem="$(basename "$result_bundle")"
+  result_stem="${result_stem%.xcresult}"
+  # Result bundles are tokenized per invocation; retain that token in the
+  # manifest so repeated same-label runs cannot overwrite each other's status.
+  manifest_path="$(dirname "$result_bundle")/${result_stem}-invocation.json"
   if [[ -f "${report_prefix}.json" ]]; then
     diagnostics_json="${report_prefix}.json"
   fi

@@ -42,7 +42,7 @@ def result_bundle_exists(value: object) -> bool:
     candidates = [candidate]
     if not candidate.is_absolute():
         candidates.extend((results_dir / candidate, Path.cwd() / candidate))
-    return any(path.exists() for path in candidates)
+    return any(path.is_dir() for path in candidates)
 
 
 def normalized_issue(issue: object) -> dict:

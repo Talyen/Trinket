@@ -163,7 +163,7 @@ extension AppState {
     }
 
     private static let launchBattleStageID = "chapter-1-stage-1"
-    private static let launchShopStageID = "chapter-2-stage-5"
+    private static let launchShopStageID = "chapter-2-stage-8"
     private static let launchMysteryStageID = "chapter-1-stage-2"
 
     private static func selectedTab(environment: AppEnvironment) -> AppTab {

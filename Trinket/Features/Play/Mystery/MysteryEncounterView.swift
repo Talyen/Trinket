@@ -1,6 +1,8 @@
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
+import TrinketPersistence
 
 struct MysteryEncounterView: View {
     @Environment(AppState.self) private var appState
@@ -9,7 +11,7 @@ struct MysteryEncounterView: View {
     @State private var selectedDetail: CombatantDetailContext?
     @State private var artAppeared = false
     @State private var narrativeAppeared = false
-    @State private var welcomeFeedbackTrigger = 0
+    @State private var choiceFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
     @State private var unlockRevealPhase: UnlockRevealPhase = .hidden
     @State private var hasStartedUnlockReveal = false
@@ -19,6 +21,8 @@ struct MysteryEncounterView: View {
         Group {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
                 unlockRevealContent(unlockedID: unlockedID)
+            } else if session.showsReward, let result = session.applyResult {
+                MysteryRewardContent(session: session, result: result)
             } else if session.showsItemChoice {
                 MysteryItemChoiceContent(
                     session: session,
@@ -60,83 +64,272 @@ struct MysteryEncounterView: View {
     }
 
     private var readingContent: some View {
-        EncounterReadingShell(
-            artVisible: artAppeared,
-            copyVisible: narrativeAppeared,
-            artwork: { recruitArtwork },
-            copy: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Text(session.event.title)
-                        .trinketTypography(.screenTitle)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.encounterTitle)
-
-                    Text(session.event.narrative)
-                        .trinketTypography(.body)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
-                }
-            },
-            content: {
-                if let choice = session.event.choices.first {
-                    mysteryPersistFailureBanner(session.persistFailureMessage)
-
-                    Button {
-                        welcomeFeedbackTrigger += 1
-                        _ = appState.resolveActiveMysteryChoice(choiceID: choice.id)
-                    } label: {
-                        Text(choice.label)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .trinketPrimaryActionButton()
-                    .tint(TrinketDesign.Colors.encounterEvent)
-                    .disabled(session.isResolvingChoice)
-                    .accessibilityIdentifier(AccessibilityID.Mystery.welcomeButton)
-                    .trinketSensoryFeedback(
-                        .selection,
-                        trigger: welcomeFeedbackTrigger,
-                        enabled: appState.options.hapticsEnabled
-                    )
-                    .padding(.top, TrinketDesign.Metrics.smallSpacing)
-                }
+        DetailHeroScrollShell(
+            title: session.event.title,
+            heroHeightPolicy: .cinematicLandscape,
+            hidesNavigationBar: true
+        ) { baseHeight, overscroll in
+            DetailHeroHeader(
+                eyebrow: "MYSTERY EVENT",
+                title: session.event.title,
+                titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
+                baseHeight: baseHeight,
+                overscroll: overscroll,
+                horizontalPadding: TrinketDesign.Metrics.contentMargin,
+                bottomPadding: TrinketDesign.Metrics.largeSpacing
+            ) {
+                heroArtwork
             }
-        )
-    }
-
-    @ViewBuilder
-    private var recruitArtwork: some View {
-        if session.combatant != nil {
-            EncounterArtwork(stage: recruitArtworkStage)
-                .aspectRatio(session.stage.encounter.artAspectRatio, contentMode: .fit)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-
-        } else {
-            TrinketDesign.cardShape
-                .fill(TrinketDesign.Colors.encounterEvent.opacity(0.14))
-                .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                .overlay {
-                    Image(systemName: "sparkles")
-                        .trinketTypography(.screenTitle)
-                        .foregroundStyle(TrinketDesign.Colors.encounterEvent)
-                }
-                .frame(maxWidth: .infinity)
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+                narrativeCard
+                mysteryPersistFailureBanner(session.persistFailureMessage)
+                mysteryChoices
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, TrinketDesign.Metrics.largeSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
         }
     }
 
-    private var recruitArtworkStage: Stage {
-        Stage(
-            id: session.stage.id,
-            chapterID: session.stage.chapterID,
-            chapterNumber: session.stage.chapterNumber,
-            stageNumber: session.stage.stageNumber,
-            encounter: session.event.isRecruit
-                ? .recruit(eventID: session.event.id)
-                : .mysteryEvent(eventID: session.event.id),
-            rewards: session.stage.rewards
+    private var narrativeCard: some View {
+        Text(session.event.narrative)
+            .trinketTypography(.body)
+            .foregroundStyle(.primary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
+            .padding(TrinketDesign.Metrics.largeSpacing)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .trinketCardSurface()
+    }
+
+    private var mysteryChoices: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+            if session.event.choices.count > 1 {
+                Text("CHOOSE YOUR PATH")
+                    .trinketTypography(.eyebrow)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, TrinketDesign.Metrics.smallSpacing)
+            }
+
+            ForEach(session.event.choices, id: \.id) { choice in
+                mysteryChoiceButton(choice)
+            }
+        }
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: choiceFeedbackTrigger,
+            enabled: appState.options.hapticsEnabled
         )
     }
 
+    private func mysteryChoiceButton(_ choice: MysteryChoice) -> some View {
+        Button {
+            choiceFeedbackTrigger += 1
+            _ = appState.resolveActiveMysteryChoice(choiceID: choice.id)
+        } label: {
+            HStack(alignment: .center, spacing: TrinketDesign.Metrics.largeSpacing) {
+                choiceThumbnailTile(choice)
+
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    Text(choice.label)
+                        .trinketTypography(.rowTitle)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+
+                    mysteryRewards(choice)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Image(systemName: "chevron.right")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(TrinketDesign.Metrics.largeSpacing)
+            .contentShape(Rectangle())
+        }
+        .trinketQuietTapButtonStyle()
+        .trinketCardSurface()
+        .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
+        .disabled(session.isResolvingChoice)
+    }
+
+    @ViewBuilder
+    private func choiceThumbnailTile(_ choice: MysteryChoice) -> some View {
+        if let itemEffect = choice.effects.compactMap({ effect -> (String, [String])? in
+            if case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs) = effect {
+                return (baseTypeID, guaranteedAffixIDs)
+            }
+            return nil
+        }).first, let item = previewItem(forBaseTypeID: itemEffect.0, guaranteedAffixIDs: itemEffect.1) {
+            ItemArtwork(item: item, variant: .thumbnail)
+                .frame(width: 44, height: 44)
+                .clipShape(TrinketDesign.cardShape)
+                .trinketCardSurface()
+        } else if let unlockEffect = choice.effects.compactMap({ effect -> String? in
+            if case let .unlockCombatant(combatantID) = effect {
+                return combatantID
+            }
+            return nil
+        }).first, let combatant = revealCombatant(id: unlockEffect) {
+            CombatantArtwork(combatant: combatant, variant: .card)
+                .frame(width: 44, height: 44)
+                .clipShape(TrinketDesign.cardShape)
+                .trinketCardSurface()
+        }
+    }
+
+    private func previewItem(forBaseTypeID baseTypeID: String, guaranteedAffixIDs: [String]) -> InventoryItem? {
+        guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseTypeID }) else { return nil }
+        var rng = SeededRandomNumberGenerator(seed: GameContent.stableSeed(for: "preview-\(baseTypeID)"))
+        return ItemGenerator().generate(
+            id: "preview-\(baseTypeID)",
+            templateID: "\(baseTypeID)-basic",
+            baseType: baseType,
+            rarity: .basic,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            using: &rng
+        )
+    }
+
+    private func mysteryRewards(_ choice: MysteryChoice) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
+                    mysteryRewardPill(for: effect)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
+                    mysteryRewardPill(for: effect)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mysteryRewardPill(for effect: MysteryEffect) -> some View {
+        switch effect {
+        case let .gainGold(amount):
+            rewardPillBadge(
+                text: "+\(appState.homestead.effects.adjustedGold(amount)) Gold",
+                resource: .gold,
+                tint: HomesteadResource.gold.tint
+            )
+
+        case let .gainMaterial(resource, amount):
+            rewardPillBadge(
+                text: "+\(amount) \(resource.displayName)",
+                resource: resource,
+                tint: resource.tint
+            )
+
+        case let .gainExperience(amount):
+            rewardPillBadge(
+                text: "+\(amount) XP",
+                systemIcon: "star.fill",
+                tint: TrinketDesign.Colors.warning
+            )
+
+        case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
+            rewardPillBadge(
+                text: generatedItemRewardText(
+                    baseTypeID: baseTypeID,
+                    guaranteedAffixIDs: guaranteedAffixIDs
+                ),
+                systemIcon: "shippingbox.fill",
+                tint: TrinketDesign.Colors.encounterEvent
+            )
+
+        case .gainRandomItem:
+            rewardPillBadge(
+                text: "1 Random Item",
+                systemIcon: "shippingbox.fill",
+                tint: TrinketDesign.Colors.encounterEvent
+            )
+
+        case .chooseItem:
+            rewardPillBadge(
+                text: "Choose 1 of \(MysteryEffectApplier.chooseItemCandidateCount) Items",
+                systemIcon: "square.grid.2x2.fill",
+                tint: TrinketDesign.Colors.encounterEvent
+            )
+
+        case let .unlockCombatant(combatantID):
+            rewardPillBadge(
+                text: "Unlock \(combatantName(id: combatantID))",
+                systemIcon: "person.crop.circle.badge.plus",
+                tint: TrinketDesign.Colors.accent
+            )
+        }
+    }
+
+    private func rewardPillBadge(
+        text: String,
+        resource: HomesteadResource? = nil,
+        systemIcon: String? = nil,
+        tint: Color
+    ) -> some View {
+        HStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+            if let resource {
+                HomesteadResourceArtwork(resource: resource)
+                    .frame(width: 16, height: 16)
+            } else if let systemIcon {
+                Image(systemName: systemIcon)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(tint)
+            }
+            Text(text)
+                .trinketTypography(.badge)
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .background(tint.opacity(0.12), in: Capsule())
+        .overlay {
+            Capsule().strokeBorder(tint.opacity(0.3), lineWidth: 1)
+        }
+    }
+
+    private func generatedItemRewardText(
+        baseTypeID: String,
+        guaranteedAffixIDs: [String]
+    ) -> String {
+        let itemName = GameContent.itemBaseTypes.first { $0.id == baseTypeID }?.name ?? "Item"
+        let guaranteedAffixes = guaranteedAffixIDs.compactMap {
+            GameContent.itemAffixDefinition(matching: $0)?.title
+        }
+        let affixText = guaranteedAffixes.map { "\($0) guaranteed" }
+        return ([itemName] + affixText).joined(separator: " • ")
+    }
+
+    private func combatantName(id: String) -> String {
+        let combatant = (GameContent.heroes + GameContent.companions).first { $0.id == id }
+        return combatant?.name ?? "Combatant"
+    }
+
+    @ViewBuilder
+    private var heroArtwork: some View {
+        if let artID = session.event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
+            Image.preparedAsset(named: art.imageName)
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
+        } else if let art = ArtCatalog.backgroundArtByID[session.stage.chapterID] {
+            Image.preparedAsset(named: art.imageName)
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
+        } else {
+            TrinketDesign.Colors.encounterEvent
+        }
+    }
+}
+
+// MARK: - Unlock Reveal Extension
+
+extension MysteryEncounterView {
     @ViewBuilder
     private func unlockRevealContent(unlockedID: String) -> some View {
         if let combatant = revealCombatant(id: unlockedID) {

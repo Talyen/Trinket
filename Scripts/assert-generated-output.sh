@@ -63,6 +63,8 @@ TRACKED_PATHS=(
   "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
@@ -77,8 +79,12 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
     "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
     "Trinket/Assets.xcassets"
     "Trinket/Resources/Music"
     "Trinket/Resources/SFX"
@@ -113,6 +119,7 @@ snapshot_tracked() {
 
 print_tracked_diff_vs_head() {
   echo "--- Diff summary ---" >&2
+  git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}" >&2 || true
   git diff --stat -- "${TRACKED_PATHS[@]}" >&2 || true
   git diff --cached --stat -- "${TRACKED_PATHS[@]}" >&2 || true
   echo "--- First 100 lines of diff ---" >&2
@@ -143,8 +150,8 @@ if [[ "$REGENERATE" == true ]]; then
   run_generate
 fi
 
-if git diff --quiet -- "${TRACKED_PATHS[@]}" \
-  && git diff --cached --quiet -- "${TRACKED_PATHS[@]}" 2>/dev/null; then
+tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}")"
+if [[ -z "$tracked_status" ]]; then
   echo "Generated output matches manifests (committed)."
   exit 0
 fi

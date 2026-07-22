@@ -88,6 +88,17 @@ def parse_file_refs(text: str) -> dict[str, str]:
     return refs
 
 
+def parse_file_refs_by_id(text: str) -> dict[str, str]:
+    """Map every PBXFileReference ID to its basename, including duplicates."""
+    refs: dict[str, str] = {}
+    for match in re.finditer(
+        r"([0-9A-F]{24}) /\* (.+?) \*/ = \{isa = PBXFileReference; lastKnownFileType = sourcecode\.swift; path = (.+?); sourceTree = \"<group>\"; \};",
+        text,
+    ):
+        refs[match.group(1)] = match.group(3)
+    return refs
+
+
 def parse_build_files(text: str) -> dict[str, str]:
     """Map PBXFileReference ID -> PBXBuildFile ID."""
     mapping: dict[str, str] = {}
@@ -161,10 +172,26 @@ def sync_target(text: str, target: str, phase_id: str) -> str:
     AccessibilityID.swift can appear in multiple targets.
     """
     root = TARGET_ROOTS[target]
-    desired = {basename(p): p for p in discover_swift_files(root)}
+    desired_paths = discover_swift_files(root)
+    desired_by_name: dict[str, list[Path]] = {}
+    for path in desired_paths:
+        desired_by_name.setdefault(basename(path), []).append(path)
     for extra in TARGET_EXTRA_SOURCES.get(target, []):
         if extra.exists():
-            desired[basename(extra)] = extra
+            desired_paths.append(extra)
+            desired_by_name.setdefault(basename(extra), []).append(extra)
+    duplicates = sorted(name for name, paths in desired_by_name.items() if len(paths) > 1)
+    if duplicates:
+        details = ", ".join(
+            f"{name} ({', '.join(rel_path(path) for path in desired_by_name[name])})"
+            for name in duplicates
+        )
+        raise SystemExit(
+            "Legacy project source sync cannot safely represent duplicate Swift basenames: "
+            + details
+            + ". Use XcodeGen/synchronized folders instead."
+        )
+    desired = {basename(path): path for path in desired_paths}
     refs = parse_file_refs(text)
     build_files = parse_build_files(text)
 
@@ -209,7 +236,7 @@ def sync_target(text: str, target: str, phase_id: str) -> str:
 def remove_missing_app_sources(text: str, phase_id: str) -> str:
     root = TARGET_ROOTS["Trinket"]
     desired = {basename(p) for p in discover_swift_files(root)}
-    refs = parse_file_refs(text)
+    refs_by_id = parse_file_refs_by_id(text)
     build_files = parse_build_files(text)
 
     current_build_ids = extract_phase_files(text, phase_id)
@@ -220,7 +247,7 @@ def remove_missing_app_sources(text: str, phase_id: str) -> str:
         file_ref = next((fid for fid, bid in build_files.items() if bid == build_id), None)
         if file_ref is None:
             continue
-        name = next((n for n, fid in refs.items() if fid == file_ref), None)
+        name = refs_by_id.get(file_ref)
         if name is None:
             continue
         if name in desired:

@@ -223,7 +223,6 @@ extension AppState {
                     choice.effects,
                     stageID: session.stage.id,
                     choiceID: choice.id,
-                    hero: save.roster.activeHero,
                     save: &save,
                     using: &randomNumberGenerator
                 )
@@ -259,6 +258,15 @@ extension AppState {
             return true
         }
 
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        }
+
+        if !applyResult.isEmpty {
+            session.presentReward(result: applyResult)
+            return true
+        }
+
         dismissMysteryAfterProgress(resultingJourney: resultingJourney)
         return true
     }
@@ -288,7 +296,12 @@ extension AppState {
             return false
         }
 
-        dismissMysteryAfterProgress(resultingJourney: resultingJourney)
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        }
+
+        let itemResult = MysteryEffectApplyResult(grantedItems: [item])
+        session.presentReward(result: itemResult)
         return true
     }
 
@@ -298,6 +311,11 @@ extension AppState {
     func finishActiveMysteryEncounter() -> Bool {
         guard let session = activeMysteryEncounter else { return false }
         session.clearPersistFailure()
+        if session.showsReward {
+            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+            activeMysteryEncounter = nil
+            return true
+        }
         guard finishEncounterProgress(
             stage: session.stage,
             labyrinthNodeID: session.labyrinthNodeID

@@ -19,7 +19,8 @@ extension BattleSession {
               !isShowingVictory,
               !isShowingDefeat,
               !isDealingOpeningHand,
-              state != nil else {
+              let battleState = state,
+              !battleState.isBattleOver else {
             // No new events — still publish if prune dropped expired chips.
             noteFeedbackPresentationChanged()
             return .rejected

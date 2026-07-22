@@ -45,7 +45,10 @@ final class BattleSession {
     @ObservationIgnored
     private(set) var onFeedbackItemsChanged: ((CombatFeedbackUpdate) -> Void)?
     @ObservationIgnored
-    private var feedbackBridgeOwnerID: UUID?
+    private var feedbackBridges: [(
+        ownerID: UUID,
+        onChange: (CombatFeedbackUpdate) -> Void
+    )] = []
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
     @ObservationIgnored
@@ -81,14 +84,14 @@ final class BattleSession {
         ownerID: UUID,
         onChange: @escaping (CombatFeedbackUpdate) -> Void
     ) {
-        feedbackBridgeOwnerID = ownerID
+        feedbackBridges.removeAll { $0.ownerID == ownerID }
+        feedbackBridges.append((ownerID, onChange))
         onFeedbackItemsChanged = onChange
     }
 
     func uninstallFeedbackBridge(ownerID: UUID) {
-        guard feedbackBridgeOwnerID == ownerID else { return }
-        feedbackBridgeOwnerID = nil
-        onFeedbackItemsChanged = nil
+        feedbackBridges.removeAll { $0.ownerID == ownerID }
+        onFeedbackItemsChanged = feedbackBridges.last?.onChange
     }
 
     /// Authoritative simulation value. UI observes `presentation` instead, avoiding

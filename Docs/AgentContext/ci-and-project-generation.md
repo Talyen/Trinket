@@ -4,9 +4,10 @@ Use for XcodeGen, build/test commands, CI workflows, simulator problems, or rele
 
 The root workflow owns task-scoped routing: start with
 `./Scripts/agent-context.sh --agent --paths <file...>` for a concise briefing
-(`--json` is machine-readable), then preview the
-selected checks with `./Scripts/verify-changed.sh --dry-run --isolate --paths <same files>` and
-run them by omitting `--dry-run`. Agents **always** pass `--isolate`. Without `--paths`,
+(`--json` is machine-readable), optionally preview an unfamiliar or potentially
+expensive route with `./Scripts/verify-changed.sh --dry-run --isolate --paths <same files>`,
+then run it by omitting `--dry-run`. A preview does not count as verification.
+Agents **always** pass `--isolate`. Without `--paths`,
 both commands inspect the entire working tree; use that mode only when the tree
 represents one task.
 
@@ -27,6 +28,10 @@ This card adds the CI/project-generation exceptions:
   pre-push, `ci-gate.sh`, and CI (`assert-generated-output.sh` without
   `--idempotent` after force generate). If the post-commit gate regenerates files,
   review them, amend the commit, and rerun it.
+- Without explicit `--paths`, `agent-push-gate.sh` classifies working-tree paths;
+  when the tree is clean after a commit, it classifies local commits not present on
+  a remote, falling back to the latest commit. This preserves conditional asset
+  generation in the documented post-commit workflow.
 - `--push-ready` on `verify-changed.sh` switches to commit-completeness (pinned
   tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
   plus the normal style/package/smoke/compile plan. Prefer `./Scripts/agent-push-gate.sh`

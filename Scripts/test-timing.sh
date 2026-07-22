@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-RESULTS_DIR="$PWD/.DerivedData/TestResults"
+RESULTS_DIR="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
 LOG_PATH="$RESULTS_DIR/timing-log.jsonl"
 DEFAULT_LAST_RUNS=15
 DEFAULT_TOP_TESTS=20
@@ -31,6 +31,7 @@ EOF
 run_python() {
   python3 - "$@" <<'PY'
 import json
+import math
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -40,6 +41,76 @@ from typing import Optional
 command = sys.argv[1]
 results_dir = Path(sys.argv[2])
 log_path = results_dir / "timing-log.jsonl"
+
+
+def finite_nonnegative(value, label: str) -> float:
+    if isinstance(value, bool):
+        raise SystemExit(f"{label} must be a finite non-negative number")
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise SystemExit(f"{label} must be a finite non-negative number")
+    if not math.isfinite(number) or number < 0:
+        raise SystemExit(f"{label} must be a finite non-negative number")
+    return number
+
+
+def valid_duration(value) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, bool):
+        return False
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return False
+    return math.isfinite(number) and number >= 0
+
+
+def valid_entry(entry) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    schema_version = entry.get("schema_version", 1)
+    if (
+        not isinstance(schema_version, int)
+        or isinstance(schema_version, bool)
+        or schema_version != 1
+    ):
+        return False
+    if not isinstance(entry.get("mode"), str) or not entry["mode"]:
+        return False
+    if not isinstance(entry.get("summary"), dict) or not isinstance(entry.get("tests"), list):
+        return False
+    if not valid_duration(entry.get("wall_seconds")):
+        return False
+    summary = entry["summary"]
+    if "measured_test_seconds" not in summary:
+        return False
+    if not valid_duration(summary["measured_test_seconds"]):
+        return False
+    if "xcresult_seconds" in summary and not valid_duration(summary["xcresult_seconds"]):
+        return False
+    for key in ("passed", "failed", "skipped"):
+        if key not in summary:
+            return False
+        value = summary[key]
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            return False
+    targets = entry.get("targets", [])
+    if not isinstance(targets, list) or not all(isinstance(target, str) for target in targets):
+        return False
+    if "no_build" in entry and not isinstance(entry["no_build"], bool):
+        return False
+    for test in entry["tests"]:
+        if not isinstance(test, dict):
+            return False
+        if not isinstance(test.get("id"), str) or not isinstance(test.get("name"), str):
+            return False
+        if "seconds" not in test or test["seconds"] is None:
+            return False
+        if not valid_duration(test["seconds"]):
+            return False
+    return True
 
 
 def parse_xcresult(xcresult_path: Path) -> dict:
@@ -83,7 +154,10 @@ def parse_xcresult(xcresult_path: Path) -> dict:
                     {
                         "id": node.get("nodeIdentifier", node.get("name", "unknown")),
                         "name": node.get("name", ""),
-                        "seconds": float(node.get("durationInSeconds") or 0.0),
+                        "seconds": finite_nonnegative(
+                            node.get("durationInSeconds") or 0.0,
+                            "xcresult test duration",
+                        ),
                         "result": node.get("result", "Unknown"),
                     }
                 )
@@ -96,7 +170,10 @@ def parse_xcresult(xcresult_path: Path) -> dict:
     measured_test_seconds = sum(test["seconds"] for test in tests)
     xcresult_seconds = None
     if isinstance(start_time, (int, float)) and isinstance(finish_time, (int, float)):
-        xcresult_seconds = max(0.0, float(finish_time) - float(start_time))
+        xcresult_seconds = finite_nonnegative(
+            float(finish_time) - float(start_time),
+            "xcresult duration",
+        )
 
     return {
         "summary": {
@@ -112,6 +189,9 @@ def parse_xcresult(xcresult_path: Path) -> dict:
 
 
 def append_entry(entry: dict) -> None:
+    entry["schema_version"] = 1
+    if not valid_entry(entry):
+        raise SystemExit("refusing to record malformed timing entry")
     results_dir.mkdir(parents=True, exist_ok=True)
     with log_path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, separators=(",", ":")))
@@ -133,9 +213,11 @@ def load_entries() -> list[dict]:
         if not line:
             continue
         try:
-            entries.append(json.loads(line))
-        except json.JSONDecodeError:
+            entry = json.loads(line)
+        except (json.JSONDecodeError, TypeError, ValueError):
             continue
+        if valid_entry(entry):
+            entries.append(entry)
     return entries
 
 
@@ -173,8 +255,10 @@ def cmd_record(args: list[str]) -> None:
             mode = args[index + 1]
             index += 2
             continue
-        if token == "--wall" and index + 1 < len(args):
-            wall_seconds = float(args[index + 1])
+        if token == "--wall":
+            if index + 1 >= len(args):
+                raise SystemExit("--wall requires a finite non-negative number")
+            wall_seconds = finite_nonnegative(args[index + 1], "--wall")
             index += 2
             continue
         if token == "--xcresult" and index + 1 < len(args):
@@ -185,6 +269,8 @@ def cmd_record(args: list[str]) -> None:
             no_build = True
             index += 1
             continue
+        if token.startswith("-"):
+            raise SystemExit(f"unknown option: {token}")
         targets.append(token)
         index += 1
 
@@ -214,8 +300,14 @@ def cmd_ingest(args: list[str]) -> None:
 
     mode = args[0]
     wall_seconds = None
-    if len(args) >= 3 and args[1] == "--wall":
-        wall_seconds = float(args[2])
+    if len(args) >= 2 and args[1] == "--wall":
+        if len(args) < 3:
+            raise SystemExit("--wall requires a finite non-negative number")
+        wall_seconds = finite_nonnegative(args[2], "--wall")
+        if len(args) > 3:
+            raise SystemExit(f"unknown option: {args[3]}")
+    elif len(args) > 1:
+        raise SystemExit(f"unknown option: {args[1]}")
 
     xcresult_path = results_dir / f"{mode}.xcresult"
     if not xcresult_path.exists():
@@ -250,18 +342,34 @@ def cmd_report(args: list[str]) -> None:
             mode_filter = args[index + 1]
             index += 2
             continue
-        if token == "--last" and index + 1 < len(args):
-            last_runs = int(args[index + 1])
+        if token == "--last":
+            if index + 1 >= len(args):
+                raise SystemExit("--last must be a positive integer")
+            try:
+                last_runs = int(args[index + 1])
+            except ValueError:
+                raise SystemExit("--last must be a positive integer")
+            if last_runs <= 0:
+                raise SystemExit("--last must be a positive integer")
             index += 2
             continue
-        if token == "--top" and index + 1 < len(args):
-            top_tests = int(args[index + 1])
+        if token == "--top":
+            if index + 1 >= len(args):
+                raise SystemExit("--top must be a non-negative integer")
+            try:
+                top_tests = int(args[index + 1])
+            except ValueError:
+                raise SystemExit("--top must be a non-negative integer")
+            if top_tests < 0:
+                raise SystemExit("--top must be a non-negative integer")
             index += 2
             continue
         if token == "--by-class":
             by_class = True
             index += 1
             continue
+        if token.startswith("-"):
+            raise SystemExit(f"unknown option: {token}")
         index += 1
 
     entries = load_entries()
@@ -374,14 +482,18 @@ def cmd_assert_budget(args: list[str]) -> None:
             mode = args[index + 1]
             index += 2
             continue
-        if token == "--max-wall" and index + 1 < len(args):
-            max_wall = float(args[index + 1])
+        if token == "--max-wall":
+            if index + 1 >= len(args):
+                raise SystemExit("--max-wall must be a finite non-negative number")
+            max_wall = finite_nonnegative(args[index + 1], "--max-wall")
             index += 2
             continue
         if token == "--skip-if-missing":
             skip_if_missing = True
             index += 1
             continue
+        if token.startswith("-"):
+            raise SystemExit(f"unknown option: {token}")
         index += 1
 
     if not mode or max_wall is None:
@@ -404,16 +516,17 @@ def cmd_assert_budget(args: list[str]) -> None:
     if duration_seconds is None:
         raise SystemExit(f"Latest '{mode}' timing entry has no measurable duration")
 
-    if float(duration_seconds) > max_wall:
+    duration_seconds = finite_nonnegative(duration_seconds, "latest duration")
+    if duration_seconds > max_wall:
         raise SystemExit(
             f"Timing budget exceeded for '{mode}': "
-            f"{format_seconds(float(duration_seconds))} ({duration_source}) > "
+            f"{format_seconds(duration_seconds)} ({duration_source}) > "
             f"{format_seconds(max_wall)}"
         )
 
     print(
         f"Timing budget OK for '{mode}': "
-        f"{format_seconds(float(duration_seconds))} ({duration_source}) <= "
+        f"{format_seconds(duration_seconds)} ({duration_source}) <= "
         f"{format_seconds(max_wall)}"
     )
 

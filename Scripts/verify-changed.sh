@@ -115,6 +115,10 @@ trinket_classify_paths
 trinket_build_verification_plan
 commands=()
 if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then commands=("${TRINKET_VERIFICATION_COMMANDS[@]}"); fi
+kinds=()
+arguments=()
+if (( ${#TRINKET_VERIFICATION_KINDS[@]} > 0 )); then kinds=("${TRINKET_VERIFICATION_KINDS[@]}"); fi
+if (( ${#TRINKET_VERIFICATION_ARGS[@]} > 0 )); then arguments=("${TRINKET_VERIFICATION_ARGS[@]}"); fi
 smoke_target_unresolved="$TRINKET_SMOKE_TARGET_UNRESOLVED"
 app_compile_skipped_no_xcode="$TRINKET_APP_COMPILE_SKIPPED_NO_XCODE"
 
@@ -160,7 +164,7 @@ fi
 if [[ "$ISOLATE" == true ]]; then
   trinket_run_env_init
   trinket_run_env_print
-  # Export tenant env so every eval'd child shares one agent slot + DerivedData.
+  # Export tenant env so every structured child shares one agent slot + DerivedData.
   export TRINKET_ISOLATE TRINKET_RUN_ID DERIVED_DATA_PATH RESULTS_DIR
   export TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TMPDIR TMP TEMP
   export TRINKET_DIAGNOSTICS_SESSION_ID TRINKET_UI_ACTIVE_DIR TRINKET_SIM_ACTIVE_DIR
@@ -170,12 +174,75 @@ fi
 quiet_log=""
 if [[ "$QUIET" == true ]]; then
   quiet_log=$(mktemp -t trinket-verify.XXXXXX)
-  trap 'rm -f "$quiet_log"' EXIT INT TERM
+  # run-env installs the simulator/UI slot release trap. Compose cleanup with
+  # it instead of replacing it, and keep release ownership in this parent.
+  trap 'rm -f "$quiet_log"; trinket_run_env_release_slots' EXIT INT TERM
 fi
 
-for command in "${commands[@]}"; do
+run_verification_command() {
+  local kind="$1"
+  local argument="$2"
+  case "$kind" in
+    generate)
+      case "$argument" in
+        normal) ./Scripts/generate.sh ;;
+        assets) ./Scripts/generate.sh --assets ;;
+        force) ./Scripts/generate.sh --force-xcodegen ;;
+        assets-force) ./Scripts/generate.sh --assets --force-xcodegen ;;
+        *) echo "Unknown structured generate check: $argument" >&2; return 2 ;;
+      esac
+      ;;
+    assert)
+      case "$argument" in
+        committed) ./Scripts/assert-generated-output.sh ;;
+        assets) ./Scripts/assert-generated-output.sh --assets ;;
+        idempotent) ./Scripts/assert-generated-output.sh --idempotent ;;
+        idempotent-assets) ./Scripts/assert-generated-output.sh --idempotent --assets ;;
+        *) echo "Unknown structured assert check: $argument" >&2; return 2 ;;
+      esac
+      ;;
+    test)
+      if [[ "$argument" == smoke:* ]]; then
+        local target="${argument#smoke:}"
+        [[ "$target" =~ ^[A-Za-z0-9_]+$ ]] || { echo "Invalid smoke target" >&2; return 2; }
+        SKIP_GENERATE=1 ./Scripts/test.sh smoke "$target"
+      elif [[ "$argument" == style ]]; then
+        ./Scripts/test.sh style
+      elif [[ "$argument" == unit ]]; then
+        SKIP_GENERATE=1 ./Scripts/test.sh unit
+      else
+        echo "Unknown structured test check: $argument" >&2
+        return 2
+      fi
+      ;;
+    package)
+      case "$argument" in
+        BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketTestSupport)
+          ./Scripts/test-package.sh "$argument" ;;
+        *) echo "Unknown structured package check: $argument" >&2; return 2 ;;
+      esac
+      ;;
+    build)
+      [[ "$argument" == app ]] || { echo "Unknown structured build check: $argument" >&2; return 2; }
+      SKIP_GENERATE=1 ./Scripts/build.sh
+      ;;
+    *)
+      echo "Unknown structured verification kind: $kind" >&2
+      return 2
+      ;;
+  esac
+}
+
+for index in "${!commands[@]}"; do
+  command="${commands[$index]}"
+  kind="${kinds[$index]:-}"
+  argument="${arguments[$index]:-}"
+  if [[ -z "$kind" ]]; then
+    echo "Missing structured verification metadata for: $command" >&2
+    exit 2
+  fi
   if [[ "$QUIET" == true ]]; then
-    if eval "$command" > "$quiet_log" 2>&1; then
+    if run_verification_command "$kind" "$argument" > "$quiet_log" 2>&1; then
       echo "PASS: $command"
     else
       status=$?
@@ -186,7 +253,7 @@ for command in "${commands[@]}"; do
   else
     echo ""
     echo "=== $command ==="
-    eval "$command"
+    run_verification_command "$kind" "$argument"
   fi
 done
 

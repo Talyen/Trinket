@@ -76,7 +76,8 @@ if [[ "$REPETITIONS" -gt 1 ]]; then
     --results "$OUTPUT_DIR/reports.json" \
     --output "$OUTPUT_DIR/aggregate.json" \
     --summary "$OUTPUT_DIR/aggregate.md" \
-    --expected-repetitions "$REPETITIONS"
+    --expected-repetitions "$REPETITIONS" \
+    --baseline Performance/Baselines/simulator-60.json
   echo "Repeated app performance artifacts: $OUTPUT_DIR"
   exit 0
 fi

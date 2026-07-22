@@ -4,7 +4,7 @@ import TrinketContent
 
 struct GameContentEncounterArtTests {
     @Test func mappedEventStagesResolveEncounterArt() throws {
-        let stage = try #require(GameContent.chapters[1].stages.first { $0.id == "chapter-2-stage-5" })
+        let stage = try #require(GameContent.chapters[1].stages.first { $0.id == "chapter-2-stage-8" })
 
         #expect(GameContent.encounterArtID(for: stage) == "destination-merchant-shop")
         #expect(GameContent.encounterArtTitle(for: stage) == "Merchant's Shop")

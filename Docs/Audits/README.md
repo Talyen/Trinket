@@ -55,7 +55,6 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 
 | Concern | Owner audit |
 |---------|-------------|
-| Package/layer imports | `ImportCouplingBoundaryAudit.md` |
 | Dead / unused symbols | `DeadCodeRatioAudit.md` |
 | RNG / I/O seams | `SideEffectSurfaceAudit.md` |
 | Persistence / idempotency / swallowed errors | `BehaviorHardeningAudit.md` |
@@ -70,7 +69,10 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 | Over-engineered / verbose / inelegant agent slop | `InelegantSlopAudit.md` |
 | Copy-paste feature screens / shells | `DuplicateFeatureSurfaceAudit.md` |
 | Misplaced logic in AppState / hubs / mega-views | `StateGravityOwnershipAudit.md` |
+| Change locality / agent context and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
+
+Package/layer imports are continuously enforced by [Architecture.md](../Platform/Architecture.md) and `./Scripts/check-module-boundaries.sh`; they are not a user-invoked audit.
 
 Standing conventions: [Testing.md](../Platform/Testing.md), [Architecture.md](../Platform/Architecture.md), `AGENTS.md`. CloudKit release steps: [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md).
 

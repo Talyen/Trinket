@@ -6,7 +6,7 @@ struct ShopOfferGeneratorTests {
     @Test func pricesFollowBasicAndAstralRules() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-5",
+            stageID: "chapter-2-stage-8",
             count: 40,
             using: &randomNumberGenerator
         )
@@ -49,11 +49,11 @@ struct ShopOfferGeneratorTests {
     }
 
     @Test func sameSeedProducesIdenticalOffers() {
-        var first = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-5"))
-        var second = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-5"))
+        var first = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-8"))
+        var second = SeededRandomNumberGenerator(seed: ShopOfferGenerator.seed(forStageID: "chapter-2-stage-8"))
 
-        let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-5", using: &first)
-        let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-5", using: &second)
+        let firstOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &first)
+        let secondOffers = ShopOfferGenerator.generateOffers(stageID: "chapter-2-stage-8", using: &second)
 
         #expect(firstOffers == secondOffers)
     }
@@ -71,7 +71,7 @@ struct ShopOfferGeneratorTests {
     @Test func offerIDsAreUniqueWithinAShelf() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
         let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-5",
+            stageID: "chapter-2-stage-8",
             using: &randomNumberGenerator
         )
         let ids = offers.map(\.id)
@@ -81,7 +81,7 @@ struct ShopOfferGeneratorTests {
     @Test func shopOfferItemsResolveArtByTemplateID() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
         let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-5",
+            stageID: "chapter-2-stage-8",
             using: &randomNumberGenerator
         )
 

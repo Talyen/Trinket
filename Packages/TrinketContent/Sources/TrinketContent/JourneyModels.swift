@@ -90,7 +90,7 @@ public enum StageEncounter: Hashable, Sendable {
     public var symbolName: String {
         switch self {
         case .battle, .randomBattle:
-            "flag.2.crossed"
+            "bolt.fill"
         case .event:
             "sparkles"
         case .shop:

@@ -2,5 +2,5 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-echo "Note: prefer ./Scripts/generate.sh (runs validation, codegen, and XcodeGen)." >&2
-python3 Scripts/content_codegen.py shorthand
+echo "Note: generating the complete content catalog under the shared generation lock." >&2
+exec ./Scripts/generate.sh --skip-xcodegen

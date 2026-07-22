@@ -13,7 +13,10 @@ is_allowed_line() {
   local previous_context="${5:-}"
   local pattern="${6:-}"
 
-  if [[ "$line" == *"UIStyleCheck: allow"* || "$previous_context" == *"UIStyleCheck: allow"* ]]; then
+  # Allow only a comment marker with a non-empty reason. A string literal or
+  # arbitrary source text must not be able to suppress the guardrail.
+  if printf '%s\n' "$line" "$previous_context" \
+    | grep -Eq '^[[:space:]]*//[[:space:]]*UIStyleCheck:[[:space:]]*allow[[:space:]]*-[[:space:]]*[[:graph:]]'; then
     return 0
   fi
 

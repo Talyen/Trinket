@@ -51,16 +51,8 @@ trinket_classify_paths
 trinket_build_verification_plan
 authored=()
 omitted=()
-packages=()
 if (( ${#TRINKET_AUTHORED_PATHS[@]} > 0 )); then authored=("${TRINKET_AUTHORED_PATHS[@]}"); fi
 if (( ${#TRINKET_GENERATED_PATHS[@]} > 0 )); then omitted=("${TRINKET_GENERATED_PATHS[@]}"); fi
-if (( ${#TRINKET_PACKAGES[@]} > 0 )); then packages=("${TRINKET_PACKAGES[@]}"); fi
-has_content="$TRINKET_HAS_CONTENT"
-has_assets="$TRINKET_HAS_ASSETS"
-has_project="$TRINKET_HAS_PROJECT"
-has_feature="$TRINKET_HAS_FEATURE"
-has_audio="$TRINKET_HAS_AUDIO"
-has_docs_or_tools="$TRINKET_HAS_DOCS_OR_TOOLS"
 
 if [[ "$PATH_MODE" == "explicit" ]]; then
   echo "Task-scoped authored changes (${#authored[@]}):"
@@ -76,12 +68,11 @@ fi
 
 echo ""
 echo "Context cards:"
-if [[ "$has_content" == true || "$has_assets" == true ]]; then echo "  Docs/AgentContext/content-and-manifests.md"; fi
-if [[ " ${packages[*]-} " == *" BattleEngine "* ]]; then echo "  Docs/AgentContext/battle.md"; fi
-if [[ " ${packages[*]-} " == *" TrinketPersistence "* ]]; then echo "  Docs/AgentContext/persistence.md"; fi
-if [[ "$has_feature" == true ]]; then echo "  Docs/AgentContext/swiftui-features.md"; fi
-if [[ "$has_audio" == true ]]; then echo "  Docs/AgentContext/audio.md"; fi
-if [[ "$has_project" == true || "$has_docs_or_tools" == true ]]; then echo "  Docs/AgentContext/ci-and-project-generation.md"; fi
+if (( ${#TRINKET_CONTEXT_CARDS[@]} > 0 )); then
+  printf '  %s\n' "${TRINKET_CONTEXT_CARDS[@]}"
+else
+  echo "  (none)"
+fi
 
 echo ""
 if [[ "$PATH_MODE" == "explicit" ]]; then

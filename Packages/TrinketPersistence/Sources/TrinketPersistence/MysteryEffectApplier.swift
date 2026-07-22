@@ -6,6 +6,10 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var grantedGold: Int
     public var grantedMaterials: [ResourceAmount]
     public var grantedExperience: Int
+    public var heroProgressionBefore: CombatantProgression?
+    public var heroProgressionAfter: CombatantProgression?
+    public var companionProgressionBefore: CombatantProgression?
+    public var companionProgressionAfter: CombatantProgression?
     public var grantedItems: [InventoryItem]
     /// Populated when a choice includes `.chooseItem`; caller presents options then grants one.
     public var chooseItemCandidates: [InventoryItem]
@@ -16,6 +20,10 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
         grantedGold: Int = 0,
         grantedMaterials: [ResourceAmount] = [],
         grantedExperience: Int = 0,
+        heroProgressionBefore: CombatantProgression? = nil,
+        heroProgressionAfter: CombatantProgression? = nil,
+        companionProgressionBefore: CombatantProgression? = nil,
+        companionProgressionAfter: CombatantProgression? = nil,
         grantedItems: [InventoryItem] = [],
         chooseItemCandidates: [InventoryItem] = [],
         unlockedCombatantIDs: [String] = []
@@ -23,6 +31,10 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
         self.grantedGold = grantedGold
         self.grantedMaterials = grantedMaterials
         self.grantedExperience = grantedExperience
+        self.heroProgressionBefore = heroProgressionBefore
+        self.heroProgressionAfter = heroProgressionAfter
+        self.companionProgressionBefore = companionProgressionBefore
+        self.companionProgressionAfter = companionProgressionAfter
         self.grantedItems = grantedItems
         self.chooseItemCandidates = chooseItemCandidates
         self.unlockedCombatantIDs = unlockedCombatantIDs
@@ -45,13 +57,16 @@ public enum MysteryEffectApplier {
         _ effects: [MysteryEffect],
         stageID: String,
         choiceID: String,
-        hero: Combatant,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         itemGenerator: ItemGenerator = ItemGenerator(),
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
     ) -> MysteryEffectApplyResult {
         var state = ApplyState()
+        let hero = save.roster.activeHero
+        let companion = save.roster.activeCompanion
+        let heroProgressionBefore = save.roster.progression(for: hero)
+        let companionProgressionBefore = save.roster.progression(for: companion)
         let itemContext = GeneratedItemContext(
             stageID: stageID,
             choiceID: choiceID,
@@ -64,6 +79,7 @@ public enum MysteryEffectApplier {
             apply(
                 effect,
                 hero: hero,
+                companion: companion,
                 save: &save,
                 state: &state,
                 itemContext: itemContext,
@@ -76,6 +92,13 @@ public enum MysteryEffectApplier {
         if !materials.isEmpty {
             save.homestead.grant(materials)
             state.result.grantedMaterials = materials
+        }
+
+        if state.result.grantedExperience > 0 {
+            state.result.heroProgressionBefore = heroProgressionBefore
+            state.result.heroProgressionAfter = save.roster.progression(for: hero)
+            state.result.companionProgressionBefore = companionProgressionBefore
+            state.result.companionProgressionAfter = save.roster.progression(for: companion)
         }
 
         return state.result
@@ -106,6 +129,7 @@ public enum MysteryEffectApplier {
     private static func apply(
         _ effect: MysteryEffect,
         hero: Combatant,
+        companion: Combatant,
         save: inout PlayerSave,
         state: inout ApplyState,
         itemContext: GeneratedItemContext,
@@ -125,6 +149,7 @@ public enum MysteryEffectApplier {
         case let .gainExperience(amount):
             guard amount > 0 else { return }
             save.roster.grantExperience(amount, to: hero)
+            save.roster.grantExperience(amount, to: companion)
             state.result.grantedExperience += amount
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):

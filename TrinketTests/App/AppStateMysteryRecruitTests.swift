@@ -102,6 +102,8 @@ struct AppStateMysteryRecruitTests {
 
         let chosen = try #require(session.itemCandidates.first)
         #expect(state.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.activeMysteryEncounter?.phase == .reward)
+        #expect(state.finishActiveMysteryEncounter())
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.inventory.items.contains(where: { $0.id == chosen.id }))
         #expect(state.inventory.items.count == itemsBefore + 1)
@@ -135,6 +137,10 @@ struct AppStateMysteryRecruitTests {
         #expect(state.roster.gold == goldBefore)
 
         #expect(state.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(state.activeMysteryEncounter?.phase == .reward)
+        playerSave.forcesNextSaveFailure = true
+        #expect(state.finishActiveMysteryEncounter())
+        #expect(playerSave.forcesNextSaveFailure)
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.roster.gold == goldBefore + 20)
     }
@@ -183,6 +189,8 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.journey.completedStageIDs.contains(stage.id))
 
         #expect(state.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.activeMysteryEncounter?.phase == .reward)
+        #expect(state.finishActiveMysteryEncounter())
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.inventory.items.contains(where: { $0.id == chosen.id }))
         #expect(state.journey.completedStageIDs.contains(stage.id))

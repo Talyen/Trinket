@@ -67,6 +67,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
+      if [[ "$1" == -* ]]; then
+        echo "Unknown option: $1" >&2
+        echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]" >&2
+        exit 1
+      fi
       TARGETS+=("$1")
       shift
       ;;
@@ -265,6 +270,44 @@ assert_no_build_is_fresh() {
   assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT"
 }
 
+assert_targeted_tests_executed() {
+  [[ ${#TARGETS[@]} -gt 0 ]] || return 0
+  [[ -d "$RESULT_BUNDLE_PATH" ]] || return 0
+  command -v xcrun >/dev/null 2>&1 || return 0
+
+  local summary_json
+  summary_json="$(xcrun xcresulttool get test-results summary --path "$RESULT_BUNDLE_PATH" --compact 2>/dev/null || true)"
+  [[ -n "$summary_json" ]] || return 0
+  if ! python3 - "$summary_json" <<'PY'
+import json
+import sys
+
+def number(value):
+    if isinstance(value, dict) and "_value" in value:
+        value = value["_value"]
+    if isinstance(value, bool):
+        return 0
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+try:
+    payload = json.loads(sys.argv[1])
+except json.JSONDecodeError:
+    raise SystemExit(0)
+
+total = sum(number(payload.get(key)) for key in ("passedTests", "failedTests", "skippedTests"))
+if total == 0:
+    total = number(payload.get("totalTests"))
+raise SystemExit(0 if total > 0 else 1)
+PY
+  then
+    echo "Targeted test filter executed zero tests; refusing a false-green result." >&2
+    return 1
+  fi
+}
+
 if [[ "$NO_BUILD" == "true" ]]; then
   if assert_no_build_is_fresh; then
     :
@@ -404,8 +447,11 @@ run_package_tests() {
   # Emit one deterministic aggregate section in package declaration order.
   for package in "${packages[@]}"; do
     package_report="${package_report_root}-${package}"
-    package_manifest="$RESULTS_DIR/${package}-invocation.json"
-    if [[ -f "${package_report}.md" && -f "$package_manifest" ]] \
+    package_manifest=""
+    while IFS= read -r candidate; do
+      package_manifest="$candidate"
+    done < <(find "$RESULTS_DIR" -maxdepth 1 -type f -name "${package}-*-invocation.json" | sort)
+    if [[ -f "${package_report}.md" && -n "$package_manifest" ]] \
       && grep -q '"status":"failed"' "$package_manifest"; then
       cat "${package_report}.md"
     elif [[ -s "$package_output_root/$package.stdout" ]]; then
@@ -461,6 +507,10 @@ xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XC
 TEST_WALL_SECONDS=$SECONDS
 
 if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
+  if ! assert_targeted_tests_executed; then
+    xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
+    exit 1
+  fi
   echo "Tests succeeded!"
 fi
 

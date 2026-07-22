@@ -59,7 +59,7 @@ FAKE_XCODE_STATE="$failure_state" FAKE_XCODE_MODE=fail REPORT_CAPTURE="$failure_
     fi
     [[ "$status" -eq 65 ]]
     [[ -f "$log" && "$log" == "$2/raw/"* ]]
-    manifest="$(dirname "$result")/failure-invocation.json"
+    manifest="$(find "$(dirname "$result")" -maxdepth 1 -type f -name 'failure-*-invocation.json' | sort | tail -1)"
     [[ -f "$manifest" ]]
     grep -F -- "\"status\":\"failed\"" "$manifest"
     grep -F -- "\"session_id\":\"fake-session\"" "$manifest"
@@ -83,8 +83,9 @@ FAKE_XCODE_STATE="$retry_state" FAKE_XCODE_MODE=retry \
       --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
       --quiet --retry-callback retryable -- "$3"
     [[ "$(<"$FAKE_XCODE_STATE")" -eq 2 ]]
-    grep -F -- "\"status\":\"passed\"" "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")/retry-invocation.json"
-    grep -F -- "\"diagnostics_json\":\"\"" "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")/retry-invocation.json"
+    manifest="$(find "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")" -maxdepth 1 -type f -name 'retry-*-invocation.json' | sort | tail -1)"
+    grep -F -- "\"status\":\"passed\"" "$manifest"
+    grep -F -- "\"diagnostics_json\":\"\"" "$manifest"
   ' _ "$RUNNER" "$retry_results" "$TMP_DIR/fake-xcodebuild"
 
 echo "xcode-runner fake integration tests passed"

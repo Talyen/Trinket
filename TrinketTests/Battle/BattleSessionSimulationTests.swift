@@ -248,6 +248,22 @@ struct BattleSessionSimulationTests {
         #expect(receivedUpdates.count == 1)
     }
 
+    @Test func currentFeedbackBridgeUninstallRestoresPreviousHandler() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let survivingOwnerID = UUID()
+        let departingOwnerID = UUID()
+        var receivedUpdates: [CombatFeedbackUpdate] = []
+
+        session.installFeedbackBridge(ownerID: survivingOwnerID) { update in
+            receivedUpdates.append(update)
+        }
+        session.installFeedbackBridge(ownerID: departingOwnerID) { _ in }
+        session.uninstallFeedbackBridge(ownerID: departingOwnerID)
+
+        session.recordFeedbackEvents([feedbackEvent(id: 1, amount: 2)])
+        #expect(receivedUpdates.count == 1)
+    }
+
     @Test func feedbackVisualsUseIndependentPerTargetStreams() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 100)

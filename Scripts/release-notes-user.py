@@ -223,12 +223,12 @@ def main() -> None:
     validate_notes(summary, bullets)
 
     content = summary + "\n\n" + "\n".join(bullets) + "\n"
-    write_prompt(version, summary, bullets, commits)
 
     if args.dry_run:
         print(content)
         return
 
+    write_prompt(version, summary, bullets, commits)
     OUTPUT.write_text(content, encoding="utf-8")
     FASTLANE.parent.mkdir(parents=True, exist_ok=True)
     FASTLANE.write_text(content, encoding="utf-8")

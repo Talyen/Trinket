@@ -47,7 +47,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 5,
-                    encounter: .shop,
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -55,7 +55,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 6,
-                    encounter: .mysteryEvent(eventID: ""),
+                    encounter: .battle(enemyID: "mud_elemental"),
                     rewards: .empty
                 ),
                 Stage(
@@ -63,7 +63,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 7,
-                    encounter: .battle(enemyID: "mud_elemental"),
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -71,7 +71,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 8,
-                    encounter: .mysteryEvent(eventID: ""),
+                    encounter: .shop,
                     rewards: .empty
                 ),
                 Stage(
@@ -135,7 +135,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 5,
-                    encounter: .shop,
+                    encounter: .battle(enemyID: "necromancer"),
                     rewards: .empty
                 ),
                 Stage(
@@ -143,7 +143,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 6,
-                    encounter: .battle(enemyID: "necromancer"),
+                    encounter: .recruit(eventID: "random-companion"),
                     rewards: .empty
                 ),
                 Stage(
@@ -151,7 +151,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 7,
-                    encounter: .recruit(eventID: "random-companion"),
+                    encounter: .battle(enemyID: "living_armor"),
                     rewards: .empty
                 ),
                 Stage(
@@ -159,7 +159,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-2",
                     chapterNumber: 2,
                     stageNumber: 8,
-                    encounter: .battle(enemyID: "living_armor"),
+                    encounter: .shop,
                     rewards: .empty
                 ),
                 Stage(
@@ -223,7 +223,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 5,
-                    encounter: .shop,
+                    encounter: .randomBattle,
                     rewards: .empty
                 ),
                 Stage(
@@ -231,7 +231,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 6,
-                    encounter: .randomBattle,
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -239,7 +239,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 7,
-                    encounter: .mysteryEvent(eventID: ""),
+                    encounter: .recruit(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -247,7 +247,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 8,
-                    encounter: .randomBattle,
+                    encounter: .shop,
                     rewards: .empty
                 ),
                 Stage(
@@ -255,7 +255,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-3",
                     chapterNumber: 3,
                     stageNumber: 9,
-                    encounter: .recruit(eventID: ""),
+                    encounter: .randomBattle,
                     rewards: .empty
                 ),
                 Stage(
@@ -311,7 +311,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-4",
                     chapterNumber: 4,
                     stageNumber: 5,
-                    encounter: .shop,
+                    encounter: .randomBattle,
                     rewards: .empty
                 ),
                 Stage(
@@ -319,7 +319,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-4",
                     chapterNumber: 4,
                     stageNumber: 6,
-                    encounter: .randomBattle,
+                    encounter: .recruit(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -327,7 +327,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-4",
                     chapterNumber: 4,
                     stageNumber: 7,
-                    encounter: .recruit(eventID: ""),
+                    encounter: .mysteryEvent(eventID: ""),
                     rewards: .empty
                 ),
                 Stage(
@@ -335,7 +335,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-4",
                     chapterNumber: 4,
                     stageNumber: 8,
-                    encounter: .randomBattle,
+                    encounter: .shop,
                     rewards: .empty
                 ),
                 Stage(
@@ -343,7 +343,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-4",
                     chapterNumber: 4,
                     stageNumber: 9,
-                    encounter: .mysteryEvent(eventID: ""),
+                    encounter: .randomBattle,
                     rewards: .empty
                 ),
                 Stage(

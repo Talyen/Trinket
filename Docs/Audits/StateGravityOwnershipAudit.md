@@ -19,14 +19,14 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 | Mega-view `body` that orchestrates rewards, catalog lookups, and mutations | View owns too many jobs; extract session/store or shared UI |
 | New `*Manager` / parallel hub beside `AppState` for one flow | Invented gravity well instead of an extension on the real owner |
 
-**Not this audit:** import-gate failures alone → ImportCoupling; unused APIs → DeadCode; verbose ceremony with correct ownership → InelegantSlop; duplicate screens with correct owners → DuplicateFeatureSurface; silent save bugs without ownership drift → BehaviorHardening.
+**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; unused APIs → DeadCode; verbose ceremony with correct ownership → InelegantSlop; duplicate screens with correct owners → DuplicateFeatureSurface; silent save bugs without ownership drift → BehaviorHardening.
 
 ## Hard stops
 
 - Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, catalog/codegen boundaries, Options/`UserDefaults` vs `PlayerSave`.
 - Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
-- Prefer ImportCoupling when the only issue is a failing `check-module-boundaries.sh` row with an obvious one-file fix.
+- Repair a failing `check-module-boundaries.sh` row directly when it has an obvious one-file fix rather than expanding it into an ownership audit.
 
 ## Confirm before fixing
 

@@ -147,15 +147,34 @@ sys.exit(1)
   echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
 }
 
+simulator_matches_name() {
+  local udid="$1"
+  local expected_name="$2"
+  local actual_name
+  actual_name="$(xcrun simctl list devices "$udid" -j 2>/dev/null | python3 -c '
+import json, sys
+payload = json.load(sys.stdin)
+for devices in payload.get("devices", {}).values():
+    for device in devices:
+        if device.get("udid") == sys.argv[1]:
+            print(device.get("name", ""))
+            sys.exit(0)
+sys.exit(1)
+' "$udid" 2>/dev/null || true)"
+  [[ -n "$actual_name" && "$actual_name" == "$expected_name" ]]
+}
+
 ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
 
-  # Never shut down or delete a device that does not belong to this run's name.
-  if [[ -n "${SIMULATOR_UDID:-}" && -n "${SIMULATOR_NAME:-}" && "$SIMULATOR_NAME" != "$owned_name" ]]; then
-    echo "Warning: ignoring foreign simulator $SIMULATOR_NAME ($SIMULATOR_UDID); using $owned_name." >&2
+  # Never shut down or delete a device that does not belong to this run's
+  # name. Resolve the actual UDID metadata instead of trusting a caller's
+  # cached SIMULATOR_NAME environment value.
+  if [[ -n "${SIMULATOR_UDID:-}" ]] && ! simulator_matches_name "$SIMULATOR_UDID" "$owned_name"; then
+    echo "Warning: ignoring foreign or unknown simulator $SIMULATOR_UDID; using $owned_name." >&2
     SIMULATOR_UDID=""
   fi
   SIMULATOR_NAME="$owned_name"

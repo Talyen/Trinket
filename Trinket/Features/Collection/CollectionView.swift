@@ -119,7 +119,7 @@ struct CollectionView: View {
     private func presentPendingLaunchRoute() {
         guard let presentation = appState.consumePendingCollectionPresentation() else { return }
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             switch presentation {
             case let .collectionCombatant(context):
                 selectedCombatant = context

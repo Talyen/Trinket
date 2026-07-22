@@ -55,8 +55,9 @@ build_input_paths=(
   Package.resolved
 )
 
-asset_inputs_are_dirty() {
-  [[ -n "$(git status --porcelain -- "${asset_generation_inputs[@]}")" ]]
+generation_inputs_are_dirty() {
+  local paths=("$@")
+  [[ -n "$(git status --porcelain -- "${paths[@]}")" ]]
 }
 
 prepare_generated_inputs() {
@@ -78,9 +79,16 @@ prepare_generated_inputs() {
     project_changed="$(generation_paths_newer_than "$stamp" project.yml)"
     assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}")"
   fi
-  # Content edits can preserve stale mtimes (e.g. Darkroom exports). Git dirtiness
-  # catches those even when find -newer would miss them.
-  if [[ -z "$assets_changed" ]] && asset_inputs_are_dirty; then
+  # Edits can preserve stale mtimes (e.g. Darkroom exports or generated
+  # manifest rewrites). Git dirtiness catches those even when find -newer would
+  # miss them, including content and project inputs.
+  if [[ -z "$content_changed" ]] && generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
+    content_changed="dirty content input"
+  fi
+  if [[ -z "$project_changed" ]] && generation_inputs_are_dirty project.yml; then
+    project_changed="dirty project input"
+  fi
+  if [[ -z "$assets_changed" ]] && generation_inputs_are_dirty "${asset_generation_inputs[@]}"; then
     assets_changed="dirty asset input"
   fi
 

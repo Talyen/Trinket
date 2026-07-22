@@ -25,7 +25,8 @@ is_allowed() {
 
   local start=$((line_number > 4 ? line_number - 4 : 1))
   local end="$line_number"
-  if sed -n "${start},${end}p" "$file" | grep -q 'ExclusivityCheck: allow'; then
+  if sed -n "${start},${end}p" "$file" \
+    | grep -Eq '^[[:space:]]*//[[:space:]]*ExclusivityCheck:[[:space:]]*allow[[:space:]]*-[[:space:]]*[[:graph:]]'; then
     return 0
   fi
   return 1
@@ -37,7 +38,17 @@ has_safe_inout_target() {
   local file="$1"
   local line_number="$2"
   local ident="$3"
-  local start=$((line_number > 60 ? line_number - 60 : 1))
+  # Limit the declaration search to the current function. The previous fixed
+  # window could mistake a similarly named local in a preceding function for
+  # the target and suppress a real stored-property overlap.
+  local function_start
+  function_start="$(awk -v n="$line_number" 'NR <= n && $0 ~ /(^|[[:space:]])func[[:space:]]/ { last = NR } END { print last + 0 }' "$file")"
+  local start
+  if [[ "$function_start" -gt 0 ]]; then
+    start="$function_start"
+  else
+    start=$((line_number > 60 ? line_number - 60 : 1))
+  fi
   local end=$((line_number - 1))
   if (( end < start )); then
     return 1
@@ -82,7 +93,7 @@ if ((${#violations[@]} > 0)); then
   echo "Exclusivity footgun check found inout of a likely stored property:" >&2
   printf '  %s\n' "${violations[@]}" >&2
   echo "Copy the property to a local var, pass &local, then write back — see PlayerRosterState.unlockHero." >&2
-  echo "Escape hatch: ExclusivityCheck: allow <reason> on a nearby line." >&2
+  echo "Escape hatch: // ExclusivityCheck: allow - <reason> on a nearby line." >&2
   exit 1
 fi
 

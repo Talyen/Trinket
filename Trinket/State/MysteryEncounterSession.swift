@@ -7,6 +7,7 @@ enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
     case choosingItem
+    case reward
 }
 
 @MainActor
@@ -24,6 +25,7 @@ final class MysteryEncounterSession: Identifiable {
     private(set) var phase: MysteryEncounterPhase = .reading
     private(set) var unlockedCombatantID: String?
     private(set) var itemCandidates: [InventoryItem] = []
+    private(set) var applyResult: MysteryEffectApplyResult?
     private(set) var isResolvingChoice = false
     private(set) var persistFailureMessage: String?
 
@@ -33,6 +35,10 @@ final class MysteryEncounterSession: Identifiable {
 
     var showsItemChoice: Bool {
         phase == .choosingItem && !itemCandidates.isEmpty
+    }
+
+    var showsReward: Bool {
+        phase == .reward && applyResult != nil
     }
 
     init(
@@ -64,6 +70,13 @@ extension MysteryEncounterSession {
     func presentItemChoice(candidates: [InventoryItem]) {
         itemCandidates = candidates
         phase = .choosingItem
+        isResolvingChoice = false
+        persistFailureMessage = nil
+    }
+
+    func presentReward(result: MysteryEffectApplyResult) {
+        applyResult = result
+        phase = .reward
         isResolvingChoice = false
         persistFailureMessage = nil
     }

@@ -33,6 +33,20 @@ def finite_number(report: dict[str, Any], key: str) -> float:
     return result
 
 
+def validate_metric_domains(values: dict[str, float], scenario: str) -> list[str]:
+    failures: list[str] = []
+    for key in ("averageFPS", "onePercentLowFPS", "p95FrameMs", "p99FrameMs", "maxFrameMs"):
+        if values[key] < 0:
+            failures.append(f"{scenario}: {key} must be non-negative")
+    for key in ("missedDeadlineCount", "severeStallCount"):
+        if not values[key].is_integer() or values[key] < 0:
+            failures.append(f"{scenario}: {key} must be a non-negative integer")
+    ratio = values["missedDeadlineRatio"]
+    if ratio < 0 or ratio > 1:
+        failures.append(f"{scenario}: missedDeadlineRatio must be between 0 and 1")
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--baseline", required=True, type=Path)
@@ -62,6 +76,17 @@ def main() -> int:
         grouped[scenario].append(raw_report)
 
     goals = baseline["goals"]
+    try:
+        minimum_average = float(goals["minimumAverageFPS"])
+        minimum_low = float(goals["minimumOnePercentLowFPS"])
+        maximum_severe = float(goals["maximumSevereStallCount"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise SystemExit(f"baseline goals are invalid: {error}") from error
+    if not all(math.isfinite(value) for value in (minimum_average, minimum_low, maximum_severe)):
+        raise SystemExit("baseline goals must be finite")
+    if minimum_average < 0 or minimum_low < 0 or maximum_severe < 0:
+        raise SystemExit("baseline goals must be non-negative")
+    severe_limit_text = "zero" if maximum_severe == 0 else f"{maximum_severe:g}"
     rows: list[str] = []
     for scenario in scenarios:
         records = grouped[scenario]
@@ -88,6 +113,8 @@ def main() -> int:
             failures.append(f"{scenario}: {error}")
             continue
 
+        failures.extend(validate_metric_domains(values, scenario))
+
         rows.append(
             f"| {scenario} | {values['averageFPS']:.2f} | "
             f"{values['onePercentLowFPS']:.2f} | {values['p95FrameMs']:.2f} | "
@@ -95,19 +122,24 @@ def main() -> int:
             f"{values['missedDeadlineRatio']:.4%} | {int(values['severeStallCount'])} |"
         )
 
-        if values["averageFPS"] < float(goals["minimumAverageFPS"]):
-            failures.append(f"{scenario}: average FPS {values['averageFPS']:.2f} below 59.00")
-        if values["onePercentLowFPS"] < float(goals["minimumOnePercentLowFPS"]):
-            failures.append(f"{scenario}: 1% low {values['onePercentLowFPS']:.2f} FPS below 59.00")
-        if values["severeStallCount"] > float(goals["maximumSevereStallCount"]):
+        if values["averageFPS"] < minimum_average:
             failures.append(
-                f"{scenario}: severe stalls {int(values['severeStallCount'])} above zero"
+                f"{scenario}: average FPS {values['averageFPS']:.2f} below {minimum_average:.2f}"
+            )
+        if values["onePercentLowFPS"] < minimum_low:
+            failures.append(
+                f"{scenario}: 1% low {values['onePercentLowFPS']:.2f} FPS below {minimum_low:.2f}"
+            )
+        if values["severeStallCount"] > maximum_severe:
+            failures.append(
+                f"{scenario}: severe stalls {int(values['severeStallCount'])} above {severe_limit_text}"
             )
 
     lines = [
         "# App performance comparison",
         "",
-        "Gate: one measured report per scenario; average FPS >= 59; 1% low FPS >= 59; severe stalls = 0.",
+        f"Gate: one measured report per scenario; average FPS >= {minimum_average:g}; "
+        f"1% low FPS >= {minimum_low:g}; severe stalls <= {severe_limit_text}.",
         "p95/p99/max frame time and missed deadlines are diagnostic only.",
         "",
         "| Scenario | Avg FPS | 1% low | p95 ms | p99 ms | Max ms | Missed | Severe |",

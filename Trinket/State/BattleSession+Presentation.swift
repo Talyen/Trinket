@@ -248,6 +248,9 @@ extension BattleSession {
         sfx: String,
         show: @escaping @MainActor (BattleSession) -> Void
     ) {
+        if pendingOutcomePresentationTask != nil, outcome == expected {
+            return
+        }
         pendingOutcomePresentationTask?.cancel()
         let latestFeedbackDelay = activeFeedbackItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }

@@ -1,7 +1,34 @@
 import XCTest
 
-/// Exhaustive mystery recruit journey via deep link (kept out of smoke-full).
+/// Exhaustive Mystery encounter journeys via deep link (kept out of smoke-full).
 final class MysteryRecruitUITests: TrinketUITestCase {
+    func testOrdinaryMysteryShowsBothChoicesAndRewards() {
+        launchApp(arguments: [
+            TestLaunchArg.resetState,
+            TestLaunchArg.disableCloudSync,
+            "-disable-audio",
+            "-persist-save-immediately",
+            "-launch-screen",
+            "mystery"
+        ]
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
+            + TestLaunchArg.mysteryRecruit(eventID: "fairy-ring"))
+
+        let stepInside = button(AccessibilityID.Mystery.choiceButton(choiceID: "step-inside"))
+        let pluckCap = button(AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"))
+        assertExists(stepInside)
+        assertExists(pluckCap)
+        XCTAssertTrue(stepInside.label.contains("+25 Gold"))
+        XCTAssertTrue(pluckCap.label.contains("+3 Crystal"))
+
+        assertExistsAfterScroll(
+            AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"),
+            requireHittable: true
+        )
+        tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"))
+        assertExists(AccessibilityID.Mystery.rewardTitle)
+    }
+
     func testCompanionRecruitRevealAndContinue() {
         // Fresh save (no seed) so Bear is locked; stage 1 complete so leave unlocks stage 3.
         launchApp(arguments: [

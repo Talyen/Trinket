@@ -20,7 +20,9 @@ struct MysteryEffectApplierTests {
     @Test func applyingGoldMaterialsAndExperienceMutatesSave() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let startingXP = save.roster.progression(for: hero).currentXP
+        let companion = save.roster.activeCompanion
+        let heroProgressionBefore = save.roster.progression(for: hero)
+        let companionProgressionBefore = save.roster.progression(for: companion)
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -31,7 +33,6 @@ struct MysteryEffectApplierTests {
             ],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -41,19 +42,22 @@ struct MysteryEffectApplierTests {
         try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 3)])
         try #expect(save.roster.gold == 20)
         try #expect(save.homestead.balance(for: .herbs, roster: save.roster) >= 3)
-        try #expect(save.roster.progression(for: hero).currentXP == startingXP + 10)
+        try #expect(result.heroProgressionBefore == heroProgressionBefore)
+        try #expect(result.heroProgressionAfter == heroProgressionBefore.addingExperience(10))
+        try #expect(result.companionProgressionBefore == companionProgressionBefore)
+        try #expect(result.companionProgressionAfter == companionProgressionBefore.addingExperience(10))
+        try #expect(save.roster.progression(for: hero) == heroProgressionBefore.addingExperience(10))
+        try #expect(save.roster.progression(for: companion) == companionProgressionBefore.addingExperience(10))
     }
 
     @Test func generatedItemIncludesGuaranteedAffixAndUsesRolledRarity() throws {
         var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 11)
 
         let result = MysteryEffectApplier.apply(
             [.gainGeneratedItem(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"])],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -67,14 +71,12 @@ struct MysteryEffectApplierTests {
 
     @Test func gainRandomItemAppendsOneInventoryItem() throws {
         var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
 
         let result = MysteryEffectApplier.apply(
             [.gainRandomItem],
             stageID: "chapter-1-stage-2",
             choiceID: "loot-crypt",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -85,14 +87,12 @@ struct MysteryEffectApplierTests {
 
     @Test func chooseItemReturnsCandidatesWithoutGranting() throws {
         var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 5)
 
         let result = MysteryEffectApplier.apply(
             [.chooseItem],
             stageID: "chapter-1-stage-2",
             choiceID: "search-scrolls",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -108,7 +108,6 @@ struct MysteryEffectApplierTests {
 
     @Test func manaBerryHarvestChoiceAppliesExpectedRewards() throws {
         var save = makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let harvest = try #require(event.choices.first { $0.id == "harvest" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 3)
@@ -117,7 +116,6 @@ struct MysteryEffectApplierTests {
             harvest.effects,
             stageID: "chapter-1-stage-2",
             choiceID: harvest.id,
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -130,14 +128,12 @@ struct MysteryEffectApplierTests {
 
     @Test func unlockCombatantEffectsHandleHeroAndCompanionIdempotently() throws {
         var save = makeFreshSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let first = MysteryEffectApplier.apply(
             [.unlockCombatant("rogue")],
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -148,7 +144,6 @@ struct MysteryEffectApplierTests {
             [.unlockCombatant("rogue")],
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -158,7 +153,6 @@ struct MysteryEffectApplierTests {
             [.unlockCombatant("bear")],
             stageID: "chapter-1-stage-2",
             choiceID: "welcome",
-            hero: hero,
             save: &save,
             using: &randomNumberGenerator
         )

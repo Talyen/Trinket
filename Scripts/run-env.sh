@@ -62,10 +62,17 @@ trinket_sim_slot_reap() {
 }
 
 trinket_sim_slot_release() {
-  if [[ -n "${TRINKET_SIM_SLOT_PATH:-}" && -e "${TRINKET_SIM_SLOT_PATH}" ]]; then
+  local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  # A child process inherits the parent's lease path.  Only the process that
+  # claimed the lease may remove it; otherwise a UI child can release the
+  # parent's simulator while the parent is still running.
+  if [[ -n "${TRINKET_SIM_SLOT_PATH:-}" \
+    && "${TRINKET_SIM_SLOT_OWNER_PID:-}" == "$current_owner" \
+    && -e "${TRINKET_SIM_SLOT_PATH}" ]]; then
     rm -f "$TRINKET_SIM_SLOT_PATH"
   fi
   TRINKET_SIM_SLOT_PATH=""
+  TRINKET_SIM_SLOT_OWNER_PID=""
 }
 
 # Acquire a reusable agent simulator slot (Trinket Agent N). Fail-fast when full.
@@ -73,7 +80,11 @@ trinket_sim_slot_release() {
 trinket_sim_slot_acquire() {
   local max="${TRINKET_MAX_AGENT_SIMS:-3}"
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
-  local n slot_path
+  local n slot_path owner_pid owner_token
+  owner_pid="$$"
+  # BASHPID is unavailable in macOS Bash 3.2; BASH_SUBSHELL distinguishes a
+  # same-shell `( ... )` child while $$ distinguishes a new bash process.
+  owner_token="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
   mkdir -p "$active_dir"
   trinket_sim_slot_reap
 
@@ -88,9 +99,11 @@ trinket_sim_slot_acquire() {
       continue
     fi
     # Claim with noclobber to avoid two agents racing the same index.
-    if ( set -o noclobber; printf '%s %s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$slot_path" ) 2>/dev/null; then
+    if ( set -o noclobber; printf '%s %s %s\n' "$owner_pid" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$slot_path" ) 2>/dev/null; then
       TRINKET_SIM_SLOT_PATH="$slot_path"
+      TRINKET_SIM_SLOT_OWNER_PID="$owner_token"
       export TRINKET_SIM_SLOT_PATH
+      export TRINKET_SIM_SLOT_OWNER_PID
       trinket_bind_agent_slot "$n"
       trinket_run_env_install_release_trap
       return 0
@@ -243,22 +256,44 @@ trinket_ui_slot_count() {
 }
 
 trinket_ui_slot_release() {
-  if [[ -n "${TRINKET_UI_SLOT_PATH:-}" && -e "${TRINKET_UI_SLOT_PATH}" ]]; then
+  local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  if [[ -n "${TRINKET_UI_SLOT_PATH:-}" \
+    && "${TRINKET_UI_SLOT_OWNER_PID:-}" == "$current_owner" \
+    && -e "${TRINKET_UI_SLOT_PATH}" ]]; then
     rm -f "$TRINKET_UI_SLOT_PATH"
   fi
   TRINKET_UI_SLOT_PATH=""
+  TRINKET_UI_SLOT_OWNER_PID=""
 }
 
 # Acquire a UI/smoke concurrency slot. Fail-fast when at capacity — never wait.
 trinket_ui_slot_acquire() {
   local max="${TRINKET_MAX_CONCURRENT_UI:-2}"
   local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
-  local slot_name count
+  local slot_name count lock_path lock_pid owner_pid owner_token
+  owner_pid="$$"
+  owner_token="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
   mkdir -p "$active_dir"
   trinket_ui_slot_reap
 
+  # Reserve the count/check/create sequence with an atomic lock file.  A
+  # plain count followed by a write lets concurrent callers exceed the cap.
+  lock_path="$active_dir/.acquire.lock"
+  if [[ -e "$lock_path" ]]; then
+    lock_pid=""
+    read -r lock_pid _ < "$lock_path" || true
+    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+      rm -f "$lock_path"
+    fi
+  fi
+  if ! ( set -o noclobber; printf '%s %s\n' "$owner_pid" "${TRINKET_RUN_ID:-shared}" > "$lock_path" ) 2>/dev/null; then
+    echo "UI/smoke concurrency reservation is busy; retry after the peer finishes." >&2
+    return 1
+  fi
+
   count="$(trinket_ui_slot_count)"
   if (( count >= max )); then
+    rm -f "$lock_path"
     echo "UI/smoke concurrency cap reached ($count/$max active)." >&2
     echo "Another agent or local run is using the simulator lane." >&2
     echo "Do not kill foreign xcodebuild/simctl processes." >&2
@@ -266,9 +301,15 @@ trinket_ui_slot_acquire() {
     return 1
   fi
 
-  slot_name="${TRINKET_RUN_ID:-shared}-$$-$(date -u +%Y%m%dT%H%M%SZ).slot"
+  slot_name="${TRINKET_RUN_ID:-shared}-$owner_pid-${RANDOM:-0}-$(date -u +%Y%m%dT%H%M%SZ).slot"
   TRINKET_UI_SLOT_PATH="$active_dir/$slot_name"
-  printf '%s %s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_UI_SLOT_PATH"
+  if ! printf '%s %s %s\n' "$owner_pid" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_UI_SLOT_PATH"; then
+    rm -f "$lock_path"
+    return 1
+  fi
   export TRINKET_UI_SLOT_PATH
+  TRINKET_UI_SLOT_OWNER_PID="$owner_token"
+  export TRINKET_UI_SLOT_OWNER_PID
+  rm -f "$lock_path"
   trinket_run_env_install_release_trap
 }

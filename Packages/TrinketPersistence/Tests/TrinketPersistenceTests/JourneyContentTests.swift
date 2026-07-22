@@ -38,26 +38,26 @@ struct JourneyContentTests {
 
             let bossEnemyID = try #require(stages[9].encounter.battleEnemyID)
             try #expect(GameContent.enemy(matching: bossEnemyID)?.isBoss == true)
-            try #expect(stages[4].encounter == .shop)
+            try #expect(stages[7].encounter == .shop)
         }
 
         let chapterOne = GameContent.chapters[0]
         try #expect(chapterOne.theme == .forest)
         try #expect(chapterOne.stages[1].encounter.recruitEventID == "recruit-bear")
         try #expect(chapterOne.stages[3].encounter.recruitEventID == "recruit-ranger")
-        try #expect(chapterOne.stages[5].encounter == .mysteryEvent(eventID: ""))
-        try #expect(chapterOne.stages[6].encounter.battleEnemyID == "mud_elemental")
+        try #expect(chapterOne.stages[4].encounter == .mysteryEvent(eventID: ""))
+        try #expect(chapterOne.stages[5].encounter.battleEnemyID == "mud_elemental")
 
         let chapterTwo = GameContent.chapters[1]
         try #expect(chapterTwo.theme == .dungeon)
         try #expect(chapterTwo.stages[1].encounter.recruitEventID == "recruit-rogue")
-        try #expect(chapterTwo.stages[6].encounter.recruitEventID == StageEncounter.randomCompanionRecruitID)
+        try #expect(chapterTwo.stages[5].encounter.recruitEventID == StageEncounter.randomCompanionRecruitID)
 
         let chapterThree = GameContent.chapters[2]
         try #expect(chapterThree.theme == .desert)
         try #expect(chapterThree.stages[1].encounter.recruitEventID == "recruit-phoenix")
         try #expect(chapterThree.stages[2].encounter == .randomBattle)
-        try #expect(chapterThree.stages[8].encounter == .recruit(eventID: ""))
+        try #expect(chapterThree.stages[6].encounter == .recruit(eventID: ""))
 
         let chapterFour = GameContent.chapters[3]
         try #expect(chapterFour.theme == .tundra)
@@ -69,20 +69,20 @@ struct JourneyContentTests {
     @Test func placeholderEncountersMatchTheApprovedChapterLineup() throws {
         let expectedEncounterIDs = [
             [
-                "slime", "recruit-bear", "goblin", "recruit-ranger", "shop",
-                "mystery", "mud_elemental", "mystery", "will_o_wisp", "the_blight_treant"
+                "slime", "recruit-bear", "goblin", "recruit-ranger", "mystery",
+                "mud_elemental", "mystery", "shop", "will_o_wisp", "the_blight_treant"
             ],
             [
-                "skeleton", "recruit-rogue", "mimic", "mystery", "shop",
-                "necromancer", "random-companion", "living_armor", "mystery", "the_iron_bear"
+                "skeleton", "recruit-rogue", "mimic", "mystery", "necromancer",
+                "random-companion", "living_armor", "shop", "mystery", "the_iron_bear"
             ],
             [
-                "fire_elemental", "recruit-phoenix", "battle", "recruit-wizard", "shop",
-                "battle", "mystery", "battle", "recruit", "the_forge_golem"
+                "fire_elemental", "recruit-phoenix", "battle", "recruit-wizard", "battle",
+                "mystery", "recruit", "shop", "battle", "the_forge_golem"
             ],
             [
-                "frost_elemental", "recruit-frost-whelp", "battle", "mystery", "shop",
-                "battle", "recruit", "battle", "mystery", "the_frostwarden"
+                "frost_elemental", "recruit-frost-whelp", "battle", "mystery", "battle",
+                "recruit", "mystery", "shop", "battle", "the_frostwarden"
             ]
         ]
 

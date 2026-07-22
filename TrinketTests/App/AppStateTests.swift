@@ -148,7 +148,7 @@ struct AppStateTests {
             #expect(state.selectedTab == .play)
         case "shop":
             let session = try #require(state.activeShopEncounter)
-            #expect(session.stage.id == "chapter-2-stage-5")
+            #expect(session.stage.id == "chapter-2-stage-8")
             #expect(!(session.offers.isEmpty))
             #expect(state.selectedTab == .play)
         case "mystery":

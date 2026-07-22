@@ -6,6 +6,11 @@ cd "$(dirname "$0")/.."
 # shellcheck source=build-inputs.sh
 source ./Scripts/build-inputs.sh
 
+echo "=== Ensure pinned tools ==="
+./Scripts/ensure-ci-tools.sh
+export PATH="$PWD/.tools:$PATH"
+export TRINKET_REQUIRE_PINNED_TOOLS=1
+
 # Full deploy gate. Runs CI gate checks plus unit and full UI tests.
 # Intended for pre-merge / nightly runs, not the local iteration loop.
 #
@@ -40,6 +45,10 @@ echo "=== Assert generated output is committed ==="
 echo ""
 echo "=== Module boundary check ==="
 ./Scripts/check-module-boundaries.sh
+
+echo ""
+echo "=== Swift Testing migration gate ==="
+./Scripts/check-swift-testing-migration.sh
 
 echo ""
 echo "=== Style check ==="

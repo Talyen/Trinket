@@ -3,6 +3,13 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# The first test invocation owns the build.  Subsequent classes use the same
+# app/UI test bundles even when their mode or target fingerprint differs.
+# Mark those fingerprints only after the first invocation succeeds so
+# test.sh's --no-build freshness guard can recognize this intentional reuse.
+source ./Scripts/run-env.sh
+source ./Scripts/build-stamp.sh
+
 # Fast UI iteration: build once, run a smoke class, then optional exhaustive class.
 #
 # Examples:
@@ -31,6 +38,9 @@ if [[ ${#TARGETS[@]} -eq 0 ]]; then
   exit 1
 fi
 
+trinket_run_env_init
+ITERATION_RESULTS_DIR="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
+
 FIRST_TARGET="${TARGETS[0]}"
 REMAINING=("${TARGETS[@]:1}")
 
@@ -40,6 +50,14 @@ if [[ "$FIRST_TARGET" == Smoke* ]]; then
 else
   ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui "$FIRST_TARGET"
 fi
+
+for target in "${REMAINING[@]}"; do
+  if [[ "$target" == Smoke* ]]; then
+    touch_build_stamp "$ITERATION_RESULTS_DIR" "smoke_$target"
+  else
+    touch_build_stamp "$ITERATION_RESULTS_DIR" "ui_$target"
+  fi
+done
 
 for target in "${REMAINING[@]}"; do
   echo ""

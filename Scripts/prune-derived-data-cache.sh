@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
 # Strip bulky DerivedData intermediates before CI cache save.
 # Keeps Build/ products and module caches needed for test-without-building.
-# Also reaps stale isolated run dirs, dead UI/sim concurrency slots, and
-# orphaned one-off simulators from the legacy "Trinket Run *" naming scheme.
+# Also reaps stale isolated run dirs and dead UI/sim concurrency slots.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 DERIVED_DATA_PATH="${1:-$PWD/.DerivedData}"
 RUN_MAX_AGE_DAYS="${TRINKET_RUN_MAX_AGE_DAYS:-3}"
 SHARED_ROOT="$PWD/.DerivedData"
-# Default on: remove legacy one-off sims. Set TRINKET_PRUNE_ORPHAN_SIMULATORS=0 to skip.
-PRUNE_ORPHAN_SIMS="${TRINKET_PRUNE_ORPHAN_SIMULATORS:-1}"
 
 if [[ ! -d "$DERIVED_DATA_PATH" ]]; then
   echo "No DerivedData at $DERIVED_DATA_PATH; nothing to prune."
   exit 0
 fi
+
+# This script removes cache contents. Resolve and constrain the target before
+# any destructive operation so a mistyped argument cannot point at the repo,
+# home directory, or an unrelated DerivedData tree.
+DERIVED_DATA_PATH="$(cd "$DERIVED_DATA_PATH" && pwd -P)"
+SHARED_ROOT="$(cd "$SHARED_ROOT" && pwd -P)"
+case "$DERIVED_DATA_PATH" in
+  "$SHARED_ROOT"|"$SHARED_ROOT"/*) ;;
+  *)
+    echo "Refusing to prune outside $SHARED_ROOT: $DERIVED_DATA_PATH" >&2
+    exit 2
+    ;;
+esac
 
 echo "=== Pruning DerivedData cache bulk under $DERIVED_DATA_PATH ==="
 
@@ -78,33 +88,7 @@ if [[ -d "$SHARED_ROOT/.active-sim" ]]; then
   trinket_sim_slot_reap
 fi
 
-# Delete legacy one-off simulators and accidental Trinket CI clones.
-# Keeps canonical "Trinket CI" and reusable "Trinket Agent N" pool devices.
-if [[ "$PRUNE_ORPHAN_SIMS" == "1" ]] && command -v xcrun >/dev/null 2>&1; then
-  echo "=== Pruning orphaned Trinket Run / Trinket CI clone simulators ==="
-  python3 - <<'PY'
-import json, re, subprocess
-payload = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"], text=True))
-agent_re = re.compile(r"^Trinket Agent \d+$")
-for devices in payload.get("devices", {}).values():
-    for device in devices:
-        name = device.get("name") or ""
-        udid = device.get("udid")
-        if not udid:
-            continue
-        delete = False
-        if name.startswith("Trinket Run "):
-            delete = True
-        elif name.startswith("Trinket CI ") and name != "Trinket CI":
-            # e.g. "Trinket CI iPhone 17 Pro 2" from old create retries
-            delete = True
-        elif name.startswith("Trinket Agent ") and not agent_re.match(name):
-            delete = True
-        if not delete:
-            continue
-        subprocess.call(["xcrun", "simctl", "delete", udid])
-        print(f"Deleted orphan simulator: {name} ({udid})")
-PY
-fi
+# Simulator lifecycle belongs to ensure-simulator.sh, which validates device
+# names and ownership before reset/delete. Cache pruning never mutates devices.
 
 echo "=== DerivedData prune complete ==="

@@ -91,6 +91,45 @@ bash -c '
   [[ ! -e "${TRINKET_SIM_ACTIVE_DIR}/2.slot" ]]
 ' _ "$REPO"
 
+# --- same-shell subshell cannot release its parent lease ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  source Scripts/run-env.sh
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="subshell-owner" TRINKET_MAX_AGENT_SIMS=1
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  trinket_run_env_init
+  slot="$TRINKET_SIM_SLOT_PATH"
+  ( trinket_sim_slot_release )
+  [[ -e "$slot" ]]
+  trinket_sim_slot_release
+  [[ ! -e "$slot" ]]
+' _ "$REPO"
+
+# --- child UI trap cannot release the parent-held simulator slot ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  source Scripts/run-env.sh
+  export TRINKET_ISOLATE=1
+  export TRINKET_RUN_ID="parent-child-trap"
+  export TRINKET_MAX_AGENT_SIMS=1
+  export TRINKET_MAX_CONCURRENT_UI=2
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  trinket_run_env_init
+  slot="$TRINKET_SIM_SLOT_PATH"
+  bash -c '\''
+    set -euo pipefail
+    cd "$1"
+    source Scripts/run-env.sh
+    trinket_run_env_init
+    trinket_ui_slot_acquire
+  '\'' _ "$1"
+  [[ -e "$slot" ]]
+  trinket_sim_slot_release
+  [[ ! -e "$slot" ]]
+' _ "$REPO"
+
 # --- explicit DERIVED_DATA_PATH + SIM name honored (skip pool) ---
 bash -c '
   set -euo pipefail

@@ -107,6 +107,31 @@ def convert_assertions(text: str) -> str:
     return text
 
 
+def has_unsafe_assertion_syntax(text: str) -> bool:
+    """Return true when an assertion contains a nested call with commas.
+
+    The codemod intentionally handles only simple, balanced argument lists.
+    Refusing a file is safer than partially rewriting an expression such as
+    ``XCTAssertEqual(makeValue(a, b), expected)``.
+    """
+    for match in re.finditer(r"\bXCTAssert\w*\s*\(", text):
+        depth = 1
+        nested_has_comma = False
+        index = match.end()
+        while index < len(text) and depth:
+            character = text[index]
+            if character == "(":
+                depth += 1
+            elif character == ")":
+                depth -= 1
+            elif character == "," and depth >= 2:
+                nested_has_comma = True
+            index += 1
+        if depth != 0 or nested_has_comma:
+            return True
+    return False
+
+
 def convert_class_declaration(text: str, *, main_actor: bool) -> str:
     # Remove @MainActor from class line temporarily
     had_main = "@MainActor" in text.split("final class")[0] if "final class" in text else False
@@ -157,6 +182,10 @@ def convert_setup_teardown(text: str) -> str:
 def convert_test_methods(text: str) -> str:
     def repl(m: re.Match[str]) -> str:
         indent, name, params = m.group(1), m.group(2), m.group(3) or ""
+        if params.strip():
+            # Swift Testing tests do not accept XCTest's parameterized method
+            # signatures. Leave these for a human rather than dropping args.
+            return m.group(0)
         new_name = camel_from_test(name)
         async_part = ""
         if " async " in params or params.strip().startswith("async"):
@@ -185,11 +214,12 @@ def migrate_file(path: Path) -> bool:
     original = path.read_text()
     if "import XCTest" not in original:
         return False
-    if "import Testing" in original and "import XCTest" not in original:
+    if has_unsafe_assertion_syntax(original):
+        print(f"skipped unsafe assertion syntax: {path}")
         return False
 
     text = original
-    text = text.replace("import XCTest\n", "import Testing\n")
+    text = re.sub(r"^[ \t]*import XCTest[ \t]*\r?$", "import Testing", text, flags=re.MULTILINE)
     text = convert_class_declaration(text, main_actor="@MainActor" in original)
     text = convert_setup_teardown(text)
     text = convert_test_methods(text)
@@ -197,6 +227,21 @@ def migrate_file(path: Path) -> bool:
 
     # Drop XCTestCase-only patterns
     text = re.sub(r"\bcontinueAfterFailure\s*=\s*false\n?", "", text)
+
+    # Never write a partially migrated file. Unsupported assertions and
+    # XCTest references require a deliberate human conversion.
+    unsupported = (
+        re.search(r"\bXCT[A-Z]\w*\b", text)
+        or "import XCTest" in text
+        or re.search(r"\bXCTestCase\b", text)
+        or re.search(r"\boverride\s+func\s+(?:setUp|tearDown)(?:WithError)?\b", text)
+        or re.search(r"\bsuper\.(?:setUp|tearDown)(?:WithError)?\s*\(", text)
+        or re.search(r"\bcontinueAfterFailure\b", text)
+        or re.search(r"\bfunc\s+test\w+\([^)]", text)
+    )
+    if unsupported:
+        print(f"skipped unsupported XCTest syntax: {path}")
+        return False
 
     if text != original:
         path.write_text(text)

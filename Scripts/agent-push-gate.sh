@@ -21,8 +21,9 @@ Ensures generated catalogs/assets/project.pbxproj match what CI will regenerate:
   2. ./Scripts/generate.sh [--assets] --force-xcodegen
   3. ./Scripts/assert-generated-output.sh [--assets]
 
-Without --paths, classifies the whole working tree. With --paths, only those
-paths drive whether --assets is included.
+Without --paths, unions working-tree paths with local commits not present on a
+remote (falling back to the latest commit). With --paths, only those paths drive
+whether --assets is included.
 
 Agents: run this after committing the reviewed task scope and before pushing.
 Pre-push also calls this script.
@@ -68,7 +69,43 @@ echo "=== Agent push gate: pinned tools ==="
 export PATH="$PWD/.tools:$PATH"
 export TRINKET_REQUIRE_PINNED_TOOLS=1
 
+trinket_collect_committed_paths() {
+  local path
+  local remote_refs
+
+  TRINKET_CHANGED_PATHS=()
+  remote_refs="$(git for-each-ref --format='%(refname)' refs/remotes)"
+  if [[ -n "$remote_refs" ]]; then
+    while IFS= read -r path; do
+      [[ -n "$path" ]] && TRINKET_CHANGED_PATHS+=("$path")
+    done < <(
+      git log -m --format= --name-only --diff-filter=ACMRD HEAD --not --remotes |
+        sed '/^$/d' |
+        sort -u
+    )
+  fi
+
+  if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 ]]; then
+    while IFS= read -r path; do
+      [[ -n "$path" ]] && TRINKET_CHANGED_PATHS+=("$path")
+    done < <(
+      git diff-tree --root --no-commit-id --name-only -m -r --diff-filter=ACMRD HEAD |
+        sort -u
+    )
+  fi
+}
+
 trinket_collect_paths "$PATH_MODE" "${requested_paths[@]-}"
+if [[ "$PATH_MODE" == "working-tree" ]]; then
+  working_paths=("${TRINKET_CHANGED_PATHS[@]-}")
+  trinket_collect_committed_paths
+  committed_paths=("${TRINKET_CHANGED_PATHS[@]-}")
+  TRINKET_CHANGED_PATHS=()
+  for path in "${working_paths[@]}" "${committed_paths[@]}"; do
+    [[ -n "$path" ]] || continue
+    trinket_add_unique TRINKET_CHANGED_PATHS "$path"
+  done
+fi
 
 report_change_budget() {
   if [[ "$PATH_MODE" == "explicit" ]]; then
@@ -78,9 +115,8 @@ report_change_budget() {
   fi
 }
 
-if [[ ${#TRINKET_CHANGED_PATHS[@]} -eq 0 && "$PATH_MODE" == "working-tree" ]]; then
-  # Clean tree still re-generate + assert so committed outputs match pinned tools.
-  echo "Working tree clean; regenerating to assert commit completeness."
+if [[ "$PATH_MODE" == "working-tree" ]]; then
+  echo "Commit scope: ${#TRINKET_CHANGED_PATHS[@]} path(s) selected for generation routing."
 fi
 if [[ ${#TRINKET_CHANGED_PATHS[@]} -gt 0 ]]; then
   trinket_classify_paths
@@ -95,12 +131,18 @@ fi
 
 if ! command -v xcodegen >/dev/null 2>&1; then
   echo "=== Agent push gate: generate (XcodeGen unavailable; content only) ==="
-  ./Scripts/generate.sh --skip-xcodegen
+  if [[ "$INCLUDE_ASSETS" == true ]]; then
+    ./Scripts/generate.sh --assets --skip-xcodegen
+  else
+    ./Scripts/generate.sh --skip-xcodegen
+  fi
   echo "=== Agent push gate: assert content catalogs ==="
   TRACKED=(
     Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift
@@ -109,9 +151,30 @@ if ! command -v xcodegen >/dev/null 2>&1; then
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift
     Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift
   )
-  if ! git diff --quiet -- "${TRACKED[@]}"; then
+  if [[ "$INCLUDE_ASSETS" == true ]]; then
+    TRACKED+=(
+      Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift
+      Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv
+      Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift
+      Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv
+      Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift
+      Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv
+      Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift
+      Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv
+      Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv
+      Trinket/Assets.xcassets
+      Trinket/Resources/Music
+      Trinket/Resources/SFX
+      Trinket/Resources/Cinematics
+    )
+  fi
+  tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED[@]}")"
+  if [[ -z "$tracked_status" ]]; then
+    :
+  else
     echo "ERROR: Generated content catalogs drifted. Commit the Generated/*.swift updates." >&2
     echo "--- Diff summary ---" >&2
+    printf '%s\n' "$tracked_status" >&2
     git diff --stat -- "${TRACKED[@]}" >&2 || true
     echo "--- First 100 lines of diff ---" >&2
     git diff -- "${TRACKED[@]}" | head -n 100 >&2 || true

@@ -622,9 +622,36 @@ def publicize(text: str) -> str:
                 line = f"{match.group('indent')}public {rest}"
 
         out.append(line)
-        depth = max(0, depth + line.count("{") - line.count("}"))
+        depth = max(0, depth + swift_brace_delta(line))
 
     return "\n".join(out) + "\n"
+
+
+def swift_brace_delta(line: str) -> int:
+    """Count Swift braces while ignoring string literals and line comments."""
+    delta = 0
+    in_string = False
+    escaped = False
+    index = 0
+    while index < len(line):
+        character = line[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+        elif character == '"':
+            in_string = True
+        elif character == "/" and index + 1 < len(line) and line[index + 1] == "/":
+            break
+        elif character == "{":
+            delta += 1
+        elif character == "}":
+            delta -= 1
+        index += 1
+    return delta
 
 
 def write_generated_file(path: Path, body: str) -> None:
@@ -1204,7 +1231,9 @@ def validate_homestead_cost(raw: str, row_id: str) -> None:
             raise ValueError(f"Cost quantity for {row_id} must be an integer")
 
 
-def validate_homestead_prerequisites(raw: str, row_id: str, node_ids: set[str]) -> None:
+def validate_homestead_prerequisites(
+    raw: str, row_id: str, node_tiers: dict[str, set[int]]
+) -> None:
     if not raw.strip():
         return
     for token in raw.split("|"):
@@ -1216,12 +1245,19 @@ def validate_homestead_prerequisites(raw: str, row_id: str, node_ids: set[str]) 
             node_id = node_id.strip()
             if not tier.strip().isdigit():
                 raise ValueError(f"Prerequisite tier for {row_id} must be an integer")
+            tier_value = int(tier.strip())
+            if tier_value <= 0:
+                raise ValueError(f"Prerequisite tier for {row_id} must be positive")
         else:
             node_id = token
         if node_id not in VALID_HOMESTEAD_NODE_IDS:
             raise ValueError(f"Unknown homestead node '{node_id}' in prerequisites for {row_id}")
-        if node_id not in node_ids:
+        if node_id not in node_tiers:
             raise ValueError(f"Prerequisite node '{node_id}' for {row_id} is not defined in manifest")
+        if ":" in token and tier_value not in node_tiers[node_id]:
+            raise ValueError(
+                f"Prerequisite tier {tier_value} for {row_id} is not defined on node '{node_id}'"
+            )
 
 
 def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
@@ -1253,10 +1289,15 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         validate_homestead_cost(row.cost, row_id)
         nodes.setdefault(row.node_id, []).append(row)
 
-    node_ids = set(nodes)
+    node_tiers = {
+        node_id: {int(row.tier) for row in node_rows}
+        for node_id, node_rows in nodes.items()
+    }
     for node_id, node_rows in nodes.items():
         for row in node_rows:
-            validate_homestead_prerequisites(row.prerequisites, f"{node_id}-tier-{row.tier}", node_ids)
+            validate_homestead_prerequisites(
+                row.prerequisites, f"{node_id}-tier-{row.tier}", node_tiers
+            )
 
         titles = {row.title for row in node_rows}
         summaries = {row.summary for row in node_rows}
@@ -1540,7 +1581,11 @@ def generate_ability_inventory() -> None:
 
 
 def main() -> int:
+    if len(sys.argv) > 2:
+        raise SystemExit("Usage: content_codegen.py [validate|shorthand]")
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
+    if command not in {"all", "validate", "shorthand"}:
+        raise SystemExit(f"Unknown command: {command}. Usage: content_codegen.py [validate|shorthand]")
     if command == "validate":
         (
             affix_rows,

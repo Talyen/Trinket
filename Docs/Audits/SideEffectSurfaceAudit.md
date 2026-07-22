@@ -16,7 +16,7 @@ Confirm unexpected effect ownership and fix a bounded set of high-value violatio
 | Effect | Allowed locations |
 |--------|-------------------|
 | Disk / encoder I/O | `Packages/TrinketPersistence/`, `Packages/TrinketTestSupport/` temp-dir harnesses |
-| `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` |
+| `UserDefaults` | Options store + legacy shell-session migration — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
 | Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Trinket/BattleShell/` player cache + battle cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into `Trinket/Audio/` |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
@@ -28,7 +28,7 @@ Confirm unexpected effect ownership and fix a bounded set of high-value violatio
 ## Domain rules
 
 - **Battle:** no unseeded `random` / `UUID()` / `Date()` in rule code; handlers take injected RNG; content randomness accepts `RandomNumberGenerator`.
-- **Persistence:** disk/CloudKit writes route through `PlayerSaveStore` / `TrinketPersistence`; domain stores mutate memory then delegate.
+- **Persistence:** player-save disk/CloudKit writes route through `PlayerSaveStore` / `TrinketPersistence`; shell-session writes stay in `PlayerShellSessionStore`; domain stores mutate memory then delegate.
 - **AV triage:** audio types only in `Trinket/Audio/`; catalog-backed Ultimate cinematic `AVPlayer` in BattleShell is allowlisted.
 - **CloudKit:** OS-managed SwiftData sync may not import `CloudKit` directly — absence of `CKRecord` is not a failure if configured via `ModelConfiguration`.
 - **UI:** decorative randomness must not re-roll on every `body`; per-battle seeds generated at orchestration (`AppState.startBattle`), not buried in defaults.

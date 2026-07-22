@@ -67,8 +67,8 @@ final class BattleFlowUITests: TrinketUITestCase {
         combatantDetail.assertLoaded(for: "Knight")
     }
 
-    /// Victory remains focused on Battle; continue and reward item detail are reachable.
-    func testBattleVictorySummaryAndPostVictoryMenu() {
+    /// Victory remains focused on rewards; continue and reward item detail are reachable.
+    func testBattleVictorySummaryAndPostVictoryCTA() {
         launchApp(arguments: TestLaunchArg.allForBattleVictory())
 
         assertExists(battle.victory, timeout: Self.defaultTimeout)
@@ -85,8 +85,8 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
         XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden until victory is completed")
-        battle.openActions()
-        assertButtonExists(AccessibilityID.Battle.combatLog)
+        XCTAssertFalse(battle.actionsMenu.exists, "Battle actions toolbar should be hidden during victory")
+        XCTAssertFalse(battle.combatLogAction.exists, "Combat log should be unavailable during victory")
         XCTAssertFalse(battle.retreatAction.exists, "Retreat should be unavailable after victory")
     }
 

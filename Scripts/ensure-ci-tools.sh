@@ -10,16 +10,49 @@ source "$ROOT/Scripts/tool-versions.env"
 TOOLS_DIR="$ROOT/.tools"
 mkdir -p "$TOOLS_DIR"
 
+sha256_file() {
+  shasum -a 256 "$1" | awk '{print $1}'
+}
+
+verify_archive() {
+  local archive="$1" expected="$2" label="$3" actual
+  actual="$(sha256_file "$archive")"
+  if [[ "$actual" != "$expected" ]]; then
+    echo "$label checksum mismatch: expected $expected, found $actual" >&2
+    return 1
+  fi
+}
+
+checksum_for_swiftformat() {
+  case "$os-$arch" in
+    darwin-*) printf '%s' "$SWIFTFORMAT_DARWIN_SHA256" ;;
+    linux-x86_64|linux-amd64) printf '%s' "$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
+    linux-aarch64|linux-arm64) printf '%s' "$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
+    *) return 1 ;;
+  esac
+}
+
+checksum_for_swiftlint() {
+  case "$os-$arch" in
+    darwin-*) printf '%s' "$SWIFTLINT_DARWIN_SHA256" ;;
+    linux-x86_64|linux-amd64) printf '%s' "$SWIFTLINT_LINUX_X86_64_SHA256" ;;
+    linux-aarch64|linux-arm64) printf '%s' "$SWIFTLINT_LINUX_ARM64_SHA256" ;;
+    *) return 1 ;;
+  esac
+}
+
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 
 download_unzip() {
   local url="$1"
   local dest="$2"
+  local expected="$3"
   local archive tmpdir
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/tool.zip"
   curl -fsSL "$url" -o "$archive"
+  verify_archive "$archive" "$expected" "Downloaded archive" || { rm -rf "$tmpdir"; return 1; }
   unzip -qo "$archive" -d "$tmpdir"
   # Copy extracted tree into dest for caller inspection.
   mkdir -p "$dest"
@@ -29,7 +62,13 @@ download_unzip() {
 
 install_swiftformat() {
   local bin="$TOOLS_DIR/swiftformat"
-  if [[ -x "$bin" ]] && [[ "$("$bin" --version 2>/dev/null || true)" == "$SWIFTFORMAT_VERSION" ]]; then
+  local marker="$TOOLS_DIR/.swiftformat.sha256"
+  local checksum
+  checksum="$(checksum_for_swiftformat)"
+  if [[ -x "$bin" && -f "$marker" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
+    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
+    && [[ "$($bin --version 2>/dev/null || true)" == "$SWIFTFORMAT_VERSION" ]]; then
     return 0
   fi
 
@@ -39,11 +78,12 @@ install_swiftformat() {
   case "$os" in
     darwin)
       archive="swiftformat.zip"
+      checksum="$SWIFTFORMAT_DARWIN_SHA256"
       ;;
     linux)
       case "$arch" in
-        x86_64 | amd64) archive="swiftformat_linux.zip" ;;
-        aarch64 | arm64) archive="swiftformat_linux_aarch64.zip" ;;
+        x86_64 | amd64) archive="swiftformat_linux.zip"; checksum="$SWIFTFORMAT_LINUX_X86_64_SHA256" ;;
+        aarch64 | arm64) archive="swiftformat_linux_aarch64.zip"; checksum="$SWIFTFORMAT_LINUX_ARM64_SHA256" ;;
         *)
           echo "Unsupported architecture for SwiftFormat: $arch" >&2
           exit 1
@@ -58,17 +98,19 @@ install_swiftformat() {
 
   url="https://github.com/nicklockwood/SwiftFormat/releases/download/${SWIFTFORMAT_VERSION}/${archive}"
   echo "Installing SwiftFormat ${SWIFTFORMAT_VERSION} from ${url}..."
-  download_unzip "$url" "$extract"
+  download_unzip "$url" "$extract" "$checksum"
 
   if [[ -f "$extract/swiftformat_linux" ]]; then
-    install -m 755 "$extract/swiftformat_linux" "$bin"
+    install -m 755 "$extract/swiftformat_linux" "$bin.tmp"
   elif [[ -f "$extract/swiftformat" ]]; then
-    install -m 755 "$extract/swiftformat" "$bin"
+    install -m 755 "$extract/swiftformat" "$bin.tmp"
   else
     echo "SwiftFormat binary not found in release archive." >&2
     rm -rf "$extract"
     exit 1
   fi
+  mv -f "$bin.tmp" "$bin"
+  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
   rm -rf "$extract"
 
   local actual
@@ -81,7 +123,13 @@ install_swiftformat() {
 
 install_swiftlint() {
   local bin="$TOOLS_DIR/swiftlint"
-  if [[ -x "$bin" ]] && [[ "$("$bin" version 2>/dev/null || true)" == "$SWIFTLINT_VERSION" ]]; then
+  local marker="$TOOLS_DIR/.swiftlint.sha256"
+  local checksum
+  checksum="$(checksum_for_swiftlint)"
+  if [[ -x "$bin" && -f "$marker" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$checksum" ]] \
+    && [[ "$(awk -F= '$1 == "binary" { print $2; exit }' "$marker")" == "$(sha256_file "$bin")" ]] \
+    && [[ "$($bin version 2>/dev/null || true)" == "$SWIFTLINT_VERSION" ]]; then
     return 0
   fi
 
@@ -91,11 +139,12 @@ install_swiftlint() {
   case "$os" in
     darwin)
       archive="portable_swiftlint.zip"
+      checksum="$SWIFTLINT_DARWIN_SHA256"
       ;;
     linux)
       case "$arch" in
-        x86_64 | amd64) archive="swiftlint_linux_amd64.zip" ;;
-        aarch64 | arm64) archive="swiftlint_linux_arm64.zip" ;;
+        x86_64 | amd64) archive="swiftlint_linux_amd64.zip"; checksum="$SWIFTLINT_LINUX_X86_64_SHA256" ;;
+        aarch64 | arm64) archive="swiftlint_linux_arm64.zip"; checksum="$SWIFTLINT_LINUX_ARM64_SHA256" ;;
         *)
           echo "Unsupported architecture for SwiftLint: $arch" >&2
           exit 1
@@ -110,7 +159,7 @@ install_swiftlint() {
 
   url="https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/${archive}"
   echo "Installing SwiftLint ${SWIFTLINT_VERSION} from ${url}..."
-  download_unzip "$url" "$extract"
+  download_unzip "$url" "$extract" "$checksum"
 
   candidate=""
   if [[ -f "$extract/swiftlint-static" ]]; then
@@ -125,7 +174,9 @@ install_swiftlint() {
     rm -rf "$extract"
     exit 1
   fi
-  install -m 755 "$candidate" "$bin"
+  install -m 755 "$candidate" "$bin.tmp"
+  mv -f "$bin.tmp" "$bin"
+  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
   rm -rf "$extract"
 
   local actual

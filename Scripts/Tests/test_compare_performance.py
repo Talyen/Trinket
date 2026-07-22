@@ -90,6 +90,43 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertIn("1% low 58.80 FPS below 59.00", summary)
         self.assertIn("severe stalls 1 above zero", summary)
 
+    def test_configured_goals_and_metric_domains_are_enforced(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            baseline = root / "baseline.json"
+            results = root / "results.json"
+            summary = root / "summary.md"
+            baseline.write_text(json.dumps({
+                "goals": {
+                    "minimumAverageFPS": 55,
+                    "minimumOnePercentLowFPS": 54,
+                    "maximumSevereStallCount": 2,
+                },
+                "scenarios": ["navigation"],
+            }))
+            report = self.report(
+                averageFPS=54.9,
+                onePercentLowFPS=53.9,
+                missedDeadlineCount=-1,
+                missedDeadlineRatio=2,
+                severeStallCount=3,
+            )
+            results.write_text(json.dumps({"reports": [report]}))
+            argv = [
+                str(SCRIPT),
+                "--baseline", str(baseline),
+                "--results", str(results),
+                "--summary", str(summary),
+            ]
+            with patch.object(sys, "argv", argv):
+                status = compare_performance.main()
+            rendered = summary.read_text()
+            self.assertEqual(status, 1)
+            self.assertIn("below 55.00", rendered)
+            self.assertIn("must be a non-negative integer", rendered)
+            self.assertIn("must be between 0 and 1", rendered)
+            self.assertIn("above 2", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

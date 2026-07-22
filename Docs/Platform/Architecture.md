@@ -8,7 +8,7 @@ High-level structure for Trinket.
 Trinket/                    App target — shell, features, presentation glue
   App/                      Entry, environment, tab routing
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  BattleShell/              ActiveBattleConfiguration, EncounterLevelResolver, victory orchestration
+  BattleShell/              ActiveBattleConfiguration, victory orchestration
   State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
@@ -20,7 +20,7 @@ Trinket/                    App target — shell, features, presentation glue
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
-  TrinketContent/           Catalogs + Generated/ content, art, music, SFX, and cinematic catalogs
+  TrinketContent/           Catalogs + Generated/ content, encounter-level resolution, art, music, SFX, and cinematic catalogs
   BattleEngine/             Card combat rules, effect handlers, decks/hand
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
@@ -142,7 +142,7 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, aspects, labyrinth). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, aspects, and labyrinth records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and mode progress.
 - **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` + `PlayerSaveStoreConfiguration` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
-- **Options/preferences:** `OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Session keys (tab/battle restoration) remain on the shell session store. The app is always dark mode (no appearance preference).
+- **Options/preferences:** `OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (selected tab, map scroll, and last Play mode) remains on the local `PlayerShellSessionStore`; legacy battle-resume keys are discarded. The app is always dark mode (no appearance preference).
 - **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements. Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`
@@ -176,7 +176,7 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated raster host.
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
   `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
-- Package tests run via `./Scripts/test.sh unit` in addition to `TrinketTests`
+- App tests run via `./Scripts/test.sh unit`; package tests run via `./Scripts/test-package.sh <Package>` in addition to `TrinketTests`
 
 ### Standing platform rules
 

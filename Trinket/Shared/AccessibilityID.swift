@@ -148,7 +148,7 @@ enum AccessibilityID {
     enum Mystery {
         static let encounterTitle = "Mystery Encounter Title"
         static let encounterNarrative = "Mystery Encounter Narrative"
-        static let welcomeButton = "Mystery Welcome Button"
+        static let rewardTitle = "Mystery Reward Title"
         static let unlockEyebrow = "Mystery Unlock Eyebrow"
         static let unlockName = "Mystery Unlock Name"
         static let unlockSubtitle = "Mystery Unlock Subtitle"
@@ -158,6 +158,10 @@ enum AccessibilityID {
 
         static func unlockCard(name: String) -> String {
             "\(name) unlock card"
+        }
+
+        static func choiceButton(choiceID: String) -> String {
+            "Mystery Choice \(choiceID)"
         }
 
         static func chooseItemCard(itemID: String) -> String {

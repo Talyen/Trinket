@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 manifest="ArtManifest/curated-assets.tsv"
 asset_catalog="Trinket/Assets.xcassets"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
+content_dir="Packages/TrinketContent/Sources/TrinketContent/Content"
 generated_swift="$generated_dir/ArtCatalog.generated.swift"
 source_hashes_file="$generated_dir/ArtSourceHashes.generated.tsv"
 
@@ -49,7 +50,25 @@ backgrounds_temp=$(mktemp)
 encounters_temp=$(mktemp)
 resources_temp=$(mktemp)
 active_assets_temp=$(mktemp)
+seen_ids_temp=$(mktemp)
+seen_assets_temp=$(mktemp)
 generated_temp=$(mktemp)
+cleanup() {
+  rm -f "$previous_hashes_file" "$source_hashes_temp" "$combatants_temp" "$abilities_temp" "$items_temp" \
+    "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" \
+    "$seen_ids_temp" "$seen_assets_temp" "$generated_temp"
+  for backup in "$asset_catalog"/*.imageset.old.$$; do
+    [[ -d "$backup" ]] || continue
+    imageset="${backup%.old.$$}"
+    if [[ ! -e "$imageset" ]]; then
+      mv -f "$backup" "$imageset"
+    else
+      rm -rf "$backup"
+    fi
+  done
+  rm -rf "$asset_catalog"/*.imageset.tmp.$$ 2>/dev/null || true
+}
+trap cleanup EXIT
 processed_count=0
 full_count=0
 thumb_count=0
@@ -71,10 +90,15 @@ write_imageset() {
   local source_file="$4"
   local dimension="$5"
 
-  rm -rf "$imageset"
-  mkdir -p "$imageset"
+  local staged backup
+  staged="${imageset}.tmp.$$"
+  backup="${imageset}.old.$$"
+  rm -rf "$staged" "$backup"
+  mkdir -p "$staged"
+  output_file="$staged/$(basename "$output_file")"
   heic_from_source "$source_file" "$output_file" "$dimension"
-  cat > "$imageset/Contents.json" <<JSON
+  [[ -s "$output_file" ]] || { rm -rf "$staged"; return 1; }
+  cat > "$staged/Contents.json" <<JSON
 {
   "images" : [
     {
@@ -88,6 +112,15 @@ write_imageset() {
   }
 }
 JSON
+  if [[ -e "$imageset" ]]; then
+    mv "$imageset" "$backup"
+  fi
+  if ! mv "$staged" "$imageset"; then
+    [[ -e "$backup" ]] && mv "$backup" "$imageset"
+    rm -rf "$staged"
+    return 1
+  fi
+  rm -rf "$backup"
 }
 
 # Catalog usage drives which variants we ship:
@@ -121,15 +154,55 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     exit 1
   fi
 
+  if grep -Fqx "$id" "$seen_ids_temp"; then
+    echo "Duplicate art id '$id'." >&2
+    exit 1
+  fi
+  printf '%s\n' "$id" >> "$seen_ids_temp"
+
   if [[ ! "$asset_name" =~ ^[A-Za-z0-9_]+$ ]]; then
     echo "Asset name '$asset_name' should use only letters, numbers, and underscores." >&2
     exit 1
   fi
-
-  if [[ ! "$focal_x" =~ ^[0-9]+([.][0-9]+)?$ || ! "$focal_y" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-    echo "Focal values for '$id' must be numeric." >&2
+  if grep -Fqx "$asset_name" "$seen_assets_temp"; then
+    echo "Duplicate art asset name '$asset_name'." >&2
     exit 1
   fi
+  printf '%s\n' "$asset_name" >> "$seen_assets_temp"
+
+  if [[ ! "$focal_x" =~ ^[0-9]+([.][0-9]+)?$ || ! "$focal_y" =~ ^[0-9]+([.][0-9]+)?$ ]] \
+    || ! awk -v x="$focal_x" -v y="$focal_y" 'BEGIN { exit !(x >= 0 && x <= 1 && y >= 0 && y <= 1) }'; then
+    echo "Focal values for '$id' must be numeric values between 0 and 1." >&2
+    exit 1
+  fi
+
+  # Art IDs must be backed by the content owner that consumes them. This
+  # catches stale manifest rows before conversion creates orphaned assets.
+  case "$kind" in
+    combatant)
+      if ! rg -Fq "id: \"$id\"" "$generated_dir/GameContentRoster.generated.swift" \
+        && ! rg -Fq "id: \"$id\"" "$generated_dir/GameContentEnemies.generated.swift"; then
+        echo "Combatant art id '$id' is not present in the generated roster or enemy catalog." >&2
+        exit 1
+      fi
+      ;;
+    ability)
+      rg -Fq "id: \"$id\"" "$content_dir/AbilityCatalogBasic.swift" \
+        "$content_dir/AbilityCatalogSkill.swift" \
+        "$content_dir/AbilityCatalogUltimate.swift" || {
+        echo "Ability art id '$id' is not present in an authored ability catalog." >&2
+        exit 1
+      }
+      ;;
+    item)
+      base_id="${id%-astral}"
+      base_id="${base_id%-basic}"
+      rg -Fq "ItemBaseType(id: \"$base_id\"" "$generated_dir/GameContentItemBases.generated.swift" || {
+        echo "Item art id '$id' has no generated item base '$base_id'." >&2
+        exit 1
+      }
+      ;;
+  esac
 
   want_full=false
   want_thumb=false
@@ -411,6 +484,6 @@ for dir in "$asset_catalog"/*/*.imageset "$asset_catalog"/*.imageset; do
 done
 shopt -u nullglob
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" "$previous_hashes_file" "$source_hashes_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp" "$seen_ids_temp" "$seen_assets_temp" "$previous_hashes_file" "$source_hashes_temp"
 
 echo "Prepared $processed_count curated art asset(s) (converted $full_count full / $thumb_count thumb this run; kind-aware variants)."
