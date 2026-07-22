@@ -41,8 +41,10 @@ struct BattleView: View {
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    battleActionsMenu(canRetreat: battleSession.canRetreat)
+                if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        battleActionsMenu(canRetreat: battleSession.canRetreat)
+                    }
                 }
             }
             .alert(item: $persistFailureMessage) { message in
