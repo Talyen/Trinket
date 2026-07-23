@@ -103,7 +103,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.journey.completedStageIDs == chapter1StageIDs)
         try #expect(store.journey.activeChapterID == "chapter-2")
         try #expect(store.journey.activeStageID == "chapter-2-stage-1")
-        try #expect(store.aspects == .freshStart)
+        try #expect(store.spires == .freshStart)
         try #expect(store.labyrinth == .freshStart)
         try #expect(store.inventory == .testSeed)
         for resource in HomesteadResource.allCases where resource != .gold {
@@ -116,7 +116,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.roster.gold == PlayerRosterState.maxGoldBalance)
         try #expect(reloaded.journey.activeChapterID == "chapter-2")
         try #expect(reloaded.journey.activeStageID == "chapter-2-stage-1")
-        try #expect(reloaded.aspects == .freshStart)
+        try #expect(reloaded.spires == .freshStart)
         for resource in HomesteadResource.allCases where resource != .gold {
             try #expect(reloaded.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
         }

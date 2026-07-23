@@ -9,14 +9,14 @@ enum LaunchPresentation: Equatable {
 /// Deep-link / return target on the Play tab (launch args or post-battle).
 ///
 /// The route is intentionally flat and `PlayView` expands it into a
-/// hierarchical path (`Explore → Aspects → Climb`, for example). Keeping the
+/// hierarchical path (`Explore → Spires → Climb`, for example). Keeping the
 /// value Hashable makes it safe to use with `NavigationStack(path:)`.
 enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     case campaign
     case explore
-    case aspectsHub
+    case spiresHub
     case labyrinthMap
-    case aspectClimb(AspectID)
+    case spireClimb(SpireID)
 
     var id: String {
         switch self {
@@ -24,12 +24,12 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             "campaign"
         case .explore:
             "explore"
-        case .aspectsHub:
-            "aspectsHub"
+        case .spiresHub:
+            "spiresHub"
         case .labyrinthMap:
             "labyrinthMap"
-        case let .aspectClimb(aspectID):
-            "aspectClimb-\(aspectID.rawValue)"
+        case let .spireClimb(spireID):
+            "spireClimb-\(spireID.rawValue)"
         }
     }
 
@@ -41,8 +41,8 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
             nil
         case .journey:
             .campaign
-        case let .aspect(aspectID, _):
-            .aspectClimb(aspectID)
+        case let .spire(spireID, _):
+            .spireClimb(spireID)
         case .labyrinth:
             .labyrinthMap
         }

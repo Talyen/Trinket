@@ -10,7 +10,6 @@ public extension CombatTraitTriggers {
         profile.restoreHealthAlsoHealHero += restoreHealthAlsoHealHero
         profile.controlResistancePercent += controlResistancePercent
         profile.dodgeChanceBonus += dodgeChanceBonus
-        profile.physicalDodgeChanceBonus += physicalDodgeChanceBonus
         profile.ambushBonusDamage += ambushBonusDamage
         profile.regenerationAmount += regenerationAmount
         profile.regenerationIntervalTurns = max(profile.regenerationIntervalTurns, regenerationIntervalTurns)
@@ -37,9 +36,8 @@ public extension CombatTraitTriggers {
         profile.onBleedApplyPoison += onBleedApplyPoison
         profile.onBurnApplyPoison += onBurnApplyPoison
         profile.onBleedDealBurnDamage += onBleedDealBurnDamage
-        profile.everyNthBleedApplyCount = max(profile.everyNthBleedApplyCount, everyNthBleedApplyCount)
-        profile.everyNthBleedApplyPoisonPotency += everyNthBleedApplyPoisonPotency
-        profile.freezeDamageWhileFrozenBonus += freezeDamageWhileFrozenBonus
+        profile.poisonDecayIncreaseChance += poisonDecayIncreaseChance
+        profile.freezeDamageWhileBurningBonus += freezeDamageWhileBurningBonus
         profile.damageWhileTargetFrozenBonus += damageWhileTargetFrozenBonus
         profile.damageBelowHealthPercentThreshold = max(
             profile.damageBelowHealthPercentThreshold,
@@ -50,18 +48,14 @@ public extension CombatTraitTriggers {
         }
         profile.damageBelowHealthPercentBonus += damageBelowHealthPercentBonus
         profile.damageAfterDodgeBonus += damageAfterDodgeBonus
-        profile.refreshBleedOnReapply = profile.refreshBleedOnReapply || refreshBleedOnReapply
         profile.blockBrokenBlockFlat += blockBrokenBlockFlat
-        profile.firstHitApplyMarked = profile.firstHitApplyMarked || firstHitApplyMarked
-        profile.companionHealSharePercent += companionHealSharePercent
+        profile.companionLeechSharePercent += companionLeechSharePercent
         profile.onceBelowHealthPercentThreshold = max(
             profile.onceBelowHealthPercentThreshold,
             onceBelowHealthPercentThreshold
         )
         profile.onceBelowHealthPercentHeal += onceBelowHealthPercentHeal
-        profile.blockPerActionWhileDeathsDoor += blockPerActionWhileDeathsDoor
-        profile.everyNthBurnTurnCount = max(profile.everyNthBurnTurnCount, everyNthBurnTurnCount)
-        profile.everyNthBurnTurnFreezeDamage += everyNthBurnTurnFreezeDamage
+        profile.blockOnDeathsDoor += blockOnDeathsDoor
         profile.spendManaBlockFlat += spendManaBlockFlat
         profile.holyDamageBlockFlat += holyDamageBlockFlat
         profile.holyDamageCleanseCount += holyDamageCleanseCount
@@ -73,6 +67,12 @@ public extension CombatTraitTriggers {
         profile.enemyStunnedApplyMarked = profile.enemyStunnedApplyMarked || enemyStunnedApplyMarked
         profile.dodgeBlockFlat += dodgeBlockFlat
         profile.holyDamagePurgeCount += holyDamagePurgeCount
+        profile.blockPerTurn += blockPerTurn
+        profile.firstHitDoubleDamage = profile.firstHitDoubleDamage || firstHitDoubleDamage
+        profile.leechChancePercent += leechChancePercent
+        profile.onHitAttackerBurn += onHitAttackerBurn
+        profile.turnFreezeDamageAllEnemies += turnFreezeDamageAllEnemies
+        profile.damageIncreasesEveryOtherTurn = profile.damageIncreasesEveryOtherTurn || damageIncreasesEveryOtherTurn
     }
 }
 

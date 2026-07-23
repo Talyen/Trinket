@@ -11,6 +11,7 @@ struct MysteryEncounterView: View {
     @State private var selectedDetail: CombatantDetailContext?
     @State private var artAppeared = false
     @State private var narrativeAppeared = false
+    @State private var selectedChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
     @State private var unlockFeedbackTrigger = 0
     @State private var unlockRevealPhase: UnlockRevealPhase = .hidden
@@ -115,6 +116,19 @@ struct MysteryEncounterView: View {
             ForEach(session.event.choices, id: \.id) { choice in
                 mysteryChoiceButton(choice)
             }
+
+            Button {
+                guard let selectedChoiceID else { return }
+                _ = appState.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
+            } label: {
+                Text("Confirm")
+                    .frame(maxWidth: .infinity)
+            }
+            .trinketPrimaryActionButton(
+                accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton
+            )
+            .disabled(selectedChoiceID == nil || session.isResolvingChoice)
+            .padding(.top, TrinketDesign.Metrics.smallSpacing)
         }
         .trinketSensoryFeedback(
             .selection,
@@ -124,12 +138,17 @@ struct MysteryEncounterView: View {
     }
 
     private func mysteryChoiceButton(_ choice: MysteryChoice) -> some View {
-        Button {
+        let isSelected = selectedChoiceID == choice.id
+
+        return Button {
+            guard !isSelected else { return }
+            selectedChoiceID = choice.id
             choiceFeedbackTrigger += 1
-            _ = appState.resolveActiveMysteryChoice(choiceID: choice.id)
         } label: {
             HStack(alignment: .center, spacing: TrinketDesign.Metrics.largeSpacing) {
-                choiceThumbnailTile(choice)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(isSelected ? TrinketDesign.Colors.accent : .secondary)
 
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
                     Text(choice.label)
@@ -140,10 +159,6 @@ struct MysteryEncounterView: View {
                     mysteryRewards(choice)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-                Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.secondary)
             }
             .padding(TrinketDesign.Metrics.largeSpacing)
             .contentShape(Rectangle())
@@ -154,142 +169,108 @@ struct MysteryEncounterView: View {
         .disabled(session.isResolvingChoice)
     }
 
-    @ViewBuilder
-    private func choiceThumbnailTile(_ choice: MysteryChoice) -> some View {
-        if let itemEffect = choice.effects.compactMap({ effect -> (String, [String])? in
-            if case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs) = effect {
-                return (baseTypeID, guaranteedAffixIDs)
-            }
-            return nil
-        }).first, let item = previewItem(forBaseTypeID: itemEffect.0, guaranteedAffixIDs: itemEffect.1) {
-            ItemArtwork(item: item, variant: .thumbnail)
-                .frame(width: 44, height: 44)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-        } else if let unlockEffect = choice.effects.compactMap({ effect -> String? in
-            if case let .unlockCombatant(combatantID) = effect {
-                return combatantID
-            }
-            return nil
-        }).first, let combatant = revealCombatant(id: unlockEffect) {
-            CombatantArtwork(combatant: combatant, variant: .card)
-                .frame(width: 44, height: 44)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-        }
-    }
-
-    private func previewItem(forBaseTypeID baseTypeID: String, guaranteedAffixIDs: [String]) -> InventoryItem? {
-        guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseTypeID }) else { return nil }
-        var rng = SeededRandomNumberGenerator(seed: GameContent.stableSeed(for: "preview-\(baseTypeID)"))
-        return ItemGenerator().generate(
-            id: "preview-\(baseTypeID)",
-            templateID: "\(baseTypeID)-basic",
-            baseType: baseType,
-            rarity: .basic,
-            guaranteedAffixIDs: guaranteedAffixIDs,
-            using: &rng
-        )
-    }
-
     private func mysteryRewards(_ choice: MysteryChoice) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
-                    mysteryRewardPill(for: effect)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
-                    mysteryRewardPill(for: effect)
-                }
+        HStack(alignment: .top, spacing: TrinketDesign.Metrics.mediumSpacing) {
+            ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
+                mysteryReward(for: effect)
             }
         }
     }
 
     @ViewBuilder
-    private func mysteryRewardPill(for effect: MysteryEffect) -> some View {
+    private func mysteryReward(for effect: MysteryEffect) -> some View {
         switch effect {
         case let .gainGold(amount):
-            rewardPillBadge(
-                text: "+\(appState.homestead.effects.adjustedGold(amount)) Gold",
+            rewardSummary(
+                title: "Gold",
+                value: "\(appState.homestead.effects.adjustedGold(amount))",
                 resource: .gold,
                 tint: HomesteadResource.gold.tint
             )
 
         case let .gainMaterial(resource, amount):
-            rewardPillBadge(
-                text: "+\(amount) \(resource.displayName)",
+            rewardSummary(
+                title: resource.displayName,
+                value: "\(amount)",
                 resource: resource,
                 tint: resource.tint
             )
 
         case let .gainExperience(amount):
-            rewardPillBadge(
-                text: "+\(amount) XP",
+            rewardSummary(
+                title: "Experience",
+                value: "\(amount)",
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
             )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-            rewardPillBadge(
-                text: generatedItemRewardText(
+            rewardSummary(
+                title: generatedItemRewardText(
                     baseTypeID: baseTypeID,
                     guaranteedAffixIDs: guaranteedAffixIDs
                 ),
+                value: "1",
                 systemIcon: "shippingbox.fill",
                 tint: TrinketDesign.Colors.encounterEvent
             )
 
         case .gainRandomItem:
-            rewardPillBadge(
-                text: "1 Random Item",
+            rewardSummary(
+                title: "Random Item",
+                value: "1",
                 systemIcon: "shippingbox.fill",
                 tint: TrinketDesign.Colors.encounterEvent
             )
 
         case .chooseItem:
-            rewardPillBadge(
-                text: "Choose 1 of \(MysteryEffectApplier.chooseItemCandidateCount) Items",
+            rewardSummary(
+                title: "Choose Item",
+                value: "1 of \(MysteryEffectApplier.chooseItemCandidateCount)",
                 systemIcon: "square.grid.2x2.fill",
                 tint: TrinketDesign.Colors.encounterEvent
             )
 
         case let .unlockCombatant(combatantID):
-            rewardPillBadge(
-                text: "Unlock \(combatantName(id: combatantID))",
+            rewardSummary(
+                title: combatantName(id: combatantID),
+                value: "Unlock",
                 systemIcon: "person.crop.circle.badge.plus",
                 tint: TrinketDesign.Colors.accent
             )
         }
     }
 
-    private func rewardPillBadge(
-        text: String,
+    private func rewardSummary(
+        title: String,
+        value: String,
         resource: HomesteadResource? = nil,
         systemIcon: String? = nil,
         tint: Color
     ) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             if let resource {
                 HomesteadResourceArtwork(resource: resource)
-                    .frame(width: 16, height: 16)
+                    .frame(width: 36, height: 36)
             } else if let systemIcon {
                 Image(systemName: systemIcon)
-                    .font(.caption.weight(.bold))
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
+                    .frame(width: 36, height: 36)
             }
-            Text(text)
-                .trinketTypography(.badge)
-                .foregroundStyle(.primary)
+
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+                Text(title)
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.76)
+
+                Text(value)
+                    .trinketTypography(.statValue)
+            }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
-        .background(tint.opacity(0.12), in: Capsule())
-        .overlay {
-            Capsule().strokeBorder(tint.opacity(0.3), lineWidth: 1)
-        }
+        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
     }
 
     private func generatedItemRewardText(

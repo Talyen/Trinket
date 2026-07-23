@@ -16,6 +16,8 @@ public enum BattleConditionEvaluator {
             return hasDebuffKeyword(.bleed, on: enemy, in: context)
         case .enemyBurning:
             return hasDebuffKeyword(.burn, on: enemy, in: context)
+        case .enemyNotBurning:
+            return !hasDebuffKeyword(.burn, on: enemy, in: context)
         case .enemyPoisoned:
             return hasDebuffKeyword(.poison, on: enemy, in: context)
         case .enemyFrozen:

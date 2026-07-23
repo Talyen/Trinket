@@ -39,6 +39,7 @@ public enum BattleLoot {
         itemID: String,
         keywordBias: Set<Keyword> = [],
         goldPercent: Int = 0,
+        astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> BattleLootPackage {
         let range = quantityRange(forLevel: encounterLevel)
@@ -56,7 +57,17 @@ public enum BattleLoot {
             using: &randomNumberGenerator
         )
 
-        let rarity: Rarity = enemyIsBoss ? .astral : .basic
+        let rarity: Rarity = if enemyIsBoss {
+            .astral
+        } else if astralChanceBonusPercent > 0 {
+            ItemRarityRoll.roll(
+                baseAstralChancePercent: 0,
+                astralChanceBonusPercent: astralChanceBonusPercent,
+                using: &randomNumberGenerator
+            )
+        } else {
+            .basic
+        }
         let bases = GameContent.itemBaseTypes
         let baseType: ItemBaseType
         if keywordBias.isEmpty {
@@ -84,7 +95,8 @@ public enum BattleLoot {
     public static func resolveJourney(
         stage: Stage,
         encounterLevel: Int,
-        enemyIsBoss: Bool
+        enemyIsBoss: Bool,
+        astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.stableSeed(for: "battle-loot-journey-\(stage.id)")
@@ -93,27 +105,30 @@ public enum BattleLoot {
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
             itemID: "\(stage.id)-loot",
+            astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
     }
 
-    /// Aspect floor loot; optional keyword bias from the Aspect.
-    public static func resolveAspect(
-        floor: AspectFloor,
+    /// Spire floor loot; optional keyword bias from the Spire.
+    public static func resolveSpire(
+        floor: SpireFloor,
         encounterLevel: Int,
         enemyIsBoss: Bool,
-        keywordBias: Set<Keyword> = []
+        keywordBias: Set<Keyword> = [],
+        astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.stableSeed(
-                for: "battle-loot-aspect-\(floor.aspectID.rawValue)-\(floor.floor)"
+                for: "battle-loot-spire-\(floor.spireID.rawValue)-\(floor.floor)"
             )
         )
         return resolve(
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
-            itemID: "aspect-\(floor.aspectID.rawValue)-floor-\(floor.floor)-loot",
+            itemID: "spire-\(floor.spireID.rawValue)-floor-\(floor.floor)-loot",
             keywordBias: keywordBias,
+            astralChanceBonusPercent: astralChanceBonusPercent,
             using: &rng
         )
     }
@@ -124,7 +139,8 @@ public enum BattleLoot {
         encounterLevel: Int,
         enemyIsBoss: Bool,
         effects: LabyrinthModifierEffects,
-        worldSeed: UInt64
+        worldSeed: UInt64,
+        astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage {
         var rng = SeededRandomNumberGenerator(
             seed: worldSeed &+ GameContent.stableSeed(for: "battle-loot-labyrinth-\(node.id)")
@@ -135,6 +151,7 @@ public enum BattleLoot {
             itemID: "labyrinth-\(node.id)",
             keywordBias: effects.keywordBiases,
             goldPercent: effects.goldPercent,
+            astralChanceBonusPercent: effects.astralChanceBonusPercent + astralChanceBonusPercent,
             using: &rng
         )
     }

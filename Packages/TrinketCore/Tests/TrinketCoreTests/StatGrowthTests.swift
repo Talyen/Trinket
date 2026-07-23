@@ -45,33 +45,19 @@ struct StatGrowthTests {
         )
         try #expect(growth.toughness == 3)
         try #expect(growth.strength == 1)
-        try #expect(growth.maxHealth == 5)
+        try #expect(growth.maxHealth == 6)
     }
 
-    @Test func enemyGearCompensationScalesSmoothlyWithLevel() throws {
+    @Test func enemyGearCompensationProvidesFlatMultipliers() throws {
         let stats = PrimaryStats(strength: 5, agility: 7, toughness: 5, intellect: 2, wisdom: 5)
 
-        let earlyNormal = StatGrowth.enemyGearCompensation(level: 10, identityStats: stats)
-        let midNormal = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats)
-        let lateNormal = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats)
-        try #expect(earlyNormal.healthMultiplier < midNormal.healthMultiplier)
-        try #expect(midNormal.healthMultiplier < lateNormal.healthMultiplier)
-        try #expect(earlyNormal.primaryStatMultiplier < lateNormal.primaryStatMultiplier)
+        let normal = StatGrowth.enemyGearCompensation(level: 10, identityStats: stats, isBoss: false)
+        try #expect(normal.healthMultiplier == 1.5)
+        try #expect(normal.primaryStatMultiplier == 1.5)
 
-        let midBoss = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats, isBoss: true)
-        let lateBoss = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats, isBoss: true)
-        try #expect(midBoss.healthMultiplier > lateBoss.healthMultiplier)
-        try #expect(midBoss.primaryStatMultiplier < lateBoss.primaryStatMultiplier)
-        try #expect(lateBoss.healthMultiplier < lateNormal.healthMultiplier)
-    }
-
-    @Test func enemyPrimaryStatMultiplierStaysModestVsPlayerGrowth() throws {
-        let assassinStats = PrimaryStats(strength: 3, agility: 8, toughness: 3, intellect: 2, wisdom: 2)
-        let late = StatGrowth.enemyGearCompensation(level: 50, identityStats: assassinStats)
-        // Keep primary-stat inflation well below historical ~2x so matched-level
-        // Assassin enemies stay near player Assassin Agility.
-        try #expect(late.primaryStatMultiplier < 1.25)
-        try #expect(late.primaryStatMultiplier > 1.0)
+        let boss = StatGrowth.enemyGearCompensation(level: 10, identityStats: stats, isBoss: true)
+        try #expect(boss.healthMultiplier == 2.0)
+        try #expect(boss.primaryStatMultiplier == 2.0)
     }
 
     @Test func applyMergesGrowthIntoStats() throws {

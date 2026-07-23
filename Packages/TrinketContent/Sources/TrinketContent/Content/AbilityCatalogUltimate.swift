@@ -23,17 +23,16 @@ enum AbilityCatalogUltimate {
     static let bloodthorn = Ability(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .bleed)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .poison)])
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .bleed)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)])
         ]
     )
 
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
-        damageComponents: [DamageComponent(2, keyword: .burn)],
         targetedEffects: [
-            TargetedEffect(.burn(2)),
-            TargetedEffect(.multiplyDoT(.burn, 2))
+            TargetedEffect(.multiplyDoT(.burn, 2), condition: .enemyBurning),
+            TargetedEffect(.burn(2), condition: .enemyNotBurning)
         ]
     )
 
@@ -44,7 +43,7 @@ enum AbilityCatalogUltimate {
 
     static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
-        targetedEffects: [TargetedEffect(.shieldFromMana)]
+        targetedEffects: [TargetedEffect(.shieldFromHalfMana)]
     )
 
     static let earthquake = AbilityBuilder.directHit(
@@ -54,8 +53,11 @@ enum AbilityCatalogUltimate {
 
     static let faustianBargain = Ability(
         id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
-        damageComponents: [DamageComponent(3, keyword: .physical, target: .actor)],
-        targetedEffects: [TargetedEffect(.drawCards(3))]
+        damageComponents: [
+            DamageComponent(2, keyword: .physical, target: .actor),
+            DamageComponent(6, keyword: .burn)
+        ],
+        targetedEffects: [TargetedEffect(.burn(6))]
     )
 
     static let glacialWard = Ability(
@@ -73,7 +75,7 @@ enum AbilityCatalogUltimate {
 
     static let hemorrhage = AbilityBuilder.directHit(
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
-        amount: 6, keyword: .bleed
+        amount: 5, keyword: .bleed
     )
 
     static let luckPotion = Ability(

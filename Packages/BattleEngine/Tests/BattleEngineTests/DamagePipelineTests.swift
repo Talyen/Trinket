@@ -16,7 +16,6 @@ struct DamagePipelineTests {
         "ShieldAbsorption",
         "TakeDamage",
         "MarkedConsume",
-        "Hexmark",
         "DeathsDoor",
         "Leech",
         "ControlMeter",

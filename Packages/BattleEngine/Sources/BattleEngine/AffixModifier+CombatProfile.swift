@@ -50,6 +50,8 @@ public extension AffixModifier {
         switch self {
         case let .damageDealt(keyword, amount):
             profile.damageDealtBonus[keyword, default: 0] += amount
+        case let .poisonDamageDealtPercent(amount):
+            profile.poisonDamageDealtPercent += amount
         case let .healthRestored(amount):
             profile.healthRestoredBonus += amount
         case let .leechGainedPercent(amount):

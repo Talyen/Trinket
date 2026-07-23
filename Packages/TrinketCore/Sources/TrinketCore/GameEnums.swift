@@ -105,7 +105,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .purge:
             "Purge removes a beneficial effect"
         case .mana:
-            "Mana is used to cast spells"
+            "Mana regenerates +1 each turn and is spent to empower Burn and Freeze ability damage"
         case .deathsDoor:
             "Death's Door survives a fatal blow at 1 HP — heal before it ends or the next fatal hit kills"
         }

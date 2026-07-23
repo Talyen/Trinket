@@ -32,6 +32,7 @@ public enum EffectHandlers {
         .evadeNextHit: EvadeNextHitHandler(),
         .convertManaToBlock: ConvertManaToBlockHandler(),
         .shieldFromMana: ShieldFromManaHandler(),
+        .shieldFromHalfMana: ShieldFromHalfManaHandler(),
         .shieldFromGold: ShieldFromGoldHandler(),
         .maximumManaBonus: MaximumManaBonusHandler(),
         .nextStrikeCritical: NextStrikeCriticalHandler(),

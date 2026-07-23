@@ -128,9 +128,9 @@ public extension GameContent {
     static func recruitEncounterSymbolName(for role: Combatant.Role) -> String {
         switch role {
         case .companion:
-            "pawprint.fill"
+            StageTypeSymbol.recruitCompanion
         case .hero, .enemy:
-            "person.2.fill"
+            StageTypeSymbol.recruitHero
         }
     }
 }

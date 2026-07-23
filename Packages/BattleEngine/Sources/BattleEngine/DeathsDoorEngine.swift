@@ -73,7 +73,18 @@ package enum DeathsDoorEngine {
             amount: 0,
             keyword: .deathsDoor
         )
-        return [event]
+        var events = [event]
+        let blockAmount = context.modifiers(for: combatant.id).blockOnDeathsDoor
+        if blockAmount > 0 {
+            events.append(contentsOf: CombatReactionEngine.applyBlock(
+                amount: blockAmount,
+                to: combatant,
+                source: combatant,
+                abilityName: "Deathgrip",
+                in: &context
+            ))
+        }
+        return events
     }
 
     private static func clampToMinimumHP(

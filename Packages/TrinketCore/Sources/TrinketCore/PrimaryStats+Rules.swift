@@ -22,10 +22,12 @@ public extension PrimaryStats {
         min(0.75, 0.05 + Double(agility) * 0.0025)
     }
 
-    /// Flat damage reduction from Toughness. Mirrors the damage-stat
-    /// `/ 5` pattern used by Strength / Agility / Intellect / Wisdom.
-    var toughnessMitigation: Int {
-        toughness / 5
+    /// Percentage damage reduction from Toughness using a hyperbolic soft-cap curve:
+    /// DR = Toughness / (Toughness + 80).
+    /// Returns a value between 0.0 (0%) and 1.0 (100%).
+    var toughnessMitigationPercent: Double {
+        guard toughness > 0 else { return 0.0 }
+        return Double(toughness) / (Double(toughness) + 80.0)
     }
 
     /// Stun/freeze control-meter buildup threshold for a combatant with the given

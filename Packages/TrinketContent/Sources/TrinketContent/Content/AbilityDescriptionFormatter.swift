@@ -88,6 +88,7 @@ enum AbilityDescriptionFormatter {
         switch condition {
         case .enemyBleeding: "the enemy is Bleeding"
         case .enemyBurning: "the enemy is Burning"
+        case .enemyNotBurning: "the enemy is not Burning"
         case .enemyPoisoned: "the enemy is Poisoned"
         case .enemyFrozen: "the enemy is Frozen"
         case .enemyStunned: "the enemy is Stunned"

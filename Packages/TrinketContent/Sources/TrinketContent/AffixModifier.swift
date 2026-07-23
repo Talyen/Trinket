@@ -10,6 +10,7 @@ public enum AffixModifier: Equatable, Hashable, Sendable {
     case maximumHealth(Int)
     case maximumMana(Int)
     case damageDealt(Keyword, Int)
+    case poisonDamageDealtPercent(Double)
     case healthRestored(Int)
     case leechGainedPercent(Double)
     case leechHealing(Int)

@@ -62,6 +62,24 @@ struct BattleLootTests {
         #expect(package.item.rarity == .astral)
     }
 
+    @Test func homesteadAstralChanceAppliesToJourneyAndSpireBattleLoot() throws {
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
+        let journeyLoot = BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: 1,
+            enemyIsBoss: false,
+            astralChanceBonusPercent: 100
+        )
+        #expect(journeyLoot.item.rarity == .astral)
+
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let spireLoot = SpireCompletion.resolveLoot(
+            for: floor,
+            astralChanceBonusPercent: 100
+        )
+        #expect(spireLoot.item.rarity == .astral)
+    }
+
     @Test func completingBattleStageGrantsBattleLootOnce() throws {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })

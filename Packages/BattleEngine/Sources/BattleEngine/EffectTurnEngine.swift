@@ -26,6 +26,8 @@ public enum EffectTurnEngine {
             context.roster.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
             events.append(contentsOf: EnemyTraitEngine.turnRegeneration(for: combatant, context: &context))
+            events.append(contentsOf: EnemyTraitEngine.turnBlock(for: combatant, context: &context))
+            events.append(contentsOf: EnemyTraitEngine.turnFreeze(for: combatant, context: &context))
         }
 
         return events

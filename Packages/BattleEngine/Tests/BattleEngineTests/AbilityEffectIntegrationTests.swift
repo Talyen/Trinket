@@ -63,8 +63,8 @@ struct AbilityEffectIntegrationTests {
             "Expected Bloodthorn to resolve in battle"
         )
 
-        // One randomly chosen typed hit (6 Bleed or 6 Poison) plus paired DoT.
-        try #expect(battle.health(of: battle.enemy) == 94)
+        // One randomly chosen typed hit (4 Bleed or 3 Poison) plus paired DoT.
+        try #expect((96 ... 97).contains(battle.health(of: battle.enemy)))
         let hasBleed = battle.hasEnemyEffect {
             if case .bleed = $0 {
                 return true

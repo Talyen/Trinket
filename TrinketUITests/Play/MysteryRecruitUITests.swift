@@ -16,16 +16,26 @@ final class MysteryRecruitUITests: TrinketUITestCase {
 
         let stepInside = button(AccessibilityID.Mystery.choiceButton(choiceID: "step-inside"))
         let pluckCap = button(AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"))
+        let confirm = button(AccessibilityID.Mystery.confirmChoiceButton)
         assertExists(stepInside)
         assertExists(pluckCap)
-        XCTAssertTrue(stepInside.label.contains("+25 Gold"))
-        XCTAssertTrue(pluckCap.label.contains("+3 Crystal"))
+        assertExists(confirm)
+        XCTAssertFalse(confirm.isEnabled)
+        XCTAssertTrue(stepInside.label.contains("Gold"))
+        XCTAssertTrue(stepInside.label.contains("25"))
+        XCTAssertFalse(stepInside.label.contains("+"))
+        XCTAssertTrue(pluckCap.label.contains("Crystal"))
+        XCTAssertTrue(pluckCap.label.contains("3"))
+        XCTAssertFalse(pluckCap.label.contains("+"))
 
         assertExistsAfterScroll(
             AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"),
             requireHittable: true
         )
         tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"))
+        assertExistsAfterScroll(AccessibilityID.Mystery.confirmChoiceButton, requireHittable: true)
+        XCTAssertTrue(confirm.isEnabled)
+        tapButton(AccessibilityID.Mystery.confirmChoiceButton)
         assertExists(AccessibilityID.Mystery.rewardTitle)
     }
 

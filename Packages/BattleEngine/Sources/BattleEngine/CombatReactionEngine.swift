@@ -4,39 +4,14 @@ import TrinketCore
 
 /// Item-affix combat reactions that fire from shared hook sites.
 package enum CombatReactionEngine {
-    package static func refreshBleedOnReapplyIfNeeded(
-        to target: Combatant,
-        sourceActorID: String,
-        in context: inout BattleEngineContext
-    ) -> Bool {
-        guard context.modifiers(for: sourceActorID).refreshBleedOnReapply else { return false }
-        var effects = context.roster.activeEffects(for: target)
-        let fullDuration = Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
-        var didRefresh = false
-        for index in effects.indices {
-            guard case .bleed = effects[index].effect else { continue }
-            effects[index].remainingTurns = fullDuration
-            didRefresh = true
-        }
-        guard didRefresh else { return false }
-        context.roster.setActiveEffects(effects, for: target)
-        return true
-    }
-
     package static func afterBleedApplied(
         to target: Combatant,
         sourceActorID: String,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        guard let source = context.roster.combatant(for: sourceActorID) else { return [] }
+        guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
         let profile = context.modifiers(for: sourceActorID)
         var events: [ActionEvent] = []
-
-        var bleedApplyCount = 0
-        context.roster.mutateRuntime(for: source.combatant) { runtime in
-            runtime.bleedApplyCount += 1
-            bleedApplyCount = runtime.bleedApplyCount
-        }
 
         if profile.onBleedApplyPoison > 0 {
             events.append(contentsOf: context.applyDecayingDoT(
@@ -57,19 +32,6 @@ package enum CombatReactionEngine {
                 sourceActorID: sourceActorID,
                 in: &context
             ).events)
-        }
-
-        if profile.everyNthBleedApplyCount > 0,
-           bleedApplyCount.isMultiple(of: profile.everyNthBleedApplyCount),
-           profile.everyNthBleedApplyPoisonPotency > 0 {
-            events.append(contentsOf: context.applyDecayingDoT(
-                keyword: .poison,
-                potency: profile.everyNthBleedApplyPoisonPotency,
-                to: target,
-                sourceActorID: sourceActorID,
-                dealImmediateDamage: true,
-                suppressAffixReactions: true
-            ))
         }
 
         return events
@@ -93,35 +55,6 @@ package enum CombatReactionEngine {
             suppressAffixReactions: true
         )
     }
-
-    package static func afterBurnTick(
-        target: Combatant,
-        sourceActorID: String?,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        guard let sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID)
-        else { return [] }
-        let profile = context.modifiers(for: sourceActorID)
-        guard profile.everyNthBurnTurnCount > 0,
-              profile.everyNthBurnTurnFreezeDamage > 0
-        else { return [] }
-
-        var burnTickCount = 0
-        context.roster.mutateRuntime(for: source.combatant) { runtime in
-            runtime.burnTickCount += 1
-            burnTickCount = runtime.burnTickCount
-        }
-        guard burnTickCount.isMultiple(of: profile.everyNthBurnTurnCount) else { return [] }
-
-        return DoTDamage.resolveTurnDamage(
-            basePotency: profile.everyNthBurnTurnFreezeDamage,
-            keyword: .freeze,
-            target: target,
-            sourceActorID: sourceActorID,
-            in: &context
-        ).events
-    }
 }
 
 package extension CombatReactionEngine {
@@ -137,12 +70,18 @@ package extension CombatReactionEngine {
         let profile = context.modifiers(for: sourceActorID)
         let targetIsFrozen = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .freeze)
         let targetIsStunned = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .stun)
+        let targetIsBurning = context.roster.activeEffects(for: state.combatant).contains {
+            if case .burn = $0.effect {
+                return true
+            }
+            return false
+        }
         var bonus = 0
 
-        if damageKeyword == .freeze, targetIsFrozen {
-            bonus += profile.freezeDamageWhileFrozenBonus
+        if damageKeyword == .freeze, targetIsBurning {
+            bonus += profile.freezeDamageWhileBurningBonus
         }
-        // Brittle is an aura from hero gear: the enemy takes extra damage from party hits.
+        // Shatter is an aura from hero gear: the enemy takes extra damage from party hits while Frozen.
         if source.role != .enemy, targetIsFrozen {
             bonus += context.heroModifiers.damageWhileTargetFrozenBonus
         }
@@ -151,7 +90,7 @@ package extension CombatReactionEngine {
             bonus += context.heroModifiers.damageWhileTargetStunnedBonus
         }
         if profile.damageBelowHealthPercentBonus > 0,
-           profile.damageBelowHealthPercentKeyword == damageKeyword,
+           profile.damageBelowHealthPercentKeyword == nil || profile.damageBelowHealthPercentKeyword == damageKeyword,
            profile.damageBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: state.combatant) > 0 {
             let percent = Double(context.roster.health(for: state.combatant)) /
@@ -171,65 +110,6 @@ package extension CombatReactionEngine {
         }
 
         return bonus
-    }
-
-    static func applyHexmarkIfNeeded(
-        to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
-    ) {
-        let hero = context.roster.hero.combatant
-        guard state.qualifiesForAmbush,
-              state.amount > 0,
-              state.sourceActorID == hero.id,
-              context.heroModifiers.firstHitApplyMarked,
-              let runtime = context.roster.runtime(for: hero),
-              !runtime.hasTriggeredHexmark
-        else { return }
-
-        context.roster.mutateRuntime(for: hero) { $0.hasTriggeredHexmark = true }
-        // Read roster after MarkedConsume / defense steps — do not reuse a stale
-        // pipeline snapshot that may have dropped the new mark before write-back.
-        state.damageEvents.append(contentsOf: applyMarked(
-            to: state.combatant,
-            sourceActorID: hero.id,
-            actorName: hero.name,
-            abilityName: "Hexmark",
-            in: &context
-        ))
-        state.activeEffects = context.roster.activeEffects(for: state.combatant)
-    }
-
-    private static func applyMarked(
-        to target: Combatant,
-        sourceActorID: String,
-        actorName: String,
-        abilityName: String,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .marked = $0.effect {
-                return true
-            }; return false
-        }
-        effects.append(
-            ActiveEffect(
-                id: context.consumeNextEffectID(),
-                effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
-                remainingTurns: Effect.standardMarkedDuration,
-                sourceActorID: sourceActorID
-            )
-        )
-        context.roster.setActiveEffects(effects, for: target)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .markedApplied,
-            actorName: actorName,
-            abilityName: abilityName,
-            target: target,
-            amount: Effect.standardMarkedBonus,
-            keyword: .physical
-        )]
     }
 
     static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
@@ -399,11 +279,11 @@ package extension CombatReactionEngine {
         return events
     }
 
-    static func shareHeroHealWithCompanion(
+    static func shareHeroLeechWithCompanion(
         restored: Int,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let percent = context.heroModifiers.companionHealSharePercent
+        let percent = context.heroModifiers.companionLeechSharePercent
         guard restored > 0,
               percent > 0,
               context.roster.companion.isAlive
@@ -466,25 +346,40 @@ package extension CombatReactionEngine {
         ).events
     }
 
-    static func atStartOfAction(
-        by actor: Combatant,
+    private static func applyMarked(
+        to target: Combatant,
+        sourceActorID: String,
+        actorName: String,
+        abilityName: String,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let amount = context.modifiers(for: actor.id).blockPerActionWhileDeathsDoor
-        guard amount > 0,
-              context.roster.isDeathsDoorActive(for: actor),
-              actor.role == .hero || actor.role == .companion
-        else { return [] }
-        return applyBlock(
-            amount: amount,
-            to: actor,
-            source: actor,
-            abilityName: "Deathgrip",
-            in: &context
+        var effects = context.roster.activeEffects(for: target)
+        effects.removeAll {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }
+        effects.append(
+            ActiveEffect(
+                id: context.consumeNextEffectID(),
+                effect: .marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration),
+                remainingTurns: Effect.standardMarkedDuration,
+                sourceActorID: sourceActorID
+            )
         )
+        context.roster.setActiveEffects(effects, for: target)
+        return [context.nextEvent(
+            kind: .effect,
+            effectKind: .markedApplied,
+            actorName: actorName,
+            abilityName: abilityName,
+            target: target,
+            amount: Effect.standardMarkedBonus,
+            keyword: .physical
+        )]
     }
 
-    private static func applyBlock(
+    static func applyBlock(
         amount: Int,
         to target: Combatant,
         source: Combatant,

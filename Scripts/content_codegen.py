@@ -154,8 +154,7 @@ class EnemyRow:
     toughness: str
     intellect: str
     wisdom: str
-    positive_trait_id: str
-    negative_trait_id: str
+    trait_id: str
 
 
 @dataclass
@@ -294,8 +293,7 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "toughness",
         "intellect",
         "wisdom",
-        "positive_trait_id",
-        "negative_trait_id",
+        "trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -392,6 +390,8 @@ def modifier_token_to_swift(token: str) -> str:
         return f".leechDuration({token.split(':', 1)[1]})"
     if token.startswith("mana_cost_reduction_percent:"):
         return f".manaCostReductionPercent({token.split(':', 1)[1]})"
+    if token.startswith("poison_damage_dealt_percent:"):
+        return f".poisonDamageDealtPercent({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
 
 
@@ -414,8 +414,6 @@ def triggers_swift(raw: str) -> str:
             values["controlResistancePercent"] = token.split(":", 1)[1]
         elif token.startswith("dodge_chance_bonus:"):
             values["dodgeChanceBonus"] = token.split(":", 1)[1]
-        elif token.startswith("physical_dodge_chance_bonus:"):
-            values["physicalDodgeChanceBonus"] = token.split(":", 1)[1]
         elif token.startswith("ambush_bonus:"):
             values["ambushBonusDamage"] = token.split(":", 1)[1]
         elif token.startswith("regeneration:"):
@@ -453,39 +451,35 @@ def triggers_swift(raw: str) -> str:
             values["onBurnApplyPoison"] = token.split(":", 1)[1]
         elif token.startswith("on_bleed_deal_burn_damage:"):
             values["onBleedDealBurnDamage"] = token.split(":", 1)[1]
-        elif token.startswith("every_nth_bleed_apply_poison:"):
-            _, count, potency = token.split(":", 2)
-            values["everyNthBleedApplyCount"] = count
-            values["everyNthBleedApplyPoisonPotency"] = potency
-        elif token.startswith("freeze_damage_while_frozen:"):
-            values["freezeDamageWhileFrozenBonus"] = token.split(":", 1)[1]
+        elif token.startswith("poison_decay_increase_chance:"):
+            values["poisonDecayIncreaseChance"] = token.split(":", 1)[1]
+        elif token.startswith("freeze_damage_while_burning:"):
+            values["freezeDamageWhileBurningBonus"] = token.split(":", 1)[1]
         elif token.startswith("damage_while_target_frozen:"):
             values["damageWhileTargetFrozenBonus"] = token.split(":", 1)[1]
         elif token.startswith("damage_below_health_percent:"):
-            _, threshold, keyword, bonus = token.split(":", 3)
-            values["damageBelowHealthPercentThreshold"] = threshold
-            values["damageBelowHealthPercentKeyword"] = f".{keyword}"
-            values["damageBelowHealthPercentBonus"] = bonus
+            parts = token.split(":")
+            if len(parts) == 4:
+                _, threshold, keyword, bonus = parts
+                values["damageBelowHealthPercentThreshold"] = threshold
+                values["damageBelowHealthPercentKeyword"] = f".{keyword}"
+                values["damageBelowHealthPercentBonus"] = bonus
+            else:
+                _, threshold, bonus = parts
+                values["damageBelowHealthPercentThreshold"] = threshold
+                values["damageBelowHealthPercentBonus"] = bonus
         elif token.startswith("damage_after_dodge:"):
             values["damageAfterDodgeBonus"] = token.split(":", 1)[1]
-        elif token.startswith("refresh_bleed_on_reapply:"):
-            values["refreshBleedOnReapply"] = token.split(":", 1)[1]
         elif token.startswith("on_block_broken_block:"):
             values["blockBrokenBlockFlat"] = token.split(":", 1)[1]
-        elif token.startswith("first_hit_apply_marked:"):
-            values["firstHitApplyMarked"] = token.split(":", 1)[1]
-        elif token.startswith("companion_heal_share_percent:"):
-            values["companionHealSharePercent"] = token.split(":", 1)[1]
+        elif token.startswith("companion_leech_share_percent:"):
+            values["companionLeechSharePercent"] = token.split(":", 1)[1]
         elif token.startswith("once_below_health_percent_heal:"):
             _, threshold, amount = token.split(":", 2)
             values["onceBelowHealthPercentThreshold"] = threshold
             values["onceBelowHealthPercentHeal"] = amount
-        elif token.startswith("block_per_action_while_deaths_door:"):
-            values["blockPerActionWhileDeathsDoor"] = token.split(":", 1)[1]
-        elif token.startswith("every_nth_burn_tick_freeze_damage:"):
-            _, count, amount = token.split(":", 2)
-            values["everyNthBurnTurnCount"] = count
-            values["everyNthBurnTurnFreezeDamage"] = amount
+        elif token.startswith("block_on_deaths_door:"):
+            values["blockOnDeathsDoor"] = token.split(":", 1)[1]
         elif token.startswith("on_spend_mana_block:"):
             values["spendManaBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_block:"):
@@ -508,6 +502,18 @@ def triggers_swift(raw: str) -> str:
             values["dodgeBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_purge:"):
             values["holyDamagePurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("block_per_turn:"):
+            values["blockPerTurn"] = token.split(":", 1)[1]
+        elif token.startswith("first_hit_double_damage:"):
+            values["firstHitDoubleDamage"] = "true"
+        elif token.startswith("leech_chance:"):
+            values["leechChancePercent"] = token.split(":", 1)[1]
+        elif token.startswith("on_hit_attacker_burn:"):
+            values["onHitAttackerBurn"] = token.split(":", 1)[1]
+        elif token.startswith("turn_freeze_all_enemies:"):
+            values["turnFreezeDamageAllEnemies"] = token.split(":", 1)[1]
+        elif token.startswith("damage_increases_every_other_turn:"):
+            values["damageIncreasesEveryOtherTurn"] = "true"
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     order = [
@@ -516,7 +522,6 @@ def triggers_swift(raw: str) -> str:
         "restoreHealthAlsoHealHero",
         "controlResistancePercent",
         "dodgeChanceBonus",
-        "physicalDodgeChanceBonus",
         "ambushBonusDamage",
         "regenerationAmount",
         "regenerationIntervalTurns",
@@ -536,23 +541,18 @@ def triggers_swift(raw: str) -> str:
         "onBleedApplyPoison",
         "onBurnApplyPoison",
         "onBleedDealBurnDamage",
-        "everyNthBleedApplyCount",
-        "everyNthBleedApplyPoisonPotency",
-        "freezeDamageWhileFrozenBonus",
+        "poisonDecayIncreaseChance",
+        "freezeDamageWhileBurningBonus",
         "damageWhileTargetFrozenBonus",
         "damageBelowHealthPercentThreshold",
         "damageBelowHealthPercentKeyword",
         "damageBelowHealthPercentBonus",
         "damageAfterDodgeBonus",
-        "refreshBleedOnReapply",
         "blockBrokenBlockFlat",
-        "firstHitApplyMarked",
-        "companionHealSharePercent",
+        "companionLeechSharePercent",
         "onceBelowHealthPercentThreshold",
         "onceBelowHealthPercentHeal",
-        "blockPerActionWhileDeathsDoor",
-        "everyNthBurnTurnCount",
-        "everyNthBurnTurnFreezeDamage",
+        "blockOnDeathsDoor",
         "spendManaBlockFlat",
         "holyDamageBlockFlat",
         "holyDamageCleanseCount",
@@ -564,6 +564,12 @@ def triggers_swift(raw: str) -> str:
         "enemyStunnedApplyMarked",
         "dodgeBlockFlat",
         "holyDamagePurgeCount",
+        "blockPerTurn",
+        "firstHitDoubleDamage",
+        "leechChancePercent",
+        "onHitAttackerBurn",
+        "turnFreezeDamageAllEnemies",
+        "damageIncreasesEveryOtherTurn",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
     if not parts:
@@ -824,14 +830,9 @@ def validate_enemy_rows(
             _validate_positive_int(stat, getattr(row, stat), row.id)
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
-        _require_non_empty("positive_trait_id", row.positive_trait_id, row.id)
-        if row.positive_trait_id not in trait_ids:
-            raise ValueError(f"Unknown positive_trait_id '{row.positive_trait_id}' for enemy {row.id}")
-        if row.negative_trait_id:
-            if row.negative_trait_id not in trait_ids:
-                raise ValueError(f"Unknown negative_trait_id '{row.negative_trait_id}' for enemy {row.id}")
-            if row.positive_trait_id == row.negative_trait_id:
-                raise ValueError(f"Enemy {row.id} cannot use the same trait for positive and negative")
+        _require_non_empty("trait_id", row.trait_id, row.id)
+        if row.trait_id not in trait_ids:
+            raise ValueError(f"Unknown trait_id '{row.trait_id}' for enemy {row.id}")
         render_enemy(row)
 
 
@@ -861,19 +862,13 @@ def render_enemy(row: EnemyRow) -> str:
     flag_clause = ""
     if flags:
         flag_clause = ", " + ", ".join(flags)
-    negative_clause = (
-        f'negativeTraitID: "{swift_escape(row.negative_trait_id)}"'
-        if row.negative_trait_id
-        else "negativeTraitID: nil"
-    )
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
         f"primaryStats: {primary_stats_swift(row)}, "
         f"growthArchetype: .{row.growth_archetype}), "
-        f"positiveTraitID: \"{swift_escape(row.positive_trait_id)}\", "
-        f"{negative_clause}{flag_clause})"
+        f"traitID: \"{swift_escape(row.trait_id)}\"{flag_clause})"
     )
 
 

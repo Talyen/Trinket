@@ -9,7 +9,7 @@ public enum PlayerSaveSanitizer {
         sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
         sanitized.homestead = sanitizeHomestead(save.homestead)
         sanitized.journey = sanitizeJourney(save.journey)
-        sanitized.aspects = sanitizeAspects(save.aspects)
+        sanitized.spires = sanitizeSpires(save.spires)
         sanitized.labyrinth = sanitizeLabyrinth(
             save.labyrinth,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs(in: sanitized.roster)
@@ -175,19 +175,19 @@ public enum PlayerSaveSanitizer {
         return sanitized
     }
 
-    public static func sanitizeAspects(
-        _ aspects: PlayerAspectsState,
-        catalog: [AspectDefinition] = GameContent.aspects
-    ) -> PlayerAspectsState {
+    public static func sanitizeSpires(
+        _ spires: PlayerSpiresState,
+        catalog: [SpireDefinition] = GameContent.spires
+    ) -> PlayerSpiresState {
         let validIDs = Set(catalog.map(\.id.rawValue))
         let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
         var sanitized: [String: Int] = [:]
-        for (aspectID, floor) in aspects.highestClearedFloorByAspectID {
-            guard validIDs.contains(aspectID) else { continue }
-            let maxFloor = floorCounts[aspectID] ?? 0
-            sanitized[aspectID] = min(max(floor, 0), maxFloor)
+        for (spireID, floor) in spires.highestClearedFloorBySpireID {
+            guard validIDs.contains(spireID) else { continue }
+            let maxFloor = floorCounts[spireID] ?? 0
+            sanitized[spireID] = min(max(floor, 0), maxFloor)
         }
-        return PlayerAspectsState(highestClearedFloorByAspectID: sanitized)
+        return PlayerSpiresState(highestClearedFloorBySpireID: sanitized)
     }
 
     public static func sanitizeLabyrinth(
@@ -304,7 +304,7 @@ public enum PlayerSaveSanitizer {
         modifiers: [LabyrinthModifierDefinition]
     ) -> LabyrinthNode {
         let depth = max(0, node.depth)
-        let type: LabyrinthNodeType = if node.type == .gate, depth > 0 {
+        let type: LabyrinthNodeType = if node.type == .entrance || node.type.rawValue == "gate", depth > 0 {
             .boss
         } else {
             node.type.canonical

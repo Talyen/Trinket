@@ -74,19 +74,12 @@ package enum DoTApplicator {
             ).events)
         }
 
-        let didRefresh = CombatReactionEngine.refreshBleedOnReapplyIfNeeded(
+        context.appendEffect(
+            .bleed(potency),
             to: effectTarget,
-            sourceActorID: sourceActorID,
-            in: &context
+            sourceID: sourceActorID,
+            remainingTurns: Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
         )
-        if !didRefresh {
-            context.appendEffect(
-                .bleed(potency),
-                to: effectTarget,
-                sourceID: sourceActorID,
-                remainingTurns: Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
-            )
-        }
         if !suppressAffixReactions {
             collected.append(contentsOf: CombatReactionEngine.afterBleedApplied(
                 to: effectTarget,

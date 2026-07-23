@@ -137,7 +137,8 @@ public enum StageCompletion {
             return BattleLoot.resolveJourney(
                 stage: stage,
                 encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss
+                enemyIsBoss: enemyIsBoss,
+                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
         }()
 
@@ -186,7 +187,8 @@ public enum StageCompletion {
             let loot = BattleLoot.resolveJourney(
                 stage: stage,
                 encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss
+                enemyIsBoss: enemyIsBoss,
+                astralChanceBonusPercent: baseline.homestead.effects.astralChanceBonusPercent
             )
             return packageReflected(loot, baseline: baseline, in: save)
         }

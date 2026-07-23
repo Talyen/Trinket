@@ -12,7 +12,7 @@ struct CombatantLevelScalerTests {
         try #expect(scaled.primaryStats == knight.primaryStats)
     }
 
-    @Test func playerScalerIncreasesHealthAboveEnemyAtSameLevel() throws {
+    @Test func playerAndEnemyScalerIncreaseHealthAboveIdentityLevel() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
         let level = 5
@@ -20,7 +20,8 @@ struct CombatantLevelScalerTests {
         let scaledHero = CombatantLevelScaler.scale(combatant: knight, level: level)
         let scaledEnemy = CombatantLevelScaler.scale(enemy: skeleton, level: level)
 
-        try #expect(scaledHero.maxHealth > scaledEnemy.maxHealth)
+        try #expect(scaledHero.maxHealth > knight.maxHealth)
+        try #expect(scaledEnemy.maxHealth > skeleton.combatant.maxHealth)
     }
 
     @Test func enemyScalerUsesBossProfile() throws {

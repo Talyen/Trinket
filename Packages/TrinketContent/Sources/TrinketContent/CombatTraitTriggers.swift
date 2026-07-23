@@ -7,7 +7,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var restoreHealthAlsoHealHero: Int
     public var controlResistancePercent: Double
     public var dodgeChanceBonus: Double
-    public var physicalDodgeChanceBonus: Double
     public var ambushBonusDamage: Int
     public var regenerationAmount: Int
     public var regenerationIntervalTurns: Int
@@ -27,23 +26,18 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var onBleedApplyPoison: Int
     public var onBurnApplyPoison: Int
     public var onBleedDealBurnDamage: Int
-    public var everyNthBleedApplyCount: Int
-    public var everyNthBleedApplyPoisonPotency: Int
-    public var freezeDamageWhileFrozenBonus: Int
+    public var poisonDecayIncreaseChance: Double
+    public var freezeDamageWhileBurningBonus: Int
     public var damageWhileTargetFrozenBonus: Int
     public var damageBelowHealthPercentThreshold: Double
     public var damageBelowHealthPercentKeyword: Keyword?
     public var damageBelowHealthPercentBonus: Int
     public var damageAfterDodgeBonus: Int
-    public var refreshBleedOnReapply: Bool
     public var blockBrokenBlockFlat: Int
-    public var firstHitApplyMarked: Bool
-    public var companionHealSharePercent: Double
+    public var companionLeechSharePercent: Double
     public var onceBelowHealthPercentThreshold: Double
     public var onceBelowHealthPercentHeal: Int
-    public var blockPerActionWhileDeathsDoor: Int
-    public var everyNthBurnTurnCount: Int
-    public var everyNthBurnTurnFreezeDamage: Int
+    public var blockOnDeathsDoor: Int
     public var spendManaBlockFlat: Int
     public var holyDamageBlockFlat: Int
     public var holyDamageCleanseCount: Int
@@ -55,6 +49,12 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var enemyStunnedApplyMarked: Bool
     public var dodgeBlockFlat: Int
     public var holyDamagePurgeCount: Int
+    public var blockPerTurn: Int
+    public var firstHitDoubleDamage: Bool
+    public var leechChancePercent: Double
+    public var onHitAttackerBurn: Int
+    public var turnFreezeDamageAllEnemies: Int
+    public var damageIncreasesEveryOtherTurn: Bool
 
     public init(
         cleanseBonusHeal: Int = 0,
@@ -62,7 +62,6 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         restoreHealthAlsoHealHero: Int = 0,
         controlResistancePercent: Double = 0,
         dodgeChanceBonus: Double = 0,
-        physicalDodgeChanceBonus: Double = 0,
         ambushBonusDamage: Int = 0,
         regenerationAmount: Int = 0,
         regenerationIntervalTurns: Int = 0,
@@ -82,23 +81,18 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         onBleedApplyPoison: Int = 0,
         onBurnApplyPoison: Int = 0,
         onBleedDealBurnDamage: Int = 0,
-        everyNthBleedApplyCount: Int = 0,
-        everyNthBleedApplyPoisonPotency: Int = 0,
-        freezeDamageWhileFrozenBonus: Int = 0,
+        poisonDecayIncreaseChance: Double = 0,
+        freezeDamageWhileBurningBonus: Int = 0,
         damageWhileTargetFrozenBonus: Int = 0,
         damageBelowHealthPercentThreshold: Double = 0,
         damageBelowHealthPercentKeyword: Keyword? = nil,
         damageBelowHealthPercentBonus: Int = 0,
         damageAfterDodgeBonus: Int = 0,
-        refreshBleedOnReapply: Bool = false,
         blockBrokenBlockFlat: Int = 0,
-        firstHitApplyMarked: Bool = false,
-        companionHealSharePercent: Double = 0,
+        companionLeechSharePercent: Double = 0,
         onceBelowHealthPercentThreshold: Double = 0,
         onceBelowHealthPercentHeal: Int = 0,
-        blockPerActionWhileDeathsDoor: Int = 0,
-        everyNthBurnTurnCount: Int = 0,
-        everyNthBurnTurnFreezeDamage: Int = 0,
+        blockOnDeathsDoor: Int = 0,
         spendManaBlockFlat: Int = 0,
         holyDamageBlockFlat: Int = 0,
         holyDamageCleanseCount: Int = 0,
@@ -109,14 +103,19 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         damageWhileTargetStunnedBonus: Int = 0,
         enemyStunnedApplyMarked: Bool = false,
         dodgeBlockFlat: Int = 0,
-        holyDamagePurgeCount: Int = 0
+        holyDamagePurgeCount: Int = 0,
+        blockPerTurn: Int = 0,
+        firstHitDoubleDamage: Bool = false,
+        leechChancePercent: Double = 0,
+        onHitAttackerBurn: Int = 0,
+        turnFreezeDamageAllEnemies: Int = 0,
+        damageIncreasesEveryOtherTurn: Bool = false
     ) {
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.restoreHealthAlsoHealHero = restoreHealthAlsoHealHero
         self.controlResistancePercent = controlResistancePercent
         self.dodgeChanceBonus = dodgeChanceBonus
-        self.physicalDodgeChanceBonus = physicalDodgeChanceBonus
         self.ambushBonusDamage = ambushBonusDamage
         self.regenerationAmount = regenerationAmount
         self.regenerationIntervalTurns = regenerationIntervalTurns
@@ -136,23 +135,18 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         self.onBleedApplyPoison = onBleedApplyPoison
         self.onBurnApplyPoison = onBurnApplyPoison
         self.onBleedDealBurnDamage = onBleedDealBurnDamage
-        self.everyNthBleedApplyCount = everyNthBleedApplyCount
-        self.everyNthBleedApplyPoisonPotency = everyNthBleedApplyPoisonPotency
-        self.freezeDamageWhileFrozenBonus = freezeDamageWhileFrozenBonus
+        self.poisonDecayIncreaseChance = poisonDecayIncreaseChance
+        self.freezeDamageWhileBurningBonus = freezeDamageWhileBurningBonus
         self.damageWhileTargetFrozenBonus = damageWhileTargetFrozenBonus
         self.damageBelowHealthPercentThreshold = damageBelowHealthPercentThreshold
         self.damageBelowHealthPercentKeyword = damageBelowHealthPercentKeyword
         self.damageBelowHealthPercentBonus = damageBelowHealthPercentBonus
         self.damageAfterDodgeBonus = damageAfterDodgeBonus
-        self.refreshBleedOnReapply = refreshBleedOnReapply
         self.blockBrokenBlockFlat = blockBrokenBlockFlat
-        self.firstHitApplyMarked = firstHitApplyMarked
-        self.companionHealSharePercent = companionHealSharePercent
+        self.companionLeechSharePercent = companionLeechSharePercent
         self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
-        self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
-        self.everyNthBurnTurnCount = everyNthBurnTurnCount
-        self.everyNthBurnTurnFreezeDamage = everyNthBurnTurnFreezeDamage
+        self.blockOnDeathsDoor = blockOnDeathsDoor
         self.spendManaBlockFlat = spendManaBlockFlat
         self.holyDamageBlockFlat = holyDamageBlockFlat
         self.holyDamageCleanseCount = holyDamageCleanseCount
@@ -164,15 +158,25 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         self.enemyStunnedApplyMarked = enemyStunnedApplyMarked
         self.dodgeBlockFlat = dodgeBlockFlat
         self.holyDamagePurgeCount = holyDamagePurgeCount
+        self.blockPerTurn = blockPerTurn
+        self.firstHitDoubleDamage = firstHitDoubleDamage
+        self.leechChancePercent = leechChancePercent
+        self.onHitAttackerBurn = onHitAttackerBurn
+        self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
+        self.damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn
     }
 
     public mutating func merge(_ other: CombatTraitTriggers) {
+        mergeBaseTriggers(other)
+        mergeAdvancedTriggers(other)
+    }
+
+    private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
         controlResistancePercent += other.controlResistancePercent
         dodgeChanceBonus += other.dodgeChanceBonus
-        physicalDodgeChanceBonus += other.physicalDodgeChanceBonus
         ambushBonusDamage += other.ambushBonusDamage
         regenerationAmount += other.regenerationAmount
         regenerationIntervalTurns = max(regenerationIntervalTurns, other.regenerationIntervalTurns)
@@ -196,9 +200,11 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         onBleedApplyPoison += other.onBleedApplyPoison
         onBurnApplyPoison += other.onBurnApplyPoison
         onBleedDealBurnDamage += other.onBleedDealBurnDamage
-        everyNthBleedApplyCount = max(everyNthBleedApplyCount, other.everyNthBleedApplyCount)
-        everyNthBleedApplyPoisonPotency += other.everyNthBleedApplyPoisonPotency
-        freezeDamageWhileFrozenBonus += other.freezeDamageWhileFrozenBonus
+        poisonDecayIncreaseChance += other.poisonDecayIncreaseChance
+    }
+
+    private mutating func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
+        freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
         damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
         damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
         if damageBelowHealthPercentKeyword == nil {
@@ -206,15 +212,11 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         }
         damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
         damageAfterDodgeBonus += other.damageAfterDodgeBonus
-        refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply
         blockBrokenBlockFlat += other.blockBrokenBlockFlat
-        firstHitApplyMarked = firstHitApplyMarked || other.firstHitApplyMarked
-        companionHealSharePercent += other.companionHealSharePercent
+        companionLeechSharePercent += other.companionLeechSharePercent
         onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
         onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
-        blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor
-        everyNthBurnTurnCount = max(everyNthBurnTurnCount, other.everyNthBurnTurnCount)
-        everyNthBurnTurnFreezeDamage += other.everyNthBurnTurnFreezeDamage
+        blockOnDeathsDoor += other.blockOnDeathsDoor
         spendManaBlockFlat += other.spendManaBlockFlat
         holyDamageBlockFlat += other.holyDamageBlockFlat
         holyDamageCleanseCount += other.holyDamageCleanseCount
@@ -226,5 +228,11 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         enemyStunnedApplyMarked = enemyStunnedApplyMarked || other.enemyStunnedApplyMarked
         dodgeBlockFlat += other.dodgeBlockFlat
         holyDamagePurgeCount += other.holyDamagePurgeCount
+        blockPerTurn += other.blockPerTurn
+        firstHitDoubleDamage = firstHitDoubleDamage || other.firstHitDoubleDamage
+        leechChancePercent += other.leechChancePercent
+        onHitAttackerBurn += other.onHitAttackerBurn
+        turnFreezeDamageAllEnemies += other.turnFreezeDamageAllEnemies
+        damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
     }
 }

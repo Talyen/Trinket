@@ -78,14 +78,14 @@ extension AppState {
             }
             noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
             return true
-        case let .aspect(aspectID, floorNumber):
-            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
+        case let .spire(spireID, floorNumber):
+            guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
                 appStateLogger.error(
-                    "Missing aspect floor for resume token: \(aspectID.rawValue, privacy: .public)/\(floorNumber)"
+                    "Missing spire floor for resume token: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
                 )
                 return false
             }
-            return completeAspectFloor(
+            return completeSpireFloor(
                 floor,
                 hero: hero,
                 companion: companion,
@@ -144,7 +144,8 @@ extension AppState {
         let loot = ActiveBattleConfiguration.lootPackage(
             for: .journey(stageID: stage.id),
             enemy: encounter.combatant,
-            encounterLevel: encounter.level
+            encounterLevel: encounter.level,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
         activateBattle(
             resumeToken: .journey(stageID: stage.id),
@@ -165,7 +166,8 @@ extension AppState {
         let loot = ActiveBattleConfiguration.lootPackage(
             for: .journey(stageID: stage.id),
             enemy: encounter.combatant,
-            encounterLevel: encounter.level
+            encounterLevel: encounter.level,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
         let configuration = makeBattleConfiguration(
             resumeToken: .journey(stageID: stage.id),

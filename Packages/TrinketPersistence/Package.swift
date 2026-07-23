@@ -6,6 +6,7 @@ let package = Package(
     name: "TrinketPersistence",
     platforms: [
         .iOS(.v26),
+        .macOS(.v14),
     ],
     products: [
         .library(

@@ -59,7 +59,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public static let doTTick = DamageOptions(
         applyStatBonus: true,
         applyItemBonus: true,
-        applyDodge: false
+        applyDodge: false,
+        isRetaliation: true
     )
 
     /// Authored "Lose N Health" cost: exact HP loss with no dodge/crit/mitigation/ambush.

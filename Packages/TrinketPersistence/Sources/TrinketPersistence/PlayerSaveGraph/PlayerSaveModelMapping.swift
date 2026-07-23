@@ -213,25 +213,25 @@ extension HomesteadModel {
     }
 }
 
-extension AspectsProgressModel {
-    func toPlayerAspectsState() -> PlayerAspectsState {
+extension SpiresProgressModel {
+    func toPlayerSpiresState() -> PlayerSpiresState {
         let rows = floors ?? []
         var map: [String: Int] = [:]
-        for row in rows where !row.aspectID.isEmpty {
-            map[row.aspectID] = max(0, row.highestClearedFloor)
+        for row in rows where !row.spireID.isEmpty {
+            map[row.spireID] = max(0, row.highestClearedFloor)
         }
-        return PlayerAspectsState(highestClearedFloorByAspectID: map)
+        return PlayerSpiresState(highestClearedFloorBySpireID: map)
     }
 
-    func update(from state: PlayerAspectsState) {
+    func update(from state: PlayerSpiresState) {
         let existing = floors ?? []
         for row in existing {
-            row.aspects = nil
+            row.spires = nil
         }
-        floors = state.highestClearedFloorByAspectID
+        floors = state.highestClearedFloorBySpireID
             .sorted { $0.key < $1.key }
-            .map { AspectFloorProgressModel(aspectID: $0.key, highestClearedFloor: max(0, $0.value)) }
-        floors?.linkEach(to: self, parent: \.aspects)
+            .map { SpireFloorProgressModel(spireID: $0.key, highestClearedFloor: max(0, $0.value)) }
+        floors?.linkEach(to: self, parent: \.spires)
     }
 }
 

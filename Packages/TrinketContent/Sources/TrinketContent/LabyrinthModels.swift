@@ -120,7 +120,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     /// Legacy save value; sanitized to `.mystery`. Do not generate new event nodes.
     case event
     case craft
-    case gate
+    case entrance
 
     /// Canonical type after collapsing legacy `.event` into mystery encounters.
     public var canonical: LabyrinthNodeType {
@@ -134,9 +134,13 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             self = .battle
             return
         }
-        // Legacy saves encoded boss nodes as "warden".
+        // Legacy saves encoded boss nodes as "warden" and entrance as "gate".
         if rawValue == "warden" {
             self = .boss
+            return
+        }
+        if rawValue == "gate" {
+            self = .entrance
             return
         }
         guard let value = Self(rawValue: rawValue) else {
@@ -157,26 +161,26 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
         case .mystery, .event: "Mystery"
         case .recruit: "Recruit"
         case .craft: "Crafting Altar"
-        case .gate: "Depth Gate"
+        case .entrance: "Labyrinth Entrance"
         }
     }
 
     public var symbolName: String {
         switch canonical {
-        case .battle: "flag.2.crossed"
-        case .boss: "crown.fill"
-        case .shop: "bag.fill"
-        case .rest: "tent.fill"
-        case .mystery, .event: "sparkles"
+        case .battle: StageTypeSymbol.battle
+        case .boss: StageTypeSymbol.boss
+        case .shop: StageTypeSymbol.shop
+        case .rest: StageTypeSymbol.rest
+        case .mystery, .event: StageTypeSymbol.mystery
         case .recruit: GameContent.recruitEncounterSymbolName(forEventID: nil)
-        case .craft: "hammer.fill"
-        case .gate: "arrow.down.to.line.compact"
+        case .craft: StageTypeSymbol.craft
+        case .entrance: StageTypeSymbol.entrance
         }
     }
 
     public var primaryActionTitle: String {
         switch canonical {
-        case .battle, .boss, .gate:
+        case .battle, .boss:
             "Fight"
         case .shop:
             "Visit"
@@ -188,14 +192,16 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
             "Recruit"
         case .craft:
             "Forge"
+        case .entrance:
+            "Enter"
         }
     }
 
     public var isCombat: Bool {
         switch canonical {
-        case .battle, .boss, .gate:
+        case .battle, .boss:
             true
-        case .shop, .rest, .mystery, .event, .recruit, .craft:
+        case .shop, .rest, .mystery, .event, .recruit, .craft, .entrance:
             false
         }
     }

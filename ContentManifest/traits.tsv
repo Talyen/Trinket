@@ -16,32 +16,18 @@ unliving_frame	Unliving Frame	Decrease Physical damage taken by 10%.	damage_take
 arcane_reservoir	Arcane Reservoir	Increase Maximum Mana by 3.	maximum_mana:3	
 fae_fortune	Fae Fortune	Restore 1 Health when gaining Gold.		on_gain_gold_heal:1
 iron_carapace	Iron Carapace	Increase Block gained by 2.	block_gained:2	
-unfeeling	Unfeeling	Stun and Freeze buildup is 30% slower.		control_resistance:0.30
-nimble	Nimble	12% increased Dodge chance.		dodge_chance_bonus:0.12
-quagmire	Quagmire	Decrease Physical damage taken by 15%.	damage_taken_percent:physical:0.15	
-amorphous	Amorphous	15% Dodge chance vs Physical damage. Decrease Bleed damage taken by 50%.	damage_taken_percent:bleed:0.50	physical_dodge_chance_bonus:0.15
-blazing_core	Blazing Core	Decrease Burn damage taken by 40%. Increase Burn damage dealt by 1.	damage_taken_percent:burn:0.40|damage_dealt:burn:1	
-permafrost_shell	Permafrost	Decrease Freeze damage taken by 40%. Increase Freeze damage dealt by 1.	damage_taken_percent:freeze:0.40|damage_dealt:freeze:1	
-ethereal	Ethereal	20% increased Dodge chance. Stun and Freeze buildup is 30% slower.		dodge_chance_bonus:0.20|control_resistance:0.30
-animated_plate	Animated Plate	Increase Block gained by 3.	block_gained:3	
-ambush	Ambush	First damaging hit each battle deals 2 bonus damage.		ambush_bonus:2
-grave_power	Grave Power	Leech healing is 50% stronger. Hemorrhage applies 1 extra Bleed potency.		leech_healing_multiplier:1.50|hemorrhage_bleed_bonus:1
-miasma	Miasma	Decrease Poison damage taken by 25%.	damage_taken_percent:poison:0.25	
-heartwood_renewal	Heartwood Renewal	Restore 1 Health every 6 seconds.		regeneration:1:6
-living_furnace	Living Furnace	Decrease Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.	damage_taken_percent:burn:0.50|damage_dealt:burn:2	thorns_percent:0.15
-absolute_zero	Absolute Zero	Decrease Freeze damage taken by 50%. Increase Freeze damage dealt by 2.	damage_taken_percent:freeze:0.50|damage_dealt:freeze:2	
-ironhide	Ironhide	Passive 2 damage reduction. Decrease Bleed damage taken by 50%. Increase Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_mitigation:2
-holy_weakness	Holy Weakness	Takes 30% more Holy damage.	damage_taken_vulnerability:holy:0.30	
-scrawny	Scrawny	Takes 25% more Physical damage.	damage_taken_vulnerability:physical:0.25	
-desiccation	Desiccation	Takes 30% more Burn damage. Burn decays 50% slower on this enemy.	damage_taken_vulnerability:burn:0.30	burn_decay_slow:0.50
-evaporation	Evaporation	Takes 30% more Burn damage.	damage_taken_vulnerability:burn:0.30	
-quenched	Quenched	Takes 35% more Freeze damage. Freeze buildup is 25% faster.	damage_taken_vulnerability:freeze:0.35	freeze_control_vulnerability:0.25
-kindling	Kindling	Takes 35% more Burn damage.	damage_taken_vulnerability:burn:0.35	
-cold_snuff	Cold Snuff	Takes 30% more Freeze damage.	damage_taken_vulnerability:freeze:0.30	
-hollow_shell	Hollow Shell	Decrease Bleed and Poison damage taken by 50%. Cannot be healed.	damage_taken_percent:bleed:0.50|damage_taken_percent:poison:0.50	cannot_be_healed:1
-splintering_frame	Splintering Frame	Takes 30% more Burn damage and 20% more Bleed damage.	damage_taken_vulnerability:burn:0.30|damage_taken_vulnerability:bleed:0.20	
-mortalfied	Mortalfied	Takes 30% more Holy damage.	damage_taken_vulnerability:holy:0.30	
-frail_vessel	Frail Vessel	Takes 25% more Physical damage and 15% more Burn damage. Toughness damage reduction is 15% less effective.	damage_taken_vulnerability:physical:0.25|damage_taken_vulnerability:burn:0.15	mitigation_effectiveness_penalty:0.15
-dryads_bane	Dryad's Bane	Takes 25% more Physical and Burn damage.	damage_taken_vulnerability:physical:0.25|damage_taken_vulnerability:burn:0.25	
-thermal_shock	Thermal Shock	Takes 40% more Freeze damage. Freeze damage halves Toughness damage reduction until after its next action.	damage_taken_vulnerability:freeze:0.40	mitigation_shred_on:freeze:0.50:6
-sunlit_fracture	Sunlit Fracture	Takes 35% more Burn damage. Burn damage erodes Block shield duration.	damage_taken_vulnerability:burn:0.35	shield_erosion_on:burn:1
+living_armor_trait	Living Armor	Gains 1 Block each turn. Reduce Bleed damage taken by 30%.	damage_taken_percent:bleed:0.30	block_per_turn:1
+mimic_trait	Mimic	Deals double damage on the first attack.		first_hit_double_damage:1
+mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
+necromancer_trait	Necromancer	20% chance to Leech. Holy damage taken increased by 30%.	damage_taken_vulnerability:holy:0.30	leech_chance:0.20
+plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	
+skeleton_trait	Skeleton	Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_percent:bleed:0.30	
+the_blight_treant_trait	The Blight Treant	Damage increases by 1 every other turn.		damage_increases_every_other_turn:1
+the_forge_golem_trait	The Forge Golem	Gains 1 Block each turn. Damage increases by 1 every other turn.		block_per_turn:1|damage_increases_every_other_turn:1
+the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 30%. Damage increases by 1 every other turn.	damage_taken_vulnerability:burn:0.30	turn_freeze_all_enemies:1|damage_increases_every_other_turn:1
+the_iron_bear_trait	The Iron Bear	Reduces incoming damage taken by 1. Damage increases by 1 every other turn.		passive_mitigation:1|damage_increases_every_other_turn:1
+goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
+fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1
+frost_elemental_trait	Frost Elemental	Freeze damage is increased by 1. Burn damage taken increased by 30%.	damage_dealt:freeze:1|damage_taken_vulnerability:burn:0.30	
+slime_trait	Slime	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
+will_o_wisp_trait	Will-o'-Wisp	Physical and Freeze damage taken reduced by 30%.	damage_taken_percent:physical:0.30|damage_taken_percent:freeze:0.30	

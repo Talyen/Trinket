@@ -66,9 +66,8 @@ struct StageSelectActiveCard<
                         .clipped()
                 }
             }
-            .overlay(alignment: .topTrailing) {
+            .overlay(alignment: .bottomLeading) {
                 artworkAccessory()
-                    .padding(TrinketDesign.Metrics.smallSpacing)
             }
     }
 

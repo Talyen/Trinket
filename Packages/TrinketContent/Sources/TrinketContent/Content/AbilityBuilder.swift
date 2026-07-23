@@ -12,7 +12,7 @@ enum AbilityBuilder {
         extras: [TargetedEffect] = [],
         hasLeech: Bool = false
     ) -> Ability {
-        let damageComponents = amount > 0 ? [DamageComponent(amount, keyword: keyword)] : []
+        let damageComponents = (amount > 0 && keyword != .bleed) ? [DamageComponent(amount, keyword: keyword)] : []
         var targetedEffects = extras
         if let dot = Effect.pairedDoT(keyword: keyword, potency: amount) {
             targetedEffects.insert(TargetedEffect(dot), at: 0)

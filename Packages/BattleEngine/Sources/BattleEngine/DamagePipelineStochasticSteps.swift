@@ -63,9 +63,6 @@ package extension DamagePipeline {
         var chance = state.combatant.primaryStats.dodgeChance
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.dodgeChanceBonus
-        if state.damageKeyword == .physical {
-            chance += profile.physicalDodgeChanceBonus
-        }
         return min(0.75, chance)
     }
 

@@ -75,7 +75,7 @@ struct MysteryRewardContent: View {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                     ExperienceBar(
                         combatantName: hero.name,
-                        artworkName: hero.id,
+                        artworkName: hero.artReference?.thumbnailImageName ?? hero.artReference?.imageName,
                         pre: heroProgressionBefore,
                         post: heroProgressionAfter,
                         fillColor: TrinketDesign.Colors.progression,
@@ -86,7 +86,7 @@ struct MysteryRewardContent: View {
 
                     ExperienceBar(
                         combatantName: companion.name,
-                        artworkName: companion.id,
+                        artworkName: companion.artReference?.thumbnailImageName ?? companion.artReference?.imageName,
                         pre: companionProgressionBefore,
                         post: companionProgressionAfter,
                         fillColor: TrinketDesign.Colors.progression,

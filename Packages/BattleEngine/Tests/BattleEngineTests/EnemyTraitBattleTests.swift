@@ -47,21 +47,21 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
-        let toughnessMitigation = skeleton.combatant.primaryStats.toughnessMitigation
-        try #expect(physical.healthLost == 10 - toughnessMitigation)
-        // Holy weakness (30%) applies before Toughness mitigation.
-        let holyBeforeMitigation = Int((10.0 * 1.3).rounded(.up))
-        try #expect(holy.healthLost == holyBeforeMitigation - toughnessMitigation)
+        let drPercent = skeleton.combatant.primaryStats.toughnessMitigationPercent
+        let expectedPhysical = Int((10.0 * (1.0 - drPercent)).rounded())
+        let holyBefore = Double(Int((10.0 * 1.3).rounded(.up)))
+        let expectedHoly = Int((holyBefore * (1.0 - drPercent)).rounded())
+        try #expect(physical.healthLost == expectedPhysical)
+        try #expect(holy.healthLost == expectedHoly)
         try #expect(holy.healthLost > physical.healthLost)
     }
 
-    @Test func goblinNimbleDodgeAndScrawnyVulnerability() throws {
+    @Test func goblinBurnVulnerability() throws {
         let goblin = try enemyBuild(id: "goblin")
-        try #expect(goblin.modifiers.dodgeChanceBonus > 0)
-        try #expect(goblin.modifiers.damageTakenVulnerability(for: .physical) > 0)
+        try #expect(goblin.modifiers.damageTakenVulnerability(for: .burn) == 0.30)
     }
 
-    @Test func mimicAmbushAddsFirstStrikeDamage() throws {
+    @Test func mimicDoubleDamageOnFirstAttack() throws {
         let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 30)
@@ -75,40 +75,21 @@ struct EnemyTraitBattleTests {
         )
 
         let strengthBonus = mimic.combatant.primaryStats.statBonusForDamage(keyword: .physical)
-        let ambushBonus = mimic.modifiers.ambushBonusDamage
-        try #expect(ambushBonus > 0)
-        try #expect(first.healthLost == 2 + strengthBonus + ambushBonus)
-        try #expect(second.healthLost == 2 + strengthBonus)
+        let baseDamage = 2 + strengthBonus
+        try #expect(first.healthLost == baseDamage * 2)
+        // After the first hit the enemy leads on HP%, so catch-up reduces the follow-up by 1.
+        try #expect(second.healthLost == baseDamage - 1)
     }
 
-    @Test func livingArmorCannotBeHealed() throws {
+    @Test func livingArmorBlockPerTurnAndBleedReduction() throws {
         let livingArmor = try enemyBuild(id: "living_armor")
-        try #expect(livingArmor.modifiers.cannotBeHealed)
+        try #expect(livingArmor.modifiers.blockPerTurn == 1)
+        try #expect(livingArmor.modifiers.damageTakenReduction(for: .bleed) == 0.30)
     }
 
-    @Test func hemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
+    @Test func necromancerLeechChanceAndHolyVulnerability() throws {
         let necromancer = try enemyBuild(id: "necromancer")
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 100)
-        var context = makeContext(hero: hero, companion: companion, enemyBuild: necromancer)
-        var enemyRuntime = try #require(context.roster.runtime(for: necromancer.combatant))
-        enemyRuntime.actionCount = 5
-        context.roster.update(enemyRuntime)
-
-        let heroHealthBefore = context.roster.health(for: hero)
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: necromancer.combatant)
-        let turnNumber = enemyRuntime.actionCount + 1
-        let ability = try #require(
-            BattleTurnEngine.selectedEnemyAbility(for: necromancer.combatant, turnNumber: turnNumber)
-        )
-
-        _ = BattleTurnEngine.performAbility(
-            ability,
-            actor: necromancer.combatant,
-            matchup: matchup,
-            context: &context
-        )
-
-        try #expect(context.roster.health(for: hero) == heroHealthBefore - 7)
+        try #expect(necromancer.modifiers.leechChancePercent == 0.20)
+        try #expect(necromancer.modifiers.damageTakenVulnerability(for: .holy) == 0.30)
     }
 }

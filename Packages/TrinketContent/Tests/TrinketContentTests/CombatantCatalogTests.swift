@@ -19,6 +19,41 @@ struct CombatantCatalogTests {
         }
     }
 
+    @Test func homesteadNodesHaveFourthTier() throws {
+        for node in GameContent.homesteadNodes {
+            try #expect(node.maxTier == 4, "\(node.title) should have four tiers")
+        }
+    }
+
+    @Test func fourthTierHomesteadEffectsUseUpgradedValues() throws {
+        let effects = HomesteadEffects.from(
+            nodeTiers: Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.map { ($0.id, 4) })
+        )
+
+        try #expect(effects.heroModifiers == [
+            .healthRestored(4),
+            .strength(8),
+            .maximumHealth(16),
+            .damageDealt(.physical, 4),
+            .damageTakenPercent(.freeze, 0.4),
+            .poisonDamageDealtPercent(0.2),
+            .damageTakenPercent(.poison, 0.4),
+            .intellect(8),
+            .damageDealt(.burn, 4),
+            .damageDealt(.freeze, 4),
+            .damageDealt(.holy, 4),
+            .companionDamageDealt(4)
+        ])
+        try #expect(effects.companionModifiers == [
+            .maximumHealth(16),
+            .toughness(8),
+            .damageTakenPercent(.poison, 0.4),
+            .agility(8)
+        ])
+        try #expect(effects.astralChanceBonusPercent == 20)
+        try #expect(effects.goldFindPercent == 20)
+    }
+
     @Test func playerCombatantsHaveCompleteAbilityChoicesAndLoadouts() throws {
         for combatant in GameContent.heroes + GameContent.companions {
             try #expect(!combatant.abilityChoices.basics.isEmpty, "\(combatant.name) should have basic choices")

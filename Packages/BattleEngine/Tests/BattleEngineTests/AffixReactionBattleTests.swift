@@ -62,45 +62,39 @@ struct AffixReactionBattleTests {
         try #expect(poison?.effect.potency == 1)
     }
 
-    @Test func relentlessRefreshesBleedInsteadOfAddingAStack() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [bleedAbility(potency: 2)]),
-            companion: passiveCompanion(),
-            enemy: passiveEnemy(),
-            heroModifiers: CombatModifierProfile(refreshBleedOnReapply: true)
-        )
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        if try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) == nil {
-            _ = BattleTestFixtures.endTurn(on: &battle)
-            _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        }
-
-        let bleeds = battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }
-        try #expect(bleeds.count == 1)
-        try #expect(bleeds.first?.remainingTurns == Effect.bleedDoTTurnCount)
-    }
-
-    @Test func frostburnDealsFreezeDamageEveryThirdBurnTick() throws {
+    @Test func contagionCanIncreasePoisonInsteadOfDecreasing() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: []),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(8), remainingTurns: 0, sourceActorID: "hero")
+                ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
             ],
-            heroModifiers: CombatModifierProfile(
-                everyNthBurnTurnCount: 3,
-                everyNthBurnTurnFreezeDamage: 1
-            )
+            heroModifiers: CombatModifierProfile(poisonDecayIncreaseChance: 1.0)
         )
 
-        var events: [ActionEvent] = []
-        for _ in 0 ..< 3 {
-            events.append(contentsOf: BattleTestFixtures.endTurn(on: &battle))
-        }
+        _ = BattleTestFixtures.endTurn(on: &battle)
 
-        try #expect(events.contains { $0.kind == .status && $0.keyword == .freeze && $0.amount == 1 })
+        let poison = battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }
+        try #expect(poison?.effect.potency == 9)
+    }
+
+    @Test func frostburnIncreasesFreezeDamageAgainstBurningEnemies() throws {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero(abilities: [
+                Ability(id: "frost", name: "Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze)
+            ]),
+            companion: passiveCompanion(),
+            enemy: passiveEnemy(),
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: "hero")
+            ],
+            heroModifiers: CombatModifierProfile(freezeDamageWhileBurningBonus: 2)
+        )
+
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+
+        try #expect(100 - battle.health(of: battle.enemy) == 3)
     }
 
     @Test func cascadingGrantsBlockWhenBlockBreaks() throws {
@@ -136,32 +130,44 @@ struct AffixReactionBattleTests {
         try #expect(block != nil)
     }
 
-    @Test func symbiosisSharesHeroHealingWithCompanion() throws {
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: [
-                Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 5, damageKeyword: .physical)
-            ]
+    @Test func symbiosisSharesHeroLeechWithCompanionButNotNormalHeals() throws {
+        let leechStrike = Ability(
+            id: "leech-strike",
+            name: "Leech Strike",
+            tier: .basic,
+            directDamage: 10,
+            damageKeyword: .physical,
+            hasLeech: true
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [healAbility(amount: 10)]),
+            hero: hero(abilities: [leechStrike, healAbility(amount: 10)], maxHealth: 30),
             companion: passiveCompanion(maxHealth: 20),
-            enemy: enemy,
-            activeCompanionEffects: [
-                ActiveEffect(id: 1, effect: .bleed(4), remainingTurns: 1, sourceActorID: "enemy")
-            ],
-            heroModifiers: CombatModifierProfile(companionHealSharePercent: 0.50)
+            enemy: passiveEnemy(),
+            heroModifiers: CombatModifierProfile(companionLeechSharePercent: 1.0)
         )
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
+            context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 5 }
+        }
 
-        // Enemy strike + bleed tick damage the companion during endTurn.
-        _ = BattleTestFixtures.endTurn(on: &battle)
-        let damagedCompanionHealth = battle.health(of: battle.companion)
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        let companionAfterLeech = battle.health(of: battle.companion)
+        try #expect(companionAfterLeech > 5)
 
-        try #expect(battle.health(of: battle.companion) > damagedCompanionHealth)
+        // Fill the companion so a subsequent Heal targets the damaged hero only.
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: context.roster.companion.combatant) {
+                $0.currentHealth = $0.maxHealth
+            }
+            context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
+        }
+        let companionAtFull = battle.health(of: battle.companion)
+        if try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) == nil {
+            _ = BattleTestFixtures.endTurn(on: &battle)
+            _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        }
+        try #expect(battle.health(of: battle.companion) == companionAtFull)
+        try #expect(battle.health(of: battle.hero) > 10)
     }
 
     @Test func secondWindHealsOnlyOnceWhenHealthFallsLow() throws {
@@ -195,22 +201,22 @@ struct AffixReactionBattleTests {
         try #expect(battle.health(of: battle.hero) == 1)
     }
 
-    @Test func shatterAddsFreezeDamageWhileEnemyIsFrozen() throws {
+    @Test func shatterAddsDamageWhileEnemyIsFrozen() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [
-                Ability(id: "frost", name: "Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze)
+                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
             ]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTurns: 0)
             ],
-            heroModifiers: CombatModifierProfile(freezeDamageWhileFrozenBonus: 1)
+            heroModifiers: CombatModifierProfile(damageWhileTargetFrozenBonus: 2)
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
-        try #expect(100 - battle.health(of: battle.enemy) == 2)
+        try #expect(100 - battle.health(of: battle.enemy) == 3)
     }
 
     @Test func damageAfterDodgeSurvivesDoTTickAndAppliesOnDirectHit() throws {
@@ -369,7 +375,9 @@ struct AffixReactionBattleTests {
         let baseline = baselineContext.resolveDamage(
             DamageRequest(amount: 50, target: baselineEnemy, keyword: .physical, sourceActorID: baselineHero.id, options: options)
         ).healthLost
-        try #expect(baseline == 30)
+        // Toughness 100 DR% = 100 / 180 = 55.56%.
+        // Baseline damage: 50 * (1 - 5/9) = 22.22 → 22 health lost.
+        try #expect(baseline == 22)
 
         var shreddingContext = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 200,
@@ -381,7 +389,9 @@ struct AffixReactionBattleTests {
         let withShredding = shreddingContext.resolveDamage(
             DamageRequest(amount: 50, target: shreddingEnemy, keyword: .physical, sourceActorID: shreddingHero.id, options: options)
         ).healthLost
-        try #expect(withShredding == 40)
+        // 50% mitigation shred reduces DR% to 27.78%.
+        // Shredded damage: 50 * (1 - 5/18) = 36.11 → 36 health lost.
+        try #expect(withShredding == 36)
     }
 
     @Test func dazedAddsDamageWhileEnemyIsStunned() throws {

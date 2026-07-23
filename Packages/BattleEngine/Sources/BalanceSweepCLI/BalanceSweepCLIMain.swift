@@ -58,7 +58,7 @@ enum BalanceSweepCLI {
         """
         Usage: BalanceSweepCLI [options]
 
-          --mode <name>            identity | ability-contrast | affix-contrast | all
+          --mode <name>            identity | ability-contrast | affix-contrast | mode-progression | all
                                    (default: identity)
           --battles-per-tier <n>   Battles/pairs per power tier (default: 1000)
           --seed <n>               Sweep seed (default: 1)

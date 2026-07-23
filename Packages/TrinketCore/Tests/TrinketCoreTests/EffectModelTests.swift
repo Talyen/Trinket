@@ -21,6 +21,21 @@ struct EffectModelTests {
         try #expect(Effect.pairedDoT(keyword: .burn, potency: 0) == nil)
     }
 
+    @Test func manaEmpowermentRaisesBurnAndFreezeDamageNumbersOnly() throws {
+        try #expect(Effect.burn(2).isManaEmpowerableBurnOrFreezeDamage)
+        try #expect(Effect.recurringDamage(.freeze, 2, 2).isManaEmpowerableBurnOrFreezeDamage)
+        try #expect(!Effect.poison(2).isManaEmpowerableBurnOrFreezeDamage)
+        try #expect(!Effect.multiplyDoT(.burn, 2).isManaEmpowerableBurnOrFreezeDamage)
+        try #expect(Effect.burn(2).withManaEmpowerment() == .burn(3))
+        try #expect(
+            Effect.recurringDamage(.freeze, 2, 2).withManaEmpowerment()
+                == .recurringDamage(.freeze, 3, 2)
+        )
+        try #expect(Effect.poison(2).withManaEmpowerment() == .poison(2))
+        try #expect(DamageComponent(2, keyword: .burn).withManaEmpowerment().amount == 3)
+        try #expect(DamageComponent(2, keyword: .physical).withManaEmpowerment().amount == 2)
+    }
+
     @Test func effectClassificationFlagsMatchDefinitions() throws {
         try #expect(Effect.burn(1).isRemovableDebuff)
         try #expect(Effect.poison(1).isRemovableDebuff)

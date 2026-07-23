@@ -68,6 +68,39 @@ struct ShieldFromManaHandler: BattleEffectHandler {
     }
 }
 
+struct ShieldFromHalfManaHandler: BattleEffectHandler {
+    let kind: EffectKind = .shieldFromHalfMana
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleEngineContext
+    ) -> EffectApplyOutcome {
+        guard case .shieldFromHalfMana = effect else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let mana = context.mana(of: target)
+        let block = mana / 2
+        guard block > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        DefensePoolEngine.add(block, pool: .block, to: target, keyword: .block, in: &context)
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .shieldApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: block,
+            keyword: .block
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
 struct ShieldFromGoldHandler: BattleEffectHandler {
     let kind: EffectKind = .shieldFromGold
 

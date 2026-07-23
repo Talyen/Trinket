@@ -7,10 +7,15 @@ let balanceToolSources = [
     "BalanceAffixContrastRunner.swift",
     "BalanceContrastSupport.swift",
     "BalanceMarkdownReporter.swift",
+    "BalanceProgressionReportFormatter.swift",
+    "BalanceProgressionRunner.swift",
     "BalanceStatsAggregator.swift",
     "BalanceSweepConfig.swift",
     "BalanceSweepRunner.swift",
     "BattleSimulator.swift",
+    "HotspotAnalyzer.swift",
+    "InterleavingPlayerController.swift",
+    "ModeProgressionTracker.swift",
     "PlayerPolicy.swift",
     "SimulationMatchupBuilder.swift",
     "SimulationTierProfile.swift",
@@ -24,7 +29,7 @@ let package = Package(
     name: "BattleEngine",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(

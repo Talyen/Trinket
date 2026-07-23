@@ -21,24 +21,21 @@ struct DecayingDoTHandler: BattleEffectHandler {
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
         let slowPercent = context.modifiers(for: target.id).burnDecaySlowPercent
-        let nextPotency = keyword == .burn
-            ? active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
-            : active.effect.potencyAfterTurn()
+        let nextPotency: Int = if keyword == .burn {
+            active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
+        } else if keyword == .poison {
+            poisonPotencyAfterTurn(active, in: &context)
+        } else {
+            active.effect.potencyAfterTurn()
+        }
         if nextPotency > 0 {
-            var events = DoTDamage.resolveTurnDamage(
+            let events = DoTDamage.resolveTurnDamage(
                 basePotency: nextPotency,
                 keyword: keyword,
                 target: target,
                 sourceActorID: active.sourceActorID,
                 in: &context
             ).events
-            if keyword == .burn {
-                events.append(contentsOf: CombatReactionEngine.afterBurnTick(
-                    target: target,
-                    sourceActorID: active.sourceActorID,
-                    in: &context
-                ))
-            }
             var updated = active
             updated.effect = effectCase(potency: nextPotency)
             return EffectTurnOutcome(events: events, updatedStack: updated)
@@ -92,6 +89,24 @@ struct DecayingDoTHandler: BattleEffectHandler {
         case .poison: .poison(potency)
         default: .burn(potency)
         }
+    }
+
+    private func poisonPotencyAfterTurn(
+        _ active: ActiveEffect,
+        in context: inout BattleEngineContext
+    ) -> Int {
+        guard case let .poison(potency) = active.effect else {
+            return active.effect.potencyAfterTurn()
+        }
+        let chance: Double = if let sourceActorID = active.sourceActorID {
+            context.modifiers(for: sourceActorID).poisonDecayIncreaseChance
+        } else {
+            0
+        }
+        if chance > 0, Double.random(in: 0 ... 1, using: &context.rng) < chance {
+            return potency + 1
+        }
+        return active.effect.potencyAfterTurn()
     }
 }
 

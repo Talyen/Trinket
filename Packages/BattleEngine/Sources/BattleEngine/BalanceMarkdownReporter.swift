@@ -3,6 +3,16 @@ import Foundation
 
 public enum BalanceMarkdownReporter {
     public static func render(_ report: BalanceSweepReport) -> String {
+        if report.config.mode == .modeProgression {
+            return BalanceProgressionReportFormatter.render(
+                config: report.config,
+                hotspots: report.progressionHotspots,
+                records: report.progressionRecords,
+                playerStates: report.progressionPlayerStates,
+                truncatedRuns: report.progressionTruncatedRuns,
+                elapsedSeconds: report.elapsedSeconds
+            )
+        }
         let tiers = BalanceStatsAggregator.summarize(report: report)
         var lines: [String] = []
         lines.append("# Balance Sweep Report")

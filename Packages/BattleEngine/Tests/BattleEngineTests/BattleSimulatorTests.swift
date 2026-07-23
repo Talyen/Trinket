@@ -161,4 +161,95 @@ struct BattleSimulatorTests {
         #expect(ci.high >= 0.80)
         #expect(ci.low < ci.high)
     }
+
+    @Test func modeProgressionTrackersBuildNonEmptySteps() {
+        let campaign = CampaignProgressionTracker()
+        let spire = SpireProgressionTracker()
+        let labyrinth = LabyrinthProgressionTracker()
+
+        #expect(!(campaign.steps.isEmpty))
+        #expect(!(spire.steps.isEmpty))
+        #expect(!(labyrinth.steps.isEmpty))
+        #expect(spire.steps.count == 140) // 7 spires * 20 floors
+    }
+
+    @Test func interleavingPlayerControllerGainsXPAndLevelsUp() {
+        let controller = InterleavingPlayerController()
+        let initialLevel = controller.state.heroLevel
+
+        let step = ModeProgressionStep(
+            id: "test-step",
+            mode: .campaign,
+            containerID: "chapter-1",
+            containerTitle: "Chapter 1",
+            stepIndex: 1,
+            displayTitle: "Stage 1-1",
+            enemyID: "goblin",
+            enemyLevel: 5,
+            isBoss: false
+        )
+
+        // Record wins until level increases
+        for _ in 0 ..< 10 {
+            controller.recordOutcome(step: step, won: true)
+        }
+
+        #expect(controller.state.heroLevel > initialLevel)
+        #expect(controller.state.totalBattles == 10)
+        #expect(controller.state.battlesWon == 10)
+    }
+
+    @Test func hotspotAnalyzerClassifiesEnvelopes() throws {
+        let step = ModeProgressionStep(
+            id: "step-1",
+            mode: .campaign,
+            containerID: "c1",
+            containerTitle: "Chapter 1",
+            stepIndex: 1,
+            displayTitle: "Stage 1",
+            enemyID: "goblin",
+            enemyLevel: 5,
+            isBoss: false
+        )
+
+        let overtunedRecord = ProgressionBattleRecord(
+            step: step,
+            playerLevel: 5,
+            enemyLevel: 5,
+            seed: 1,
+            result: BattleSimResult(
+                outcome: .defeat,
+                rounds: 10,
+                actions: 20,
+                timedOut: false,
+                partyHPRemainingFraction: 0,
+                enemyHPRemainingFraction: 0.8
+            )
+        )
+
+        let summaries = HotspotAnalyzer.analyze(records: [overtunedRecord])
+        let summary = try #require(summaries.first)
+        #expect(summary.status == .overtuned)
+        #expect(summary.isFlagged == true)
+    }
+
+    @Test func modeProgressionSweepProducesReport() {
+        let report = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .modeProgression,
+                battlesPerTier: 2,
+                seed: 42,
+                jobs: 1
+            )
+        )
+        #expect(report.config.mode == .modeProgression)
+        #expect(report.progressionPlayerStates.count == 2)
+        #expect(!(report.progressionRecords.isEmpty))
+        #expect(!(report.progressionHotspots.isEmpty))
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("# Multi-Mode Progression & Hotspot Balance Report"))
+        #expect(markdown.contains("Progression Summary"))
+        #expect(markdown.contains("**Simulated Runs**: 2"))
+        #expect(markdown.contains("**Total Battles Simulated**: \(report.progressionRecords.count)"))
+    }
 }

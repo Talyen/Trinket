@@ -18,9 +18,9 @@ enum AccessibilityID {
 
     enum Play {
         static let modesScreen = "Modes Screen"
-        static let aspectsHub = "Aspects Hub"
+        static let spiresHub = "Spires Hub"
         static let exploreHub = "Explore Hub"
-        static let aspectsModeCard = "Aspects Mode Card"
+        static let spiresModeCard = "Spires Mode Card"
         static let campaignModeCard = "Campaign Mode Card"
         static let exploreModeCard = "Explore Mode Card"
         static let battlePartyDone = "Battle Party Done"
@@ -65,44 +65,44 @@ enum AccessibilityID {
             "Chapter \(number) Locked"
         }
 
-        static func aspectRow(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Row"
+        static func spireRow(_ spireID: String) -> String {
+            "Spire \(spireID) Row"
         }
 
-        static func aspectClimb(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Climb"
+        static func spireClimb(_ spireID: String) -> String {
+            "Spire \(spireID) Climb"
         }
 
-        static func aspectTitle(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Title"
+        static func spireTitle(_ spireID: String) -> String {
+            "Spire \(spireID) Title"
         }
 
-        static func aspectFloor(_ aspectID: String, floor: Int) -> String {
-            "Aspect \(aspectID) Floor \(floor)"
+        static func spireFloor(_ spireID: String, floor: Int) -> String {
+            "Spire \(spireID) Floor \(floor)"
         }
 
-        static func aspectBeginFloor(_ aspectID: String, floor: Int) -> String {
-            "Aspect \(aspectID) Begin Floor \(floor)"
+        static func spireBeginFloor(_ spireID: String, floor: Int) -> String {
+            "Spire \(spireID) Begin Floor \(floor)"
         }
 
-        static func aspectFloorEnemyArt(_ aspectID: String, floor: Int) -> String {
-            "Aspect \(aspectID) Floor \(floor) Enemy Art"
+        static func spireFloorEnemyArt(_ spireID: String, floor: Int) -> String {
+            "Spire \(spireID) Floor \(floor) Enemy Art"
         }
 
-        static func aspectActiveFloorDetail(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Active Floor Detail"
+        static func spireActiveFloorDetail(_ spireID: String) -> String {
+            "Spire \(spireID) Active Floor Detail"
         }
 
-        static func aspectPartyControl(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Party Control"
+        static func spirePartyControl(_ spireID: String) -> String {
+            "Spire \(spireID) Party Control"
         }
 
-        static func aspectPartyPickerSheet(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Party Picker Sheet"
+        static func spirePartyPickerSheet(_ spireID: String) -> String {
+            "Spire \(spireID) Party Picker Sheet"
         }
 
-        static func aspectCompletionBack(_ aspectID: String) -> String {
-            "Aspect \(aspectID) Completion Back"
+        static func spireCompletionBack(_ spireID: String) -> String {
+            "Spire \(spireID) Completion Back"
         }
 
         static let labyrinthModeCard = "Labyrinth Mode Card"
@@ -135,14 +135,6 @@ enum AccessibilityID {
         static func labyrinthInspectorAction(_ nodeID: String) -> String {
             "Labyrinth Inspector Action \(nodeID)"
         }
-
-        static func labyrinthModifier(_ modifierID: String) -> String {
-            "Labyrinth Modifier \(modifierID)"
-        }
-
-        static func labyrinthModifierPopover(_ modifierID: String) -> String {
-            "Labyrinth Modifier \(modifierID) Popover"
-        }
     }
 
     enum Mystery {
@@ -153,6 +145,7 @@ enum AccessibilityID {
         static let unlockName = "Mystery Unlock Name"
         static let unlockSubtitle = "Mystery Unlock Subtitle"
         static let continueButton = "Mystery Continue Button"
+        static let confirmChoiceButton = "Mystery Confirm Choice Button"
         static let chooseItemTitle = "Mystery Choose Item Title"
         static let persistFailure = "Mystery Persist Failure"
 
@@ -243,6 +236,9 @@ enum AccessibilityID {
         static let actionsMenu = "Battle Actions"
         static let hand = "Battle Hand"
         static let combatLog = "Combat Log"
+        #if DEBUG
+        static let skipCombat = "Skip Combat"
+        #endif
         static let retreat = "Retreat"
         static let victory = "Victory"
         static let experience = "Experience"

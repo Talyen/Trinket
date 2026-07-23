@@ -124,207 +124,109 @@ enum GameContentTraitsGenerated {
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "unfeeling",
-            name: "Unfeeling",
-            description: "Stun and Freeze buildup is 30% slower.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(controlResistancePercent: 0.30)
+            id: "living_armor_trait",
+            name: "Living Armor",
+            description: "Gains 1 Block each turn. Reduce Bleed damage taken by 30%.",
+            modifiers: [.damageTakenPercent(.bleed, 0.30)],
+            triggers: CombatTraitTriggers(blockPerTurn: 1)
         ),
         CombatantTraitDefinition(
-            id: "nimble",
-            name: "Nimble",
-            description: "12% increased Dodge chance.",
+            id: "mimic_trait",
+            name: "Mimic",
+            description: "Deals double damage on the first attack.",
             modifiers: [],
-            triggers: CombatTraitTriggers(dodgeChanceBonus: 0.12)
+            triggers: CombatTraitTriggers(firstHitDoubleDamage: true)
         ),
         CombatantTraitDefinition(
-            id: "quagmire",
-            name: "Quagmire",
-            description: "Decrease Physical damage taken by 15%.",
-            modifiers: [.damageTakenPercent(.physical, 0.15)],
+            id: "mud_elemental_trait",
+            name: "Mud Elemental",
+            description: "Physical and Poison damage taken reduced by 20%.",
+            modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenPercent(.poison, 0.20)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "amorphous",
-            name: "Amorphous",
-            description: "15% Dodge chance vs Physical damage. Decrease Bleed damage taken by 50%.",
-            modifiers: [.damageTakenPercent(.bleed, 0.50)],
-            triggers: CombatTraitTriggers(physicalDodgeChanceBonus: 0.15)
-        ),
-        CombatantTraitDefinition(
-            id: "blazing_core",
-            name: "Blazing Core",
-            description: "Decrease Burn damage taken by 40%. Increase Burn damage dealt by 1.",
-            modifiers: [.damageTakenPercent(.burn, 0.40), .damageDealt(.burn, 1)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "permafrost_shell",
-            name: "Permafrost",
-            description: "Decrease Freeze damage taken by 40%. Increase Freeze damage dealt by 1.",
-            modifiers: [.damageTakenPercent(.freeze, 0.40), .damageDealt(.freeze, 1)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "ethereal",
-            name: "Ethereal",
-            description: "20% increased Dodge chance. Stun and Freeze buildup is 30% slower.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(controlResistancePercent: 0.30, dodgeChanceBonus: 0.20)
-        ),
-        CombatantTraitDefinition(
-            id: "animated_plate",
-            name: "Animated Plate",
-            description: "Increase Block gained by 3.",
-            modifiers: [.blockGained(3)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "ambush",
-            name: "Ambush",
-            description: "First damaging hit each battle deals 2 bonus damage.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(ambushBonusDamage: 2)
-        ),
-        CombatantTraitDefinition(
-            id: "grave_power",
-            name: "Grave Power",
-            description: "Leech healing is 50% stronger. Hemorrhage applies 1 extra Bleed potency.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(leechHealingMultiplier: 1.50, hemorrhageBleedBonus: 1)
-        ),
-        CombatantTraitDefinition(
-            id: "miasma",
-            name: "Miasma",
-            description: "Decrease Poison damage taken by 25%.",
-            modifiers: [.damageTakenPercent(.poison, 0.25)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "heartwood_renewal",
-            name: "Heartwood Renewal",
-            description: "Restore 1 Health every 6 seconds.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTurns: 6)
-        ),
-        CombatantTraitDefinition(
-            id: "living_furnace",
-            name: "Living Furnace",
-            description: "Decrease Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.",
-            modifiers: [.damageTakenPercent(.burn, 0.50), .damageDealt(.burn, 2)],
-            triggers: CombatTraitTriggers(thornsPercent: 0.15)
-        ),
-        CombatantTraitDefinition(
-            id: "absolute_zero",
-            name: "Absolute Zero",
-            description: "Decrease Freeze damage taken by 50%. Increase Freeze damage dealt by 2.",
-            modifiers: [.damageTakenPercent(.freeze, 0.50), .damageDealt(.freeze, 2)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "ironhide",
-            name: "Ironhide",
-            description: "Passive 2 damage reduction. Decrease Bleed damage taken by 50%. Increase Stun damage dealt by 1.",
-            modifiers: [.damageTakenPercent(.bleed, 0.50), .damageDealt(.stun, 1)],
-            triggers: CombatTraitTriggers(passiveMitigationFlat: 2)
-        ),
-        CombatantTraitDefinition(
-            id: "holy_weakness",
-            name: "Holy Weakness",
-            description: "Takes 30% more Holy damage.",
+            id: "necromancer_trait",
+            name: "Necromancer",
+            description: "20% chance to Leech. Holy damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            triggers: CombatTraitTriggers(leechChancePercent: 0.20)
+        ),
+        CombatantTraitDefinition(
+            id: "plague_doctor_trait",
+            name: "Plague Doctor",
+            description: "Poison damage taken reduced by 30%.",
+            modifiers: [.damageTakenPercent(.poison, 0.30)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "scrawny",
-            name: "Scrawny",
-            description: "Takes 25% more Physical damage.",
-            modifiers: [.damageTakenVulnerability(.physical, 0.25)],
+            id: "skeleton_trait",
+            name: "Skeleton",
+            description: "Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.",
+            modifiers: [.damageTakenVulnerability(.holy, 0.30), .damageTakenPercent(.bleed, 0.30)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "desiccation",
-            name: "Desiccation",
-            description: "Takes 30% more Burn damage. Burn decays 50% slower on this enemy.",
+            id: "the_blight_treant_trait",
+            name: "The Blight Treant",
+            description: "Damage increases by 1 every other turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
+        ),
+        CombatantTraitDefinition(
+            id: "the_forge_golem_trait",
+            name: "The Forge Golem",
+            description: "Gains 1 Block each turn. Damage increases by 1 every other turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(blockPerTurn: 1, damageIncreasesEveryOtherTurn: true)
+        ),
+        CombatantTraitDefinition(
+            id: "the_frostwarden_trait",
+            name: "The Frostwarden",
+            description: "Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 30%. Damage increases by 1 every other turn.",
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers(burnDecaySlowPercent: 0.50)
+            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 1, damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
-            id: "evaporation",
-            name: "Evaporation",
-            description: "Takes 30% more Burn damage.",
+            id: "the_iron_bear_trait",
+            name: "The Iron Bear",
+            description: "Reduces incoming damage taken by 1. Damage increases by 1 every other turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(passiveMitigationFlat: 1, damageIncreasesEveryOtherTurn: true)
+        ),
+        CombatantTraitDefinition(
+            id: "goblin_trait",
+            name: "Goblin",
+            description: "Burn damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "quenched",
-            name: "Quenched",
-            description: "Takes 35% more Freeze damage. Freeze buildup is 25% faster.",
-            modifiers: [.damageTakenVulnerability(.freeze, 0.35)],
-            triggers: CombatTraitTriggers(freezeControlVulnerabilityPercent: 0.25)
-        ),
-        CombatantTraitDefinition(
-            id: "kindling",
-            name: "Kindling",
-            description: "Takes 35% more Burn damage.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.35)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "cold_snuff",
-            name: "Cold Snuff",
-            description: "Takes 30% more Freeze damage.",
+            id: "fire_elemental_trait",
+            name: "Fire Elemental",
+            description: "Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.",
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
+            triggers: CombatTraitTriggers(onHitAttackerBurn: 1)
+        ),
+        CombatantTraitDefinition(
+            id: "frost_elemental_trait",
+            name: "Frost Elemental",
+            description: "Freeze damage is increased by 1. Burn damage taken increased by 30%.",
+            modifiers: [.damageDealt(.freeze, 1), .damageTakenVulnerability(.burn, 0.30)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "hollow_shell",
-            name: "Hollow Shell",
-            description: "Decrease Bleed and Poison damage taken by 50%. Cannot be healed.",
-            modifiers: [.damageTakenPercent(.bleed, 0.50), .damageTakenPercent(.poison, 0.50)],
-            triggers: CombatTraitTriggers(cannotBeHealed: true)
-        ),
-        CombatantTraitDefinition(
-            id: "splintering_frame",
-            name: "Splintering Frame",
-            description: "Takes 30% more Burn damage and 20% more Bleed damage.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.30), .damageTakenVulnerability(.bleed, 0.20)],
+            id: "slime_trait",
+            name: "Slime",
+            description: "Physical and Poison damage taken reduced by 20%.",
+            modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenPercent(.poison, 0.20)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "mortalfied",
-            name: "Mortalfied",
-            description: "Takes 30% more Holy damage.",
-            modifiers: [.damageTakenVulnerability(.holy, 0.30)],
+            id: "will_o_wisp_trait",
+            name: "Will-o'-Wisp",
+            description: "Physical and Freeze damage taken reduced by 30%.",
+            modifiers: [.damageTakenPercent(.physical, 0.30), .damageTakenPercent(.freeze, 0.30)],
             triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "frail_vessel",
-            name: "Frail Vessel",
-            description: "Takes 25% more Physical damage and 15% more Burn damage. Toughness damage reduction is 15% less effective.",
-            modifiers: [.damageTakenVulnerability(.physical, 0.25), .damageTakenVulnerability(.burn, 0.15)],
-            triggers: CombatTraitTriggers(mitigationEffectivenessPenaltyPercent: 0.15)
-        ),
-        CombatantTraitDefinition(
-            id: "dryads_bane",
-            name: "Dryad's Bane",
-            description: "Takes 25% more Physical and Burn damage.",
-            modifiers: [.damageTakenVulnerability(.physical, 0.25), .damageTakenVulnerability(.burn, 0.25)],
-            triggers: CombatTraitTriggers()
-        ),
-        CombatantTraitDefinition(
-            id: "thermal_shock",
-            name: "Thermal Shock",
-            description: "Takes 40% more Freeze damage. Freeze damage halves Toughness damage reduction until after its next action.",
-            modifiers: [.damageTakenVulnerability(.freeze, 0.40)],
-            triggers: CombatTraitTriggers(mitigationShredKeyword: .freeze, mitigationShredMultiplier: 0.50, mitigationShredDurationTurns: 6)
-        ),
-        CombatantTraitDefinition(
-            id: "sunlit_fracture",
-            name: "Sunlit Fracture",
-            description: "Takes 35% more Burn damage. Burn damage erodes Block shield duration.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.35)],
-            triggers: CombatTraitTriggers(shieldErosionKeyword: .burn, shieldErosionTicks: 1)
         ),
     ]
 }

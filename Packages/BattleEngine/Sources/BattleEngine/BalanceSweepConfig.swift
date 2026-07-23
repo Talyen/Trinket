@@ -7,6 +7,7 @@ public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case identity
     case abilityContrast = "ability-contrast"
     case affixContrast = "affix-contrast"
+    case modeProgression = "mode-progression"
     case all
 }
 
@@ -95,6 +96,10 @@ public struct BalanceSweepReport: Sendable {
     public var records: [BalanceBattleRecord]
     public var abilityContrasts: [PairedContrastSummary]
     public var affixContrasts: [PairedContrastSummary]
+    public var progressionHotspots: [NodeHotspotSummary]
+    public var progressionRecords: [ProgressionBattleRecord]
+    public var progressionPlayerStates: [PlayerProgressionState]
+    public var progressionTruncatedRuns: Int
     public var elapsedSeconds: Double
 
     public init(
@@ -103,6 +108,10 @@ public struct BalanceSweepReport: Sendable {
         records: [BalanceBattleRecord] = [],
         abilityContrasts: [PairedContrastSummary] = [],
         affixContrasts: [PairedContrastSummary] = [],
+        progressionHotspots: [NodeHotspotSummary] = [],
+        progressionRecords: [ProgressionBattleRecord] = [],
+        progressionPlayerStates: [PlayerProgressionState] = [],
+        progressionTruncatedRuns: Int = 0,
         elapsedSeconds: Double
     ) {
         self.config = config
@@ -110,6 +119,10 @@ public struct BalanceSweepReport: Sendable {
         self.records = records
         self.abilityContrasts = abilityContrasts
         self.affixContrasts = affixContrasts
+        self.progressionHotspots = progressionHotspots
+        self.progressionRecords = progressionRecords
+        self.progressionPlayerStates = progressionPlayerStates
+        self.progressionTruncatedRuns = max(0, progressionTruncatedRuns)
         self.elapsedSeconds = elapsedSeconds
     }
 }

@@ -76,12 +76,12 @@ public final class PlayerShellSessionStore {
         let resolvedTab = Self.tab(from: record.selectedTabRaw) ?? .play
         selectedTab = resolvedTab
         mapScrollStageID = record.mapScrollStageID
-        lastPlayMode = PlayerShellSessionPlayMode(rawValue: record.lastPlayModeRaw) ?? .campaign
+        lastPlayMode = Self.playMode(from: record.lastPlayModeRaw) ?? .campaign
 
         // Drop any leftover battle-resume fields from older builds.
         let hadStaleBattleResume = record.activeBattleStageID != nil
-            || record.activeBattleAspectID != nil
-            || record.activeBattleAspectFloor != nil
+            || record.activeBattleSpireID != nil
+            || record.activeBattleSpireFloor != nil
             || record.activeBattleLabyrinthNodeID != nil
             || record.activeBattleSavedAt != nil
             || record.activeBattleSchemaVersion != nil
@@ -91,9 +91,12 @@ public final class PlayerShellSessionStore {
         }
 
         // Property observers do not run during init; rewrite remapped legacy tabs
-        // (e.g. "search" → collection) and first-create records explicitly.
-        if loadResult.needsInitialSave || record.selectedTabRaw != resolvedTab.rawValue {
+        // (e.g. "search" → collection), legacy play modes ("aspects" → spires),
+        // and first-create records explicitly.
+        let needsPlayModeRewrite = record.lastPlayModeRaw != lastPlayMode.rawValue
+        if loadResult.needsInitialSave || record.selectedTabRaw != resolvedTab.rawValue || needsPlayModeRewrite {
             record.selectedTabRaw = resolvedTab.rawValue
+            record.lastPlayModeRaw = lastPlayMode.rawValue
             saveContext()
         }
 
@@ -179,8 +182,8 @@ public final class PlayerShellSessionStore {
 
     private func clearStaleBattleResumeFields() {
         record.activeBattleStageID = nil
-        record.activeBattleAspectID = nil
-        record.activeBattleAspectFloor = nil
+        record.activeBattleSpireID = nil
+        record.activeBattleSpireFloor = nil
         record.activeBattleLabyrinthNodeID = nil
         record.activeBattleSavedAt = nil
         record.activeBattleSchemaVersion = nil
@@ -245,5 +248,12 @@ public final class PlayerShellSessionStore {
             return .collection
         }
         return PlayerShellSessionTab(rawValue: rawValue)
+    }
+
+    private static func playMode(from rawValue: String) -> PlayerShellSessionPlayMode? {
+        if rawValue == "aspects" {
+            return .spires
+        }
+        return PlayerShellSessionPlayMode(rawValue: rawValue)
     }
 }

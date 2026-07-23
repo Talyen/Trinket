@@ -102,4 +102,25 @@ final class PlayerShellSessionStoreTests {
         try #expect(reloaded.activeBattleSchemaVersion == nil)
         try #expect(reloaded.lastBackgroundedTime == nil)
     }
+
+    @Test func remapsLegacyAspectsPlayModeToSpires() throws {
+        let storeURL = directoryURL.appending(path: "legacy-aspects-mode.store")
+        let schema = Schema([PlayerShellSession.self])
+        let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        let record = PlayerShellSession()
+        record.selectedTabRaw = "play"
+        record.lastPlayModeRaw = "aspects"
+        context.insert(record)
+        try context.save()
+
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(store.lastPlayMode == .spires)
+
+        let reloadedContext = try ModelContext(ModelContainer(for: schema, configurations: [config]))
+        let descriptor = FetchDescriptor<PlayerShellSession>()
+        let reloaded = try #require(try reloadedContext.fetch(descriptor).first { $0.id == "current" })
+        try #expect(reloaded.lastPlayModeRaw == PlayerShellSessionPlayMode.spires.rawValue)
+    }
 }

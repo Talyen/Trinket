@@ -1,8 +1,8 @@
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
-    /// Explore hub opens Aspects; locked aspects stay inert.
-    func testExploreHubOpensAspectsWithLockedAspectInert() {
+    /// Explore hub opens Spires; locked spires stay inert.
+    func testExploreHubOpensSpiresWithLockedSpireInert() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -13,15 +13,15 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         play.assertLoaded()
         play.openExplore()
 
-        app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
-        assertExists(AccessibilityID.Play.aspectRow("ironVein"))
+        app.buttons[AccessibilityID.Play.spiresModeCard].tap()
+        assertExists(AccessibilityID.Play.spireRow("ironVein"))
 
-        let lockedAspect = app.buttons[AccessibilityID.Play.aspectRow("cinderSpire")]
-        assertExists(lockedAspect)
-        XCTAssertFalse(lockedAspect.isEnabled)
+        let lockedSpire = app.buttons[AccessibilityID.Play.spireRow("cinderSpire")]
+        assertExists(lockedSpire)
+        XCTAssertFalse(lockedSpire.isEnabled)
 
-        app.buttons[AccessibilityID.Play.aspectRow("ironVein")].tap()
-        assertExists(AccessibilityID.Play.aspectBeginFloor("ironVein", floor: 1))
+        app.buttons[AccessibilityID.Play.spireRow("ironVein")].tap()
+        assertExists(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
     }
 
     /// Labyrinth map: entry inspector opens, locked nodes stay inert, dismiss works.

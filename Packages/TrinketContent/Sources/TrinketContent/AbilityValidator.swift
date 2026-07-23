@@ -111,7 +111,7 @@ enum AbilityValidator {
         case .skill:
             [2, 3]
         case .ultimate:
-            [2, 3, 6]
+            [2, 3, 5, 6]
         }
 
         if allowed.contains(total) || allowsMultiComponentTotal(abilityID: abilityID, total: total) {
@@ -126,7 +126,7 @@ enum AbilityValidator {
 
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "blood-offering":
+        case "blood-offering", "smite":
             total == 4
         case "ice-shot":
             total == 2

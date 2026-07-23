@@ -24,7 +24,7 @@ public enum LabyrinthGenerator {
         var nodes = Dictionary(uniqueKeysWithValues: first.nodes.map { ($0.id, $0) })
         let entrance = LabyrinthNode(
             id: entranceNodeID,
-            type: .gate,
+            type: .entrance,
             depth: 0,
             clusterID: entranceClusterID,
             gridPosition: LabyrinthGridPosition(row: 0, column: 1),
@@ -343,7 +343,7 @@ public enum LabyrinthGenerator {
             ["gildedWhisper"]
         case .craft:
             ["astralSeam"]
-        case .rest, .mystery, .event, .recruit, .gate:
+        case .rest, .mystery, .event, .recruit, .entrance:
             []
         }
         return ids.map { LabyrinthModifierID($0) }

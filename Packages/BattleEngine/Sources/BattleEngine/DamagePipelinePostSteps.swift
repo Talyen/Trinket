@@ -48,6 +48,7 @@ package extension DamagePipeline {
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
+              !state.isRetaliation,
               context.roster.health(for: state.combatant) > 0
         else { return }
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
@@ -80,6 +81,11 @@ package extension DamagePipeline {
             )
             state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
                 damageTaken: state.healthLost,
+                defender: state.combatant,
+                attackerID: sourceActorID,
+                in: &context
+            ))
+            state.damageEvents.append(contentsOf: EnemyTraitEngine.traitAttackerBurn(
                 defender: state.combatant,
                 attackerID: sourceActorID,
                 in: &context

@@ -58,16 +58,11 @@ public struct BattleRoster {
     }
 
     public func participant(for combatant: Combatant) -> BattleParticipant? {
-        if hero.id == combatant.id {
-            return .hero
+        switch combatant.role {
+        case .hero: .hero
+        case .companion: .companion
+        case .enemy: .enemy
         }
-        if companion.id == combatant.id {
-            return .companion
-        }
-        if enemy.id == combatant.id {
-            return .enemy
-        }
-        return nil
     }
 
     // MARK: - Dispatch by Combatant identity

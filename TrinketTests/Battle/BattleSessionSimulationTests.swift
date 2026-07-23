@@ -339,7 +339,7 @@ struct BattleSessionSimulationTests {
         )
 
         #expect(
-            session.state?.modifiers(for: enemy.combatant.id).controlResistancePercent ?? 0 > 0
+            session.state?.modifiers(for: enemy.combatant.id).damageTakenVulnerability(for: .holy) ?? 0 > 0
         )
     }
 

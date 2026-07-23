@@ -60,13 +60,13 @@ struct PlayView: View {
             path = [.campaign]
         case .explore:
             path = [.explore]
-        case .aspectsHub:
-            path = [.explore, .aspectsHub]
+        case .spiresHub:
+            path = [.explore, .spiresHub]
         case .labyrinthMap:
             _ = appState.enterLabyrinth()
             path = [.explore, .labyrinthMap]
-        case let .aspectClimb(aspectID):
-            path = [.explore, .aspectsHub, .aspectClimb(aspectID)]
+        case let .spireClimb(spireID):
+            path = [.explore, .spiresHub, .spireClimb(spireID)]
         }
 
         navigationPath = path
@@ -103,12 +103,12 @@ private struct PlayBrowsingStack: View {
             )
         case .explore:
             ExploreHubView()
-        case .aspectsHub:
-            AspectsHubView()
+        case .spiresHub:
+            SpiresHubView()
         case .labyrinthMap:
             LabyrinthMapView()
-        case let .aspectClimb(aspectID):
-            AspectClimbView(aspectID: aspectID)
+        case let .spireClimb(spireID):
+            SpireClimbView(spireID: spireID)
         }
     }
 

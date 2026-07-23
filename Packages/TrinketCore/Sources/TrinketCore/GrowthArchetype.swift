@@ -156,7 +156,7 @@ public enum StatGrowth {
         }
 
         var delta = StatGrowthDelta(
-            maxHealth: Int((Double(levelsAbove) * 1.7).rounded()) + (levelsAbove / 15)
+            maxHealth: levelsAbove * 2
         )
         ranked.first?.apply(levelsAbove, to: &delta)
         if ranked.count > 1 {
@@ -175,55 +175,18 @@ public enum StatGrowth {
         return delta
     }
 
-    /// Smooth gear-compensation tuned for normal enemies and bosses.
+    /// Flat gear-compensation for bosses (2.0x HP and 2.0x stats) and normal enemies (1.5x HP and 1.5x stats).
     static func enemyGearCompensation(
-        level: Int,
-        identityStats: PrimaryStats,
+        level _: Int,
+        identityStats _: PrimaryStats,
         isBoss: Bool = false
     ) -> EnemyGearCompensation {
-        let progress = smoothstep(min(max(Double(level) / 40.0, 0), 1))
-        let midT = smoothstep(min(max((Double(level) - 5.0) / 20.0, 0), 1))
-        let lateT = smoothstep(min(max((Double(level) - 18.0) / 22.0, 0), 1))
-        let earlyT = smoothstep(min(max((14.0 - Double(level)) / 14.0, 0), 1))
-        let midPeakT = smoothstep(max(0, 1.0 - abs(Double(level) - 20.0) / 12.0))
-        let bracket = enemyLateGameBracketBonus(identityStats: identityStats)
-
-        let healthMultiplier: Double
-        let primaryStatMultiplier: Double
-        let statScale: Double
-        let extraToughness: Int
-
-        if isBoss {
-            // Bosses spike threat via stats; keep late HP moderate to avoid 100-tick stalls.
-            // Primary-stat multiplier stays modest so bosses don't outscale player stats.
-            healthMultiplier = 1.0 + 0.10 + (0.08 * progress) + (0.06 * midT) + (0.02 * lateT)
-                + (0.70 * earlyT) + (0.30 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.03 * progress) + (0.04 * midT) + (0.06 * lateT)
-                + (0.12 * earlyT) + (0.05 * midPeakT)
-            statScale = (0.50 * progress) + (0.32 * midT) + (0.48 * lateT) + (0.62 * earlyT) + (0.34 * midPeakT)
-            extraToughness = Int((1.0 + (1.5 * lateT) + (2.5 * earlyT) + (1.5 * midPeakT)).rounded())
-        } else {
-            // Normal enemies: HP compensation for 2v1 party advantage; primary stats stay
-            // near matched-level player growth (avoid e.g. Goblin Agility >> Rogue Agility).
-            healthMultiplier = 1.0 + 0.08 + (0.14 * progress) + (0.64 * midT) + (0.46 * lateT)
-                + (0.26 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.02 * progress) + (0.08 * midT) + (0.06 * lateT)
-                + (0.04 * midPeakT)
-            statScale = (0.58 * progress) + (0.76 * midT) + (0.52 * lateT) + (0.34 * midPeakT)
-            extraToughness = Int((1.0 + (1.8 * midT) + (1.2 * lateT) + (1.2 * midPeakT)).rounded())
-        }
-
-        let statDelta = StatGrowthDelta(
-            strength: scaledByCurve(bracket.strength, statScale),
-            agility: scaledByCurve(bracket.agility, statScale),
-            toughness: scaledByCurve(bracket.toughness + extraToughness, statScale),
-            intellect: scaledByCurve(bracket.intellect, statScale),
-            wisdom: scaledByCurve(bracket.wisdom, statScale)
-        )
+        let healthMultiplier: Double = isBoss ? 2.0 : 1.5
+        let primaryStatMultiplier: Double = isBoss ? 2.0 : 1.5
         return EnemyGearCompensation(
             healthMultiplier: healthMultiplier,
             primaryStatMultiplier: primaryStatMultiplier,
-            statDelta: statDelta
+            statDelta: .zero
         )
     }
 

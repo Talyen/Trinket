@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
@@ -56,16 +55,16 @@ enum LabyrinthMapPresentation {
         case .mystery, .event: "Approach Mystery"
         case .recruit: "Recruit"
         case .craft: "Use Crafting Altar"
-        case .gate: "Descend"
+        case .entrance: "Enter Labyrinth"
         }
     }
 
     static func tint(for type: LabyrinthNodeType) -> Color {
         switch type.canonical {
-        case .battle, .boss, .gate: TrinketDesign.Colors.encounterBattle
+        case .battle, .boss: TrinketDesign.Colors.encounterBattle
         case .shop: TrinketDesign.Colors.encounterShop
         case .rest: TrinketDesign.Colors.encounterRest
-        case .mystery, .event, .recruit, .craft: TrinketDesign.Colors.encounterEvent
+        case .mystery, .event, .recruit, .craft, .entrance: TrinketDesign.Colors.encounterEvent
         }
     }
 
@@ -236,9 +235,7 @@ private struct LabyrinthMapNodeSeal: View {
             return type.symbolName
         }
         return switch visualState {
-        case .locked:
-            "lock.fill"
-        case .reachable:
+        case .locked, .reachable:
             LabyrinthMapPresentation.symbolName(
                 for: type,
                 recruitEventID: node.recruitEventID
@@ -306,7 +303,6 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
 
 struct LabyrinthNodeInspector: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedModifierID: LabyrinthModifierID?
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
@@ -366,13 +362,10 @@ struct LabyrinthNodeInspector: View {
                 StageBattlePartyPickerSheet()
             },
             artworkAccessory: {
-                modifierCornerTab
+                modifierArtworkCaption
             }
         )
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthNodeInspector)
-        .onChange(of: node.id) { _, _ in
-            selectedModifierID = nil
-        }
     }
 
     private var subjectTitle: String {
@@ -398,71 +391,42 @@ struct LabyrinthNodeInspector: View {
     }
 
     @ViewBuilder
-    private var modifierCornerTab: some View {
+    private var modifierArtworkCaption: some View {
         if !modifiers.isEmpty {
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(modifiers) { modifier in
-                    Button {
-                        selectedModifierID = modifier.id
-                    } label: {
-                        Image(systemName: modifierSymbolName(for: modifier))
-                            .symbolRenderingMode(.hierarchical)
-                            .trinketTypography(.button)
-                            .foregroundStyle(modifierTint(for: modifier))
-                            // UIStyleCheck: allow - Bare modifier icon matching party picker size without chip chrome.
-                            .frame(minWidth: 44, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .accessibilityIdentifier(
-                        AccessibilityID.Play.labyrinthModifier(modifier.id.rawValue)
-                    )
-                    .popover(
-                        isPresented: Binding(
-                            get: { selectedModifierID == modifier.id },
-                            set: { isPresented in
-                                if !isPresented, selectedModifierID == modifier.id {
-                                    selectedModifierID = nil
-                                }
-                            }
-                        )
-                    ) {
-                        modifierPopover(modifier)
-                            .presentationCompactAdaptation(.popover)
-                            .presentationSizing(.fitted)
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+                        HStack(spacing: TrinketDesign.Metrics.denseSpacing) {
+                            Image(systemName: modifierSymbolName(for: modifier))
+                                .symbolRenderingMode(.hierarchical)
+                            Text(modifier.title.uppercased())
+                        }
+                        .trinketTypography(.eyebrow)
+                        .trinketOnArtText(.title)
+
+                        Text(modifier.effect.description)
+                            .trinketTypography(.footnote)
+                            .trinketOnArtText(.eyebrow)
+                            .lineLimit(2)
                     }
                 }
             }
-            .background(
-                TrinketDesign.Colors.elevated,
-                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-            )
-        }
-    }
-
-    private func modifierPopover(_ modifier: LabyrinthModifierDefinition) -> some View {
-        let tint = modifierTint(for: modifier)
-        return VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-            HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                Image(systemName: modifierSymbolName(for: modifier))
-                    .foregroundStyle(tint)
-
-                Text(modifier.title)
-                    .trinketTypography(.cardTitle)
-                    .foregroundStyle(tint)
+            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.top, TrinketDesign.Metrics.extraLargeSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.mediumSpacing)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.82)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             }
-
-            Text(modifier.effect.description)
-                .trinketTypography(.body)
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
+            .allowsHitTesting(false)
         }
-        .padding(.horizontal, TrinketDesign.Metrics.largeSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-        .frame(width: 280, alignment: .leading)
-        .accessibilityIdentifier(
-            AccessibilityID.Play.labyrinthModifierPopover(modifier.id.rawValue)
-        )
     }
 
     private func modifierSymbolName(for modifier: LabyrinthModifierDefinition) -> String {
@@ -474,19 +438,6 @@ struct LabyrinthNodeInspector: View {
         case "gildedWhisper": "circle.circle.fill"
         case "astralSeam": "sparkles"
         default: "sparkles"
-        }
-    }
-
-    private func modifierTint(for modifier: LabyrinthModifierDefinition) -> Color {
-        switch modifier.id.rawValue {
-        case "ironPressure": Keyword.physical.visualStyle.color
-        case "ashTithe": Keyword.burn.visualStyle.color
-        case "bloodMarket": Keyword.bleed.visualStyle.color
-        case "serpentBloom": Keyword.poison.visualStyle.color
-        case "rimeTax": Keyword.freeze.visualStyle.color
-        case "gildedWhisper": Keyword.gold.visualStyle.color
-        case "astralSeam": TrinketDesign.Colors.arcane
-        default: TrinketDesign.Colors.accent
         }
     }
 }

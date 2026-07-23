@@ -46,45 +46,47 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     private static func apply(nodeID: HomesteadNodeID, tier: Int, to effects: inout HomesteadEffects) {
         switch nodeID {
         case .wheatField:
-            effects.companionModifiers.append(.maximumHealth(tierValue(tier, values: [2, 4, 6])))
+            effects.companionModifiers.append(.maximumHealth(tierValue(tier, values: [4, 8, 12, 16])))
         case .herbGarden:
-            effects.heroModifiers.append(.healthRestored(tierValue(tier, values: [1, 2, 3])))
+            effects.heroModifiers.append(.healthRestored(tierValue(tier, values: [1, 2, 3, 4])))
         case .chickenCoop:
-            effects.heroModifiers.append(.strength(tierValue(tier, values: [1, 2, 3])))
+            effects.heroModifiers.append(.strength(tierValue(tier, values: [2, 4, 6, 8])))
         case .pasture:
-            effects.companionModifiers.append(.toughness(tierValue(tier, values: [1, 2, 3])))
+            effects.companionModifiers.append(.toughness(tierValue(tier, values: [2, 4, 6, 8])))
         case .culinaryArts:
-            effects.heroModifiers.append(.maximumHealth(tierValue(tier, values: [2, 4, 6])))
+            effects.heroModifiers.append(.maximumHealth(tierValue(tier, values: [4, 8, 12, 16])))
         case .blacksmithForge:
             effects.heroModifiers.append(
-                .damageDealt(.physical, tierValue(tier, values: [1, 2, 3]))
+                .damageDealt(.physical, tierValue(tier, values: [1, 2, 3, 4]))
             )
         case .woolTailoring:
-            effects.heroModifiers.append(
-                .damageTakenFlat(.freeze, tierValue(tier, values: [1, 2, 3]))
-            )
+            let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
+            effects.heroModifiers.append(.damageTakenPercent(.freeze, percent))
         case .alchemyLab:
-            effects.heroModifiers.append(
-                .damageDealt(.poison, tierValue(tier, values: [1, 2, 3]))
-            )
+            let percent = Double(tierValue(tier, values: [5, 10, 15, 20])) / 100
+            effects.heroModifiers.append(.poisonDamageDealtPercent(percent))
         case .botanicalDistillation:
-            let percent = Double(tierValue(tier, values: [10, 20, 30])) / 100
-            effects.heroModifiers.append(
-                .damageTakenPercent(.poison, percent)
-            )
+            let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
+            let modifier = AffixModifier.damageTakenPercent(.poison, percent)
+            effects.heroModifiers.append(modifier)
+            effects.companionModifiers.append(modifier)
         case .crystalGarden:
-            effects.heroModifiers.append(.intellect(tierValue(tier, values: [1, 2, 3])))
+            effects.heroModifiers.append(.intellect(tierValue(tier, values: [2, 4, 6, 8])))
         case .runesmithWorkshop:
-            let percent = Double(tierValue(tier, values: [5, 10, 15])) / 100
-            effects.heroModifiers.append(.manaCostReductionPercent(percent))
+            let amount = tierValue(tier, values: [1, 2, 3, 4])
+            effects.heroModifiers.append(contentsOf: [
+                .damageDealt(.burn, amount),
+                .damageDealt(.freeze, amount),
+                .damageDealt(.holy, amount)
+            ])
         case .hunterLodge:
-            effects.heroModifiers.append(.companionDamageDealt(tierValue(tier, values: [1, 2, 3])))
+            effects.heroModifiers.append(.companionDamageDealt(tierValue(tier, values: [1, 2, 3, 4])))
         case .agilityTraining:
-            effects.companionModifiers.append(.agility(tierValue(tier, values: [1, 2, 3])))
+            effects.companionModifiers.append(.agility(tierValue(tier, values: [2, 4, 6, 8])))
         case .detectMagic:
-            effects.astralChanceBonusPercent = tierValue(tier, values: [5, 10, 15])
+            effects.astralChanceBonusPercent = tierValue(tier, values: [5, 10, 15, 20])
         case .wishingWell:
-            effects.goldFindPercent = tierValue(tier, values: [5, 10, 15])
+            effects.goldFindPercent = tierValue(tier, values: [5, 10, 15, 20])
         }
     }
 

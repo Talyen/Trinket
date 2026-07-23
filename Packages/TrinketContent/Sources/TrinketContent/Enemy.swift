@@ -5,19 +5,16 @@ public struct Enemy: Identifiable, Hashable, Sendable {
     public static let fallbackMaxHealth: Int = 12
 
     public let combatant: Combatant
-    public let positiveTraitID: String
-    public let negativeTraitID: String?
+    public let traitID: String
     public let isBoss: Bool
 
     public init(
         combatant: Combatant,
-        positiveTraitID: String,
-        negativeTraitID: String? = nil,
+        traitID: String,
         isBoss: Bool = false
     ) {
         self.combatant = combatant
-        self.positiveTraitID = positiveTraitID
-        self.negativeTraitID = negativeTraitID
+        self.traitID = traitID
         self.isBoss = isBoss
     }
 

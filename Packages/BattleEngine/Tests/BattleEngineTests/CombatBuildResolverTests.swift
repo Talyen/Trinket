@@ -63,9 +63,9 @@ struct CombatBuildResolverTests {
             inventory: [weapon, armor]
         )
 
-        try #expect(build.modifiers.maximumHealthBonus == 4)
+        try #expect(build.modifiers.maximumHealthBonus == 6)
         try #expect(build.modifiers.blockGainedBonus == 3)
-        try #expect(build.effectiveMaxHealth == knight.maxHealth + knight.primaryStats.toughness + 4)
+        try #expect(build.effectiveMaxHealth == knight.maxHealth + knight.primaryStats.toughness + 6)
     }
 
     @Test func traitModifiersMergeIntoBuildProfile() throws {

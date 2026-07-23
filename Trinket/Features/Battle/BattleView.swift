@@ -82,6 +82,15 @@ struct BattleView: View {
             }
             .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
 
+            #if DEBUG
+            Button {
+                appState.battle.debugSkipCombat(homestead: appState.homestead)
+            } label: {
+                Label("Skip Combat", systemImage: "forward.end")
+            }
+            .accessibilityIdentifier(AccessibilityID.Battle.skipCombat)
+            #endif
+
             if canRetreat {
                 Button(role: .destructive) {
                     appState.sfxPlayer.play(SFXID.uiCancel, volume: appState.options.effectsVolume)

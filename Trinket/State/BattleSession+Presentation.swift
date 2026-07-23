@@ -232,6 +232,29 @@ extension BattleSession {
         isShowingVictory = true
     }
 
+    #if DEBUG
+    func debugSkipCombat(homestead: PlayerHomesteadState) {
+        guard let configuration = activeBattle,
+              let battleState = state,
+              !isShowingVictory,
+              !isShowingDefeat
+        else { return }
+
+        cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
+        pendingOutcomePresentationTask?.cancel()
+        pendingOutcomePresentationTask = nil
+        clearSpectacle()
+        victorySummary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: battleState,
+            homestead: homestead
+        )
+        isShowingVictory = true
+        playSFX(SFXID.victory)
+    }
+    #endif
+
     func scheduleDefeatPresentation(after date: Date) {
         scheduleOutcomePresentation(
             after: date,

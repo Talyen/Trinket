@@ -12,16 +12,16 @@ struct ExploreHubView: View {
             title: "Explore",
             accessibilityIdentifier: AccessibilityID.Play.exploreHub
         ) {
-            NavigationLink(value: PlayLaunchDestination.aspectsHub) {
+            NavigationLink(value: PlayLaunchDestination.spiresHub) {
                 PlayModeArtworkCard(
-                    title: "Aspects",
-                    subtitle: aspectsProgressSubtitle,
+                    title: "The Spires",
+                    subtitle: spiresProgressSubtitle,
                     symbolName: nil,
-                    artID: "aspect-aureateChoir",
+                    artID: "spire-aureateChoir",
                     fallbackArtID: "gameModeExplore"
                 )
             }
-            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
+            .accessibilityIdentifier(AccessibilityID.Play.spiresModeCard)
             .trinketQuietTapButtonStyle()
 
             NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
@@ -38,14 +38,14 @@ struct ExploreHubView: View {
         }
     }
 
-    private var aspectsProgressSubtitle: String {
-        let totalFloors = GameContent.aspects.reduce(0) { partialResult, aspect in
-            partialResult + aspect.floorCount
+    private var spiresProgressSubtitle: String {
+        let totalFloors = GameContent.spires.reduce(0) { partialResult, spire in
+            partialResult + spire.floorCount
         }
-        let clearedFloors = GameContent.aspects.reduce(0) { partialResult, aspect in
+        let clearedFloors = GameContent.spires.reduce(0) { partialResult, spire in
             partialResult + min(
-                appState.aspects.highestClearedFloor(for: aspect.id.rawValue),
-                aspect.floorCount
+                appState.spires.highestClearedFloor(for: spire.id.rawValue),
+                spire.floorCount
             )
         }
         return "\(clearedFloors) / \(totalFloors) Floors"

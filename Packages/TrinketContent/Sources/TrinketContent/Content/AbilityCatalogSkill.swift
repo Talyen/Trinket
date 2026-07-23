@@ -28,7 +28,7 @@ enum AbilityCatalogSkill {
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.thorns(2))
+            TargetedEffect(.thorns(1))
         ]
     )
 
@@ -58,14 +58,14 @@ enum AbilityCatalogSkill {
 
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        description: "Lose 2 Health. Draw 2 cards.",
-        damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
+        description: "Lose 1 Health. Draw 2 cards.",
+        damageComponents: [DamageComponent(1, keyword: .physical, target: .actor)],
         targetedEffects: [TargetedEffect(.drawCards(2))]
     )
 
     static let fireball = AbilityBuilder.directHit(
         id: "fireball", name: "Fireball", tier: .skill,
-        amount: 3, keyword: .burn
+        amount: 2, keyword: .burn
     )
 
     static let frostbolt = AbilityBuilder.directHit(
@@ -75,7 +75,7 @@ enum AbilityCatalogSkill {
 
     static let heal = Ability(
         id: "heal", name: "Heal", tier: .skill,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 5))]
     )
 
     static let manaPotion = Ability(
@@ -134,13 +134,12 @@ enum AbilityCatalogSkill {
 
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .bleed)],
-        targetedEffects: [TargetedEffect(.bleed(3))]
+        targetedEffects: [TargetedEffect(.bleed(2))]
     )
 
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .holy)]
+        damageComponents: [DamageComponent(4, keyword: .holy)]
     )
 
     static let spikedShield = Ability(
@@ -158,7 +157,7 @@ enum AbilityCatalogSkill {
 
     static let stoneskinPotion = AbilityBuilder.buffOnly(
         id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
-        effects: [.shield(.block, 3)]
+        effects: [.shield(.block, 4)]
     )
 
     static let sunder = Ability(

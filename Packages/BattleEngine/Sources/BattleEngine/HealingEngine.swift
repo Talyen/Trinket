@@ -43,15 +43,6 @@ package enum HealingEngine {
         }
 
         if !request.suppressTraitReactions,
-           request.target.id == context.roster.hero.id,
-           restored > 0 {
-            events.append(contentsOf: CombatReactionEngine.shareHeroHealWithCompanion(
-                restored: restored,
-                in: &context
-            ))
-        }
-
-        if !request.suppressTraitReactions,
            let sourceActorID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceActorID)?.combatant,
            restored > 0 {
@@ -88,10 +79,15 @@ package enum HealingEngine {
             return maxPercent
         }
         leechPct = max(leechPct, buffPct)
+        let profile = context.modifiers(for: sourceActorID)
+        if leechPct == 0, profile.leechChancePercent > 0 {
+            if Double.random(in: 0 ... 1, using: &context.rng) < profile.leechChancePercent {
+                leechPct = Effect.abilityLeechPercent
+            }
+        }
         guard leechPct > 0 else { return .empty }
 
         var restored = Int(ceil(Double(damage) * leechPct))
-        let profile = context.modifiers(for: sourceActorID)
         restored = Int(ceil(Double(restored) * profile.leechHealingMultiplier))
         restored += profile.leechHealingBonus
         guard restored > 0 else { return .empty }
@@ -107,7 +103,7 @@ package enum HealingEngine {
         )
         guard healOutcome.healthRestored > 0 else { return .empty }
 
-        let event = context.nextEvent(
+        var events = [context.nextEvent(
             kind: .effect,
             effectKind: .leechHeal,
             actorName: actorCombatant.name,
@@ -118,10 +114,16 @@ package enum HealingEngine {
             appliedEffectSummaries: [],
             milestone: nil,
             isCritical: healOutcome.isCritical
-        )
+        )]
+        if actorCombatant.id == context.roster.hero.id {
+            events.append(contentsOf: CombatReactionEngine.shareHeroLeechWithCompanion(
+                restored: healOutcome.healthRestored,
+                in: &context
+            ))
+        }
         var flags = healOutcome.flags
         flags.insert(.leeched)
-        return CombatOutcome(healthDelta: healOutcome.healthRestored, events: [event], flags: flags)
+        return CombatOutcome(healthDelta: healOutcome.healthRestored, events: events, flags: flags)
     }
 
     /// Rolls Wisdom-scaled restoration crit for Health / Leech heals. Doubles the

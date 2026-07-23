@@ -36,7 +36,7 @@ extension AppState {
         }
 
         switch node.type.canonical {
-        case .battle, .boss, .gate:
+        case .battle, .boss:
             return startLabyrinthBattle(nodeID: nodeID)
         case .shop:
             return beginShopEncounter(labyrinthNodeID: nodeID)
@@ -57,6 +57,8 @@ extension AppState {
             return beginLabyrinthRest(nodeID: nodeID)
         case .craft:
             return beginLabyrinthCraft(nodeID: nodeID)
+        case .entrance:
+            return nil
         }
     }
 
@@ -161,7 +163,8 @@ extension AppState {
 
         let loot = ActiveBattleConfiguration.lootPackage(
             for: .labyrinth(nodeID: nodeID),
-            labyrinth: labyrinth
+            labyrinth: labyrinth,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
         activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
@@ -190,7 +193,8 @@ extension AppState {
 
         let loot = ActiveBattleConfiguration.lootPackage(
             for: .labyrinth(nodeID: nodeID),
-            labyrinth: labyrinth
+            labyrinth: labyrinth,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
         battle.prepareBattleRun(makeBattleConfiguration(
             resumeToken: .labyrinth(nodeID: nodeID),

@@ -70,9 +70,9 @@ public final class PlayerSaveStore {
         set { mutate { $0.homestead = newValue } }
     }
 
-    public var aspects: PlayerAspectsState {
-        get { root.aspects?.toPlayerAspectsState() ?? .freshStart }
-        set { mutate { $0.aspects = PlayerSaveSanitizer.sanitizeAspects(newValue) } }
+    public var spires: PlayerSpiresState {
+        get { root.spires?.toPlayerSpiresState() ?? .freshStart }
+        set { mutate { $0.spires = PlayerSaveSanitizer.sanitizeSpires(newValue) } }
     }
 
     public var labyrinth: PlayerLabyrinthState {

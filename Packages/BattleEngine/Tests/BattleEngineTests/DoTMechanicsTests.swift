@@ -117,19 +117,19 @@ struct DoTMechanicsTests {
         )
     }
 
-    @Test func bleedFourInstancesDealSixteenTotal() throws {
+    @Test func bleedFourTicksTwiceAfterApply() throws {
         var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 4)])
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         var amounts: [Int] = []
-        for _ in 0 ..< 3 {
+        for _ in 0 ..< 2 {
             let events = BattleTestFixtures.endTurn(on: &battle)
             amounts.append(contentsOf: statusAmounts(from: events, keyword: .bleed))
         }
 
-        try #expect(amounts == [4, 4, 4])
-        try #expect(battle.health(of: battle.enemy) == 84)
+        try #expect(amounts == [4, 4])
+        try #expect(battle.health(of: battle.enemy) == 88)
         try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.isEmpty)
     }
 

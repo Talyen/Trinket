@@ -35,6 +35,7 @@ package enum ControlMeterEngine {
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
+        guard existingAmount < threshold else { return [] }
         let newAmount = min(existingAmount + adjustedAmount, threshold)
 
         if newAmount >= threshold {

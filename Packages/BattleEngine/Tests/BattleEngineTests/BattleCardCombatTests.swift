@@ -9,6 +9,7 @@ struct BattleCardCombatTests {
         companionAbilities: [Ability] = [],
         enemyAbilities: [Ability] = [],
         enemyMaxHealth: Int = 100,
+        heroMaxMana: Int = 0,
         heroMana: Int? = nil
     ) -> BattleState {
         let hero = Combatant(
@@ -16,7 +17,7 @@ struct BattleCardCombatTests {
             name: "Hero",
             role: .hero,
             maxHealth: 50,
-            maxMana: heroMana ?? 0,
+            maxMana: heroMaxMana,
             abilities: heroAbilities
         )
         let companion = Combatant(
@@ -160,7 +161,7 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.handBuffer.count == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(battle.health(of: battle.hero) == 48)
+        try #expect(battle.health(of: battle.hero) == 49)
     }
 
     @Test func darkPactHealthCostIgnoresBlock() throws {
@@ -183,7 +184,7 @@ struct BattleCardCombatTests {
 
         _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        try #expect(battle.health(of: battle.hero) == 48)
+        try #expect(battle.health(of: battle.hero) == 49)
         let shield = battle.activeEffects(of: battle.hero).first {
             if case .shield = $0.effect {
                 return true
@@ -359,6 +360,7 @@ struct BattleCardCombatTests {
         var battle = makeBattle(
             heroAbilities: [expensive],
             companionAbilities: [.bash],
+            heroMaxMana: 0,
             heroMana: 0
         )
         try #expect(battle.mana(of: battle.hero) == 0)

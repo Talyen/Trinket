@@ -10,10 +10,10 @@ struct AbilityDescriptionFormatterTests {
         try #expect(description.contains("Deal 1 Burn damage"))
         try #expect(!description.contains("applies Burning"))
         try #expect(
-            AbilityDescriptionFormatter.format(.fangs) == "Deal 1 Bleed damage. Leech."
+            AbilityDescriptionFormatter.format(.fangs) == "Applies Bleeding. Leech."
         )
         try #expect(
-            AbilityDescriptionFormatter.format(.faustianBargain) == "Lose 3 Health. Draw 3 cards."
+            AbilityDescriptionFormatter.format(.faustianBargain) == "Lose 2 Health. Deal 6 Burn damage."
         )
         try #expect(
             AbilityDescriptionFormatter.format(.cleanse)

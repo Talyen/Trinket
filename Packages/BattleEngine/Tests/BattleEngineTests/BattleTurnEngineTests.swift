@@ -71,47 +71,49 @@ struct BattleTurnEngineTests {
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 
-    @Test func deathgripDoesNotFireOnSkippedAction() throws {
+    @Test func deathgripGrantsBlockWhenEnteringDeathsDoor() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
+            maxHealth: 50,
             abilities: [.slash]
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var context = BattleEngineContext(
             roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .deathsDoor, remainingTurns: 4),
-                        ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
-                    ],
-                    hasConsumedDeathsDoor: true
-                ),
+                hero: CombatantRuntime(combatant: hero, initialHealth: 5),
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
             rng: SeededRandomNumberGenerator(seed: 0),
-            nextEffectID: 3,
+            nextEffectID: 1,
             nextEventID: 0,
             events: [],
             gold: 0,
             initialGold: 0,
-            heroModifiers: CombatModifierProfile(blockPerActionWhileDeathsDoor: 2),
+            heroModifiers: CombatModifierProfile(blockOnDeathsDoor: 8),
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
 
-        let events = BattleTurnEngine.consumeActionSkip(for: hero, context: &context)
+        let (_, events) = context.applyTestDamage(
+            40,
+            to: hero,
+            applyStatBonus: false,
+            applyItemBonus: false,
+            applyDodge: false
+        )
 
-        try #expect(events.contains { $0.effectKind == .controlActionSkipped })
-        try #expect(!events.contains { $0.abilityName == "Deathgrip" })
+        try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+        try #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == 8 })
+        try #expect(context.roster.health(for: hero) == 1)
         try #expect(
-            !context.roster.activeEffects(for: hero).contains {
-                if case .shield = $0.effect {
-                    return true
-                }; return false
+            context.roster.activeEffects(for: hero).contains {
+                if case let .shield(keyword, points) = $0.effect {
+                    return keyword == .block && points == 8
+                }
+                return false
             }
         )
     }

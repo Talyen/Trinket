@@ -15,55 +15,79 @@ public enum BalanceSweepRunner {
         precondition(!heroes.isEmpty && !companions.isEmpty && !enemies.isEmpty)
 
         let started = ContinuousClock.now
-        let policyID = policy.id
-        var records: [BalanceBattleRecord] = []
-        var abilityContrasts: [PairedContrastSummary] = []
-        var affixContrasts: [PairedContrastSummary] = []
-
-        let runIdentity = config.mode == .identity || config.mode == .all
-        let runAbility = config.mode == .abilityContrast || config.mode == .all
-        let runAffix = config.mode == .affixContrast || config.mode == .all
-
-        if runIdentity {
-            records = runIdentitySweep(
+        let records = config.mode == .identity || config.mode == .all
+            ? runIdentitySweep(
                 config: config,
                 policy: policy,
                 heroes: heroes,
                 companions: companions,
                 enemies: enemies
             )
-        }
-        if runAbility || runAffix {
-            let contrastContext = BalanceContrastContext(
-                config: config,
-                heroes: heroes,
-                companions: companions,
-                enemies: enemies
-            )
-            if runAbility {
-                abilityContrasts = BalanceAbilityContrastRunner.run(
-                    context: contrastContext,
-                    policy: policy
-                )
-            }
-            if runAffix {
-                affixContrasts = BalanceAffixContrastRunner.run(
-                    context: contrastContext,
-                    policy: policy
-                )
-            }
-        }
+            : []
+        let contrasts = runContrastsIfNeeded(
+            config: config,
+            policy: policy,
+            heroes: heroes,
+            companions: companions,
+            enemies: enemies
+        )
+        let progression = runProgressionIfNeeded(config: config, policy: policy)
 
         let elapsed = ContinuousClock.now - started
         return BalanceSweepReport(
             config: config,
-            policyID: policyID,
+            policyID: policy.id,
             records: records,
-            abilityContrasts: abilityContrasts,
-            affixContrasts: affixContrasts,
+            abilityContrasts: contrasts.ability,
+            affixContrasts: contrasts.affix,
+            progressionHotspots: progression.hotspots,
+            progressionRecords: progression.records,
+            progressionPlayerStates: progression.playerStates,
+            progressionTruncatedRuns: progression.truncatedRuns,
             elapsedSeconds: Double(elapsed.components.seconds)
                 + Double(elapsed.components.attoseconds) / 1e18
         )
+    }
+
+    private static func runContrastsIfNeeded(
+        config: BalanceSweepConfig,
+        policy: GreedyHeuristicPolicy,
+        heroes: [Combatant],
+        companions: [Combatant],
+        enemies: [Enemy]
+    ) -> (ability: [PairedContrastSummary], affix: [PairedContrastSummary]) {
+        let runAbility = config.mode == .abilityContrast || config.mode == .all
+        let runAffix = config.mode == .affixContrast || config.mode == .all
+        guard runAbility || runAffix else { return ([], []) }
+
+        let contrastContext = BalanceContrastContext(
+            config: config,
+            heroes: heroes,
+            companions: companions,
+            enemies: enemies
+        )
+        let ability = runAbility
+            ? BalanceAbilityContrastRunner.run(context: contrastContext, policy: policy)
+            : []
+        let affix = runAffix
+            ? BalanceAffixContrastRunner.run(context: contrastContext, policy: policy)
+            : []
+        return (ability, affix)
+    }
+
+    private static func runProgressionIfNeeded(
+        config: BalanceSweepConfig,
+        policy: GreedyHeuristicPolicy
+    ) -> (
+        records: [ProgressionBattleRecord],
+        hotspots: [NodeHotspotSummary],
+        playerStates: [PlayerProgressionState],
+        truncatedRuns: Int
+    ) {
+        guard config.mode == .modeProgression || config.mode == .all else {
+            return ([], [], [], 0)
+        }
+        return BalanceProgressionRunner.run(config: config, policy: policy)
     }
 
     private static func runIdentitySweep(

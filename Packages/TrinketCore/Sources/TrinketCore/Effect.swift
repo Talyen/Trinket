@@ -31,6 +31,23 @@ public struct DamageComponent: Hashable, Sendable {
         self.bonusAmount = bonusAmount
         self.condition = condition
     }
+
+    /// True when this component's damage number can be raised by Mana empowerment.
+    public var isManaEmpowerableBurnOrFreezeDamage: Bool {
+        keyword == .burn || keyword == .freeze
+    }
+
+    /// Returns a copy with Burn/Freeze amount increased by `amount`; other keywords unchanged.
+    public func withManaEmpowerment(_ amount: Int = 1) -> DamageComponent {
+        guard isManaEmpowerableBurnOrFreezeDamage else { return self }
+        return DamageComponent(
+            self.amount + amount,
+            keyword: keyword,
+            target: target,
+            bonusAmount: bonusAmount,
+            condition: condition
+        )
+    }
 }
 
 public struct TargetedEffect: Hashable, Sendable {
@@ -81,6 +98,8 @@ public enum Effect: Hashable, Sendable {
     case convertManaToBlock
     /// Gain Block equal to current Mana (does not spend Mana).
     case shieldFromMana
+    /// Gain Block equal to half current Mana (floor, does not spend Mana).
+    case shieldFromHalfMana
     /// Gain Block equal to `gold / goldPerBlock` (floor).
     case shieldFromGold(goldPerBlock: Int)
     /// Battle-long maximum Mana bonus; also restores the same amount of current Mana.
@@ -98,7 +117,7 @@ public enum Effect: Hashable, Sendable {
     /// Revive a defeated ally to the given Health.
     case revive(Int)
 
-    public static let bleedDoTTurnCount = 3
+    public static let bleedDoTTurnCount = 2
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
     public static let abilityLeechPercent = 0.50
     /// Legacy timed-buff leech percent.
@@ -144,7 +163,7 @@ public enum Effect: Hashable, Sendable {
         case .nextHolyStrike: .holy
         case .nextStrikeDouble: .physical
         case .evadeNextHit: .dodge
-        case .convertManaToBlock, .shieldFromMana, .shieldFromGold: .block
+        case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: .block
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
         case .freezeNextAttacker: .freeze
@@ -164,6 +183,31 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
+    /// True for Burn stacks and Burn/Freeze recurring damage numbers Mana can empower.
+    public var isManaEmpowerableBurnOrFreezeDamage: Bool {
+        switch self {
+        case .burn:
+            true
+        case let .recurringDamage(keyword, _, _):
+            keyword == .burn || keyword == .freeze
+        default:
+            false
+        }
+    }
+
+    /// Returns a copy with Burn/Freeze damage potency increased by `amount`; other effects unchanged.
+    public func withManaEmpowerment(_ amount: Int = 1) -> Effect {
+        switch self {
+        case let .burn(potency):
+            .burn(potency + amount)
+        case let .recurringDamage(keyword, potency, turns)
+            where keyword == .burn || keyword == .freeze:
+            .recurringDamage(keyword, potency + amount, turns)
+        default:
+            self
+        }
+    }
+
     public var durationTurns: Int {
         switch self {
         case .bleed: Self.bleedDoTTurnCount
@@ -177,7 +221,7 @@ public enum Effect: Hashable, Sendable {
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
-             .convertManaToBlock, .shieldFromMana, .shieldFromGold, .maximumManaBonus,
+             .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .multiplyDoT, .revive:
             0
         }
@@ -214,7 +258,7 @@ public enum Effect: Hashable, Sendable {
         case .shield, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
-             .convertManaToBlock, .shieldFromMana, .shieldFromGold, .maximumManaBonus,
+             .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .freezeNextAttacker, .holyDamageBonusFromBlock:
             .actor
         }

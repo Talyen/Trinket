@@ -137,11 +137,11 @@ item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50
-combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpg	0.50	0.50
-combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpg	0.50	0.50
-combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpg	0.50	0.50
-combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpg	0.50	0.50
-combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpg	0.50	0.50
+combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50
+combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpeg	0.50	0.50
+combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpeg	0.50	0.50
+combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.50	0.50
+combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.50	0.50
 combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50
 combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.50	0.50
 combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.50	0.50
@@ -150,8 +150,8 @@ combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The I
 combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50
 combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50
 combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50
-combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50
-combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50
+combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.50
+combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.50	0.50
 combatant	pixie	companion_pixie_card	Raw Assets/Companions/Pixie.jpeg	0.50	0.50
 combatant	shield_scarab	companion_shield_scarab_card	Raw Assets/Companions/Shield Scarab.jpeg	0.50	0.50
 background	chapter-1	bg_forest	Raw Assets/Chapter Backgrounds/Forest.jpeg	0.50	0.50
@@ -204,13 +204,14 @@ encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Asse
 encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50
 encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50
 encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
-background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Game Mode Campaign.png	0.50	0.76
-background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Game Mode Explore.png	0.50	0.78
-background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/The Labyrinth.jpeg	0.50	0.50
-background	aspect-ironVein	bg_aspect_iron_vein	Raw Assets/Talent Backgrounds/Physical.jpeg	0.50	0.50
-background	aspect-cinderSpire	bg_aspect_cinder_spire	Raw Assets/Talent Backgrounds/Burn.jpeg	0.50	0.50
-background	aspect-serpentHollow	bg_aspect_serpent_hollow	Raw Assets/Talent Backgrounds/Nature.jpeg	0.50	0.50
-background	aspect-scarGallery	bg_aspect_scar_gallery	Raw Assets/Talent Backgrounds/Bleed.jpeg	0.50	0.50
-background	aspect-aureateChoir	bg_aspect_aureate_choir	Raw Assets/Talent Backgrounds/Mana.jpeg	0.50	0.50
-background	aspect-rimeVault	bg_aspect_rime_vault	Raw Assets/Talent Backgrounds/Freeze.jpeg	0.50	0.50
-background	aspect-stormAnvil	bg_aspect_storm_anvil	Raw Assets/Talent Backgrounds/Stun.jpeg	0.50	0.50
+background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Campaign.jpeg	0.50	0.50
+background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Explore.jpeg	0.50	0.50
+background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/Labyrinth.jpeg	0.50	0.50
+background	gameModeSpires	bg_game_mode_spires	Raw Assets/Game Modes/Spires.jpeg	0.50	0.50
+background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Talent Backgrounds/Physical.jpeg	0.50	0.50
+background	spire-cinderSpire	bg_spire_cinder_spire	Raw Assets/Talent Backgrounds/Burn.jpeg	0.50	0.50
+background	spire-serpentHollow	bg_spire_serpent_hollow	Raw Assets/Talent Backgrounds/Nature.jpeg	0.50	0.50
+background	spire-scarGallery	bg_spire_scar_gallery	Raw Assets/Talent Backgrounds/Bleed.jpeg	0.50	0.50
+background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Talent Backgrounds/Mana.jpeg	0.50	0.50
+background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Talent Backgrounds/Freeze.jpeg	0.50	0.50
+background	spire-stormAnvil	bg_spire_storm_anvil	Raw Assets/Talent Backgrounds/Stun.jpeg	0.50	0.50

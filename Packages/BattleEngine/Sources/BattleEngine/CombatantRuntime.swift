@@ -37,20 +37,14 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant's ambush trait has added its first-strike bonus.
     public var hasTriggeredAmbush: Bool
 
+    /// True after this combatant's first-hit double-damage trait has fired once.
+    public var hasTriggeredFirstHitBonus: Bool
+
     /// True after this combatant's Second Wind affix has healed once this battle.
     public var hasTriggeredSecondWind: Bool
 
-    /// True after this combatant's Hexmark affix has marked its first target this battle.
-    public var hasTriggeredHexmark: Bool
-
     /// Pending flat damage bonus earned by dodging and consumed by the next damage dealt.
     public var pendingDamageAfterDodge: Int
-
-    /// Number of bleed applications this combatant has sourced this battle.
-    public var bleedApplyCount: Int
-
-    /// Number of burn ticks this combatant has sourced this battle.
-    public var burnTickCount: Int
 
     /// Round until which Toughness-based inherent DR is reduced by `mitigationShredMultiplier`.
     public var mitigationShredUntilTurn: Int
@@ -68,11 +62,9 @@ public struct CombatantRuntime: Hashable {
         hasConsumedDeathsDoor: Bool = false,
         deathsDoorExpiredAtTurn: Int? = nil,
         hasTriggeredAmbush: Bool = false,
+        hasTriggeredFirstHitBonus: Bool = false,
         hasTriggeredSecondWind: Bool = false,
-        hasTriggeredHexmark: Bool = false,
         pendingDamageAfterDodge: Int = 0,
-        bleedApplyCount: Int = 0,
-        burnTickCount: Int = 0,
         mitigationShredUntilTurn: Int = 0,
         mitigationShredMultiplier: Double = 1
     ) {
@@ -82,11 +74,9 @@ public struct CombatantRuntime: Hashable {
         self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
         self.deathsDoorExpiredAtTurn = deathsDoorExpiredAtTurn
         self.hasTriggeredAmbush = hasTriggeredAmbush
+        self.hasTriggeredFirstHitBonus = hasTriggeredFirstHitBonus
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
-        self.hasTriggeredHexmark = hasTriggeredHexmark
         self.pendingDamageAfterDodge = pendingDamageAfterDodge
-        self.bleedApplyCount = bleedApplyCount
-        self.burnTickCount = burnTickCount
         self.mitigationShredUntilTurn = mitigationShredUntilTurn
         self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)

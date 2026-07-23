@@ -28,25 +28,49 @@ public struct GreedyHeuristicPolicy: Sendable {
     private func score(_ card: BattleCard, in battle: BattleState) -> Int {
         let ability = card.ability
         let enemyHP = battle.health(of: battle.enemy)
+        let ownerCombatant = card.owner == .hero ? battle.hero : battle.companion
+        let actorHP = battle.health(of: ownerCombatant)
+        let maxHP = max(battle.maxHealth(of: ownerCombatant), 1)
+        let hpFraction = Double(actorHP) / Double(maxHP)
+
         let damage = ability.directDamage
-        var value = tierScore(ability.tier) + damage
+        let selfDamage = ability.damageComponents
+            .filter { $0.target == .actor }
+            .reduce(0) { $0 + $1.amount }
+
+        // 1. Immediate Lethal Finish
         if damage > 0, damage >= enemyHP {
-            value += 10000
+            return 10000 + damage
         }
+
+        // 2. Fatal Self-Damage Check (prevent suicide)
+        if selfDamage > 0, selfDamage >= actorHP {
+            return -10000
+        }
+
+        // 3. Heavy de-prioritization when HP < 50%
+        let selfDamagePenalty = (selfDamage > 0 && hpFraction < 0.5) ? (selfDamage * 10 + 50) : (selfDamage * 2)
+        var value = damage - selfDamagePenalty
+
         if ability.hasLeech {
             value += 5
         }
-        if !ability.targetedEffects.isEmpty {
-            value += ability.targetedEffects.count
-        }
-        return value
-    }
 
-    private func tierScore(_ tier: AbilityTier) -> Int {
-        switch tier {
-        case .ultimate: 300
-        case .skill: 200
-        case .basic: 100
+        for targeted in ability.targetedEffects {
+            switch targeted.effect {
+            case let .drawCards(count):
+                value += count * 3
+            case let .shield(_, amount):
+                value += amount
+            case let .instantHeal(_, amount):
+                value += amount
+            case let .burn(amount), let .poison(amount), let .bleed(amount):
+                value += amount * 2
+            default:
+                value += 2
+            }
         }
+
+        return value
     }
 }

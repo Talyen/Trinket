@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "bg_spire_cinder_spire.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

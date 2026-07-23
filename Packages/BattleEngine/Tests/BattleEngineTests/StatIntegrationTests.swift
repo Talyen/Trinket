@@ -23,11 +23,10 @@ struct StatIntegrationTests {
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .physical),
             DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .stun),
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 2, keyword: .physical),
-            DirectDamageCase(ability: .fangs, stats: PrimaryStats(agility: 10), expectedAmount: 3, keyword: .bleed),
-            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .burn),
+            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
             DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .freeze),
             DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .poison),
-            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy)
+            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 6, keyword: .holy)
         ]
 
         for testCase in cases {
@@ -74,7 +73,8 @@ struct StatIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         let event = BattleTestFixtures.firstAbilityEvent(in: events)
 
-        // Slash deals 2; the mitigation cap is floor(2/2)=1, so Toughness reduces 1.
+        // Slash deals 2; Toughness 50 DR% = 50 / (50 + 80) = 0.3846.
+        // 2 * (1 - 0.3846) = 1.23 → rounded to 1 damage.
         try #expect(event?.amount == 1)
         try #expect(battle.health(of: battle.hero) == initial - 1)
     }
@@ -96,13 +96,13 @@ struct StatIntegrationTests {
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 
         let initial = battle.health(of: battle.hero)
-        // Fireball 3 → Toughness mitigation 10, cap floor(3/2)=1 → take 2.
-        // Burn tick potency 3 → same cap → take 2. Total lost: 4.
+        // Fireball 2 → Toughness 50 DR% 38.5% → 1 damage.
+        // Burn tick 2 → 1 damage. Total lost: 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
         let lost = initial - battle.health(of: battle.hero)
-        // Fireball 3 + same-turn Burn pulse, each Toughness-mitigated.
-        try #expect(lost >= 3 && lost <= 5)
+        // Fireball 2 (full) + same-turn Burn pulse (may be catch-up −1 once party HP% trails), each Toughness-mitigated.
+        try #expect(lost >= 1 && lost <= 4)
     }
 
     // MARK: - Wisdom
@@ -137,10 +137,11 @@ struct StatIntegrationTests {
             enemy: enemyWithStats
         )
 
-        // Take a few enemy hits so heal has room; keep companion healthier so Heal targets the hero.
+        // Draw into Heal, then pin HP so catch-up-reduced enemy hits cannot leave too little missing Health.
         BattleTestFixtures.endTurns(5, on: &battle)
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: companion) { $0.currentHealth = 100 }
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 50 }
         }
         let beforeHeal = battle.health(of: battle.hero)
         try #expect(beforeHeal < 100)

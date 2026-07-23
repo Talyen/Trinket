@@ -29,6 +29,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case evadeNextHit
     case convertManaToBlock
     case shieldFromMana
+    case shieldFromHalfMana
     case shieldFromGold
     case maximumManaBonus
     case nextStrikeCritical
@@ -69,6 +70,7 @@ public extension Effect {
         case .evadeNextHit: .evadeNextHit
         case .convertManaToBlock: .convertManaToBlock
         case .shieldFromMana: .shieldFromMana
+        case .shieldFromHalfMana: .shieldFromHalfMana
         case .shieldFromGold: .shieldFromGold
         case .maximumManaBonus: .maximumManaBonus
         case .nextStrikeCritical: .nextStrikeCritical
@@ -124,7 +126,7 @@ public extension Effect {
         switch self {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .convertManaToBlock, .shieldFromMana,
-             .shieldFromGold, .multiplyDoT, .revive:
+             .shieldFromGold, .shieldFromHalfMana, .multiplyDoT, .revive:
             true
         default:
             false

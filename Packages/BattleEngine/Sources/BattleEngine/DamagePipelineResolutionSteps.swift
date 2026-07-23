@@ -23,12 +23,21 @@ package extension DamagePipeline {
                 )
                 : 0
             if state.qualifiesForAmbush,
-               let runtime = context.roster.runtime(for: actor.combatant),
-               !runtime.hasTriggeredAmbush {
-                let ambushBonus = context.modifiers(for: sourceActorID).ambushBonusDamage
-                if ambushBonus > 0 {
-                    state.itemBonus += ambushBonus
-                    context.roster.mutateRuntime(for: actor.combatant) { $0.hasTriggeredAmbush = true }
+               var runtime = context.roster.runtime(for: actor.combatant) {
+                let profile = context.modifiers(for: sourceActorID)
+                var didUpdateRuntime = false
+                if !runtime.hasTriggeredAmbush, profile.ambushBonusDamage > 0 {
+                    state.itemBonus += profile.ambushBonusDamage
+                    runtime.hasTriggeredAmbush = true
+                    didUpdateRuntime = true
+                }
+                if !runtime.hasTriggeredFirstHitBonus, profile.firstHitDoubleDamage {
+                    state.itemBonus += (state.amount + state.statBonus)
+                    runtime.hasTriggeredFirstHitBonus = true
+                    didUpdateRuntime = true
+                }
+                if didUpdateRuntime {
+                    context.roster.update(runtime)
                 }
             }
             if state.applyItemBonus {
@@ -36,14 +45,18 @@ package extension DamagePipeline {
             }
         }
         state.remaining = state.amount + state.statBonus + state.itemBonus
+        if state.applyItemBonus,
+           let sourceActorID = state.sourceActorID,
+           let damageKeyword = state.damageKeyword {
+            let percent = context.modifiers(for: sourceActorID).damageDealtPercent(for: damageKeyword)
+            let percentBonus = Int(floor(Double(max(0, state.remaining)) * percent))
+            state.itemBonus += percentBonus
+            state.remaining += percentBonus
+        }
+        if shouldApplyEnemyCatchUpPenalty(for: state, in: context) {
+            state.remaining = max(0, state.remaining - 1)
+        }
         state.dealt = state.remaining
-    }
-
-    static func applyHexmark(
-        to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
-    ) {
-        CombatReactionEngine.applyHexmarkIfNeeded(to: &state, in: &context)
     }
 
     static func outgoingDamageBonus(
@@ -51,11 +64,48 @@ package extension DamagePipeline {
         keyword: Keyword,
         in context: BattleEngineContext
     ) -> Int {
-        var bonus = context.modifiers(for: sourceActorID).damageDealtBonus(for: keyword)
+        let profile = context.modifiers(for: sourceActorID)
+        var bonus = profile.damageDealtBonus(for: keyword)
         if sourceActorID == context.roster.companion.id {
             bonus += context.heroModifiers.companionDamageDealtBonus
         }
+        if profile.damageIncreasesEveryOtherTurn {
+            bonus += context.turnCount / 2
+        }
         return bonus
+    }
+
+    /// Hidden catch-up: when the enemy's HP% exceeds the party average, reduce enemy outgoing damage by 1.
+    private static func shouldApplyEnemyCatchUpPenalty(
+        for state: DamageResolutionState,
+        in context: BattleEngineContext
+    ) -> Bool {
+        guard let sourceActorID = state.sourceActorID,
+              context.roster.combatant(for: sourceActorID)?.role == .enemy
+        else { return false }
+
+        let enemy = context.roster.enemy
+        guard enemy.isAlive,
+              context.roster.maxHealth(for: enemy.combatant) > 0
+        else { return false }
+
+        let enemyPercent = healthPercent(for: enemy.combatant, in: context)
+        return enemyPercent > partyAverageHealthPercent(in: context)
+    }
+
+    private static func healthPercent(
+        for combatant: Combatant,
+        in context: BattleEngineContext
+    ) -> Double {
+        let maxHealth = context.roster.maxHealth(for: combatant)
+        guard maxHealth > 0 else { return 0 }
+        return Double(context.roster.health(for: combatant)) / Double(maxHealth)
+    }
+
+    private static func partyAverageHealthPercent(in context: BattleEngineContext) -> Double {
+        let heroPercent = healthPercent(for: context.roster.hero.combatant, in: context)
+        let companionPercent = healthPercent(for: context.roster.companion.combatant, in: context)
+        return (heroPercent + companionPercent) / 2.0
     }
 
     static func applyMarkedBonus(
@@ -127,8 +177,8 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
-    /// Toughness-based inherent DR: reduce by `min(effective, floor(incoming/2))`.
-    /// No pool, so nothing decays — the reduction applies on every hit.
+    /// Toughness-based inherent DR: percentage reduction from Toughness (K = 80)
+    /// plus flat passive mitigation from traits/affixes.
     static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
@@ -137,7 +187,7 @@ package extension DamagePipeline {
 
         let effects = context.roster.activeEffects(for: state.combatant)
         let profile = context.modifiers(for: state.combatant.id)
-        var effective = DefensePoolEngine.effectiveToughnessMitigation(
+        var effectivePercent = DefensePoolEngine.effectiveToughnessMitigationPercent(
             for: state.combatant,
             effects: effects,
             profile: profile,
@@ -146,14 +196,21 @@ package extension DamagePipeline {
         if let sourceActorID = state.sourceActorID {
             let ignorePercent = min(1, context.modifiers(for: sourceActorID).ignoreEnemyMitigationPercent)
             if ignorePercent > 0 {
-                effective = Int(floor(Double(effective) * (1 - ignorePercent)))
+                effectivePercent *= (1 - ignorePercent)
             }
         }
-        let maxReduction = state.remaining / 2
-        let reduction = min(effective, maxReduction)
-        if reduction > 0 {
-            state.remaining -= reduction
+
+        var remaining = state.remaining
+        if profile.passiveMitigationFlat > 0 {
+            remaining = max(0, remaining - profile.passiveMitigationFlat)
         }
+
+        if effectivePercent > 0 {
+            let reduced = Double(remaining) * (1.0 - effectivePercent)
+            remaining = max(0, Int(reduced.rounded()))
+        }
+
+        state.remaining = remaining
         state.buildupDamage = state.remaining
     }
 

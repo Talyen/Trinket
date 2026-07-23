@@ -46,12 +46,14 @@ struct MitigationIntegrationTests {
         )
         let initial = battle.health(of: battle.hero)
 
-        // One enemy Heavy Strike: 6 → reduce by min(toughnessMitigation=3, floor(6/2)=3) → 3 damage.
+        // One enemy Heavy Strike: 6 damage.
+        // Toughness 15 DR% = 15 / (15 + 80) = 0.15789.
+        // 6 * (1 - 0.15789) = 5.052 → rounded to 5 damage.
         let events = BattleTestFixtures.endTurn(on: &battle)
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
-        try #expect(damageEvent?.amount == 3)
-        try #expect(battle.health(of: battle.hero) == initial - 3)
+        try #expect(damageEvent?.amount == 5)
+        try #expect(battle.health(of: battle.hero) == initial - 5)
     }
 
     @Test func sunderHalvesEnemyBlock() throws {

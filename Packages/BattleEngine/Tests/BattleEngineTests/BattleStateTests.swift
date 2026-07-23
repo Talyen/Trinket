@@ -159,7 +159,7 @@ struct BattleStateTests {
             id: "enemy",
             name: "Enemy",
             role: .enemy,
-            maxHealth: 6,
+            maxHealth: 50,
             abilities: []
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)

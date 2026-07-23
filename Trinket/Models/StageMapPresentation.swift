@@ -97,7 +97,7 @@ struct StageMapMessage: Identifiable {
     let message: String
 }
 
-/// View-only data shared by linear Play surfaces such as Campaign stages and Aspect floors.
+/// View-only data shared by linear Play surfaces such as Campaign stages and Spire floors.
 struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     let item: Item
     let isActive: Bool
@@ -122,20 +122,19 @@ struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     }
 }
 
-extension StageSelectRowPresentation where Item == AspectFloor {
-    static func aspectRows(
-        for aspect: AspectDefinition,
-        floors: [AspectFloor],
-        progress: PlayerAspectsState
+extension StageSelectRowPresentation where Item == SpireFloor {
+    static func spireRows(
+        for spire: SpireDefinition,
+        floors: [SpireFloor],
+        progress: PlayerSpiresState
     ) -> [Self] {
-        let highestCleared = progress.highestClearedFloor(for: aspect.id.rawValue)
-        guard highestCleared < aspect.floorCount else { return [] }
+        let highestCleared = progress.highestClearedFloor(for: spire.id.rawValue)
+        guard highestCleared < spire.floorCount else { return [] }
 
         let activeFloor = progress.activeFloor(
-            for: aspect.id.rawValue,
-            floorCount: aspect.floorCount
+            for: spire.id.rawValue,
+            floorCount: spire.floorCount
         )
-        let tint = aspect.keyword.visualStyle.color
 
         return floors.compactMap { floor in
             guard floor.floor > highestCleared,
@@ -154,27 +153,27 @@ extension StageSelectRowPresentation where Item == AspectFloor {
                 activeDetailLines: [],
                 encounterTypeTitle: encounterTypeTitle,
                 symbolName: encounter.symbolName,
-                tint: tint,
+                tint: encounter.mapTint,
                 primaryActionTitle: "Battle",
                 showsPartyPicker: true,
                 isArtworkInteractive: true,
-                rowAccessibilityID: AccessibilityID.Play.aspectFloor(
-                    aspect.id.rawValue,
+                rowAccessibilityID: AccessibilityID.Play.spireFloor(
+                    spire.id.rawValue,
                     floor: floor.floor
                 ),
-                artworkAccessibilityID: AccessibilityID.Play.aspectFloorEnemyArt(
-                    aspect.id.rawValue,
+                artworkAccessibilityID: AccessibilityID.Play.spireFloorEnemyArt(
+                    spire.id.rawValue,
                     floor: floor.floor
                 ),
-                actionAccessibilityID: AccessibilityID.Play.aspectBeginFloor(
-                    aspect.id.rawValue,
+                actionAccessibilityID: AccessibilityID.Play.spireBeginFloor(
+                    spire.id.rawValue,
                     floor: floor.floor
                 ),
-                activeDetailAccessibilityID: AccessibilityID.Play.aspectActiveFloorDetail(
-                    aspect.id.rawValue
+                activeDetailAccessibilityID: AccessibilityID.Play.spireActiveFloorDetail(
+                    spire.id.rawValue
                 ),
-                partyControlAccessibilityID: AccessibilityID.Play.aspectPartyControl(
-                    aspect.id.rawValue
+                partyControlAccessibilityID: AccessibilityID.Play.spirePartyControl(
+                    spire.id.rawValue
                 )
             )
         }

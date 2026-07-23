@@ -69,6 +69,6 @@ struct ItemModifierBattleTests {
             heroModifiers: modifiers
         )
 
-        try #expect(battle.health(of: battle.hero) == 14)
+        try #expect(battle.health(of: battle.hero) == 16)
     }
 }

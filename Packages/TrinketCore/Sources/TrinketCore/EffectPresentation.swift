@@ -62,7 +62,7 @@ public enum EffectPresentation {
     private static func activeRecoveryPhrase(for effect: Effect) -> String? {
         switch effect {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom,
-             .halveShield, .convertManaToBlock, .shieldFromMana, .shieldFromGold, .multiplyDoT, .revive:
+             .halveShield, .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .multiplyDoT, .revive:
             ""
         default:
             nil
@@ -152,6 +152,8 @@ public enum EffectPresentation {
             "convert all Mana into Block"
         case .shieldFromMana:
             "gain Block equal to your Mana"
+        case .shieldFromHalfMana:
+            "gain Block equal to half your Mana"
         case let .shieldFromGold(goldPerBlock):
             "gain 1 Block for every \(goldPerBlock) Gold"
         default:

@@ -144,7 +144,34 @@ public enum BattleCardCombatEngine {
         drawCardsBalanced(heroCount: 1, companionCount: 1, context: &context)
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
+        events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
         context.phase = .playerTurn
+        return events
+    }
+
+    /// Restores +1 Mana to living party members with a Mana pool.
+    private static func restoreManaAtPlayerTurnStart(
+        context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        for owner in [BattleParticipant.hero, .companion] {
+            let runtime = context.roster[owner]
+            guard runtime.isAlive, runtime.maxMana > 0 else { continue }
+            let combatant = runtime.combatant
+            let restored = context.restoreMana(1, to: combatant, sourceActorID: combatant.id)
+            guard restored > 0 else { continue }
+            events.append(
+                context.nextEvent(
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    actorName: combatant.name,
+                    abilityName: Keyword.mana.rawValue,
+                    target: combatant,
+                    amount: restored,
+                    keyword: .mana
+                )
+            )
+        }
         return events
     }
 

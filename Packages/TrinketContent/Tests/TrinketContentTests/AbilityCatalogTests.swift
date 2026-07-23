@@ -11,7 +11,7 @@ struct AbilityCatalogTests {
 
     @Test func doTPairingMatchesDamageComponents() throws {
         for ability in AbilityCatalog.all {
-            if ["mana-berries", "pixie-dust"].contains(ability.id) {
+            if ["mana-berries", "pixie-dust", "faustian-bargain", "serrated-edge", "hemorrhage"].contains(ability.id) {
                 continue
             }
             for component in ability.damageComponents where component.target == .abilityTarget {
@@ -50,6 +50,22 @@ struct AbilityCatalogTests {
         try #expect(ability.summary == "Deal 3 Burn damage.")
     }
 
+    @Test func empoweredByManaRaisesBurnAndFreezeNumbers() throws {
+        let empowered = Ability.fireArrow.empoweredByMana()
+        try #expect(Ability.fireArrow.hasManaEmpowerableBurnOrFreezeDamage)
+        try #expect(empowered.damageComponents == [DamageComponent(2, keyword: .burn)])
+        try #expect(empowered.targetedEffects == [
+            TargetedEffect(.burn(2)),
+            TargetedEffect(.burn(2), condition: .enemyBurning)
+        ])
+        try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
+        try #expect(Ability.slash.empoweredByMana() == Ability.slash)
+        try #expect(
+            Ability.blizzard.empoweredByMana().targetedEffects
+                == [TargetedEffect(.recurringDamage(.freeze, 3, 2))]
+        )
+    }
+
     @Test func buffOnlyBuilderProducesGeneratedDescription() throws {
         let ability = AbilityBuilder.buffOnly(
             id: "block",
@@ -80,19 +96,19 @@ struct AbilityCatalogTests {
     }
 
     @Test func representativeAbilitySummariesPreserveProductContracts() throws {
-        try #expect(Ability.hemorrhage.summary == "Deal 6 Bleed damage.")
+        try #expect(Ability.hemorrhage.summary == "Applies Bleeding.")
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
-        try #expect(Ability.serratedEdge.summary == "Deal 3 Bleed damage.")
+        try #expect(Ability.serratedEdge.summary == "Applies Bleeding.")
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
         try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
         try #expect(Ability.stab.directDamage == 2)
         try #expect(Ability.bloodOffering.summary == "Lose 1 Health. Deal 4 Bleed damage.")
-        try #expect(Ability.darkPact.summary == "Lose 2 Health. Draw 2 cards.")
+        try #expect(Ability.darkPact.summary == "Lose 1 Health. Draw 2 cards.")
         try #expect(!Ability.bloodOffering.hasLeech)
         try #expect(!Ability.darkPact.hasLeech)
         try #expect(AbilityCatalog.all.contains { $0.id == "grave-pact" } == false)
-        try #expect(Ability.heal.summary == "Restore 3 Health.")
+        try #expect(Ability.heal.summary == "Restore 5 Health.")
         try #expect(Ability.heal.directDamage == 0)
         try #expect(Ability.fangs.hasLeech)
         try #expect(Ability.rendingSlash.name == "Rend")

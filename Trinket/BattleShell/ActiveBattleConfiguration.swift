@@ -13,7 +13,7 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     let id = UUID()
-    /// Journey / Aspect / Labyrinth origin. `nil` is a non-progression battle.
+    /// Journey / Spire / Labyrinth origin. `nil` is a non-progression battle.
     let resumeToken: ActiveBattleResumeToken?
     let rngSeed: UInt64
     let hero: PartyMember
@@ -72,11 +72,11 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
-    static func resolvedAspectEncounter(
-        for floor: AspectFloor
+    static func resolvedSpireEncounter(
+        for floor: SpireFloor
     ) -> (combatant: Combatant, level: Int)? {
         guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        return scaledEnemy(catalogEnemy, level: AspectCompletion.enemyLevel(for: floor))
+        return scaledEnemy(catalogEnemy, level: SpireCompletion.enemyLevel(for: floor))
     }
 
     static func resolvedLabyrinthEncounter(
@@ -96,7 +96,8 @@ struct ActiveBattleConfiguration: Identifiable {
         for resumeToken: ActiveBattleResumeToken?,
         enemy: Combatant? = nil,
         encounterLevel: Int = 0,
-        labyrinth: PlayerLabyrinthState? = nil
+        labyrinth: PlayerLabyrinthState? = nil,
+        astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
         switch resumeToken {
@@ -107,13 +108,17 @@ struct ActiveBattleConfiguration: Identifiable {
             return BattleLoot.resolveJourney(
                 stage: stage,
                 encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss
+                enemyIsBoss: enemyIsBoss,
+                astralChanceBonusPercent: astralChanceBonusPercent
             )
-        case let .aspect(aspectID, floorNumber):
-            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
+        case let .spire(spireID, floorNumber):
+            guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
                 return nil
             }
-            return AspectCompletion.resolveLoot(for: floor)
+            return SpireCompletion.resolveLoot(
+                for: floor,
+                astralChanceBonusPercent: astralChanceBonusPercent
+            )
         case let .labyrinth(nodeID):
             guard let labyrinth,
                   let node = labyrinth.node(id: nodeID),
@@ -122,7 +127,8 @@ struct ActiveBattleConfiguration: Identifiable {
             return LabyrinthCompletion.resolveCombatLoot(
                 for: node,
                 effects: labyrinth.effects(for: nodeID),
-                worldSeed: labyrinth.worldSeed
+                worldSeed: labyrinth.worldSeed,
+                astralChanceBonusPercent: astralChanceBonusPercent
             )
         case .none:
             return nil
@@ -157,7 +163,11 @@ struct ActiveBattleConfiguration: Identifiable {
         enemyModifiers.merge(universalModifiers)
         var rng = SeededRandomNumberGenerator(seed: rngSeed)
         let resolvedPendingRewardItem = pendingRewardItem
-            ?? pendingAspectRewardItem(resumeToken: resumeToken, using: &rng)
+            ?? pendingSpireRewardItem(
+                resumeToken: resumeToken,
+                astralChanceBonusPercent: homesteadState.effects.astralChanceBonusPercent,
+                using: &rng
+            )
         let rewardItems = resolvedRewardItems(
             resumeToken: resumeToken,
             stageReward: stageReward,
@@ -193,13 +203,17 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
-    private static func pendingAspectRewardItem(
+    private static func pendingSpireRewardItem(
         resumeToken: ActiveBattleResumeToken?,
+        astralChanceBonusPercent: Int,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         _ = randomNumberGenerator
-        guard case .aspect = resumeToken else { return nil }
-        return lootPackage(for: resumeToken)?.item
+        guard case .spire = resumeToken else { return nil }
+        return lootPackage(
+            for: resumeToken,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )?.item
     }
 
     private static func partyMember(
@@ -252,7 +266,7 @@ struct ActiveBattleConfiguration: Identifiable {
             return [pendingRewardItem]
         }
         switch resumeToken {
-        case .aspect, .labyrinth, .journey, .none:
+        case .spire, .labyrinth, .journey, .none:
             guard let stageReward else { return [] }
             return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
         }

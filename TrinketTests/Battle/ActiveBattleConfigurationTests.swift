@@ -18,7 +18,7 @@ struct ActiveBattleConfigurationTests {
         )
 
         #expect(configuration.enemyModifiers.damageTakenVulnerability(for: .holy) > 0)
-        #expect(configuration.enemyModifiers.controlResistancePercent > 0)
+        #expect(configuration.enemyModifiers.damageTakenReduction(for: .bleed) > 0)
     }
 
     @Test func universalDamageModifierAppliesToEveryCombatant() throws {
@@ -87,11 +87,11 @@ struct ActiveBattleConfigurationTests {
             )
         )
 
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        let aspectLoot = try #require(ActiveBattleConfiguration.lootPackage(
-            for: .aspect(aspectID: .ironVein, floor: 1)
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let spireLoot = try #require(ActiveBattleConfiguration.lootPackage(
+            for: .spire(spireID: .ironVein, floor: 1)
         ))
-        #expect(aspectLoot == AspectCompletion.resolveLoot(for: floor))
+        #expect(spireLoot == SpireCompletion.resolveLoot(for: floor))
 
         var labyrinth = PlayerLabyrinthState.freshStart
         labyrinth.ensureMap()
@@ -138,12 +138,12 @@ struct ActiveBattleConfigurationTests {
         #expect(withPending.rewardItems.map(\.id) == [pending.id])
     }
 
-    @Test func aspectRewardUsesTheExactGeneratedPersistenceItem() throws {
+    @Test func spireRewardUsesTheExactGeneratedPersistenceItem() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .aspect(aspectID: .ironVein, floor: 1),
+            resumeToken: .spire(spireID: .ironVein, floor: 1),
             rngSeed: 42,
             hero: hero,
             companion: companion,

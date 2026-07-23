@@ -41,9 +41,9 @@ enum BattlePartySlot: String {
         }
     }
 
-    static func isEligible(_ combatant: Combatant, for aspect: AspectDefinition?) -> Bool {
-        guard let aspect else { return true }
-        return AspectAttunement.matches(combatant, aspect: aspect)
+    static func isEligible(_ combatant: Combatant, for spire: SpireDefinition?) -> Bool {
+        guard let spire else { return true }
+        return SpireAttunement.matches(combatant, spire: spire)
     }
 }
 
@@ -54,10 +54,10 @@ struct StageBattlePartyPickerSheet: View {
 
     @State private var selectionFeedbackTrigger = 0
 
-    let aspect: AspectDefinition?
+    let spire: SpireDefinition?
 
-    init(aspect: AspectDefinition? = nil) {
-        self.aspect = aspect
+    init(spire: SpireDefinition? = nil) {
+        self.spire = spire
     }
 
     var body: some View {
@@ -103,7 +103,7 @@ struct StageBattlePartyPickerSheet: View {
             shelfContentIdentity: shelfCombatants.map(\.id).joined(separator: ","),
             shelfAnimation: .spring(response: 0.35, dampingFraction: 1)
         ) {
-            BattlePartySlotGridView(slot: slot, aspect: aspect)
+            BattlePartySlotGridView(slot: slot, spire: spire)
         } content: {
             ForEach(shelfCombatants) { combatant in
                 partyOption(combatant, for: slot)
@@ -113,7 +113,7 @@ struct StageBattlePartyPickerSheet: View {
 
     private func partyOption(_ combatant: Combatant, for slot: BattlePartySlot) -> some View {
         let selected = combatant.id == slot.selectedID(in: appState.roster)
-        let eligible = BattlePartySlot.isEligible(combatant, for: aspect)
+        let eligible = BattlePartySlot.isEligible(combatant, for: spire)
 
         return Button {
             guard !selected, eligible else { return }
@@ -149,18 +149,18 @@ struct StageBattlePartyPickerSheet: View {
         let selectedID = slot.selectedID(in: roster)
         let combatants = slot.combatants(in: roster)
         guard let selected = combatants.first(where: { $0.id == selectedID }) else {
-            return combatants.filter { BattlePartySlot.isEligible($0, for: aspect) }
+            return combatants.filter { BattlePartySlot.isEligible($0, for: spire) }
         }
 
         let eligibleAlternatives = combatants.filter {
-            $0.id != selectedID && BattlePartySlot.isEligible($0, for: aspect)
+            $0.id != selectedID && BattlePartySlot.isEligible($0, for: spire)
         }
         return [selected] + eligibleAlternatives
     }
 
     private var partyPickerAccessibilityID: String {
-        if let aspect {
-            return AccessibilityID.Play.aspectPartyPickerSheet(aspect.id.rawValue)
+        if let spire {
+            return AccessibilityID.Play.spirePartyPickerSheet(spire.id.rawValue)
         }
         return AccessibilityID.Play.stagePartyPickerSheet
     }
@@ -173,13 +173,13 @@ private struct BattlePartySlotGridView: View {
     @State private var selectionFeedbackTrigger = 0
 
     let slot: BattlePartySlot
-    let aspect: AspectDefinition?
+    let spire: SpireDefinition?
 
     var body: some View {
         OptionPickerGrid(
             items: orderedCombatants,
             isSelected: { $0.id == slot.selectedID(in: appState.roster) },
-            isEligible: { BattlePartySlot.isEligible($0, for: aspect) },
+            isEligible: { BattlePartySlot.isEligible($0, for: spire) },
             onSelect: select,
             accessibilityIdentifier: { combatant in
                 AccessibilityID.Play.battlePartyOption(
@@ -211,11 +211,11 @@ private struct BattlePartySlotGridView: View {
         let selectedID = slot.selectedID(in: roster)
         let combatants = slot.combatants(in: roster)
         guard let selected = combatants.first(where: { $0.id == selectedID }) else {
-            return combatants.filter { BattlePartySlot.isEligible($0, for: aspect) }
+            return combatants.filter { BattlePartySlot.isEligible($0, for: spire) }
         }
 
         let eligibleAlternatives = combatants.filter {
-            $0.id != selectedID && BattlePartySlot.isEligible($0, for: aspect)
+            $0.id != selectedID && BattlePartySlot.isEligible($0, for: spire)
         }
         return [selected] + eligibleAlternatives
     }

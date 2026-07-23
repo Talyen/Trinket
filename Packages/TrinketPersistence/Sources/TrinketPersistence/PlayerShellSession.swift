@@ -6,11 +6,11 @@ public final class PlayerShellSession {
     public var id: String = "current"
     public var selectedTabRaw: String = "play"
     public var activeBattleStageID: String?
-    public var activeBattleAspectID: String?
-    public var activeBattleAspectFloor: Int?
+    public var activeBattleSpireID: String?
+    public var activeBattleSpireFloor: Int?
     public var activeBattleLabyrinthNodeID: String?
     public var mapScrollStageID: String?
-    /// Last Play mode the player entered (campaign / aspects / labyrinth).
+    /// Last Play mode the player entered (campaign / spires / labyrinth).
     public var lastPlayModeRaw: String = PlayerShellSessionPlayMode.campaign.rawValue
     public var activeBattleSavedAt: Date?
     public var activeBattleSchemaVersion: Int?
@@ -32,6 +32,6 @@ public enum PlayerShellSessionTab: String, CaseIterable, Sendable {
 /// Peer Play destinations under the Mode Hub.
 public enum PlayerShellSessionPlayMode: String, CaseIterable, Sendable {
     case campaign
-    case aspects
+    case spires
     case labyrinth
 }

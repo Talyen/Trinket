@@ -40,9 +40,9 @@ final class AppState {
         set { playerSave.homestead = newValue }
     }
 
-    var aspects: PlayerAspectsState {
-        get { playerSave.aspects }
-        set { playerSave.aspects = newValue }
+    var spires: PlayerSpiresState {
+        get { playerSave.spires }
+        set { playerSave.spires = newValue }
     }
 
     var labyrinth: PlayerLabyrinthState {
@@ -133,7 +133,7 @@ final class AppState {
     }
 
     /// Ends the active battle and restores the Play mode that started it (Campaign,
-    /// Aspects climb, Labyrinth map, …). Switches to the Play tab.
+    /// Spires climb, Labyrinth map, …). Switches to the Play tab.
     func endBattleReturningToOrigin() {
         queueReturnToBattleOrigin(from: battle.activeBattle?.resumeToken)
         selectedTab = .play

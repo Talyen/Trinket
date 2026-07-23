@@ -67,8 +67,8 @@ struct HomesteadStateTests {
         let tier1 = HomesteadEffects.from(nodeTiers: [.wheatField: 1])
         let tier3 = HomesteadEffects.from(nodeTiers: [.wheatField: 3])
 
-        try #expect(tier1.companionModifiers == [.maximumHealth(2)])
-        try #expect(tier3.companionModifiers == [.maximumHealth(6)])
+        try #expect(tier1.companionModifiers == [.maximumHealth(4)])
+        try #expect(tier3.companionModifiers == [.maximumHealth(12)])
     }
 
     @Test func wishingWellIncreasesGoldFindPercent() throws {

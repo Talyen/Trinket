@@ -4,14 +4,7 @@ import TrinketCore
 
 public enum LabyrinthCompletion {
     public static func enemyLevel(for node: LabyrinthNode) -> Int {
-        switch node.type.canonical {
-        case .boss:
-            max(1, node.depth + 3)
-        case .gate:
-            max(1, node.depth + 1)
-        default:
-            max(1, node.depth)
-        }
+        max(1, node.depth)
     }
 
     /// Non-combat node gold stipend (rest/shop/mystery/craft leave). Combat uses `BattleLoot`.
@@ -25,7 +18,7 @@ public enum LabyrinthCompletion {
             2 + node.depth
         case .rest:
             1 + node.depth / 2
-        case .battle, .boss, .gate:
+        case .battle, .boss, .entrance:
             0
         }
         let percentage = max(0, effects.goldPercent)
@@ -48,7 +41,8 @@ public enum LabyrinthCompletion {
     public static func resolveCombatLoot(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
-        worldSeed: UInt64
+        worldSeed: UInt64,
+        astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         guard node.type.isCombat else { return nil }
         let encounterLevel = enemyLevel(for: node)
@@ -58,7 +52,8 @@ public enum LabyrinthCompletion {
             encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss,
             effects: effects,
-            worldSeed: worldSeed
+            worldSeed: worldSeed,
+            astralChanceBonusPercent: astralChanceBonusPercent
         )
     }
 
@@ -69,8 +64,12 @@ public enum LabyrinthCompletion {
         worldSeed: UInt64,
         astralChanceBonusPercent: Int = 0
     ) -> InventoryItem? {
-        _ = astralChanceBonusPercent
-        return resolveCombatLoot(for: node, effects: effects, worldSeed: worldSeed)?.item
+        resolveCombatLoot(
+            for: node,
+            effects: effects,
+            worldSeed: worldSeed,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )?.item
     }
 
     public static func complete(
@@ -94,7 +93,8 @@ public enum LabyrinthCompletion {
             let resolvedLoot = loot ?? resolveCombatLoot(
                 for: node,
                 effects: effects,
-                worldSeed: save.labyrinth.worldSeed
+                worldSeed: save.labyrinth.worldSeed,
+                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
             let stageGold = resolvedLoot?.gold ?? 0
             save.roster.grantGold(

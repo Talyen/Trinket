@@ -17,7 +17,7 @@ public extension PlayerSaveRoot {
             roster: roster?.toPlayerRosterState(inventory: inventoryState) ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
-            aspects: aspects?.toPlayerAspectsState() ?? .freshStart,
+            spires: spires?.toPlayerSpiresState() ?? .freshStart,
             labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart
         )
     }
@@ -51,8 +51,8 @@ public extension PlayerSaveRoot {
             $0.root = self
         }
 
-        syncChild(\.aspects, make: AspectsProgressModel()) {
-            $0.update(from: save.aspects)
+        syncChild(\.spires, make: SpiresProgressModel()) {
+            $0.update(from: save.spires)
         } setRoot: {
             $0.root = self
         }

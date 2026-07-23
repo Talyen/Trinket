@@ -23,8 +23,6 @@ package enum DamagePipeline {
 
     /// Canonical damage resolution order. Toughness-based inherent DR runs after
     /// item mods and crit so it mitigates the final pre-Block hit amount; Block absorbs last.
-    /// Hexmark runs after MarkedConsume so a freshly applied mark cannot feed the
-    /// same hit's MarkedBonus / consume path — Marked is for a later hit.
     package static let steps: [Step] = [
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),
@@ -36,7 +34,6 @@ package enum DamagePipeline {
         Step(name: "ShieldAbsorption", phase: .resolution, apply: applyShieldAbsorption),
         Step(name: "TakeDamage", phase: .resolution, apply: applyTakeDamage),
         Step(name: "MarkedConsume", phase: .resolution, apply: applyMarkedConsume),
-        Step(name: "Hexmark", phase: .resolution, apply: applyHexmark),
         Step(name: "DeathsDoor", phase: .resolution, apply: applyDeathsDoor),
         Step(name: "Leech", phase: .post, apply: applyLeech),
         Step(name: "ControlMeter", phase: .post, apply: applyControlMeter),

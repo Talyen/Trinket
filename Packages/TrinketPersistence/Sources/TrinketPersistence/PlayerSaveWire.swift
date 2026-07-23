@@ -279,31 +279,40 @@ struct WireHomesteadState: Codable, Equatable {
     }
 }
 
-struct WireAspectsState: Codable, Equatable {
-    var highestClearedFloorByAspectID: [String: Int]
+struct WireSpiresState: Codable, Equatable {
+    var highestClearedFloorBySpireID: [String: Int]
 
-    init(_ aspects: PlayerAspectsState) {
-        highestClearedFloorByAspectID = aspects.highestClearedFloorByAspectID
+    init(_ spires: PlayerSpiresState) {
+        highestClearedFloorBySpireID = spires.highestClearedFloorBySpireID
     }
 
-    init(highestClearedFloorByAspectID: [String: Int]) {
-        self.highestClearedFloorByAspectID = highestClearedFloorByAspectID
+    init(highestClearedFloorBySpireID: [String: Int]) {
+        self.highestClearedFloorBySpireID = highestClearedFloorBySpireID
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        highestClearedFloorByAspectID = try container.decodeIfPresent(
+        highestClearedFloorBySpireID = try container.decodeIfPresent(
+            [String: Int].self,
+            forKey: .highestClearedFloorBySpireID
+        ) ?? container.decodeIfPresent(
             [String: Int].self,
             forKey: .highestClearedFloorByAspectID
         ) ?? [:]
     }
 
     private enum CodingKeys: String, CodingKey {
+        case highestClearedFloorBySpireID
         case highestClearedFloorByAspectID
     }
 
-    func aspects() -> PlayerAspectsState {
-        PlayerAspectsState(highestClearedFloorByAspectID: highestClearedFloorByAspectID)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(highestClearedFloorBySpireID, forKey: .highestClearedFloorBySpireID)
+    }
+
+    func spires() -> PlayerSpiresState {
+        PlayerSpiresState(highestClearedFloorBySpireID: highestClearedFloorBySpireID)
     }
 }
 

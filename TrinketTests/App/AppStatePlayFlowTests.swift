@@ -78,7 +78,7 @@ struct AppStatePlayFlowTests {
     }
 
     #if DEBUG
-    @Test(arguments: ["persist", "missing-stage", "missing-aspect"] as [String])
+    @Test(arguments: ["persist", "missing-stage", "missing-spire"] as [String])
     func completeActiveBattleKeepsBattleOpenOnFailure(mode: String) throws {
         switch mode {
         case "persist":
@@ -112,11 +112,11 @@ struct AppStatePlayFlowTests {
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
             #expect(state.roster.gold == goldBefore)
-        case "missing-aspect":
+        case "missing-spire":
             let state = try context.makeAppState()
             let enemy = try #require(GameContent.enemies.first?.combatant)
             let configuration = try ActiveBattleConfigurationTestSupport.make(
-                resumeToken: .aspect(aspectID: .ironVein, floor: 9999),
+                resumeToken: .spire(spireID: .ironVein, floor: 9999),
                 rngSeed: 0,
                 hero: state.roster.activeHero,
                 companion: state.roster.activeCompanion,
@@ -157,7 +157,7 @@ struct AppStatePlayFlowTests {
         #expect(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
     }
 
-    @Test(arguments: ["journey", "aspect", "labyrinth"] as [String])
+    @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
     func endBattleReturningToOriginQueuesExpectedDeepLink(origin: String) throws {
         switch origin {
         case "journey":
@@ -171,19 +171,19 @@ struct AppStatePlayFlowTests {
             #expect(state.battle.activeBattle == nil)
             #expect(state.selectedTab == .play)
             #expect(state.consumePendingPlayDestination() == .campaign)
-        case "aspect":
+        case "spire":
             let state = try makeProgressedStateForReturnTests()
             try attunePhysicalPartyForReturnTests(on: state)
 
-            let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-            #expect(state.startAspectBattle(for: floor) == nil)
+            let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+            #expect(state.startSpireBattle(for: floor) == nil)
             state.selectedTab = .options
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
             #expect(state.selectedTab == .play)
-            #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
+            #expect(state.consumePendingPlayDestination() == .spireClimb(.ironVein))
         case "labyrinth":
             let state = try context.makeAppState(arguments: ["-reset-state"])
             _ = state.enterLabyrinth()
@@ -201,16 +201,16 @@ struct AppStatePlayFlowTests {
         }
     }
 
-    @Test func completeActiveBattleQueuesAspectReturnDestination() throws {
+    @Test func completeActiveBattleQueuesSpireReturnDestination() throws {
         let state = try makeProgressedStateForReturnTests()
         try attunePhysicalPartyForReturnTests(on: state)
 
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        #expect(state.startAspectBattle(for: floor) == nil)
+        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        #expect(state.startSpireBattle(for: floor) == nil)
         let configuration = try #require(state.battle.activeBattle)
 
         #expect(state.completeActiveBattle(configuration, battleEarnedGold: 1))
-        #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
+        #expect(state.consumePendingPlayDestination() == .spireClimb(.ironVein))
     }
 
     @Test func completeActiveBattleGoldMatchesVictorySummaryWhenHomesteadBonusActive() throws {

@@ -67,24 +67,24 @@ package enum DefensePoolEngine {
         }
     }
 
-    /// Inherent Toughness-based damage reduction: `passiveMitigationFlat +
-    /// toughnessMitigation`, shredded and reduced by effectiveness penalties.
+    /// Inherent Toughness-based damage reduction percent: `toughnessMitigationPercent`,
+    /// shredded and reduced by effectiveness penalties.
     /// No pool points — Toughness DR is never consumed or decayed.
-    package static func effectiveToughnessMitigation(
+    package static func effectiveToughnessMitigationPercent(
         for combatant: Combatant,
         effects _: [ActiveEffect],
         profile: CombatModifierProfile,
         in context: BattleEngineContext
-    ) -> Int {
-        var points = profile.passiveMitigationFlat + combatant.primaryStats.toughnessMitigation
+    ) -> Double {
+        var percent = combatant.primaryStats.toughnessMitigationPercent
         if let runtime = context.roster.runtime(for: combatant),
            runtime.mitigationShredUntilTurn > context.turnCount {
-            points = Int(floor(Double(points) * runtime.mitigationShredMultiplier))
+            percent *= runtime.mitigationShredMultiplier
         }
         if profile.mitigationEffectivenessPenaltyPercent > 0 {
-            points = Int(floor(Double(points) * max(0, 1 - profile.mitigationEffectivenessPenaltyPercent)))
+            percent *= max(0, 1 - profile.mitigationEffectivenessPenaltyPercent)
         }
-        return max(0, points)
+        return max(0.0, min(1.0, percent))
     }
 
     package static func add(

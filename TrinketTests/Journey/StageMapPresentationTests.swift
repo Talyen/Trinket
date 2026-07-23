@@ -55,31 +55,31 @@ struct StageMapPresentationTests {
         #expect(bossRows[0].stage.encounterTypeTitle == "Boss")
     }
 
-    @Test func aspectRowsHideClearedFloorsAndEndWithBossBeforeCompletion() throws {
-        let aspect = try #require(GameContent.aspect(id: .ironVein))
-        let floors = GameContent.aspectFloors(for: aspect.id)
-        var progress = PlayerAspectsState.freshStart
-        _ = progress.markFloorCleared(1, aspectID: aspect.id.rawValue)
-        _ = progress.markFloorCleared(2, aspectID: aspect.id.rawValue)
+    @Test func spireRowsHideClearedFloorsAndEndWithBossBeforeCompletion() throws {
+        let spire = try #require(GameContent.spire(id: .ironVein))
+        let floors = GameContent.spireFloors(for: spire.id)
+        var progress = PlayerSpiresState.freshStart
+        _ = progress.markFloorCleared(1, spireID: spire.id.rawValue)
+        _ = progress.markFloorCleared(2, spireID: spire.id.rawValue)
 
-        let rows = StageSelectRowPresentation<AspectFloor>.aspectRows(
-            for: aspect,
+        let rows = StageSelectRowPresentation<SpireFloor>.spireRows(
+            for: spire,
             floors: floors,
             progress: progress
         )
 
-        #expect(rows.map(\.item.floor) == Array(3 ... aspect.floorCount))
+        #expect(rows.map(\.item.floor) == Array(3 ... spire.floorCount))
         #expect(rows.first?.isActive == true)
         #expect(rows.dropFirst().allSatisfy { !$0.isActive })
         #expect(rows.first?.activeEyebrow == "Floor 3 · Battle")
         #expect(rows.first?.activeDetailLines.isEmpty == true)
         #expect(rows.last?.encounterTypeTitle == "Boss")
 
-        for floor in 3 ... aspect.floorCount {
-            _ = progress.markFloorCleared(floor, aspectID: aspect.id.rawValue)
+        for floor in 3 ... spire.floorCount {
+            _ = progress.markFloorCleared(floor, spireID: spire.id.rawValue)
         }
-        let completedRows = StageSelectRowPresentation<AspectFloor>.aspectRows(
-            for: aspect,
+        let completedRows = StageSelectRowPresentation<SpireFloor>.spireRows(
+            for: spire,
             floors: floors,
             progress: progress
         )

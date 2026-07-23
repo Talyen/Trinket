@@ -58,6 +58,19 @@ public struct Stage: Identifiable, Hashable, Sendable {
     }
 }
 
+enum StageTypeSymbol {
+    static let battle = "bolt.fill"
+    static let boss = "crown.fill"
+    static let shop = "bag.fill"
+    static let rest = "tent.fill"
+    static let mystery = "sparkles"
+    static let recruitHero = "person.2.fill"
+    static let recruitCompanion = "pawprint.fill"
+    static let craft = "hammer.fill"
+    static let gate = "arrow.down.to.line.compact"
+    static let entrance = "door.left.hand.open"
+}
+
 public enum StageEncounter: Hashable, Sendable {
     case battle(enemyID: String)
     case randomBattle
@@ -89,16 +102,20 @@ public enum StageEncounter: Hashable, Sendable {
 
     public var symbolName: String {
         switch self {
-        case .battle, .randomBattle:
-            "bolt.fill"
+        case let .battle(enemyID):
+            GameContent.enemy(matching: enemyID)?.isBoss == true
+                ? StageTypeSymbol.boss
+                : StageTypeSymbol.battle
+        case .randomBattle:
+            StageTypeSymbol.battle
         case .event:
-            "sparkles"
+            StageTypeSymbol.mystery
         case .shop:
-            "bag.fill"
+            StageTypeSymbol.shop
         case .rest:
-            "tent.fill"
+            StageTypeSymbol.rest
         case .mysteryEvent:
-            "sparkles"
+            StageTypeSymbol.mystery
         case let .recruit(eventID):
             GameContent.recruitEncounterSymbolName(forEventID: eventID)
         }

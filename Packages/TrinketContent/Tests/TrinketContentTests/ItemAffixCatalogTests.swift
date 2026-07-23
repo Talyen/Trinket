@@ -58,30 +58,36 @@ struct ItemAffixCatalogTests {
         let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
 
         let bloodstone = try #require(byID["bloodstone"])
-        try #expect(bloodstone.basic.description == "Increase Leech healing by 1")
+        try #expect(bloodstone.basic.description == "Leech restores 1 additional Health.")
         try #expect(bloodstone.basic.modifiers == [.leechHealing(1)])
 
         let lifeweave = try #require(byID["lifeweave"])
-        try #expect(lifeweave.basic.description == "Increase Leech healing by 1")
+        try #expect(lifeweave.basic.description == "Restore 1 additional Health when you Leech.")
         try #expect(lifeweave.basic.modifiers == [.leechHealing(1)])
+
+        let stunning = try #require(byID["stunning"])
+        try #expect(stunning.title == "Stunning")
+        try #expect(stunning.basic.description == "Increase Stun damage by 1.")
+        try #expect(byID["shocking"] == nil)
     }
 
     @Test func thinKeywordAffixesUseExpectedCopy() throws {
         let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
 
         let knockout = try #require(byID["knockout"])
-        try #expect(knockout.basic.description == "Deal 3 Physical damage when you Stun an enemy")
+        try #expect(knockout.basic.description == "Deal 3 Physical damage when you Stun the enemy.")
 
         let shredding = try #require(byID["shredding"])
-        try #expect(shredding.basic.description == "Ignore 10% of enemy mitigation")
+        try #expect(shredding.basic.description == "Ignore 10% of enemy mitigation.")
 
         let absolving = try #require(byID["absolving"])
-        try #expect(absolving.basic.description == "Cleanse 1 status effect when you deal Holy damage")
+        try #expect(absolving.basic.description == "Cleanse 1 status effect when you deal Holy damage.")
 
         let retaliatory = try #require(byID["retaliatory"])
-        try #expect(retaliatory.basic.description == "Reflect 10% of damage taken")
+        try #expect(retaliatory.basic.description == "Reflect 10% of damage taken.")
 
         let riposte = try #require(byID["riposte"])
         try #expect(riposte.keywords == [.physical, .dodge])
+        try #expect(riposte.basic.description == "Deal 3 additional damage on your next attack after Dodging.")
     }
 }

@@ -10,7 +10,7 @@ public struct PlayerSave: Equatable, Sendable {
     public var roster: PlayerRosterState
     public var inventory: PlayerInventoryState
     public var homestead: PlayerHomesteadState
-    public var aspects: PlayerAspectsState
+    public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
 
     public static var fresh: PlayerSave {
@@ -22,7 +22,7 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .freshStart,
             inventory: .freshStart,
             homestead: .freshStart,
-            aspects: .freshStart,
+            spires: .freshStart,
             labyrinth: .freshStart
         )
     }
@@ -36,13 +36,13 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .testSeed,
             inventory: .testSeed,
             homestead: .testSeed,
-            aspects: .testSeed,
+            spires: .testSeed,
             labyrinth: .testSeed
         )
     }
 
     /// Unlocked roster save for local development and Simulator testing.
-    /// Clears Chapter 1 so Modes unlock; leaves later chapters, Aspects, and Labyrinth uncleared.
+    /// Clears Chapter 1 so Modes unlock; leaves later chapters, Spires, and Labyrinth uncleared.
     public static var unlockedAll: PlayerSave {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
@@ -59,7 +59,7 @@ public struct PlayerSave: Equatable, Sendable {
             roster: roster,
             inventory: .testSeed,
             homestead: .developerMaxed,
-            aspects: .freshStart,
+            spires: .freshStart,
             labyrinth: .freshStart
         )
     }
@@ -72,7 +72,7 @@ public struct PlayerSave: Equatable, Sendable {
         roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         homestead: PlayerHomesteadState = .freshStart,
-        aspects: PlayerAspectsState = .freshStart,
+        spires: PlayerSpiresState = .freshStart,
         labyrinth: PlayerLabyrinthState = .freshStart
     ) {
         self.schemaVersion = schemaVersion
@@ -82,7 +82,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.roster = roster
         self.inventory = inventory
         self.homestead = homestead
-        self.aspects = aspects
+        self.spires = spires
         self.labyrinth = labyrinth
     }
 }
@@ -96,6 +96,7 @@ extension PlayerSave: Codable {
         case roster
         case inventory
         case homestead
+        case spires
         case aspects
         case labyrinth
     }
@@ -112,10 +113,13 @@ extension PlayerSave: Codable {
         roster = wireRoster.roster(inventory: inventory)
         homestead = try container.decodeIfPresent(WireHomesteadState.self, forKey: .homestead)?
             .homestead() ?? .freshStart
-        aspects = try container.decodeIfPresent(
-            WireAspectsState.self,
+        spires = try container.decodeIfPresent(
+            WireSpiresState.self,
+            forKey: .spires
+        )?.spires() ?? container.decodeIfPresent(
+            WireSpiresState.self,
             forKey: .aspects
-        )?.aspects() ?? .freshStart
+        )?.spires() ?? .freshStart
         labyrinth = try container.decodeIfPresent(
             WireLabyrinthState.self,
             forKey: .labyrinth
@@ -131,7 +135,7 @@ extension PlayerSave: Codable {
         try container.encode(WireRosterState(roster), forKey: .roster)
         try container.encode(WireInventoryState(inventory), forKey: .inventory)
         try container.encode(WireHomesteadState(homestead), forKey: .homestead)
-        try container.encode(WireAspectsState(aspects), forKey: .aspects)
+        try container.encode(WireSpiresState(spires), forKey: .spires)
         try container.encode(WireLabyrinthState(labyrinth), forKey: .labyrinth)
     }
 }

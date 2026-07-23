@@ -17,8 +17,8 @@ public final class PlayerSaveRoot {
     public var inventory: InventoryModel?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadModel.root)
     public var homestead: HomesteadModel?
-    @Relationship(deleteRule: .cascade, inverse: \AspectsProgressModel.root)
-    public var aspects: AspectsProgressModel?
+    @Relationship(deleteRule: .cascade, inverse: \SpiresProgressModel.root)
+    public var spires: SpiresProgressModel?
     @Relationship(deleteRule: .cascade, inverse: \LabyrinthProgressModel.root)
     public var labyrinth: LabyrinthProgressModel?
 
@@ -45,8 +45,8 @@ public enum PlayerSaveGraph {
         HomesteadModel.self,
         HomesteadResourceBalanceModel.self,
         HomesteadNodeTierModel.self,
-        AspectsProgressModel.self,
-        AspectFloorProgressModel.self,
+        SpiresProgressModel.self,
+        SpireFloorProgressModel.self,
         LabyrinthProgressModel.self
     ])
 }

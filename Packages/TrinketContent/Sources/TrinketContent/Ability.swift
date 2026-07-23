@@ -204,4 +204,34 @@ public struct Ability: Identifiable, Hashable, Sendable {
             hasLeech: hasLeech
         )
     }
+
+    /// True when this resolved ability has Burn/Freeze damage numbers Mana can empower.
+    public var hasManaEmpowerableBurnOrFreezeDamage: Bool {
+        damageComponents.contains(where: \.isManaEmpowerableBurnOrFreezeDamage)
+            || targetedEffects.contains(where: \.effect.isManaEmpowerableBurnOrFreezeDamage)
+    }
+
+    /// Snapshot with every Burn/Freeze damage number raised by `amount` (default 1).
+    public func empoweredByMana(amount: Int = 1) -> Ability {
+        guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }
+        return Ability(
+            id: id,
+            name: name,
+            tier: tier,
+            description: descriptionOverride,
+            damageComponents: damageComponents.map { $0.withManaEmpowerment(amount) },
+            targetedEffects: targetedEffects.map { targeted in
+                TargetedEffect(
+                    targeted.effect.withManaEmpowerment(amount),
+                    target: targeted.target,
+                    condition: targeted.condition
+                )
+            },
+            outcomeBranches: nil,
+            manaCost: manaCost,
+            criticalChanceBonus: criticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
+            hasLeech: hasLeech
+        )
+    }
 }

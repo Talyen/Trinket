@@ -22,10 +22,10 @@ struct PrimaryStatsRulesTests {
     }
 
     @Test func toughnessMitigationMatchesFormula() throws {
-        try #expect(PrimaryStats(toughness: 0).toughnessMitigation == 0)
-        try #expect(PrimaryStats(toughness: 5).toughnessMitigation == 1)
-        try #expect(PrimaryStats(toughness: 50).toughnessMitigation == 10)
-        try #expect(PrimaryStats(toughness: 100).toughnessMitigation == 20)
+        try #expect(PrimaryStats(toughness: 0).toughnessMitigationPercent == 0.0)
+        try #expect(abs(PrimaryStats(toughness: 20).toughnessMitigationPercent - 0.20) < 0.0001)
+        try #expect(abs(PrimaryStats(toughness: 80).toughnessMitigationPercent - 0.50) < 0.0001)
+        try #expect(abs(PrimaryStats(toughness: 120).toughnessMitigationPercent - 0.60) < 0.0001)
     }
 
     @Test func controlMeterThresholdScalesWithAgilityAndCeilsBaseHealth() throws {

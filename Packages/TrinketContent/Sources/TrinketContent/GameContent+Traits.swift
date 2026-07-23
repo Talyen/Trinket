@@ -13,17 +13,12 @@ public extension GameContent {
         traits.first { $0.id == id }
     }
 
-    static func positiveTrait(for enemy: Enemy) -> CombatantTraitDefinition? {
-        trait(id: enemy.positiveTraitID)
-    }
-
-    static func negativeTrait(for enemy: Enemy) -> CombatantTraitDefinition? {
-        guard let negativeTraitID = enemy.negativeTraitID else { return nil }
-        return trait(id: negativeTraitID)
+    static func trait(for enemy: Enemy) -> CombatantTraitDefinition? {
+        trait(id: enemy.traitID)
     }
 
     static func traits(for enemy: Enemy) -> [CombatantTraitDefinition] {
-        [positiveTrait(for: enemy), negativeTrait(for: enemy)].compactMap(\.self)
+        [trait(for: enemy)].compactMap(\.self)
     }
 }
 

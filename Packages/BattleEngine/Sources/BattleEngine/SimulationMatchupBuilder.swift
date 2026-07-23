@@ -25,6 +25,9 @@ public enum SimulationMatchupBuilder {
         companion: Combatant,
         enemy: Enemy,
         tier: SimulationPowerTier,
+        heroLevel: Int? = nil,
+        companionLevel: Int? = nil,
+        enemyLevel: Int? = nil,
         heroLoadout: AbilityLoadout,
         companionLoadout: AbilityLoadout,
         seed: UInt64,
@@ -35,10 +38,23 @@ public enum SimulationMatchupBuilder {
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator()
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
-        let progression = Self.progression(level: tier.level)
-        let requestBase = PartyPrepareRequest(
-            progression: progression,
+        let resolvedHeroLevel = heroLevel ?? tier.level
+        let resolvedCompanionLevel = companionLevel ?? tier.level
+        let resolvedEnemyLevel = enemyLevel ?? tier.level
+
+        let heroRequest = PartyPrepareRequest(
+            progression: Self.progression(level: resolvedHeroLevel),
             tier: tier,
+            idPrefix: "sim-hero",
+            gearOverride: heroGear,
+            gearKeywordBias: gearKeywordBias,
+            gearGenerator: gearGenerator
+        )
+        let companionRequest = PartyPrepareRequest(
+            progression: Self.progression(level: resolvedCompanionLevel),
+            tier: tier,
+            idPrefix: "sim-companion",
+            gearOverride: companionGear,
             gearKeywordBias: gearKeywordBias,
             gearGenerator: gearGenerator
         )
@@ -46,17 +62,17 @@ public enum SimulationMatchupBuilder {
         let heroPrepared = preparePartyMember(
             hero,
             loadout: heroLoadout,
-            request: requestBase.with(idPrefix: "sim-hero", gearOverride: heroGear),
+            request: heroRequest,
             using: &rng
         )
         let companionPrepared = preparePartyMember(
             companion,
             loadout: companionLoadout,
-            request: requestBase.with(idPrefix: "sim-companion", gearOverride: companionGear),
+            request: companionRequest,
             using: &rng
         )
 
-        let scaledEnemy = CombatantLevelScaler.scale(enemy: enemy, level: tier.level)
+        let scaledEnemy = CombatantLevelScaler.scale(enemy: enemy, level: resolvedEnemyLevel)
         let enemyBuild = CombatBuildResolver.build(enemy: enemy)
 
         let context = SimulationBuildContext(
@@ -161,7 +177,7 @@ public enum SimulationMatchupBuilder {
     ) -> PreparedPartyMember {
         let unlocked = loadout.unlocked(for: request.progression)
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(unlocked)
-        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.tier.level)
+        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.progression.level)
 
         if let gearOverride = request.gearOverride {
             let sanitized = gearOverride.loadout.sanitized(for: scaled, inventory: gearOverride.inventory)

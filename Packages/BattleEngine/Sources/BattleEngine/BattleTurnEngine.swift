@@ -19,7 +19,6 @@ public enum BattleTurnEngine {
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
         var events: [ActionEvent] = []
-        events.append(contentsOf: CombatReactionEngine.atStartOfAction(by: actor, in: &context))
         events.append(contentsOf: performAction(
             ability: ability,
             actor: actor,
@@ -69,7 +68,12 @@ public enum BattleTurnEngine {
         spendMana: Bool
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
-        let resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
+        var resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
+        events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &resolvedAbility,
+            actor: actor,
+            context: &context
+        ))
         if spendMana {
             events.append(contentsOf: spendManaIfNeeded(for: resolvedAbility, actor: actor, context: &context))
         }

@@ -45,12 +45,9 @@ public enum CombatBuildResolver {
         enemy: Enemy
     ) -> CombatBuild {
         var profile = CombatModifierProfile.zero
-        if let positiveTrait = GameContent.positiveTrait(for: enemy) {
-            positiveTrait.apply(to: &profile)
-            profile.traitDisplayName = positiveTrait.name
-        }
-        if let negativeTrait = GameContent.negativeTrait(for: enemy) {
-            negativeTrait.apply(to: &profile)
+        if let trait = GameContent.trait(for: enemy) {
+            trait.apply(to: &profile)
+            profile.traitDisplayName = trait.name
         }
 
         return CombatBuild(combatant: enemy.combatant, modifiers: profile)
