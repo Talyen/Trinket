@@ -140,6 +140,14 @@ class ReporterTests(unittest.TestCase):
         cases = (
             ("Test process crashed: signal SIGABRT", "test-failure"),
             ("Test execution timed out after 60 seconds", "test-failure"),
+            (
+                "Failed to launch app via Xcode: Timed out while launching application via Xcode.",
+                "simulator-infrastructure",
+            ),
+            (
+                "Failed to get background assertion for target app with pid 18060",
+                "simulator-infrastructure",
+            ),
             ("xcodebuild: error: Scheme 'Trinket' not found", "configuration"),
             ("xcode-select: error: toolchain is not configured", "tooling"),
         )

@@ -141,6 +141,10 @@ def _classify_text(text: str, default: str) -> str:
             "launch session",
             "connection to the service",
             "launchd",
+            "timed out while launching",
+            "failed to launch",
+            "background assertion",
+            "failed to get background assertion",
         )
     ):
         return "simulator-infrastructure"
@@ -430,6 +434,11 @@ LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
         r"(?:test (?:runner|process) (?:crashed|crash|exited)|test .*terminated unexpectedly|testing failed|failed to (?:build|test)|terminated due to signal|killed by signal|(?:test .*|^|\s)timed? out|timeout|hang detected|(?:failed to launch test|test .*failed to launch)|test execution interrupted|exc_crash|abort trap|signal [0-9]+)",
         "test-failure",
         "Test process failure",
+    ),
+    (
+        r"(?:timed out while launching|failed to launch(?! test)|background assertion|failed to get background assertion)",
+        "simulator-infrastructure",
+        "Simulator infrastructure",
     ),
     (
         r"(?:scheme|test plan|no test plan|invalid destination|unable to find a destination|destination .* unavailable|requires a provisioning profile|code signing|workspace .* does not contain)",

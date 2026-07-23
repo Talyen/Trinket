@@ -31,6 +31,10 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh --assets
       - run: ./Scripts/assert-generated-output.sh --assets
+      - name: Locale-stable asset regenerate
+        run: |
+          LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 ./Scripts/generate.sh --assets
+          ./Scripts/assert-generated-output.sh --assets
 
   build:
     name: Build for testing

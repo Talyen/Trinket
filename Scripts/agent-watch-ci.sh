@@ -12,6 +12,7 @@ cd "$(dirname "$0")/.."
 REF=""
 SHA=""
 DISPATCH_IF_FILTERED=true
+INFRA_RERUN=true
 WORKFLOW_NAME="Trinket CI"
 SCOPE="standard"
 POLL_SECONDS="${TRINKET_CI_WATCH_POLL_SECONDS:-30}"
@@ -27,11 +28,13 @@ finishes. Prints compact status only (no live log stream). On failure, prints
 failed job names, check-run annotations (SwiftLint / compiler), and a short log
 excerpt. If the run only executed the path-
 filter job, optionally dispatches a full workflow_dispatch run and watches that.
+Simulator/XCUITest launch flakes get one automatic `gh run rerun --failed`.
 
 Options:
   --ref <branch>           Branch to watch (default: current branch)
   --sha <commit>           Commit SHA (default: HEAD)
   --no-dispatch-if-filtered  Do not auto-dispatch when jobs were path-filtered
+  --no-infra-rerun         Do not auto-rerun failed jobs on simulator infra flakes
   --scope <standard|exhaustive>  workflow_dispatch scope (default: standard)
   --poll-seconds <n>       Status poll interval (default: 30, or TRINKET_CI_WATCH_POLL_SECONDS)
   --verbose                Stream `gh run watch` (noisy; humans only — avoid for agents)
@@ -57,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-dispatch-if-filtered)
       DISPATCH_IF_FILTERED=false
+      shift
+      ;;
+    --no-infra-rerun)
+      INFRA_RERUN=false
       shift
       ;;
     --scope)
@@ -173,6 +180,47 @@ run_is_path_filtered_only() {
     return 0
   fi
   return 1
+}
+
+failure_looks_like_simulator_infrastructure() {
+  local run_id="$1"
+  local repo evidence
+  repo="$(repo_slug)"
+
+  # Only auto-rerun when every failed job is a UI/simulator suite.
+  local non_ui_failures
+  non_ui_failures="$(
+    gh run view "$run_id" --json jobs --jq '
+      [.jobs[]?
+        | select(.conclusion == "failure")
+        | select(.name | test("UI|Smoke|ui|smoke") | not)
+      ] | length
+    ' 2>/dev/null || echo 1
+  )"
+  if [[ -z "$non_ui_failures" || "$non_ui_failures" != "0" ]]; then
+    return 1
+  fi
+
+  evidence="$(
+    {
+      gh api "repos/${repo}/actions/runs/${run_id}/jobs" --paginate \
+        --jq '.jobs[] | select(.conclusion == "failure") | .id' 2>/dev/null \
+        | while read -r job_id; do
+            [[ -z "$job_id" ]] && continue
+            gh api "repos/${repo}/check-runs/${job_id}/annotations" --jq '
+              .[]? | .message // empty
+            ' 2>/dev/null || true
+          done
+      gh run view "$run_id" --log-failed 2>/dev/null | tail -n "$FAILURE_LOG_LINES" || true
+    } | tr '\n' ' '
+  )"
+
+  [[ "$evidence" =~ [Tt]imed\ out\ while\ launching \
+    || "$evidence" =~ [Ff]ailed\ to\ launch \
+    || "$evidence" =~ [Bb]ackground\ assertion \
+    || "$evidence" =~ [Cc]oreSimulator \
+    || "$evidence" =~ [Uu]nable\ to\ boot \
+    || "$evidence" =~ simulator-infrastructure ]]
 }
 
 print_failure_triage() {
@@ -300,7 +348,16 @@ if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
 fi
 
 if ! watch_run "$RUN_ID"; then
-  exit 1
+  if [[ "$INFRA_RERUN" == true ]] && failure_looks_like_simulator_infrastructure "$RUN_ID"; then
+    echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
+    gh run rerun "$RUN_ID" --failed
+    sleep "$POLL_SECONDS"
+    if ! watch_run "$RUN_ID"; then
+      exit 1
+    fi
+  else
+    exit 1
+  fi
 fi
 
 if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID"; then
@@ -331,7 +388,16 @@ if [[ "$DISPATCH_IF_FILTERED" == true ]] && run_is_path_filtered_only "$RUN_ID";
     exit 1
   fi
   if ! watch_run "$DISPATCH_ID"; then
-    exit 1
+    if [[ "$INFRA_RERUN" == true ]] && failure_looks_like_simulator_infrastructure "$DISPATCH_ID"; then
+      echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
+      gh run rerun "$DISPATCH_ID" --failed
+      sleep "$POLL_SECONDS"
+      if ! watch_run "$DISPATCH_ID"; then
+        exit 1
+      fi
+    else
+      exit 1
+    fi
   fi
 fi
 

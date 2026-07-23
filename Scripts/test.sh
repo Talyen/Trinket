@@ -109,15 +109,13 @@ fi
 source "$SCRIPT_DIR/ensure-simulator.sh"
 trinket_sim_slot_ensure
 
+# shellcheck source=lib/xcodebuild-infra.sh
+source "$SCRIPT_DIR/lib/xcodebuild-infra.sh"
+
 retryable_xcodebuild_infrastructure_failure() {
   local exit_code="$1"
   local log_file="$2"
-
-  [[ "$exit_code" -eq 70 ]] && return 0
-  [[ -d "$RESULT_BUNDLE_PATH" ]] && return 1
-  rg -qi \
-    'Unable to boot|CoreSimulator|DTServiceHub|destination.*not available|no matching destination|launchd_sim|Simulator.*failed' \
-    "$log_file"
+  trinket_xcodebuild_log_is_infrastructure_failure "$exit_code" "$log_file"
 }
 
 # Determine xcodebuild test target constraints using arrays to prevent zsh argument splitting issues

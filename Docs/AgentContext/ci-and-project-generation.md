@@ -42,12 +42,17 @@ This card adds the CI/project-generation exceptions:
   default — do not stream `gh run watch` into the agent context; use `--verbose`
   only for humans). On failure, read failed job names, printed check-run
   annotations, and the short log excerpt. Path-filtered green runs auto-dispatch a
-  full `Trinket CI` `workflow_dispatch` and watch until green.
-- `generate.sh` prefers `.tools/xcodegen`. `--force-xcodegen` (or
-  `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so stale “project has not
-  changed” cannot hide `project.pbxproj` drift. Agent push gate sets
-  `TRINKET_REQUIRE_PINNED_TOOLS=1`. Art prepare invalidates on source content hash
-  (not mtime); other asset prepare scripts still use mtime. Set
+  full `Trinket CI` `workflow_dispatch` and watch until green. Simulator/XCUITest
+  launch flakes get one automatic `gh run rerun --failed` (disable with
+  `--no-infra-rerun`).
+- `generate.sh` exports `LC_ALL=C` / `LANG=C` so asset hash TSV headers stay
+  stable on CI locales. Asset prepare scripts also preserve the two header lines
+  and sort data rows with `LC_ALL=C sort` — keep that pattern for any new
+  `*SourceHashes.generated.tsv` writer. `generate.sh` prefers `.tools/xcodegen`.
+  `--force-xcodegen` (or `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so
+  stale “project has not changed” cannot hide `project.pbxproj` drift. Agent push
+  gate sets `TRINKET_REQUIRE_PINNED_TOOLS=1`. Art prepare invalidates on source
+  content hash (not mtime); other asset prepare scripts still use mtime. Set
   `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.
 - `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
   wrapper tests so a single verification run does not regenerate the project repeatedly.

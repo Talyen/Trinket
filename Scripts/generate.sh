@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Stable collation for generated catalogs/assets (CI runners often use en_US.UTF-8,
+# which reorders `# …` header lines under plain `sort`).
+export LC_ALL=C
+export LANG=C
+
 cd "$(dirname "$0")/.."
 
 INCLUDE_ASSETS=false

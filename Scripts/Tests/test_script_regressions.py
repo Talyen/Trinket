@@ -51,6 +51,27 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unknown command", result.stderr)
 
+    def test_prepare_asset_scripts_use_c_locale_header_preserving_sort(self) -> None:
+        scripts = (
+            "prepare-app-icon.sh",
+            "prepare-music-assets.sh",
+            "prepare-sfx-assets.sh",
+            "prepare-cinematic-assets.sh",
+            "prepare-art-assets.sh",
+        )
+        for name in scripts:
+            text = (ROOT / "Scripts" / name).read_text(encoding="utf-8")
+            self.assertIn("LC_ALL=C sort", text, name)
+            self.assertTrue(
+                ("head -n 2" in text and "tail -n +3" in text) or ("tail -n +3" in text),
+                f"{name} should preserve hash TSV headers before sorting",
+            )
+
+    def test_generate_pins_c_locale(self) -> None:
+        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
+        self.assertIn("export LC_ALL=C", text)
+        self.assertIn("export LANG=C", text)
+
     def test_legacy_sync_fails_closed_on_duplicate_basenames(self) -> None:
         duplicate_paths = [
             ROOT / "TrinketTests" / "Shared.swift",
