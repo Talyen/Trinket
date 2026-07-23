@@ -235,7 +235,10 @@ fi
   done
   shopt -u nullglob
 
-sort -t$'\t' -k1,1 "$state_temp" > "$state_temp.sorted"
+{
+  head -n 2 "$state_temp"
+  tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
+} > "$state_temp.sorted"
 mv -f "$state_temp.sorted" "$state_temp"
 mv -f "$state_temp" "$state_file"
 rm -f "$tracks_temp" "$menu_temp" "$battle_temp" "$boss_temp" "$seen_ids_temp" "$seen_assets_temp" "$seen_boss_ids_temp" "$active_tracks_temp"
