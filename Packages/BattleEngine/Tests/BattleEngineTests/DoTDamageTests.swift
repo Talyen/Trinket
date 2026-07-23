@@ -43,9 +43,9 @@ struct DoTDamageTests {
         let expectedHealthLost: Int
         switch caseKind {
         case .intellectStat:
-            // intellect 20 → +4 burn
+            // intellect 20 → 20% burn bonus on base 4 = +1 burn → total 5
             context = makeContext(sourceStats: PrimaryStats(intellect: 20))
-            expectedHealthLost = 8
+            expectedHealthLost = 5
         case .itemDamageDealt:
             var modifiers = CombatModifierProfile.zero
             modifiers.damageDealtBonus[.burn] = 3
@@ -63,7 +63,7 @@ struct DoTDamageTests {
         )
         try #expect(outcome.healthLost == expectedHealthLost)
         if case .intellectStat = caseKind {
-            try #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
+            try #expect(outcome.events.contains { $0.kind == .status && $0.amount == 5 })
         }
     }
 

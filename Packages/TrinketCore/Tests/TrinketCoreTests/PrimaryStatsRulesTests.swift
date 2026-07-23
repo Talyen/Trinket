@@ -2,22 +2,29 @@ import Testing
 import TrinketCore
 
 struct PrimaryStatsRulesTests {
-    @Test func statBonusForDamageUsesCorrectStat() throws {
-        let stats = PrimaryStats(strength: 10, agility: 15, intellect: 20, wisdom: 25)
-        try #expect(stats.statBonusForDamage(keyword: .physical) == 2)
-        try #expect(stats.statBonusForDamage(keyword: .stun) == 2)
-        try #expect(stats.statBonusForDamage(keyword: .bleed) == 3)
-        try #expect(stats.statBonusForDamage(keyword: .burn) == 4)
-        try #expect(stats.statBonusForDamage(keyword: .freeze) == 4)
-        try #expect(stats.statBonusForDamage(keyword: .poison) == 5)
-        try #expect(stats.statBonusForDamage(keyword: .holy) == 5)
-        try #expect(stats.statBonusForDamage(keyword: .block) == 0)
+    @Test func diminishingReturnsPercentCalculatesCorrectly() throws {
+        try #expect(PrimaryStats.diminishingReturnsPercent(for: 0) == 0.0)
+        try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 20) - 0.20) < 0.0001)
+        try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 80) - 0.50) < 0.0001)
+        try #expect(abs(PrimaryStats.diminishingReturnsPercent(for: 120) - 0.60) < 0.0001)
+    }
+
+    @Test func statDamageBonusPercentUsesCorrectStatAndCurve() throws {
+        let stats = PrimaryStats(strength: 20, agility: 80, intellect: 120, wisdom: 20)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .physical) - 0.20) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .stun) - 0.20) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .bleed) - 0.50) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .burn) - 0.60) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .freeze) - 0.60) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .poison) - 0.20) < 0.0001)
+        try #expect(abs(stats.statDamageBonusPercent(keyword: .holy) - 0.20) < 0.0001)
+        try #expect(stats.statDamageBonusPercent(keyword: .block) == 0.0)
     }
 
     @Test func dodgeChanceCapsAtSeventyFivePercent() throws {
-        try #expect(abs((PrimaryStats(agility: 0).dodgeChance) - 0.05) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 20).dodgeChance) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 100).dodgeChance) - 0.30) < 0.0001)
+        try #expect(PrimaryStats(agility: 0).dodgeChance == 0.0)
+        try #expect(abs((PrimaryStats(agility: 20).dodgeChance) - 0.20) < 0.0001)
+        try #expect(abs((PrimaryStats(agility: 80).dodgeChance) - 0.50) < 0.0001)
         try #expect(abs((PrimaryStats(agility: 1000).dodgeChance) - 0.75) < 0.0001)
     }
 
@@ -46,13 +53,13 @@ struct PrimaryStatsRulesTests {
         }
     }
 
-    @Test func criticalChanceUsesBaseAndStatScaling() throws {
-        try #expect(abs((PrimaryStats().criticalChance(for: .physical)) - 0.05) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .health)) - 0.10) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .leech)) - 0.10) < 0.0001)
+    @Test func criticalChanceUsesStatDiminishingReturnsScaling() throws {
+        try #expect(PrimaryStats().criticalChance(for: .physical) == 0.0)
+        try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.20) < 0.0001)
+        try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.20) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.20) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .health)) - 0.20) < 0.0001)
+        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .leech)) - 0.20) < 0.0001)
         try #expect(abs((PrimaryStats(agility: 1000).criticalChance(for: .physical)) - 0.75) < 0.0001)
     }
 
@@ -67,11 +74,11 @@ struct PrimaryStatsRulesTests {
         try #expect(Keyword.physical.allowsCriticalHits)
     }
 
-    @Test func negativeStatInputsTruncateTowardZeroForDamageBonus() throws {
+    @Test func negativeStatInputsReturnZeroForDamageBonus() throws {
         let stats = PrimaryStats(strength: -4, agility: -4, intellect: -4, wisdom: -4)
-        try #expect(stats.statBonusForDamage(keyword: .physical) == 0)
-        try #expect(stats.statBonusForDamage(keyword: .bleed) == 0)
-        try #expect(stats.statBonusForDamage(keyword: .burn) == 0)
-        try #expect(stats.statBonusForDamage(keyword: .poison) == 0)
+        try #expect(stats.statDamageBonusPercent(keyword: .physical) == 0.0)
+        try #expect(stats.statDamageBonusPercent(keyword: .bleed) == 0.0)
+        try #expect(stats.statDamageBonusPercent(keyword: .burn) == 0.0)
+        try #expect(stats.statDamageBonusPercent(keyword: .poison) == 0.0)
     }
 }

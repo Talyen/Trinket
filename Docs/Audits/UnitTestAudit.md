@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md`. Battle ownership: `Packages/BattleEngin
 
 ## Intent
 
-Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases with a stronger owner elsewhere. Make one bounded keep / merge / remove / speed fix. A clean pass is valid; do not add coverage to manufacture value.
+Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases with a stronger owner elsewhere. Write a plan to fix all identified test portfolio issues (breaking into phases if the scope is large). A clean pass is valid; do not add coverage to manufacture value.
 
 ## Hard stops
 

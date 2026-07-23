@@ -115,10 +115,8 @@ private struct CombatFeedbackFloatMotionLab: View {
             if copiedBannerVisible {
                 Text("Copied parameter dump")
                     .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
                     .trinketGlassChip(.compact)
-                    .padding(.top, 12)
+                    .padding(.top, TrinketDesign.Metrics.mediumSpacing)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }

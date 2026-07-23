@@ -7,4 +7,4 @@
 --self remove
 --importgrouping testable-bottom
 --disable wrapMultilineStatementBraces
---exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build
+--exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build,Trinket/Features/Battle/Layout/BattleHandMotionLab.swift,Trinket/Features/Battle/Feedback/CombatFeedbackFloatMotionLab.swift

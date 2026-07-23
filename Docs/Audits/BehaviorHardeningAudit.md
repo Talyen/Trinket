@@ -4,7 +4,7 @@
 
 ## Intent
 
-Fix a small, cohesive set of confirmed high-impact persistence or transition issues. A clean pass is valid; do not add guards, logs, seams, or tests solely to create work. Reuse the existing persistence/transition owner; a new seam requires repeated confirmed violations and the proposal bar in [README.md](README.md).
+Inventory confirmed persistence or transition issues and write a plan to fix all identified gaps (breaking into phases if the scope is large). A clean pass is valid; do not add guards, logs, seams, or tests solely to create work. Reuse the existing persistence/transition owner; a new seam requires repeated confirmed violations and the proposal bar in [README.md](README.md).
 
 ## Hard stops
 
@@ -20,7 +20,7 @@ Fix a small, cohesive set of confirmed high-impact persistence or transition iss
 | P2 | Recovery hides a meaningful failure from both the player and diagnostics |
 | P3 | Style-only error handling churn |
 
-Fix P0–P1 first; stop when the bounded area is clean.
+Prioritize P0–P1 first; write a plan to cover all identified issues (phased if necessary).
 
 ## Domain rules
 

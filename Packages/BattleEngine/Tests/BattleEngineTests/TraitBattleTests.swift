@@ -78,7 +78,8 @@ struct TraitBattleTests {
             .directAbilityHit(amount: 1, target: enemy, keyword: .physical, sourceActorID: wolf.id)
         )
 
-        let strengthBonus = wolf.primaryStats.statBonusForDamage(keyword: .physical)
+        let strengthPercent = wolf.primaryStats.statDamageBonusPercent(keyword: .physical)
+        let strengthBonus = Int((1.0 * strengthPercent).rounded())
         let packBonus = rangerBuild.modifiers.companionDamageDealtBonus
         try #expect(packBonus == 1)
         try #expect(outcome.healthLost == 1 + strengthBonus + packBonus)
@@ -133,7 +134,7 @@ struct TraitBattleTests {
             companionModifiers: pixieBuild.modifiers
         )
         context.roster.mutateRuntime(for: pixieBuild.combatant) {
-            $0.currentHealth = pixieBuild.effectiveMaxHealth - 2
+            $0.currentHealth = pixieBuild.effectiveMaxHealth - 1
         }
 
         _ = apply(

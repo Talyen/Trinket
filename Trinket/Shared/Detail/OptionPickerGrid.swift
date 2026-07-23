@@ -71,16 +71,4 @@ private extension View {
             self
         }
     }
-
-    @ViewBuilder
-    func optionalMatchedTransitionSource<ID: Hashable>(
-        id: ID,
-        in namespace: Namespace.ID?
-    ) -> some View {
-        if let namespace {
-            matchedTransitionSource(id: id, in: namespace)
-        } else {
-            self
-        }
-    }
 }

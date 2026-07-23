@@ -20,13 +20,13 @@ struct StatIntegrationTests {
 
     @Test func statBonusAppliedToDirectDamageKeywords() throws {
         let cases: [DirectDamageCase] = [
-            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .physical),
-            DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 4, keyword: .stun),
+            DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .physical),
+            DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 80), expectedAmount: 3, keyword: .stun),
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 2, keyword: .physical),
-            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
-            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .freeze),
-            DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .poison),
-            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 6, keyword: .holy)
+            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 80), expectedAmount: 3, keyword: .burn),
+            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 80), expectedAmount: 5, keyword: .freeze),
+            DirectDamageCase(ability: .poisonDagger, stats: PrimaryStats(wisdom: 80), expectedAmount: 5, keyword: .poison),
+            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 80), expectedAmount: 6, keyword: .holy)
         ]
 
         for testCase in cases {

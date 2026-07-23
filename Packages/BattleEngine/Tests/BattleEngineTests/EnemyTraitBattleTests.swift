@@ -74,7 +74,8 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        let strengthBonus = mimic.combatant.primaryStats.statBonusForDamage(keyword: .physical)
+        let strengthPercent = mimic.combatant.primaryStats.statDamageBonusPercent(keyword: .physical)
+        let strengthBonus = Int((2.0 * strengthPercent).rounded())
         let baseDamage = 2 + strengthBonus
         try #expect(first.healthLost == baseDamage * 2)
         // After the first hit the enemy leads on HP%, so catch-up reduces the follow-up by 1.

@@ -20,7 +20,7 @@ final class ShopFlowUITests: TrinketUITestCase {
         let offerCards = app.buttons.matching(
             NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
         )
-        offerCards.element(boundBy: 0).tap()
+        offerCards.firstMatch.tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         dismissSheet()
 

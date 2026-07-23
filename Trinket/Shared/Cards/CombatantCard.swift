@@ -9,30 +9,22 @@ struct CombatantCard: View {
     var isSelected = false
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            TrinketDesign.cardShape
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .overlay {
-                    CombatantArtwork(combatant: combatant, variant: .card)
-                        .clipShape(TrinketDesign.cardShape)
-                }
-                .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
-                .trinketCardSurface()
-                .trinketArtworkPickerSelectionBorder(
-                    isSelected: isSelected,
-                    lineWidth: 1.5
-                )
-
-            if showsName {
+        ProductCardShell(
+            isLocked: isLocked,
+            lockedText: "Locked",
+            isSelected: isSelected,
+            showsLabel: showsName,
+            art: {
+                CombatantArtwork(combatant: combatant, variant: .card)
+            },
+            label: {
                 Text(combatant.name)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
-                    .trinketCardLabelSpace()
             }
-        }
+        )
     }
 }
 

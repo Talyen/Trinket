@@ -96,4 +96,20 @@ struct ShopOfferGeneratorTests {
             )
         }
     }
+
+    @Test func chapter1ShopOffersHaveAllBasicExceptOneAstral() {
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
+        let offers = ShopOfferGenerator.generateOffers(
+            stageID: "chapter-1-stage-8",
+            count: 4,
+            using: &randomNumberGenerator
+        )
+
+        let basicOffers = offers.filter { $0.item.rarity == .basic }
+        let astralOffers = offers.filter { $0.item.rarity == .astral }
+
+        #expect(offers.count == 4)
+        #expect(basicOffers.count == 3)
+        #expect(astralOffers.count == 1)
+    }
 }

@@ -93,9 +93,8 @@ struct UltimateCinematicOverlay: View {
                     Spacer()
                     Text(cinematic.abilityName)
                         .trinketTypography(.sectionDisplay)
-                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-                        .shadow(radius: 8)
-                        .padding(.bottom, 28)
+                        .trinketOnArtText(.title)
+                        .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
                 }
                 .frame(width: frame.width, height: frame.height)
             }

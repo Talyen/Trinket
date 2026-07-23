@@ -4,7 +4,7 @@
 
 ## Intent
 
-Surface a few **confirmed** hotspots via capped size/structure probes. Simplify one cluster so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md).
+Surface **confirmed** hotspots via capped size/structure probes. Write a plan to simplify all identified slop hotspots (breaking into phases if the scope is large) so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md).
 
 ## What “slop” means here
 
@@ -37,7 +37,7 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 1. **Cost:** real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs in one file).
 2. **No second need:** one call site / one conformer / no extension point in use.
 3. **Safer shape exists:** a shorter local form preserves behavior.
-4. **Blast radius:** stay inside the justified cluster; do not expand past related ownership, duplicates, or the shared root cause.
+4. **Plan scope:** write a plan covering all identified hotspots; if the scope is large, break execution into distinct phases.
 
 Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
 

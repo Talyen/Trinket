@@ -47,7 +47,7 @@ struct PlayScreen {
 
         // Be tolerant of a caller arriving from a nested Play destination.
         for _ in 0 ..< 4 {
-            let back = app.navigationBars.buttons.element(boundBy: 0)
+            let back = app.navigationBars.buttons.firstMatch
             guard back.waitForExistence(timeout: 1), back.isHittable else { break }
             back.tap()
             let hub = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]

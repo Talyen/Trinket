@@ -1,23 +1,23 @@
 # Native UI Layout & Typography Audit
 
-**Goal:** Find custom sizing, layout, typography, and scale patterns that diverge from Apple/SwiftUI-native APIs (or from tokens already in `TrinketDesignSystem`), then migrate the highest-ROI cluster toward platform standards without losing justified game UI.
+**Goal:** Find custom sizing, layout, typography, and scale patterns that diverge from Apple/SwiftUI-native APIs (or from tokens already in `TrinketDesignSystem`), then write a plan to migrate identified custom patterns toward platform standards (phasing if scope is large) without losing justified game UI.
 
 Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md`.
 
 ## Intent
 
-Inventory custom vs tokenized vs justified-custom, then fix **one** cluster. Prefer existing DesignSystem tokens. Add a shared token/helper only for at least three current uses, and only when removing call-site surface outweighs the new API; otherwise simplify locally.
+Inventory custom vs tokenized vs justified-custom, then write a plan to fix all identified issues (breaking into phases if the scope is large). Prefer existing DesignSystem tokens. Add a shared token/helper only for at least three current uses, and only when removing call-site surface outweighs the new API; otherwise simplify locally.
 
 **Principles:** one spacing scale (`TrinketDesign.Metrics`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
 
 ## Hard stops
 
-- Cap: **one cluster** — not a repo-wide sweep or full-tab visual redesign.
-- Do not rewrite battle battlefield proportional layout unsupervised in one pass — propose a scoped migration if that is the right-sized cluster.
+- Plan scope: write a plan covering all identified issues; break into distinct phases if the scope is large, rather than attempting a single unstructured sweep or full-tab visual redesign.
+- Do not rewrite battle battlefield proportional layout unsupervised in one pass — include a scoped migration phase if that is part of the plan.
 - Do not replace intentional game juice: combat float keyframe recipes, `trinketCombatFloatText` shadows, 3:4 card identity (`TrinketDesign.cardShape`).
 - Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
 
-## Triage (pick one cluster)
+## Triage
 
 | Priority | Cluster | Typical signal | Preferred remediation |
 |----------|---------|----------------|------------------------|

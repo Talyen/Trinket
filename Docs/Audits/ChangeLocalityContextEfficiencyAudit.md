@@ -4,7 +4,7 @@
 
 ## Intent
 
-Use capped history and task-routing probes to confirm one repeated high-friction cluster. Simplify it through an existing source of truth or owner. A successful fix reduces at least one stable proxy: authored touchpoints, required preread surface, duplicated declarations or policy, routed verification tiers, or routine command output. Do not use tokenizer-specific token counts, and treat a clean pass as valid.
+Use capped history and task-routing probes to identify repeated high-friction clusters and write a plan to simplify them through existing sources of truth or owners (breaking into phases if the scope is large). A successful fix reduces at least one stable proxy: authored touchpoints, required preread surface, duplicated declarations or policy, routed verification tiers, or routine command output. Do not use tokenizer-specific token counts, and treat a clean pass as valid.
 
 ## What counts as locality or context friction
 
@@ -53,7 +53,7 @@ Every shipped finding must report its before/after proxy and the unchanged corre
 ## Probe hints
 
 - **Task-Router Relevance:** Run `./Scripts/agent-context.sh --json --paths <representative paths>` for a few comparable recent tasks; compare prereads, context cards, warnings, and verification plans for unrelated routing.
-- **Authored Co-Change Clusters:** Use a capped `git log --name-only` or `--stat` sample, excluding generated output and assets; inspect the strongest repeated cluster's diffs before inferring shared ownership.
+- **Authored Co-Change Clusters:** Use a capped `git log --name-only` or `--stat` sample, excluding generated output and assets; inspect confirmed repeated clusters' diffs before inferring shared ownership.
 - **Repeated Policy and Commands:** Search `AGENTS.md`, `Docs/AgentContext/`, `Docs/Platform/`, `Scripts/README.md`, and executable scripts for duplicated rules, versions, flags, or command sequences that can link to one owner.
 - **Duplicated Routing Logic:** Compare `agent-context.sh`, `change-classification.sh`, `changed-source-summary.sh`, and `verify-changed.sh`; confirm repeated classifications have one implementation rather than synchronized copies.
 - **Output Signal Density:** Inspect routine successful output and bounded failure summaries from verification/CI helpers; prefer existing quiet or summary paths when raw output adds no actionability.

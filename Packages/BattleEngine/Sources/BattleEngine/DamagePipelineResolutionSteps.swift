@@ -13,7 +13,7 @@ package extension DamagePipeline {
            let damageKeyword = state.damageKeyword,
            let actor = context.roster.combatant(for: sourceActorID) {
             state.statBonus = state.applyStatBonus
-                ? actor.primaryStats.statBonusForDamage(keyword: damageKeyword)
+                ? Int(round(Double(state.amount) * actor.primaryStats.statDamageBonusPercent(keyword: damageKeyword)))
                 : 0
             state.itemBonus = state.applyItemBonus
                 ? outgoingDamageBonus(

@@ -64,6 +64,7 @@
 				Cards/CombatantCard.swift,
 				Cards/EmptySlots.swift,
 				Cards/ItemCard.swift,
+				Cards/ProductCardShell.swift,
 				Detail/AbilityDetailView.swift,
 				Detail/AbilitySummaryGrid.swift,
 				Detail/AbilityTierPickerSheet.swift,

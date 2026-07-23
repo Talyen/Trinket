@@ -75,7 +75,7 @@ struct CombatPipelineTests {
     // MARK: - Stat and item bonuses
 
     @Test func applyDamageStatBonusAppliesForSource() throws {
-        let stats = PrimaryStats(strength: 25) // 25/5 = 5 bonus
+        let stats = PrimaryStats(strength: 80) // 80 / (80 + 80) = 50% bonus
         var context = makeContext(sourcePrimaryStats: stats, seed: 1772)
         let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
         // 10 + 5 = 15

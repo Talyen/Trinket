@@ -31,7 +31,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 3,
-                    encounter: .battle(enemyID: "goblin"),
+                    encounter: .battle(enemyID: "mud_elemental"),
                     rewards: .empty
                 ),
                 Stage(
@@ -55,7 +55,7 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 6,
-                    encounter: .battle(enemyID: "mud_elemental"),
+                    encounter: .battle(enemyID: "goblin"),
                     rewards: .empty
                 ),
                 Stage(

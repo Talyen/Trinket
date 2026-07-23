@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm candidate defects and fix one shared root cause or up to three genuinely local bugs. Stop before the cumulative work becomes a refactor. A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites; defer P4/P5 by default. Significant structural remedies are proposals per [README.md](README.md).
+Confirm candidate defects and write a plan to fix all identified issues (breaking into phases if the scope is large). A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites; defer P4/P5 by default. Significant structural remedies are proposals per [README.md](README.md).
 
 ## Hard stops
 

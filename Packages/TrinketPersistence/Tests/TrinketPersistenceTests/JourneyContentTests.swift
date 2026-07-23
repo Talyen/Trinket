@@ -46,7 +46,7 @@ struct JourneyContentTests {
         try #expect(chapterOne.stages[1].encounter.recruitEventID == "recruit-bear")
         try #expect(chapterOne.stages[3].encounter.recruitEventID == "recruit-ranger")
         try #expect(chapterOne.stages[4].encounter == .mysteryEvent(eventID: ""))
-        try #expect(chapterOne.stages[5].encounter.battleEnemyID == "mud_elemental")
+        try #expect(chapterOne.stages[5].encounter.battleEnemyID == "goblin")
 
         let chapterTwo = GameContent.chapters[1]
         try #expect(chapterTwo.theme == .dungeon)
@@ -69,8 +69,8 @@ struct JourneyContentTests {
     @Test func placeholderEncountersMatchTheApprovedChapterLineup() throws {
         let expectedEncounterIDs = [
             [
-                "slime", "recruit-bear", "goblin", "recruit-ranger", "mystery",
-                "mud_elemental", "mystery", "shop", "will_o_wisp", "the_blight_treant"
+                "slime", "recruit-bear", "mud_elemental", "recruit-ranger", "mystery",
+                "goblin", "mystery", "shop", "will_o_wisp", "the_blight_treant"
             ],
             [
                 "skeleton", "recruit-rogue", "mimic", "mystery", "necromancer",

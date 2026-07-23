@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Intent
 
-Confirm P0–P2 candidates with one focused class/method run, then prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it.
+Confirm P0–P2 candidates across suites and write a plan to address all identified issues (breaking into phases if the scope is large), preferring delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it.
 
 ## Hard stops
 

@@ -80,7 +80,7 @@ public struct CombatantRuntime: Hashable {
         self.mitigationShredUntilTurn = mitigationShredUntilTurn
         self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
-        currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
+        currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + (combatant.primaryStats.intellect / 5) + maximumManaBonus : 0)
         activeEffects = initialActiveEffects
         actionCount = 0
     }
@@ -111,7 +111,7 @@ public struct CombatantRuntime: Hashable {
             }
             return sum
         }
-        return combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus + effectBonus
+        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + maximumManaBonus + effectBonus
     }
 
     public var primaryStats: PrimaryStats {
@@ -126,6 +126,7 @@ public struct CombatantRuntime: Hashable {
         combatant.abilities
     }
 
+    /// Indicates whether the combatant is alive.
     public var isAlive: Bool {
         currentHealth > 0
     }
@@ -159,9 +160,10 @@ public struct CombatantRuntime: Hashable {
     }
 
     /// Restores `amount` health, capped at `maxHealth` and boosted by
-    /// `wisdom / 5`. Returns the actual amount restored.
+    /// Wisdom's diminishing returns curve percentage. Returns the actual amount restored.
     public mutating func heal(_ amount: Int) -> Int {
-        let wisdomBonus = primaryStats.wisdom / 5
+        let wisdomPercent = primaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
+        let wisdomBonus = Int(round(Double(amount) * wisdomPercent))
         let total = amount + wisdomBonus
         let space = max(0, maxHealth - currentHealth)
         let actual = min(total, space)

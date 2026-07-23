@@ -36,8 +36,10 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
   extra_args+=(--reporter xcode --reporter github-actions-logging)
 fi
 
+mkdir -p .DerivedData/swiftlint-cache
+
 if [ ${#extra_args[@]} -gt 0 ]; then
-  swiftlint lint --strict "${SOURCE_DIRS[@]}" "${extra_args[@]}" "$@"
+  swiftlint lint --strict --cache-path .DerivedData/swiftlint-cache "${SOURCE_DIRS[@]}" "${extra_args[@]}" "$@"
 else
-  swiftlint lint --strict "${SOURCE_DIRS[@]}" "$@"
+  swiftlint lint --strict --cache-path .DerivedData/swiftlint-cache "${SOURCE_DIRS[@]}" "$@"
 fi

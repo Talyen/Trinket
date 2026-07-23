@@ -9,8 +9,6 @@ struct CollectionCombatantGridView: View {
 
     let kind: CombatantDetailContext.Kind
 
-    private let columns = TrinketDesign.Metrics.collectionGridItems
-
     private var title: String {
         switch kind {
         case .hero: "Heroes"
@@ -26,37 +24,26 @@ struct CollectionCombatantGridView: View {
     }
 
     var body: some View {
-        ScrollView {
-            if combatants.isEmpty {
-                ContentUnavailableView(
-                    "Nothing to Collect",
-                    systemImage: "person.3",
-                    description: Text("Unlock heroes and companions by progressing through the journey.")
+        CollectionGridShell(items: combatants) { combatant in
+            CollectionCombatantButton(
+                combatant: combatant,
+                isLocked: !appState.roster.isUnlocked(combatant),
+                cardWidth: nil
+            ) {
+                selectedCombatant = CombatantDetailContext(
+                    kind: kind,
+                    combatantID: combatant.id
                 )
-                .padding(TrinketDesign.Metrics.contentMargin)
-                .accessibilityIdentifier("Collection combatants empty state")
-            } else {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
-                    LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
-                        ForEach(combatants) { combatant in
-                            CollectionCombatantButton(
-                                combatant: combatant,
-                                isLocked: !appState.roster.isUnlocked(combatant),
-                                cardWidth: nil
-                            ) {
-                                selectedCombatant = CombatantDetailContext(
-                                    kind: kind,
-                                    combatantID: combatant.id
-                                )
-                            }
-                            .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
-                        }
-                    }
-                }
-                .padding(TrinketDesign.Metrics.contentMargin)
             }
+            .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
+        } emptyView: {
+            ContentUnavailableView(
+                "Nothing to Collect",
+                systemImage: "person.3",
+                description: Text("Unlock heroes and companions by progressing through the journey.")
+            )
+            .accessibilityIdentifier("Collection combatants empty state")
         }
-        .trinketScreenBackground()
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { context in

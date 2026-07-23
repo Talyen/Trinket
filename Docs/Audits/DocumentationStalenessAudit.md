@@ -4,7 +4,7 @@
 
 ## Intent
 
-Discover markdown mechanically (do not trust a hardcoded count), but do not load it wholesale. Use capped probes, open only candidate files and nearby source-of-truth lines, and fix Critical/Moderate drift in one coherent area. A pass with no contradiction is valid.
+Discover markdown mechanically (do not trust a hardcoded count), but do not load it wholesale. Use capped probes, open only candidate files and nearby source-of-truth lines, and write a plan to fix all identified Critical/Moderate drift (breaking into phases if the scope is large). A pass with no contradiction is valid.
 
 ## Hard stops
 

@@ -191,4 +191,16 @@ public extension View {
     ) -> some View {
         sensoryFeedback(feedback, trigger: trigger) { _, _ in enabled }
     }
+
+    @ViewBuilder
+    func optionalMatchedTransitionSource<ID: Hashable>(
+        id: ID,
+        in namespace: Namespace.ID?
+    ) -> some View {
+        if let namespace {
+            matchedTransitionSource(id: id, in: namespace)
+        } else {
+            self
+        }
+    }
 }

@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find one cohesive, high-confidence cleanup. A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package. A successful fix must report authored LOC, declarations, files, or exported API removed; moving the same surface is not dead-code reduction.
+Identify all confirmed unused internal symbols and unnecessary APIs, and write a plan to clean them up (breaking into phases if the scope is large). A clean pass is valid. Prefer demoting `public` → `internal` when the API remains useful inside its package. A successful fix must report authored LOC, declarations, files, or exported API removed; moving the same surface is not dead-code reduction.
 
 ## Hard stops
 

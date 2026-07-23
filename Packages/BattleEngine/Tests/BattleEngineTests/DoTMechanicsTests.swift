@@ -103,7 +103,7 @@ struct DoTMechanicsTests {
         }
 
         try #expect(amounts == [6, 5, 4, 3, 2, 1])
-        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
+        try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
     @Test func poisonAppliesInitialDamage() throws {
@@ -130,7 +130,7 @@ struct DoTMechanicsTests {
 
         try #expect(amounts == [4, 4])
         try #expect(battle.health(of: battle.enemy) == 88)
-        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.isEmpty)
+        try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .bleed })
     }
 
     @Test func bleedInstancesTrackIndependently() throws {

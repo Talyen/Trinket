@@ -38,7 +38,7 @@ struct HomesteadProjectRow: View {
         // Locked rows stay tappable so players can inspect prerequisites and the tier path.
         NavigationLink(value: definition) {
             rowContent
-                .optionalHomesteadZoomSource(id: definition.id, in: zoomNamespace)
+                .optionalMatchedTransitionSource(id: definition.id, in: zoomNamespace)
         }
         .trinketQuietTapButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
@@ -135,20 +135,6 @@ struct HomesteadProjectSection: View {
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func optionalHomesteadZoomSource<ID: Hashable>(
-        id: ID,
-        in namespace: Namespace.ID?
-    ) -> some View {
-        if let namespace {
-            matchedTransitionSource(id: id, in: namespace)
-        } else {
-            self
         }
     }
 }

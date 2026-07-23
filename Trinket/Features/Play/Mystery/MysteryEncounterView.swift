@@ -198,7 +198,7 @@ struct MysteryEncounterView: View {
 
         case let .gainExperience(amount):
             rewardSummary(
-                title: "Experience",
+                title: "XP",
                 value: "\(amount)",
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
@@ -264,7 +264,7 @@ struct MysteryEncounterView: View {
                     .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.76)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(value)
                     .trinketTypography(.statValue)
@@ -485,28 +485,13 @@ private struct MysteryItemChoiceContent: View {
                     spacing: TrinketDesign.Metrics.largeSpacing
                 ) {
                     ForEach(session.itemCandidates) { item in
-                        Button {
-                            onSelectItem(item.id)
-                        } label: {
-                            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                                ItemCard(
-                                    item: item,
-                                    showsAffixCount: false,
-                                    showsName: false,
-                                    appliesCardSurface: false
-                                )
-                                Text(item.displayName)
-                                    .trinketTypography(.badge)
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.85)
-                            }
-                        }
-                        // UIStyleCheck: allow - Mystery item pick uses card art without button chrome.
-                        .trinketQuietTapButtonStyle()
-                        .disabled(session.isResolvingChoice)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemCard(itemID: item.id))
+                        EncounterItemTile(
+                            item: item,
+                            showsName: true,
+                            isDisabled: session.isResolvingChoice,
+                            accessibilityID: AccessibilityID.Mystery.chooseItemCard(itemID: item.id),
+                            onSelect: { onSelectItem(item.id) }
+                        )
                     }
                 }
             }

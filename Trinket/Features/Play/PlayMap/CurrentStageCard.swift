@@ -60,11 +60,9 @@ struct StageSelectActiveCard<
         Color.clear
             .aspectRatio(4.0 / 3.0, contentMode: .fit)
             .overlay {
-                GeometryReader { geometry in
-                    artworkControl
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .clipped()
-                }
+                artworkControl
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
             }
             .overlay(alignment: .bottomLeading) {
                 artworkAccessory()
@@ -119,16 +117,14 @@ struct StageSelectActiveCard<
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
             Text(presentation.activeEyebrow.uppercased())
-                .trinketTypography(.caption)
+                .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.75)
 
             Text(presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .lineLimit(2)
-                .minimumScaleFactor(0.75)
 
             ForEach(Array(presentation.activeDetailLines.enumerated()), id: \.offset) { _, line in
                 Text(line)

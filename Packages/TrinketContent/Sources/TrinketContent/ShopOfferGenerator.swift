@@ -30,12 +30,18 @@ public enum ShopOfferGenerator {
     ) -> [ShopOffer] {
         guard count > 0, !baseTypes.isEmpty else { return [] }
 
+        let isChapter1 = stageID.hasPrefix("chapter-1")
+
         return (0 ..< count).map { index in
             let baseType = baseTypes.randomElement(using: &randomNumberGenerator) ?? baseTypes[0]
-            let rarity = MysteryItemRarity.roll(
-                astralChanceBonusPercent: astralChanceBonusPercent,
-                using: &randomNumberGenerator
-            )
+            let rarity: Rarity = if isChapter1 {
+                index == count - 1 ? .astral : .basic
+            } else {
+                MysteryItemRarity.roll(
+                    astralChanceBonusPercent: astralChanceBonusPercent,
+                    using: &randomNumberGenerator
+                )
+            }
             let basePrice = Int.random(in: basePriceRange, using: &randomNumberGenerator)
             let price = rarity == .astral ? basePrice * astralPriceMultiplier : basePrice
             let offerID = "\(stageID)-offer-\(index)"

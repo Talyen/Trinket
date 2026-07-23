@@ -26,6 +26,17 @@ opt_in_rules:
   - force_unwrapping
   - force_cast
   - force_try
+  - duplicate_imports
+  - contains_over_filter_is_empty
+  - contains_over_filter_count
+  - prefer_zero_over_explicit_init
+  - single_test_class
+  - xct_specific_matcher
+  - toggle_bool
+  - legacy_multiple
+
+analyzer_rules:
+  - unused_import
 
 disabled_rules:
   - line_length

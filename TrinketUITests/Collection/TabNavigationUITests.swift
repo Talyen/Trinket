@@ -14,7 +14,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.LoadoutPicker.abilityDetail("block"))
 
         // Back from a candidate detail should return to the tier grid, not the hero detail.
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        goBack()
         assertExists(AccessibilityID.LoadoutPicker.abilityGrid("Basic"))
 
         button(AccessibilityID.LoadoutPicker.abilityCandidate("block")).tap()

@@ -163,7 +163,7 @@ private struct HandMotionPlayground: View {
                 .font(.caption2.monospaced())
                 .foregroundStyle(color)
                 .padding(.horizontal, TrinketDesign.Metrics.denseSpacing)
-                .padding(.vertical, 2)
+                .padding(.vertical, TrinketDesign.Metrics.tightSpacing)
                 .background(TrinketDesign.Colors.elevated.opacity(0.9), in: Capsule())
             Rectangle()
                 .fill(color.opacity(0.55))

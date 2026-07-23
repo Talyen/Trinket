@@ -16,35 +16,29 @@ struct AbilityChoiceCard: View {
     }
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            TrinketDesign.cardShape
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .overlay {
-                    if let artRef = ability.artReference {
-                        Image.preparedAsset(named: artRef.imageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .clipShape(TrinketDesign.cardShape)
-                            .decorativePreparedArtwork()
-
-                    } else {
-                        ZStack {
-                            TrinketDesign.cardShape
-                                .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
-                            Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                                .font(.system(size: placeholderIconSize, weight: .semibold))
-                                .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                        }
+        ProductCardShell(
+            isLocked: isLocked,
+            lockedText: lockLabel,
+            isSelected: isSelected,
+            showsLabel: showsName,
+            reservesLabelSpace: reservesLabelSpace,
+            art: {
+                if let artRef = ability.artReference {
+                    Image.preparedAsset(named: artRef.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .decorativePreparedArtwork()
+                } else {
+                    ZStack {
+                        TrinketDesign.cardShape
+                            .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
+                        Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
+                            .font(.system(size: placeholderIconSize, weight: .semibold))
+                            .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                     }
                 }
-                .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
-                .trinketCardSurface()
-                .trinketArtworkPickerSelectionBorder(
-                    isSelected: isSelected,
-                    lineWidth: 1.5
-                )
-
-            if showsName {
+            },
+            label: {
                 VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
                     Text(ability.tier.rawValue.uppercased())
                         .trinketTypography(.eyebrow)
@@ -57,9 +51,7 @@ struct AbilityChoiceCard: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
-                .trinketCardLabelSpace(reservesLabelSpace)
             }
-        }
+        )
     }
 }

@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find one cohesive cluster of **confirmed** copy-paste feature surfaces and collapse it under the existing owner. Require three structural twins, or two with demonstrated drift/duplicate maintenance. A successful collapse removes the old paths and reduces net LOC/declarations; do not build a generic configuration surface for two callers.
+Find all cohesive clusters of **confirmed** copy-paste feature surfaces and write a plan to collapse them under their existing owners (breaking into phases if the scope is large). Require three structural twins, or two with demonstrated drift/duplicate maintenance. A successful collapse removes the old paths and reduces net LOC/declarations; do not build a generic configuration surface for two callers.
 
 ## What counts as a duplicate surface
 
@@ -31,7 +31,7 @@ Duplicate surfaces look like parallel product screens that differ mainly by labe
 1. **Structural twin:** same section order / chrome / interaction pattern across ≥3 call sites, or two call sites with demonstrated drift (not merely similar names).
 2. **Maintenance cost:** a change would need to land in multiple siblings, or already has drifted.
 3. **Safer shared shape:** one parameterized view or helper in the existing owner preserves behavior.
-4. **Blast radius:** one cluster (e.g. Play mode hubs, or encounter shells) — do not unify the whole Features tree in one pass.
+4. **Plan scope:** write a plan covering all identified clusters; if the scope across features is large, organize the plan into phases.
 
 ## Simplification order
 

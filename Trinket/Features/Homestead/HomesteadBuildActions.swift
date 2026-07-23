@@ -32,27 +32,20 @@ struct HomesteadBuildControl {
 
 extension View {
     func homesteadBuildErrorAlert(build: Binding<HomesteadBuildControl>) -> some View {
-        homesteadBuildErrorAlert(error: Binding(
-            get: { build.wrappedValue.error },
-            set: { build.wrappedValue.error = $0 }
-        ))
-    }
-
-    private func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
         alert(
             "Build Failed",
             isPresented: Binding(
-                get: { error.wrappedValue != nil },
+                get: { build.wrappedValue.error != nil },
                 set: {
                     if !$0 {
-                        error.wrappedValue = nil
+                        build.wrappedValue.error = nil
                     }
                 }
             )
         ) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(error.wrappedValue ?? "")
+            Text(build.wrappedValue.error ?? "")
         }
     }
 }

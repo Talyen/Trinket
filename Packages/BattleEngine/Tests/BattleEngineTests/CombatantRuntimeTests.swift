@@ -46,8 +46,8 @@ struct CombatantRuntimeTests {
             primaryStats: PrimaryStats(intellect: 5)
         )
         let manaRuntime = CombatantRuntime(combatant: mage)
-        try #expect(manaRuntime.currentMana == 15)
-        try #expect(manaRuntime.maxMana == 15)
+        try #expect(manaRuntime.currentMana == 11)
+        try #expect(manaRuntime.maxMana == 11)
     }
 
     @Test func initialActiveEffectsAreStored() throws {
@@ -82,11 +82,11 @@ struct CombatantRuntimeTests {
             role: .hero,
             maxHealth: 20,
             abilities: [],
-            primaryStats: PrimaryStats(wisdom: 10)
+            primaryStats: PrimaryStats(wisdom: 80)
         ))
         _ = wisdomRuntime.takeRawDamage(15)
-        try #expect(wisdomRuntime.heal(3) == 5)
-        try #expect(wisdomRuntime.currentHealth == 10)
+        try #expect(wisdomRuntime.heal(10) == 15)
+        try #expect(wisdomRuntime.currentHealth == 20)
 
         var fullRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10))
         try #expect(fullRuntime.heal(5) == 0)

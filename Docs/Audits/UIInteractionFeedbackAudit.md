@@ -6,7 +6,7 @@
 
 ## Intent
 
-Select one affected flow, confirm a navigation/feedback/accessibility defect, and make a bounded fix. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Significant shared patterns remain proposals.
+Identify navigation/feedback/accessibility defects across flows and write a plan to fix all identified issues (breaking into phases if the scope is large). Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Significant shared patterns remain proposals.
 
 ## Hard stops
 

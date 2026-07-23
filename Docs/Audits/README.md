@@ -32,7 +32,7 @@ Prefer the smallest remedy that removes the confirmed cause. Related hits may ju
 
 ### Pass shape
 
-Keep each pass focused on one cluster or related root cause. Start with cheap, capped probes; inspect only the strongest few candidates and the source needed to confirm them. Do not dump or read a directory wholesale, run unrelated full-repo sweeps, or continue after the selected cluster is clean. A large remedy remains a proposal.
+Inventory all findings identified during the audit and write an implementation plan to address all of them. Start with cheap, targeted probes to uncover candidates, then inspect the relevant source to confirm them. If the overall scope of fixes is large, break the implementation plan into distinct, manageable phases. Do not dump or read a directory wholesale or run unrelated full-repo sweeps.
 
 Record outcomes in the handoff/commit/PR, never in an audit. Do not append run logs, Done tables, or dated status to these guides.
 

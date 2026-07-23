@@ -61,6 +61,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
     func test03HomesteadDetailTransition() {
         launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
         homestead.assertLoaded()
+        tapButton(AccessibilityID.Homestead.category("Farming"))
         assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Wheat Field"))
         let detail = app.descendants(matching: .any)[
             AccessibilityID.Homestead.nodeDetail(title: "Wheat Field")
@@ -79,7 +80,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
             }
         }
         if isShowingDetail {
-            homestead.assertLoaded()
+            assertExists(AccessibilityID.Homestead.node(title: "Wheat Field"))
         } else {
             homestead.assertNodeDetail(named: "Wheat Field")
         }

@@ -4,7 +4,7 @@
 
 ## Intent
 
-Start with strict-concurrency diagnostics when available, then investigate high-risk candidates. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Fix one bounded cluster; significant isolation changes are proposals.
+Start with strict-concurrency diagnostics when available, then investigate high-risk candidates. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Write a plan to fix all identified concurrency/data-race issues (breaking into phases if the scope is large); significant isolation changes are proposals.
 
 ## Hard stops
 

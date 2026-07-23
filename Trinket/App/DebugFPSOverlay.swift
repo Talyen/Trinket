@@ -237,15 +237,15 @@ private struct FramePacingBadge: View {
     let report: FramePacingReport
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
             Text(String(format: "%.0f FPS", report.averageFPS))
                 .font(.system(.caption2, design: .monospaced).weight(.bold))
             Text(String(format: "1%% %.0f", report.onePercentLowFPS))
                 .font(.system(.caption2, design: .monospaced))
         }
         .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         .background {
             Capsule(style: .continuous)
                 .fill(TrinketDesign.Colors.Overlay.ink.opacity(0.72))

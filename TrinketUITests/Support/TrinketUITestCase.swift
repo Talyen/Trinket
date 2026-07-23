@@ -305,7 +305,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func goBack() {
-        let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
+        let navBackButton = app.navigationBars.buttons.firstMatch
         guard navBackButton.waitForExistence(timeout: 2) else { return }
         if navBackButton.isHittable {
             navBackButton.tap()

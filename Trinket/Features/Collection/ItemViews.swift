@@ -34,38 +34,25 @@ struct InventoryGridView: View {
     @State private var selectedItem: InventoryItem?
     @Namespace private var zoomNamespace
 
-    private let columns = TrinketDesign.Metrics.collectionGridItems
-
     var body: some View {
         let inventoryState = appState.inventory
         let items = filteredItems(from: inventoryState)
 
-        ScrollView {
-            if items.isEmpty {
-                inventoryEmptyState(inventoryState: inventoryState)
-                    .padding(TrinketDesign.Metrics.contentMargin)
-            } else {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
-                    LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
-                        ForEach(items) { item in
-                            Button {
-                                selectedItem = item
-                            } label: {
-                                ItemCard(
-                                    item: item,
-                                    showsAffixCount: false
-                                )
-                            }
-                            .trinketQuietTapButtonStyle()
-                            .matchedTransitionSource(id: item.id, in: zoomNamespace)
-                            .accessibilityIdentifier("\(item.displayName) item card")
-                        }
-                    }
-                }
-                .padding(TrinketDesign.Metrics.contentMargin)
+        CollectionGridShell(items: items) { item in
+            Button {
+                selectedItem = item
+            } label: {
+                ItemCard(
+                    item: item,
+                    showsAffixCount: false
+                )
             }
+            .trinketQuietTapButtonStyle()
+            .matchedTransitionSource(id: item.id, in: zoomNamespace)
+            .accessibilityIdentifier("\(item.displayName) item card")
+        } emptyView: {
+            inventoryEmptyState(inventoryState: inventoryState)
         }
-        .trinketScreenBackground()
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.large)

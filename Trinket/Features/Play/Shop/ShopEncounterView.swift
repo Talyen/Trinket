@@ -143,19 +143,12 @@ struct ShopEncounterView: View {
                 let canAfford = appState.roster.gold >= offer.price
                 let canBuy = canAfford && !soldOut
                 VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Button {
-                        selectedOffer = offer
-                    } label: {
-                        ItemCard(
-                            item: offer.item,
-                            showsAffixCount: false,
-                            showsName: false,
-                            appliesCardSurface: false
-                        )
-                    }
-                    // UIStyleCheck: allow - Offer card opens item detail without button chrome.
-                    .trinketQuietTapButtonStyle()
-                    .accessibilityIdentifier(AccessibilityID.Shop.offerCard(offerID: offer.id))
+                    EncounterItemTile(
+                        item: offer.item,
+                        showsName: false,
+                        accessibilityID: AccessibilityID.Shop.offerCard(offerID: offer.id),
+                        onSelect: { selectedOffer = offer }
+                    )
 
                     Button {
                         attemptPurchase(offerID: offer.id, dismissDetail: false)

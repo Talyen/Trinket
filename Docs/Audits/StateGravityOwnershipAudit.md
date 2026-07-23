@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm one ownership-drift cluster and restore it to an existing owner. Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
+Identify ownership-drift clusters and write a plan to restore them to existing owners (breaking into phases if the scope is large). Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
 
 ## What “state gravity” means here
 
@@ -33,7 +33,7 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 1. **Wrong owner:** the code’s concern matches a different row in [Architecture.md](../Platform/Architecture.md) module ownership or hub containment.
 2. **Real cost:** the hub/view is hard to test, review, or extend because unrelated jobs share its type.
 3. **Existing home:** the target owner already exists (engine handler, store slice, `BattleShell`, `Shared/`, feature session) — not a greenfield layer.
-4. **Blast radius:** one cluster (e.g. encounter orchestration, or homestead mutations on `AppState`) — do not flatten all of `AppState` in one unsupervised pass.
+4. **Plan scope:** write a plan to address all identified ownership drift; if the scope is large, break execution into phases.
 
 ## Restoration order
 

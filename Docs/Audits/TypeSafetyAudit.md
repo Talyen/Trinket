@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find unsafe escapes via compiler/linter output and targeted probes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. Fix one bounded cluster; a clean pass is valid, and significant typing seams remain proposals.
+Find unsafe escapes via compiler/linter output and targeted probes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. Write a plan to fix all identified unsafe typing escapes (breaking into phases if the scope is large); a clean pass is valid, and significant typing seams remain proposals.
 
 ## Hard stops
 

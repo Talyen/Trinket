@@ -375,7 +375,7 @@ public struct CombatBuild: Equatable, Hashable, Sendable {
 
     public var effectiveMaxMana: Int {
         guard combatant.hasMana else { return 0 }
-        return combatant.maxMana + combatant.primaryStats.intellect + modifiers.maximumManaBonus
+        return combatant.maxMana + (combatant.primaryStats.intellect / 5) + modifiers.maximumManaBonus
     }
 }
 

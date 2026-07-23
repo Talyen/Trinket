@@ -57,7 +57,8 @@ struct BattleSessionAppIntegrationTests {
 
         appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
 
-        _ = try #require(appState.battle.overlayCombatantDetail)
+        let detail = try #require(appState.battle.overlayCombatantDetail)
+        #expect(detail.health == nil)
         let activeState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = activeState.startBattle(for: stage)

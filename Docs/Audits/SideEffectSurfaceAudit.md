@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm unexpected effect ownership and fix a bounded set of high-value violations using existing seams. A clean pass is valid. A new seam requires repeated confirmed violations, at least three current uses or an enforced boundary, and proposal approval per [README.md](README.md).
+Confirm unexpected effect ownership and write a plan to fix all identified violations using existing seams (breaking into phases if the scope is large). A clean pass is valid. A new seam requires repeated confirmed violations, at least three current uses or an enforced boundary, and proposal approval per [README.md](README.md).
 
 ## Hard stops
 
