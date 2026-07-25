@@ -44,7 +44,7 @@ struct HomesteadPresentationTests {
     }
 
     private func assertLockedPrerequisiteLifecycle() throws {
-        let definition = try #require(GameContent.homesteadNode(matching: .herbGarden))
+        let definition = try #require(GameContent.homesteadNode(matching: .chickenCoop))
         let status = makeStatus(definition: definition, homestead: .freshStart)
         let firstTier = try #require(definition.tier(1))
         #expect(status.rowState == .prerequisiteLocked)
