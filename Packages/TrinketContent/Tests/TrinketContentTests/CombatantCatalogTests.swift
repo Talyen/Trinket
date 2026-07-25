@@ -47,6 +47,7 @@ struct CombatantCatalogTests {
         try #expect(effects.companionModifiers == [
             .maximumHealth(16),
             .toughness(8),
+            .poisonDamageDealtPercent(0.2),
             .damageTakenPercent(.poison, 0.4),
             .agility(8)
         ])

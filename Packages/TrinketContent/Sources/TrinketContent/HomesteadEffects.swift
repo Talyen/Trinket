@@ -63,13 +63,15 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
             effects.heroModifiers.append(.damageTakenPercent(.freeze, percent))
         case .alchemyLab:
-            let percent = Double(tierValue(tier, values: [5, 10, 15, 20])) / 100
-            effects.heroModifiers.append(.poisonDamageDealtPercent(percent))
-        case .botanicalDistillation:
-            let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
-            let modifier = AffixModifier.damageTakenPercent(.poison, percent)
-            effects.heroModifiers.append(modifier)
-            effects.companionModifiers.append(modifier)
+            let dealtPercent = Double(tierValue(tier, values: [5, 10, 15, 20])) / 100
+            let dealtModifier = AffixModifier.poisonDamageDealtPercent(dealtPercent)
+            effects.heroModifiers.append(dealtModifier)
+            effects.companionModifiers.append(dealtModifier)
+
+            let takenPercent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
+            let takenModifier = AffixModifier.damageTakenPercent(.poison, takenPercent)
+            effects.heroModifiers.append(takenModifier)
+            effects.companionModifiers.append(takenModifier)
         case .crystalGarden:
             effects.heroModifiers.append(.intellect(tierValue(tier, values: [2, 4, 6, 8])))
         case .runesmithWorkshop:
@@ -83,7 +85,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             effects.heroModifiers.append(.companionDamageDealt(tierValue(tier, values: [1, 2, 3, 4])))
         case .agilityTraining:
             effects.companionModifiers.append(.agility(tierValue(tier, values: [2, 4, 6, 8])))
-        case .detectMagic:
+        case .moonlitSanctum:
             effects.astralChanceBonusPercent = tierValue(tier, values: [5, 10, 15, 20])
         case .wishingWell:
             effects.goldFindPercent = tierValue(tier, values: [5, 10, 15, 20])

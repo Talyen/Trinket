@@ -38,12 +38,11 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
     case blacksmithForge
     case woolTailoring
     case alchemyLab
-    case botanicalDistillation
     case crystalGarden
     case runesmithWorkshop
     case hunterLodge
     case agilityTraining
-    case detectMagic
+    case moonlitSanctum
     case wishingWell
 
     public var id: String {

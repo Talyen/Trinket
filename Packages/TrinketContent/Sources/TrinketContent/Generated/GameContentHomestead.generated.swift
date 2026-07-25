@@ -54,7 +54,7 @@ enum GameContentHomesteadGenerated {
             symbolName: "leaf.fill",
             tintStyle: .green,
             category: .farming,
-            prerequisites: [HomesteadNodeRequirement(.wheatField)],
+            prerequisites: [],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
@@ -140,7 +140,7 @@ enum GameContentHomesteadGenerated {
             symbolName: "mountain.2.fill",
             tintStyle: .mint,
             category: .farming,
-            prerequisites: [HomesteadNodeRequirement(.chickenCoop, tier: 2)],
+            prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
@@ -183,7 +183,7 @@ enum GameContentHomesteadGenerated {
             symbolName: "frying.pan.fill",
             tintStyle: .orange,
             category: .crafting,
-            prerequisites: [HomesteadNodeRequirement(.herbGarden), HomesteadNodeRequirement(.chickenCoop)],
+            prerequisites: [HomesteadNodeRequirement(.wheatField), HomesteadNodeRequirement(.herbGarden)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
@@ -316,77 +316,34 @@ enum GameContentHomesteadGenerated {
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 15), ResourceAmount(.herbs, 5)],
+                    cost: [ResourceAmount(.stone, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
-                        description: "Increase Hero Poison damage dealt by 5%"
+                        description: "Increase Poison damage dealt by 5%\nDecrease Poison damage taken by 10%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 25), ResourceAmount(.herbs, 15)],
+                    cost: [ResourceAmount(.stone, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
-                        description: "Increase Hero Poison damage dealt by 10%"
+                        description: "Increase Poison damage dealt by 10%\nDecrease Poison damage taken by 20%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.herbs, 20)],
+                    cost: [ResourceAmount(.stone, 30), ResourceAmount(.herbs, 30)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
-                        description: "Increase Hero Poison damage dealt by 15%"
+                        description: "Increase Poison damage dealt by 15%\nDecrease Poison damage taken by 30%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 4,
-                    cost: [ResourceAmount(.stone, 60), ResourceAmount(.herbs, 30)],
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
                         title: "Catalyzed Venom",
-                        description: "Increase Hero Poison damage dealt by 20%"
-                    )
-                )
-            ]
-        ),
-        HomesteadNodeDefinition(
-            id: .botanicalDistillation,
-            title: "Botanical Distillation",
-            summary: "A still house that concentrates garden greens into potent reagents.",
-            symbolName: "drop.triangle.fill",
-            tintStyle: .green,
-            category: .alchemy,
-            prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
-            tiers: [
-                HomesteadNodeTier(
-                    tier: 1,
-                    cost: [ResourceAmount(.herbs, 5), ResourceAmount(.crystal, 10)],
-                    bonus: HomesteadBonus(
-                        title: "Poison Resistance",
-                        description: "Decrease Poison damage taken by 10%"
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 2,
-                    cost: [ResourceAmount(.herbs, 15), ResourceAmount(.crystal, 15)],
-                    bonus: HomesteadBonus(
-                        title: "Poison Resistance",
-                        description: "Decrease Poison damage taken by 20%"
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 3,
-                    cost: [ResourceAmount(.herbs, 20), ResourceAmount(.crystal, 25)],
-                    bonus: HomesteadBonus(
-                        title: "Poison Resistance",
-                        description: "Decrease Poison damage taken by 30%"
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 4,
-                    cost: [ResourceAmount(.herbs, 30), ResourceAmount(.crystal, 40)],
-                    bonus: HomesteadBonus(
-                        title: "Poison Resistance",
-                        description: "Decrease Poison damage taken by 40%"
+                        description: "Increase Poison damage dealt by 20%\nDecrease Poison damage taken by 40%"
                     )
                 )
             ]
@@ -564,13 +521,13 @@ enum GameContentHomesteadGenerated {
             ]
         ),
         HomesteadNodeDefinition(
-            id: .detectMagic,
-            title: "Detect Magic",
+            id: .moonlitSanctum,
+            title: "Moonlit Sanctum",
             summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
             symbolName: "sparkle.magnifyingglass",
             tintStyle: .cyan,
             category: .arcana,
-            prerequisites: [HomesteadNodeRequirement(.botanicalDistillation), HomesteadNodeRequirement(.crystalGarden)],
+            prerequisites: [HomesteadNodeRequirement(.crystalGarden)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
@@ -613,7 +570,7 @@ enum GameContentHomesteadGenerated {
             symbolName: "drop.circle.fill",
             tintStyle: .blue,
             category: .arcana,
-            prerequisites: [HomesteadNodeRequirement(.runesmithWorkshop), HomesteadNodeRequirement(.detectMagic), HomesteadNodeRequirement(.agilityTraining)],
+            prerequisites: [HomesteadNodeRequirement(.runesmithWorkshop), HomesteadNodeRequirement(.moonlitSanctum), HomesteadNodeRequirement(.agilityTraining)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,

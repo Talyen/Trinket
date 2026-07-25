@@ -42,12 +42,11 @@ VALID_HOMESTEAD_NODE_IDS = frozenset(
         "blacksmithForge",
         "woolTailoring",
         "alchemyLab",
-        "botanicalDistillation",
         "crystalGarden",
         "runesmithWorkshop",
         "hunterLodge",
         "agilityTraining",
-        "detectMagic",
+        "moonlitSanctum",
         "wishingWell",
     }
 )
@@ -1334,12 +1333,11 @@ HOMESTEAD_NODE_ORDER = [
     "blacksmithForge",
     "woolTailoring",
     "alchemyLab",
-    "botanicalDistillation",
     "crystalGarden",
     "runesmithWorkshop",
     "hunterLodge",
     "agilityTraining",
-    "detectMagic",
+    "moonlitSanctum",
     "wishingWell",
 ]
 

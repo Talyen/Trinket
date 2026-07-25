@@ -697,10 +697,6 @@ public enum ArtCatalog {
             imageName: "bg_homestead_alchemy_lab",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
-        "botanicalDistillation": BackgroundArtReference(
-            imageName: "bg_homestead_botanical_distillation",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
         "crystalGarden": BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
@@ -717,8 +713,8 @@ public enum ArtCatalog {
             imageName: "bg_homestead_agility_training",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
-        "detectMagic": BackgroundArtReference(
-            imageName: "bg_homestead_detect_magic",
+        "moonlitSanctum": BackgroundArtReference(
+            imageName: "bg_homestead_moonlit_sanctum",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
         "wishingWell": BackgroundArtReference(

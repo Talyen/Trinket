@@ -77,8 +77,8 @@ struct HomesteadStateTests {
         try #expect(effects.adjustedGold(100) == 110)
     }
 
-    @Test func detectMagicIncreasesAstralChancePercent() throws {
-        let effects = HomesteadEffects.from(nodeTiers: [.detectMagic: 3])
+    @Test func moonlitSanctumIncreasesAstralChancePercent() throws {
+        let effects = HomesteadEffects.from(nodeTiers: [.moonlitSanctum: 3])
         try #expect(effects.astralChanceBonusPercent == 15)
     }
 

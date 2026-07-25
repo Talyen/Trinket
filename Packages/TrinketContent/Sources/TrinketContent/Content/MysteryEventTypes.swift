@@ -58,7 +58,7 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 public enum MysteryItemRarity {
     public static let baseAstralChancePercent = 20
 
-    /// 80% basic / 20% astral by default; homestead Detect Magic adds to astral chance.
+    /// 80% basic / 20% astral by default; homestead Moonlit Sanctum adds to astral chance.
     public static func roll(
         astralChanceBonusPercent: Int = 0,
         using randomNumberGenerator: inout some RandomNumberGenerator

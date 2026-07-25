@@ -7,7 +7,7 @@ combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.jpeg	0.50	0.50
 combatant	wolf	companion_wolf_card	Raw Assets/Companions/Wolf.jpeg	0.50	0.36
 combatant	bear	companion_bear_card	Raw Assets/Companions/Bear.jpeg	0.50	0.50
 combatant	frost_whelp	companion_frost_whelp_card	Raw Assets/Companions/Frost Whelp.jpeg	0.50	0.50
-combatant	lizard_scout	companion_lizard_scout_card	Raw Assets/Companions/Lizard Scout.png	0.50	0.50
+combatant	lizard_scout	companion_lizard_scout_card	Raw Assets/Companions/Lizard Scout.jpeg	0.50	0.50
 combatant	panther	companion_panther_card	Raw Assets/Companions/Panther.jpeg	0.50	0.50
 combatant	phoenix	companion_phoenix_card	Raw Assets/Companions/Phoenix.jpeg	0.50	0.50
 combatant	golden_retriever	companion_golden_retriever_card	Raw Assets/Companions/Golden Retriever.jpeg	0.50	0.50
@@ -158,21 +158,20 @@ background	chapter-1	bg_forest	Raw Assets/Chapter Backgrounds/Forest.jpeg	0.50	0
 background	chapter-2	bg_dungeon	Raw Assets/Chapter Backgrounds/Dungeon.jpeg	0.50	0.50
 background	chapter-3	bg_desert	Raw Assets/Chapter Backgrounds/Desert.jpeg	0.50	0.50
 background	chapter-4	bg_tundra	Raw Assets/Chapter Backgrounds/Tundra.jpeg	0.50	0.50
-background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.png	0.50	0.50
-background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.png	0.50	0.50
-background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.png	0.50	0.50
-background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.png	0.50	0.50
+background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.jpeg	0.50	0.50
+background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.jpeg	0.50	0.50
+background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.jpeg	0.50	0.50
+background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.jpeg	0.50	0.50
 background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Pasture.jpeg	0.50	0.50
 background	culinaryArts	bg_homestead_culinary_arts	Raw Assets/Homestead/Culinary Arts.jpeg	0.50	0.50
-background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith's Forge.png	0.50	0.50
+background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith Forge.jpeg	0.50	0.50
 background	woolTailoring	bg_homestead_wool_tailoring	Raw Assets/Homestead/Wool Tailoring.jpeg	0.50	0.50
-background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.png	0.50	0.50
-background	botanicalDistillation	bg_homestead_botanical_distillation	Raw Assets/Homestead/Botanical Distillation.jpeg	0.50	0.50
-background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.png	0.50	0.50
-background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.png	0.50	0.50
+background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.jpeg	0.50	0.50
+background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.jpeg	0.50	0.50
+background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.jpeg	0.50	0.50
 background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's Lodge.jpeg	0.50	0.50
 background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50
-background	detectMagic	bg_homestead_detect_magic	Raw Assets/Homestead/Detect Magic.jpeg	0.50	0.50
+background	moonlitSanctum	bg_homestead_moonlit_sanctum	Raw Assets/Homestead/Moonlit Sanctum.jpeg	0.50	0.50
 background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50
 resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50
 resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50
@@ -208,10 +207,10 @@ background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Campaign
 background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Explore.jpeg	0.50	0.50
 background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/Labyrinth.jpeg	0.50	0.50
 background	gameModeSpires	bg_game_mode_spires	Raw Assets/Game Modes/Spires.jpeg	0.50	0.50
-background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Talent Backgrounds/Physical.jpeg	0.50	0.50
+background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Game Modes/Spires/Physical Spire.jpeg	0.50	0.50
 background	spire-cinderSpire	bg_spire_cinder_spire	Raw Assets/Talent Backgrounds/Burn.jpeg	0.50	0.50
-background	spire-serpentHollow	bg_spire_serpent_hollow	Raw Assets/Talent Backgrounds/Nature.jpeg	0.50	0.50
-background	spire-scarGallery	bg_spire_scar_gallery	Raw Assets/Talent Backgrounds/Bleed.jpeg	0.50	0.50
-background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Talent Backgrounds/Mana.jpeg	0.50	0.50
+background	spire-serpentHollow	bg_spire_serpent_hollow	Raw Assets/Game Modes/Spires/Poison Spire.jpeg	0.50	0.50
+background	spire-scarGallery	bg_spire_scar_gallery	Raw Assets/Game Modes/Spires/Bleed Spire.jpeg	0.50	0.50
+background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Game Modes/Spires/Holy Spire.jpeg	0.50	0.50
 background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Talent Backgrounds/Freeze.jpeg	0.50	0.50
 background	spire-stormAnvil	bg_spire_storm_anvil	Raw Assets/Talent Backgrounds/Stun.jpeg	0.50	0.50
