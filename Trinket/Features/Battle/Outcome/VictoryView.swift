@@ -11,11 +11,7 @@ struct VictoryView: View {
 
     @State private var isCompleting = false
     @State private var completedExperienceBars = 0
-    @State private var visibleWalletRewardCount = 0
-    @State private var areItemsVisible = false
-    @State private var isSequenceComplete = false
-    @State private var hasStartedRewardSequence = false
-    @State private var revealTask: Task<Void, Never>?
+    @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
 
     var body: some View {
@@ -29,10 +25,22 @@ struct VictoryView: View {
             content: {
                 VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
                     experiencePanel
-                    revealedRewards
+                    RewardRevealLootSection(
+                        items: summary.rewardItems,
+                        gold: summary.totalGold,
+                        materials: summary.materialRewards,
+                        showsIncreasePrefix: true,
+                        emptyMessage: "No additional rewards.",
+                        itemAccessibilityID: AccessibilityID.Battle.rewardItem,
+                        areItemsVisible: revealSequence.areItemsVisible,
+                        visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
+                        walletColumnCount: walletRewardCount,
+                        onSelectItem: { selectedRewardItem = $0 }
+                    )
+                    .accessibilityIdentifier(AccessibilityID.Battle.rewards)
                 }
             },
-            primaryActionTitle: isSequenceComplete ? primaryActionTitle : nil,
+            primaryActionTitle: revealSequence.isSequenceComplete ? primaryActionTitle : nil,
             primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             isPrimaryActionDisabled: isCompleting,
             onPrimaryAction: completeVictory,
@@ -53,13 +61,9 @@ struct VictoryView: View {
             }
         }
         .onDisappear {
-            revealTask?.cancel()
-            revealTask = nil
             // Cancel without completion left Loot All / Continue locked when
             // @State survived (same class as ExperienceBar onDisappear snap).
-            if hasStartedRewardSequence {
-                finishRewardSequence()
-            }
+            revealSequence.cancel(walletCount: walletRewardCount)
         }
     }
 
@@ -105,81 +109,8 @@ struct VictoryView: View {
         }
     }
 
-    private var revealedRewards: some View {
-        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-            if !summary.rewardItems.isEmpty {
-                rewardItemPager
-                    .opacity(areItemsVisible ? 1 : 0)
-                    .scaleEffect(areItemsVisible ? 1 : 0.98)
-                    .allowsHitTesting(areItemsVisible)
-            }
-
-            rewardWallet(columnCount: walletRewardCount)
-        }
-        .accessibilityIdentifier(AccessibilityID.Battle.rewards)
-    }
-
-    private var rewardItemPager: some View {
-        ScrollView(.horizontal) {
-            LazyHStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-                ForEach(summary.rewardItems) { item in
-                    Button {
-                        selectedRewardItem = item
-                    } label: {
-                        RewardItemRevealCard(item: item)
-                    }
-                    .trinketQuietTapButtonStyle()
-                    .containerRelativeFrame(.horizontal)
-                    .accessibilityIdentifier(AccessibilityID.Battle.rewardItem(item.id))
-                }
-            }
-            .scrollTargetLayout()
-        }
-        .scrollIndicators(.hidden)
-        .scrollTargetBehavior(.paging)
-    }
-
-    @ViewBuilder
-    private func rewardWallet(columnCount: Int) -> some View {
-        let materials = summary.materialRewards.filter { $0.quantity > 0 }
-        let rewardCount = (summary.totalGold > 0 ? 1 : 0) + materials.count
-
-        if rewardCount > 0 {
-            let goldOffset = summary.totalGold > 0 ? 1 : 0
-            TrinketWalletGrid(columnCount: max(1, min(columnCount, rewardCount))) {
-                if summary.totalGold > 0 {
-                    TrinketWalletResourcePill(
-                        title: "Gold",
-                        amount: summary.totalGold,
-                        showsIncreasePrefix: true
-                    ) {
-                        HomesteadResourceArtwork(resource: .gold)
-                    }
-                }
-
-                ForEach(Array(materials.enumerated()), id: \.element.resource) { index, reward in
-                    let revealIndex = index + goldOffset
-                    TrinketWalletResourcePill(
-                        title: reward.resource.displayName,
-                        amount: reward.quantity,
-                        showsIncreasePrefix: true
-                    ) {
-                        HomesteadResourceArtwork(resource: reward.resource)
-                    }
-                    .opacity(revealIndex == 0 || visibleWalletRewardCount > revealIndex ? 1 : 0)
-                }
-            }
-            .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
-        } else if summary.rewardItems.isEmpty {
-            Text("No additional rewards.")
-                .trinketTypography(.secondaryBody)
-                .foregroundStyle(.secondary)
-                .opacity(areItemsVisible ? 1 : 0)
-        }
-    }
-
     private func completeVictory() {
-        guard isSequenceComplete, !isCompleting else { return }
+        guard revealSequence.isSequenceComplete, !isCompleting else { return }
         isCompleting = onPrimaryAction()
     }
 
@@ -191,44 +122,10 @@ struct VictoryView: View {
     }
 
     private func startRewardSequence() {
-        guard !hasStartedRewardSequence else { return }
-        hasStartedRewardSequence = true
-        revealTask?.cancel()
-        revealTask = Task { @MainActor in
-            let clock = SuspendingClock()
-
-            if !summary.rewardItems.isEmpty || walletRewardCount == 0 {
-                try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
-                guard !Task.isCancelled else { return }
-                withAnimation(TrinketMotion.Reward.reveal) {
-                    areItemsVisible = true
-                }
-            }
-
-            if walletRewardCount > 0 {
-                for count in 1 ... walletRewardCount {
-                    try? await clock.sleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
-                    guard !Task.isCancelled else { return }
-                    withAnimation(TrinketMotion.Reward.stateChange) {
-                        visibleWalletRewardCount = count
-                    }
-                }
-            }
-
-            try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.stateChange) {
-                finishRewardSequence()
-            }
-            revealTask = nil
-        }
-    }
-
-    private func finishRewardSequence() {
-        guard !isSequenceComplete else { return }
-        visibleWalletRewardCount = walletRewardCount
-        areItemsVisible = true
-        isSequenceComplete = true
+        revealSequence.start(
+            itemCount: summary.rewardItems.count,
+            walletCount: walletRewardCount
+        )
     }
 
     private var walletRewardCount: Int {

@@ -249,7 +249,7 @@ private struct CombatFeedbackFloatMotionLab: View {
         verticalOffset: CGFloat,
         at date: Date
     ) -> some View {
-        let recipe = TrinketMotion.Battle.chip(for: item.kind.feedbackClass)
+        let recipe = CombatFeedbackChipRecipes.chip(for: item.kind.feedbackClass)
         let chipHeight = chipHeight(for: item.kind)
         let chipWidth = chipWidth(for: item.kind)
         let travel = configuration.travelDistance(cardHeight: cardHeight, chipHeight: chipHeight)

@@ -49,12 +49,12 @@ stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
 sunder	Sunder	skill	Deal 3 Physical damage and Halve the enemy's Block.
 tithe	Tithe	skill	Deal 3 Holy damage or steal 3 Gold.
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
+astral-arrow	Astral Arrow	ultimate	Deal 6 Stun damage, Deal 6 Freeze damage, or deal 6 Burn damage.
 avatar-of-justice	Avatar	ultimate	Gain Holy damage equal to your Block for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Deal 6 Holy damage or gain 6 Block.
 blizzard	Blizzard	ultimate	Deal 2 Freeze damage each turn for 2 turns.
 bloodthorn	Bloodthorn	ultimate	Deal 4 Bleed damage or deal 3 Poison damage.
 combustion	Combustion	ultimate	Double the enemy's Burn if the enemy is Burning and Applies Burning if the enemy is not Burning.
-concussive-shot	Concussive Shot	ultimate	Deal 6 Stun damage.
 crystal-bulwark	Crystal Bulwark	ultimate	Gain Block equal to half your Mana.
 earthquake	Earthquake	ultimate	Deal 6 Stun damage.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 6 Burn damage.

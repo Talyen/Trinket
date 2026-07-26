@@ -25,14 +25,6 @@ struct TrinketMotionTests {
         )
     }
 
-    @Test func chipStylesCoverEveryFeedbackClass() {
-        for feedbackClass in CombatFeedbackClass.allCases {
-            let style = TrinketMotion.Battle.chip(for: feedbackClass)
-            #expect(style.feedbackClass == feedbackClass)
-        }
-        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
-    }
-
     @Test func combatFeedbackChipMotionUsesEaseOutRiseAndFade() {
         let duration = TrinketMotion.Battle.chipDisplayDuration
         #expect(duration > 0)
@@ -73,65 +65,7 @@ struct TrinketMotionTests {
         let travel = TrinketMotion.Battle.chipTravelDistance(cardHeight: 200, chipHeight: 40)
         #expect(travel > 0)
         #expect(100 - travel >= 20 + TrinketMotion.Battle.chipTopClearance)
-    }
-
-    @Test func cardReactionsCoverAllKinds() {
-        for kind in CombatantHitReactionKind.allCases {
-            let recipe = TrinketMotion.Battle.cardReaction(for: kind)
-            #expect(recipe.kind == kind)
-            #expect(recipe.duration > 0)
-        }
-
-        let damage = TrinketMotion.Battle.cardReaction(for: .damage)
-        let critical = TrinketMotion.Battle.cardReaction(for: .critical)
-        #expect((damage.scaleX.first?.value ?? 1) < 1)
-        #expect((damage.scaleY.first?.value ?? 1) > 1)
-        #expect(abs(damage.offsetX.first?.value ?? 0) > 0)
-        #expect(abs(critical.offsetX.first?.value ?? 0) > abs(damage.offsetX.first?.value ?? 0))
-        #expect((critical.scaleX.first?.value ?? 1) < (damage.scaleX.first?.value ?? 1))
-
-        let celebrate = TrinketMotion.Battle.cardReaction(for: .celebrate)
-        #expect((celebrate.scaleX.first?.value ?? 0) > 1)
-        #expect((celebrate.scaleY.first?.value ?? 1) < 1)
-        #expect((celebrate.offsetY.first?.value ?? 0) < 0)
-        #expect(celebrate.rotation.count >= 2)
-        #expect((celebrate.rotation.first?.value ?? 0) < 0)
-        #expect(celebrate.rotation[1].value > 0)
-    }
-
-    @Test func cardAttacksCoverAllKindsAndLungeImpactTiming() {
-        for kind in CombatantAttackReactionKind.allCases {
-            let recipe = TrinketMotion.Battle.cardAttack(for: kind)
-            #expect(recipe.kind == kind)
-            #expect(recipe.duration > 0)
-            #expect(recipe.impactDelay >= 0)
-            #expect(recipe.impactDelay <= recipe.duration)
-        }
-
-        let lunge = TrinketMotion.Battle.cardAttack(for: .attack)
-        #expect(lunge.scaleX.count == lunge.scaleY.count)
-        #expect(lunge.offsetY.count == lunge.scaleX.count)
-        #expect(lunge.rotation.count == lunge.scaleX.count)
-        #expect(lunge.offsetY.count >= 3)
-        #expect((lunge.offsetY[0].value) < 0)
-        #expect((lunge.offsetY[1].value) > 0)
-        #expect(lunge.offsetY[2].value == 0)
-        let windUpPlusSwing = (lunge.offsetY[0].duration) + (lunge.offsetY[1].duration)
-        #expect(abs(lunge.impactDelay - windUpPlusSwing) < 0.001)
-        #expect(
-            abs(lunge.duration - (lunge.windUpDuration + lunge.swingDuration + lunge.recoverDuration))
-                < 0.001
-        )
-
-        let enemyAim = TrinketMotion.Battle.attackAim(isPartyMember: false)
-        let partyAim = TrinketMotion.Battle.attackAim(isPartyMember: true)
-        #expect(enemyAim == .towardParty)
-        #expect(partyAim == .towardEnemy)
-        #expect(lunge.windUpPose(aim: enemyAim).offsetY < 0)
-        #expect(lunge.swingPose(aim: enemyAim).offsetY > 0)
-        #expect(lunge.windUpPose(aim: partyAim).offsetY > 0)
-        #expect(lunge.swingPose(aim: partyAim).offsetY < 0)
-        #expect(lunge.restPose == .rest)
+        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
     }
 
     @Test func hitRecoilDirectionFlipsOffsetAndScaleAxes() {
@@ -143,17 +77,16 @@ struct TrinketMotionTests {
         #expect(downOffset.width == 0)
         #expect(downOffset.height == magnitude)
 
-        let damage = TrinketMotion.Battle.cardReaction(for: .damage)
-        let scaleX = damage.scaleX.first?.value ?? 1
-        let scaleY = damage.scaleY.first?.value ?? 1
-        let upScales = CombatantHitRecoilDirection.up.impactScales(scaleX: scaleX, scaleY: scaleY)
-        let downScales = CombatantHitRecoilDirection.down.impactScales(scaleX: scaleX, scaleY: scaleY)
-        #expect(upScales.x == scaleY)
-        #expect(upScales.y == scaleX)
-        #expect(downScales.x == scaleX)
-        #expect(downScales.y == scaleY)
+        let upScales = CombatantHitRecoilDirection.up.impactScales(scaleX: 0.96, scaleY: 1.025)
+        let downScales = CombatantHitRecoilDirection.down.impactScales(scaleX: 0.96, scaleY: 1.025)
+        #expect(upScales.x == 1.025)
+        #expect(upScales.y == 0.96)
+        #expect(downScales.x == 0.96)
+        #expect(downScales.y == 1.025)
 
         #expect(TrinketMotion.Battle.partyRecoilDirection(isPartyMember: true) == .down)
         #expect(TrinketMotion.Battle.partyRecoilDirection(isPartyMember: false) == .up)
+        #expect(TrinketMotion.Battle.attackAim(isPartyMember: false) == .towardParty)
+        #expect(TrinketMotion.Battle.attackAim(isPartyMember: true) == .towardEnemy)
     }
 }

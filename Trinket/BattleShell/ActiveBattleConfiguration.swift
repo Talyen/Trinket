@@ -271,4 +271,13 @@ struct ActiveBattleConfiguration: Identifiable {
             return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
         }
     }
+
+    /// Maps Labyrinth damage-dealt bonuses into battle-wide affix modifiers.
+    static func labyrinthCombatModifiers(
+        from effects: LabyrinthModifierEffects
+    ) -> [AffixModifier] {
+        effects.damageDealtBonus
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageDealt($0.key, $0.value) }
+    }
 }

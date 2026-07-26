@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import TrinketDesignSystem
 
 enum CombatFeedbackCardRecipes {
     static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {

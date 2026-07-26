@@ -51,8 +51,8 @@ Manifests and pipelines live outside the app folder:
 | Heroes, companions, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and card combat | `BattleEngine` | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store` |
-| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
-| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, launch args |
+| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors; motion primitives. Battle-specific feedback *recipes* live in `Trinket/State/` |
+| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState` (wiring), encounter `*Session` types, `BattleSession` |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
 | Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
@@ -186,3 +186,13 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Options/haptics stay on `AppStorage`-compatible local keys — not part of `PlayerSave` / CloudKit. Gate sensory feedback with `.trinketSensoryFeedback`.
 - Accessibility stays visual-first per PD-007: stable UI-test identifiers and native controls; no custom VoiceOver semantics or accessibility-setting branches without an explicit product decision.
 - When adopting new frameworks later: StoreKit 2, modern GameKit, RealityKit — not StoreKit 1, legacy GameKit, or SceneKit.
+
+## Deferred improvements
+
+Do not start these without a concrete forcing function:
+
+| Deferral | Why wait |
+|----------|----------|
+| Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam; keep new generators beside existing ones |
+| CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
+| Further `BattleSession` type split (sim bridge vs presentation controller) | Already file-split (`BattleSession+Presentation`, `+FeedbackPresentation`, …); deepen only if those files keep growing |

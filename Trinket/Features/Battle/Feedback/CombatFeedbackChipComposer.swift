@@ -26,7 +26,7 @@ enum CombatFeedbackChipComposer {
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared
     ) -> ComposedRaster? {
-        let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
+        let recipe = CombatFeedbackChipRecipes.chip(for: feedbackClass)
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
             feedbackClass: feedbackClass,

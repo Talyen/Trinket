@@ -133,7 +133,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         // Subscribe to the observation fence (hitReactions storage is ignored).
         // swiftlint:disable:next redundant_discardable_let
         let _ = appState.battle.hitReactionEpoch
-        let recipe = TrinketMotion.Battle.cardReaction(for: activeKind)
+        let recipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
             width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
             height: CGFloat(recipe.offsetY[safe: 0]?.value ?? 0)

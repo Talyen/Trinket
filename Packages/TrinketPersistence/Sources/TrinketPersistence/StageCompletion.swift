@@ -94,6 +94,36 @@ public enum StageCompletion {
         }
     }
 
+    /// Completes a journey stage or Labyrinth node inside an open save mutation.
+    /// Returns updated journey progress for journey stages; `nil` for Labyrinth nodes.
+    @discardableResult
+    public static func completeEncounter(
+        stage: Stage,
+        labyrinthNodeID: String?,
+        hero: Combatant,
+        companion: Combatant,
+        in chapters: [Chapter],
+        save: inout PlayerSave
+    ) -> JourneyProgressState? {
+        if let labyrinthNodeID {
+            LabyrinthCompletion.complete(
+                nodeID: labyrinthNodeID,
+                hero: hero,
+                companion: companion,
+                save: &save
+            )
+            return nil
+        }
+        complete(
+            stage,
+            hero: hero,
+            companion: companion,
+            in: chapters,
+            save: &save
+        )
+        return save.journey
+    }
+
     public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,

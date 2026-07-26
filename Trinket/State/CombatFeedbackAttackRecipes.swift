@@ -1,4 +1,5 @@
 import Foundation
+import TrinketDesignSystem
 
 enum CombatFeedbackAttackRecipes {
     static func cardAttack(for kind: CombatantAttackReactionKind) -> CombatantAttackReactionRecipe {

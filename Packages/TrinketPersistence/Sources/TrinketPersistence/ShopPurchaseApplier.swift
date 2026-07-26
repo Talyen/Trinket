@@ -6,6 +6,17 @@ public enum ShopPurchaseResult: Equatable, Sendable {
     case success(InventoryItem)
     case insufficientGold
     case alreadyOwned
+
+    public var failureMessage: String? {
+        switch self {
+        case .success:
+            nil
+        case .insufficientGold:
+            "Not enough Gold."
+        case .alreadyOwned:
+            "That item is already sold."
+        }
+    }
 }
 
 /// Atomic gold spend + inventory grant for Merchant's Shop purchases.

@@ -8,10 +8,7 @@ extension AppState {
     func enterLabyrinth() -> StageMapMessage? {
         do {
             try playerSave.performBatchMutation { save in
-                let eligibleRecruitEventIDs = LabyrinthCompletion.eligibleRecruitEventIDs(in: save)
-                save.labyrinth.ensureMap(
-                    eligibleRecruitEventIDs: eligibleRecruitEventIDs
-                )
+                LabyrinthCompletion.enter(save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -68,13 +65,10 @@ extension AppState {
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
             return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
         }
-        let effects = labyrinth.effects(for: nodeID)
-        let rewardGold = LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects)
-        activeLabyrinthNodeSession = LabyrinthNodeSession(
-            kind: .rest,
-            nodeID: nodeID,
-            goldAmount: homestead.effects.adjustedGold(rewardGold),
-            depth: node.depth
+        activeLabyrinthNodeSession = LabyrinthNodeSession.rest(
+            node: node,
+            effects: labyrinth.effects(for: nodeID),
+            homestead: homestead
         )
         return nil
     }
@@ -85,12 +79,7 @@ extension AppState {
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .craft else {
             return StageMapMessage(title: "Altar Missing", message: "This path is not ready yet.")
         }
-        activeLabyrinthNodeSession = LabyrinthNodeSession(
-            kind: .craft,
-            nodeID: nodeID,
-            goldAmount: LabyrinthCompletion.craftAltarCost(for: node),
-            depth: node.depth
-        )
+        activeLabyrinthNodeSession = LabyrinthNodeSession.craft(node: node)
         return nil
     }
 
@@ -98,7 +87,14 @@ extension AppState {
     func finishActiveLabyrinthRest() -> Bool {
         guard let session = activeLabyrinthNodeSession, session.kind == .rest else { return false }
         session.clearFailure()
-        guard completeLabyrinthNode(nodeID: session.nodeID) else {
+        do {
+            try playerSave.performBatchMutation { save in
+                _ = session.finishRest(save: &save)
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to finish Labyrinth rest: \(error.localizedDescription, privacy: .public)"
+            )
             session.markFailed("Couldn't save progress. Stay here and try Rest again.")
             return false
         }
@@ -117,12 +113,7 @@ extension AppState {
         var forged = false
         do {
             try playerSave.performBatchMutation { save in
-                forged = LabyrinthCompletion.forgeAtAltar(
-                    nodeID: session.nodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    save: &save
-                )
+                forged = session.forge(save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -142,7 +133,14 @@ extension AppState {
     @discardableResult
     func leaveActiveLabyrinthCraftWithoutForging() -> Bool {
         guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
-        guard completeLabyrinthNode(nodeID: session.nodeID) else {
+        do {
+            try playerSave.performBatchMutation { save in
+                _ = session.leaveWithoutForging(save: &save)
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to leave Labyrinth craft: \(error.localizedDescription, privacy: .public)"
+            )
             session.markFailed("The altar stays cold. Try again.")
             return false
         }
@@ -174,7 +172,7 @@ extension AppState {
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
-            universalModifiers: labyrinthCombatModifiers(from: effects)
+            universalModifiers: ActiveBattleConfiguration.labyrinthCombatModifiers(from: effects)
         )
         return nil
     }
@@ -204,7 +202,7 @@ extension AppState {
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
-            universalModifiers: labyrinthCombatModifiers(from: effects)
+            universalModifiers: ActiveBattleConfiguration.labyrinthCombatModifiers(from: effects)
         ))
     }
 
@@ -245,13 +243,5 @@ extension AppState {
             && activeShopEncounter == nil
             && activeMysteryEncounter == nil
             && activeLabyrinthNodeSession == nil
-    }
-
-    private func labyrinthCombatModifiers(
-        from effects: LabyrinthModifierEffects
-    ) -> [AffixModifier] {
-        effects.damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
     }
 }

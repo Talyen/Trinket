@@ -200,6 +200,42 @@ final class PlayerSaveSanitizerTests {
         )
     }
 
+    @Test func sanitizeRosterRemapsRenamedUltimateIDs() throws {
+        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
+        let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
+        let concussiveShot = Ability(
+            id: "concussive-shot",
+            name: "Concussive Shot",
+            tier: .ultimate,
+            description: "Legacy"
+        )
+        let crystalBulwark = Ability(
+            id: "crystal-bulwark",
+            name: "Crystal Bulwark",
+            tier: .ultimate,
+            description: "Legacy"
+        )
+        let roster = PlayerRosterState(
+            activeHeroID: PlayerRosterState.starterHeroID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
+            unlockedHeroIDs: [PlayerRosterState.starterHeroID, "ranger"],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "library_owl"],
+            abilityLoadouts: [
+                "ranger": ranger.abilityLoadout.selecting(concussiveShot),
+                "library_owl": owl.abilityLoadout.selecting(crystalBulwark)
+            ],
+            progressions: [:],
+            equipmentLoadouts: [:],
+            gold: 0
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+
+        try #expect(sanitized.loadout(for: ranger).ultimate?.id == "astral-arrow")
+        try #expect(sanitized.loadout(for: owl).ultimate?.id == "glacial-ward")
+        try #expect(sanitized.loadout(for: ranger).ultimate?.id != "pack-tactics")
+    }
+
     @Test func sanitizeRosterPrunesMissingEquipmentItems() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })

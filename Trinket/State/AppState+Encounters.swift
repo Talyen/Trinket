@@ -13,55 +13,39 @@ extension AppState {
         guard activeMysteryEncounter == nil else { return nil }
         guard battle.activeBattle == nil else { return nil }
 
-        let resolvedStage: Stage
-        if let labyrinthNodeID {
-            resolvedStage = Self.syntheticLabyrinthStage(
-                nodeID: labyrinthNodeID,
-                encounter: .shop
-            )
-        } else if let stage, case .shop = stage.encounter {
-            resolvedStage = stage
-        } else {
+        switch ShopEncounterSession.open(
+            stage: stage,
+            labyrinthNodeID: labyrinthNodeID,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+        ) {
+        case let .opened(session):
+            activeShopEncounter = session
             return nil
-        }
-
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(forStageID: resolvedStage.id)
-        )
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: resolvedStage.id,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent,
-            using: &randomNumberGenerator
-        )
-        guard !offers.isEmpty else {
+        case .autoCompleted:
             if let labyrinthNodeID {
                 return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
             }
+            guard let stage else { return nil }
             appStateLogger.error(
-                "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
+                "Shop stage \(stage.id, privacy: .public) produced no offers; completing stage."
             )
-            if let failure = completeStageOrPersistFailure(resolvedStage) {
+            if let failure = completeStageOrPersistFailure(stage) {
                 return failure
             }
             return StageMapMessage(
                 title: "Shop Closed",
                 message: "The merchant has nothing left to sell. You continue on."
             )
+        case .unavailable:
+            return nil
         }
-
-        activeShopEncounter = ShopEncounterSession(
-            stage: resolvedStage,
-            offers: offers,
-            labyrinthNodeID: labyrinthNodeID
-        )
-        return nil
     }
 
     @discardableResult
     func purchaseActiveShopOffer(offerID: String) -> Bool {
         guard let session = activeShopEncounter else { return false }
         guard !session.isPurchasing else { return false }
-        guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
+        guard session.offers.contains(where: { $0.id == offerID }) else { return false }
         guard !session.isSoldOut(offerID) else {
             session.markPurchaseFailed(message: "That item is already sold.")
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
@@ -69,24 +53,10 @@ extension AppState {
         }
 
         session.markPurchaseStarted()
-        var purchasedItem: InventoryItem?
-        var failureMessage: String?
+        var purchaseResult: ShopPurchaseResult?
         do {
             try playerSave.performBatchMutation { save in
-                let result = ShopPurchaseApplier.purchase(
-                    offer: offer,
-                    visitToken: session.visitToken,
-                    stageID: session.stage.id,
-                    save: &save
-                )
-                switch result {
-                case let .success(item):
-                    purchasedItem = item
-                case .insufficientGold:
-                    failureMessage = "Not enough Gold."
-                case .alreadyOwned:
-                    failureMessage = "That item is already sold."
-                }
+                purchaseResult = session.purchaseIntoSave(offerID: offerID, save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -96,15 +66,22 @@ extension AppState {
             return false
         }
 
-        if purchasedItem != nil {
+        switch purchaseResult {
+        case .success:
             session.markPurchaseFinished(offerID: offerID)
             sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
+        case .insufficientGold, .alreadyOwned:
+            session.markPurchaseFailed(
+                message: purchaseResult?.failureMessage ?? "Purchase failed."
+            )
+            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+            return false
+        case .none:
+            session.markPurchaseFailed(message: "Purchase failed.")
+            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+            return false
         }
-
-        session.markPurchaseFailed(message: failureMessage ?? "Purchase failed.")
-        sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-        return false
     }
 
     /// Completes the shop stage/node only after persistence succeeds so a failed leave
@@ -113,12 +90,24 @@ extension AppState {
     func finishActiveShopEncounter() -> Bool {
         guard let session = activeShopEncounter else { return false }
         session.clearLeaveFailure()
-        guard finishEncounterProgress(
-            stage: session.stage,
-            labyrinthNodeID: session.labyrinthNodeID
-        ) else {
+        var resultingJourney: JourneyProgressState?
+        do {
+            try playerSave.performBatchMutation { save in
+                resultingJourney = session.completeProgress(
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    save: &save
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to leave shop encounter: \(error.localizedDescription, privacy: .public)"
+            )
             session.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
+        }
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         }
         activeShopEncounter = nil
         return true
@@ -138,63 +127,20 @@ extension AppState {
         guard activeShopEncounter == nil else { return nil }
         guard battle.activeBattle == nil else { return nil }
 
-        let event: MysteryEvent
-        let sessionStage: Stage
-        if let labyrinthNodeID {
-            let picked = resolvedLabyrinthMysteryEvent(
-                nodeID: labyrinthNodeID,
-                forcedEventID: forcedEventID
-            )
-            event = picked
-            sessionStage = Self.syntheticLabyrinthStage(
-                nodeID: labyrinthNodeID,
-                encounter: event.isRecruit
-                    ? .recruit(eventID: event.id)
-                    : .mysteryEvent(eventID: event.id)
-            )
-        } else if let stage {
-            let authoredEvent = forcedEventID.flatMap {
-                GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
-            }
-                ?? stage.mysteryEvent
-            var pickRNG = SystemRandomNumberGenerator()
-            let picked = GameContent.resolveMysteryEncounterEvent(
-                authored: authoredEvent,
-                using: &pickRNG
-            )
-            event = picked
-            sessionStage = stage
-        } else {
+        guard let session = MysteryEncounterSession.open(
+            stage: stage,
+            labyrinthNodeID: labyrinthNodeID,
+            forcedEventID: forcedEventID
+        ) else {
             return nil
         }
 
-        activeMysteryEncounter = MysteryEncounterSession(
-            stage: sessionStage,
-            event: event,
-            combatant: GameContent.combatant(forMysteryEvent: event),
-            labyrinthNodeID: labyrinthNodeID
-        )
+        activeMysteryEncounter = session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
-        if event.isRecruit {
+        if session.event.isRecruit {
             _ = resolveActiveMysteryChoice()
         }
         return nil
-    }
-
-    private func resolvedLabyrinthMysteryEvent(
-        nodeID: String,
-        forcedEventID: String?
-    ) -> MysteryEvent {
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: GameContent.stableSeed(for: "labyrinth-mystery-\(nodeID)")
-        )
-        let authoredEvent = forcedEventID.flatMap {
-            GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
-        }
-        return GameContent.resolveMysteryEncounterEvent(
-            authored: authoredEvent,
-            using: &randomNumberGenerator
-        )
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
@@ -204,41 +150,17 @@ extension AppState {
     @discardableResult
     func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let session = activeMysteryEncounter else { return false }
-        guard !session.isResolvingChoice else { return false }
-        session.markChoiceStarted()
+        guard session.canResolveChoice else { return false }
 
-        let choice = session.event.choices.first { $0.id == choiceID }
-            ?? session.event.choices.first
-        guard let choice else {
-            session.markResolvedWithoutReveal()
-            return false
-        }
-
-        var applyResult = MysteryEffectApplyResult()
-        var resultingJourney: JourneyProgressState?
+        var outcome = MysteryChoiceOutcome.failed
         do {
             try playerSave.performBatchMutation { save in
                 var randomNumberGenerator = SystemRandomNumberGenerator()
-                applyResult = MysteryEffectApplier.apply(
-                    choice.effects,
-                    stageID: session.stage.id,
-                    choiceID: choice.id,
+                outcome = session.resolveChoice(
+                    choiceID: choiceID,
                     save: &save,
                     using: &randomNumberGenerator
                 )
-                if !applyResult.unlockedCombatantIDs.isEmpty {
-                    // Journey recruits delay completion for the unlock screen; authored
-                    // reopen safety auto-completes if already unlocked. Labyrinth mystery
-                    // events are re-rolled from the unlocked roster, so complete the node
-                    // with the unlock to prevent kill/relaunch double-recruits.
-                    if session.labyrinthNodeID != nil {
-                        resultingJourney = completeMysteryProgress(session: session, save: &save)
-                    }
-                    return
-                }
-                // Choose-item presents candidates next; grant + complete on selection.
-                guard applyResult.chooseItemCandidates.isEmpty else { return }
-                resultingJourney = completeMysteryProgress(session: session, save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -248,45 +170,18 @@ extension AppState {
             return false
         }
 
-        if let unlockedID = applyResult.unlockedCombatantIDs.first {
-            session.presentReveal(unlockedCombatantID: unlockedID)
-            return true
-        }
-
-        if !applyResult.chooseItemCandidates.isEmpty {
-            session.presentItemChoice(candidates: applyResult.chooseItemCandidates)
-            return true
-        }
-
-        if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-        }
-
-        if !applyResult.isEmpty {
-            session.presentReward(result: applyResult)
-            return true
-        }
-
-        dismissMysteryAfterProgress(resultingJourney: resultingJourney)
-        return true
+        return applyMysteryOutcome(outcome, session: session)
     }
 
     /// Grants the chosen mystery item and completes the stage/node in one transaction.
     @discardableResult
     func selectActiveMysteryItem(itemID: String) -> Bool {
         guard let session = activeMysteryEncounter else { return false }
-        guard session.showsItemChoice else { return false }
-        guard !session.isResolvingChoice else { return false }
-        guard let item = session.itemCandidates.first(where: { $0.id == itemID }) else {
-            return false
-        }
 
-        session.markChoiceStarted()
-        var resultingJourney: JourneyProgressState?
+        var outcome = MysteryChoiceOutcome.failed
         do {
             try playerSave.performBatchMutation { save in
-                MysteryEffectApplier.grantChosenItem(item, save: &save)
-                resultingJourney = completeMysteryProgress(session: session, save: &save)
+                outcome = session.selectItem(itemID: itemID, save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -296,13 +191,7 @@ extension AppState {
             return false
         }
 
-        if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-        }
-
-        let itemResult = MysteryEffectApplyResult(grantedItems: [item])
-        session.presentReward(result: itemResult)
-        return true
+        return applyMysteryOutcome(outcome, session: session)
     }
 
     /// Completes the mystery stage/node only after persistence succeeds so a failed finish
@@ -312,18 +201,28 @@ extension AppState {
         guard let session = activeMysteryEncounter else { return false }
         session.clearPersistFailure()
         if session.showsReward {
+            // Progress was already completed inside resolveChoice / selectItem.
+            // Dismiss only — never re-grant.
             sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             activeMysteryEncounter = nil
             return true
         }
-        guard finishEncounterProgress(
-            stage: session.stage,
-            labyrinthNodeID: session.labyrinthNodeID
-        ) else {
+        var resultingJourney: JourneyProgressState?
+        do {
+            try playerSave.performBatchMutation { save in
+                resultingJourney = session.completeProgress(save: &save)
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to finish mystery encounter: \(error.localizedDescription, privacy: .public)"
+            )
             session.markPersistFailed(
                 "Couldn't save progress. Stay here and try Recruit again."
             )
             return false
+        }
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         }
         sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
         activeMysteryEncounter = nil
@@ -335,64 +234,28 @@ extension AppState {
     }
 
     @discardableResult
-    private func finishEncounterProgress(stage: Stage, labyrinthNodeID: String?) -> Bool {
-        if let labyrinthNodeID {
-            return completeLabyrinthNode(nodeID: labyrinthNodeID)
-        }
-        guard let resultingJourney = persistStageCompletions(
-            [stage],
-            hero: roster.activeHero,
-            companion: roster.activeCompanion
-        ) else {
+    private func applyMysteryOutcome(
+        _ outcome: MysteryChoiceOutcome,
+        session: MysteryEncounterSession
+    ) -> Bool {
+        switch outcome {
+        case .failed:
             return false
+        case let .dismiss(journey):
+            if let journey {
+                noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+            }
+            activeMysteryEncounter = nil
+            return true
+        case let .reward(_, journey):
+            if let journey {
+                noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+            }
+            session.applyOutcome(outcome)
+            return true
+        case .reveal, .chooseItem:
+            session.applyOutcome(outcome)
+            return true
         }
-        noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-        return true
-    }
-
-    /// Completes the active mystery's stage or Labyrinth node inside an open save mutation.
-    @discardableResult
-    private func completeMysteryProgress(
-        session: MysteryEncounterSession,
-        save: inout PlayerSave
-    ) -> JourneyProgressState? {
-        if let labyrinthNodeID = session.labyrinthNodeID {
-            LabyrinthCompletion.complete(
-                nodeID: labyrinthNodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                save: &save
-            )
-            return nil
-        }
-        StageCompletion.complete(
-            session.stage,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            in: GameContent.chapters,
-            save: &save
-        )
-        return save.journey
-    }
-
-    private func dismissMysteryAfterProgress(resultingJourney: JourneyProgressState?) {
-        if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-        }
-        activeMysteryEncounter = nil
-    }
-
-    private static func syntheticLabyrinthStage(
-        nodeID: String,
-        encounter: StageEncounter
-    ) -> Stage {
-        Stage(
-            id: nodeID,
-            chapterID: "labyrinth",
-            chapterNumber: 0,
-            stageNumber: 0,
-            encounter: encounter,
-            rewards: .empty
-        )
     }
 }

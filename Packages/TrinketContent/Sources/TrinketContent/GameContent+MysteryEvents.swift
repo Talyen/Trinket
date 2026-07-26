@@ -34,6 +34,38 @@ public extension GameContent {
         authored ?? pickMysteryEvent(using: &randomNumberGenerator)
     }
 
+    /// Seeded Labyrinth mystery pick (stable per node so reopen does not re-roll).
+    static func resolveLabyrinthMysteryEvent(
+        nodeID: String,
+        forcedEventID: String?
+    ) -> MysteryEvent {
+        var randomNumberGenerator = SeededRandomNumberGenerator(
+            seed: stableSeed(for: "labyrinth-mystery-\(nodeID)")
+        )
+        let authoredEvent = forcedEventID.flatMap {
+            mysteryEvent(matching: $0) ?? recruitEvent(matching: $0)
+        }
+        return resolveMysteryEncounterEvent(
+            authored: authoredEvent,
+            using: &randomNumberGenerator
+        )
+    }
+
+    /// Synthetic stage stub for Labyrinth shop / mystery / recruit node sessions.
+    static func syntheticLabyrinthStage(
+        nodeID: String,
+        encounter: StageEncounter
+    ) -> Stage {
+        Stage(
+            id: nodeID,
+            chapterID: "labyrinth",
+            chapterNumber: 0,
+            stageNumber: 0,
+            encounter: encounter,
+            rewards: .empty
+        )
+    }
+
     /// Non-boss enemies eligible for journey `randomBattle` stages.
     static var nonBossEnemies: [Enemy] {
         enemies.filter { !$0.isBoss }

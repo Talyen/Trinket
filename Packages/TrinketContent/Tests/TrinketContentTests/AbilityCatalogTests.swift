@@ -114,6 +114,20 @@ struct AbilityCatalogTests {
         try #expect(Ability.rendingSlash.name == "Rend")
     }
 
+    @Test func astralArrowOffersStunFreezeOrBurnBranches() throws {
+        let ability = try #require(AbilityCatalog.ability(id: "astral-arrow"))
+        let branches = try #require(ability.outcomeBranches)
+        try #expect(branches.count == 3)
+        try #expect(branches.map(\.damageComponents) == [
+            [DamageComponent(6, keyword: .stun)],
+            [DamageComponent(6, keyword: .freeze)],
+            [DamageComponent(6, keyword: .burn)]
+        ])
+        try #expect(AbilityCatalog.ability(id: "concussive-shot") == nil)
+        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
+        try #expect(ranger.abilityChoices.ultimates.map(\.id).contains("astral-arrow"))
+    }
+
     @Test func descriptionOverridesAreAllowlisted() throws {
         for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
             try #expect(

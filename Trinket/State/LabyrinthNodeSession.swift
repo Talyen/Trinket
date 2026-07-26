@@ -1,4 +1,7 @@
 import Foundation
+import Observation
+import TrinketContent
+import TrinketPersistence
 
 /// Thin Labyrinth non-combat node encounter (shrine rest or crafting altar).
 @MainActor
@@ -30,5 +33,66 @@ final class LabyrinthNodeSession: Identifiable {
 
     func clearFailure() {
         failureMessage = nil
+    }
+
+    static func rest(
+        node: LabyrinthNode,
+        effects: LabyrinthModifierEffects,
+        homestead: PlayerHomesteadState
+    ) -> LabyrinthNodeSession {
+        let rewardGold = LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects)
+        return LabyrinthNodeSession(
+            kind: .rest,
+            nodeID: node.id,
+            goldAmount: homestead.effects.adjustedGold(rewardGold),
+            depth: node.depth
+        )
+    }
+
+    static func craft(node: LabyrinthNode) -> LabyrinthNodeSession {
+        LabyrinthNodeSession(
+            kind: .craft,
+            nodeID: node.id,
+            goldAmount: LabyrinthCompletion.craftAltarCost(for: node),
+            depth: node.depth
+        )
+    }
+
+    /// Finishes a rest shrine inside an open save mutation.
+    @discardableResult
+    func finishRest(save: inout PlayerSave) -> Bool {
+        guard kind == .rest else { return false }
+        LabyrinthCompletion.complete(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+        return true
+    }
+
+    /// Forges at the craft altar inside an open save mutation.
+    @discardableResult
+    func forge(save: inout PlayerSave) -> Bool {
+        guard kind == .craft else { return false }
+        return LabyrinthCompletion.forgeAtAltar(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+    }
+
+    /// Leaves the craft altar without forging, completing the node.
+    @discardableResult
+    func leaveWithoutForging(save: inout PlayerSave) -> Bool {
+        guard kind == .craft else { return false }
+        LabyrinthCompletion.complete(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+        return true
     }
 }

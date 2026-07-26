@@ -72,7 +72,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.venomArrow, .fireArrow],
                 skills: [.sapArrow, .bountyShot],
-                ultimates: [.packTactics, .concussiveShot]
+                ultimates: [.packTactics, .astralArrow]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
             growthArchetype: .assassin
@@ -196,7 +196,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.wiseFrost, .stargaze],
                 skills: [.sageHeal, .cleanse],
-                ultimates: [.panaceaPotion, .crystalBulwark]
+                ultimates: [.panaceaPotion, .glacialWard]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
             growthArchetype: .support
@@ -223,7 +223,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
-                ultimates: [.meteor, .crystalBulwark]
+                ultimates: [.meteor, .glacialWard]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
             growthArchetype: .mage

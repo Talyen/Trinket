@@ -216,10 +216,6 @@ public enum TrinketMotion: Sendable {
         /// Dim end of the status border pulse (full keyword color is `1`).
         public static let statusBorderPulseDimOpacity = 0.45
 
-        public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackChipStyle {
-            CombatFeedbackChipRecipes.chip(for: feedbackClass)
-        }
-
         /// Quadratic ease-out: energetic start that decelerates through the rise.
         public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
             let progress = min(max(elapsed / chipDisplayDuration, 0), 1)
@@ -253,14 +249,6 @@ public enum TrinketMotion: Sendable {
             let proportionalTravel = cardHeight * chipTravelFraction
             let topSafeTravel = cardHeight / 2 - chipHeight / 2 - chipTopClearance
             return max(0, min(proportionalTravel, topSafeTravel))
-        }
-
-        public static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {
-            CombatFeedbackCardRecipes.cardReaction(for: kind)
-        }
-
-        public static func cardAttack(for kind: CombatantAttackReactionKind) -> CombatantAttackReactionRecipe {
-            CombatFeedbackAttackRecipes.cardAttack(for: kind)
         }
 
         /// Party lunges toward the enemy; enemies lunge toward the party.

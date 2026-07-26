@@ -5,6 +5,7 @@ import TrinketCore
 public extension Ability {
     static let acidPotion = AbilityCatalogSkill.acidPotion
     static let apple = AbilityCatalogBasic.apple
+    static let astralArrow = AbilityCatalogUltimate.astralArrow
     static let avatarOfJustice = AbilityCatalogUltimate.avatarOfJustice
     static let bash = AbilityCatalogBasic.bash
     static let blackjack = AbilityCatalogBasic.blackjack
@@ -20,7 +21,6 @@ public extension Ability {
     static let cleanse = AbilityCatalogSkill.cleanse
     static let coldSnap = AbilityCatalogSkill.coldSnap
     static let combustion = AbilityCatalogUltimate.combustion
-    static let concussiveShot = AbilityCatalogUltimate.concussiveShot
     static let crystalBulwark = AbilityCatalogUltimate.crystalBulwark
     static let darkPact = AbilityCatalogSkill.darkPact
     static let earthquake = AbilityCatalogUltimate.earthquake

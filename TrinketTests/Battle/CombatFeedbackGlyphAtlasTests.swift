@@ -11,7 +11,7 @@ import UIKit
 struct CombatFeedbackGlyphAtlasTests {
     @Test @MainActor func glyphAtlasComposesClosedVocabularyAtCommonScales() throws {
         let atlas = CombatFeedbackGlyphAtlas()
-        let recipe = TrinketMotion.Battle.chip(for: .directDamage)
+        let recipe = CombatFeedbackChipRecipes.chip(for: .directDamage)
         for scale in [2.0, 3.0] as [CGFloat] {
             let face = CombatFeedbackGlyphAtlas.Face(
                 feedbackClass: .directDamage,
@@ -245,7 +245,7 @@ private enum CombatFeedbackReferenceBaker {
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat
     ) -> BakedRaster? {
-        let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
+        let recipe = CombatFeedbackChipRecipes.chip(for: feedbackClass)
         let scale = max(1, displayScale)
         let font = CombatFeedbackGlyphMetrics.uiFont(
             recipe: recipe,

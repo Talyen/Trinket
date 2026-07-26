@@ -429,7 +429,7 @@ extension BattleSession {
             if shouldTelegraphEnemyAttack(), let enemyID = state?.enemy.id {
                 publishFullAttack(for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
-                    ?? TrinketMotion.Battle.cardAttack(for: .attack).impactDelay
+                    ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
                 if impactDelay > 0 {
                     try? await Task.sleep(for: .seconds(impactDelay))
                     guard !Task.isCancelled else { return }

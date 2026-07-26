@@ -1,5 +1,5 @@
 id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom	trait_id
-living_armor	Living Armor	15	false	tank	slash,plateMail,crystalBulwark	11	8	13	7	11	living_armor_trait
+living_armor	Living Armor	15	false	tank	slash,plateMail,glacialWard	11	8	13	7	11	living_armor_trait
 mimic	Mimic	14	false	assassin	fangs,acidPotion,hemorrhage	10	12	9	8	11	mimic_trait
 mud_elemental	Mud Elemental	15	false	tank	bash,briarShield,thornMail	9	8	14	8	11	mud_elemental_trait
 necromancer	Necromancer	13	false	mage	rendingSlash,bloodOffering,hemorrhage	7	9	8	14	12	necromancer_trait
@@ -9,7 +9,7 @@ the_blight_treant	The Blight Treant	24	true	tank	causticJab,briarShield,bloodtho
 the_forge_golem	The Forge Golem	28	true	tank	bash,sunder,moltenBulwark	16	8	18	8	10	the_forge_golem_trait
 the_frostwarden	The Frostwarden	24	true	mage	rayOfFrost,frostbolt,glacialWard	8	10	11	17	14	the_frostwarden_trait
 the_iron_bear	The Iron Bear	27	true	bruiser	bash,sunder,thornMail	17	10	15	8	10	the_iron_bear_trait
-goblin	Goblin	11	false	assassin	stab,roulette,concussiveShot	9	13	9	8	11	goblin_trait
+goblin	Goblin	11	false	assassin	stab,roulette,astralArrow	9	13	9	8	11	goblin_trait
 fire_elemental	Fire Elemental	12	false	mage	kindling,fireball,combustion	7	10	9	14	10	fire_elemental_trait
 frost_elemental	Frost Elemental	13	false	mage	rayOfFrost,coldSnap,glacialWard	8	9	11	13	9	frost_elemental_trait
 slime	Slime	15	false	tank	causticJab,acidPotion,panaceaPotion	9	8	15	7	11	slime_trait

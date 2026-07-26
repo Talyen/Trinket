@@ -2,7 +2,7 @@ id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	streng
 knight	Knight	hero	17	0	tank	bash,block	smite,sunder	avatarOfJustice,moltenBulwark	11	9	12	7	11	oathbound
 rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,shadowstep	9	13	9	8	11	cutpurse
 wizard	Wizard	hero	14	10	mage	manaBerries,rayOfFrost	fireball,frostbolt	meteor,glacialWard	7	9	8	14	12	arcane_focus
-ranger	Ranger	hero	14	0	assassin	venomArrow,fireArrow	sapArrow,bountyShot	packTactics,concussiveShot	10	12	9	7	12	pack_leader
+ranger	Ranger	hero	14	0	assassin	venomArrow,fireArrow	sapArrow,bountyShot	packTactics,astralArrow	10	12	9	7	12	pack_leader
 warlock	Warlock	hero	16	9	mage	kindling,fangs	bloodOffering,darkPact	combustion,faustianBargain	8	9	8	13	12	soul_siphon
 bear	Bear	companion	17	0	tank	maul,fangs	briarShield,sunder	earthquake,thornMail	11	9	12	7	11	thick_hide
 frost_whelp	Frost Whelp	companion	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	7	10	8	14	11	permafrost
@@ -11,8 +11,8 @@ panther	Panther	companion	15	0	bruiser	rendingSlash,fangs	pounce,venomFangs	pack
 phoenix	Phoenix	companion	14	8	mage	kindling,fireArrow	fireball,cinderbloom	phoenixFeather,combustion	7	10	8	13	12	immortal_ember
 wolf	Wolf	companion	14	0	assassin	rendingSlash,fangs	venomFangs,predatorsFocus	packTactics,hemorrhage	10	12	10	7	11	pack_ferocity
 golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	8	9	11	8	14	loyal_comfort
-library_owl	Library Owl	companion	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,crystalBulwark	7	9	9	12	13	purifying_wisdom
+library_owl	Library Owl	companion	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,glacialWard	7	9	9	12	13	purifying_wisdom
 risen_skeleton	Risen Skeleton	companion	15	0	bruiser	slash,stab	darkPact,sunder	faustianBargain,hemorrhage	12	10	11	9	8	unliving_frame
-mana_moth	Mana Moth	companion	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	meteor,crystalBulwark	8	10	8	13	11	arcane_reservoir
+mana_moth	Mana Moth	companion	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	meteor,glacialWard	8	10	8	13	11	arcane_reservoir
 pixie	Pixie	companion	14	7	support	pixieDust,manaBerries	cleanse,heal	panaceaPotion,sunburst	7	11	8	11	13	fae_fortune
 shield_scarab	Shield Scarab	companion	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	10	9	14	7	10	iron_carapace

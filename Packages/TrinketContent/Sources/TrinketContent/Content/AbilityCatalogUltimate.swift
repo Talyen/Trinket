@@ -36,9 +36,13 @@ enum AbilityCatalogUltimate {
         ]
     )
 
-    static let concussiveShot = Ability(
-        id: "concussive-shot", name: "Concussive Shot", tier: .ultimate,
-        damageComponents: [DamageComponent(6, keyword: .stun)]
+    static let astralArrow = Ability(
+        id: "astral-arrow", name: "Astral Arrow", tier: .ultimate,
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .stun)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .freeze)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)])
+        ]
     )
 
     static let crystalBulwark = Ability(
@@ -149,11 +153,11 @@ enum AbilityCatalogUltimate {
 
     static let all: [Ability] = [
         avatarOfJustice,
+        astralArrow,
         blessedAegis,
         blizzard,
         bloodthorn,
         combustion,
-        concussiveShot,
         crystalBulwark,
         earthquake,
         faustianBargain,

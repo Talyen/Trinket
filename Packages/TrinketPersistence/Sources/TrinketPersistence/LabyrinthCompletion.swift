@@ -7,6 +7,13 @@ public enum LabyrinthCompletion {
         max(1, node.depth)
     }
 
+    /// Ensures a Labyrinth map exists for the current save (eligible recruits applied).
+    public static func enter(save: inout PlayerSave) {
+        save.labyrinth.ensureMap(
+            eligibleRecruitEventIDs: eligibleRecruitEventIDs(in: save)
+        )
+    }
+
     /// Non-combat node gold stipend (rest/shop/mystery/craft leave). Combat uses `BattleLoot`.
     public static func nonCombatGoldStipend(
         for node: LabyrinthNode,

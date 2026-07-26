@@ -213,7 +213,7 @@ final class CombatFeedbackGlyphAtlas {
 
         for typography in Face.Typography.allCases {
             let feedbackClass = typography.representativeClass
-            let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
+            let recipe = CombatFeedbackChipRecipes.chip(for: feedbackClass)
             for role in CombatFeedbackPresentationRole.allCases {
                 let face = Face(
                     typography: typography,

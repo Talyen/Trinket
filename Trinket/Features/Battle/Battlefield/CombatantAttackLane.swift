@@ -37,7 +37,7 @@ struct CombatantAttackLane<Content: View>: View {
     }
 
     private func apply(phase: CombatantAttackPhase, generation: Int) {
-        let recipe = TrinketMotion.Battle.cardAttack(for: .attack)
+        let recipe = CombatFeedbackAttackRecipes.cardAttack(for: .attack)
         switch phase {
         case .windUp:
             withAnimation(.smooth(duration: recipe.windUpDuration)) {

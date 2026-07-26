@@ -22,7 +22,15 @@ struct WireAbilityLoadout: Codable, Equatable {
     func loadout(defaults: AbilityLoadout, choices: AbilityChoices) -> AbilityLoadout {
         func resolved(_ id: String?, tier: AbilityTier, fallback: Ability?) -> Ability? {
             guard let id else { return fallback }
-            return choices.abilities(for: tier).first { $0.id == id } ?? fallback
+            let tierChoices = choices.abilities(for: tier)
+            if let match = tierChoices.first(where: { $0.id == id }) {
+                return match
+            }
+            if let remappedID = Self.remappedAbilityID(id),
+               let match = tierChoices.first(where: { $0.id == remappedID }) {
+                return match
+            }
+            return fallback
         }
 
         return AbilityLoadout(
@@ -30,6 +38,16 @@ struct WireAbilityLoadout: Codable, Equatable {
             skill: resolved(skillID, tier: .skill, fallback: defaults.skill),
             ultimate: resolved(ultimateID, tier: .ultimate, fallback: defaults.ultimate)
         )
+    }
+
+    /// Catalog renames / choice swaps that would otherwise fall back to the first
+    /// ability in a tier and silently change the player's selection.
+    private static func remappedAbilityID(_ id: String) -> String? {
+        switch id {
+        case "concussive-shot": "astral-arrow"
+        case "crystal-bulwark": "glacial-ward"
+        default: nil
+        }
     }
 }
 

@@ -16,6 +16,7 @@ combatant	risen_skeleton	companion_risen_skeleton_card	Raw Assets/Companions/Ris
 combatant	mana_moth	companion_mana_moth_card	Raw Assets/Companions/Mana Moth.jpeg	0.50	0.50
 ability	acid-potion	ability_acid_potion	Raw Assets/Abilities/Acid Potion.jpeg	0.50	0.50
 ability	apple	ability_apple	Raw Assets/Abilities/Apple.png	0.50	0.50
+ability	astral-arrow	ability_astral_arrow	Raw Assets/Abilities/Concussive Shot.jpeg	0.50	0.50
 ability	bash	ability_bash	Raw Assets/Abilities/Bash.png	0.50	0.50
 ability	blackjack	ability_blackjack	Raw Assets/Abilities/Blackjack.jpeg	0.50	0.50
 ability	blessed-aegis	ability_blessed_aegis	Raw Assets/Abilities/Blessed Aegis.jpeg	0.50	0.50
@@ -30,7 +31,6 @@ ability	cinderbloom	ability_cinderbloom	Raw Assets/Abilities/Cinderbloom.jpeg	0.
 ability	cleanse	ability_cleanse	Raw Assets/Abilities/Cleanse.jpeg	0.50	0.50
 ability	cold-snap	ability_cold_snap	Raw Assets/Abilities/Cold Snap.jpeg	0.50	0.50
 ability	combustion	ability_combustion	Raw Assets/Abilities/Combustion.jpeg	0.50	0.50
-ability	concussive-shot	ability_concussive_shot	Raw Assets/Abilities/Concussive Shot.jpeg	0.50	0.50
 ability	crystal-bulwark	ability_crystal_bulwark	Raw Assets/Abilities/Crystal Bulwark.jpeg	0.50	0.50
 ability	dark-pact	ability_dark_pact	Raw Assets/Abilities/Dark Pact.jpeg	0.50	0.50
 ability	fangs	ability_fangs	Raw Assets/Abilities/Fangs.png	0.50	0.50

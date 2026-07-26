@@ -219,6 +219,9 @@ public enum ArtCatalog {
         "apple": AbilityArtReference(
             imageName: "ability_apple_thumb"
         ),
+        "astral-arrow": AbilityArtReference(
+            imageName: "ability_astral_arrow_thumb"
+        ),
         "bash": AbilityArtReference(
             imageName: "ability_bash_thumb"
         ),
@@ -260,9 +263,6 @@ public enum ArtCatalog {
         ),
         "combustion": AbilityArtReference(
             imageName: "ability_combustion_thumb"
-        ),
-        "concussive-shot": AbilityArtReference(
-            imageName: "ability_concussive_shot_thumb"
         ),
         "crystal-bulwark": AbilityArtReference(
             imageName: "ability_crystal_bulwark_thumb"
