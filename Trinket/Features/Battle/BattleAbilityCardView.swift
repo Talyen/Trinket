@@ -264,7 +264,8 @@ struct BattleAbilityCardView: View {
 struct BattleAbilityCardFace: View, Equatable {
     let artworkName: String?
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
     nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.artworkName == rhs.artworkName

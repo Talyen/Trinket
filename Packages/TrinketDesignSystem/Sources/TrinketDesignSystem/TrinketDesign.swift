@@ -47,8 +47,6 @@ public enum TrinketDesign {
         public enum Overlay {
             public static let ink = ThemePalette.trinket.overlayInk
             public static let paper = ThemePalette.trinket.overlayPaper
-            public static let heroWarm = ThemePalette.trinket.heroScrim
-            public static let detailHeroScrim = ink.opacity(0.6)
             public static let dragShadow = ink.opacity(0.3)
             public static let cinematicDim = ink
         }
@@ -70,6 +68,12 @@ public enum TrinketDesign {
         public static let extraLargeSpacing: CGFloat = 24
         /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
+        /// Base SF Symbol point size for card artwork placeholders; prefer `@ScaledMetric(relativeTo: .title)`.
+        public static let cardPlaceholderIconPointSize: CGFloat = 38
+        /// Wallet / reward-summary resource artwork square edge.
+        public static let walletResourceArtworkSize: CGFloat = 36
+        /// Wallet / reward-summary resource row minimum height.
+        public static let walletResourceRowMinHeight: CGFloat = 46
         public static let statBarHeight: CGFloat = 7
         /// Bottom-edge health strip height for battle cards.
         public static let battleHealthBarHeight: CGFloat = 3

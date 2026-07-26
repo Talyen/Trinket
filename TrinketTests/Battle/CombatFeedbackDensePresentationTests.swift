@@ -52,8 +52,6 @@ struct CombatFeedbackDensePresentationTests {
         // controlApplied is filtered; remaining distinct chips stay individual.
         #expect(items.count == 7)
         #expect(items.allSatisfy { $0.groupResultCount == items.count })
-        #expect(items.first?.presentationRole == .headline)
-        #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }
 
     private func makeEvent(

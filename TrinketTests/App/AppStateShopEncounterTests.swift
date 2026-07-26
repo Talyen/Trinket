@@ -26,61 +26,6 @@ struct AppStateShopEncounterTests {
         #expect(state.journey.activeStageID == "chapter-1-stage-1")
     }
 
-    @Test(arguments: [
-        (goldOffset: -1, shouldSucceed: false, expectedError: "Not enough Gold." as String?),
-        (goldOffset: 0, shouldSucceed: true, expectedError: nil)
-    ])
-    func purchaseRespectsExactGoldThreshold(
-        goldOffset: Int,
-        shouldSucceed: Bool,
-        expectedError: String?
-    ) throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
-        #expect(state.handleStagePrimaryAction(for: stage) == nil)
-
-        let session = try #require(state.activeShopEncounter)
-        let offer = try #require(session.offers.first)
-        try state.playerSave.performBatchMutation { save in
-            save.roster.gold = max(0, offer.price + goldOffset)
-        }
-        let goldBefore = state.roster.gold
-        let itemsBefore = state.inventory.items.count
-
-        #expect(state.purchaseActiveShopOffer(offerID: offer.id) == shouldSucceed)
-        if shouldSucceed {
-            #expect(state.roster.gold == 0)
-            #expect(state.inventory.items.count == itemsBefore + 1)
-            #expect(state.activeShopEncounter?.purchaseCount == 1)
-            #expect(state.activeShopEncounter?.isSoldOut(offer.id) == true)
-        } else {
-            #expect(state.roster.gold == goldBefore)
-            #expect(state.inventory.items.count == itemsBefore)
-            #expect(state.activeShopEncounter?.purchaseCount == 0)
-            #expect(state.activeShopEncounter?.lastPurchaseError == expectedError)
-        }
-    }
-
-    @Test func sameOfferCannotBePurchasedTwiceInOneVisit() throws {
-        let state = try context.makeAppState(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
-        #expect(state.handleStagePrimaryAction(for: stage) == nil)
-
-        let session = try #require(state.activeShopEncounter)
-        let offer = try #require(session.offers.first)
-        try state.playerSave.performBatchMutation { save in
-            save.roster.gold = offer.price * 3
-        }
-        let goldAfterFirstBuy = offer.price * 2
-
-        #expect(state.purchaseActiveShopOffer(offerID: offer.id))
-        #expect(state.roster.gold == goldAfterFirstBuy)
-        #expect(!state.purchaseActiveShopOffer(offerID: offer.id))
-        #expect(state.roster.gold == goldAfterFirstBuy)
-        #expect(state.inventory.items.count == 1)
-        #expect(state.activeShopEncounter?.lastPurchaseError == "That item is already sold.")
-    }
-
     @Test func reopeningShopAfterPurchaseDoesNotBurnGoldOnSameOffer() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))

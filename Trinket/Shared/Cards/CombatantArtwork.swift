@@ -12,7 +12,8 @@ struct CombatantArtwork: View {
     let combatant: Combatant
     var variant: Variant = .hero
 
-    @ScaledMetric(relativeTo: .title) private var cardHeroIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var cardHeroIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
     @ScaledMetric(relativeTo: .largeTitle) private var battleIconSize: CGFloat = 48
 
     var body: some View {

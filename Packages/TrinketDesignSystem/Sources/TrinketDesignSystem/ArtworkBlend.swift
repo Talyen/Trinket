@@ -20,17 +20,17 @@ public enum ArtworkBlendDestination: CaseIterable, Equatable, Sendable {
 /// Optional edge blend for integrating artwork with its containing surface.
 public enum ArtworkBlend: Equatable, Sendable {
     case none
-    /// Fades all four edges into the destination over ``ArtworkBlendRecipe/perimeterInset``.
+    /// Fades all four edges into the destination over a fixed perimeter inset.
     case perimeter(into: ArtworkBlendDestination)
     case bottom(into: ArtworkBlendDestination)
 }
 
-public enum ArtworkBlendRecipe: Sendable {
+private enum ArtworkBlendRecipe: Sendable {
     /// Bottom-edge clear band before the destination color fully takes over.
-    public static let clearInset = 0.22
+    static let clearInset = 0.22
     /// All-sides inset for perimeter fades (fraction of the shorter axis is not used —
     /// each edge uses this fraction of width or height respectively).
-    public static let perimeterInset = 0.22
+    static let perimeterInset = 0.22
 }
 
 private struct ArtworkBlendModifier: ViewModifier {

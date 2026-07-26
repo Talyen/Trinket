@@ -34,7 +34,7 @@ public struct PlayerProgressionState: Equatable, Sendable {
     }
 }
 
-public final class InterleavingPlayerController: @unchecked Sendable {
+public final class InterleavingPlayerController {
     public let hero: Combatant
     public let companion: Combatant
     public let campaignTracker: CampaignProgressionTracker

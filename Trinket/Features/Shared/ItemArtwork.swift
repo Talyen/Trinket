@@ -12,7 +12,8 @@ struct ItemArtwork: View {
     var variant: Variant = .full
     var contentMode: ContentMode = .fill
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
     var body: some View {
         Group {

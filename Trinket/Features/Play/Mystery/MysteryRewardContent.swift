@@ -120,7 +120,7 @@ struct MysteryRewardContent: View {
                     Button {
                         selectedRewardItem = item
                     } label: {
-                        MysteryRewardItemCard(item: item)
+                        RewardItemRevealCard(item: item)
                     }
                     .trinketQuietTapButtonStyle()
                     .containerRelativeFrame(.horizontal)
@@ -226,29 +226,5 @@ struct MysteryRewardContent: View {
 
     private var walletColumnCount: Int {
         dynamicTypeSize.isAccessibilitySize ? 1 : walletRewardCount
-    }
-}
-
-private struct MysteryRewardItemCard: View {
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-
-    let item: InventoryItem
-
-    var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ItemArtwork(item: item)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .frame(height: verticalSizeClass == .compact ? 180 : 234)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-
-            VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                TrinketRarityLabel(rarity: item.rarity)
-
-                Text(item.displayName)
-                    .trinketTypography(.sectionDisplay)
-                    .multilineTextAlignment(.center)
-            }
-        }
     }
 }

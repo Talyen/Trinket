@@ -49,7 +49,10 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     public var body: some View {
         HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             artwork
-                .frame(width: 36, height: 36)
+                .frame(
+                    width: TrinketDesign.Metrics.walletResourceArtworkSize,
+                    height: TrinketDesign.Metrics.walletResourceArtworkSize
+                )
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(title)
@@ -63,7 +66,11 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
                     .contentTransition(.numericText())
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
+            alignment: .leading
+        )
         .animation(TrinketMotion.Homestead.tierCompletion, value: amount)
     }
 }

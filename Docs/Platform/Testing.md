@@ -64,6 +64,8 @@ Verify with the AGENTS Task→Command Router (toolchain permitting), using
 - **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
 - **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, bare smoke, `smoke-full`, and exhaustive UI remain pre-push/CI work.
 
+Compile-only and other path-scoped tiers: `Docs/AgentContext/ci-and-project-generation.md`.
+
 ## UI keep / drop rubric
 
 Keep a UI test only if it asserts a **shipping product outcome** that unit/package tests cannot own:

@@ -276,8 +276,6 @@ public enum TrinketMotion: Sendable {
 
     /// The Labyrinth map motion (R-022c).
     public enum Labyrinth: Sendable {
-        public static let modifierStagger: TimeInterval = 0.05
-
         public static var selection: Animation {
             .spring(response: 0.22, dampingFraction: 1)
         }
@@ -286,20 +284,8 @@ public enum TrinketMotion: Sendable {
             .spring(response: 0.32, dampingFraction: 0.9)
         }
 
-        public static var pathState: Animation {
-            .spring(response: 0.36, dampingFraction: 1)
-        }
-
         public static var floorChange: Animation {
             .spring(response: 0.38, dampingFraction: 1)
-        }
-
-        public static var clusterReveal: Animation {
-            .easeOut(duration: 0.28)
-        }
-
-        public static var modifierIn: Animation {
-            TrinketMotion.Content.fade
         }
     }
 

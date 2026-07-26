@@ -251,12 +251,18 @@ struct MysteryEncounterView: View {
         HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             if let resource {
                 HomesteadResourceArtwork(resource: resource)
-                    .frame(width: 36, height: 36)
+                    .frame(
+                        width: TrinketDesign.Metrics.walletResourceArtworkSize,
+                        height: TrinketDesign.Metrics.walletResourceArtworkSize
+                    )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(tint)
-                    .frame(width: 36, height: 36)
+                    .frame(
+                        width: TrinketDesign.Metrics.walletResourceArtworkSize,
+                        height: TrinketDesign.Metrics.walletResourceArtworkSize
+                    )
             }
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
@@ -270,7 +276,11 @@ struct MysteryEncounterView: View {
                     .trinketTypography(.statValue)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
+            alignment: .leading
+        )
     }
 
     private func generatedItemRewardText(

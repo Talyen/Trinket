@@ -107,8 +107,8 @@ struct StageSelectActiveCard<
                 }
             }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-        .padding(TrinketDesign.Metrics.mediumSpacing)
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
         .background(TrinketDesign.Colors.surface)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(presentation.activeDetailAccessibilityID)

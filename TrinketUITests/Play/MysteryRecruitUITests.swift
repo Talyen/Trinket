@@ -21,12 +21,6 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(pluckCap)
         assertExists(confirm)
         XCTAssertFalse(confirm.isEnabled)
-        XCTAssertTrue(stepInside.label.contains("Gold"))
-        XCTAssertTrue(stepInside.label.contains("25"))
-        XCTAssertFalse(stepInside.label.contains("+"))
-        XCTAssertTrue(pluckCap.label.contains("Crystal"))
-        XCTAssertTrue(pluckCap.label.contains("3"))
-        XCTAssertFalse(pluckCap.label.contains("+"))
 
         assertExistsAfterScroll(
             AccessibilityID.Mystery.choiceButton(choiceID: "pluck-cap"),

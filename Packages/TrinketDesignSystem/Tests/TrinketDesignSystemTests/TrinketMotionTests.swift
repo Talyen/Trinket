@@ -14,8 +14,6 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.statusBorderPulseDuration > 0)
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity > 0)
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity < 1)
-        #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
-        #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
         #expect(TrinketMotion.Content.secondEntranceDelay == TrinketMotion.Content.entranceStagger * 2)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
         #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
@@ -27,37 +25,12 @@ struct TrinketMotionTests {
         )
     }
 
-    @Test func chipStylesStayWithinSemanticContracts() {
-        let critical = TrinketMotion.Battle.chip(for: .critical)
-        let normal = TrinketMotion.Battle.chip(for: .directDamage)
-        let deathsDoor = TrinketMotion.Battle.chip(for: .deathsDoor)
-
-        #expect(critical.textStyle == .largeTitle)
-        #expect(critical.fontWeight == .heavy)
-        #expect(normal.textStyle == .title)
-        #expect(normal.fontWeight == .bold)
-        #expect(!critical.showsSecondaryCaption)
-
-        #expect(deathsDoor.textStyle == critical.textStyle)
-        #expect(TrinketMotion.Battle.chip(for: .heal).textStyle == normal.textStyle)
-        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
-    }
-
     @Test func chipStylesCoverEveryFeedbackClass() {
         for feedbackClass in CombatFeedbackClass.allCases {
             let style = TrinketMotion.Battle.chip(for: feedbackClass)
             #expect(style.feedbackClass == feedbackClass)
-            switch feedbackClass {
-            case .critical, .deathsDoor:
-                #expect(style.textStyle == .largeTitle)
-                #expect(style.fontWeight == .heavy)
-                #expect(style.chrome == .emphasis)
-            case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
-                #expect(style.textStyle == .title)
-                #expect(style.fontWeight == .bold)
-                #expect(style.chrome == .standard)
-            }
         }
+        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
     }
 
     @Test func combatFeedbackChipMotionUsesEaseOutRiseAndFade() {

@@ -241,25 +241,3 @@ struct VictoryView: View {
             : "\(primaryActionTitle) Button"
     }
 }
-
-private struct RewardItemRevealCard: View {
-    let item: InventoryItem
-
-    var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ItemArtwork(item: item)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .frame(height: 234)
-                .clipShape(TrinketDesign.cardShape)
-                .trinketCardSurface()
-
-            VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                TrinketRarityLabel(rarity: item.rarity)
-
-                Text(item.displayName)
-                    .trinketTypography(.sectionDisplay)
-                    .multilineTextAlignment(.center)
-            }
-        }
-    }
-}

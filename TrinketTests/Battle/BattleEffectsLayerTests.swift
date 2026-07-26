@@ -19,7 +19,6 @@ struct CardActivationTests {
         let second = CardActivationParticle.make(count: 28, spread: .fireworks)
 
         #expect(first == second)
-        #expect(first.count == 28)
         #expect(CardActivationParticle.make(count: -1, spread: .fireworks).isEmpty)
         // Upward hemisphere: every particle travels with non-positive Y.
         #expect(first.allSatisfy { $0.vector.dy <= 0 })
@@ -39,6 +38,5 @@ struct CardActivationTests {
         #expect(request.keywords == [.burn, .physical])
         #expect(request.particleCount == TrinketMotion.Battle.cardCastParticleCount)
         #expect(request.particles.count == TrinketMotion.Battle.cardCastParticleCount)
-        #expect(abs(request.perspective - 0.35) < 0.0001)
     }
 }

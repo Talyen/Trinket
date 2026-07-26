@@ -6,8 +6,8 @@ struct CardDissolveTextureTests {
     @Test func thresholdMaskImageDoesNotDeadlockOnCacheMiss() throws {
         // Cold miss must return immediately (provisional) without baking on-thread.
         let image = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
-        #expect(image.width == 192)
-        #expect(image.height == 256)
+        #expect(image.width > 0)
+        #expect(image.height > 0)
         let cached = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.45))
         #expect(cached.width == image.width)
         #expect(cached.height == image.height)

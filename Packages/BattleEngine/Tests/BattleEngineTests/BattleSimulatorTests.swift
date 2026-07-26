@@ -170,7 +170,11 @@ struct BattleSimulatorTests {
         #expect(!(campaign.steps.isEmpty))
         #expect(!(spire.steps.isEmpty))
         #expect(!(labyrinth.steps.isEmpty))
-        #expect(spire.steps.count == 140) // 7 spires * 20 floors
+        let expectedSpireSteps = GameContent.spires.reduce(0) { total, spireDefinition in
+            total + GameContent.spireFloors(for: spireDefinition.id).count
+        }
+        #expect(spire.steps.count == expectedSpireSteps)
+        #expect(Set(spire.steps.map(\.id)).count == spire.steps.count)
     }
 
     @Test func interleavingPlayerControllerGainsXPAndLevelsUp() {

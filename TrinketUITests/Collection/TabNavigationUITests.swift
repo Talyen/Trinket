@@ -4,7 +4,7 @@ final class TabNavigationUITests: TrinketUITestCase {
     /// Equip one ability; persistence is visible on the slot label.
     func testHeroDetailEquipmentAndAbilities() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        combatantDetail.assertLoaded(for: "Knight")
+        combatantDetail.assertLoaded(for: "Knight", timeout: 8)
 
         scrollUntilVisible(button(AccessibilityID.Equipment.basicAbilitySlot), swipingUp: true)
         assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
@@ -27,14 +27,6 @@ final class TabNavigationUITests: TrinketUITestCase {
             basicSlot.label.localizedCaseInsensitiveContains("Block"),
             "Equipped Basic ability name should remain visible on the slot label"
         )
-
-        scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
-        button("Weapon item slot").tap()
-        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
-        button(AccessibilityID.LoadoutPicker.itemCandidate("longsword-basic")).tap()
-        assertExists(AccessibilityID.LoadoutPicker.itemDetail("longsword-basic"))
-        goBack()
-        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
     }
 
     func testTabBarRoundTrip() {

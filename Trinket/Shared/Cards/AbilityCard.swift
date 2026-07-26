@@ -9,7 +9,8 @@ struct AbilityChoiceCard: View {
     var reservesLabelSpace: Bool = true
     var isSelected = false
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
     private var isLocked: Bool {
         lockLabel != nil

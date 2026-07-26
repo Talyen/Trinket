@@ -8,7 +8,8 @@ struct AbilityDetailView: View {
     var primaryActionAccessibilityID: String?
     var onPrimaryAction: (() -> Void)?
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
     init(
         ability: Ability,

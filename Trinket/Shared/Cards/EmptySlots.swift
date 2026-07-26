@@ -6,7 +6,8 @@ struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
     var reservesLabelSpace: Bool = true
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
+        TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
     var body: some View {
         ProductCardShell(

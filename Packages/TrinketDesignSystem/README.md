@@ -28,7 +28,7 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 |---|---|---|
 | Theme chrome | `TrinketDesign.Colors.canvas/surface/panel/…/accent/success/…` | `ThemeCanvas`, `ThemeSurface`, … |
 | Gameplay health | `TrinketDesign.Colors.health`, `.healthRestore`, battle derived opacities | `ThemeHealth`, `ThemeHealthRestore` |
-| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/heroWarm/…` | `ThemeOverlayInk`, `ThemeOverlayPaper`, `ThemeHeroScrim` |
+| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/…` | `ThemeOverlayInk`, `ThemeOverlayPaper`, `ThemeHeroScrim` |
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |

@@ -22,6 +22,37 @@ struct CombatFeedbackRasterCatalogTests {
         }
     }
 
+    @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
+        let pool = CombatFeedbackRasterPool(capacity: 2)
+        let canvasItems = Array(
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems(
+                at: Date(timeIntervalSince1970: 10)
+            ).prefix(3)
+        )
+        #expect(canvasItems.count == 3)
+
+        let first = try #require(pool.raster(
+            for: canvasItems[0],
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        let reused = try #require(pool.cachedRaster(
+            for: canvasItems[0],
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(first === reused)
+
+        _ = pool.raster(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
+        _ = pool.raster(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
+        let snapshot = pool.snapshot()
+        #expect(snapshot.entryCount == 2)
+        #expect(snapshot.estimatedByteCount > 0)
+        #expect(snapshot.hitCount == 1)
+        #expect(snapshot.buildCount == 3)
+        #expect(snapshot.evictionCount == 1)
+    }
+
     @Test @MainActor func closedCatalogFitsDefaultCapacityWithoutEviction() async {
         await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
             dynamicTypeSize: .large,

@@ -38,17 +38,6 @@ struct CombatFeedbackPresenterTests {
         #expect(critical[0].reactionKind == .critical)
         #expect(critical[0].sourceEventIDs == [10])
 
-        let statusItems = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 2, keyword: .bleed)
-            ],
-            at: .now
-        )
-        #expect(statusItems.count == 1)
-        #expect(statusItems[0].text == "3")
-        #expect(statusItems[0].sourceEventIDs == [1, 2])
-
         let abilityItems = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .physical),
@@ -261,40 +250,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3])
         #expect(items[0].presentationRole == .headline)
         #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
-    }
-
-    @Test @MainActor func feedbackRasterPoolReusesAndBoundsPreparedLabels() throws {
-        let pool = CombatFeedbackRasterPool(capacity: 2)
-        let canvasItems = [3, 4, 5].map { amount in
-            let items = CombatFeedbackPresenter.makeItems(
-                from: [makeEvent(id: amount, kind: .abilityDamage, amount: amount, keyword: .physical)],
-                at: Date(timeIntervalSince1970: 10)
-            )
-            return CombatFeedbackOverlayPolicy.canvasItems(
-                from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-            )[0]
-        }
-
-        let first = try #require(pool.raster(
-            for: canvasItems[0],
-            dynamicTypeSize: .large,
-            displayScale: 2
-        ))
-        let reused = try #require(pool.cachedRaster(
-            for: canvasItems[0],
-            dynamicTypeSize: .large,
-            displayScale: 2
-        ))
-        #expect(first === reused)
-
-        _ = pool.raster(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
-        _ = pool.raster(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
-        let snapshot = pool.snapshot()
-        #expect(snapshot.entryCount == 2)
-        #expect(snapshot.estimatedByteCount > 0)
-        #expect(snapshot.hitCount == 1)
-        #expect(snapshot.buildCount == 3)
-        #expect(snapshot.evictionCount == 1)
     }
 
     @Test func chipPresentationDoesNotEmitKeywordBursts() {

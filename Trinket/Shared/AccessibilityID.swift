@@ -24,7 +24,6 @@ enum AccessibilityID {
         static let campaignModeCard = "Campaign Mode Card"
         static let exploreModeCard = "Explore Mode Card"
         static let battlePartyDone = "Battle Party Done"
-        static let chapterPicker = "Campaign Chapter Picker"
         static let activeStageDetail = "Campaign Active Stage Detail"
         static let stagePartyControl = "Campaign Stage Party Control"
         static let stagePartyPickerSheet = "Campaign Stage Party Picker Sheet"
