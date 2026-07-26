@@ -81,8 +81,8 @@ package enum DefensePoolEngine {
            runtime.mitigationShredUntilTurn > context.turnCount {
             percent *= runtime.mitigationShredMultiplier
         }
-        if profile.mitigationEffectivenessPenaltyPercent > 0 {
-            percent *= max(0, 1 - profile.mitigationEffectivenessPenaltyPercent)
+        if profile.triggers.mitigationEffectivenessPenaltyPercent > 0 {
+            percent *= max(0, 1 - profile.triggers.mitigationEffectivenessPenaltyPercent)
         }
         return max(0.0, min(1.0, percent))
     }

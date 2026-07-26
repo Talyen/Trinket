@@ -18,11 +18,11 @@ package enum ControlMeterEngine {
 
         let profile = context.modifiers(for: combatant.id)
         var adjustedAmount = amount
-        if profile.controlResistancePercent > 0 {
-            adjustedAmount = Int(floor(Double(adjustedAmount) * (1 - min(1, profile.controlResistancePercent))))
+        if profile.triggers.controlResistancePercent > 0 {
+            adjustedAmount = Int(floor(Double(adjustedAmount) * (1 - min(1, profile.triggers.controlResistancePercent))))
         }
-        if keyword == .freeze, profile.freezeControlVulnerabilityPercent > 0 {
-            adjustedAmount = Int(ceil(Double(adjustedAmount) * (1 + profile.freezeControlVulnerabilityPercent)))
+        if keyword == .freeze, profile.triggers.freezeControlVulnerabilityPercent > 0 {
+            adjustedAmount = Int(ceil(Double(adjustedAmount) * (1 + profile.triggers.freezeControlVulnerabilityPercent)))
         }
         guard adjustedAmount > 0 else { return [] }
 

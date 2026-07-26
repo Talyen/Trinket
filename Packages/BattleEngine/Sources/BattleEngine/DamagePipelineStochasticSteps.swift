@@ -62,7 +62,7 @@ package extension DamagePipeline {
     ) -> Double {
         var chance = state.combatant.primaryStats.dodgeChance
         let profile = context.modifiers(for: state.combatant.id)
-        chance += profile.dodgeChanceBonus
+        chance += profile.triggers.dodgeChanceBonus
         return min(0.75, chance)
     }
 

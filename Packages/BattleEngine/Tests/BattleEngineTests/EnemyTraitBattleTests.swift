@@ -84,13 +84,13 @@ struct EnemyTraitBattleTests {
 
     @Test func livingArmorBlockPerTurnAndBleedReduction() throws {
         let livingArmor = try enemyBuild(id: "living_armor")
-        try #expect(livingArmor.modifiers.blockPerTurn == 1)
+        try #expect(livingArmor.modifiers.triggers.blockPerTurn == 1)
         try #expect(livingArmor.modifiers.damageTakenReduction(for: .bleed) == 0.30)
     }
 
     @Test func necromancerLeechChanceAndHolyVulnerability() throws {
         let necromancer = try enemyBuild(id: "necromancer")
-        try #expect(necromancer.modifiers.leechChancePercent == 0.20)
+        try #expect(necromancer.modifiers.triggers.leechChancePercent == 0.20)
         try #expect(necromancer.modifiers.damageTakenVulnerability(for: .holy) == 0.30)
     }
 }

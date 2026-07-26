@@ -19,7 +19,7 @@ Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views → 
 
 ## Fixtures
 
-Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle parties). App suites: `AppTestContext` / `AppTestSupport`. Persistence: `PersistenceTestContext`. Battle RNG: always `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via `EffectHandlers.all`.
+Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses (`SaveTestSupport`) live beside PersistenceTests and TrinketTests — not in TrinketTestSupport — so TestSupport stays Persistence-free. App suites: `AppTestContext` / `AppTestSupport`. Persistence: `PersistenceTestContext`. Battle RNG: always `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via `EffectHandlers.all`.
 
 ## Unit conventions
 

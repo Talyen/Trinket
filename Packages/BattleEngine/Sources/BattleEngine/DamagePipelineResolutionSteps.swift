@@ -26,12 +26,12 @@ package extension DamagePipeline {
                var runtime = context.roster.runtime(for: actor.combatant) {
                 let profile = context.modifiers(for: sourceActorID)
                 var didUpdateRuntime = false
-                if !runtime.hasTriggeredAmbush, profile.ambushBonusDamage > 0 {
-                    state.itemBonus += profile.ambushBonusDamage
+                if !runtime.hasTriggeredAmbush, profile.triggers.ambushBonusDamage > 0 {
+                    state.itemBonus += profile.triggers.ambushBonusDamage
                     runtime.hasTriggeredAmbush = true
                     didUpdateRuntime = true
                 }
-                if !runtime.hasTriggeredFirstHitBonus, profile.firstHitDoubleDamage {
+                if !runtime.hasTriggeredFirstHitBonus, profile.triggers.firstHitDoubleDamage {
                     state.itemBonus += (state.amount + state.statBonus)
                     runtime.hasTriggeredFirstHitBonus = true
                     didUpdateRuntime = true
@@ -69,7 +69,7 @@ package extension DamagePipeline {
         if sourceActorID == context.roster.companion.id {
             bonus += context.heroModifiers.companionDamageDealtBonus
         }
-        if profile.damageIncreasesEveryOtherTurn {
+        if profile.triggers.damageIncreasesEveryOtherTurn {
             bonus += context.turnCount / 2
         }
         return bonus
@@ -194,15 +194,15 @@ package extension DamagePipeline {
             in: context
         )
         if let sourceActorID = state.sourceActorID {
-            let ignorePercent = min(1, context.modifiers(for: sourceActorID).ignoreEnemyMitigationPercent)
+            let ignorePercent = min(1, context.modifiers(for: sourceActorID).triggers.ignoreEnemyMitigationPercent)
             if ignorePercent > 0 {
                 effectivePercent *= (1 - ignorePercent)
             }
         }
 
         var remaining = state.remaining
-        if profile.passiveMitigationFlat > 0 {
-            remaining = max(0, remaining - profile.passiveMitigationFlat)
+        if profile.triggers.passiveMitigationFlat > 0 {
+            remaining = max(0, remaining - profile.triggers.passiveMitigationFlat)
         }
 
         if effectivePercent > 0 {

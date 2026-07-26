@@ -2,7 +2,6 @@ import Foundation
 import SwiftData
 import Testing
 import TrinketPersistence
-import TrinketTestSupport
 
 @MainActor
 final class PlayerShellSessionStoreTests {

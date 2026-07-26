@@ -17,7 +17,6 @@ let package = Package(
     dependencies: [
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
-        .package(path: "../TrinketPersistence"),
     ],
     targets: [
         .target(
@@ -25,7 +24,6 @@ let package = Package(
             dependencies: [
                 "TrinketCore",
                 "TrinketContent",
-                "TrinketPersistence",
             ]
         ),
     ]

@@ -5,6 +5,7 @@ import TrinketDesignSystem
 import UIKit
 
 #if DEBUG
+// DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
 private struct HandMotionPlayground: View {
     @State private var configuration = BattleHandMotionConfiguration()

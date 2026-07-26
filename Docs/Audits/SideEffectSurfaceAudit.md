@@ -15,7 +15,7 @@ Confirm unexpected effect ownership and write a plan to fix all identified viola
 
 | Effect | Allowed locations |
 |--------|-------------------|
-| Disk / encoder I/O | `Packages/TrinketPersistence/`, `Packages/TrinketTestSupport/` temp-dir harnesses |
+| Disk / encoder I/O | `Packages/TrinketPersistence/`; save-store temp-dir harnesses in PersistenceTests / TrinketTests support (`SaveTestSupport`) — not `TrinketTestSupport` |
 | `UserDefaults` | Options store + legacy shell-session migration — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
 | Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Trinket/BattleShell/` player cache + battle cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into `Trinket/Audio/` |

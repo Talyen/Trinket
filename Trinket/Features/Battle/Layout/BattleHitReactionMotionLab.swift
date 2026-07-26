@@ -4,6 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 
 #if DEBUG
+// DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
 private struct BattleHitReactionMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""

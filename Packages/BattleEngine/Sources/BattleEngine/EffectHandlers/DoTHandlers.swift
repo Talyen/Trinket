@@ -20,7 +20,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 
     func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
-        let slowPercent = context.modifiers(for: target.id).burnDecaySlowPercent
+        let slowPercent = context.modifiers(for: target.id).triggers.burnDecaySlowPercent
         let nextPotency: Int = if keyword == .burn {
             active.effect.potencyAfterTurn(burnDecaySlowPercent: slowPercent)
         } else if keyword == .poison {
@@ -99,7 +99,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             return active.effect.potencyAfterTurn()
         }
         let chance: Double = if let sourceActorID = active.sourceActorID {
-            context.modifiers(for: sourceActorID).poisonDecayIncreaseChance
+            context.modifiers(for: sourceActorID).triggers.poisonDecayIncreaseChance
         } else {
             0
         }

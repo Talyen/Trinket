@@ -2,7 +2,7 @@
 
 Feature work belongs in the matching `Features/<flow>/` folder. Read `Docs/AgentContext/swiftui-features.md` before editing.
 
-- Use shared state through the environment; feature views may own transient local `@State` but not app or session stores.
+- Use shared state through the environment; feature views may own transient local `@State` but not app or session stores. Prefer the narrowest observable owner (`BattleSession`, encounter sessions) over whole `AppState` when a subtree only needs that slice — inject it with `.environment(session)` from the parent.
 - Use `TrinketDesignSystem` chrome, colors, and shared views from `Trinket/Shared/` before creating a local abstraction. Never introduce one-off `Color` / system palette literals — extend the design system instead.
 - File-level `@ViewBuilder` helpers that call DesignSystem / view modifiers must be `@MainActor` (or live as methods on a `View`). Free nonisolated helpers fail Swift 6 concurrency under `build-for-testing` even when style is clean.
 - Add/reuse a stable `AccessibilityID` test selector for a new player flow. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry, state-changing journey, or one-owner safety invariant). Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.

@@ -32,7 +32,8 @@ Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases w
 |--------|----------|
 | `AppTestContext` / `AppTestSupport` | `TrinketTests/Support/` |
 | `PersistenceTestContext` | `TrinketPersistenceTests/Support/` |
-| `SaveTestSupport`, `CombatantFixtures`, battle parties | `Packages/TrinketTestSupport/` |
+| `CombatantFixtures`, battle parties | `Packages/TrinketTestSupport/` |
+| `SaveTestSupport` | PersistenceTests + TrinketTests support (not TrinketTestSupport) |
 | `BattleStateTestFactory`, `BattleTestFixtures` | `Packages/BattleEngine/Tests/` |
 
 **Quality:** assert semantics (events, HP deltas, reload-from-disk), not log fingerprints; no empty tests; no `try?` that hides failures (`#expect(throws:)` / `#require`).

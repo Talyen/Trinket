@@ -336,9 +336,6 @@ public enum ArtCatalog {
         "pixie-dust": AbilityArtReference(
             imageName: "ability_pixie_dust_thumb"
         ),
-        "plate-mail": AbilityArtReference(
-            imageName: "ability_plate_mail_thumb"
-        ),
         "poison-dagger": AbilityArtReference(
             imageName: "ability_poison_dagger_thumb"
         ),
@@ -353,9 +350,6 @@ public enum ArtCatalog {
         ),
         "roulette": AbilityArtReference(
             imageName: "ability_roulette_thumb"
-        ),
-        "sage-heal": AbilityArtReference(
-            imageName: "ability_sage_heal_thumb"
         ),
         "sap-arrow": AbilityArtReference(
             imageName: "ability_sap_arrow_thumb"

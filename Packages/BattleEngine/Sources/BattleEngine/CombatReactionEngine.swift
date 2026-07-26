@@ -13,10 +13,10 @@ package enum CombatReactionEngine {
         let profile = context.modifiers(for: sourceActorID)
         var events: [ActionEvent] = []
 
-        if profile.onBleedApplyPoison > 0 {
+        if profile.triggers.onBleedApplyPoison > 0 {
             events.append(contentsOf: context.applyDecayingDoT(
                 keyword: .poison,
-                potency: profile.onBleedApplyPoison,
+                potency: profile.triggers.onBleedApplyPoison,
                 to: target,
                 sourceActorID: sourceActorID,
                 dealImmediateDamage: true,
@@ -24,9 +24,9 @@ package enum CombatReactionEngine {
             ))
         }
 
-        if profile.onBleedDealBurnDamage > 0 {
+        if profile.triggers.onBleedDealBurnDamage > 0 {
             events.append(contentsOf: DoTDamage.resolveTurnDamage(
-                basePotency: profile.onBleedDealBurnDamage,
+                basePotency: profile.triggers.onBleedDealBurnDamage,
                 keyword: .burn,
                 target: target,
                 sourceActorID: sourceActorID,
@@ -44,7 +44,7 @@ package enum CombatReactionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard keyword == .burn else { return [] }
-        let potency = context.modifiers(for: sourceActorID).onBurnApplyPoison
+        let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
         guard potency > 0 else { return [] }
         return context.applyDecayingDoT(
             keyword: .poison,
@@ -79,24 +79,24 @@ package extension CombatReactionEngine {
         var bonus = 0
 
         if damageKeyword == .freeze, targetIsBurning {
-            bonus += profile.freezeDamageWhileBurningBonus
+            bonus += profile.triggers.freezeDamageWhileBurningBonus
         }
         // Shatter is an aura from hero gear: the enemy takes extra damage from party hits while Frozen.
         if source.role != .enemy, targetIsFrozen {
-            bonus += context.heroModifiers.damageWhileTargetFrozenBonus
+            bonus += context.heroModifiers.triggers.damageWhileTargetFrozenBonus
         }
         // Dazed is an aura from hero gear: the enemy takes extra damage from party hits while Stunned.
         if source.role != .enemy, targetIsStunned {
-            bonus += context.heroModifiers.damageWhileTargetStunnedBonus
+            bonus += context.heroModifiers.triggers.damageWhileTargetStunnedBonus
         }
-        if profile.damageBelowHealthPercentBonus > 0,
-           profile.damageBelowHealthPercentKeyword == nil || profile.damageBelowHealthPercentKeyword == damageKeyword,
-           profile.damageBelowHealthPercentThreshold > 0,
+        if profile.triggers.damageBelowHealthPercentBonus > 0,
+           profile.triggers.damageBelowHealthPercentKeyword == nil || profile.triggers.damageBelowHealthPercentKeyword == damageKeyword,
+           profile.triggers.damageBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: state.combatant) > 0 {
             let percent = Double(context.roster.health(for: state.combatant)) /
                 Double(context.roster.maxHealth(for: state.combatant))
-            if percent < profile.damageBelowHealthPercentThreshold {
-                bonus += profile.damageBelowHealthPercentBonus
+            if percent < profile.triggers.damageBelowHealthPercentThreshold {
+                bonus += profile.triggers.damageBelowHealthPercentBonus
             }
         }
 
@@ -116,29 +116,29 @@ package extension CombatReactionEngine {
         let profile = context.modifiers(for: combatant.id)
         var events: [ActionEvent] = []
 
-        if profile.damageAfterDodgeBonus > 0 {
+        if profile.triggers.damageAfterDodgeBonus > 0 {
             context.roster.mutateRuntime(for: combatant) { runtime in
-                runtime.pendingDamageAfterDodge += profile.damageAfterDodgeBonus
+                runtime.pendingDamageAfterDodge += profile.triggers.damageAfterDodgeBonus
             }
         }
 
-        if profile.dodgeGoldFlat > 0 {
+        if profile.triggers.dodgeGoldFlat > 0 {
             let bonus = context.modifiers(for: combatant.id).goldGainedBonus
-            context.addGold(profile.dodgeGoldFlat, sourceActorID: combatant.id)
+            context.addGold(profile.triggers.dodgeGoldFlat, sourceActorID: combatant.id)
             events.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,
                 actorName: combatant.name,
                 abilityName: "Payday",
                 target: combatant,
-                amount: profile.dodgeGoldFlat + bonus,
+                amount: profile.triggers.dodgeGoldFlat + bonus,
                 keyword: .gold
             ))
         }
 
-        if profile.dodgeBlockFlat > 0 {
+        if profile.triggers.dodgeBlockFlat > 0 {
             events.append(contentsOf: applyBlock(
-                amount: profile.dodgeBlockFlat,
+                amount: profile.triggers.dodgeBlockFlat,
                 to: combatant,
                 source: combatant,
                 abilityName: "Untouchable",
@@ -154,10 +154,10 @@ package extension CombatReactionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        guard profile.blockBrokenBlockFlat > 0 else { return [] }
+        guard profile.triggers.blockBrokenBlockFlat > 0 else { return [] }
 
         return applyBlock(
-            amount: profile.blockBrokenBlockFlat,
+            amount: profile.triggers.blockBrokenBlockFlat,
             to: target,
             source: target,
             abilityName: "Cascading",
@@ -167,7 +167,7 @@ package extension CombatReactionEngine {
 
     static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
         let profile = context.heroModifiers
-        guard profile.stunDealPhysicalFlat > 0 || profile.enemyStunnedApplyMarked,
+        guard profile.triggers.stunDealPhysicalFlat > 0 || profile.triggers.enemyStunnedApplyMarked,
               context.roster.hero.isAlive
         else { return [] }
 
@@ -176,14 +176,14 @@ package extension CombatReactionEngine {
         guard context.roster.health(for: enemy) > 0 else { return [] }
 
         var events = DoTDamage.resolveTurnDamage(
-            basePotency: profile.stunDealPhysicalFlat,
+            basePotency: profile.triggers.stunDealPhysicalFlat,
             keyword: .physical,
             target: enemy,
             sourceActorID: hero.id,
             in: &context
         ).events
 
-        if profile.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
+        if profile.triggers.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
             events.append(contentsOf: applyMarked(
                 to: enemy,
                 sourceActorID: hero.id,
@@ -196,7 +196,7 @@ package extension CombatReactionEngine {
     }
 
     static func afterSpendMana(by actor: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
-        let amount = context.modifiers(for: actor.id).spendManaBlockFlat
+        let amount = context.modifiers(for: actor.id).triggers.spendManaBlockFlat
         guard amount > 0 else { return [] }
         return applyBlock(
             amount: amount,
@@ -215,9 +215,9 @@ package extension CombatReactionEngine {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
 
-        if profile.holyDamageBlockFlat > 0 {
+        if profile.triggers.holyDamageBlockFlat > 0 {
             events.append(contentsOf: applyBlock(
-                amount: profile.holyDamageBlockFlat,
+                amount: profile.triggers.holyDamageBlockFlat,
                 to: source,
                 source: source,
                 abilityName: "Sanctum",
@@ -225,9 +225,9 @@ package extension CombatReactionEngine {
             ))
         }
 
-        if profile.holyDamageCleanseCount > 0 {
+        if profile.triggers.holyDamageCleanseCount > 0 {
             var effects = context.roster.activeEffects(for: source)
-            for _ in 0 ..< profile.holyDamageCleanseCount {
+            for _ in 0 ..< profile.triggers.holyDamageCleanseCount {
                 guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else { break }
                 events.append(context.nextEvent(
                     kind: .effect,
@@ -242,26 +242,26 @@ package extension CombatReactionEngine {
             context.roster.setActiveEffects(effects, for: source)
         }
 
-        if profile.holyDamageHealFlat > 0 {
+        if profile.triggers.holyDamageHealFlat > 0 {
             events.append(contentsOf: HealingEngine.resolveHeal(
                 HealRequest(
-                    amount: profile.holyDamageHealFlat,
+                    amount: profile.triggers.holyDamageHealFlat,
                     target: source,
                     sourceActorID: source.id,
                     logAs: .instantHeal(
                         actorName: source.name,
                         abilityName: "Beacon",
                         keyword: .health,
-                        displayAmount: profile.holyDamageHealFlat
+                        displayAmount: profile.triggers.holyDamageHealFlat
                     )
                 ),
                 in: &context
             ).events)
         }
 
-        if profile.holyDamagePurgeCount > 0 {
+        if profile.triggers.holyDamagePurgeCount > 0 {
             var enemyEffects = context.roster.activeEffects(for: enemy)
-            for _ in 0 ..< profile.holyDamagePurgeCount {
+            for _ in 0 ..< profile.triggers.holyDamagePurgeCount {
                 guard let removedKeyword = EffectRemoval.removeRandomBuff(from: &enemyEffects, using: &context.rng) else { break }
                 events.append(context.nextEvent(
                     kind: .effect,
@@ -283,7 +283,7 @@ package extension CombatReactionEngine {
         restored: Int,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let percent = context.heroModifiers.companionLeechSharePercent
+        let percent = context.heroModifiers.triggers.companionLeechSharePercent
         guard restored > 0,
               percent > 0,
               context.roster.companion.isAlive
@@ -311,8 +311,8 @@ package extension CombatReactionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        guard profile.onceBelowHealthPercentThreshold > 0,
-              profile.onceBelowHealthPercentHeal > 0,
+        guard profile.triggers.onceBelowHealthPercentThreshold > 0,
+              profile.triggers.onceBelowHealthPercentHeal > 0,
               context.roster.maxHealth(for: target) > 0,
               let runtime = context.roster.runtime(for: target),
               !runtime.hasTriggeredSecondWind
@@ -328,18 +328,18 @@ package extension CombatReactionEngine {
         }
 
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
-        guard percent < profile.onceBelowHealthPercentThreshold else { return [] }
+        guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return [] }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }
         return HealingEngine.resolveHeal(
             HealRequest(
-                amount: profile.onceBelowHealthPercentHeal,
+                amount: profile.triggers.onceBelowHealthPercentHeal,
                 target: target,
                 sourceActorID: target.id,
                 logAs: .instantHeal(
                     actorName: target.name,
                     abilityName: "Second Wind",
                     keyword: .health,
-                    displayAmount: profile.onceBelowHealthPercentHeal
+                    displayAmount: profile.triggers.onceBelowHealthPercentHeal
                 )
             ),
             in: &context

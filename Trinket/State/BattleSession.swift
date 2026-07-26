@@ -21,8 +21,8 @@ enum BattleCardPlayResolution: Equatable, Sendable {
     }
 }
 
-/// Owns battle simulation state and UI-facing presentation: overlays, outcome screens,
-/// feedback, spectacle (Skill callouts / Ultimate cinematics), and overlays.
+/// Presentation controller for an active battle: overlays, outcome screens, feedback,
+/// spectacle, and timing. Simulation mutations go through `BattleSimBridge`.
 @MainActor
 @Observable
 final class BattleSession {
@@ -95,7 +95,8 @@ final class BattleSession {
     }
 
     /// Authoritative simulation value. UI observes `presentation` instead, avoiding
-    /// app-wide invalidation when log/event internals change.
+    /// app-wide invalidation when log/event internals change. Mutations go through
+    /// `BattleSimBridge` helpers so presentation timing stays off the engine surface.
     @ObservationIgnored
     var state: BattleState?
     let presentation = BattlePresentationState()
@@ -181,11 +182,7 @@ final class BattleSession {
     }
 
     var outcome: BattleSimulationOutcome? {
-        guard let state else { return nil }
-        return BattleSimulationOutcome.resolve(
-            isPartyDefeated: state.isPartyDefeated,
-            isEnemyDefeated: state.isEnemyDefeated
-        )
+        BattleSimBridge.outcome(for: state)
     }
 
     var hand: [BattleCard] {
@@ -359,9 +356,8 @@ final class BattleSession {
 
     func trimMemoryFootprint(releaseBattleLog: Bool) {
         pruneExpiredFeedback()
-        guard releaseBattleLog, var state else { return }
-        state.releaseLogProjection()
-        self.state = state
+        guard releaseBattleLog else { return }
+        BattleSimBridge.releaseLogProjection(state: &state)
     }
 
     /// Eagerly prepares battle audio before activation. Repeated calls are cheap
@@ -375,13 +371,11 @@ final class BattleSession {
     }
 
     func syncLogForDisplay() {
-        guard var state else { return }
-        state.syncLog()
-        self.state = state
+        BattleSimBridge.syncLog(state: &state)
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        state?.isCardPlayable(card) ?? false
+        BattleSimBridge.isCardPlayable(card, in: state)
     }
 
     /// Ends the player turn (enemy acts, effects tick, draw). Returns earned gold
@@ -396,7 +390,7 @@ final class BattleSession {
         pruneExpiredFeedback(at: date, notifyPresentation: false)
         autoEndJourney = journey
         autoEndHomestead = homestead
-        guard canEndTurn, var battleState = state else {
+        guard canEndTurn, state != nil else {
             noteFeedbackPresentationChanged()
             return nil
         }
@@ -410,11 +404,13 @@ final class BattleSession {
                 transitionInterval
             )
         }
-        let events = battleState.endTurn(rebuildLog: false)
-        installBattleState(battleState)
-        // Draw SFX only when the round completed and cards were dealt for the next turn.
-        if battleState.phase == .playerTurn {
-            playSFX(SFXID.abilityDraw)
+        let events = BattleSimBridge.endTurn(state: &state)
+        if let battleState = state {
+            installBattleState(battleState)
+            // Draw SFX only when the round completed and cards were dealt for the next turn.
+            if battleState.phase == .playerTurn {
+                playSFX(SFXID.abilityDraw)
+            }
         }
         presentResolvedEvents(events, at: date)
         let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)

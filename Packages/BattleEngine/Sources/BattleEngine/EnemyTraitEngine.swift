@@ -9,22 +9,22 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.regenerationAmount > 0,
-              profile.regenerationIntervalTurns > 0,
-              context.turnCount.isMultiple(of: profile.regenerationIntervalTurns),
+        guard profile.triggers.regenerationAmount > 0,
+              profile.triggers.regenerationIntervalTurns > 0,
+              context.turnCount.isMultiple(of: profile.triggers.regenerationIntervalTurns),
               context.roster.health(for: combatant) > 0
         else { return [] }
 
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
-                amount: profile.regenerationAmount,
+                amount: profile.triggers.regenerationAmount,
                 target: combatant,
                 sourceActorID: combatant.id,
                 logAs: .instantHeal(
                     actorName: combatant.name,
                     abilityName: traitName(for: combatant, in: context),
                     keyword: .health,
-                    displayAmount: profile.regenerationAmount
+                    displayAmount: profile.triggers.regenerationAmount
                 )
             ),
             in: &context
@@ -37,18 +37,18 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.blockPerTurn > 0,
+        guard profile.triggers.blockPerTurn > 0,
               context.roster.health(for: combatant) > 0
         else { return [] }
 
-        DefensePoolEngine.add(profile.blockPerTurn, pool: .block, to: combatant, keyword: .block, in: &context)
+        DefensePoolEngine.add(profile.triggers.blockPerTurn, pool: .block, to: combatant, keyword: .block, in: &context)
         return [context.nextEvent(
             kind: .effect,
             effectKind: DefensePoolEngine.Pool.block.appliedEffectKind,
             actorName: combatant.name,
             abilityName: traitName(for: combatant, in: context),
             target: combatant,
-            amount: profile.blockPerTurn,
+            amount: profile.triggers.blockPerTurn,
             keyword: .block
         )]
     }
@@ -58,7 +58,7 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.turnFreezeDamageAllEnemies > 0,
+        guard profile.triggers.turnFreezeDamageAllEnemies > 0,
               context.roster.health(for: combatant) > 0
         else { return [] }
 
@@ -67,7 +67,7 @@ package enum EnemyTraitEngine {
         for targetRuntime in party where targetRuntime.isAlive {
             let outcome = context.resolveDamage(
                 DamageRequest(
-                    amount: profile.turnFreezeDamageAllEnemies,
+                    amount: profile.triggers.turnFreezeDamageAllEnemies,
                     target: targetRuntime.combatant,
                     keyword: .freeze,
                     sourceActorID: combatant.id,
@@ -90,13 +90,13 @@ package enum EnemyTraitEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
-        guard profile.onHitAttackerBurn > 0,
+        guard profile.triggers.onHitAttackerBurn > 0,
               let attacker = context.roster.combatant(for: attackerID)?.combatant
         else { return [] }
 
         return DoTApplicator.applyDecayingDoT(
             keyword: .burn,
-            potency: profile.onHitAttackerBurn,
+            potency: profile.triggers.onHitAttackerBurn,
             to: attacker,
             sourceActorID: defender.id,
             dealImmediateDamage: false,
@@ -111,15 +111,15 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.shieldErosionTicks > 0,
-              profile.shieldErosionKeyword == keyword
+        guard profile.triggers.shieldErosionTicks > 0,
+              profile.triggers.shieldErosionKeyword == keyword
         else { return }
 
         var effects = context.roster.activeEffects(for: combatant)
         var didErode = false
         for index in effects.indices {
             guard case let .shield(shieldKeyword, buffer) = effects[index].effect else { continue }
-            let eroded = max(0, buffer - profile.shieldErosionTicks)
+            let eroded = max(0, buffer - profile.triggers.shieldErosionTicks)
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: .shield(shieldKeyword, eroded),
@@ -144,14 +144,14 @@ package enum EnemyTraitEngine {
         context: inout BattleEngineContext
     ) {
         let profile = context.modifiers(for: combatant.id)
-        guard profile.mitigationShredDurationTurns > 0,
-              profile.mitigationShredMultiplier > 0,
-              profile.mitigationShredKeyword == keyword,
+        guard profile.triggers.mitigationShredDurationTurns > 0,
+              profile.triggers.mitigationShredMultiplier > 0,
+              profile.triggers.mitigationShredKeyword == keyword,
               var runtime = context.roster.runtime(for: combatant)
         else { return }
 
-        runtime.mitigationShredUntilTurn = context.turnCount + profile.mitigationShredDurationTurns
-        runtime.mitigationShredMultiplier = profile.mitigationShredMultiplier
+        runtime.mitigationShredUntilTurn = context.turnCount + profile.triggers.mitigationShredDurationTurns
+        runtime.mitigationShredMultiplier = profile.triggers.mitigationShredMultiplier
         context.roster.update(runtime)
     }
 
@@ -162,11 +162,11 @@ package enum EnemyTraitEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
-        guard profile.thornsPercent > 0, damageTaken > 0,
+        guard profile.triggers.thornsPercent > 0, damageTaken > 0,
               let attacker = context.roster.combatant(for: attackerID)?.combatant
         else { return [] }
 
-        let thornsAmount = max(1, Int(ceil(Double(damageTaken) * profile.thornsPercent)))
+        let thornsAmount = max(1, Int(ceil(Double(damageTaken) * profile.triggers.thornsPercent)))
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: thornsAmount,
@@ -221,7 +221,7 @@ package enum EnemyTraitEngine {
         in context: BattleEngineContext
     ) -> Int {
         guard ability.id == "hemorrhage" else { return 0 }
-        return context.modifiers(for: sourceID).hemorrhageBleedBonus
+        return context.modifiers(for: sourceID).triggers.hemorrhageBleedBonus
     }
 
     private static func traitName(for combatant: Combatant, in context: BattleEngineContext) -> String {

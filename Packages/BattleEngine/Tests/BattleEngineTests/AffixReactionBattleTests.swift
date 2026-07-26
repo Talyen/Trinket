@@ -53,7 +53,7 @@ struct AffixReactionBattleTests {
             hero: hero(abilities: [bleedAbility(potency: 1)]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
-            heroModifiers: CombatModifierProfile(onBleedApplyPoison: 1)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(onBleedApplyPoison: 1))
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -70,7 +70,7 @@ struct AffixReactionBattleTests {
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
             ],
-            heroModifiers: CombatModifierProfile(poisonDecayIncreaseChance: 1.0)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(poisonDecayIncreaseChance: 1.0))
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
@@ -89,7 +89,7 @@ struct AffixReactionBattleTests {
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: "hero")
             ],
-            heroModifiers: CombatModifierProfile(freezeDamageWhileBurningBonus: 2)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(freezeDamageWhileBurningBonus: 2))
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -114,7 +114,7 @@ struct AffixReactionBattleTests {
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 6)
             ],
-            heroModifiers: CombatModifierProfile(blockBrokenBlockFlat: 4)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(blockBrokenBlockFlat: 4))
         )
 
         // Strike's 2 damage breaks the 1-point Block, Cascading regrants 4, then
@@ -143,7 +143,7 @@ struct AffixReactionBattleTests {
             hero: hero(abilities: [leechStrike, healAbility(amount: 10)], maxHealth: 30),
             companion: passiveCompanion(maxHealth: 20),
             enemy: passiveEnemy(),
-            heroModifiers: CombatModifierProfile(companionLeechSharePercent: 1.0)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(companionLeechSharePercent: 1.0))
         )
         battle.withEngineContext { context in
             context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
@@ -185,10 +185,7 @@ struct AffixReactionBattleTests {
             hero: hero(abilities: [], maxHealth: 20),
             companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
-            heroModifiers: CombatModifierProfile(
-                onceBelowHealthPercentThreshold: 0.25,
-                onceBelowHealthPercentHeal: 3
-            )
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(onceBelowHealthPercentThreshold: 0.25, onceBelowHealthPercentHeal: 3))
         )
 
         let first = BattleTestFixtures.endTurn(on: &battle)
@@ -211,7 +208,7 @@ struct AffixReactionBattleTests {
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTurns: 0)
             ],
-            heroModifiers: CombatModifierProfile(damageWhileTargetFrozenBonus: 2)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetFrozenBonus: 2))
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
@@ -281,7 +278,7 @@ struct AffixReactionBattleTests {
 
     @Test func aetherwardGrantsBlockWhenSpendingMana() throws {
         var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(spendManaBlockFlat: 2)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(spendManaBlockFlat: 2))
         )
         let hero = context.roster.hero.combatant
 
@@ -299,12 +296,7 @@ struct AffixReactionBattleTests {
 
     @Test func holyDamageAffixesGrantBlockCleanseHealAndPurge() throws {
         var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(
-                holyDamageBlockFlat: 1,
-                holyDamageCleanseCount: 1,
-                holyDamageHealFlat: 3,
-                holyDamagePurgeCount: 1
-            )
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(holyDamageBlockFlat: 1, holyDamageCleanseCount: 1, holyDamageHealFlat: 3, holyDamagePurgeCount: 1))
         )
         let hero = context.roster.hero.combatant
         let enemy = context.roster.enemy.combatant
@@ -332,7 +324,7 @@ struct AffixReactionBattleTests {
 
     @Test func paydayAndUntouchableFireWhenDodging() throws {
         var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(dodgeGoldFlat: 2, dodgeBlockFlat: 3)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(dodgeGoldFlat: 2, dodgeBlockFlat: 3))
         )
         let hero = context.roster.hero.combatant
 
@@ -346,7 +338,7 @@ struct AffixReactionBattleTests {
     @Test func knockoutAndBrandingFireWhenEnemyIsStunned() throws {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 20,
-            heroModifiers: CombatModifierProfile(stunDealPhysicalFlat: 3, enemyStunnedApplyMarked: true)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(stunDealPhysicalFlat: 3, enemyStunnedApplyMarked: true))
         )
         let enemy = context.roster.enemy.combatant
 
@@ -382,7 +374,7 @@ struct AffixReactionBattleTests {
         var shreddingContext = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 200,
             targetPrimaryStats: PrimaryStats(toughness: 100),
-            heroModifiers: CombatModifierProfile(ignoreEnemyMitigationPercent: 0.5)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(ignoreEnemyMitigationPercent: 0.5))
         )
         let shreddingHero = shreddingContext.roster.hero.combatant
         let shreddingEnemy = shreddingContext.roster.enemy.combatant
@@ -404,7 +396,7 @@ struct AffixReactionBattleTests {
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0)
             ],
-            heroModifiers: CombatModifierProfile(damageWhileTargetStunnedBonus: 1)
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetStunnedBonus: 1))
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)

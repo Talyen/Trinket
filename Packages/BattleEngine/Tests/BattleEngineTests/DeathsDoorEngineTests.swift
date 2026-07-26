@@ -112,10 +112,7 @@ struct DeathsDoorEngineTests {
     @Test func secondWindDoesNotPreemptDeathsDoorOnLethalHit() throws {
         var context = makeContext(
             heroHP: 5,
-            heroModifiers: CombatModifierProfile(
-                onceBelowHealthPercentThreshold: 0.25,
-                onceBelowHealthPercentHeal: 3
-            )
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(onceBelowHealthPercentThreshold: 0.25, onceBelowHealthPercentHeal: 3))
         )
         let hero = context.roster.hero.combatant
         let (_, events) = context.applyTestDamage(

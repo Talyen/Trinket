@@ -74,7 +74,7 @@ package enum DeathsDoorEngine {
             keyword: .deathsDoor
         )
         var events = [event]
-        let blockAmount = context.modifiers(for: combatant.id).blockOnDeathsDoor
+        let blockAmount = context.modifiers(for: combatant.id).triggers.blockOnDeathsDoor
         if blockAmount > 0 {
             events.append(contentsOf: CombatReactionEngine.applyBlock(
                 amount: blockAmount,

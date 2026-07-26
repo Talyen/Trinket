@@ -30,9 +30,9 @@ extension BattleSession {
             let events = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine
             ) {
-                try state?.playCard(cardID: cardID, rebuildLog: false)
+                try BattleSimBridge.playCard(cardID: cardID, state: &state)
             }
-            guard let events, let battleState = state,
+            guard let battleState = state,
                   let configurationID = activeBattle?.id else { return .rejected }
 
             measurePlayCardInterval(

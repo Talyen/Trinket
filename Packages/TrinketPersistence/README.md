@@ -28,4 +28,4 @@ Configured with container `iCloud.com.ryanmcintire.Trinket`. OS-managed SwiftDat
 ./Scripts/test-package.sh TrinketPersistence
 ```
 
-Use `SaveTestSupport.makeTempDirectory` and inject stores with the temp file store.
+Use `SaveTestSupport.makeTempDirectory` (PersistenceTests support) and inject stores with the temp file store.

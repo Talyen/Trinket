@@ -5,6 +5,7 @@ import TrinketDesignSystem
 import UIKit
 
 #if DEBUG
+// DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
 private struct CombatFeedbackFloatMotionLab: View {
     private enum StageTarget: String, CaseIterable, Identifiable {

@@ -47,14 +47,12 @@ public extension Ability {
     static let panaceaPotion = AbilityCatalogUltimate.panaceaPotion
     static let phoenixFeather = AbilityCatalogUltimate.phoenixFeather
     static let pixieDust = AbilityCatalogBasic.pixieDust
-    static let plateMail = AbilityCatalogSkill.plateMail
     static let poisonDagger = AbilityCatalogSkill.poisonDagger
     static let pounce = AbilityCatalogSkill.pounce
     static let predatorsFocus = AbilityCatalogSkill.predatorsFocus
     static let rayOfFrost = AbilityCatalogBasic.rayOfFrost
     static let rendingSlash = AbilityCatalogBasic.rendingSlash
     static let roulette = AbilityCatalogSkill.roulette
-    static let sageHeal = AbilityCatalogSkill.sageHeal
     static let sapArrow = AbilityCatalogSkill.sapArrow
     static let serratedEdge = AbilityCatalogSkill.serratedEdge
     static let shadowstep = AbilityCatalogUltimate.shadowstep

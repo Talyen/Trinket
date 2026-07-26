@@ -195,7 +195,7 @@ enum GameContentRosterGenerated {
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.wiseFrost, .stargaze],
-                skills: [.sageHeal, .cleanse],
+                skills: [.heal, .cleanse],
                 ultimates: [.panaceaPotion, .glacialWard]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),

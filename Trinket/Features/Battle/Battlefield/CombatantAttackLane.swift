@@ -4,7 +4,7 @@ import TrinketDesignSystem
 /// Whole-card attack telegraph (art + bars + border). Pose springs support
 /// wind-up hold, swing+recover, cancel-to-rest, and enemy full auto-play.
 struct CombatantAttackLane<Content: View>: View {
-    @Environment(AppState.self) private var appState
+    @Environment(BattleSession.self) private var battleSession
     let combatantID: String
     let aim: CombatantAttackAim
     @ViewBuilder let content: () -> Content
@@ -15,19 +15,19 @@ struct CombatantAttackLane<Content: View>: View {
 
     var body: some View {
         // swiftlint:disable:next redundant_discardable_let
-        let _ = appState.battle.attackReactionEpoch
+        let _ = battleSession.attackReactionEpoch
         content()
             .scaleEffect(x: pose.scaleX, y: pose.scaleY)
             .rotationEffect(.degrees(pose.rotation))
             .offset(x: pose.offsetX, y: pose.offsetY)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onChange(of: appState.battle.attackReactionEpoch) { _, _ in
+            .onChange(of: battleSession.attackReactionEpoch) { _, _ in
                 adoptLatestAttackIfNeeded()
             }
     }
 
     private func adoptLatestAttackIfNeeded() {
-        guard let reaction = appState.battle.attackReactionsByCombatantID[combatantID],
+        guard let reaction = battleSession.attackReactionsByCombatantID[combatantID],
               reaction.id != latestReactionID
         else { return }
         latestReactionID = reaction.id

@@ -88,11 +88,6 @@ enum AbilityCatalogSkill {
         targetedEffects: [TargetedEffect(.convertManaToBlock)]
     )
 
-    static let plateMail = AbilityBuilder.buffOnly(
-        id: "plate-mail", name: "Plate Mail", tier: .skill,
-        effects: [.shield(.block, 3)]
-    )
-
     static let poisonDagger = AbilityBuilder.directHit(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
         amount: 3, keyword: .poison
@@ -116,14 +111,6 @@ enum AbilityCatalogSkill {
                 randomizeDamageKeywords: true
             ),
             AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
-        ]
-    )
-
-    static let sageHeal = Ability(
-        id: "sage-heal", name: "Sage Heal", tier: .skill,
-        outcomeBranches: [
-            AbilityOutcomeBranch(effects: [.instantHeal(.health, 3)]),
-            AbilityOutcomeBranch(effects: [.drawCards(2)])
         ]
     )
 
@@ -196,12 +183,10 @@ enum AbilityCatalogSkill {
         heal,
         manaPotion,
         manaShield,
-        plateMail,
         poisonDagger,
         pounce,
         predatorsFocus,
         roulette,
-        sageHeal,
         sapArrow,
         serratedEdge,
         smite,

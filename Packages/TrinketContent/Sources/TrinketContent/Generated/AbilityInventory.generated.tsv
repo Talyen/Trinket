@@ -34,12 +34,10 @@ frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
 heal	Heal	skill	Restore 5 Health.
 mana-potion	Mana Potion	skill	Restore 3 Mana.
 mana-shield	Mana Shield	skill	Convert all Mana into Block.
-plate-mail	Plate Mail	skill	Gain 3 Block.
 poison-dagger	Poison Dagger	skill	Deal 3 Poison damage.
 pounce	Pounce	skill	Deal 3 Stun damage.
 predators-focus	Predator's Focus	skill	Your next attack is a guaranteed Critical Hit.
 roulette	Roulette	skill	Deal 3 Random damage or steal 3 Gold.
-sage-heal	Sage Heal	skill	Restore 3 Health or draw 2 cards.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage.
 serrated-edge	Serrated Edge	skill	Applies Bleeding.
 smite	Smite	skill	Deal 4 Holy damage.

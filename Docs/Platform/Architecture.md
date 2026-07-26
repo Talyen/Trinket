@@ -24,7 +24,7 @@ Packages/
   BattleEngine/             Card combat rules, effect handlers, decks/hand
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
-  TrinketTestSupport/       Shared unit-test fixtures (CombatantFixtures, SaveTestSupport, battle parties)
+  TrinketTestSupport/       Shared combat/content fixtures (CombatantFixtures, battle parties)
 
 ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -50,7 +50,7 @@ Manifests and pipelines live outside the app folder:
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
 | Heroes, companions, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and card combat | `BattleEngine` | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
-| Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store` |
+| Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors; motion primitives. Battle-specific feedback *recipes* live in `Trinket/State/` |
 | Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState` (wiring), encounter `*Session` types, `BattleSession` |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
@@ -156,6 +156,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
+| Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
 
@@ -170,13 +171,25 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use
-- Battle simulation and fine-grained observable projections remain in `BattleSession`. `playCard` mutates
-  the stored state, publishes one presentation snapshot plus feedback/outcome work, and returns a typed
+- Battle simulation lives in `BattleSimBridge`; fine-grained observable projections remain in `BattleSession`. `playCard` mutates
+  the stored state via the bridge, publishes one presentation snapshot plus feedback/outcome work, and returns a typed
   rejection/commit result. `BattleView` then publishes the owner swing and release-time cast in causal order.
-- Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated raster host.
+- Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
   `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
 - App tests run via `./Scripts/test.sh unit`; package tests run via `./Scripts/test-package.sh <Package>` in addition to `TrinketTests`
+
+### Battle UIKit feedback island
+
+Combat floating chips use always-mounted UIKit hosts (`CombatFeedbackRasterHost`, `CombatFeedbackChipBridge`, glyph atlas / composers) so chip publishes skip SwiftUI battle-chrome invalidation. This is an intentional performance exception to the root “prefer SwiftUI” guardrail.
+
+| May enter the island | Must stay SwiftUI / State recipes |
+|----------------------|-----------------------------------|
+| New chip kinds via existing host + recipe/data APIs | New parallel `UIViewRepresentable` stacks |
+| Raster/glyph cache tweaks measured against hitch budgets | Feature chrome, hand, battlefield layout |
+| DEBUG MotionLabs that tune recipe/config values | Shipping MotionLab UI (labs stay `#if DEBUG` only) |
+
+Do not rewrite the host for purity unless Instruments shows SwiftUI can match hitch budgets. Production motion constants live in recipe/config types (`BattleHandMotionConfiguration`, `CombatFeedback*Recipes`, DesignSystem motion); MotionLab files are DEBUG playgrounds and must not become production surface.
 
 ### Standing platform rules
 
@@ -195,4 +208,4 @@ Do not start these without a concrete forcing function:
 |----------|----------|
 | Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam; keep new generators beside existing ones |
 | CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
-| Further `BattleSession` type split (sim bridge vs presentation controller) | Already file-split (`BattleSession+Presentation`, `+FeedbackPresentation`, …); deepen only if those files keep growing |
+| Further `BattleSession` presentation-file growth | Sim bridge extracted to `BattleSimBridge`; deepen presentation controller split only if `BattleSession+Presentation` / feedback files keep growing |

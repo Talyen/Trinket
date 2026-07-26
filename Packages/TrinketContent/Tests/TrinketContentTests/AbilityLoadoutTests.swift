@@ -15,23 +15,23 @@ struct AbilityLoadoutTests {
     }
 
     @Test func unlockedFiltersTiersByProgressionLevel() throws {
-        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .blessedAegis)
+        let loadout = AbilityLoadout(basic: .block, skill: .sunder, ultimate: .blessedAegis)
         let levelOne = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
 
         let unlocked = loadout.unlocked(for: levelOne)
 
         try #expect(unlocked.basic?.id == "block")
-        try #expect(unlocked.skill?.id == "plate-mail")
+        try #expect(unlocked.skill?.id == "sunder")
         try #expect(unlocked.ultimate == nil)
     }
 
     @Test func unlockedRestoresUltimateAtLevelSix() throws {
-        let loadout = AbilityLoadout(basic: .block, skill: .plateMail, ultimate: .blessedAegis)
+        let loadout = AbilityLoadout(basic: .block, skill: .sunder, ultimate: .blessedAegis)
         let levelSix = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         let unlocked = loadout.unlocked(for: levelSix)
 
-        try #expect(unlocked.abilities.map(\.id) == ["block", "plate-mail", "blessed-aegis"])
+        try #expect(unlocked.abilities.map(\.id) == ["block", "sunder", "blessed-aegis"])
     }
 
     @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() throws {

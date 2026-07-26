@@ -90,16 +90,6 @@ extension BattleSession {
     }
 
     static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
-        BattleState(
-            hero: configuration.hero.combatant,
-            companion: configuration.companion.combatant,
-            enemy: configuration.enemy,
-            heroModifiers: configuration.hero.modifiers,
-            companionModifiers: configuration.companion.modifiers,
-            enemyModifiers: configuration.enemyModifiers,
-            rngSeed: configuration.rngSeed,
-            tracksLog: false,
-            dealOpeningHand: false
-        )
+        BattleSimBridge.makeBattleState(from: configuration)
     }
 }

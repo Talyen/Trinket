@@ -113,7 +113,7 @@ struct BattleCombatantPane: View {
 }
 
 private struct CombatantHitReactionLane<Artwork: View>: View {
-    @Environment(AppState.self) private var appState
+    @Environment(BattleSession.self) private var battleSession
     let combatantID: String
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
@@ -132,7 +132,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     var body: some View {
         // Subscribe to the observation fence (hitReactions storage is ignored).
         // swiftlint:disable:next redundant_discardable_let
-        let _ = appState.battle.hitReactionEpoch
+        let _ = battleSession.hitReactionEpoch
         let recipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
             width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
@@ -264,7 +264,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             trigger: playToken,
             enabled: hapticsEnabled
         )
-        .onChange(of: appState.battle.hitReactionEpoch) { _, _ in
+        .onChange(of: battleSession.hitReactionEpoch) { _, _ in
             adoptLatestReactionIfNeeded()
         }
         .onAppear {
@@ -301,7 +301,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     }
 
     private func adoptLatestReactionIfNeeded() {
-        guard let reaction = appState.battle.hitReactionsByTargetID[combatantID],
+        guard let reaction = battleSession.hitReactionsByTargetID[combatantID],
               reaction.id != latestReactionID
         else { return }
         // Install recipe/kind first, then bump the trigger on the next turn so
@@ -341,22 +341,22 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 }
 
 private struct CombatantKeywordBurstLane: View {
-    @Environment(AppState.self) private var appState
+    @Environment(BattleSession.self) private var battleSession
     let combatantID: String
 
     var body: some View {
         // swiftlint:disable:next redundant_discardable_let
-        let _ = appState.battle.burstEpoch
-        KeywordBurstLayer(requests: appState.battle.keywordBursts(for: combatantID))
+        let _ = battleSession.burstEpoch
+        KeywordBurstLayer(requests: battleSession.keywordBursts(for: combatantID))
     }
 }
 
 private struct CombatantSkillCalloutLane: View {
-    @Environment(AppState.self) private var appState
+    @Environment(BattleSession.self) private var battleSession
     let combatantID: String
 
     var body: some View {
-        if let callout = appState.battle.activeSkillCallout,
+        if let callout = battleSession.activeSkillCallout,
            callout.actorID == combatantID {
             SkillCalloutView(callout: callout)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)

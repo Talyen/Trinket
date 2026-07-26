@@ -35,6 +35,7 @@ struct BattleView: View {
 
     private func bodyContent(battleSession: BattleSession) -> some View {
         outcomeContent(battleSession: battleSession)
+            .environment(battleSession)
             .trinketScreenBackground()
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)

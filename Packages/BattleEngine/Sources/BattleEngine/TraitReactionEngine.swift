@@ -10,7 +10,7 @@ package enum TraitReactionEngine {
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
         resolveBonusHeal(
-            amount: context.modifiers(for: source.id).cleanseBonusHeal,
+            amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
             source: source,
             target: target,
             in: &context
@@ -22,7 +22,7 @@ package enum TraitReactionEngine {
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
         resolveBonusHeal(
-            amount: context.modifiers(for: source.id).gainGoldBonusHealSelf,
+            amount: context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf,
             source: source,
             target: source,
             in: &context
@@ -36,7 +36,7 @@ package enum TraitReactionEngine {
     ) -> CombatOutcome {
         guard source.id != hero.id else { return .empty }
         return resolveBonusHeal(
-            amount: context.modifiers(for: source.id).restoreHealthAlsoHealHero,
+            amount: context.modifiers(for: source.id).triggers.restoreHealthAlsoHealHero,
             source: source,
             target: hero,
             in: &context,

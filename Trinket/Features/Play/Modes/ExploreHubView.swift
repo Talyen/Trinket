@@ -2,8 +2,8 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-/// Temporary Explore landing page. The eventual world map can replace this
-/// hub without changing the Play tab's top-level Campaign/Explore contract.
+/// Explore mode hub: Spires and Labyrinth entry cards under Play.
+/// World-map chrome can replace the art treatment later without changing destinations.
 struct ExploreHubView: View {
     @Environment(AppState.self) private var appState
 

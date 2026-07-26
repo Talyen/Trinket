@@ -181,7 +181,7 @@ struct ActiveBattleConfigurationTests {
         #expect(enemy.maxHealth == encounter.combatant.maxHealth)
         #expect(enemy.maxHealth > catalogEnemy.combatant.maxHealth)
         #expect(configuration.enemyEncounterLevel == encounter.level)
-        #expect(configuration.enemyModifiers.controlResistancePercent >= 0)
+        #expect(configuration.enemyModifiers.triggers.controlResistancePercent >= 0)
     }
 
     @Test func randomBattleResolvesDeterministicNonBossEncounter() throws {
