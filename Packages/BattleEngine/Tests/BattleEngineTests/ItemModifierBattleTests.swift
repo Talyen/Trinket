@@ -6,7 +6,7 @@ import TrinketCore
 struct ItemModifierBattleTests {
     @Test(arguments: [
         (affixID: "keen", abilityID: "slash"),
-        (affixID: "serrated", abilityID: "fangs")
+        (affixID: "serrated", abilityID: "fangs"),
     ])
     func equippedDamageAffixIncreasesCardDamage(affixID: String, abilityID: String) throws {
         let affix = try #require(GameContent.itemAffixDefinitions.first { $0.id == affixID })

@@ -2,6 +2,9 @@
 # trailing newlines) is owned by SwiftFormat (.swiftformat). Product UI chrome is
 # guarded by Scripts/check-ui-style.sh (TrinketDesign / UIStyleCheck: allow).
 # See Scripts/README.md "Style & lint ownership".
+#
+# Analyzer rules (unused_import, unused_declaration) need `swiftlint analyze` plus
+# a compiler index/log and are intentionally not part of the fail-closed style gate.
 swiftlint_version: 0.65.0
 
 opt_in_rules:
@@ -10,12 +13,14 @@ opt_in_rules:
   - prefer_key_path
   - contains_over_first_not_nil
   - empty_string
+  - empty_count
   - flatmap_over_map_reduce
   - identical_operands
   - joined_default_parameter
   - last_where
   - legacy_random
   - prohibited_super_call
+  - overridden_super_call
   - reduce_into
   - redundant_nil_coalescing
   - array_init
@@ -34,9 +39,17 @@ opt_in_rules:
   - xct_specific_matcher
   - toggle_bool
   - legacy_multiple
-
-analyzer_rules:
-  - unused_import
+  - sorted_first_last
+  - private_swiftui_state
+  - implicitly_unwrapped_optional
+  - yoda_condition
+  - optional_enum_case_matching
+  - prefer_self_in_static_references
+  - prefer_self_type_over_type_of_self
+  - self_binding
+  - unneeded_override
+  # no_empty_block omitted: fights Codable `init() {}`, SwiftUI dismiss
+  # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 
 disabled_rules:
   - line_length
@@ -86,6 +99,7 @@ function_parameter_count:
 # Platform bans from AGENTS.md — prefer @Observable / NavigationStack.
 # Regex custom_rules need SourceKit (skipped on Linux portable builds); style also
 # runs Scripts/check-platform-api-bans.sh so Linux/CI tools still enforce these.
+# Adaptive Color.primary / .secondary / .clear stay allowed (see check-ui-style.sh).
 custom_rules:
   banned_observation_apis:
     name: "Banned Observation APIs"
@@ -104,12 +118,12 @@ custom_rules:
     severity: error
   banned_system_color_literal:
     name: "Banned system Color literal"
-    regex: '(?<!\w)Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white)\b'
+    regex: '(?<!\w)Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white|accentColor)\b'
     message: "Use TrinketDesign.Colors, Overlay, keyword/homestead/resource helpers — not SwiftUI system Color.* literals."
     severity: error
   banned_system_shape_style_literal:
     name: "Banned system shape-style color"
-    regex: '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\b'
+    regex: '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\b'
     message: "Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red) and similar."
     severity: error
   banned_app_bundle_named_color:

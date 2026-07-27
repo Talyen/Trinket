@@ -21,7 +21,6 @@ public extension Ability {
     static let cleanse = AbilityCatalogSkill.cleanse
     static let coldSnap = AbilityCatalogSkill.coldSnap
     static let combustion = AbilityCatalogUltimate.combustion
-    static let crystalBulwark = AbilityCatalogUltimate.crystalBulwark
     static let darkPact = AbilityCatalogSkill.darkPact
     static let earthquake = AbilityCatalogUltimate.earthquake
     static let fangs = AbilityCatalogBasic.fangs
@@ -37,7 +36,6 @@ public extension Ability {
     static let kindling = AbilityCatalogBasic.kindling
     static let luckPotion = AbilityCatalogUltimate.luckPotion
     static let manaBerries = AbilityCatalogBasic.manaBerries
-    static let manaCrystals = AbilityCatalogBasic.manaCrystals
     static let manaPotion = AbilityCatalogSkill.manaPotion
     static let manaShield = AbilityCatalogSkill.manaShield
     static let maul = AbilityCatalogBasic.maul
@@ -52,7 +50,6 @@ public extension Ability {
     static let predatorsFocus = AbilityCatalogSkill.predatorsFocus
     static let rayOfFrost = AbilityCatalogBasic.rayOfFrost
     static let rendingSlash = AbilityCatalogBasic.rendingSlash
-    static let roulette = AbilityCatalogSkill.roulette
     static let sapArrow = AbilityCatalogSkill.sapArrow
     static let serratedEdge = AbilityCatalogSkill.serratedEdge
     static let shadowstep = AbilityCatalogUltimate.shadowstep
@@ -71,6 +68,5 @@ public extension Ability {
     static let tithe = AbilityCatalogSkill.tithe
     static let venomArrow = AbilityCatalogBasic.venomArrow
     static let venomFangs = AbilityCatalogSkill.venomFangs
-    static let wiseFrost = AbilityCatalogBasic.wiseFrost
 }
 

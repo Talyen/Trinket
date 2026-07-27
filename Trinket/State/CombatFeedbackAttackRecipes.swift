@@ -27,27 +27,27 @@ enum CombatFeedbackAttackRecipes {
         scaleX: [
             .init(value: 0.98, duration: 0.40),
             .init(value: 1.05, duration: 0.15),
-            .init(value: 1.0, duration: 0.45)
+            .init(value: 1.0, duration: 0.45),
         ],
         scaleY: [
             .init(value: 1.02, duration: 0.40),
             .init(value: 0.94, duration: 0.15),
-            .init(value: 1.0, duration: 0.45)
+            .init(value: 1.0, duration: 0.45),
         ],
         offsetX: [
             .init(value: 0, duration: 0.40),
             .init(value: 0, duration: 0.15),
-            .init(value: 0, duration: 0.45)
+            .init(value: 0, duration: 0.45),
         ],
         offsetY: [
             .init(value: -12, duration: 0.40),
             .init(value: 28, duration: 0.15),
-            .init(value: 0, duration: 0.45)
+            .init(value: 0, duration: 0.45),
         ],
         rotation: [
             .init(value: -4, duration: 0.40, usesSpring: false),
             .init(value: 3, duration: 0.15, usesSpring: false),
-            .init(value: 0, duration: 0.45, usesSpring: false)
+            .init(value: 0, duration: 0.45, usesSpring: false),
         ],
         impactDelay: 0.55,
         duration: 1.0

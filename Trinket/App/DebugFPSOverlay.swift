@@ -155,7 +155,7 @@ final class FramePacingMetricsProbe {
             reset.centerXAnchor.constraint(equalTo: root.view.centerXAnchor),
             reset.topAnchor.constraint(equalTo: root.view.safeAreaLayoutGuide.topAnchor),
             reset.widthAnchor.constraint(equalToConstant: 44),
-            reset.heightAnchor.constraint(equalToConstant: 44)
+            reset.heightAnchor.constraint(equalToConstant: 44),
         ])
         window.rootViewController = root
         window.isHidden = false
@@ -352,9 +352,9 @@ final class FramePacingMonitor: NSObject {
     /// contaminate the interval set it is reporting.
     func snapshotMeasurement() {
         displayLink?.isPaused = true
-        // Publish synchronously so XCTest can read the accessibility value
-        // without racing the detached analysis Task.
-        publishReport(synchronously: true)
+        // Always publish — including empty — so XCTest can distinguish "snapshot
+        // fired with no samples" from "snapshot never published".
+        publishReport(synchronously: true, allowEmpty: true)
     }
 
     func scheduleSnapshot(after delay: Duration) {
@@ -400,14 +400,19 @@ final class FramePacingMonitor: NSObject {
         publishReport(synchronously: true)
     }
 
-    private func publishReport(synchronously: Bool) {
+    private func publishReport(synchronously: Bool, allowEmpty: Bool = false) {
         let ordered: [Sample] = if sampleCount < capacity {
             storage.prefix(sampleCount).compactMap(\.self)
         } else {
             (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
         }
         let samples = Self.samples(inLast: windowSeconds, from: ordered)
-        guard !samples.isEmpty else { return }
+        if samples.isEmpty {
+            guard allowEmpty else { return }
+            latestReport = .empty
+            handler?(.empty)
+            return
+        }
         analysisTask?.cancel()
 
         let intervals = samples.map(\.interval)

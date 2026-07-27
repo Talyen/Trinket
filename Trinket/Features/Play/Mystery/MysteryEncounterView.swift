@@ -422,7 +422,7 @@ extension MysteryEncounterView {
                 (.eyebrow, TrinketMotion.Reward.reveal),
                 (.title, TrinketMotion.Reward.reveal),
                 (.subtitle, TrinketMotion.Reward.stateChange),
-                (.art, TrinketMotion.Reward.reveal)
+                (.art, TrinketMotion.Reward.reveal),
             ]
 
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
@@ -475,7 +475,7 @@ private enum UnlockRevealPhase: Int, Comparable {
         lhs.rawValue < rhs.rawValue
     }
 
-    func opacity(visibleFrom phase: UnlockRevealPhase) -> Double {
+    func opacity(visibleFrom phase: Self) -> Double {
         self >= phase ? 1 : 0
     }
 }

@@ -6,7 +6,7 @@ struct EnemyCatalogTests {
         "the_blight_treant",
         "the_forge_golem",
         "the_frostwarden",
-        "the_iron_bear"
+        "the_iron_bear",
     ]
 
     private static let bossBaseHealth: Set<Int> = [24, 26, 27, 28]
@@ -63,7 +63,7 @@ struct EnemyCatalogTests {
         let companionAverage = Double(GameContent.companions.map(\.maxHealth).reduce(0, +)) / Double(GameContent.companions.count)
         let enemyAverage = Double(
             GameContent.enemies.filter { !$0.isBoss }.map(\.maxHealth).reduce(0, +)
-        ) / Double(GameContent.enemies.filter { !$0.isBoss }.count)
+        ) / Double(GameContent.enemies.count(where: { !$0.isBoss }))
 
         try #expect(heroAverage > enemyAverage)
         try #expect(companionAverage > enemyAverage)

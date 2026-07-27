@@ -17,13 +17,13 @@ public struct SpireID: RawRepresentable, Hashable, Codable, Sendable, Identifiab
         self.rawValue = rawValue
     }
 
-    public static let ironVein = SpireID("ironVein")
-    public static let cinderSpire = SpireID("cinderSpire")
-    public static let serpentHollow = SpireID("serpentHollow")
-    public static let scarGallery = SpireID("scarGallery")
-    public static let aureateChoir = SpireID("aureateChoir")
-    public static let rimeVault = SpireID("rimeVault")
-    public static let stormAnvil = SpireID("stormAnvil")
+    public static let ironVein = Self("ironVein")
+    public static let cinderSpire = Self("cinderSpire")
+    public static let serpentHollow = Self("serpentHollow")
+    public static let scarGallery = Self("scarGallery")
+    public static let aureateChoir = Self("aureateChoir")
+    public static let rimeVault = Self("rimeVault")
+    public static let stormAnvil = Self("stormAnvil")
 }
 
 public struct SpireDefinition: Identifiable, Hashable, Sendable {
@@ -108,7 +108,7 @@ public enum SpireAttunement: Equatable, Sendable {
         hero: Combatant,
         companion: Combatant,
         spire: SpireDefinition
-    ) -> SpireAttunement {
+    ) -> Self {
         if !matches(hero, spire: spire) {
             return .missingHeroAffinity
         }

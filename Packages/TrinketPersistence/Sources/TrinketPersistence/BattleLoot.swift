@@ -22,7 +22,7 @@ public struct BattleLootPackage: Hashable, Sendable {
 
 public enum BattleLoot {
     public static let materialResources: [HomesteadResource] = [
-        .wood, .stone, .iron, .food, .herbs, .hide, .crystal
+        .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
     ]
 
     /// Shared quantity band for gold and each material (L1 8–12 → L50 12–24).

@@ -129,7 +129,7 @@ struct VictoryView: View {
     }
 
     private var walletRewardCount: Int {
-        (summary.totalGold > 0 ? 1 : 0) + summary.materialRewards.filter { $0.quantity > 0 }.count
+        (summary.totalGold > 0 ? 1 : 0) + summary.materialRewards.count(where: { $0.quantity > 0 })
     }
 
     private var primaryActionAccessibilityIdentifier: String {

@@ -195,7 +195,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.wiseFrost, .stargaze],
+                basics: [.apple, .stargaze],
                 skills: [.heal, .cleanse],
                 ultimates: [.panaceaPotion, .glacialWard]
             ),
@@ -222,7 +222,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 11,
             abilityChoices: AbilityChoices(
-                basics: [.manaBerries, .manaCrystals],
+                basics: [.manaBerries, .pixieDust],
                 skills: [.manaPotion, .manaShield],
                 ultimates: [.meteor, .glacialWard]
             ),

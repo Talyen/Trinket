@@ -26,10 +26,9 @@ struct GameContentCatalogInvariantTests {
                 "Stage \(stage.id) references unknown mystery event \(eventID)"
             )
         }
-        if let eventID = stage.encounter.recruitEventID {
-            guard !eventID.isEmpty,
-                  eventID != StageEncounter.randomCompanionRecruitID
-            else { return }
+        if let eventID = stage.encounter.recruitEventID,
+           !eventID.isEmpty,
+           eventID != StageEncounter.randomCompanionRecruitID {
             let event = try #require(
                 GameContent.recruitEvent(matching: eventID),
                 "Stage \(stage.id) references unknown recruit event \(eventID)"

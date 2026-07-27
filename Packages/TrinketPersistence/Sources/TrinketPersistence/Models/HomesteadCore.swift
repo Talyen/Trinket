@@ -9,12 +9,12 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     /// Soft cap for stored homestead materials (gold is roster-owned).
     public static let maxMaterialBalance = 999
 
-    public static var freshStart: PlayerHomesteadState {
-        PlayerHomesteadState(resources: [:], nodeTiers: [:])
+    public static var freshStart: Self {
+        Self(resources: [:], nodeTiers: [:])
     }
 
-    public static var testSeed: PlayerHomesteadState {
-        PlayerHomesteadState(
+    public static var testSeed: Self {
+        Self(
             resources: [
                 .wood: 40,
                 .stone: 28,
@@ -22,18 +22,18 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
                 .food: 20,
                 .herbs: 14,
                 .hide: 10,
-                .crystal: 4
+                .crystal: 4,
             ],
             nodeTiers: [
                 .wheatField: 1,
                 .herbGarden: 1,
-                .chickenCoop: 1
+                .chickenCoop: 1,
             ]
         )
     }
 
     /// Development-only seed used by Options' Unlock All action.
-    public static var developerMaxed: PlayerHomesteadState {
+    public static var developerMaxed: Self {
         var state = testSeed
         for resource in HomesteadResource.allCases where resource != .gold {
             state.resources[resource] = maxMaterialBalance

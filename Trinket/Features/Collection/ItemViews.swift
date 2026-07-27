@@ -342,13 +342,13 @@ struct ItemDetailView: View {
         item: InventoryItem,
         appState: AppState,
         onFinished: @escaping (_ didSucceed: Bool) -> Void
-    ) -> ItemDetailView {
+    ) -> Self {
         let isOwned = appState.inventory.items.contains { $0.id == item.id }
         guard isOwned else {
-            return ItemDetailView(item: item)
+            return Self(item: item)
         }
         let yields = ItemSalvage.yields(for: item)
-        return ItemDetailView(
+        return Self(
             item: item,
             salvageYields: yields,
             salvageReceivableYields: appState.homestead.receivableAmounts(from: yields),

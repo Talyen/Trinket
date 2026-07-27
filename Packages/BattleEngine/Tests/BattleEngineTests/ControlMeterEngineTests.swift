@@ -48,7 +48,7 @@ struct ControlMeterEngineTests {
     @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() throws {
         var context = makeContext(
             targetEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
             ],
             seed: 1772
         )
@@ -65,7 +65,7 @@ struct ControlMeterEngineTests {
     @Test func applyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
         var context = makeContext(
             targetEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
             ],
             seed: 1772
         )
@@ -93,7 +93,7 @@ struct ControlMeterEngineTests {
         let context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTurns: 0)
+                ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTurns: 0),
             ],
             seed: 1772
         )

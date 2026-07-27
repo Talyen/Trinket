@@ -46,6 +46,8 @@ struct WireAbilityLoadout: Codable, Equatable {
         switch id {
         case "concussive-shot": "astral-arrow"
         case "crystal-bulwark": "glacial-ward"
+        case "mana-crystals": "pixie-dust"
+        case "wise-frost": "apple"
         default: nil
         }
     }

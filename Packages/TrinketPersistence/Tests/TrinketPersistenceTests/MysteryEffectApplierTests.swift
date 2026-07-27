@@ -29,7 +29,7 @@ struct MysteryEffectApplierTests {
             [
                 .gainGold(20),
                 .gainMaterial(.herbs, 3),
-                .gainExperience(10)
+                .gainExperience(10),
             ],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",

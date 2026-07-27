@@ -1,12 +1,12 @@
 # Feature-local guide
 
-Feature work belongs in the matching `Features/<flow>/` folder. Read `Docs/AgentContext/swiftui-features.md` before editing.
+Feature work belongs in the matching `Features/<flow>/` folder. Feature UI and state wiring must conform to `Docs/AgentContext/swiftui-features.md`.
 
-- Use shared state through the environment; feature views may own transient local `@State` but not app or session stores. Prefer the narrowest observable owner (`BattleSession`, encounter sessions) over whole `AppState` when a subtree only needs that slice — inject it with `.environment(session)` from the parent.
-- Use `TrinketDesignSystem` chrome, colors, and shared views from `Trinket/Shared/` before creating a local abstraction. Never introduce one-off `Color` / system palette literals — extend the design system instead.
-- File-level `@ViewBuilder` helpers that call DesignSystem / view modifiers must be `@MainActor` (or live as methods on a `View`). Free nonisolated helpers fail Swift 6 concurrency under `build-for-testing` even when style is clean.
-- Add/reuse a stable `AccessibilityID` test selector for a new player flow. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry, state-changing journey, or one-owner safety invariant). Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
-- Verify with path-scoped `./Scripts/verify-changed.sh --isolate --paths …`. Policy and path-scoped tiers: `Docs/Platform/Testing.md` and `Docs/AgentContext/ci-and-project-generation.md`.
+- Use shared state through the environment; feature views may own transient local `@State` but not app or session stores. Scope observability to the smallest subtree that needs it.
+- Visual chrome and colors come from `TrinketDesignSystem` and shared views in `Trinket/Shared/`. Never introduce one-off `Color` / system palette literals — extend the design system instead.
+- `@ViewBuilder` helpers must compile under Swift 6 strict concurrency (file-level helpers that call DesignSystem / view modifiers need `@MainActor`, or live as methods on a `View`).
+- New player flows need stable accessibility identifiers suitable for smoke tests. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies. Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
+- Feature changes must pass path-scoped verification before handoff.
 
 ## Homestead UX contract
 

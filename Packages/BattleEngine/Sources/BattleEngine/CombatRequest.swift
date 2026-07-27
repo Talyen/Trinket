@@ -50,13 +50,13 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     }
 
     /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.
-    public static let directAbilityHit = DamageOptions(
+    public static let directAbilityHit = Self(
         qualifiesForAmbush: true,
         isAttackHit: true
     )
 
     /// DoT tick: stat and item bonuses at resolution time; no dodge; not an attack hit.
-    public static let doTTick = DamageOptions(
+    public static let doTTick = Self(
         applyStatBonus: true,
         applyItemBonus: true,
         applyDodge: false,
@@ -64,7 +64,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     )
 
     /// Authored "Lose N Health" cost: exact HP loss with no dodge/crit/mitigation/ambush.
-    public static let healthCost = DamageOptions(
+    public static let healthCost = Self(
         applyStatBonus: false,
         applyItemBonus: false,
         applyDodge: false,
@@ -99,8 +99,8 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
         target: Combatant,
         keyword: Keyword,
         sourceActorID: String
-    ) -> DamageRequest {
-        DamageRequest(
+    ) -> Self {
+        Self(
             amount: amount,
             target: target,
             keyword: keyword,
@@ -114,8 +114,8 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
         target: Combatant,
         keyword: Keyword,
         sourceActorID: String?
-    ) -> DamageRequest {
-        DamageRequest(
+    ) -> Self {
+        Self(
             amount: amount,
             target: target,
             keyword: keyword,

@@ -1,10 +1,13 @@
 --swiftversion 6.0
 --indent 4
 --trimwhitespace always
---commas inline
+--trailing-commas always
 --decimalgrouping none
 --ifdef no-indent
 --self remove
 --importgrouping testable-bottom
+--wraparguments before-first
+--wrapparameters before-first
 --disable wrapMultilineStatementBraces
+--enable isEmpty,preferContains,preferFirstWhere,preferCountWhere,preferMinOverSorted,preferFlatMap,preferSwiftTesting,privateStateVariables,noGuardInTests
 --exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build,Trinket/Features/Battle/Layout/BattleHandMotionLab.swift,Trinket/Features/Battle/Feedback/CombatFeedbackFloatMotionLab.swift

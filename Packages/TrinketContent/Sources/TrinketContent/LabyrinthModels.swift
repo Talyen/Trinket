@@ -17,15 +17,15 @@ public struct LabyrinthBiomeID: RawRepresentable, Hashable, Codable, Sendable, I
         self.rawValue = rawValue
     }
 
-    public static let ironGalleries = LabyrinthBiomeID("ironGalleries")
-    public static let cinderGalleries = LabyrinthBiomeID("cinderGalleries")
-    public static let serpentSump = LabyrinthBiomeID("serpentSump")
-    public static let scarCatacombs = LabyrinthBiomeID("scarCatacombs")
-    public static let aureateCrypt = LabyrinthBiomeID("aureateCrypt")
-    public static let rimeDescent = LabyrinthBiomeID("rimeDescent")
-    public static let stormCulvert = LabyrinthBiomeID("stormCulvert")
-    public static let gildedFault = LabyrinthBiomeID("gildedFault")
-    public static let heartwellGrotto = LabyrinthBiomeID("heartwellGrotto")
+    public static let ironGalleries = Self("ironGalleries")
+    public static let cinderGalleries = Self("cinderGalleries")
+    public static let serpentSump = Self("serpentSump")
+    public static let scarCatacombs = Self("scarCatacombs")
+    public static let aureateCrypt = Self("aureateCrypt")
+    public static let rimeDescent = Self("rimeDescent")
+    public static let stormCulvert = Self("stormCulvert")
+    public static let gildedFault = Self("gildedFault")
+    public static let heartwellGrotto = Self("heartwellGrotto")
 }
 
 /// Catalog modifier shown by title only in player UI (no umbrella noun).
@@ -123,7 +123,7 @@ public enum LabyrinthNodeType: String, Hashable, Sendable, CaseIterable, Codable
     case entrance
 
     /// Canonical type after collapsing legacy `.event` into mystery encounters.
-    public var canonical: LabyrinthNodeType {
+    public var canonical: Self {
         self == .event ? .mystery : self
     }
 
@@ -309,7 +309,7 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
     public var astralChanceBonusPercent: Int
     public var keywordBiases: Set<Keyword>
 
-    public static let zero = LabyrinthModifierEffects(
+    public static let zero = Self(
         damageDealtBonus: [:],
         goldPercent: 0,
         astralChanceBonusPercent: 0,
@@ -331,8 +331,8 @@ public struct LabyrinthModifierEffects: Equatable, Sendable {
     public static func combining(
         _ modifiers: [LabyrinthModifierDefinition],
         biomeBias: Keyword
-    ) -> LabyrinthModifierEffects {
-        var effects = LabyrinthModifierEffects.zero
+    ) -> Self {
+        var effects = Self.zero
         effects.keywordBiases.insert(biomeBias)
         for modifier in modifiers {
             switch modifier.effect {

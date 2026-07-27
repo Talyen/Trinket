@@ -10,16 +10,16 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         return 100 + (50 * steps) + (5 * steps * steps)
     }
 
-    public static let initial = CombatantProgression(
+    public static let initial = Self(
         level: 1,
         currentXP: 0,
         requiredXP: requiredXP(forLevel: 1)
     )
 
     /// Progression parked at `level` with empty XP toward the next level.
-    public static func at(level: Int) -> CombatantProgression {
+    public static func at(level: Int) -> Self {
         let clamped = max(level, 1)
-        return CombatantProgression(
+        return Self(
             level: clamped,
             currentXP: 0,
             requiredXP: requiredXP(forLevel: clamped)
@@ -41,7 +41,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         level >= tier.unlockLevel
     }
 
-    public func addingExperience(_ amount: Int) -> CombatantProgression {
+    public func addingExperience(_ amount: Int) -> Self {
         guard amount > 0 else { return self }
 
         var nextLevel = level
@@ -54,7 +54,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
             nextRequiredXP = Self.requiredXP(forLevel: nextLevel)
         }
 
-        return CombatantProgression(
+        return Self(
             level: nextLevel,
             currentXP: nextXP,
             requiredXP: nextRequiredXP

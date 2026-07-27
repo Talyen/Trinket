@@ -1,5 +1,5 @@
 # BattleEngine-local guide
 
-Read `Docs/AgentContext/battle.md` before editing. Keep combat rules, effect handling, deck/hand logic, and turn mutation in this package; never import the app or feature views.
+Combat behavior must conform to `Docs/AgentContext/battle.md`. Keep combat rules, effect handling, deck/hand logic, and turn mutation in this package; never import the app or feature views.
 
-Use deterministic `BattleStateTestFactory` setup and cover changed rules in `BattleEngineTests`. The root task-scoped workflow selects style and package checks; for a deliberately narrow iteration, run `./Scripts/test-package.sh BattleEngine`.
+Changed combat rules need deterministic tests in `BattleEngineTests` that would fail on the old behavior. Package-scoped verification must pass before handoff.

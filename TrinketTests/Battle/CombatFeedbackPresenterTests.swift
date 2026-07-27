@@ -11,7 +11,7 @@ struct CombatFeedbackPresenterTests {
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 5, keyword: .physical),
                 makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .physical),
-                makeEvent(id: 3, kind: .abilityDamage, amount: 0, keyword: .physical)
+                makeEvent(id: 3, kind: .abilityDamage, amount: 0, keyword: .physical),
             ],
             at: Date(timeIntervalSince1970: 100)
         )
@@ -27,7 +27,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 12,
                     keyword: .physical,
                     isCritical: true
-                )
+                ),
             ],
             at: Date(timeIntervalSince1970: 100)
         )
@@ -41,7 +41,7 @@ struct CombatFeedbackPresenterTests {
         let abilityItems = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .physical),
-                makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .physical)
+                makeEvent(id: 2, kind: .abilityDamage, amount: 4, keyword: .physical),
             ],
             at: .now
         )
@@ -65,7 +65,7 @@ struct CombatFeedbackPresenterTests {
                     effectKind: .shieldApplied,
                     amount: 3,
                     keyword: .block
-                )
+                ),
             ],
             at: .now
         )
@@ -90,7 +90,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 3,
                     keyword: .physical
                 ),
-                makeEvent(id: 22, kind: .abilityDamage, amount: 4, keyword: .physical)
+                makeEvent(id: 22, kind: .abilityDamage, amount: 4, keyword: .physical),
             ],
             at: Date(timeIntervalSince1970: 100)
         )
@@ -120,7 +120,7 @@ struct CombatFeedbackPresenterTests {
                 effectKind: .dodgeApplied,
                 amount: 0,
                 keyword: .dodge
-            )
+            ),
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 1))
         #expect(items.map(\.feedbackClass) == [.heal, .dodge])
@@ -137,7 +137,7 @@ struct CombatFeedbackPresenterTests {
         let sharedGroup = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 3, keyword: .physical),
-                makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed, actionID: 1)
+                makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed, actionID: 1),
             ],
             at: now
         )
@@ -154,7 +154,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 4,
                     keyword: .physical,
                     targetID: "hero"
-                )
+                ),
             ],
             at: now
         )
@@ -172,7 +172,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 2,
                     keyword: .bleed,
                     targetID: "hero"
-                )
+                ),
             ],
             at: .now
         )
@@ -194,7 +194,7 @@ struct CombatFeedbackPresenterTests {
                     effectKind: .leechHeal,
                     amount: 3,
                     keyword: .health
-                )
+                ),
             ],
             at: .now
         )
@@ -204,7 +204,7 @@ struct CombatFeedbackPresenterTests {
         let directAndStatus = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 2, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed)
+                makeEvent(id: 2, kind: .status, amount: 1, keyword: .bleed),
             ],
             at: .now
         )
@@ -239,7 +239,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 1,
                     keyword: .stun
                 ),
-                makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical)
+                makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical),
             ],
             at: .now
         )
@@ -263,7 +263,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 0,
                     keyword: .dodge
                 ),
-                makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .burn)
+                makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .burn),
             ],
             at: now
         )
@@ -325,7 +325,7 @@ extension CombatFeedbackPresenterTests {
                     effectKind: .shieldApplied,
                     amount: 4,
                     keyword: .block
-                )
+                ),
             ],
             at: Date(timeIntervalSince1970: 10)
         )
@@ -335,7 +335,7 @@ extension CombatFeedbackPresenterTests {
         #expect(canvasItems.count == 2)
         #expect(canvasItems.map(\.label) == [
             .amount(-7),
-            .amount(4)
+            .amount(4),
         ])
         #expect(canvasItems.map(\.item.feedbackClass) == [.directDamage, .buff])
         #expect(canvasItems.allSatisfy { !$0.text.contains("Effect") })
@@ -345,7 +345,7 @@ extension CombatFeedbackPresenterTests {
         let sameKind = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 2, keyword: .bleed),
-                makeEvent(id: 2, kind: .status, amount: 3, keyword: .bleed)
+                makeEvent(id: 2, kind: .status, amount: 3, keyword: .bleed),
             ],
             at: .now
         )
@@ -356,7 +356,7 @@ extension CombatFeedbackPresenterTests {
         let distinctKinds = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .abilityDamage, amount: 8, keyword: .physical),
-                makeEvent(id: 2, kind: .status, amount: 3, keyword: .burn)
+                makeEvent(id: 2, kind: .status, amount: 3, keyword: .burn),
             ],
             at: .now
         )
@@ -391,7 +391,7 @@ extension CombatFeedbackPresenterTests {
                 makeEvent(id: 1, kind: .effect, effectKind: .cardsDrawn, amount: 2, keyword: .physical),
                 makeEvent(id: 2, kind: .effect, effectKind: .controlApplied, amount: 4, keyword: .stun),
                 makeEvent(id: 3, kind: .effect, effectKind: .shieldApplied, amount: 0, keyword: .block),
-                makeEvent(id: 4, kind: .effect, effectKind: .nextHolyStrikeApplied, amount: 0, keyword: .holy)
+                makeEvent(id: 4, kind: .effect, effectKind: .nextHolyStrikeApplied, amount: 0, keyword: .holy),
             ],
             at: .now
         )
@@ -413,7 +413,7 @@ extension CombatFeedbackPresenterTests {
             makeEvent(id: 4, kind: .effect, effectKind: .thornsApplied, amount: 2, keyword: .physical),
             makeEvent(id: 6, kind: .effect, effectKind: .criticalChanceApplied, amount: 15, keyword: .physical),
             makeEvent(id: 7, kind: .effect, effectKind: .markedApplied, amount: 3, keyword: .physical),
-            makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block)
+            makeEvent(id: 8, kind: .effect, effectKind: .shieldHalved, amount: 0, keyword: .block),
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -465,7 +465,7 @@ extension CombatFeedbackPresenterTests {
                     actionID: 99,
                     abilityID: "avatar-of-justice",
                     abilityName: "Avatar"
-                )
+                ),
             ],
             at: .now
         )

@@ -68,7 +68,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero")
+                ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0, sourceActorID: "hero"),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(poisonDecayIncreaseChance: 1.0))
         )
@@ -82,12 +82,12 @@ struct AffixReactionBattleTests {
     @Test func frostburnIncreasesFreezeDamageAgainstBurningEnemies() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [
-                Ability(id: "frost", name: "Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze)
+                Ability(id: "frost", name: "Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze),
             ]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: "hero")
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0, sourceActorID: "hero"),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(freezeDamageWhileBurningBonus: 2))
         )
@@ -104,7 +104,7 @@ struct AffixReactionBattleTests {
             role: .enemy,
             maxHealth: 100,
             abilities: [
-                Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 2, damageKeyword: .physical)
+                Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 2, damageKeyword: .physical),
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
@@ -112,7 +112,7 @@ struct AffixReactionBattleTests {
             companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 6)
+                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 6),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(blockBrokenBlockFlat: 4))
         )
@@ -178,7 +178,7 @@ struct AffixReactionBattleTests {
             maxHealth: 100,
             abilities: [
                 // Non-lethal: drop below 25% without killing so Death's Door does not own the hit.
-                Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 16, damageKeyword: .physical)
+                Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 16, damageKeyword: .physical),
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
@@ -201,12 +201,12 @@ struct AffixReactionBattleTests {
     @Test func shatterAddsDamageWhileEnemyIsFrozen() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [
-                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
+                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical),
             ]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTurns: 0),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetFrozenBonus: 2))
         )
@@ -225,7 +225,7 @@ struct AffixReactionBattleTests {
                     tier: .basic,
                     directDamage: 1,
                     damageKeyword: .physical
-                )
+                ),
             ],
             maxHealth: 50
         )
@@ -389,12 +389,12 @@ struct AffixReactionBattleTests {
     @Test func dazedAddsDamageWhileEnemyIsStunned() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: hero(abilities: [
-                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
+                Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical),
             ]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTurns: 0),
             ],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetStunnedBonus: 1))
         )

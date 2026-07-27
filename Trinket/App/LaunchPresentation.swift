@@ -35,7 +35,7 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
 
     /// Maps a battle origin token to a Play return destination.
     /// Journey battles return to the Campaign stage screen (Mode Hub peer).
-    static func returning(from token: ActiveBattleResumeToken?) -> PlayLaunchDestination? {
+    static func returning(from token: ActiveBattleResumeToken?) -> Self? {
         switch token {
         case .none:
             nil

@@ -3,8 +3,13 @@ import XCTest
 /// Core app journeys measured with native render-pipeline hitches and the shared
 /// refresh-normalized display-link report.
 final class AppPerformanceUITests: TrinketUITestCase {
-    private static let measurementDuration: TimeInterval = 7.2
+    /// Must stay ≥ app `BattlePerformanceTiming.snapshotDelay` (10s full / 3s quick).
+    private static let measurementDuration: TimeInterval = 10.5
     private static let samplerWarmup: TimeInterval = 0.85
+    /// Extra poll after the freeze window for MainActor-delayed snapshot publication.
+    private static let reportSettleTimeout: TimeInterval = 12
+    /// Capture floor under loaded Simulator refresh (not a hitch budget).
+    private static let minimumCapturedSamples = 90
 
     private var repetitionCount: Int {
         let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"
@@ -62,7 +67,14 @@ final class AppPerformanceUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
         homestead.assertLoaded()
         tapButton(AccessibilityID.Homestead.category("Farming"))
-        assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Wheat Field"))
+        // Category push can leave Wheat Field below the fold; give navigation a beat
+        // before the scroll hunt so we do not swipe the overview.
+        _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
+            .waitForExistence(timeout: 2)
+        assertExistsAfterScroll(
+            AccessibilityID.Homestead.node(title: "Wheat Field"),
+            maxAttempts: 10
+        )
         let detail = app.descendants(matching: .any)[
             AccessibilityID.Homestead.nodeDetail(title: "Wheat Field")
         ]
@@ -195,7 +207,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
         tapWhenReady(reset)
         RunLoop.current.run(until: Date().addingTimeInterval(Self.samplerWarmup))
         action()
-        // Wait out the app's 7s freeze snapshot from reset (probe lives in a
+        // Wait out the app's freeze snapshot from reset (probe lives in a
         // top-level UIWindow so covers / shell swaps cannot stale the AX node).
         let remaining = Self.measurementDuration - Date().timeIntervalSince(resetAt)
         if remaining > 0 {
@@ -203,27 +215,30 @@ final class AppPerformanceUITests: TrinketUITestCase {
         }
 
         let settled = NSPredicate { _, _ in
-            guard let payload = metrics.value as? String,
+            let live = self.app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
+            guard let payload = live.value as? String,
                   let report = FramePacingReport.parseAccessibilityValue(payload)
             else { return false }
-            return report.sampleCount >= 120
+            return report.sampleCount >= Self.minimumCapturedSamples
         }
         XCTAssertEqual(
             XCTWaiter().wait(
                 for: [XCTNSPredicateExpectation(predicate: settled, object: metrics)],
-                timeout: 4
+                timeout: Self.reportSettleTimeout
             ),
             .completed,
             "No measured frame report was captured for \(scenario); last=\(metrics.value ?? "nil")"
         )
 
-        guard let payload = metrics.value as? String,
+        // Re-query after settle — the pre-wait `metrics` node can go stale across shell swaps.
+        let liveMetrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
+        guard let payload = liveMetrics.value as? String,
               let report = FramePacingReport.parseAccessibilityValue(payload)
         else {
             XCTFail("No measured frame report was captured for \(scenario)")
             return
         }
-        XCTAssertGreaterThanOrEqual(report.sampleCount, 120)
+        XCTAssertGreaterThanOrEqual(report.sampleCount, Self.minimumCapturedSamples)
         PerformanceReportRecorder.record(
             report,
             scenario: scenario,

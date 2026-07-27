@@ -20,7 +20,7 @@ private func recruit(
                 id: choiceID,
                 label: choiceLabel,
                 effects: [.unlockCombatant(combatantID)]
-            )
+            ),
         ]
     )
 }
@@ -155,7 +155,7 @@ enum RecruitEventPool {
             narrative: "Lantern light catches a white-tipped brush among the stones. A fox sits as if it has been waiting, ears tipped forward, then rises and glances down the trail you meant to take.",
             choiceID: "welcome",
             choiceLabel: "Walk with me."
-        )
+        ),
     ]
 
     static func event(matching id: String) -> MysteryEvent? {

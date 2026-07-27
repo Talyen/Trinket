@@ -32,7 +32,7 @@ struct BattleVictorySummaryTests {
             roster: rosterState,
             stageReward: StageReward(gold: 12, itemTemplateIDs: [], materialRewards: [
                 ResourceAmount(.wood, 8),
-                ResourceAmount(.stone, 3)
+                ResourceAmount(.stone, 3),
             ]),
             pendingRewardItem: lootItem
         )

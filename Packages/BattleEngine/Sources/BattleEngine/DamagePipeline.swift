@@ -39,7 +39,7 @@ package enum DamagePipeline {
         Step(name: "ControlMeter", phase: .post, apply: applyControlMeter),
         Step(name: "ReactiveOnHit", phase: .post, apply: applyReactiveOnHit),
         Step(name: "HolyReaction", phase: .post, apply: applyHolyReaction),
-        Step(name: "CriticalReaction", phase: .post, apply: applyCriticalReaction)
+        Step(name: "CriticalReaction", phase: .post, apply: applyCriticalReaction),
     ]
 
     public static var canonicalNames: [String] {

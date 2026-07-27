@@ -17,7 +17,7 @@ extension BattleSession {
     /// hand synchronously for unit tests.
     func beginOpeningHandDeal(for configurationID: UUID) {
         guard var battleState = state,
-              battleState.hand.count == 0,
+              battleState.hand.isEmpty,
               let activeID = activeBattle?.id,
               activeID == configurationID
         else { return }

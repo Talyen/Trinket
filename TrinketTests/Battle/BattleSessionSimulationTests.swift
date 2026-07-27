@@ -202,7 +202,7 @@ struct BattleSessionSimulationTests {
         session.recordFeedbackEvents(
             [
                 feedbackEvent(id: 1, amount: 1),
-                feedbackEvent(id: 2, amount: 2)
+                feedbackEvent(id: 2, amount: 2),
             ],
             at: now
         )
@@ -216,7 +216,7 @@ struct BattleSessionSimulationTests {
         session.recordFeedbackEvents(
             [
                 feedbackEvent(id: 3, amount: 1),
-                feedbackEvent(id: 4, amount: 2)
+                feedbackEvent(id: 4, amount: 2),
             ],
             at: now
         )
@@ -273,7 +273,7 @@ struct BattleSessionSimulationTests {
                 feedbackEvent(id: 2, amount: 2, keyword: .burn),
                 feedbackEvent(id: 3, amount: 3, keyword: .poison),
                 feedbackEvent(id: 4, amount: 4, keyword: .holy),
-                feedbackEvent(id: 5, amount: 5, keyword: .burn, targetID: "hero")
+                feedbackEvent(id: 5, amount: 5, keyword: .burn, targetID: "hero"),
             ],
             at: now
         )
@@ -302,7 +302,7 @@ struct BattleSessionSimulationTests {
         let session = BattleSession(openingHandDrawStagger: 0)
         let now = Date(timeIntervalSince1970: 200)
         let keywords: [Keyword] = [
-            .bleed, .burn, .poison, .holy, .physical, .freeze, .stun, .leech
+            .bleed, .burn, .poison, .holy, .physical, .freeze, .stun, .leech,
         ]
         session.recordFeedbackEvents(
             keywords.enumerated().map { index, keyword in
@@ -429,7 +429,7 @@ struct BattleSessionPartyFeedbackStreamTests {
                 partyFeedbackEvent(id: 2, amount: 2, keyword: .burn, targetID: "hero"),
                 partyFeedbackEvent(id: 3, amount: 3, keyword: .poison, targetID: "hero"),
                 partyFeedbackEvent(id: 4, amount: 4, keyword: .holy, targetID: "companion"),
-                partyFeedbackEvent(id: 5, amount: 5, keyword: .physical, targetID: "companion")
+                partyFeedbackEvent(id: 5, amount: 5, keyword: .physical, targetID: "companion"),
             ],
             at: now
         )

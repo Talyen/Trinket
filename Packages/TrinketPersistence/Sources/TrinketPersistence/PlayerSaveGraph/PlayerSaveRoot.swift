@@ -48,6 +48,6 @@ public enum PlayerSaveGraph {
         HomesteadNodeTierModel.self,
         SpiresProgressModel.self,
         SpireFloorProgressModel.self,
-        LabyrinthProgressModel.self
+        LabyrinthProgressModel.self,
     ])
 }

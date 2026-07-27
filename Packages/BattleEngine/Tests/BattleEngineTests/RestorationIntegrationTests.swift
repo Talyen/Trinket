@@ -22,7 +22,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
             ]
         )
 
@@ -52,7 +52,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0),
             ]
         )
 
@@ -88,7 +88,7 @@ struct RestorationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
             ]
         )
 

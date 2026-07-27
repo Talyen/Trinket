@@ -131,7 +131,7 @@ package enum ControlMeterEngine {
                 keyword: keyword,
                 appliedEffectSummaries: [],
                 milestone: nil
-            )
+            ),
         ]
         if keyword == .stun, combatant.id == context.roster.enemy.id {
             events.append(contentsOf: CombatReactionEngine.afterEnemyStunned(in: &context))

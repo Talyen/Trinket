@@ -183,7 +183,7 @@ public struct StageReward: Hashable, Sendable {
     public let itemTemplateIDs: [String]
     public let materialRewards: [ResourceAmount]
 
-    public static let empty = StageReward(gold: 0, itemTemplateIDs: [], materialRewards: [])
+    public static let empty = Self(gold: 0, itemTemplateIDs: [], materialRewards: [])
 
     public init(gold: Int, itemTemplateIDs: [String], materialRewards: [ResourceAmount] = []) {
         self.gold = gold

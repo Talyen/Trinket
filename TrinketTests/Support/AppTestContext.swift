@@ -12,7 +12,7 @@ final class AppTestContext {
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
         "-disable-audio",
-        "-persist-save-immediately"
+        "-persist-save-immediately",
     ]
 
     init() throws {

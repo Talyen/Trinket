@@ -21,7 +21,7 @@ public enum EffectSummaryBuilder {
         .holyDamageBonusFromBlock, .nextStrikeCritical, .freezeNextAttacker, .maximumManaBonus,
         .recurringDamage,
         .controlMeter,
-        .leech
+        .leech,
     ]
 
     /// Returns one `EffectSummary` per keyword that has at least one active

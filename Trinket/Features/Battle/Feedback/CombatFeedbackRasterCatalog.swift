@@ -75,7 +75,7 @@ enum CombatFeedbackRasterCatalog {
                 keyword: .deathsDoor,
                 visualRole: .keyword,
                 label: .word(.plain(.deathsDoor))
-            )
+            ),
         ]
     }
 
@@ -97,14 +97,14 @@ enum CombatFeedbackRasterCatalog {
                         feedbackClass: .buff,
                         keyword: keyword,
                         label: .word(.triggered(keyword))
-                    )
+                    ),
                 ])
                 nextID += 3
             }
             sources.append(contentsOf: [
                 source(id: nextID, feedbackClass: .buff, keyword: keyword, label: .word(.cleanse(keyword))),
                 source(id: nextID + 1, feedbackClass: .buff, keyword: keyword, label: .word(.purge(keyword))),
-                source(id: nextID + 2, feedbackClass: .buff, keyword: keyword, label: .word(.halve(keyword)))
+                source(id: nextID + 2, feedbackClass: .buff, keyword: keyword, label: .word(.halve(keyword))),
             ])
             nextID += 3
         }

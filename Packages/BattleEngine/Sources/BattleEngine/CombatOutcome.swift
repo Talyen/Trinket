@@ -19,8 +19,8 @@ public struct CombatOutcome: Equatable {
         self.flags = flags
     }
 
-    public static var empty: CombatOutcome {
-        CombatOutcome()
+    public static var empty: Self {
+        Self()
     }
 
     public var healthLost: Int {

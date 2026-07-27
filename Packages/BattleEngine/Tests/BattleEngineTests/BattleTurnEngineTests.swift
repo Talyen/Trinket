@@ -42,7 +42,7 @@ struct BattleTurnEngineTests {
 
     @Test func consumeActionSkipEmitsEventRemovesEffectAndRecordsAction() throws {
         var (context, _) = makeContext(actorEffects: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
         let enemy = context.roster.enemy.combatant
         let before = try #require(context.roster.runtime(for: enemy)?.actionCount)
@@ -194,7 +194,7 @@ struct BattleTurnEngineTests {
             tier: .basic,
             damageComponents: [
                 DamageComponent(2, keyword: .physical),
-                DamageComponent(2, keyword: .burn)
+                DamageComponent(2, keyword: .burn),
             ]
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
@@ -252,7 +252,7 @@ struct BattleTurnEngineTests {
                 enemy: CombatantRuntime(
                     combatant: enemy,
                     initialActiveEffects: [
-                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2)
+                        ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 2),
                     ]
                 )
             ),

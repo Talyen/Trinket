@@ -21,7 +21,7 @@ struct DamagePipelineTests {
         "ControlMeter",
         "ReactiveOnHit",
         "HolyReaction",
-        "CriticalReaction"
+        "CriticalReaction",
     ]
 
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
@@ -214,7 +214,7 @@ struct DamagePipelineTests {
         context.roster.setActiveEffects(
             [
                 ActiveEffect(id: 1, effect: .freezeNextAttacker, remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0)
+                ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
             ],
             for: defender
         )

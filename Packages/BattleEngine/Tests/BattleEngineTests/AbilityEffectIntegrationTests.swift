@@ -89,7 +89,7 @@ struct AbilityEffectIntegrationTests {
             description: "Heal and cleanse a random debuff.",
             targetedEffects: [
                 TargetedEffect(.instantHeal(.health, 2)),
-                TargetedEffect(.cleanseRandom)
+                TargetedEffect(.cleanseRandom),
             ]
         )
         let hero = Combatant(
@@ -107,7 +107,7 @@ struct AbilityEffectIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0)
+                ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
             ]
         )
 
@@ -146,7 +146,7 @@ struct AbilityEffectIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTurns: 6)
+                ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTurns: 6),
             ]
         )
 

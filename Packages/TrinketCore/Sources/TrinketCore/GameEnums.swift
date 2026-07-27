@@ -38,7 +38,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
     }
 
     /// Keywords that can be selected by "Random damage" abilities.
-    public static var damageTypes: [Keyword] {
+    public static var damageTypes: [Self] {
         allCases.filter { $0.category == .damageType }
     }
 
@@ -66,8 +66,8 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         }
     }
 
-    public static let styledTerms: [(term: String, keyword: Keyword)] = {
-        var terms: [(String, Keyword)] = allCases.map { ($0.rawValue, $0) }
+    public static let styledTerms: [(term: String, keyword: Self)] = {
+        var terms: [(String, Self)] = allCases.map { ($0.rawValue, $0) }
         for keyword in allCases {
             if let alias = keyword.statusAlias {
                 terms.append((alias, keyword))
@@ -215,7 +215,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     }
 
     /// The item catalog slot used to populate this equipment slot.
-    public var baseItemSlot: ItemSlot {
+    public var baseItemSlot: Self {
         switch self {
         case .secondaryTrinket:
             .trinket
@@ -227,7 +227,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var displayName: String {
         switch self {
         case .secondaryTrinket:
-            ItemSlot.trinket.rawValue
+            Self.trinket.rawValue
         default:
             rawValue
         }
@@ -248,7 +248,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
-    public func accepts(_ baseTypeSlot: ItemSlot) -> Bool {
+    public func accepts(_ baseTypeSlot: Self) -> Bool {
         baseTypeSlot == baseItemSlot
     }
 }

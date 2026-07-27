@@ -65,7 +65,7 @@ private struct BottomArtworkBlend: View {
             stops: [
                 .init(color: .clear, location: 0),
                 .init(color: .clear, location: 1 - recipe.clearInset),
-                .init(color: color, location: 1)
+                .init(color: color, location: 1),
             ],
             startPoint: .top,
             endPoint: .bottom

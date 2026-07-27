@@ -234,7 +234,7 @@ struct CardCastEffectConfiguration {
     var particlePathControl: CGFloat = 0.45
 
     /// Subtle gold fireworks over the dissolving enemy portrait (same 1s window).
-    static let defeatCelebration = CardCastEffectConfiguration(
+    static let defeatCelebration = Self(
         particleDistance: 120,
         particleDistanceVariation: 55,
         particleDelay: 0.42,

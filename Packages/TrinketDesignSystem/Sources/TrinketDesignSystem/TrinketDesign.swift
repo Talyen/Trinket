@@ -114,7 +114,7 @@ public enum TrinketDesign {
                 GridItem(
                     .adaptive(minimum: collectionGridMinimum, maximum: collectionGridMaximum),
                     spacing: largeSpacing
-                )
+                ),
             ]
         }
 
@@ -124,7 +124,7 @@ public enum TrinketDesign {
                 GridItem(
                     .adaptive(minimum: partyPickerGridMinimum, maximum: partyPickerGridMaximum),
                     spacing: largeSpacing
-                )
+                ),
             ]
         }
 
@@ -133,7 +133,7 @@ public enum TrinketDesign {
             if horizontalSizeClass == .regular {
                 return [
                     GridItem(.flexible(), spacing: largeSpacing),
-                    GridItem(.flexible(), spacing: largeSpacing)
+                    GridItem(.flexible(), spacing: largeSpacing),
                 ]
             }
             return [GridItem(.flexible())]
@@ -151,23 +151,23 @@ public enum TrinketDesign {
         public let color: Color
         public let symbolName: String
 
-        public static let hero = CardPlaceholderStyle(
+        public static let hero = Self(
             color: DesignAssetColors.named("PlaceholderHero"),
             symbolName: "person.fill"
         )
-        public static let companion = CardPlaceholderStyle(
+        public static let companion = Self(
             color: DesignAssetColors.named("PlaceholderCompanion"),
             symbolName: "pawprint.fill"
         )
-        public static let enemy = CardPlaceholderStyle(
+        public static let enemy = Self(
             color: DesignAssetColors.named("PlaceholderEnemy"),
             symbolName: "flame.fill"
         )
-        public static let item = CardPlaceholderStyle(
+        public static let item = Self(
             color: DesignAssetColors.named("PlaceholderItem"),
             symbolName: "shippingbox.fill"
         )
-        public static let ability = CardPlaceholderStyle(
+        public static let ability = Self(
             color: DesignAssetColors.named("PlaceholderAbility"),
             symbolName: "bolt.fill"
         )

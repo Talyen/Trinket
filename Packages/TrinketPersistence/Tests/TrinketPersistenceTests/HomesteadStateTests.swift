@@ -11,7 +11,7 @@ struct HomesteadStateTests {
 
     @Test(arguments: [
         BuildSpendCase.wheatFieldMaterials,
-        .herbGardenMaterials
+        .herbGardenMaterials,
     ])
     private func buildOrUpgradeSpendsRequiredCosts(caseKind: BuildSpendCase) throws {
         switch caseKind {
@@ -91,7 +91,7 @@ struct HomesteadStateTests {
         homestead.grant([
             ResourceAmount(.wood, 10),
             ResourceAmount(.stone, 5),
-            ResourceAmount(.food, 3)
+            ResourceAmount(.food, 3),
         ])
 
         try #expect(homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
@@ -103,25 +103,25 @@ struct HomesteadStateTests {
         let uncapped = PlayerHomesteadState(resources: [:], nodeTiers: [:])
         let rewards = [
             ResourceAmount(.iron, 8),
-            ResourceAmount(.wood, 4)
+            ResourceAmount(.wood, 4),
         ]
         try #expect(uncapped.receivableAmounts(from: rewards) == rewards)
 
         let partial = PlayerHomesteadState(
             resources: [
                 .iron: PlayerHomesteadState.maxMaterialBalance - 2,
-                .wood: PlayerHomesteadState.maxMaterialBalance
+                .wood: PlayerHomesteadState.maxMaterialBalance,
             ],
             nodeTiers: [:]
         )
         try #expect(partial.receivableAmounts(from: rewards) == [
-            ResourceAmount(.iron, 2)
+            ResourceAmount(.iron, 2),
         ])
 
         let full = PlayerHomesteadState(
             resources: [
                 .iron: PlayerHomesteadState.maxMaterialBalance,
-                .wood: PlayerHomesteadState.maxMaterialBalance
+                .wood: PlayerHomesteadState.maxMaterialBalance,
             ],
             nodeTiers: [:]
         )

@@ -104,7 +104,7 @@ struct BattleStateTests {
             companion: wolfCompanion,
             enemy: defaultEnemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 0),
             ]
         )
         let source = battle.hero
@@ -119,7 +119,7 @@ struct BattleStateTests {
         try #expect(outcome.didApply)
         let ids = battle.activeEffects(of: battle.enemy).map(\.id)
         try #expect(Set(ids).count == ids.count)
-        try #expect(!(ids.contains(1) && ids.filter { $0 == 1 }.count > 1))
+        try #expect(!(ids.contains(1) && ids.count(where: { $0 == 1 }) > 1))
         try #expect(ids.contains(2))
     }
 

@@ -18,7 +18,7 @@ struct FramePacingReport: Equatable, Sendable {
     var severeStallCount: Int
     var missedDeadlineRatio: Double
 
-    static let empty = FramePacingReport(
+    static let empty = Self(
         sampleCount: 0,
         expectedFPS: 0,
         averageFPS: 0,
@@ -51,7 +51,7 @@ struct FramePacingReport: Equatable, Sendable {
         )
     }
 
-    static func parseAccessibilityValue(_ value: String) -> FramePacingReport? {
+    static func parseAccessibilityValue(_ value: String) -> Self? {
         var map: [String: String] = [:]
         for part in value.split(separator: ";") {
             let pair = part.split(separator: "=", maxSplits: 1)
@@ -73,7 +73,7 @@ struct FramePacingReport: Equatable, Sendable {
             let missedDeadlineRatio = map["missedRatio"].flatMap(Double.init)
         else { return nil }
 
-        return FramePacingReport(
+        return Self(
             sampleCount: samples,
             expectedFPS: expectedFPS,
             averageFPS: averageFPS,

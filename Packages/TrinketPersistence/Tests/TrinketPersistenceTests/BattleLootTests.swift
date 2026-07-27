@@ -123,6 +123,6 @@ struct BattleLootTests {
             save: &save
         )
         #expect(save.roster.gold == goldAfterFirst + 2)
-        #expect(save.inventory.items.filter { $0.id == loot.item.id }.count == 1)
+        #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
     }
 }

@@ -45,7 +45,7 @@ struct CombatFeedbackDensePresentationTests {
                     effectKind: .resourceGain,
                     amount: 2,
                     keyword: .mana
-                )
+                ),
             ],
             at: .now
         )

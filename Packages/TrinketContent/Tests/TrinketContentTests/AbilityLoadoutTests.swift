@@ -38,7 +38,7 @@ struct AbilityLoadoutTests {
         let choices = AbilityChoices(
             basics: [.bash, .shieldBash],
             skills: [.smite, .spikedShield],
-            ultimates: [.blessedAegis, .crystalBulwark],
+            ultimates: [.blessedAegis, .glacialWard],
             selected: AbilityLoadout(
                 basic: .bash,
                 skill: Ability(id: "missing", name: "Missing", tier: .skill, directDamage: 0, description: "Missing"),

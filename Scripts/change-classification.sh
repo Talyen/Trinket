@@ -140,6 +140,16 @@ trinket_classify_smoke_target() {
       ;;
     Trinket/Features/Homestead/*|TrinketUITests/Homestead/*)
       trinket_add_smoke_target SmokeHomesteadTests
+      # Presentation row/footer contracts live in unit tests, not smoke.
+      TRINKET_NEEDS_UNIT=true
+      ;;
+    Trinket/Shared/AccessibilityID.swift)
+      # ID renames can break any surface; run the lean smoke canaries that pin selectors.
+      trinket_add_smoke_target SmokePlayTests
+      trinket_add_smoke_target SmokeHomesteadTests
+      trinket_add_smoke_target SmokeBattleTests
+      trinket_add_smoke_target SmokeCollectionTests
+      trinket_add_smoke_target SmokeShopTests
       ;;
     Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
       trinket_add_smoke_target SmokeShopTests

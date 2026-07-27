@@ -33,8 +33,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         self.affixPowers = affixPowers
     }
 
-    public func rewardInstance(for stageID: String) -> InventoryItem {
-        InventoryItem(
+    public func rewardInstance(for stageID: String) -> Self {
+        Self(
             id: "\(stageID)-\(templateID)",
             templateID: templateID,
             baseType: baseType,

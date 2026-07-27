@@ -140,7 +140,7 @@ struct PlayerRosterStateTests {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let duplicateLoadout = EquipmentLoadout(itemIDsBySlot: [
             .trinket: "ring-a",
-            .secondaryTrinket: "ring-a"
+            .secondaryTrinket: "ring-a",
         ])
         roster.setEquipmentLoadout(duplicateLoadout, for: bear)
         let stored = roster.equipmentLoadout(for: bear)

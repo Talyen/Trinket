@@ -7,7 +7,7 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
     public var claimedRewardStageIDs: Set<String>
     public var lastCompletedStageID: String?
 
-    public static let initial = JourneyProgressState(
+    public static let initial = Self(
         activeChapterID: "chapter-1",
         activeStageID: "chapter-1-stage-1",
         completedStageIDs: [],
@@ -15,7 +15,7 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
         lastCompletedStageID: nil
     )
 
-    public static let testSeed = JourneyProgressState.initial
+    public static let testSeed = Self.initial
 
     public init(
         activeChapterID: String,

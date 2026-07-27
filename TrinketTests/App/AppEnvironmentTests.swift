@@ -13,7 +13,7 @@ struct AppEnvironmentTests {
             ("Heroes", .collection),
             ("COMPANIONS", .collection),
             ("SEARCH", .collection),
-            ("not-a-tab", nil)
+            ("not-a-tab", nil),
         ]
 
     @Test(arguments: selectedTabCases)
@@ -61,7 +61,7 @@ struct AppEnvironmentTests {
             "-map-scroll-target", "chapter-gate-placeholder-2",
             "-mystery-recruit-event", "recruit-ranger",
             "-enable-frame-metrics",
-            "-battle-performance-scenario", "engine-feedback"
+            "-battle-performance-scenario", "engine-feedback",
         ])
         #expect(env.resetState)
         #expect(env.seedTestProgress)

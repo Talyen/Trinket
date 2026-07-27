@@ -22,7 +22,7 @@ struct HomesteadPresentationTests {
         .built,
         .upgradeReady,
         .upgradeNotReady,
-        .completed
+        .completed,
     ])
     func projectLifecycleExposesExpectedRowAndFooter(caseKind: LifecycleCase) throws {
         switch caseKind {

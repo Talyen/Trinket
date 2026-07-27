@@ -6,7 +6,7 @@ struct BattleOutcomeResolverTests {
         (true, true, .victory),
         (true, false, .defeat),
         (false, true, .victory),
-        (false, false, nil)
+        (false, false, nil),
     ]
 
     @Test(arguments: cases)

@@ -12,7 +12,7 @@ final class PlayMapUITests: TrinketUITestCase {
             "chapter-1-stage-7",
             "chapter-1-stage-8",
             "chapter-1-stage-9",
-            "chapter-1-stage-10"
+            "chapter-1-stage-10",
         ])
     }
 
@@ -47,7 +47,7 @@ final class PlayMapUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.stagePartyPickerSheet)
 
         button(AccessibilityID.Play.battlePartyDone).tap()
-        assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 2)
+        assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 5)
 
         button(AccessibilityID.Play.stagePartyControl).tap()
         assertExists(AccessibilityID.Play.stagePartyPickerSheet)

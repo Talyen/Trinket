@@ -14,7 +14,7 @@ public enum ItemSalvage {
         let (primaryQuantity, secondaryQuantity) = quantities(for: item.rarity)
         return [
             ResourceAmount(primary, primaryQuantity),
-            ResourceAmount(secondary, secondaryQuantity)
+            ResourceAmount(secondary, secondaryQuantity),
         ]
     }
 

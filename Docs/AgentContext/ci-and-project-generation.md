@@ -44,7 +44,10 @@ This card adds the CI/project-generation exceptions:
   annotations, and the short log excerpt. Path-filtered green runs auto-dispatch a
   full `Trinket CI` `workflow_dispatch` and watch until green. Simulator/XCUITest
   launch flakes get one automatic `gh run rerun --failed` (disable with
-  `--no-infra-rerun`).
+  `--no-infra-rerun`). Classification is shared via `./Scripts/ci-infra-rerun.sh`
+  and also covers Nightly Integration / App performance job names. Nightly gets a
+  separate one-shot infra rerun from `.github/workflows/nightly-infra-rerun.yml`
+  when attempt 1 fails on infrastructure only.
 - `generate.sh` exports `LC_ALL=C` / `LANG=C` so asset hash TSV headers stay
   stable on CI locales. Asset prepare scripts also preserve the two header lines
   and sort data rows with `LC_ALL=C sort` — keep that pattern for any new

@@ -56,7 +56,7 @@ struct AbilityCatalogTests {
         try #expect(empowered.damageComponents == [DamageComponent(2, keyword: .burn)])
         try #expect(empowered.targetedEffects == [
             TargetedEffect(.burn(2)),
-            TargetedEffect(.burn(2), condition: .enemyBurning)
+            TargetedEffect(.burn(2), condition: .enemyBurning),
         ])
         try #expect(!Ability.slash.hasManaEmpowerableBurnOrFreezeDamage)
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
@@ -83,11 +83,11 @@ struct AbilityCatalogTests {
             tier: .ultimate,
             damageComponents: [
                 DamageComponent(2, keyword: .bleed),
-                DamageComponent(2, keyword: .poison)
+                DamageComponent(2, keyword: .poison),
             ],
             effects: [
                 TargetedEffect(.bleed(2)),
-                TargetedEffect(.poison(2))
+                TargetedEffect(.poison(2)),
             ]
         )
         try #expect(
@@ -121,7 +121,7 @@ struct AbilityCatalogTests {
         try #expect(branches.map(\.damageComponents) == [
             [DamageComponent(6, keyword: .stun)],
             [DamageComponent(6, keyword: .freeze)],
-            [DamageComponent(6, keyword: .burn)]
+            [DamageComponent(6, keyword: .burn)],
         ])
         try #expect(AbilityCatalog.ability(id: "concussive-shot") == nil)
         let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })

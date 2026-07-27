@@ -38,9 +38,9 @@ public struct DamageComponent: Hashable, Sendable {
     }
 
     /// Returns a copy with Burn/Freeze amount increased by `amount`; other keywords unchanged.
-    public func withManaEmpowerment(_ amount: Int = 1) -> DamageComponent {
+    public func withManaEmpowerment(_ amount: Int = 1) -> Self {
         guard isManaEmpowerableBurnOrFreezeDamage else { return self }
-        return DamageComponent(
+        return Self(
             self.amount + amount,
             keyword: keyword,
             target: target,
@@ -125,10 +125,10 @@ public enum Effect: Hashable, Sendable {
     public static let standardLeechDuration = 6
     public static let standardMarkedDuration = 6
     public static let standardMarkedBonus = 2
-    public static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
+    public static let standardLeechBuff = Self.leech(.leech, standardLeechPercent, standardLeechDuration)
 
     /// DoT stack paired with a direct hit of the same keyword (`burn` / `poison` / `bleed`).
-    public static func pairedDoT(keyword: Keyword, potency: Int) -> Effect? {
+    public static func pairedDoT(keyword: Keyword, potency: Int) -> Self? {
         guard potency > 0 else { return nil }
         switch keyword {
         case .burn: return .burn(potency)
@@ -196,7 +196,7 @@ public enum Effect: Hashable, Sendable {
     }
 
     /// Returns a copy with Burn/Freeze damage potency increased by `amount`; other effects unchanged.
-    public func withManaEmpowerment(_ amount: Int = 1) -> Effect {
+    public func withManaEmpowerment(_ amount: Int = 1) -> Self {
         switch self {
         case let .burn(potency):
             .burn(potency + amount)
@@ -246,7 +246,7 @@ public enum Effect: Hashable, Sendable {
         EffectPresentation.applyPhrase(for: self)
     }
 
-    public static func defaultTarget(for effect: Effect) -> EffectTarget {
+    public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,
              .multiplyDoT, .recurringDamage:

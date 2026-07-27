@@ -55,9 +55,13 @@ jobs:
         run: ./Scripts/performance.sh
         env:
           CI: true
+          TRINKET_PERFORMANCE_OUTPUT_DIR: .DerivedData/PerformanceResults/nightly
+      - name: Classify CI outcome and report timing
+        if: always()
+        run: ./Scripts/ci-diagnostics.sh .DerivedData/PerformanceResults/nightly/TestResults
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: nightly-battle-performance-${{ github.run_id }}
-          path: .DerivedData/PerformanceResults/
+          path: .DerivedData/PerformanceResults/nightly/
           if-no-files-found: warn

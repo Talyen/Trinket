@@ -9,15 +9,15 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
         self.items = items
     }
 
-    public static var freshStart: PlayerInventoryState {
-        PlayerInventoryState(items: [])
+    public static var freshStart: Self {
+        Self(items: [])
     }
 
-    public static var testSeed: PlayerInventoryState {
-        PlayerInventoryState(items: GameContent.sampleInventoryItems)
+    public static var testSeed: Self {
+        Self(items: GameContent.sampleInventoryItems)
     }
 
-    public static var initial: PlayerInventoryState {
+    public static var initial: Self {
         testSeed
     }
 
@@ -89,8 +89,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         self.primaryStatOverrides = primaryStatOverrides
     }
 
-    public static var freshStart: PlayerRosterState {
-        PlayerRosterState(
+    public static var freshStart: Self {
+        Self(
             activeHeroID: starterHeroID,
             activeCompanionID: starterCompanionID,
             unlockedHeroIDs: [starterHeroID],
@@ -98,14 +98,14 @@ public struct PlayerRosterState: Equatable, Sendable {
             abilityLoadouts: [:],
             progressions: [
                 starterHeroID: .initial,
-                starterCompanionID: .initial
+                starterCompanionID: .initial,
             ],
             equipmentLoadouts: [:]
         )
     }
 
-    public static var testSeed: PlayerRosterState {
-        PlayerRosterState(
+    public static var testSeed: Self {
+        Self(
             activeHeroID: starterHeroID,
             activeCompanionID: "wolf",
             unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
@@ -122,25 +122,25 @@ public struct PlayerRosterState: Equatable, Sendable {
                 "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "panther": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "phoenix": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 155)
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 155),
             ],
             equipmentLoadouts: [
                 "knight": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "longsword-basic",
-                    .armor: "plate_armor-basic"
+                    .armor: "plate_armor-basic",
                 ]),
                 "wizard": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "wand-basic",
-                    .trinket: "ruby_ring-basic"
+                    .trinket: "ruby_ring-basic",
                 ]),
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
-                    .armor: "leather_armor-basic"
-                ])
+                    .armor: "leather_armor-basic",
+                ]),
             ]
         )
     }
 
-    public static var initial: PlayerRosterState {
+    public static var initial: Self {
         testSeed
     }
 
@@ -356,7 +356,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         if let hero = heroes.first(where: { $0.id == activeHeroID }) ?? heroes.first {
             return hero
         }
-        if let starter = GameContent.heroes.first(where: { $0.id == PlayerRosterState.starterHeroID })
+        if let starter = GameContent.heroes.first(where: { $0.id == Self.starterHeroID })
             ?? collectionHeroes.first {
             return starter
         }
@@ -368,7 +368,7 @@ public struct PlayerRosterState: Equatable, Sendable {
             return companion
         }
         if let starter = GameContent.companions.first(where: {
-            $0.id == PlayerRosterState.starterCompanionID
+            $0.id == Self.starterCompanionID
         }) ?? collectionCompanions.first {
             return starter
         }

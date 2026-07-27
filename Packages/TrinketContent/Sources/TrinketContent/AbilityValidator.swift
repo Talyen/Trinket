@@ -13,7 +13,7 @@ enum AbilityValidator {
 
     static let descriptionOverrideIDs: Set<String> = [
         "dark-pact",
-        "shadowstep"
+        "shadowstep",
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {

@@ -62,7 +62,7 @@ struct CombatantRuntimeTests {
     @Test func healthMutationRulesRespectBoundsAndBonuses() throws {
         for (maxHealth, damage, expectedLoss, expectedHealth, alive) in [
             (10, 3, 3, 7, true),
-            (5, 100, 5, 0, false)
+            (5, 100, 5, 0, false),
         ] {
             var runtime = CombatantRuntime(combatant: makeCombatant(maxHealth: maxHealth))
             let lost = runtime.takeRawDamage(damage)
@@ -140,14 +140,14 @@ struct CombatantRuntimeTests {
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
             ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0),
-            ActiveEffect(id: 2, effect: .poison(2), remainingTurns: 0)
+            ActiveEffect(id: 2, effect: .poison(2), remainingTurns: 0),
         ])
         try #expect(runtime.activeEffects.count == 2)
 
         runtime.setEffects([
             ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0),
             ActiveEffect(id: 2, effect: .poison(2), remainingTurns: 0),
-            ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6)
+            ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTurns: 6),
         ])
         runtime.removeEffects { $0.effect.isDecayingDoT }
         try #expect(runtime.activeEffects.count == 1)

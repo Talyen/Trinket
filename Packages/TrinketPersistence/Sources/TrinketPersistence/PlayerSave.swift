@@ -16,8 +16,8 @@ public struct PlayerSave: Equatable, Sendable {
     /// Mysteries remaining before Corruption Altar can roll again at full weight.
     public var corruptionAltarCooldownRemaining: Int
 
-    public static var fresh: PlayerSave {
-        PlayerSave(
+    public static var fresh: Self {
+        Self(
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
@@ -30,8 +30,8 @@ public struct PlayerSave: Equatable, Sendable {
         )
     }
 
-    public static var testSeed: PlayerSave {
-        PlayerSave(
+    public static var testSeed: Self {
+        Self(
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
@@ -46,7 +46,7 @@ public struct PlayerSave: Equatable, Sendable {
 
     /// Unlocked roster save for local development and Simulator testing.
     /// Clears Chapter 1 so Modes unlock; leaves later chapters, Spires, and Labyrinth uncleared.
-    public static var unlockedAll: PlayerSave {
+    public static var unlockedAll: Self {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
         roster.gold = PlayerRosterState.maxGoldBalance
@@ -54,7 +54,7 @@ public struct PlayerSave: Equatable, Sendable {
         var journey = JourneyProgressState.initial
         journey.completeChapter("chapter-1")
 
-        return PlayerSave(
+        return Self(
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,

@@ -21,7 +21,7 @@ struct LaunchWarmupView: View {
         "Counting monster loot…",
         "Training animal companions…",
         "Building a homestead…",
-        "Restocking mystery shops…"
+        "Restocking mystery shops…",
     ]
 
     @State private var progress: Double = 0

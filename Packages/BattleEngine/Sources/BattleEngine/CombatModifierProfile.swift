@@ -25,7 +25,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
 
-    public static let zero = CombatModifierProfile()
+    public static let zero = Self()
 
     public init(
         statBonuses: PrimaryStats = PrimaryStats(),
@@ -82,7 +82,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
     }
 
-    public mutating func merge(_ other: CombatModifierProfile) {
+    public mutating func merge(_ other: Self) {
         statBonuses.merge(other.statBonuses)
         maximumHealthBonus += other.maximumHealthBonus
         maximumManaBonus += other.maximumManaBonus

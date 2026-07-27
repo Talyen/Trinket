@@ -50,9 +50,9 @@ struct CombatantCardDetail: Hashable, Identifiable {
         combatant: Combatant,
         health: Int,
         activeEffectSummaries: [EffectSummary]
-    ) -> CombatantCardDetail {
+    ) -> Self {
         let partyMember = configuration.partyMember(for: combatant.id)
-        return CombatantCardDetail(
+        return Self(
             combatant: combatant,
             progression: partyMember?.progression ?? .initial,
             equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),

@@ -9,7 +9,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             "-disable-audio",
             "-persist-save-immediately",
             "-launch-screen",
-            "mystery"
+            "mystery",
         ]
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "fairy-ring"))
@@ -43,7 +43,7 @@ final class MysteryRecruitUITests: TrinketUITestCase {
             "-battle-tick-interval",
             "1.0",
             "-launch-screen",
-            "mystery"
+            "mystery",
         ]
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear"))

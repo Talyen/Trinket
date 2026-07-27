@@ -194,7 +194,7 @@ struct ManaEmpowermentTests {
 
         try #expect(battle.mana(of: battle.hero) == 3)
         try #expect(battle.mana(of: battle.companion) == 2)
-        try #expect(events.filter { $0.effectKind == .resourceGain && $0.keyword == .mana }.count == 2)
+        try #expect(events.count(where: { $0.effectKind == .resourceGain && $0.keyword == .mana }) == 2)
     }
 
     @Test func manaDoesNotRegenerateWithoutManaPool() throws {

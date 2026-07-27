@@ -143,7 +143,7 @@ enum BalanceSweepCLI {
         "middle": .middle,
         "late": .lateGame,
         "lategame": .lateGame,
-        "lateGame": .lateGame
+        "lateGame": .lateGame,
     ]
 
     private static func stringValue(

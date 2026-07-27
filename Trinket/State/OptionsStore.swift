@@ -26,17 +26,17 @@ enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable {
     }
 
     /// Cases shown in the Options picker (excludes legacy alias).
-    static var pickerCases: [UltimateCinematicShowPolicy] {
+    static var pickerCases: [Self] {
         [.always, .never, .oncePerBattle]
     }
 
-    var normalized: UltimateCinematicShowPolicy {
+    var normalized: Self {
         self == .afterFirstView ? .oncePerBattle : self
     }
 
     /// Maps a value stored under the former "Skip Ultimate Animations" framing.
-    static func migratedFromSkipPolicy(_ rawValue: String) -> UltimateCinematicShowPolicy {
-        switch UltimateCinematicShowPolicy(rawValue: rawValue)?.normalized {
+    static func migratedFromSkipPolicy(_ rawValue: String) -> Self {
+        switch Self(rawValue: rawValue)?.normalized {
         case .always:
             // Old "Always" meant always skip → never show.
             .never

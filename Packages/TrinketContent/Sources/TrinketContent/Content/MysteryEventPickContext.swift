@@ -19,7 +19,7 @@ public struct MysteryEventPickContext: Equatable, Sendable {
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
     }
 
-    public static let excludingCorruptionAltar = MysteryEventPickContext(
+    public static let excludingCorruptionAltar = Self(
         allowsCorruptionAltar: false,
         hasEligibleCorruptTarget: false,
         corruptionAltarCooldownRemaining: 0

@@ -4,7 +4,7 @@
 
 ## Intent
 
-Surface **confirmed** hotspots via capped size/structure probes. Write a plan to simplify all identified slop hotspots (breaking into phases if the scope is large) so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md).
+Surface confirmed hotspots so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md). A clean pass is valid.
 
 ## What “slop” means here
 
@@ -32,28 +32,10 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
 - Prefer the owning audit when the hit is primarily dead code, boundaries, concurrency, type-safety escapes, duplicate feature surfaces, or state-ownership drift.
 
-## Confirm before fixing
+## Evidence bar
 
-1. **Cost:** real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs in one file).
-2. **No second need:** one call site / one conformer / no extension point in use.
-3. **Safer shape exists:** a shorter local form preserves behavior.
-4. **Plan scope:** write a plan covering all identified hotspots; if the scope is large, break execution into distinct phases.
+Real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs), no second need in use, and a shorter local form that preserves behavior. Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
 
-Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
+## Domain rules
 
-## Simplification order
-
-1. **Delete** unused ceremony.
-2. **Inline** single-use wrappers.
-3. **Collapse** duplicates into one parameterized path in the same module.
-4. **Extract** only when a name removes nesting *and* has ≥2 call sites or clear domain meaning.
-5. **Move** shared chrome into `TrinketDesignSystem` / rules into the existing owner — never a new layer for one call site.
-
-## Probe hints
-
-- **Over-Nested SwiftUI Bodies:** Search for SwiftUI `body` implementations with indentation depth > 6 levels; extract sub-views or simplify conditional container stacks.
-- **Verbose & Redundant Switches:** Search for `switch` blocks in `State/` or `Features/` with identical branch bodies or redundant `default:` fallbacks on frozen enum types.
-- **Defensive Double-Unwrapping & Redundant Checks:** Search for `if let x = x, x != nil` or `guard let x = x else { return nil }` wrapping non-optional values or redundant optional checks.
-- **Explicit Type Annotation Noise:** Search for explicit type annotations on local variable declarations where Swift type inference is unambiguous (`let name: String = "..."`, `var items: [Item] = [Item]()`).
-- **Ceremony Naming & Single-Conformer Protocols:** Search regex `(struct|class|enum)\s+\w*(Manager|Helper|Coordinator|Wrapper|Factory)` and single-conformer `protocol` declarations; inline noun theater.
-- **Legacy Observation & Platform API Regressions:** Run `./Scripts/check-platform-api-bans.sh` to catch `@EnvironmentObject`, `@StateObject`, or `#available` regressions.
+Prefer delete unused ceremony → inline single-use wrappers → collapse duplicates in the same module → extract only when a name removes nesting and has ≥2 call sites or clear domain meaning. Move shared chrome into `TrinketDesignSystem` / rules into the existing owner — never a new layer for one call site. Platform API bans remain enforced by existing gates (`check-platform-api-bans.sh`).

@@ -24,8 +24,8 @@ struct MusicPlaybackRequest: Equatable {
         contextKind: MusicContextKind,
         stageID: String?,
         enemyID: String?
-    ) -> MusicPlaybackRequest {
-        MusicPlaybackRequest(
+    ) -> Self {
+        Self(
             track: track,
             resumeKey: MusicResumeKey(
                 contextKind: contextKind,
@@ -47,7 +47,7 @@ enum MusicRoute: Equatable {
         activeBattle: ActiveBattleConfiguration?,
         sceneIsActive: Bool,
         musicVolume: Double
-    ) -> MusicRoute {
+    ) -> Self {
         guard sceneIsActive, musicVolume > 0 else {
             return .silence(preservingPosition: true)
         }
@@ -63,7 +63,7 @@ enum MusicRoute: Equatable {
         return menuTrack()
     }
 
-    private static func menuTrack() -> MusicRoute {
+    private static func menuTrack() -> Self {
         guard let trackID = MusicCatalog.menuTrackIDs.first,
               let track = MusicCatalog.track(matching: trackID)
         else {
@@ -80,7 +80,7 @@ enum MusicRoute: Equatable {
         )
     }
 
-    private static func encounter(stageID: String?, enemyID: String) -> MusicRoute {
+    private static func encounter(stageID: String?, enemyID: String) -> Self {
         if let bossTrackID = MusicCatalog.bossTrackIDByEnemyID[enemyID],
            let bossTrack = MusicCatalog.track(matching: bossTrackID) {
             return .track(

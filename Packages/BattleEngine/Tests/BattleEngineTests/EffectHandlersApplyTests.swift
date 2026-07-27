@@ -39,7 +39,7 @@ struct EffectHandlersApplyTests {
 
     @Test(arguments: [
         Effect.shield(.block, 5),
-        .standardLeechBuff
+        .standardLeechBuff,
     ])
     func defensiveBuffHandlersApplyAndEmitEvents(effect: Effect) throws {
         var battle = EffectHandlersTestSupport.makeBattle()

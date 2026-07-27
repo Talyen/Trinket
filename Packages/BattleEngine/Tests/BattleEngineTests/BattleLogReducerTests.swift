@@ -65,7 +65,7 @@ struct BattleLogReducerTests {
             "Hero and Companion face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
             "Enemy takes 2 Burn damage.",
-            "Enemy is defeated."
+            "Enemy is defeated.",
         ])
     }
 
@@ -152,7 +152,7 @@ struct BattleLogReducerTests {
                 targetName: "Enemy",
                 amount: 2,
                 keyword: .burn
-            )
+            ),
         ]
         if includeDefeat {
             events.append(

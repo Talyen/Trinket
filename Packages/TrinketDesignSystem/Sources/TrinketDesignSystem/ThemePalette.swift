@@ -21,7 +21,7 @@ struct ThemePalette {
     let heroScrim: Color
     let shadow: ShadowStyle
 
-    static let trinket = ThemePalette(
+    static let trinket = Self(
         appBackground: DesignAssetColors.named("ThemeCanvas"),
         secondaryBackground: DesignAssetColors.named("ThemeSurface"),
         elevatedBackground: DesignAssetColors.named("ThemeElevated"),
@@ -49,13 +49,13 @@ struct ShadowStyle {
     let radius: CGFloat
     let y: CGFloat
 
-    static let none = ShadowStyle(color: .clear, radius: 0, y: 0)
-    static let subtle = ShadowStyle(
+    static let none = Self(color: .clear, radius: 0, y: 0)
+    static let subtle = Self(
         color: DesignAssetColors.named("ThemeOverlayInk").opacity(0.08),
         radius: 4,
         y: 2
     )
-    static let elevated = ShadowStyle(
+    static let elevated = Self(
         color: DesignAssetColors.named("ThemeOverlayInk").opacity(0.18),
         radius: 12,
         y: 5

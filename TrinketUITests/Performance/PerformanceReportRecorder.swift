@@ -30,7 +30,7 @@ enum PerformanceReportRecorder {
             "missedDeadlineCount": report.missedDeadlineCount,
             "estimatedMissedFrameCount": report.estimatedMissedFrameCount,
             "severeStallCount": report.severeStallCount,
-            "missedDeadlineRatio": report.missedDeadlineRatio
+            "missedDeadlineRatio": report.missedDeadlineRatio,
         ]
         for (key, value) in metadata {
             object[key] = value

@@ -11,7 +11,7 @@ enum ProgressionBracket: Equatable {
     case mid
     case late
 
-    static func forLevel(_ level: Int) -> ProgressionBracket {
+    static func forLevel(_ level: Int) -> Self {
         if level < 20 {
             return .early
         }

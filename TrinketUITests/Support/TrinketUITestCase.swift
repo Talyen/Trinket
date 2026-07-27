@@ -15,7 +15,7 @@ enum TestLaunchArg {
         "-disable-audio",
         "-persist-save-immediately",
         "-battle-tick-interval",
-        "1.0"
+        "1.0",
     ]
     static func screen(_ screen: String) -> [String] {
         ["-launch-screen", screen]
@@ -81,7 +81,7 @@ enum TestLaunchArg {
                 disableCloudSync,
                 "-persist-save-immediately",
                 "-battle-tick-interval",
-                "1.0"
+                "1.0",
             ]
         }
         args += screen("mystery")
@@ -132,6 +132,8 @@ class TrinketUITestCase: XCTestCase {
     /// Deep-linked screens should appear quickly; keep failure waits short to cut flake wall time.
     static let defaultTimeout: TimeInterval = 3
 
+    // IUO matches XCTest launch lifecycle: set in launchApp, cleared in tearDown.
+    // swiftlint:disable:next implicitly_unwrapped_optional
     private(set) var app: XCUIApplication!
 
     var play: PlayScreen {
@@ -281,7 +283,7 @@ class TrinketUITestCase: XCTestCase {
 
     func assertExistsAfterScroll(
         _ identifier: String,
-        maxAttempts: Int = 6,
+        maxAttempts: Int = 8,
         requireHittable: Bool = false,
         file: StaticString = #file,
         line: UInt = #line
@@ -295,6 +297,17 @@ class TrinketUITestCase: XCTestCase {
             file: file,
             line: line
         )
+        if !element.exists {
+            // One reverse pass in case the list started mid-scroll.
+            scrollUntilVisible(
+                element,
+                swipingUp: false,
+                maxAttempts: max(3, maxAttempts / 2),
+                requireHittable: requireHittable,
+                file: file,
+                line: line
+            )
+        }
         guard element.exists else {
             fail("Element '\(identifier)' not found after scroll", file: file, line: line)
             return
@@ -381,7 +394,7 @@ extension XCUIApplication {
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
-        maxAttempts: Int = 6,
+        maxAttempts: Int = 8,
         requireHittable: Bool = false
     ) {
         for _ in 0 ..< maxAttempts {
@@ -393,14 +406,29 @@ extension XCUIApplication {
             } else {
                 dragScroll(fromY: 0.35, toY: 0.90)
             }
-            _ = element.waitForExistence(timeout: 0.15)
+            _ = element.waitForExistence(timeout: 0.25)
         }
     }
 
     private func scrollContainer() -> XCUIElement {
-        let playScreen = descendants(matching: .any)[AccessibilityID.Screen.play]
-        if playScreen.exists {
-            return playScreen
+        // Prefer the frontmost tab surface. Inactive tabs often remain in the AX
+        // hierarchy; always choosing Play made Homestead scrolls miss list content.
+        let candidates = [
+            AccessibilityID.Screen.homestead,
+            AccessibilityID.Screen.play,
+            AccessibilityID.Screen.options,
+        ]
+        for identifier in candidates {
+            let screen = descendants(matching: .any)[identifier]
+            if screen.exists, screen.isHittable {
+                return screen
+            }
+        }
+        for identifier in candidates {
+            let screen = descendants(matching: .any)[identifier]
+            if screen.exists, screen.frame.width > 1, screen.frame.height > 1 {
+                return screen
+            }
         }
         return self
     }

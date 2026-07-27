@@ -4,7 +4,7 @@
 
 ## Intent
 
-Identify ownership-drift clusters and write a plan to restore them to existing owners (breaking into phases if the scope is large). Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
+Restore ownership-drift clusters to existing owners. Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
 
 ## What “state gravity” means here
 
@@ -28,21 +28,9 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 - Do not move presentation into packages that must stay SwiftUI-free of feature views (`BattleEngine`, `TrinketPersistence`, `TrinketCore`).
 - Repair a failing `check-module-boundaries.sh` row directly when it has an obvious one-file fix rather than expanding it into an ownership audit.
 
-## Confirm before fixing
+## Evidence bar
 
-1. **Wrong owner:** the code’s concern matches a different row in [Architecture.md](../Platform/Architecture.md) module ownership or hub containment.
-2. **Real cost:** the hub/view is hard to test, review, or extend because unrelated jobs share its type.
-3. **Existing home:** the target owner already exists (engine handler, store slice, `BattleShell`, `Shared/`, feature session) — not a greenfield layer.
-4. **Plan scope:** write a plan to address all identified ownership drift; if the scope is large, break execution into phases.
-
-## Restoration order
-
-1. **Move** pure rules into `BattleEngine` / `TrinketCore`; reuse or relocate the existing semantic test owner rather than duplicating it.
-2. **Move** persistence policy into `TrinketPersistence` store slices / sanitizer / models — keep `PlayerSaveStore` a thin facade.
-3. **Keep** tab orchestration, launch args, and cross-feature session wiring on `AppState` / thin `*Session` types in `Trinket/State`.
-4. **Keep** active-battle config and victory orchestration in `BattleShell/` (must not import `Features/`).
-5. **Extract** presentation-only helpers into `Trinket/Shared/` or the feature folder; collapse duplicate shells via DuplicateFeatureSurface when that is the bulk of the win.
-6. **Propose** hub splits or large `AppState` extractions when local moves would leave the same gravity well intact.
+Wrong owner per [Architecture.md](../Platform/Architecture.md), real review/test cost from mixed jobs on one type, and an existing home (engine handler, store slice, `BattleShell`, `Shared/`, feature session) — not a greenfield layer.
 
 ## Domain rules
 
@@ -64,11 +52,4 @@ Follow Architecture ownership and app-layer imports:
 
 **App layers:** `State/` must not import feature views; `BattleShell/` must not import `Features/`; packages must not import app feature UI.
 
-## Probe hints
-
-- **Deep Binding Prop Drilling:** Search for `@Binding` or closure callbacks passed through ≥3 levels of view hierarchy (e.g. `PlayView` → `PlayBrowsingStack` → `PlayMap` → `StageNodeView`); prefer scoped `@Environment` or session bindings.
-- **Overly Broad Environment State Redraws:** Search for `@Environment(AppState.self)` or `@Bindable var session` in sub-views that only read 1 scalar property; evaluate extracting sub-views or scoped observation properties to reduce unnecessary re-evaluations.
-- **Transient UI State Leaks in Persistence:** Search `Packages/TrinketPersistence/` and `PlayerSaveStore.swift` for transient UI states (e.g., `isHovered`, `selectedItem`, `activeTab`, `scrollOffset`) that belong exclusively in view local `@State`.
-- **Misplaced Business Logic on `AppState` Extensions:** Search `AppState+*.swift` for inline damage calculations, gold cost math, or item generation logic that belongs in `BattleEngine` or `TrinketContent`.
-- **Hub Body Bloat:** Search `BattleState.swift` and `PlayerSaveStore.swift` for feature-specific public methods; verify whether logic belongs in domain effect handlers (`EffectHandlers/`) or store extensions.
-- **Invented Parallel Gravity Wells:** Search for regex `(struct|class)\s+\w*(Manager|Coordinator)` created alongside `AppState` for single-feature orchestration.
+Prefer restoring rules to engines/stores, keeping tab/session wiring on thin `AppState` / `*Session` types, and extracting presentation into Shared or feature folders. Propose hub splits when local moves would leave the same gravity well intact.

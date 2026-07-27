@@ -121,8 +121,10 @@ Push-gate is **generate/assert only** — not style or compile; path-scoped
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
 After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI when
 path filters skipped substantive jobs; on failure prints check annotations plus a
-short log excerpt). Task-scoped verification does not replace
-the pre-push or pre-merge gates.
+short log excerpt; simulator/XCUITest launch flakes get one `gh run rerun --failed`
+via `./Scripts/ci-infra-rerun.sh`). Nightly uses the same classifier from
+`.github/workflows/nightly-infra-rerun.yml` for a single attempt-1 infra retry.
+Task-scoped verification does not replace the pre-push or pre-merge gates.
 
 Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
 `change-budget.sh` report against HEAD: authored production/test/docs-tool LOC,
@@ -183,6 +185,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 |--------|---------|
 | `./Scripts/agent-push-gate.sh` | Pinned tools + `generate --force-xcodegen` + assert vs HEAD (conditional `--assets`); agents after commit, before push |
 | `./Scripts/agent-watch-ci.sh` | Watch Actions for HEAD; dispatch full CI if path-filtered; agents after push |
+| `./Scripts/ci-infra-rerun.sh` | Classify simulator/XCUITest infra failures; optional `gh run rerun --failed` |
 | `./Scripts/ensure-git-cliff.sh` | Install/run git-cliff (cached in `.tools/`) |
 | `./Scripts/release-notes.sh unreleased` | Preview unreleased changelog |
 | `./Scripts/release-notes.sh prepend v0.2.0` | Prepend version section to `CHANGELOG.md` |
@@ -229,15 +232,15 @@ platform-ban / exclusivity exit fails the gate (matching CI).
 
 | Tool | Config | Owns |
 |------|--------|------|
-| SwiftFormat | `.swiftformat` | Whitespace, commas, import order, trailing newlines, brace layout |
-| SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans. On GitHub Actions, `lint.sh` uses dual reporters (`xcode` + `github-actions-logging`) so job logs and Checks annotations both show rule/file/line. Linux portable builds skip SourceKit custom_rules — treat style PASS there as provisional vs CI. |
+| SwiftFormat | `.swiftformat` | Whitespace, trailing commas, import order, trailing newlines, brace/wrap layout, preference rewrites (`isEmpty`, `preferContains`, Swift Testing / private `@State`, …) |
+| SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans. Analyzer rules (`unused_import`) need `swiftlint analyze` + a compiler index and are **not** in this gate. `no_empty_block` stays off (Codable empty inits, SwiftUI dismiss buttons, no-op defaults). On GitHub Actions, `lint.sh` uses dual reporters (`xcode` + `github-actions-logging`) so job logs and Checks annotations both show rule/file/line. Linux portable builds skip SourceKit custom_rules — treat style PASS there as provisional vs CI. |
 | UI style | `Scripts/check-ui-style.sh` | Product chrome **and colors** — glass/material/button styles, raw RGB/`UIColor`/`#colorLiteral`, SwiftUI system color literals, app-bundle/`Color("…")` names, and `.accentColor`; route through `TrinketDesign` |
 | Platform bans | `Scripts/check-platform-api-bans.sh` | `NavigationView` / `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` / `@ObservedObject` (SourceKit-free) |
 | Exclusivity | `Scripts/check-exclusivity-footguns.sh` | `inout` of `self.` / likely stored properties without a local copy (`ExclusivityCheck: allow`) |
 
 Pinned versions live in `Scripts/tool-versions.env`. Shared format/lint roots live in `Scripts/swift-source-dirs.env` (app, packages, package tests, `TrinketTestSupport`). Install with `./Scripts/ensure-ci-tools.sh`. Module layering is a separate gate: `./Scripts/check-module-boundaries.sh`.
 
-The app-wide palette is centralized in `TrinketDesignSystem`: feature views use `TrinketDesign.Colors`, keyword/homestead/resource helpers, and hero scrim APIs instead of `Color(red:green:blue:)`, SwiftUI system colors (`Color.green`, `.foregroundStyle(.white)`, …), app-bundle `Color("…", bundle: .main)`, or `.accentColor`. Domain colors (keywords, encounters, resources) still live as named assets in `DesignColors.xcassets`. Reserve `UIStyleCheck: allow` for narrowly scoped exceptions with a nearby reason.
+The app-wide palette is centralized in `TrinketDesignSystem`: feature views use `TrinketDesign.Colors`, keyword/homestead/resource helpers, and hero scrim APIs instead of `Color(red:green:blue:)`, SwiftUI system colors (`Color.green`, `.foregroundStyle(.white)`, `Color.accentColor`, …), app-bundle `Color("…", bundle: .main)`, or `.accentColor`. Adaptive `Color.primary` / `.secondary` / `.clear` remain allowed for text/chrome. Domain colors (keywords, encounters, resources) still live as named assets in `DesignColors.xcassets`. Reserve `UIStyleCheck: allow` for narrowly scoped exceptions with a nearby reason.
 
 ## Configuration files
 

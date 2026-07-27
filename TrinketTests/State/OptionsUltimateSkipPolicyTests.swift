@@ -53,7 +53,7 @@ struct OptionsUltimateSkipPolicyTests {
 
     @Test(arguments: [
         (UltimateCinematicShowPolicy.always, false),
-        (.never, true)
+        (.never, true),
     ])
     func alwaysAndNeverPoliciesControlAutoSkip(
         policy: UltimateCinematicShowPolicy,

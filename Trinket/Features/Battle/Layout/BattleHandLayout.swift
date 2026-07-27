@@ -100,7 +100,7 @@ enum BattleHandLayout {
     static func rotation(
         index: Int,
         cardCount: Int,
-        fanAngleStep: CGFloat = BattleHandLayout.fanAngleStep
+        fanAngleStep: CGFloat = Self.fanAngleStep
     ) -> CGFloat {
         guard cardCount > 1 else { return 0 }
         return (CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanAngleStep
@@ -109,7 +109,7 @@ enum BattleHandLayout {
     static func restingOffsetY(
         index: Int,
         cardCount: Int,
-        fanLiftStep: CGFloat = BattleHandLayout.fanLiftStep
+        fanLiftStep: CGFloat = Self.fanLiftStep
     ) -> CGFloat {
         abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanLiftStep
     }
@@ -168,7 +168,7 @@ enum BattleHandLayout {
         translation: CGSize,
         isPlayable: Bool,
         threshold: CGFloat = playDragThreshold,
-        playArmReleaseRatio: CGFloat = BattleHandLayout.playArmReleaseRatio,
+        playArmReleaseRatio: CGFloat = Self.playArmReleaseRatio,
         armedHorizontalAllowance: CGFloat = 0.72,
         currentlyArmed: Bool
     ) -> Bool {

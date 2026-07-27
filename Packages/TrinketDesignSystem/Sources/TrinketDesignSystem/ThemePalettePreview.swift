@@ -11,7 +11,7 @@ private struct ThemePaletteGallery: View {
         ("Informational", TrinketDesign.Colors.informational),
         ("Arcane", TrinketDesign.Colors.arcane),
         ("Health", TrinketDesign.Colors.health),
-        ("Health Restore", TrinketDesign.Colors.healthRestore)
+        ("Health Restore", TrinketDesign.Colors.healthRestore),
     ]
 
     var body: some View {

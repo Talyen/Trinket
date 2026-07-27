@@ -145,7 +145,7 @@ struct DoTMechanicsTests {
             _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
         }
 
-        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count == 2)
+        try #expect(battle.activeEffects(of: battle.enemy).count(where: { $0.keyword == .bleed }) == 2)
     }
 
     @Test func burnRespectsBlock() throws {
@@ -160,7 +160,7 @@ struct DoTMechanicsTests {
             companion: BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5)
+                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5),
             ]
         )
 

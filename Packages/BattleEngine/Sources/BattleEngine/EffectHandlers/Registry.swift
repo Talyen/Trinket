@@ -40,7 +40,7 @@ public enum EffectHandlers {
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
         .holyDamageBonusFromBlock: HolyDamageBonusFromBlockHandler(),
-        .revive: ReviveHandler()
+        .revive: ReviveHandler(),
     ]
 
     public static func handler(for kind: EffectKind) -> (any BattleEffectHandler)? {

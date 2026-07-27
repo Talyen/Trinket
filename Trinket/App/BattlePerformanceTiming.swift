@@ -25,7 +25,9 @@ enum BattlePerformanceTiming {
     }
 
     /// When the metrics probe freezes the accessibility report.
+    /// Full window must leave enough post-warmup samples under CI simulator load
+    /// (often well below 60 Hz) to satisfy the XCTest capture threshold.
     static var snapshotDelay: Duration {
-        isQuick ? .seconds(3.0) : .seconds(7)
+        isQuick ? .seconds(3.0) : .seconds(10)
     }
 }

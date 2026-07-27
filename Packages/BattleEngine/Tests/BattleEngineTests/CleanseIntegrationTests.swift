@@ -22,7 +22,7 @@ struct CleanseIntegrationTests {
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6)
+                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6),
             ]
         )
 
@@ -57,7 +57,7 @@ struct CleanseIntegrationTests {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
+                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
             ]
         )
 
@@ -99,7 +99,7 @@ struct CleanseIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0),
             ]
         )
 

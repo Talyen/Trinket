@@ -11,7 +11,7 @@ final class ShopFlowUITests: TrinketUITestCase {
             "chapter-2-stage-4",
             "chapter-2-stage-5",
             "chapter-2-stage-6",
-            "chapter-2-stage-7"
+            "chapter-2-stage-7",
         ]))
 
         // Shell catalog (title/gold/leave/offers) lives in SmokeShopTests; wait once then journey.

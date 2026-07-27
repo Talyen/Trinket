@@ -42,14 +42,14 @@ struct CombatantCatalogTests {
             .damageDealt(.burn, 4),
             .damageDealt(.freeze, 4),
             .damageDealt(.holy, 4),
-            .companionDamageDealt(4)
+            .companionDamageDealt(4),
         ])
         try #expect(effects.companionModifiers == [
             .maximumHealth(16),
             .toughness(8),
             .poisonDamageDealtPercent(0.2),
             .damageTakenPercent(.poison, 0.4),
-            .agility(8)
+            .agility(8),
         ])
         try #expect(effects.astralChanceBonusPercent == 20)
         try #expect(effects.goldFindPercent == 20)

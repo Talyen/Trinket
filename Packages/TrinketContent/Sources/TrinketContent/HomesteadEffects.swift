@@ -9,7 +9,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public var astralChanceBonusPercent: Int
     public var goldFindPercent: Int
 
-    public static let zero = HomesteadEffects(
+    public static let zero = Self(
         heroModifiers: [],
         companionModifiers: [],
         astralChanceBonusPercent: 0,
@@ -28,8 +28,8 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         self.goldFindPercent = goldFindPercent
     }
 
-    public static func from(nodeTiers: [HomesteadNodeID: Int]) -> HomesteadEffects {
-        var effects = HomesteadEffects.zero
+    public static func from(nodeTiers: [HomesteadNodeID: Int]) -> Self {
+        var effects = Self.zero
         for nodeID in HomesteadNodeID.allCases {
             let tier = nodeTiers[nodeID, default: 0]
             guard tier > 0 else { continue }
@@ -43,7 +43,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         return amount + (amount * goldFindPercent) / 100
     }
 
-    private static func apply(nodeID: HomesteadNodeID, tier: Int, to effects: inout HomesteadEffects) {
+    private static func apply(nodeID: HomesteadNodeID, tier: Int, to effects: inout Self) {
         switch nodeID {
         case .wheatField:
             effects.companionModifiers.append(.maximumHealth(tierValue(tier, values: [4, 8, 12, 16])))
@@ -79,7 +79,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             effects.heroModifiers.append(contentsOf: [
                 .damageDealt(.burn, amount),
                 .damageDealt(.freeze, amount),
-                .damageDealt(.holy, amount)
+                .damageDealt(.holy, amount),
             ])
         case .hunterLodge:
             effects.heroModifiers.append(.companionDamageDealt(tierValue(tier, values: [1, 2, 3, 4])))

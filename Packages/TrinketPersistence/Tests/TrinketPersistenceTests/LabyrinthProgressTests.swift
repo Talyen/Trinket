@@ -29,13 +29,10 @@ struct LabyrinthProgressTests {
         #expect(!state.reachableNodeIDs().isEmpty)
     }
 
-    @Test func markClearedExpandsPastBossAndKeepsEarlierNodes() {
+    @Test func markClearedExpandsPastBossAndKeepsEarlierNodes() throws {
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 21)
-        guard var boss = state.nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }) else {
-            Issue.record("Missing floor-1 boss")
-            return
-        }
+        var boss = try #require(state.nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }), "Missing floor-1 boss")
         let unfinishedID = state.nodes.values.first(where: {
             $0.depth == 1 && $0.id != boss.id && !$0.isCleared
         })?.id
@@ -200,7 +197,7 @@ struct LabyrinthProgressTests {
     @Test func sanitizeCollapsesLegacyEventNodesToMystery() throws {
         var dirty = PlayerLabyrinthState.freshStart
         dirty.ensureMap(seed: 4)
-        let nodeID = try #require(dirty.reachableNodeIDs().first ?? dirty.nodes.keys.sorted().first)
+        let nodeID = try #require(dirty.reachableNodeIDs().first ?? dirty.nodes.keys.min())
         if let node = dirty.nodes[nodeID] {
             dirty.nodes[nodeID] = LabyrinthNode(
                 id: node.id,
@@ -306,7 +303,7 @@ struct LabyrinthProgressTests {
             save: &save
         )
         #expect(save.inventory.items.contains(where: { $0.id == pending.id }))
-        #expect(save.inventory.items.filter { $0.id == pending.id }.count == 1)
+        #expect(save.inventory.items.count(where: { $0.id == pending.id }) == 1)
     }
 
     @Test func corruptMapPayloadClearsTopologyThenSanitizeRebuilds() {
@@ -427,7 +424,7 @@ extension LabyrinthProgressTests {
             "upLeft": LabyrinthGridPosition(row: 0, column: 0),
             "upRight": LabyrinthGridPosition(row: 0, column: 1),
             "downLeft": LabyrinthGridPosition(row: 2, column: -1),
-            "downRight": LabyrinthGridPosition(row: 2, column: 0)
+            "downRight": LabyrinthGridPosition(row: 2, column: 0),
         ]
         let neighbors = neighborPositions.map { id, position in
             LabyrinthNode(

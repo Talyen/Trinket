@@ -181,7 +181,7 @@ final class PlayerSaveStoreTests {
 
     @Test(arguments: [
         ("negative-xp", true),
-        ("schema-version", false)
+        ("schema-version", false),
     ])
     func validateRejectsCorruptSaveFields(mode: String, expectsMessageContainsXP: Bool) throws {
         var save = PlayerSave.fresh

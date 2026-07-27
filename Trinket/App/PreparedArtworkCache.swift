@@ -10,9 +10,9 @@ struct LaunchArtworkWarmupPlan: Equatable {
 
     /// Priority names that exist in the catalog come first; remaining catalog names are deferred.
     /// Catalog order is preserved within each bucket.
-    static func make(priorityImageNames: [String], catalogNames: [String]) -> LaunchArtworkWarmupPlan {
+    static func make(priorityImageNames: [String], catalogNames: [String]) -> Self {
         let priority = Set(priorityImageNames)
-        return LaunchArtworkWarmupPlan(
+        return Self(
             priorityNames: catalogNames.filter { priority.contains($0) },
             deferredNames: catalogNames.filter { !priority.contains($0) }
         )

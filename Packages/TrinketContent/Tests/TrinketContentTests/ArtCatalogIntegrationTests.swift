@@ -3,22 +3,10 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ArtCatalogIntegrationTests {
-    /// Abilities intentionally shipping without curated art yet (cinematic / placeholder path).
-    private static let abilitiesAllowedWithoutArt: Set<String> = [
-        "avatar-of-justice",
-        "earthquake",
-        "maul",
-        "pounce",
-        "shadowstep"
-    ]
-
     // This cross-catalog invariant intentionally owns all art-reference domains.
     // swiftlint:disable function_body_length
     @Test func catalogAndContentArtReferencesResolveAcrossAllDomains() throws {
         for ability in AbilityCatalog.all {
-            if Self.abilitiesAllowedWithoutArt.contains(ability.id) {
-                continue
-            }
             _ = try #require(
                 ability.artReference,
                 "Missing art for ability id \(ability.id)"

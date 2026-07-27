@@ -165,7 +165,7 @@ enum BattleTestFixtures {
             companion: resolvedCompanion,
             enemy: resolvedEnemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: 0),
             ]
         )
     }

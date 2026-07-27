@@ -17,7 +17,7 @@ struct CombatFeedbackChipPresentation {
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
         feedbackClass: CombatFeedbackClass
-    ) -> CombatFeedbackChipPresentation {
+    ) -> Self {
         switch label {
         case .amount, .percent:
             let tint = trailingStyle(
@@ -25,7 +25,7 @@ struct CombatFeedbackChipPresentation {
                 visualRole: visualRole,
                 feedbackClass: feedbackClass
             )
-            return CombatFeedbackChipPresentation(
+            return Self(
                 leadingSymbolName: nil,
                 leadingTint: nil,
                 trailingSymbolName: tint.symbolName,
@@ -47,7 +47,7 @@ struct CombatFeedbackChipPresentation {
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,
         feedbackClass: CombatFeedbackClass
-    ) -> CombatFeedbackChipPresentation {
+    ) -> Self {
         switch word {
         case .dodge:
             iconOnly(trailing: Keyword.dodge.visualStyle)
@@ -84,8 +84,8 @@ struct CombatFeedbackChipPresentation {
     private static func textAndIcon(
         trailing: Keyword.VisualStyle,
         text: String
-    ) -> CombatFeedbackChipPresentation {
-        CombatFeedbackChipPresentation(
+    ) -> Self {
+        Self(
             leadingSymbolName: nil,
             leadingTint: nil,
             trailingSymbolName: trailing.symbolName,
@@ -96,7 +96,7 @@ struct CombatFeedbackChipPresentation {
 
     private static func resolveStatus(
         _ status: CombatFeedbackStatusLabel
-    ) -> CombatFeedbackChipPresentation {
+    ) -> Self {
         let beneficial = Keyword.VisualStyle.beneficialStatus
         let negative = Keyword.VisualStyle.negativeStatus
         switch status {
@@ -117,8 +117,8 @@ struct CombatFeedbackChipPresentation {
         }
     }
 
-    private static func iconOnly(trailing: Keyword.VisualStyle) -> CombatFeedbackChipPresentation {
-        CombatFeedbackChipPresentation(
+    private static func iconOnly(trailing: Keyword.VisualStyle) -> Self {
+        Self(
             leadingSymbolName: nil,
             leadingTint: nil,
             trailingSymbolName: trailing.symbolName,
@@ -130,8 +130,8 @@ struct CombatFeedbackChipPresentation {
     private static func dualAction(
         leading: Keyword.VisualStyle,
         trailing: Keyword.VisualStyle
-    ) -> CombatFeedbackChipPresentation {
-        CombatFeedbackChipPresentation(
+    ) -> Self {
+        Self(
             leadingSymbolName: leading.symbolName,
             leadingTint: leading,
             trailingSymbolName: trailing.symbolName,

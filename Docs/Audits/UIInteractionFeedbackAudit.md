@@ -6,7 +6,7 @@
 
 ## Intent
 
-Identify navigation/feedback/accessibility defects across flows and write a plan to fix all identified issues (breaking into phases if the scope is large). Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Significant shared patterns remain proposals.
+Fix confirmed navigation/feedback/accessibility defects across flows. Reuse existing UI coverage; do not add a test unless the Testing rubric identifies a unique shipping journey or safety invariant. Significant shared patterns remain proposals per [README.md](README.md).
 
 ## Hard stops
 
@@ -27,10 +27,6 @@ Identify navigation/feedback/accessibility defects across flows and write a plan
 
 **Edge cases:** rapid-tap debounce on stage start / craft / reward claim; battle pauses on `scenePhase` background; keyboard dismissal where applicable; empty states for empty collection/inventory/homestead.
 
-## Probe hints
+## Evidence bar
 
-- **Icon-Only Accessibility Labels:** Search `Trinket/Features/` for icon-only buttons (`Button { ... } label: { Image(systemName: ...) }` or `Image(systemName:)` tap targets) lacking explicit `.accessibilityLabel(...)` or `.accessibilityHint(...)`.
-- **Sensory & Haptic Feedback Coverage:** Search primary interactive tap handlers (`Button` actions in `BattleView`, `ShopEncounterView`, `LabyrinthMapClusterViews`) for missing `.trinketSensoryFeedback` or haptics options gating (`hapticsEnabled`).
-- **Interactive Control Press States:** Search custom button labels and card tap targets for missing `.trinketQuietTapButtonStyle()`, `.trinketPrimaryActionButton()`, or active pressed opacity modifiers.
-- **Navigation & Modal Dismiss Paths:** Search `.sheet` and `.fullScreenCover` presentations; verify every modal includes a visible toolbar/inline close button or explicit `dismiss()` binding.
-- **Rapid-Tap Action Debouncing:** Search primary action buttons (`startBattle`, `forgeCraft`, `claimRewards`); verify tap handlers set and check `isProcessing` state flags to prevent double-invocations.
+Interactive flow missing a dismiss path, visible feedback, or stable identifier; gesture fight; or double-trigger on a primary action.

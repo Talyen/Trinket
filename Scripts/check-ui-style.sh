@@ -122,12 +122,13 @@ check_line() {
   fi
 
   # SwiftUI system palette used as chrome (adaptive .primary/.secondary/.clear are fine).
+  # Color.accentColor / .accentColor shape styles are banned alongside .accentColor(...).
   if [[ -z "$pattern" ]]; then
-    if [[ "$line" =~ \.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey) ]]; then
+    if [[ "$line" =~ \.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor) ]]; then
       pattern="system color literal"
-    elif [[ "$line" =~ (^|[^A-Za-z0-9_])Color\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\b ]]; then
+    elif [[ "$line" =~ (^|[^A-Za-z0-9_])Color\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\b ]]; then
       pattern="system color literal"
-    elif [[ "$line" =~ (^|[^A-Za-z0-9_])\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\.opacity\( ]]; then
+    elif [[ "$line" =~ (^|[^A-Za-z0-9_])\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\.opacity\( ]]; then
       pattern="system color literal"
     fi
   fi

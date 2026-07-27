@@ -41,7 +41,7 @@ struct ThemePaletteTests {
             palette.informational,
             palette.arcane,
             palette.health,
-            palette.healthRestore
+            palette.healthRestore,
         ]
 
         for color in semanticForegrounds {

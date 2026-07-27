@@ -34,9 +34,9 @@ enum MysteryEventPool {
             choices: [
                 ("harvest", "Harvest", [
                     .gainMaterial(.herbs, 3),
-                    generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"])
+                    generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("study-glow", "Study the Glow", [.gainExperience(10)])
+                ("study-glow", "Study the Glow", [.gainExperience(10)]),
             ]
         ),
         ev(
@@ -46,7 +46,7 @@ enum MysteryEventPool {
             artID: "mystery-pool-of-water-steams",
             choices: [
                 ("bathe", "Bathe", [.gainExperience(12), .gainMaterial(.herbs, 2)]),
-                ("bottle", "Bottle the Essence", [.gainMaterial(.crystal, 3), .gainMaterial(.herbs, 2)])
+                ("bottle", "Bottle the Essence", [.gainMaterial(.crystal, 3), .gainMaterial(.herbs, 2)]),
             ]
         ),
         ev(
@@ -57,9 +57,9 @@ enum MysteryEventPool {
             choices: [
                 ("harvest-caps", "Harvest Caps", [
                     .gainMaterial(.herbs, 5),
-                    generatedItem("emerald_ring")
+                    generatedItem("emerald_ring"),
                 ]),
-                ("breathe-spores", "Breathe the Spores", [.gainExperience(10)])
+                ("breathe-spores", "Breathe the Spores", [.gainExperience(10)]),
             ]
         ),
         ev(
@@ -69,7 +69,7 @@ enum MysteryEventPool {
             artID: "mystery-oak-tree-with-face",
             choices: [
                 ("ask-knowledge", "Ask for Knowledge", [.gainExperience(12)]),
-                ("rest-shade", "Rest in its Shade", [.gainExperience(6), .gainMaterial(.herbs, 4)])
+                ("rest-shade", "Rest in its Shade", [.gainExperience(6), .gainMaterial(.herbs, 4)]),
             ]
         ),
         ev(
@@ -79,7 +79,7 @@ enum MysteryEventPool {
             artID: "mystery-circle-of-glowing-mushrooms",
             choices: [
                 ("step-inside", "Step Inside", [.gainGold(25)]),
-                ("pluck-cap", "Pluck a Cap", [.gainMaterial(.crystal, 3)])
+                ("pluck-cap", "Pluck a Cap", [.gainMaterial(.crystal, 3)]),
             ]
         ),
         ev(
@@ -89,7 +89,7 @@ enum MysteryEventPool {
             artID: "mystery-weathered-stone-altar",
             choices: [
                 ("pray", "Pray", [.gainExperience(8)]),
-                ("take-relic", "Take the Relic", [generatedItem("topaz_amulet")])
+                ("take-relic", "Take the Relic", [generatedItem("topaz_amulet")]),
             ]
         ),
         ev(
@@ -99,7 +99,7 @@ enum MysteryEventPool {
             artID: "mystery-leather-bundle-between-roots",
             choices: [
                 ("take-coinpurse", "Take the Coinpurse", [.gainGold(20), .gainMaterial(.hide, 3)]),
-                ("claim-blade", "Claim the Blade", [generatedItem("dagger"), .gainMaterial(.hide, 2)])
+                ("claim-blade", "Claim the Blade", [generatedItem("dagger"), .gainMaterial(.hide, 2)]),
             ]
         ),
         ev(
@@ -109,7 +109,7 @@ enum MysteryEventPool {
             artID: "mystery-vines-carpet-mosaic-floors",
             choices: [
                 ("loot-crypt", "Loot the Crypt", [.gainRandomItem]),
-                ("read-inscriptions", "Read the Inscriptions", [.gainExperience(10), .gainMaterial(.crystal, 1)])
+                ("read-inscriptions", "Read the Inscriptions", [.gainExperience(10), .gainMaterial(.crystal, 1)]),
             ]
         ),
         ev(
@@ -119,7 +119,7 @@ enum MysteryEventPool {
             artID: "mystery-dusty-shelves-in-tower",
             choices: [
                 ("search-scrolls", "Search the Scrolls", [.chooseItem]),
-                ("catalog-library", "Catalog the Library", [.gainExperience(8), .gainMaterial(.crystal, 1)])
+                ("catalog-library", "Catalog the Library", [.gainExperience(8), .gainMaterial(.crystal, 1)]),
             ]
         ),
         ev(
@@ -129,7 +129,7 @@ enum MysteryEventPool {
             artID: "mystery-leather-book-floats",
             choices: [
                 ("read", "Read Carefully", [.gainExperience(10)]),
-                ("bind-pages", "Bind the Torn Pages", [generatedItem("spellbook")])
+                ("bind-pages", "Bind the Torn Pages", [generatedItem("spellbook")]),
             ]
         ),
         ev(
@@ -140,9 +140,9 @@ enum MysteryEventPool {
             choices: [
                 ("chip-gems", "Chip Out Gems", [
                     .gainMaterial(.crystal, 4),
-                    generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"])
+                    generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("meditate", "Meditate in the Resonance", [.gainExperience(8)])
+                ("meditate", "Meditate in the Resonance", [.gainExperience(8)]),
             ]
         ),
         ev(
@@ -153,9 +153,9 @@ enum MysteryEventPool {
             choices: [
                 ("pocket-fragment", "Pocket a Fragment", [
                     .gainMaterial(.iron, 3),
-                    generatedItem("ruby_amulet")
+                    generatedItem("ruby_amulet"),
                 ]),
-                ("study-impact", "Study the Impact", [.gainExperience(8)])
+                ("study-impact", "Study the Impact", [.gainExperience(8)]),
             ]
         ),
         ev(
@@ -165,7 +165,7 @@ enum MysteryEventPool {
             artID: "mystery-gold-coins-among-bones",
             choices: [
                 ("scoop-coins", "Scoop the Coins", [.gainGold(30), .gainMaterial(.iron, 3)]),
-                ("fashion-bone-guard", "Fashion a Bone Guard", [generatedItem("kite_shield")])
+                ("fashion-bone-guard", "Fashion a Bone Guard", [generatedItem("kite_shield")]),
             ]
         ),
         ev(
@@ -178,8 +178,8 @@ enum MysteryEventPool {
                 ("forage", "Forage the Undergrowth", [
                     .gainMaterial(.herbs, 4),
                     .gainMaterial(.wood, 2),
-                    generatedItem("emerald_ring")
-                ])
+                    generatedItem("emerald_ring"),
+                ]),
             ]
         ),
         ev(
@@ -190,9 +190,9 @@ enum MysteryEventPool {
             choices: [
                 ("mine-cliffside", "Mine the Cliffside", [
                     .gainMaterial(.iron, 4),
-                    .gainMaterial(.crystal, 2)
+                    .gainMaterial(.crystal, 2),
                 ]),
-                ("gather-herbs", "Gather Alpine Herbs", [.gainExperience(8), .gainMaterial(.herbs, 3)])
+                ("gather-herbs", "Gather Alpine Herbs", [.gainExperience(8), .gainMaterial(.herbs, 3)]),
             ]
         ),
         ev(
@@ -205,8 +205,8 @@ enum MysteryEventPool {
                 ("pull-reeds", "Pull Medicinal Reeds", [
                     .gainMaterial(.herbs, 4),
                     .gainMaterial(.wood, 2),
-                    .gainExperience(4)
-                ])
+                    .gainExperience(4),
+                ]),
             ]
         ),
         ev(
@@ -218,8 +218,8 @@ enum MysteryEventPool {
                 ("accept-rite", "Accept the Rite", [.gainExperience(8), generatedItem("staff")]),
                 ("steal-salts", "Steal the Salts", [
                     .gainMaterial(.crystal, 3),
-                    generatedItem("ruby_ring")
-                ])
+                    generatedItem("ruby_ring"),
+                ]),
             ]
         ),
         ev(
@@ -231,8 +231,8 @@ enum MysteryEventPool {
                 ("harvest-remedies", "Harvest Remedies", [.gainMaterial(.herbs, 6), .gainExperience(4)]),
                 ("copy-notes", "Copy the Herbalist's Notes", [
                     .gainExperience(8),
-                    generatedItem("emerald_amulet")
-                ])
+                    generatedItem("emerald_amulet"),
+                ]),
             ]
         ),
         ev(
@@ -243,9 +243,9 @@ enum MysteryEventPool {
             choices: [
                 ("harvest-shards", "Harvest Shards", [
                     .gainMaterial(.crystal, 4),
-                    generatedItem("sapphire_amulet", guaranteedAffixIDs: ["manabound"])
+                    generatedItem("sapphire_amulet", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("attune", "Attune to the Chime", [.gainExperience(8)])
+                ("attune", "Attune to the Chime", [.gainExperience(8)]),
             ]
         ),
         ev(
@@ -255,7 +255,7 @@ enum MysteryEventPool {
             artID: nil,
             choices: [
                 ("take-bow", "Take the Bow", [generatedItem("shortbow"), .gainMaterial(.hide, 4)]),
-                ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet"), .gainMaterial(.hide, 4)])
+                ("take-hatchet", "Take the Hatchet", [generatedItem("hatchet"), .gainMaterial(.hide, 4)]),
             ]
         ),
         ev(
@@ -265,7 +265,7 @@ enum MysteryEventPool {
             artID: nil,
             choices: [
                 ("breathe-smoke", "Breathe the Smoke", [.gainExperience(8)]),
-                ("claim-censer", "Claim the Censer", [generatedItem("topaz_amulet")])
+                ("claim-censer", "Claim the Censer", [generatedItem("topaz_amulet")]),
             ]
         ),
         ev(
@@ -275,7 +275,7 @@ enum MysteryEventPool {
             artID: nil,
             choices: [
                 ("claim-feather", "Claim the Feather", [generatedItem("ruby_amulet")]),
-                ("fan-embers", "Fan the Embers", [generatedItem("staff")])
+                ("fan-embers", "Fan the Embers", [generatedItem("staff")]),
             ]
         ),
         ev(
@@ -285,19 +285,19 @@ enum MysteryEventPool {
             artID: nil,
             choices: [
                 ("study-pack", "Study the Pack", [.gainExperience(8)]),
-                ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")])
+                ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")]),
             ]
         ),
         ev(
-            id: MysteryEventPool.corruptionAltarID,
+            id: Self.corruptionAltarID,
             title: "Corruption Altar",
             narrative: "A cracked stone altar bleeds violet light from its seams. Offer an item and the altar remakes it without mercy — for better or worse — then seals it as Corrupted forever. You may also walk away untouched.",
             artID: "destination-corruption-altar",
             choices: [
                 ("corrupt-item", "Corrupt an Item", [.corruptItem]),
-                ("leave", "Leave", [.leave])
+                ("leave", "Leave", [.leave]),
             ]
-        )
+        ),
     ]
 
     static let corruptionAltarID = "corruption-altar"

@@ -31,19 +31,19 @@ public struct AbilityLoadout: Hashable, Sendable {
         }
     }
 
-    public func selecting(_ ability: Ability) -> AbilityLoadout {
+    public func selecting(_ ability: Ability) -> Self {
         switch ability.tier {
         case .basic:
-            AbilityLoadout(basic: ability, skill: skill, ultimate: ultimate)
+            Self(basic: ability, skill: skill, ultimate: ultimate)
         case .skill:
-            AbilityLoadout(basic: basic, skill: ability, ultimate: ultimate)
+            Self(basic: basic, skill: ability, ultimate: ultimate)
         case .ultimate:
-            AbilityLoadout(basic: basic, skill: skill, ultimate: ability)
+            Self(basic: basic, skill: skill, ultimate: ability)
         }
     }
 
-    public func unlocked(for progression: CombatantProgression) -> AbilityLoadout {
-        AbilityLoadout(
+    public func unlocked(for progression: CombatantProgression) -> Self {
+        Self(
             basic: progression.unlocks(.basic) ? basic : nil,
             skill: progression.unlocks(.skill) ? skill : nil,
             ultimate: progression.unlocks(.ultimate) ? ultimate : nil
@@ -73,7 +73,7 @@ public struct AbilityChoices: Hashable, Sendable {
             ultimate: ultimates.first
         )
         let selectedLoadout = selected ?? defaultLoadout
-        self.selected = AbilityChoices.resolvedLoadout(
+        self.selected = Self.resolvedLoadout(
             selectedLoadout,
             basics: basics,
             skills: skills,
@@ -101,8 +101,8 @@ public struct AbilityChoices: Hashable, Sendable {
         }
     }
 
-    public func withSelectedLoadout(_ loadout: AbilityLoadout) -> AbilityChoices {
-        AbilityChoices(
+    public func withSelectedLoadout(_ loadout: AbilityLoadout) -> Self {
+        Self(
             basics: basics,
             skills: skills,
             ultimates: ultimates,
@@ -110,8 +110,8 @@ public struct AbilityChoices: Hashable, Sendable {
         )
     }
 
-    public func withSelectedLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> AbilityChoices {
-        AbilityChoices(
+    public func withSelectedLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Self {
+        Self(
             basics: basics,
             skills: skills,
             ultimates: ultimates,

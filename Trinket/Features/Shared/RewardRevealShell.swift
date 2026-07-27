@@ -79,7 +79,7 @@ struct RewardRevealShell<Content: View>: View {
                         LinearGradient(
                             colors: [
                                 TrinketDesign.Colors.canvas.opacity(0),
-                                TrinketDesign.Colors.canvas.opacity(0.88)
+                                TrinketDesign.Colors.canvas.opacity(0.88),
                             ],
                             startPoint: .top,
                             endPoint: .bottom

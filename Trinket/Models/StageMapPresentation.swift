@@ -66,7 +66,7 @@ struct ChapterStageRowPresentation: Identifiable, Equatable {
     static func rows(
         for chapter: Chapter,
         progress: JourneyProgressState
-    ) -> [ChapterStageRowPresentation] {
+    ) -> [Self] {
         let states = chapter.stages.map {
             JourneyMapPresentation.stageNodeState(for: $0, progress: progress)
         }
@@ -80,7 +80,7 @@ struct ChapterStageRowPresentation: Identifiable, Equatable {
                 ? nil
                 : (states[index + 1] == .future ? .future : .progressed)
 
-            return ChapterStageRowPresentation(
+            return Self(
                 stage: stage,
                 state: state,
                 connectorBefore: connectorBefore,

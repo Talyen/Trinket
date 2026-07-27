@@ -45,7 +45,7 @@ enum SpireCatalog {
             title: "Storm Anvil",
             epithet: "One blow that stops the world",
             keyword: .stun
-        )
+        ),
     ]
 
     static let spiresByID: [SpireID: SpireDefinition] = Dictionary(uniqueKeysWithValues: spires.map { ($0.id, $0) })
@@ -71,7 +71,7 @@ enum SpireCatalog {
         .bleed: ["mimic", "necromancer", "the_blight_treant"],
         .holy: ["skeleton", "living_armor", "the_iron_bear"],
         .freeze: ["frost_elemental", "the_frostwarden"],
-        .stun: ["goblin", "living_armor", "the_forge_golem"]
+        .stun: ["goblin", "living_armor", "the_forge_golem"],
     ]
 
     private static let floorsBySpireID: [SpireID: [SpireFloor]] = {

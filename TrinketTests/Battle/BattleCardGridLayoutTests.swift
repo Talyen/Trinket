@@ -78,7 +78,7 @@ struct BattleHandLayoutTests {
         (width: CGFloat(390), cardCount: 1),
         (width: CGFloat(375), cardCount: 5),
         (width: CGFloat(390), cardCount: 5),
-        (width: CGFloat(430), cardCount: 5)
+        (width: CGFloat(430), cardCount: 5),
     ])
     func handMetricsClampAndSpanAcrossPhoneWidths(width: CGFloat, cardCount: Int) {
         let metrics = BattleHandLayout.metrics(containerWidth: width, cardCount: cardCount)

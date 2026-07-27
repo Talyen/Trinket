@@ -4,7 +4,7 @@
 
 ## Intent
 
-Discover markdown mechanically (do not trust a hardcoded count), but do not load it wholesale. Use capped probes, open only candidate files and nearby source-of-truth lines, and write a plan to fix all identified Critical/Moderate drift (breaking into phases if the scope is large). A pass with no contradiction is valid.
+Find Critical/Moderate contradictions between docs and their sources of truth. A pass with no contradiction is valid. Planning and phasing: [README.md](README.md).
 
 ## Hard stops
 
@@ -22,17 +22,12 @@ Discover markdown mechanically (do not trust a hardcoded count), but do not load
 
 ## Domain rules
 
-**Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; smoke class count via `ls TrinketUITests/Smoke/Smoke*.swift`; canonical names from [Architecture.md](../Platform/Architecture.md).
+**Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md).
 
 **Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. Recheck edited links and factual claims against their listed source of truth. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
 
 **Audit hygiene:** if an audit contains embedded run logs, Done tables, or “Last execution” trackers, remove them and restore procedural guide shape per [README.md](README.md).
 
-## Probe hints
+## Evidence bar
 
-- **Code Snippet Drift:** Search markdown files (`Docs/`, `Packages/*/README.md`, `AGENTS.md`) for embedded code blocks (` ```swift `); verify referenced type names, method signatures, and parameter labels match production code.
-- **Script Flag Drift:** Search for `./Scripts/*.sh` command invocations documented in `Scripts/README.md` or `Docs/AgentContext/`; verify documented flags against executable script option parsers (`getopts` / `case "$1"`).
-- **Architecture & Directory Mismatches:** Cross-check file tree claims in `Docs/Platform/Architecture.md` against actual folder layout in `Trinket/` and `Packages/`.
-- **Broken Relative Links & Anchors:** Search for markdown file links (`[...](...)`) and heading anchors (`#anchor`); verify target file path existence and exact heading text matching.
-- **Project Parameter Staleness:** Verify `iOS 26.0`, `SWIFT_VERSION 6.0`, and package `swift-tools-version: 6.2` declarations across `AGENTS.md`, `project.yml`, and `Package.swift` files.
-- **Audit Tracker Residue:** Search `Docs/Audits/*.md` for embedded run logs, "Last execution" tables, or dated status notes, removing them per [README.md](README.md).
+A Critical/Moderate finding is a confirmed mismatch between a doc claim and a named source of truth (path, API, version, architecture assumption, or broken relative link/anchor). Minor issues are optional cleanup only when already touching that file.

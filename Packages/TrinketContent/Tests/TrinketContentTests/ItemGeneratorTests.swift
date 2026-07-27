@@ -5,7 +5,7 @@ import TrinketCore
 struct ItemGeneratorTests {
     @Test(arguments: [
         (baseTypeID: "longsword", rarity: Rarity.basic, range: 1 ... 2),
-        (baseTypeID: "ruby_ring", rarity: .astral, range: 3 ... 4)
+        (baseTypeID: "ruby_ring", rarity: .astral, range: 3 ... 4),
     ])
     func itemsRollAffixCountsInRarityRange(
         baseTypeID: String,

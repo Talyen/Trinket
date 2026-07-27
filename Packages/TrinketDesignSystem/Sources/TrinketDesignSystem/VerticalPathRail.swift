@@ -25,7 +25,7 @@ public struct PathConnectorStyle: Equatable, Sendable {
         self.futureWidth = futureWidth
     }
 
-    public static let homesteadAccent = PathConnectorStyle(
+    public static let homesteadAccent = Self(
         progressedColor: HomesteadPalette.accent
     )
 }

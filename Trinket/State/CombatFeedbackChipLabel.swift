@@ -54,7 +54,7 @@ enum CombatFeedbackChipLabel: Hashable {
 
     /// Builds a label from an `ActionEventDisplay` using the same first-token rule as
     /// the previous floating-text path (numeric token → amount/percent; else full word).
-    static func fromDisplayText(_ text: String) -> CombatFeedbackChipLabel? {
+    static func fromDisplayText(_ text: String) -> Self? {
         guard !text.isEmpty else { return nil }
         guard let firstToken = text.split(separator: " ").first else { return nil }
         let token = String(firstToken)
@@ -131,8 +131,8 @@ enum CombatFeedbackChipWord: Hashable {
     }
 
     /// Exhaustive word cases that still need a text fragment in the glyph atlas.
-    static var textAtlasCases: [CombatFeedbackChipWord] {
-        var words: [CombatFeedbackChipWord] = [.critical]
+    static var textAtlasCases: [Self] {
+        var words: [Self] = [.critical]
         for keyword in Keyword.allCases where keyword != .deathsDoor {
             words.append(.plain(keyword))
             words.append(.applied(keyword))
@@ -141,7 +141,7 @@ enum CombatFeedbackChipWord: Hashable {
         return words
     }
 
-    static func parse(_ text: String) -> CombatFeedbackChipWord? {
+    static func parse(_ text: String) -> Self? {
         switch text {
         case "Dodge":
             return .dodge

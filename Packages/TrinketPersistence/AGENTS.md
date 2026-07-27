@@ -1,7 +1,7 @@
 # TrinketPersistence-local guide
 
-Read `Docs/AgentContext/persistence.md` before editing. This package owns the canonical SwiftData save graph and persistence stores; it never imports the app or feature UI.
+Persistence behavior must conform to `Docs/AgentContext/persistence.md`. This package owns the canonical SwiftData save graph and persistence stores; it never imports the app or feature UI.
 
 Save-store harnesses (`SaveTestSupport`) live under PersistenceTests support — not in `TrinketTestSupport` — so TestSupport stays Persistence-free and the package graph stays acyclic.
 
-New store APIs need mutate-reload-assert coverage in `TrinketPersistenceTests`. The root task-scoped workflow selects style and package checks; for a deliberately narrow iteration, run `./Scripts/test-package.sh TrinketPersistence`.
+New store APIs must prove read/write survival across reload in `TrinketPersistenceTests`. Package-scoped verification must pass before handoff.

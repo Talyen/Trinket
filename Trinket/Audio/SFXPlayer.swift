@@ -42,7 +42,7 @@ enum SFXID {
         purge,
         deathsDoor,
         victory,
-        defeat
+        defeat,
     ]
 }
 

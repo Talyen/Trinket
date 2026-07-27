@@ -43,7 +43,7 @@ struct PrimaryStatsRulesTests {
             (7, 2),
             (20, 4),
             (50, 10),
-            (100, 20)
+            (100, 20),
         ]
         for (maxHealth, expectedThreshold) in cases {
             try #expect(

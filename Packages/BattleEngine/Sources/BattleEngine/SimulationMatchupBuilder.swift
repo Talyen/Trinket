@@ -155,7 +155,7 @@ public enum SimulationMatchupBuilder {
         var gearKeywordBias: Set<Keyword>?
         var gearGenerator: ThemedGearGenerator
 
-        func with(idPrefix: String, gearOverride: GearOverride?) -> PartyPrepareRequest {
+        func with(idPrefix: String, gearOverride: GearOverride?) -> Self {
             var copy = self
             copy.idPrefix = idPrefix
             copy.gearOverride = gearOverride

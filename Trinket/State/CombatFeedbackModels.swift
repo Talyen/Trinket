@@ -41,8 +41,8 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         label.displayString
     }
 
-    func scheduled(at date: Date) -> CombatFeedbackItem {
-        CombatFeedbackItem(
+    func scheduled(at date: Date) -> Self {
+        Self(
             id: id,
             sourceEventIDs: sourceEventIDs,
             actionGroupID: actionGroupID,

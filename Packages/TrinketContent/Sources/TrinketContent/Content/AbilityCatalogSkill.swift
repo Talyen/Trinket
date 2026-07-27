@@ -11,7 +11,7 @@ enum AbilityCatalogSkill {
         id: "blood-offering", name: "Blood Offering", tier: .skill,
         damageComponents: [
             DamageComponent(1, keyword: .physical, target: .actor),
-            DamageComponent(4, keyword: .bleed)
+            DamageComponent(4, keyword: .bleed),
         ],
         targetedEffects: [TargetedEffect(.bleed(4))]
     )
@@ -20,7 +20,7 @@ enum AbilityCatalogSkill {
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .physical)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)]),
         ]
     )
 
@@ -28,7 +28,7 @@ enum AbilityCatalogSkill {
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.thorns(1))
+            TargetedEffect(.thorns(1)),
         ]
     )
 
@@ -36,7 +36,7 @@ enum AbilityCatalogSkill {
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .burn)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)])
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)]),
         ]
     )
 
@@ -44,7 +44,7 @@ enum AbilityCatalogSkill {
         id: "cleanse", name: "Cleanse", tier: .skill,
         targetedEffects: [
             TargetedEffect(.cleanseRandom),
-            TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.instantHeal(.health, 2)),
         ]
     )
 
@@ -52,7 +52,7 @@ enum AbilityCatalogSkill {
         id: "cold-snap", name: "Cold Snap", tier: .skill,
         damageComponents: [DamageComponent(2, keyword: .freeze)],
         targetedEffects: [
-            TargetedEffect(.resourceGain(.mana, 1), condition: .enemyFrozen)
+            TargetedEffect(.resourceGain(.mana, 1), condition: .enemyFrozen),
         ]
     )
 
@@ -103,17 +103,6 @@ enum AbilityCatalogSkill {
         targetedEffects: [TargetedEffect(.nextStrikeCritical)]
     )
 
-    static let roulette = Ability(
-        id: "roulette", name: "Roulette", tier: .skill,
-        outcomeBranches: [
-            AbilityOutcomeBranch(
-                damageComponents: [DamageComponent(3, keyword: .physical)],
-                randomizeDamageKeywords: true
-            ),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
-        ]
-    )
-
     static let sapArrow = AbilityBuilder.directHit(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill,
         amount: 3, keyword: .stun
@@ -133,7 +122,7 @@ enum AbilityCatalogSkill {
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
             TargetedEffect(.shield(.block, 2)),
-            TargetedEffect(.thorns(2))
+            TargetedEffect(.thorns(2)),
         ]
     )
 
@@ -159,7 +148,7 @@ enum AbilityCatalogSkill {
         id: "tithe", name: "Tithe", tier: .skill,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .holy)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)])
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 3)]),
         ]
     )
 
@@ -186,7 +175,6 @@ enum AbilityCatalogSkill {
         poisonDagger,
         pounce,
         predatorsFocus,
-        roulette,
         sapArrow,
         serratedEdge,
         smite,
@@ -195,6 +183,6 @@ enum AbilityCatalogSkill {
         stoneskinPotion,
         sunder,
         tithe,
-        venomFangs
+        venomFangs,
     ]
 }

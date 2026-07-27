@@ -184,43 +184,8 @@ run_is_path_filtered_only() {
 
 failure_looks_like_simulator_infrastructure() {
   local run_id="$1"
-  local repo evidence
-  repo="$(repo_slug)"
-
-  # Only auto-rerun when every failed job is a UI/simulator suite.
-  local non_ui_failures
-  non_ui_failures="$(
-    gh run view "$run_id" --json jobs --jq '
-      [.jobs[]?
-        | select(.conclusion == "failure")
-        | select(.name | test("UI|Smoke|ui|smoke") | not)
-      ] | length
-    ' 2>/dev/null || echo 1
-  )"
-  if [[ -z "$non_ui_failures" || "$non_ui_failures" != "0" ]]; then
-    return 1
-  fi
-
-  evidence="$(
-    {
-      gh api "repos/${repo}/actions/runs/${run_id}/jobs" --paginate \
-        --jq '.jobs[] | select(.conclusion == "failure") | .id' 2>/dev/null \
-        | while read -r job_id; do
-            [[ -z "$job_id" ]] && continue
-            gh api "repos/${repo}/check-runs/${job_id}/annotations" --jq '
-              .[]? | .message // empty
-            ' 2>/dev/null || true
-          done
-      gh run view "$run_id" --log-failed 2>/dev/null | tail -n "$FAILURE_LOG_LINES" || true
-    } | tr '\n' ' '
-  )"
-
-  [[ "$evidence" =~ [Tt]imed\ out\ while\ launching \
-    || "$evidence" =~ [Ff]ailed\ to\ launch \
-    || "$evidence" =~ [Bb]ackground\ assertion \
-    || "$evidence" =~ [Cc]oreSimulator \
-    || "$evidence" =~ [Uu]nable\ to\ boot \
-    || "$evidence" =~ simulator-infrastructure ]]
+  # Shared classifier also covers Nightly Integration / App performance jobs.
+  ./Scripts/ci-infra-rerun.sh --run-id "$run_id" >/dev/null
 }
 
 print_failure_triage() {

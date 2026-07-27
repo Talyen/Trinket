@@ -37,7 +37,7 @@ struct CombatFeedbackGlyphAtlasTests {
                 "arrowshape.down.fill",
                 "sparkles",
                 "hourglass.bottomhalf.filled",
-                "figure.run"
+                "figure.run",
             ] {
                 let symbol = try #require(
                     atlas.symbol(named: symbolName, face: face, recipe: recipe)
@@ -123,7 +123,7 @@ struct CombatFeedbackGlyphAtlasTests {
             (.amount(-12), .physical, .directDamage),
             (.amount(-12), .physical, .critical),
             (.word(.applied(.block)), .block, .block),
-            (.word(.triggered(.stun)), .stun, .control)
+            (.word(.triggered(.stun)), .stun, .control),
         ]
 
         for (label, keyword, feedbackClass) in samples {
@@ -259,7 +259,7 @@ private enum CombatFeedbackReferenceBaker {
         let text = presentation.text ?? ""
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: trailingTint
+            .foregroundColor: trailingTint,
         ]
         let nsText = text as NSString
         let textSize = text.isEmpty ? CGSize.zero : nsText.size(withAttributes: textAttributes)

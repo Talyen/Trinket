@@ -7,7 +7,7 @@ struct ExperienceBarTests {
         (count: 0, expected: 0.0),
         (count: 1, expected: 0.30),
         (count: 2, expected: 0.15),
-        (count: 3, expected: 0.10)
+        (count: 3, expected: 0.10),
     ])
     func segmentDurationsStayWithinFixedAnimationBudget(count: Int, expected: Double) throws {
         try #expect(abs(ExperienceBar.segmentDuration(forSegmentCount: count) - expected) < 0.0001)
@@ -33,7 +33,7 @@ struct ExperienceBarTests {
             pre: CombatantProgression(level: 1, currentXP: 95, requiredXP: 100),
             post: CombatantProgression(level: 1, currentXP: 95, requiredXP: 100).addingExperience(200),
             expectedCount: 3
-        )
+        ),
     ])
     func experienceSegmentsCoverProgressionCases(
         pre: CombatantProgression,
@@ -97,7 +97,7 @@ struct ExperienceBarTests {
         let post = pre.addingExperience(delta)
 
         let segments = ExperienceBar.segments(from: pre, to: post)
-        let totalLevelUps = segments.filter { $0.levelsGained > 0 }.count
+        let totalLevelUps = segments.count(where: { $0.levelsGained > 0 })
         try #expect(totalLevelUps == post.level - pre.level)
     }
 }

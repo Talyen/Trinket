@@ -43,14 +43,11 @@ struct LabyrinthCatalogTests {
         }
     }
 
-    @Test func expandBeyondBossAppendsNextFloor() {
+    @Test func expandBeyondBossAppendsNextFloor() throws {
         let generated = LabyrinthGenerator.makeInitialMap(seed: 11)
         var clusters = generated.clusters
         var nodes = generated.nodes
-        guard let firstBoss = nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }) else {
-            Issue.record("Expected a floor-1 boss")
-            return
-        }
+        let firstBoss = try #require(nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }), "Expected a floor-1 boss")
         var boss = firstBoss
         boss.isCleared = true
         nodes[boss.id] = boss
@@ -99,7 +96,7 @@ struct LabyrinthCatalogTests {
     @Test func modifierCatalogContainsOnlyApprovedDefinitions() {
         #expect(Set(GameContent.labyrinthModifiers.map(\.id.rawValue)) == [
             "ironPressure", "ashTithe", "bloodMarket", "gildedWhisper",
-            "astralSeam", "serpentBloom", "rimeTax"
+            "astralSeam", "serpentBloom", "rimeTax",
         ])
         #expect(Dictionary(uniqueKeysWithValues: GameContent.labyrinthModifiers.map { modifier in
             (modifier.title, modifier.effect.description)
@@ -110,7 +107,7 @@ struct LabyrinthCatalogTests {
             "Gilded Whisper": "Increases Gold rewards by 10%.",
             "Astral Seam": "Increases chance to find Astral items by 25%.",
             "Serpent Bloom": "Poison damage is increased by 1.",
-            "Rime Tax": "Freeze damage is increased by 1."
+            "Rime Tax": "Freeze damage is increased by 1.",
         ])
     }
 
@@ -124,13 +121,13 @@ struct LabyrinthCatalogTests {
                 let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
                 #expect(nodes.count >= 7)
                 #expect(nodes.count <= 9)
-                #expect(nodes.filter { $0.type == .boss }.count == 1)
+                #expect(nodes.count(where: { $0.type == .boss }) == 1)
                 #expect(nodes.first?.type == .battle)
                 #expect(nodes.last?.type == .boss)
                 #expect(!nodes.contains { !$0.isRevealed })
                 #expect(nodes.allSatisfy { $0.modifierIDs.count <= 1 })
                 #expect(nodes.last?.modifierIDs.count == 1)
-                #expect(nodes.filter { !$0.type.isCombat }.count >= 2)
+                #expect(nodes.count(where: { !$0.type.isCombat }) >= 2)
 
                 let geometry = validateGeometry(of: nodes)
                 for node in nodes {

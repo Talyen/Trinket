@@ -76,23 +76,23 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         abilityLoadout.abilities
     }
 
-    public func withAbilityLoadout(_ loadout: AbilityLoadout) -> Combatant {
+    public func withAbilityLoadout(_ loadout: AbilityLoadout) -> Self {
         replacing(abilityChoices: abilityChoices.withSelectedLoadout(loadout))
     }
 
-    public func withAbilityLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Combatant {
+    public func withAbilityLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Self {
         replacing(abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout))
     }
 
-    public func withPrimaryStats(_ primaryStats: PrimaryStats) -> Combatant {
+    public func withPrimaryStats(_ primaryStats: PrimaryStats) -> Self {
         replacing(primaryStats: primaryStats)
     }
 
     private func replacing(
         abilityChoices: AbilityChoices? = nil,
         primaryStats: PrimaryStats? = nil
-    ) -> Combatant {
-        Combatant(
+    ) -> Self {
+        Self(
             id: id,
             name: name,
             role: role,

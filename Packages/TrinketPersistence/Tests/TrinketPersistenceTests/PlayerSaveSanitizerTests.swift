@@ -36,7 +36,7 @@ final class PlayerSaveSanitizerTests {
                 .wood: 1500,
                 .stone: -3,
                 .food: 40,
-                .gold: 99
+                .gold: 99,
             ],
             nodeTiers: [.wheatField: 1]
         )
@@ -160,7 +160,7 @@ final class PlayerSaveSanitizerTests {
             unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
             abilityLoadouts: [
                 "knight": knight.abilityLoadout,
-                "missing-combatant": unknownLoadout
+                "missing-combatant": unknownLoadout,
             ],
             progressions: [:],
             equipmentLoadouts: [:],
@@ -222,7 +222,7 @@ final class PlayerSaveSanitizerTests {
             unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "library_owl"],
             abilityLoadouts: [
                 "ranger": ranger.abilityLoadout.selecting(concussiveShot),
-                "library_owl": owl.abilityLoadout.selecting(crystalBulwark)
+                "library_owl": owl.abilityLoadout.selecting(crystalBulwark),
             ],
             progressions: [:],
             equipmentLoadouts: [:],
@@ -234,6 +234,42 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.loadout(for: ranger).ultimate?.id == "astral-arrow")
         try #expect(sanitized.loadout(for: owl).ultimate?.id == "glacial-ward")
         try #expect(sanitized.loadout(for: ranger).ultimate?.id != "pack-tactics")
+    }
+
+    @Test func sanitizeRosterRemapsRetiredBasicIDs() throws {
+        let moth = try #require(GameContent.companions.first { $0.id == "mana_moth" })
+        let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
+        let manaCrystals = Ability(
+            id: "mana-crystals",
+            name: "Mana Crystals",
+            tier: .basic,
+            description: "Legacy"
+        )
+        let wiseFrost = Ability(
+            id: "wise-frost",
+            name: "Wise Frost",
+            tier: .basic,
+            description: "Legacy"
+        )
+        let roster = PlayerRosterState(
+            activeHeroID: PlayerRosterState.starterHeroID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
+            unlockedHeroIDs: [PlayerRosterState.starterHeroID],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID, "mana_moth", "library_owl"],
+            abilityLoadouts: [
+                "mana_moth": moth.abilityLoadout.selecting(manaCrystals),
+                "library_owl": owl.abilityLoadout.selecting(wiseFrost),
+            ],
+            progressions: [:],
+            equipmentLoadouts: [:],
+            gold: 0
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+
+        try #expect(sanitized.loadout(for: moth).basic?.id == "pixie-dust")
+        try #expect(sanitized.loadout(for: owl).basic?.id == "apple")
+        try #expect(sanitized.loadout(for: moth).basic?.id != "mana-berries")
     }
 
     @Test func sanitizeRosterPrunesMissingEquipmentItems() throws {
@@ -255,7 +291,7 @@ final class PlayerSaveSanitizerTests {
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [
-                "knight": EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
+                "knight": EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"]),
             ],
             gold: 0
         )
@@ -299,8 +335,8 @@ final class PlayerSaveSanitizerTests {
             equipmentLoadouts: [
                 "bear": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: weapon.id,
-                    .trinket: trinket.id
-                ])
+                    .trinket: trinket.id,
+                ]),
             ],
             gold: 0
         )
@@ -328,7 +364,7 @@ final class PlayerSaveSanitizerTests {
             progressions: [:],
             equipmentLoadouts: [
                 knight.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id]),
-                wizard.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id])
+                wizard.id: EquipmentLoadout(itemIDsBySlot: [.weapon: wand.id]),
             ],
             gold: 0
         )

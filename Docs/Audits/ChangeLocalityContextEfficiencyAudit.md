@@ -4,7 +4,7 @@
 
 ## Intent
 
-Use capped history and task-routing probes to identify repeated high-friction clusters and write a plan to simplify them through existing sources of truth or owners (breaking into phases if the scope is large). A successful fix reduces at least one stable proxy: authored touchpoints, required preread surface, duplicated declarations or policy, routed verification tiers, or routine command output. Do not use tokenizer-specific token counts, and treat a clean pass as valid.
+Identify repeated high-friction clusters and simplify them through existing sources of truth or owners. A successful fix reduces at least one stable proxy: authored touchpoints, required preread surface, duplicated declarations or policy, routed verification tiers, or routine command output. Do not use tokenizer-specific token counts. A clean pass is valid. Planning and phasing: [README.md](README.md).
 
 ## What counts as locality or context friction
 
@@ -26,35 +26,20 @@ Use capped history and task-routing probes to identify repeated high-friction cl
 - Do not mechanically split files, merge unrelated owners, or centralize distinct policies merely to improve a count.
 - Do not add routing metadata, a configuration framework, or an abstraction for an isolated task.
 
-## Confirm before fixing
+## Evidence bar
 
-1. **Recurrence:** show at least three comparable instances, or two with demonstrated drift or an avoidable failure.
-2. **Causality:** inspect the relevant diffs, routes, or output; co-change and size alone are not evidence.
-3. **Excess surface:** separate necessary behavior, tests, generated output, and verification from the avoidable portion.
-4. **Existing home:** identify the executable source of truth, existing semantic owner, or current routing mechanism that should absorb the remedy.
-5. **Measurable direction:** state the before/after proxy and show that correctness coverage and required context remain intact.
+A finding requires all of:
 
-## Simplification order
-
-1. **Delete** duplicated policy or commands and link consumers to the existing source of truth.
-2. **Narrow** existing context classification, verification routing, or bounded output using evidence from representative paths.
-3. **Restore** repeated configuration or behavior to its existing semantic owner and remove the old copies.
-4. **Move or split** only when it restores an established owner and makes the selected concern independently reviewable; significant moves remain proposals per [README.md](README.md).
-5. **Parameterize** only confirmed repetition with at least three current uses; do not create a new routing or metadata system for predicted reuse.
+- **Recurrence:** at least three comparable instances, or two with demonstrated drift or an avoidable failure
+- **Causality:** co-change and size alone are not evidence
+- **Excess surface:** separate necessary behavior, tests, generated output, and verification from the avoidable portion
+- **Existing home:** an executable source of truth, semantic owner, or current routing mechanism that should absorb the remedy
+- **Measurable direction:** before/after proxy with correctness coverage and required context intact
 
 ## Domain rules
 
 Executable scripts and checked-in configuration own tool behavior; Platform documents own architecture and testing policy; `AGENTS.md` owns repository-wide guardrails; context cards contain only routed exceptions. Prefer links over copied policy, but keep the minimum local instruction needed to make a routed card actionable.
 
-Mine history only as a capped discovery tool, then confirm the strongest candidates in their diffs. Count authored inputs separately from generated outputs and assets. Verification may narrow only when dependency and behavior evidence proves the removed tier or preread is unrelated. Route the finding to a neighboring audit when locality cost is secondary to that audit's concern.
+Count authored inputs separately from generated outputs and assets. Verification may narrow only when dependency and behavior evidence proves the removed tier or preread is unrelated. Route the finding to a neighboring audit when locality cost is secondary to that audit's concern.
 
-Every shipped finding must report its before/after proxy and the unchanged correctness signal, such as the same boundary gate, generated-output assertion, compile, or semantic test owner.
-
-## Probe hints
-
-- **Task-Router Relevance:** Run `./Scripts/agent-context.sh --json --paths <representative paths>` for a few comparable recent tasks; compare prereads, context cards, warnings, and verification plans for unrelated routing.
-- **Authored Co-Change Clusters:** Use a capped `git log --name-only` or `--stat` sample, excluding generated output and assets; inspect confirmed repeated clusters' diffs before inferring shared ownership.
-- **Repeated Policy and Commands:** Search `AGENTS.md`, `Docs/AgentContext/`, `Docs/Platform/`, `Scripts/README.md`, and executable scripts for duplicated rules, versions, flags, or command sequences that can link to one owner.
-- **Duplicated Routing Logic:** Compare `agent-context.sh`, `change-classification.sh`, `changed-source-summary.sh`, and `verify-changed.sh`; confirm repeated classifications have one implementation rather than synchronized copies.
-- **Output Signal Density:** Inspect routine successful output and bounded failure summaries from verification/CI helpers; prefer existing quiet or summary paths when raw output adds no actionability.
-- **Non-Local Review Surface:** For a frequently changed authored owner, inspect whether comparable diffs repeatedly require unrelated sections or files; route genuine ownership drift to StateGravityOwnershipAudit rather than splitting mechanically.
+Every shipped finding must report its before/after proxy and the unchanged correctness signal (same boundary gate, generated-output assertion, compile, or semantic test owner).

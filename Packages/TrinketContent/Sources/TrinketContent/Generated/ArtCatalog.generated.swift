@@ -227,6 +227,9 @@ public enum ArtCatalog {
         "astral-arrow": AbilityArtReference(
             imageName: "ability_astral_arrow_thumb"
         ),
+        "avatar-of-justice": AbilityArtReference(
+            imageName: "ability_avatar_of_justice_thumb"
+        ),
         "bash": AbilityArtReference(
             imageName: "ability_bash_thumb"
         ),
@@ -269,11 +272,11 @@ public enum ArtCatalog {
         "combustion": AbilityArtReference(
             imageName: "ability_combustion_thumb"
         ),
-        "crystal-bulwark": AbilityArtReference(
-            imageName: "ability_crystal_bulwark_thumb"
-        ),
         "dark-pact": AbilityArtReference(
             imageName: "ability_dark_pact_thumb"
+        ),
+        "earthquake": AbilityArtReference(
+            imageName: "ability_earthquake_thumb"
         ),
         "fangs": AbilityArtReference(
             imageName: "ability_fangs_thumb"
@@ -314,14 +317,14 @@ public enum ArtCatalog {
         "mana-berries": AbilityArtReference(
             imageName: "ability_mana_berries_thumb"
         ),
-        "mana-crystals": AbilityArtReference(
-            imageName: "ability_mana_crystals_thumb"
-        ),
         "mana-potion": AbilityArtReference(
             imageName: "ability_mana_potion_thumb"
         ),
         "mana-shield": AbilityArtReference(
             imageName: "ability_mana_shield_thumb"
+        ),
+        "maul": AbilityArtReference(
+            imageName: "ability_maul_thumb"
         ),
         "meteor": AbilityArtReference(
             imageName: "ability_meteor_thumb"
@@ -344,6 +347,9 @@ public enum ArtCatalog {
         "poison-dagger": AbilityArtReference(
             imageName: "ability_poison_dagger_thumb"
         ),
+        "pounce": AbilityArtReference(
+            imageName: "ability_pounce_thumb"
+        ),
         "predators-focus": AbilityArtReference(
             imageName: "ability_predators_focus_thumb"
         ),
@@ -353,14 +359,14 @@ public enum ArtCatalog {
         "rending-slash": AbilityArtReference(
             imageName: "ability_rending_slash_thumb"
         ),
-        "roulette": AbilityArtReference(
-            imageName: "ability_roulette_thumb"
-        ),
         "sap-arrow": AbilityArtReference(
             imageName: "ability_sap_arrow_thumb"
         ),
         "serrated-edge": AbilityArtReference(
             imageName: "ability_serrated_edge_thumb"
+        ),
+        "shadowstep": AbilityArtReference(
+            imageName: "ability_shadowstep_thumb"
         ),
         "shield-bash": AbilityArtReference(
             imageName: "ability_shield_bash_thumb"
@@ -406,9 +412,6 @@ public enum ArtCatalog {
         ),
         "venom-fangs": AbilityArtReference(
             imageName: "ability_venom_fangs_thumb"
-        ),
-        "wise-frost": AbilityArtReference(
-            imageName: "ability_wise_frost_thumb"
         ),
     ]
 

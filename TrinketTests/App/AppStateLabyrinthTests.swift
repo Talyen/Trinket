@@ -294,10 +294,7 @@ struct AppStateLabyrinthTests {
         _ = state.enterLabyrinth()
         let reachableID = try #require(state.labyrinth.reachableNodeIDs().first)
         var labyrinth = state.labyrinth
-        guard var node = labyrinth.nodes[reachableID] else {
-            Issue.record("Missing reachable node")
-            return
-        }
+        var node = try #require(labyrinth.nodes[reachableID], "Missing reachable node")
         node = LabyrinthNode(
             id: node.id,
             type: .event,

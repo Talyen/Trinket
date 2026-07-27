@@ -71,14 +71,14 @@ struct AppEnvironment {
         self.battlePerformanceScenario = battlePerformanceScenario
     }
 
-    private static func load() -> AppEnvironment {
+    private static func load() -> Self {
         parse(
             arguments: ProcessInfo.processInfo.arguments,
             environment: ProcessInfo.processInfo.environment
         )
     }
 
-    static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
+    static func parse(arguments: [String], environment: [String: String]) -> Self {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let disableCloudSync: Bool
         #if DEBUG
@@ -95,7 +95,7 @@ struct AppEnvironment {
             || isRunningTests
             || !arguments.contains("-enable-cloud-sync")
 
-        return AppEnvironment(
+        return Self(
             launchTab: launchTab(from: arguments),
             launchScreen: launchScreen(from: arguments),
             resetState: arguments.contains("-reset-state"),

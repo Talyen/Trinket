@@ -77,7 +77,7 @@ enum AffixPowerBump {
             (.onceBelowHealthPercentHeal, canBumpInt(triggers.onceBelowHealthPercentHeal, direction: direction)),
             (.blockOnDeathsDoor, canBumpInt(triggers.blockOnDeathsDoor, direction: direction)),
             (.spendManaBlockFlat, canBumpInt(triggers.spendManaBlockFlat, direction: direction)),
-            (.freezeDamageWhileBurningBonus, canBumpInt(triggers.freezeDamageWhileBurningBonus, direction: direction))
+            (.freezeDamageWhileBurningBonus, canBumpInt(triggers.freezeDamageWhileBurningBonus, direction: direction)),
         ]
         for (field, ok) in triggerFields where ok {
             targets.append(.trigger(field))

@@ -166,7 +166,7 @@ public struct CombatantAttackPose: Sendable, Equatable {
         self.rotation = rotation
     }
 
-    public static let rest = CombatantAttackPose()
+    public static let rest = Self()
 }
 
 /// Attack aim: recipe Y is authored for enemy→party (down). Party flips Y toward the enemy.
@@ -181,7 +181,7 @@ public enum CombatantAttackAim: String, CaseIterable, Sendable, Equatable {
         }
     }
 
-    public static func aim(isPartyMember: Bool) -> CombatantAttackAim {
+    public static func aim(isPartyMember: Bool) -> Self {
         isPartyMember ? .towardEnemy : .towardParty
     }
 }

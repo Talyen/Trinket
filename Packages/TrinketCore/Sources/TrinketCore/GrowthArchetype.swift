@@ -27,7 +27,7 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
     public var maxHealth: Int
     public var maxMana: Int
 
-    public static let zero = StatGrowthDelta()
+    public static let zero = Self()
 
     public init(
         strength: Int = 0,
@@ -53,7 +53,7 @@ struct EnemyGearCompensation: Equatable {
     let primaryStatMultiplier: Double
     let statDelta: StatGrowthDelta
 
-    static let none = EnemyGearCompensation(
+    static let none = Self(
         healthMultiplier: 1.0,
         primaryStatMultiplier: 1.0,
         statDelta: .zero

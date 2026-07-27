@@ -10,8 +10,8 @@ public struct PlayerSpiresState: Equatable, Sendable {
         self.highestClearedFloorBySpireID = highestClearedFloorBySpireID
     }
 
-    public static let freshStart = PlayerSpiresState()
-    public static let testSeed = PlayerSpiresState()
+    public static let freshStart = Self()
+    public static let testSeed = Self()
 
     public func highestClearedFloor(for spireID: String) -> Int {
         highestClearedFloorBySpireID[spireID] ?? 0

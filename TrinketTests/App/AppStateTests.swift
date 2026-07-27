@@ -122,7 +122,7 @@ struct AppStateTests {
         "battle-victory",
         "shop",
         "mystery",
-        "options"
+        "options",
     ])
     func launchScreensRouteToExpectedPlayOrOptionsState(screen: String) throws {
         var arguments = ["-launch-screen", screen]
@@ -199,7 +199,7 @@ struct AppStateTests {
 
     @Test(arguments: [
         (stageIDs: "chapter-1-stage-1", known: true),
-        (stageIDs: "missing-stage", known: false)
+        (stageIDs: "missing-stage", known: false),
     ])
     func completedStagesLaunchArgAdvancesKnownIDsAndIgnoresUnknown(
         stageIDs: String,

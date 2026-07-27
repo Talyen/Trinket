@@ -124,7 +124,7 @@ struct MysteryRewardContent: View {
     }
 
     private var walletRewardCount: Int {
-        (result.grantedGold > 0 ? 1 : 0) + result.grantedMaterials.filter { $0.quantity > 0 }.count
+        (result.grantedGold > 0 ? 1 : 0) + result.grantedMaterials.count(where: { $0.quantity > 0 })
     }
 
     private var walletColumnCount: Int {

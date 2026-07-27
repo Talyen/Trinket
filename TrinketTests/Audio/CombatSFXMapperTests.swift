@@ -108,19 +108,19 @@ struct CombatSFXMapperTests {
                 feedbackItem(id: 1, feedbackClass: .buff, keyword: .stun, text: "Cleanse Stunned"),
                 feedbackItem(id: 2, feedbackClass: .heal, keyword: .health, text: "+1 Health"),
                 feedbackItem(id: 3, feedbackClass: .buff, keyword: .block, text: "+4 Block"),
-                feedbackItem(id: 4, feedbackClass: .buff, keyword: .block, text: "+22 Block")
+                feedbackItem(id: 4, feedbackClass: .buff, keyword: .block, text: "+22 Block"),
             ]) == [SFXID.heal, SFXID.block]
         )
         #expect(
             CombatSFXMapper.uniqueClipIDs(for: [
                 feedbackItem(id: 1, feedbackClass: .directDamage, keyword: .physical, text: "-6"),
-                feedbackItem(id: 2, feedbackClass: .dot, keyword: .burn, text: "-2")
+                feedbackItem(id: 2, feedbackClass: .dot, keyword: .burn, text: "-2"),
             ]) == [SFXID.hitBurn]
         )
         #expect(
             CombatSFXMapper.uniqueClipIDs(for: [
                 feedbackItem(id: 1, feedbackClass: .dot, keyword: .burn, text: "-2"),
-                feedbackItem(id: 2, feedbackClass: .dot, keyword: .poison, text: "-1")
+                feedbackItem(id: 2, feedbackClass: .dot, keyword: .poison, text: "-1"),
             ]) == [SFXID.hitBurn, SFXID.hit]
         )
         #expect(
@@ -128,7 +128,7 @@ struct CombatSFXMapperTests {
                 feedbackItem(id: 1, targetID: "enemy", feedbackClass: .dot, keyword: .burn, text: "-2"),
                 feedbackItem(id: 2, targetID: "hero", feedbackClass: .dot, keyword: .burn, text: "-2"),
                 feedbackItem(id: 3, targetID: "companion", feedbackClass: .dot, keyword: .burn, text: "-1"),
-                feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3")
+                feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3"),
             ]) == [SFXID.hitBurn, SFXID.hit]
         )
     }

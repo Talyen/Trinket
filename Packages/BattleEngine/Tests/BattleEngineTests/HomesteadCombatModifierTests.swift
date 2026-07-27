@@ -39,7 +39,7 @@ struct HomesteadCombatModifierTests {
             initialGold: 0,
             heroModifiers: CombatModifierProfile(modifiers: [
                 .damageDealt(.poison, 2),
-                .poisonDamageDealtPercent(0.2)
+                .poisonDamageDealtPercent(0.2),
             ]),
             companionModifiers: .zero,
             enemyModifiers: .zero

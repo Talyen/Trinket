@@ -17,7 +17,7 @@ struct EffectSummaryBuilderTests {
         .bleedStacks,
         .shield,
         .leech,
-        .deathsDoor
+        .deathsDoor,
     ])
     private func singleKeywordSummary(caseKind: SingleKeywordCase) throws {
         let effects: [ActiveEffect]
@@ -31,7 +31,7 @@ struct EffectSummaryBuilderTests {
         case .bleedStacks:
             effects = [
                 ActiveEffect(id: 1, effect: .bleed(3), remainingTurns: 2),
-                ActiveEffect(id: 2, effect: .bleed(2), remainingTurns: 1)
+                ActiveEffect(id: 2, effect: .bleed(2), remainingTurns: 1),
             ]
             expectedText = "Bleed: 5 damage"
             expectedKeyword = nil
@@ -49,7 +49,7 @@ struct EffectSummaryBuilderTests {
                     id: 1,
                     effect: .deathsDoor,
                     remainingTurns: BattleTiming.deathsDoorDurationTurns
-                )
+                ),
             ]
             expectedText = "Death's Door: heal soon or the next fatal blow will end them."
             expectedKeyword = .deathsDoor
@@ -65,12 +65,12 @@ struct EffectSummaryBuilderTests {
 
     @Test func stunBuildupAndTriggeredSummaries() throws {
         let buildup = EffectSummaryBuilder.build(for: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTurns: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTurns: 0),
         ])
         try #expect(buildup.first?.text == "Stun Build-up: 3/10")
 
         let triggered = EffectSummaryBuilder.build(for: [
-            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
         try #expect(triggered.first?.text == "Stunned: action prevented.")
     }
@@ -82,7 +82,7 @@ struct EffectSummaryBuilderTests {
     @Test func multipleKeywordsYieldMultipleSummaries() throws {
         let effects = [
             ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 6),
-            ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 3)
+            ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 3),
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.count == 2)

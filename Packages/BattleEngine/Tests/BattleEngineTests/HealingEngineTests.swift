@@ -188,7 +188,7 @@ struct HealingEngineTests {
         context.roster.setActiveEffects(
             [
                 ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3),
-                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)
+                ActiveEffect(id: 2, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6),
             ],
             for: source
         )

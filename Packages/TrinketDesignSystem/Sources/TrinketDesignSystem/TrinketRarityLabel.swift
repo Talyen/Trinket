@@ -40,7 +40,7 @@ public struct TrinketRarityLabel: View {
                         TrinketDesign.Colors.arcane,
                         TrinketDesign.Colors.informational,
                         TrinketDesign.Colors.Overlay.paper,
-                        TrinketDesign.Colors.arcane
+                        TrinketDesign.Colors.arcane,
                     ],
                     startPoint: UnitPoint(x: shinePhase ? 1.35 : -0.35, y: 0.5),
                     endPoint: UnitPoint(x: shinePhase ? 2.35 : 0.65, y: 0.5)

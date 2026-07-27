@@ -35,7 +35,7 @@ struct BattleVictorySummary: Equatable {
         configuration: ActiveBattleConfiguration,
         state: BattleState,
         homestead: PlayerHomesteadState
-    ) -> BattleVictorySummary {
+    ) -> Self {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.hero.progression.level
         let heroXP = StageCompletion.battleExperienceAward(
@@ -64,7 +64,7 @@ struct BattleVictorySummary: Equatable {
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)
 
-        return BattleVictorySummary(
+        return Self(
             stageGold: stageGold,
             battleGold: battleGold,
             rawBattleEarnedGold: rawBattleEarnedGold,

@@ -163,7 +163,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     /// Fixed playable snapshot after choosing a random outcome branch (if any).
     public func resolvingOutcomeBranch(
         using rng: inout some RandomNumberGenerator
-    ) -> Ability {
+    ) -> Self {
         guard let branches = outcomeBranches, !branches.isEmpty else {
             return self
         }
@@ -190,7 +190,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 effects.insert(TargetedEffect(dot), at: 0)
             }
         }
-        return Ability(
+        return Self(
             id: id,
             name: name,
             tier: tier,
@@ -212,9 +212,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     /// Snapshot with every Burn/Freeze damage number raised by `amount` (default 1).
-    public func empoweredByMana(amount: Int = 1) -> Ability {
+    public func empoweredByMana(amount: Int = 1) -> Self {
         guard amount > 0, hasManaEmpowerableBurnOrFreezeDamage else { return self }
-        return Ability(
+        return Self(
             id: id,
             name: name,
             tier: tier,

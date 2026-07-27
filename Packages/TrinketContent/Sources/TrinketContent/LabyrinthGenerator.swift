@@ -42,7 +42,7 @@ public enum LabyrinthGenerator {
                     modifierIDs: [],
                     nodeIDs: [entrance.id]
                 ),
-                first.cluster
+                first.cluster,
             ],
             nodes
         )

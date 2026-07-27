@@ -47,10 +47,10 @@ public struct CombatDeck: Hashable, Sendable {
     public static func shuffled(
         from loadout: AbilityLoadout,
         rng: inout SeededRandomNumberGenerator
-    ) -> CombatDeck {
+    ) -> Self {
         var abilities = loadout.abilities
         abilities.shuffle(using: &rng)
-        return CombatDeck(abilities: abilities)
+        return Self(abilities: abilities)
     }
 }
 
@@ -65,6 +65,10 @@ public struct BattleHand: Hashable, Sendable {
 
     public var count: Int {
         cards.count
+    }
+
+    public var isEmpty: Bool {
+        cards.isEmpty
     }
 
     public func card(id: Int) -> BattleCard? {

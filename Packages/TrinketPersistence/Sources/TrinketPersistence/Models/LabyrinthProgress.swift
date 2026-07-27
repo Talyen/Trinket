@@ -10,8 +10,8 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
 
-    public static let freshStart = PlayerLabyrinthState()
-    public static let testSeed = PlayerLabyrinthState()
+    public static let freshStart = Self()
+    public static let testSeed = Self()
 
     public init(
         worldSeed: UInt64 = 0,

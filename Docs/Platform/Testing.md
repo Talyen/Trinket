@@ -55,6 +55,15 @@ Prefer extending an existing owner over adding a declaration, and a declaration 
 
 New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer an existing smoke/exhaustive method over a new class; assert visible outcomes, not custom accessibility prose.
 
+### Presentation / accessibility-ID changes (before push)
+
+Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Homestead/Play presentation contracts is not a style-only change:
+
+1. Run path-scoped `./Scripts/verify-changed.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
+2. `Trinket/Shared/AccessibilityID.swift` routes to the lean smoke canaries that pin selectors.
+3. `Trinket/Features/Homestead/*` also routes unit tests so `HomesteadPresentationTests` stays aligned with row/footer state.
+4. `./Scripts/test.sh style` (or the verify-changed style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
+
 Verify with the AGENTS Task→Command Router (toolchain permitting), using
    **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
 

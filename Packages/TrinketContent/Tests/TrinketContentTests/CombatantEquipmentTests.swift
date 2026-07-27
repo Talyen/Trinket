@@ -5,7 +5,7 @@ import TrinketCore
 struct CombatantEquipmentTests {
     @Test(arguments: [
         (Combatant.Role.hero, [ItemSlot.weapon, .armor, .trinket]),
-        (.companion, [.trinket, .armor, .secondaryTrinket])
+        (.companion, [.trinket, .armor, .secondaryTrinket]),
     ])
     func roleEquipmentSlotsMatchAuthoredLoadout(
         role: Combatant.Role,
@@ -33,7 +33,7 @@ struct CombatantEquipmentTests {
         )
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .trinket: "ring-a",
-            .secondaryTrinket: "ring-b"
+            .secondaryTrinket: "ring-b",
         ])
 
         let sanitized = loadout.sanitized(for: bear, inventory: [trinket, other])
@@ -55,7 +55,7 @@ struct CombatantEquipmentTests {
         )
         let loadout = EquipmentLoadout(itemIDsBySlot: [
             .trinket: "ring-a",
-            .secondaryTrinket: "ring-a"
+            .secondaryTrinket: "ring-a",
         ])
 
         let sanitized = loadout.sanitized(for: bear, inventory: [trinket])

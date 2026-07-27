@@ -8,7 +8,7 @@ final class SmokePlayTests: SeededSmokeUITestCase {
             "-disable-audio",
             "-persist-save-immediately",
             "-battle-tick-interval",
-            "1.0"
+            "1.0",
         ]
     }
 

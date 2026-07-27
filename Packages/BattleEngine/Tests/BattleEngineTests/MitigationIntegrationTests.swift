@@ -14,7 +14,7 @@ struct MitigationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0),
             ]
         )
 
@@ -65,7 +65,7 @@ struct MitigationIntegrationTests {
             companion: companion,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)
+                ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0),
             ]
         )
 

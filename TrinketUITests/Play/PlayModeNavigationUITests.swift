@@ -7,7 +7,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
             "-disable-audio",
-            "-persist-save-immediately"
+            "-persist-save-immediately",
         ])
 
         play.assertLoaded()

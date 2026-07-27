@@ -5,7 +5,7 @@ public enum BattleSimulationOutcome: Equatable, Sendable {
     public static func resolve(
         isPartyDefeated: Bool,
         isEnemyDefeated: Bool
-    ) -> BattleSimulationOutcome? {
+    ) -> Self? {
         if isEnemyDefeated, isPartyDefeated {
             return .victory
         }

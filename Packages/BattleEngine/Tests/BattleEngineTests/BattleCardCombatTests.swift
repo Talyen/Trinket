@@ -52,8 +52,8 @@ struct BattleCardCombatTests {
         try #expect(battle.handBuffer.isEmpty)
         try #expect(battle.phase == .playerTurn)
 
-        let heroDrawn = battle.hand.cards.filter { $0.owner == .hero }.count
-        let companionDrawn = battle.hand.cards.filter { $0.owner == .companion }.count
+        let heroDrawn = battle.hand.cards.count(where: { $0.owner == .hero })
+        let companionDrawn = battle.hand.cards.count(where: { $0.owner == .companion })
         try #expect(heroDrawn + companionDrawn == BattleHand.maxSize)
         try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero || $0.owner == .companion })
         // Remaining deck sizes match what was not drawn (loadouts may be <3 after tier collapse).
@@ -99,7 +99,7 @@ struct BattleCardCombatTests {
             tracksLog: false,
             dealOpeningHand: false
         )
-        try #expect(paced.hand.count == 0)
+        try #expect(paced.hand.isEmpty)
 
         var draws = 0
         while paced.drawNextOpeningHandCard(rebuildLog: false) {
@@ -324,7 +324,7 @@ struct BattleCardCombatTests {
         let events = battle.endTurn()
 
         try #expect(battle.turnCount == 1)
-        try #expect(events.filter { $0.kind == .status && $0.keyword == .burn }.count == 1)
+        try #expect(events.count(where: { $0.kind == .status && $0.keyword == .burn }) == 1)
         try #expect(battle.health(of: battle.enemy) < before)
     }
 

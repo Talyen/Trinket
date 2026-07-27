@@ -19,7 +19,7 @@ struct MusicPlayerRoutingTests {
 
     @Test(arguments: [
         (enemyID: "skeleton", expectedTrackKind: MusicTrackKind.battle, expectedContext: MusicContextKind.battle, expectedTrackID: nil as String?),
-        (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant")
+        (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant"),
     ])
     func activeBattlePlaysExpectedTrack(
         enemyID: String,
@@ -77,7 +77,7 @@ struct MusicPlayerRoutingTests {
 
     @Test(arguments: [
         (sceneIsActive: false, musicVolume: 0.75),
-        (sceneIsActive: true, musicVolume: 0.0)
+        (sceneIsActive: true, musicVolume: 0.0),
     ])
     func silencePreservesPositionWhenSceneInactiveOrMuted(sceneIsActive: Bool, musicVolume: Double) {
         let route = MusicRoute.resolve(

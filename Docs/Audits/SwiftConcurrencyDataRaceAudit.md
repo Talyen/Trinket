@@ -4,7 +4,7 @@
 
 ## Intent
 
-Start with strict-concurrency diagnostics when available, then investigate high-risk candidates. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Write a plan to fix all identified concurrency/data-race issues (breaking into phases if the scope is large); significant isolation changes are proposals.
+Fix confirmed concurrency violations. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Significant isolation changes are proposals per [README.md](README.md).
 
 ## Hard stops
 
@@ -29,11 +29,6 @@ Start with strict-concurrency diagnostics when available, then investigate high-
 
 Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Presence of continuations / `AsyncStream` / `TaskGroup` is not itself a defect — confirm lifetime, cancellation, and executor assumptions.
 
-## Probe hints
+## Evidence bar
 
-- **Unsynchronized Shared State:** Search for stored `static var` declarations across `Trinket/` and `Packages/`; verify protection via `@MainActor` or Swift 6 `Mutex`.
-- **Undocumented Isolation Escapes:** Search for `@unchecked Sendable` or `nonisolated(unsafe)`; verify every occurrence includes `/// Concurrency-Safety:` documentation and adequate synchronization.
-- **Main-Thread Hitches & Heavy Work Hops:** Search for heavy CPU work (image rasterization, json decoding, percentile analysis) running directly inside `@MainActor` methods without offloading to utility tasks.
-- **Unstructured Task Capture Leaks:** Search for `Task { ... }` inside stored properties or views; verify `@MainActor` state is weakly captured (`[weak self]`, `[weak session]`) or cancelled in `deinit` / `.onDisappear`.
-- **Cooperative Pool Thread Blocking:** Search for `Thread.sleep`, `usleep`, semaphores (`DispatchSemaphore`), or synchronous `Data(contentsOf:)` inside async contexts.
-- **Legacy `DispatchQueue` Bridges:** Search for `DispatchQueue.main.async`, `DispatchQueue.global()`, or `@preconcurrency import` that can be modernized with Swift Concurrency.
+Compiler diagnostic under strict concurrency, or a demonstrated lifetime/data-race issue. No fix without one of those.

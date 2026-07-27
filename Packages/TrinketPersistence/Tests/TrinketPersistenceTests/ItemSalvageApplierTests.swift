@@ -12,15 +12,15 @@ struct ItemSalvageApplierTests {
 
         #expect(ItemSalvage.yields(for: basicWeapon) == [
             ResourceAmount(.iron, 8),
-            ResourceAmount(.wood, 4)
+            ResourceAmount(.wood, 4),
         ])
         #expect(ItemSalvage.yields(for: astralTrinket) == [
             ResourceAmount(.herbs, 16),
-            ResourceAmount(.crystal, 8)
+            ResourceAmount(.crystal, 8),
         ])
         #expect(ItemSalvage.yields(for: basicArmor) == [
             ResourceAmount(.hide, 8),
-            ResourceAmount(.stone, 4)
+            ResourceAmount(.stone, 4),
         ])
     }
 
@@ -40,7 +40,7 @@ struct ItemSalvageApplierTests {
 
         #expect(result == .success(yields: [
             ResourceAmount(.iron, 8),
-            ResourceAmount(.wood, 4)
+            ResourceAmount(.wood, 4),
         ]))
         #expect(store.inventory.items.isEmpty)
         #expect(store.homestead.resources[.iron] == 8)
@@ -94,7 +94,7 @@ struct ItemSalvageApplierTests {
         save.inventory.items = [item]
         save.homestead.resources = [
             .iron: PlayerHomesteadState.maxMaterialBalance - 2,
-            .wood: PlayerHomesteadState.maxMaterialBalance
+            .wood: PlayerHomesteadState.maxMaterialBalance,
         ]
 
         let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)

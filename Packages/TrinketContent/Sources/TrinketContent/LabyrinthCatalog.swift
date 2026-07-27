@@ -75,7 +75,7 @@ public enum LabyrinthCatalog {
             keywordBias: .health,
             enemyPool: ["slime", "mud_elemental", "skeleton"],
             bossEnemyID: "the_blight_treant"
-        )
+        ),
     ]
 
     public static let biomesByID: [LabyrinthBiomeID: LabyrinthBiomeDefinition] =
@@ -129,7 +129,7 @@ public enum LabyrinthCatalog {
             title: "Rime Tax",
             effect: .damageDealt(keyword: .freeze, amount: 1),
             nodeTypes: [.battle, .boss]
-        )
+        ),
     ]
 
     public static let modifiersByID: [LabyrinthModifierID: LabyrinthModifierDefinition] =

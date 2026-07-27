@@ -11,7 +11,7 @@ enum AbilityCatalogUltimate {
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .holy)]),
-            AbilityOutcomeBranch(effects: [.shield(.block, 6)])
+            AbilityOutcomeBranch(effects: [.shield(.block, 6)]),
         ]
     )
 
@@ -24,7 +24,7 @@ enum AbilityCatalogUltimate {
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(4, keyword: .bleed)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)])
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)]),
         ]
     )
 
@@ -32,7 +32,7 @@ enum AbilityCatalogUltimate {
         id: "combustion", name: "Combustion", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.multiplyDoT(.burn, 2), condition: .enemyBurning),
-            TargetedEffect(.burn(2), condition: .enemyNotBurning)
+            TargetedEffect(.burn(2), condition: .enemyNotBurning),
         ]
     )
 
@@ -41,13 +41,8 @@ enum AbilityCatalogUltimate {
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .stun)]),
             AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .freeze)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)])
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)]),
         ]
-    )
-
-    static let crystalBulwark = Ability(
-        id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
-        targetedEffects: [TargetedEffect(.shieldFromHalfMana)]
     )
 
     static let earthquake = AbilityBuilder.directHit(
@@ -59,7 +54,7 @@ enum AbilityCatalogUltimate {
         id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
         damageComponents: [
             DamageComponent(2, keyword: .physical, target: .actor),
-            DamageComponent(6, keyword: .burn)
+            DamageComponent(6, keyword: .burn),
         ],
         targetedEffects: [TargetedEffect(.burn(6))]
     )
@@ -68,7 +63,7 @@ enum AbilityCatalogUltimate {
         id: "glacial-ward", name: "Glacial Ward", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.shield(.block, 3)),
-            TargetedEffect(.freezeNextAttacker)
+            TargetedEffect(.freezeNextAttacker),
         ]
     )
 
@@ -87,7 +82,7 @@ enum AbilityCatalogUltimate {
         outcomeBranches: [
             AbilityOutcomeBranch(effects: [.resourceGain(.mana, 7)]),
             AbilityOutcomeBranch(effects: [.resourceGain(.gold, 7)]),
-            AbilityOutcomeBranch(effects: [.shield(.block, 7)])
+            AbilityOutcomeBranch(effects: [.shield(.block, 7)]),
         ]
     )
 
@@ -100,7 +95,7 @@ enum AbilityCatalogUltimate {
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)]),
-            AbilityOutcomeBranch(effects: [.shield(.block, 6)])
+            AbilityOutcomeBranch(effects: [.shield(.block, 6)]),
         ]
     )
 
@@ -109,7 +104,7 @@ enum AbilityCatalogUltimate {
         targetedEffects: [
             TargetedEffect(.drawCards(1), target: .hero),
             TargetedEffect(.drawCards(1), target: .companion),
-            TargetedEffect(.instantHeal(.health, 3))
+            TargetedEffect(.instantHeal(.health, 3)),
         ]
     )
 
@@ -122,7 +117,7 @@ enum AbilityCatalogUltimate {
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.revive(3))
+            TargetedEffect(.revive(3)),
         ]
     )
 
@@ -131,7 +126,7 @@ enum AbilityCatalogUltimate {
         description: "Your next attack deals double damage. Dodge the next attack.",
         targetedEffects: [
             TargetedEffect(.nextStrikeDouble),
-            TargetedEffect(.evadeNextHit)
+            TargetedEffect(.evadeNextHit),
         ]
     )
 
@@ -139,7 +134,7 @@ enum AbilityCatalogUltimate {
         id: "sunburst", name: "Sunburst", tier: .ultimate,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .holy)]),
-            AbilityOutcomeBranch(effects: [.instantHeal(.health, 6)])
+            AbilityOutcomeBranch(effects: [.instantHeal(.health, 6)]),
         ]
     )
 
@@ -147,7 +142,7 @@ enum AbilityCatalogUltimate {
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
         targetedEffects: [
             TargetedEffect(.shield(.block, 4)),
-            TargetedEffect(.thorns(4))
+            TargetedEffect(.thorns(4)),
         ]
     )
 
@@ -158,7 +153,6 @@ enum AbilityCatalogUltimate {
         blizzard,
         bloodthorn,
         combustion,
-        crystalBulwark,
         earthquake,
         faustianBargain,
         glacialWard,
@@ -172,6 +166,6 @@ enum AbilityCatalogUltimate {
         phoenixFeather,
         shadowstep,
         sunburst,
-        thornMail
+        thornMail,
     ]
 }

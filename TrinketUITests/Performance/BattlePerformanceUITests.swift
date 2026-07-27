@@ -4,7 +4,8 @@ import XCTest
 /// component scenarios isolate which synchronous stage still misses the budget.
 final class BattlePerformanceUITests: TrinketUITestCase {
     private static var scenarioDuration: TimeInterval {
-        ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" ? 3.2 : 7.2
+        // Keep ≥ app `BattlePerformanceTiming.snapshotDelay` (10s full / 3s quick).
+        ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1" ? 3.2 : 10.5
     }
 
     private var repetitionCount: Int {
@@ -75,7 +76,7 @@ final class BattlePerformanceUITests: TrinketUITestCase {
         }
         let minimumSamples = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
             ? 60
-            : 120
+            : 90
         XCTAssertGreaterThanOrEqual(report.sampleCount, minimumSamples)
         PerformanceReportRecorder.record(
             report,

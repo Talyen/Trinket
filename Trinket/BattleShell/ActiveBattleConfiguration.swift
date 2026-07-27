@@ -157,7 +157,7 @@ struct ActiveBattleConfiguration: Identifiable {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         universalModifiers: [AffixModifier] = []
-    ) -> ActiveBattleConfiguration {
+    ) -> Self {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(universalModifiers)
@@ -174,7 +174,7 @@ struct ActiveBattleConfiguration: Identifiable {
             pendingRewardItem: resolvedPendingRewardItem
         )
         let homesteadEffects = homesteadState.effects
-        return ActiveBattleConfiguration(
+        return Self(
             resumeToken: resumeToken,
             rngSeed: rngSeed,
             hero: partyMember(

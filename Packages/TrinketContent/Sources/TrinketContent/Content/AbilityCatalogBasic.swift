@@ -16,7 +16,7 @@ enum AbilityCatalogBasic {
         id: "blackjack", name: "Blackjack", tier: .basic,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .stun)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 2)])
+            AbilityOutcomeBranch(effects: [.resourceGain(.gold, 2)]),
         ]
     )
 
@@ -42,7 +42,7 @@ enum AbilityCatalogBasic {
         damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [
             TargetedEffect(.burn(1)),
-            TargetedEffect(.burn(1), condition: .enemyBurning)
+            TargetedEffect(.burn(1), condition: .enemyBurning),
         ]
     )
 
@@ -61,16 +61,11 @@ enum AbilityCatalogBasic {
         targetedEffects: [TargetedEffect(.resourceGain(.mana, 2))]
     )
 
-    static let manaCrystals = Ability(
-        id: "mana-crystals", name: "Mana Crystals", tier: .basic,
-        targetedEffects: [TargetedEffect(.maximumManaBonus(2))]
-    )
-
     static let maul = Ability(
         id: "maul", name: "Maul", tier: .basic,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .stun)]),
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .bleed)])
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .bleed)]),
         ]
     )
 
@@ -78,7 +73,7 @@ enum AbilityCatalogBasic {
         id: "pixie-dust", name: "Pixie Dust", tier: .basic,
         outcomeBranches: [
             AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .burn)]),
-            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 2)])
+            AbilityOutcomeBranch(effects: [.resourceGain(.mana, 2)]),
         ]
     )
 
@@ -124,14 +119,6 @@ enum AbilityCatalogBasic {
         amount: 2, keyword: .poison
     )
 
-    static let wiseFrost = Ability(
-        id: "wise-frost", name: "Wise Frost", tier: .basic,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(2, keyword: .freeze)]),
-            AbilityOutcomeBranch(effects: [.drawCards(1)])
-        ]
-    )
-
     static let all: [Ability] = [
         apple,
         bash,
@@ -143,7 +130,6 @@ enum AbilityCatalogBasic {
         iceShot,
         kindling,
         manaBerries,
-        manaCrystals,
         maul,
         pixieDust,
         rayOfFrost,
@@ -154,6 +140,5 @@ enum AbilityCatalogBasic {
         stab,
         stargaze,
         venomArrow,
-        wiseFrost
     ]
 }

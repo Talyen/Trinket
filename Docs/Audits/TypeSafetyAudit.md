@@ -4,13 +4,13 @@
 
 ## Intent
 
-Find unsafe escapes via compiler/linter output and targeted probes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. Write a plan to fix all identified unsafe typing escapes (breaking into phases if the scope is large); a clean pass is valid, and significant typing seams remain proposals.
+Remove unsafe escapes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. A clean pass is valid; significant typing seams remain proposals per [README.md](README.md).
 
 ## Hard stops
 
 - Do not introduce `@EnvironmentObject`, `ObservableObject`, `@StateObject`, or `@Published` — prefer `@Environment(Type.self)` + `@Bindable` + `@Observable`.
 - Do not add net-new `swiftlint:disable` without a minimal scoped reason.
-- Do not chase every `\bAny\b` or every `!` — triage from probes and diagnostics.
+- Do not chase every `\bAny\b` or every `!` — triage from diagnostics and confirmed risk.
 
 ## Triage
 
@@ -24,16 +24,11 @@ Find unsafe escapes via compiler/linter output and targeted probes. Prefer one v
 ## Domain rules
 
 - `as!`, `try!`, and force unwraps need an input-appropriate validation or failure path; do not introduce a default unless it is semantically valid.
-- Treat linter/compiler diagnostics as primary evidence; grep hits are review candidates.
+- Treat linter/compiler diagnostics as primary evidence; other hits are review candidates.
 - Package inits may keep hard failures; orchestration should not crash on corrupt input.
 - Any `@EnvironmentObject` hit is a **must-fix**.
 - Prefer `any Protocol` for existentials; `Any` mainly at serialization boundaries. Validate decoded saves via sanitizer / `init(from:)` — not runtime casts.
 
-## Probe hints
+## Evidence bar
 
-- **Force Casts & Force Tries:** Search for `as!` or `try!` in production source (`Trinket/` and `Packages/*/Sources`); verify fail-safe fallback or validation boundaries exist.
-- **Implicit Optional String Interpolation:** Search for `"\(.*?\?"` or `"\(.*?\!)"` in UI label text; ensure optionals are safely unwrapped to prevent `"Optional(...)"` display bugs in UI.
-- **Unsafe Numerical Type Conversions:** Search for `Int(doubleVal)`, `UInt(intVal)`, or `Int32(...)` without range checking or safe boundary clipping that can trap at runtime on overflow/negative inputs.
-- **Raw Enum Decoding Traps:** Search for `MyEnum(rawValue: str)!` or `init?(rawValue:)` unwraps in state decoding; ensure default cases or fallback enums handle corrupt/outdated persistence strings.
-- **Banned Legacy Observation APIs:** Run `./Scripts/check-platform-api-bans.sh` and search for `@EnvironmentObject`, `@StateObject`, or `@Published`.
-- **Fatal Error & Precondition Audit:** Search for `fatalError` or `preconditionFailure` in app orchestration layers (`Trinket/State`, `Trinket/Features`).
+Unsafe escape on an orchestration path without a validated failure path, or a banned observation API. Prefer diagnostics over speculative sweeps.

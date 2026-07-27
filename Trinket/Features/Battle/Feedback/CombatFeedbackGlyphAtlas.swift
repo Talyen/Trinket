@@ -204,7 +204,7 @@ final class CombatFeedbackGlyphAtlas {
         let scaleHundredths = Int((displayScale * 100).rounded())
         let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
             Keyword.VisualStyle.beneficialStatus.symbolName,
-            Keyword.VisualStyle.negativeStatus.symbolName
+            Keyword.VisualStyle.negativeStatus.symbolName,
         ])
         // Every integer label can be assembled from this complete alphabet. This is
         // both cheaper and more complete than eagerly rasterizing an arbitrary range.
@@ -317,7 +317,7 @@ final class CombatFeedbackGlyphAtlas {
         )
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: UIColor.white
+            .foregroundColor: UIColor.white,
         ]
         let nsText = text as NSString
         let size = nsText.size(withAttributes: attributes)
@@ -384,8 +384,8 @@ enum CombatFeedbackGlyphMetrics {
         let monospacedDescriptor = roundedDescriptor.addingAttributes([
             .featureSettings: [[
                 UIFontDescriptor.FeatureKey.type: kNumberSpacingType,
-                UIFontDescriptor.FeatureKey.selector: kMonospacedNumbersSelector
-            ]]
+                UIFontDescriptor.FeatureKey.selector: kMonospacedNumbersSelector,
+            ]],
         ])
         return UIFont(descriptor: monospacedDescriptor, size: preferred.pointSize)
     }

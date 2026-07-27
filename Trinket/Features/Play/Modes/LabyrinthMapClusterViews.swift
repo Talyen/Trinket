@@ -277,7 +277,7 @@ private struct LabyrinthHexagon: InsettableShape {
         return path
     }
 
-    func inset(by amount: CGFloat) -> LabyrinthHexagon {
+    func inset(by amount: CGFloat) -> Self {
         var copy = self
         copy.insetAmount += amount
         return copy
@@ -419,7 +419,7 @@ struct LabyrinthNodeInspector: View {
                 LinearGradient(
                     colors: [
                         .clear,
-                        TrinketDesign.Colors.Overlay.ink.opacity(0.82)
+                        TrinketDesign.Colors.Overlay.ink.opacity(0.82),
                     ],
                     startPoint: .top,
                     endPoint: .bottom

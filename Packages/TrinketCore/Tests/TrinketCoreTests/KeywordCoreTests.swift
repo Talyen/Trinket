@@ -42,7 +42,7 @@ struct KeywordCoreTests {
         (.leech, .restoration),
         (.deathsDoor, .restoration),
         (.gold, .resource),
-        (.mana, .resource)
+        (.mana, .resource),
     ])
     func keywordCategory(keyword: Keyword, category: Keyword.Category) throws {
         try #expect(keyword.category == category, "\(keyword.rawValue) should be \(category)")

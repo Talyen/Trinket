@@ -60,7 +60,7 @@ enum ModelContainerBootstrap {
             base.appendingPathExtension("store-shm"),
             base.appendingPathExtension("store-wal"),
             base.appendingPathExtension("sqlite-shm"),
-            base.appendingPathExtension("sqlite-wal")
+            base.appendingPathExtension("sqlite-wal"),
         ]
         for candidate in candidates {
             guard FileManager.default.fileExists(atPath: candidate.path) else { continue }

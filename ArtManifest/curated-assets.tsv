@@ -16,25 +16,26 @@ combatant	risen_skeleton	companion_risen_skeleton_card	Raw Assets/Companions/Ris
 combatant	mana_moth	companion_mana_moth_card	Raw Assets/Companions/Mana Moth.jpeg	0.50	0.50
 combatant	fox	companion_fox_card	Raw Assets/Companions/Fox.jpeg	0.50	0.36
 ability	acid-potion	ability_acid_potion	Raw Assets/Abilities/Acid Potion.jpeg	0.50	0.50
-ability	apple	ability_apple	Raw Assets/Abilities/Apple.png	0.50	0.50
-ability	astral-arrow	ability_astral_arrow	Raw Assets/Abilities/Concussive Shot.jpeg	0.50	0.50
-ability	bash	ability_bash	Raw Assets/Abilities/Bash.png	0.50	0.50
+ability	apple	ability_apple	Raw Assets/Abilities/Apple.jpeg	0.50	0.50
+ability	astral-arrow	ability_astral_arrow	Raw Assets/Abilities/Astral Arrow.jpeg	0.50	0.50
+ability	avatar-of-justice	ability_avatar_of_justice	Raw Assets/Abilities/Avatar.jpeg	0.50	0.50
+ability	bash	ability_bash	Raw Assets/Abilities/Bash.jpeg	0.50	0.50
 ability	blackjack	ability_blackjack	Raw Assets/Abilities/Blackjack.jpeg	0.50	0.50
 ability	blessed-aegis	ability_blessed_aegis	Raw Assets/Abilities/Blessed Aegis.jpeg	0.50	0.50
-ability	blizzard	ability_blizzard	Raw Assets/Abilities/Frostbolt.jpeg	0.50	0.50
-ability	block	ability_block	Raw Assets/Abilities/Block.png	0.50	0.50
+ability	blizzard	ability_blizzard	Raw Assets/Abilities/Blizzard.jpeg	0.50	0.50
+ability	block	ability_block	Raw Assets/Abilities/Block.jpeg	0.50	0.50
 ability	blood-offering	ability_blood_offering	Raw Assets/Abilities/Blood Offering.jpeg	0.50	0.50
 ability	bloodthorn	ability_bloodthorn	Raw Assets/Abilities/Bloodthorn.jpeg	0.50	0.50
 ability	bounty-shot	ability_bounty_shot	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50
 ability	briar-shield	ability_briar_shield	Raw Assets/Abilities/Briar Shield.jpeg	0.50	0.50
-ability	caustic-jab	ability_caustic_jab	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50
+ability	caustic-jab	ability_caustic_jab	Raw Assets/Abilities/Caustic Jab.jpeg	0.50	0.50
 ability	cinderbloom	ability_cinderbloom	Raw Assets/Abilities/Cinderbloom.jpeg	0.50	0.50
 ability	cleanse	ability_cleanse	Raw Assets/Abilities/Cleanse.jpeg	0.50	0.50
 ability	cold-snap	ability_cold_snap	Raw Assets/Abilities/Cold Snap.jpeg	0.50	0.50
 ability	combustion	ability_combustion	Raw Assets/Abilities/Combustion.jpeg	0.50	0.50
-ability	crystal-bulwark	ability_crystal_bulwark	Raw Assets/Abilities/Crystal Bulwark.jpeg	0.50	0.50
 ability	dark-pact	ability_dark_pact	Raw Assets/Abilities/Dark Pact.jpeg	0.50	0.50
-ability	fangs	ability_fangs	Raw Assets/Abilities/Fangs.png	0.50	0.50
+ability	earthquake	ability_earthquake	Raw Assets/Abilities/Earthquake.jpeg	0.50	0.50
+ability	fangs	ability_fangs	Raw Assets/Abilities/Fangs.jpeg	0.50	0.50
 ability	faustian-bargain	ability_faustian_bargain	Raw Assets/Abilities/Faustian Bargain.jpeg	0.50	0.50
 ability	fire-arrow	ability_fire_arrow	Raw Assets/Abilities/Fire Arrow.jpeg	0.50	0.50
 ability	fireball	ability_fireball	Raw Assets/Abilities/Fireball.jpeg	0.50	0.50
@@ -46,39 +47,39 @@ ability	hemorrhage	ability_hemorrhage	Raw Assets/Abilities/Hemorrhage.jpeg	0.50	
 ability	ice-shot	ability_ice_shot	Raw Assets/Abilities/Ice Shot.jpeg	0.50	0.50
 ability	kindling	ability_kindling	Raw Assets/Abilities/Kindling.jpeg	0.50	0.50
 ability	luck-potion	ability_luck_potion	Raw Assets/Abilities/Luck Potion.jpeg	0.50	0.50
-ability	mana-berries	ability_mana_berries	Raw Assets/Abilities/Mana Berries.png	0.50	0.50
-ability	mana-crystals	ability_mana_crystals	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
-ability	mana-potion	ability_mana_potion	Raw Assets/Abilities/Mana Potion.png	0.50	0.50
+ability	mana-berries	ability_mana_berries	Raw Assets/Abilities/Mana Berries.jpeg	0.50	0.50
+ability	mana-potion	ability_mana_potion	Raw Assets/Abilities/Mana Potion.jpeg	0.50	0.50
 ability	mana-shield	ability_mana_shield	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50
+ability	maul	ability_maul	Raw Assets/Abilities/Maul.jpeg	0.50	0.50
 ability	meteor	ability_meteor	Raw Assets/Abilities/Meteor.jpeg	0.50	0.50
 ability	molten-bulwark	ability_molten_bulwark	Raw Assets/Abilities/Molten Bulwark.jpeg	0.50	0.50
 ability	pack-tactics	ability_pack_tactics	Raw Assets/Abilities/Pack Tactics.jpeg	0.50	0.50
-ability	panacea-potion	ability_panacea_potion	Raw Assets/Abilities/Panacea Potion.png	0.50	0.50
+ability	panacea-potion	ability_panacea_potion	Raw Assets/Abilities/Panacea Potion.jpeg	0.50	0.50
 ability	phoenix-feather	ability_phoenix_feather	Raw Assets/Abilities/Phoenix Feather.jpeg	0.50	0.50
-ability	pixie-dust	ability_pixie_dust	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
+ability	pixie-dust	ability_pixie_dust	Raw Assets/Abilities/Pixie Dust.jpeg	0.50	0.50
 ability	poison-dagger	ability_poison_dagger	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50
-ability	predators-focus	ability_predators_focus	Raw Assets/Abilities/Haste.jpeg	0.50	0.50
+ability	pounce	ability_pounce	Raw Assets/Abilities/Pounce.jpeg	0.50	0.50
+ability	predators-focus	ability_predators_focus	Raw Assets/Abilities/Predator's Focus.jpeg	0.50	0.50
 ability	ray-of-frost	ability_ray_of_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
-ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Slash.png	0.50	0.50
-ability	roulette	ability_roulette	Raw Assets/Abilities/Roulette.jpeg	0.50	0.50
+ability	rending-slash	ability_rending_slash	Raw Assets/Abilities/Rend.jpeg	0.50	0.50
 ability	sap-arrow	ability_sap_arrow	Raw Assets/Abilities/Sap Arrow.jpeg	0.50	0.50
 ability	serrated-edge	ability_serrated_edge	Raw Assets/Abilities/Serrated Edge.jpeg	0.50	0.50
+ability	shadowstep	ability_shadowstep	Raw Assets/Abilities/Shadowstep.jpeg	0.50	0.50
 ability	shield-bash	ability_shield_bash	Raw Assets/Abilities/Shield Bash.jpeg	0.50	0.50
-ability	slash	ability_slash	Raw Assets/Abilities/Slash.png	0.50	0.50
+ability	slash	ability_slash	Raw Assets/Abilities/Slash.jpeg	0.50	0.50
 ability	smite	ability_smite	Raw Assets/Abilities/Smite.jpeg	0.50	0.50
-ability	sniff-out	ability_sniff_out	Raw Assets/Abilities/Bounty Shot.jpeg	0.50	0.50
+ability	sniff-out	ability_sniff_out	Raw Assets/Abilities/Sniff Out.jpeg	0.50	0.50
 ability	spiked-shield	ability_spiked_shield	Raw Assets/Abilities/Spiked Shield.jpeg	0.50	0.50
-ability	stab	ability_stab	Raw Assets/Abilities/Stab.png	0.50	0.50
-ability	stargaze	ability_stargaze	Raw Assets/Abilities/Mana Crystals.jpeg	0.50	0.50
+ability	stab	ability_stab	Raw Assets/Abilities/Stab.jpeg	0.50	0.50
+ability	stargaze	ability_stargaze	Raw Assets/Abilities/Stargaze.jpeg	0.50	0.50
 ability	steal	ability_steal	Raw Assets/Abilities/Steal.jpeg	0.50	0.50
 ability	stoneskin-potion	ability_stoneskin_potion	Raw Assets/Abilities/Stoneskin Potion.jpeg	0.50	0.50
-ability	sunburst	ability_sunburst	Raw Assets/Abilities/Sunburst.png	0.50	0.50
-ability	sunder	ability_sunder_armor	Raw Assets/Abilities/Sunder Armor.jpeg	0.50	0.50
+ability	sunburst	ability_sunburst	Raw Assets/Abilities/Sunburst.jpeg	0.50	0.50
+ability	sunder	ability_sunder_armor	Raw Assets/Abilities/Sunder.jpeg	0.50	0.50
 ability	thorn-mail	ability_thorn_mail	Raw Assets/Abilities/Thorn Mail.jpeg	0.50	0.50
 ability	tithe	ability_tithe	Raw Assets/Abilities/Tithe.jpeg	0.50	0.50
 ability	venom-arrow	ability_venom_arrow	Raw Assets/Abilities/Venom Arrow.jpeg	0.50	0.50
 ability	venom-fangs	ability_venom_fangs	Raw Assets/Abilities/Venom Fangs.jpeg	0.50	0.50
-ability	wise-frost	ability_wise_frost	Raw Assets/Abilities/Ray of Frost.jpeg	0.50	0.50
 item	crossbow-astral	item_crossbow_astral	Raw Assets/Gear/Crossbow - Astral.jpeg	0.50	0.50
 item	crossbow-basic	item_crossbow_basic	Raw Assets/Gear/Crossbow - Basic.jpeg	0.50	0.50
 item	dagger-astral	item_dagger_astral	Raw Assets/Gear/Dagger - Astral.jpeg	0.50	0.50
@@ -207,9 +208,9 @@ background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Explore.jp
 background	gameModeLabyrinth	bg_game_mode_labyrinth	Raw Assets/Game Modes/Labyrinth.jpeg	0.50	0.50
 background	gameModeSpires	bg_game_mode_spires	Raw Assets/Game Modes/Spires.jpeg	0.50	0.50
 background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Game Modes/Spires/Physical Spire.jpeg	0.50	0.50
-background	spire-cinderSpire	bg_spire_cinder_spire	Raw Assets/Talent Backgrounds/Burn.jpeg	0.50	0.50
+background	spire-cinderSpire	bg_spire_cinder_spire	Raw Assets/Game Modes/Spires/Fire Spire.jpeg	0.50	0.50
 background	spire-serpentHollow	bg_spire_serpent_hollow	Raw Assets/Game Modes/Spires/Poison Spire.jpeg	0.50	0.50
 background	spire-scarGallery	bg_spire_scar_gallery	Raw Assets/Game Modes/Spires/Bleed Spire.jpeg	0.50	0.50
 background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Game Modes/Spires/Holy Spire.jpeg	0.50	0.50
-background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Talent Backgrounds/Freeze.jpeg	0.50	0.50
-background	spire-stormAnvil	bg_spire_storm_anvil	Raw Assets/Talent Backgrounds/Stun.jpeg	0.50	0.50
+background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Game Modes/Spires/Freeze Spire.jpeg	0.50	0.50
+background	spire-stormAnvil	bg_spire_storm_anvil	Raw Assets/Game Modes/Spires/Stun Spire.jpeg	0.50	0.50

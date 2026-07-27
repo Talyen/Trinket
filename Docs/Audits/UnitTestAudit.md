@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md`. Battle ownership: `Packages/BattleEngin
 
 ## Intent
 
-Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases with a stronger owner elsewhere. Write a plan to fix all identified test portfolio issues (breaking into phases if the scope is large). A clean pass is valid; do not add coverage to manufacture value.
+Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases with a stronger owner elsewhere. A clean pass is valid; do not add coverage to manufacture value. Planning and phasing: [README.md](README.md).
 
 ## Hard stops
 
@@ -43,12 +43,3 @@ Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases w
 **Coverage ownership:** Battle rules live in package matrices; persistence in store/sanitizer journeys; catalogs in invariants rather than exact snapshots; app tests only own orchestration packages cannot express. Do not select work because a module has fewer files.
 
 Track authored declarations and expanded executions separately. A merge is successful only when it reduces duplication, runtime/setup, or maintenance surface—not merely the number of `@Test` attributes.
-
-## Probe hints
-
-- **XCTest Import Check:** Run `./Scripts/check-swift-testing-migration.sh` to ensure unit/package targets import `Testing` rather than `XCTest`.
-- **Trivial Property & Round-Trip Tests:** Search unit test suites for tests asserting basic struct getters/setters, static member initialization, or plain-struct JSON encoding/decoding without domain logic.
-- **Timer Delays & Sleep Invocations:** Search unit test targets for `Task.sleep`, `Thread.sleep`, or `usleep`; replace real wall-clock delays with mock time providers or micro-delay polling.
-- **Fragile String Error Assertions:** Search for assertions checking `error.localizedDescription` or error string representations (`#expect("\(error)".contains(...))`); replace string matching with strongly-typed enum error assertions.
-- **Duplicate Tier Ownership:** Compare `TrinketTests/` against `Packages/*/Tests/`; verify app-level unit tests do not duplicate lower-level package rule matrix coverage.
-- **Catalog Snapshot Counts:** Search for exact static count assertions (`#expect(items.count == 42)`); replace snapshot counts with ID uniqueness and structural invariant assertions.
