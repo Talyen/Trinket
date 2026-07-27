@@ -321,6 +321,7 @@ public enum PlayerSaveSanitizer {
             gridPosition: node.gridPosition ?? legacyGridPosition(for: node, in: cluster),
             modifierIDs: normalizedModifierIDs(for: node, type: type, modifiers: modifiers),
             recruitEventID: node.recruitEventID,
+            mysteryEventID: node.mysteryEventID,
             outgoingIDs: node.outgoingIDs.filter { existingNodes[$0] != nil },
             isCleared: node.isCleared,
             isRevealed: depth > 0 || node.isRevealed

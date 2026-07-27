@@ -147,6 +147,10 @@ enum AccessibilityID {
         static let confirmChoiceButton = "Mystery Confirm Choice Button"
         static let chooseItemTitle = "Mystery Choose Item Title"
         static let persistFailure = "Mystery Persist Failure"
+        static let corruptItemTitle = "Mystery Corrupt Item Title"
+        static let corruptCancelButton = "Mystery Corrupt Cancel Button"
+        static let corruptionRevealTitle = "Mystery Corruption Reveal Title"
+        static let corruptionContinueButton = "Mystery Corruption Continue Button"
 
         static func unlockCard(name: String) -> String {
             "\(name) unlock card"
@@ -158,6 +162,10 @@ enum AccessibilityID {
 
         static func chooseItemCard(itemID: String) -> String {
             "Mystery Choose Item \(itemID)"
+        }
+
+        static func corruptItemCard(itemID: String) -> String {
+            "Mystery Corrupt Item \(itemID)"
         }
     }
 
@@ -208,6 +216,8 @@ enum AccessibilityID {
         static let inventoryEmptyState = "Inventory Empty State"
         static let inventoryNoResults = "Inventory No Results"
         static let inventoryFilter = "Inventory filter"
+        static let salvageButton = "Salvage Item Button"
+        static let salvageConfirmButton = "Confirm Salvage Button"
     }
 
     enum Homestead {

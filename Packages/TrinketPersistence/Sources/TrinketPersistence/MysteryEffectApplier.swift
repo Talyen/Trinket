@@ -190,6 +190,9 @@ public enum MysteryEffectApplier {
 
         case let .unlockCombatant(combatantID):
             applyUnlock(combatantID, save: &save, result: &state.result)
+
+        case .corruptItem, .leave:
+            break
         }
     }
 

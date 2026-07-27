@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
+public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
     case physical = "Physical"
     case burn = "Burn"
     case stun = "Stun"

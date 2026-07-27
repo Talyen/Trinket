@@ -123,7 +123,7 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.dodgeGoldFlat > 0 {
-            let bonus = context.modifiers(for: combatant.id).goldGainedBonus
+            let granted = context.goldGranted(for: profile.triggers.dodgeGoldFlat, sourceActorID: combatant.id)
             context.addGold(profile.triggers.dodgeGoldFlat, sourceActorID: combatant.id)
             events.append(context.nextEvent(
                 kind: .effect,
@@ -131,7 +131,7 @@ package extension CombatReactionEngine {
                 actorName: combatant.name,
                 abilityName: "Payday",
                 target: combatant,
-                amount: profile.triggers.dodgeGoldFlat + bonus,
+                amount: granted,
                 keyword: .gold
             ))
         }
@@ -145,6 +145,9 @@ package extension CombatReactionEngine {
                 in: &context
             ))
         }
+
+        events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
+        events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
 
         return events
     }
@@ -167,9 +170,11 @@ package extension CombatReactionEngine {
 
     static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
         let profile = context.heroModifiers
-        guard profile.triggers.stunDealPhysicalFlat > 0 || profile.triggers.enemyStunnedApplyMarked,
-              context.roster.hero.isAlive
-        else { return [] }
+        let shouldReact = profile.triggers.stunDealPhysicalFlat > 0
+            || profile.triggers.enemyStunnedApplyMarked
+            || profile.triggers.enemyStunnedPurgeCount > 0
+            || profile.triggers.enemyStunnedPurgeAll
+        guard shouldReact, context.roster.hero.isAlive else { return [] }
 
         let hero = context.roster.hero.combatant
         let enemy = context.roster.enemy.combatant
@@ -189,6 +194,17 @@ package extension CombatReactionEngine {
                 sourceActorID: hero.id,
                 actorName: hero.name,
                 abilityName: "Branding",
+                in: &context
+            ))
+        }
+
+        if context.roster.health(for: enemy) > 0 {
+            events.append(contentsOf: applyPurge(
+                to: enemy,
+                source: hero,
+                abilityName: "Disrupting",
+                count: profile.triggers.enemyStunnedPurgeCount,
+                purgeAll: profile.triggers.enemyStunnedPurgeAll,
                 in: &context
             ))
         }
@@ -260,20 +276,14 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.holyDamagePurgeCount > 0 {
-            var enemyEffects = context.roster.activeEffects(for: enemy)
-            for _ in 0 ..< profile.triggers.holyDamagePurgeCount {
-                guard let removedKeyword = EffectRemoval.removeRandomBuff(from: &enemyEffects, using: &context.rng) else { break }
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .purgeApplied,
-                    actorName: source.name,
-                    abilityName: "Nullifying",
-                    target: enemy,
-                    amount: 0,
-                    keyword: removedKeyword
-                ))
-            }
-            context.roster.setActiveEffects(enemyEffects, for: enemy)
+            events.append(contentsOf: applyPurge(
+                to: enemy,
+                source: source,
+                abilityName: "Nullifying",
+                count: profile.triggers.holyDamagePurgeCount,
+                purgeAll: false,
+                in: &context
+            ))
         }
 
         return events
@@ -344,6 +354,53 @@ package extension CombatReactionEngine {
             ),
             in: &context
         ).events
+    }
+
+    static func applyPurge(
+        to target: Combatant,
+        source: Combatant,
+        abilityName: String,
+        count: Int,
+        purgeAll: Bool,
+        in context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        guard purgeAll || count > 0 else { return [] }
+        var enemyEffects = context.roster.activeEffects(for: target)
+        var events: [ActionEvent] = []
+
+        if purgeAll {
+            guard EffectRemoval.removeBuffs(from: &enemyEffects, keyword: nil) else {
+                return []
+            }
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .purgeApplied,
+                actorName: source.name,
+                abilityName: abilityName,
+                target: target,
+                amount: 0,
+                keyword: .purge
+            ))
+        } else {
+            for _ in 0 ..< count {
+                guard let removedKeyword = EffectRemoval.removeRandomBuff(
+                    from: &enemyEffects,
+                    using: &context.rng
+                ) else { break }
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .purgeApplied,
+                    actorName: source.name,
+                    abilityName: abilityName,
+                    target: target,
+                    amount: 0,
+                    keyword: removedKeyword
+                ))
+            }
+        }
+
+        context.roster.setActiveEffects(enemyEffects, for: target)
+        return events
     }
 
     private static func applyMarked(

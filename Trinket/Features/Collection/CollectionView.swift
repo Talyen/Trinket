@@ -7,6 +7,7 @@ struct CollectionView: View {
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
+    @State private var salvageSuccessCount = 0
     @Namespace private var zoomNamespace
 
     var body: some View {
@@ -24,7 +25,12 @@ struct CollectionView: View {
             }
             .sheet(item: $selectedItem) { item in
                 NavigationStack {
-                    ItemDetailView(item: item)
+                    ItemDetailView.inventorySalvageDetail(item: item, appState: appState) { didSucceed in
+                        if didSucceed {
+                            salvageSuccessCount += 1
+                        }
+                        selectedItem = nil
+                    }
                 }
                 .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
                 .trinketDetailSheet()
@@ -59,6 +65,11 @@ struct CollectionView: View {
                     )
                 }
             }
+            .trinketSensoryFeedback(
+                .success,
+                trigger: salvageSuccessCount,
+                enabled: appState.options.hapticsEnabled
+            )
     }
 
     private var collectionBrowseContent: some View {

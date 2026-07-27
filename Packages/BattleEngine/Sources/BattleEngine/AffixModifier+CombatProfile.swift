@@ -60,6 +60,8 @@ public extension AffixModifier {
             profile.leechHealingBonus += amount
         case let .goldGained(amount):
             profile.goldGainedBonus += amount
+        case let .goldGainedPercent(amount):
+            profile.goldGainedPercent += amount
         case let .blockGained(amount):
             profile.blockGainedBonus += amount
         case let .damageTakenPercent(keyword, amount):

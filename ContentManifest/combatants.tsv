@@ -10,9 +10,10 @@ lizard_scout	Lizard Scout	companion	14	0	assassin	stab,blackjack	serratedEdge,po
 panther	Panther	companion	15	0	bruiser	rendingSlash,fangs	pounce,venomFangs	packTactics,shadowstep	12	12	10	8	8	razor_claws
 phoenix	Phoenix	companion	14	8	mage	kindling,fireArrow	fireball,cinderbloom	phoenixFeather,combustion	7	10	8	13	12	immortal_ember
 wolf	Wolf	companion	14	0	assassin	rendingSlash,fangs	venomFangs,predatorsFocus	packTactics,hemorrhage	10	12	10	7	11	pack_ferocity
-golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	8	9	11	8	14	loyal_comfort
+golden_retriever	Golden Retriever	companion	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	8	9	11	8	14	gold_retriever
 library_owl	Library Owl	companion	14	8	support	wiseFrost,stargaze	heal,cleanse	panaceaPotion,glacialWard	7	9	9	12	13	purifying_wisdom
 risen_skeleton	Risen Skeleton	companion	15	0	bruiser	slash,stab	darkPact,sunder	faustianBargain,hemorrhage	12	10	11	9	8	unliving_frame
 mana_moth	Mana Moth	companion	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	meteor,glacialWard	8	10	8	13	11	arcane_reservoir
 pixie	Pixie	companion	14	7	support	pixieDust,manaBerries	cleanse,heal	panaceaPotion,sunburst	7	11	8	11	13	fae_fortune
 shield_scarab	Shield Scarab	companion	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	10	9	14	7	10	iron_carapace
+fox	Fox	companion	14	0	assassin	sniffOut,fangs	steal,pounce	shadowstep,luckPotion	9	13	9	8	11	sly_trickery

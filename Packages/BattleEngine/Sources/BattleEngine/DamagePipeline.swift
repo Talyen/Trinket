@@ -38,7 +38,8 @@ package enum DamagePipeline {
         Step(name: "Leech", phase: .post, apply: applyLeech),
         Step(name: "ControlMeter", phase: .post, apply: applyControlMeter),
         Step(name: "ReactiveOnHit", phase: .post, apply: applyReactiveOnHit),
-        Step(name: "HolyReaction", phase: .post, apply: applyHolyReaction)
+        Step(name: "HolyReaction", phase: .post, apply: applyHolyReaction),
+        Step(name: "CriticalReaction", phase: .post, apply: applyCriticalReaction)
     ]
 
     public static var canonicalNames: [String] {
@@ -62,8 +63,13 @@ package enum DamagePipeline {
         }
 
         for step in steps {
-            // Retaliation is a fixed rebound hit — skip on-hit reactives that would nest.
-            if state.isRetaliation, step.name == "ReactiveOnHit" || step.name == "HolyReaction" {
+            // Retaliation / DoT-style hits must not nest further reaction pipelines
+            // (Whiplash stun → ControlMeter → afterEnemyStunned → Knockout → …).
+            if state.isRetaliation,
+               step.name == "ReactiveOnHit"
+               || step.name == "HolyReaction"
+               || step.name == "CriticalReaction"
+               || step.name == "ControlMeter" {
                 continue
             }
             onStep?(step.name)

@@ -11,6 +11,10 @@ public enum MysteryEffect: Hashable, Sendable {
     case chooseItem
     /// Unlocks a hero or companion on the player roster (idempotent at apply time).
     case unlockCombatant(String)
+    /// Opens inventory selection to corrupt one owned item.
+    case corruptItem
+    /// Leaves without mutating inventory; still records altar encounter when on Corruption Altar.
+    case leave
 }
 
 public struct MysteryChoice: Hashable, Sendable {

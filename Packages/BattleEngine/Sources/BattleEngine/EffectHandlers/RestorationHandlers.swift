@@ -50,12 +50,25 @@ struct ResourceGainHandler: BattleEffectHandler {
         let loggedAmount: Int
         switch keyword {
         case .mana:
-            context.restoreMana(amount, to: target, sourceActorID: source.id)
+            let restored = context.restoreMana(amount, to: target, sourceActorID: source.id)
             loggedAmount = amount
+            let event = context.nextEvent(
+                kind: .effect,
+                effectKind: .resourceGain,
+                actorName: source.name,
+                abilityName: ability.name,
+                target: target,
+                amount: loggedAmount,
+                keyword: keyword
+            )
+            var events = [event]
+            if restored > 0 {
+                events.append(contentsOf: CombatReactionEngine.afterGainMana(by: target, in: &context))
+            }
+            return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
-            let bonus = context.modifiers(for: source.id).goldGainedBonus
+            loggedAmount = context.goldGranted(for: amount, sourceActorID: source.id)
             context.addGold(amount, sourceActorID: source.id)
-            loggedAmount = amount + bonus
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }

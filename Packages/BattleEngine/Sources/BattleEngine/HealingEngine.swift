@@ -121,6 +121,7 @@ package enum HealingEngine {
                 in: &context
             ))
         }
+        events.append(contentsOf: CombatReactionEngine.afterLeech(by: actorCombatant, in: &context))
         var flags = healOutcome.flags
         flags.insert(.leeched)
         return CombatOutcome(healthDelta: healOutcome.healthRestored, events: events, flags: flags)

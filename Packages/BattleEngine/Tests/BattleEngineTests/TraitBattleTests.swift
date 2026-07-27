@@ -151,28 +151,25 @@ struct TraitBattleTests {
     }
 
     @Test func loyalComfortHealsHeroWhenCompanionRestoresHealth() throws {
-        let retriever = try #require(GameContent.companions.first { $0.id == "golden_retriever" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let retrieverBuild = CombatBuildResolver.build(
-            combatant: retriever,
-            equipmentLoadout: EquipmentLoadout(),
-            inventory: []
-        )
         var context = makeContext(
             hero: hero,
-            companion: retrieverBuild.combatant,
+            companion: companion,
             enemy: enemy,
-            companionModifiers: retrieverBuild.modifiers
+            companionModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(restoreHealthAlsoHealHero: 1)
+            )
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 12 }
-        context.roster.mutateRuntime(for: retrieverBuild.combatant) { $0.currentHealth = retrieverBuild.effectiveMaxHealth - 1 }
+        context.roster.mutateRuntime(for: companion) { $0.currentHealth = 19 }
 
         _ = apply(
             .instantHeal(.health, 1),
             abilityName: "Apple",
-            source: retrieverBuild.combatant,
-            target: retrieverBuild.combatant,
+            source: companion,
+            target: companion,
             in: &context
         )
 

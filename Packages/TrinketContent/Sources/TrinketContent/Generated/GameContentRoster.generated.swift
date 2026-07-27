@@ -15,12 +15,13 @@ enum GameContentRosterGenerated {
         "panther": "razor_claws",
         "phoenix": "immortal_ember",
         "wolf": "pack_ferocity",
-        "golden_retriever": "loyal_comfort",
+        "golden_retriever": "gold_retriever",
         "library_owl": "purifying_wisdom",
         "risen_skeleton": "unliving_frame",
         "mana_moth": "arcane_reservoir",
         "pixie": "fae_fortune",
-        "shield_scarab": "iron_carapace"
+        "shield_scarab": "iron_carapace",
+        "fox": "sly_trickery"
     ]
 
     static let heroes: [Combatant] = [
@@ -254,6 +255,19 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 9, toughness: 14, intellect: 7, wisdom: 10),
             growthArchetype: .tank
+        ),
+        Combatant(
+            id: "fox",
+            name: "Fox",
+            role: .companion,
+            maxHealth: 14,
+            abilityChoices: AbilityChoices(
+                basics: [.sniffOut, .fangs],
+                skills: [.steal, .pounce],
+                ultimates: [.shadowstep, .luckPotion]
+            ),
+            primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
+            growthArchetype: .assassin
         )
     ]
 }

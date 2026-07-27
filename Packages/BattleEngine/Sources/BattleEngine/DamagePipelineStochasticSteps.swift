@@ -63,6 +63,15 @@ package extension DamagePipeline {
         var chance = state.combatant.primaryStats.dodgeChance
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
+        if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
+           profile.triggers.dodgeChanceBelowHealthPercentBonus > 0,
+           context.roster.maxHealth(for: state.combatant) > 0 {
+            let percent = Double(context.roster.health(for: state.combatant)) /
+                Double(context.roster.maxHealth(for: state.combatant))
+            if percent < profile.triggers.dodgeChanceBelowHealthPercentThreshold {
+                chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
+            }
+        }
         return min(0.75, chance)
     }
 

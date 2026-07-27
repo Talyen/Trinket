@@ -12,4 +12,8 @@ public extension PlayerInventoryState {
         guard !items.contains(where: { $0.id == item.id }) else { return }
         items.append(item)
     }
+
+    mutating func removeItem(id: String) {
+        items.removeAll { $0.id == id }
+    }
 }

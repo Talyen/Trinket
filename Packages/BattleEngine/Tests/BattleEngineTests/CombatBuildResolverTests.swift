@@ -79,4 +79,32 @@ struct CombatBuildResolverTests {
         try #expect(build.modifiers.blockGainedBonus == 1)
         try #expect(build.modifiers.traitDisplayName == "Oathbound")
     }
+
+    @Test func corruptedInstancePowersOverrideCatalogValues() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
+        let overridden = ItemAffixPower(
+            description: "Increase Physical damage by 9.",
+            modifiers: [.damageDealt(.physical, 9)]
+        )
+        let item = InventoryItem(
+            id: "corrupted-longsword",
+            baseType: baseType,
+            rarity: .basic,
+            displayName: baseType.name,
+            affixes: [keen.resolved(for: .basic)],
+            isCorrupted: true,
+            affixPowers: [overridden]
+        )
+
+        var loadout = EquipmentLoadout()
+        loadout.equip(item)
+        let build = CombatBuildResolver.build(
+            combatant: knight,
+            equipmentLoadout: loadout,
+            inventory: [item]
+        )
+        try #expect(build.modifiers.damageDealtBonus[.physical] == 9)
+    }
 }

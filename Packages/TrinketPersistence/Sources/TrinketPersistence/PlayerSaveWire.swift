@@ -125,6 +125,8 @@ struct WireInventoryItem: Codable, Equatable {
     var rarity: Rarity
     var displayName: String
     var affixes: [WireItemAffix]
+    var isCorrupted: Bool
+    var affixPowers: [ItemAffixPowerSnapshot]?
 
     init(_ item: InventoryItem) {
         id = item.id
@@ -133,6 +135,8 @@ struct WireInventoryItem: Codable, Equatable {
         rarity = item.rarity
         displayName = item.displayName
         affixes = item.affixes.map(WireItemAffix.init)
+        isCorrupted = item.isCorrupted
+        affixPowers = item.affixPowers?.map(ItemAffixPowerSnapshot.init)
     }
 
     init(
@@ -141,7 +145,9 @@ struct WireInventoryItem: Codable, Equatable {
         baseTypeID: String,
         rarity: Rarity,
         displayName: String,
-        affixes: [WireItemAffix]
+        affixes: [WireItemAffix],
+        isCorrupted: Bool = false,
+        affixPowers: [ItemAffixPowerSnapshot]? = nil
     ) {
         self.id = id
         self.templateID = templateID
@@ -149,6 +155,20 @@ struct WireInventoryItem: Codable, Equatable {
         self.rarity = rarity
         self.displayName = displayName
         self.affixes = affixes
+        self.isCorrupted = isCorrupted
+        self.affixPowers = affixPowers
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        templateID = try container.decode(String.self, forKey: .templateID)
+        baseTypeID = try container.decode(String.self, forKey: .baseTypeID)
+        rarity = try container.decode(Rarity.self, forKey: .rarity)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        affixes = try container.decode([WireItemAffix].self, forKey: .affixes)
+        isCorrupted = try container.decodeIfPresent(Bool.self, forKey: .isCorrupted) ?? false
+        affixPowers = try container.decodeIfPresent([ItemAffixPowerSnapshot].self, forKey: .affixPowers)
     }
 
     func item() -> InventoryItem? {
@@ -160,8 +180,21 @@ struct WireInventoryItem: Codable, Equatable {
             baseType: baseType,
             rarity: rarity,
             displayName: displayName,
-            affixes: resolvedAffixes
+            affixes: resolvedAffixes,
+            isCorrupted: isCorrupted,
+            affixPowers: affixPowers?.map { $0.power() }
         )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case templateID
+        case baseTypeID
+        case rarity
+        case displayName
+        case affixes
+        case isCorrupted
+        case affixPowers
     }
 }
 

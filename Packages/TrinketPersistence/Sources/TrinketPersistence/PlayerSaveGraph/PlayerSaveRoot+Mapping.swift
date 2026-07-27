@@ -18,7 +18,8 @@ public extension PlayerSaveRoot {
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             spires: spires?.toPlayerSpiresState() ?? .freshStart,
-            labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart
+            labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart,
+            corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining
         )
     }
 
@@ -26,6 +27,7 @@ public extension PlayerSaveRoot {
         schemaVersion = save.schemaVersion
         modifiedAt = save.modifiedAt
         sessionGeneration = save.sessionGeneration
+        corruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
 
         syncChild(\.journey, make: JourneyProgressModel()) {
             $0.update(from: save.journey)

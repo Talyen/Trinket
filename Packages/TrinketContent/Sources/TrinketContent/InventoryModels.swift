@@ -8,6 +8,10 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     public let rarity: Rarity
     public let displayName: String
     public let affixes: [ItemAffix]
+    /// Once true, the item cannot be corrupted again.
+    public let isCorrupted: Bool
+    /// When non-nil, authoritative combat/UI powers (same order as `affixes`).
+    public let affixPowers: [ItemAffixPower]?
 
     public init(
         id: String,
@@ -15,7 +19,9 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         baseType: ItemBaseType,
         rarity: Rarity,
         displayName: String,
-        affixes: [ItemAffix]
+        affixes: [ItemAffix],
+        isCorrupted: Bool = false,
+        affixPowers: [ItemAffixPower]? = nil
     ) {
         self.id = id
         self.templateID = templateID ?? id
@@ -23,6 +29,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         self.rarity = rarity
         self.displayName = displayName
         self.affixes = affixes
+        self.isCorrupted = isCorrupted
+        self.affixPowers = affixPowers
     }
 
     public func rewardInstance(for stageID: String) -> InventoryItem {
@@ -32,8 +40,23 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
             baseType: baseType,
             rarity: rarity,
             displayName: displayName,
-            affixes: affixes
+            affixes: affixes,
+            isCorrupted: isCorrupted,
+            affixPowers: affixPowers
         )
+    }
+
+    /// Resolved power for an affix index — instance override when present, else catalog.
+    public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
+        if let affixPowers, affixPowers.indices.contains(affixIndex) {
+            return affixPowers[affixIndex]
+        }
+        guard affixes.indices.contains(affixIndex),
+              let definition = GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)
+        else {
+            return nil
+        }
+        return definition.power(for: rarity)
     }
 }
 

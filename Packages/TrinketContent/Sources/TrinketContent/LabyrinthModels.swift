@@ -228,6 +228,8 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
     public let modifierIDs: [LabyrinthModifierID]
     /// Concealed recruit event payload; the map exposes only the Recruit type.
     public let recruitEventID: String?
+    /// Pinned mystery event so reopen stays stable with inventory-gated picks.
+    public var mysteryEventID: String?
     /// Outgoing edge node ids within the same or next cluster.
     public var outgoingIDs: [String]
     public var isCleared: Bool
@@ -242,6 +244,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         gridPosition: LabyrinthGridPosition? = nil,
         modifierIDs: [LabyrinthModifierID] = [],
         recruitEventID: String? = nil,
+        mysteryEventID: String? = nil,
         outgoingIDs: [String] = [],
         isCleared: Bool = false,
         isRevealed: Bool = false
@@ -254,6 +257,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         self.gridPosition = gridPosition
         self.modifierIDs = modifierIDs
         self.recruitEventID = recruitEventID
+        self.mysteryEventID = mysteryEventID
         self.outgoingIDs = outgoingIDs
         self.isCleared = isCleared
         self.isRevealed = isRevealed
@@ -269,6 +273,7 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         gridPosition = try container.decodeIfPresent(LabyrinthGridPosition.self, forKey: .gridPosition)
         modifierIDs = try container.decodeIfPresent([LabyrinthModifierID].self, forKey: .modifierIDs) ?? []
         recruitEventID = try container.decodeIfPresent(String.self, forKey: .recruitEventID)
+        mysteryEventID = try container.decodeIfPresent(String.self, forKey: .mysteryEventID)
         outgoingIDs = try container.decodeIfPresent([String].self, forKey: .outgoingIDs) ?? []
         isCleared = try container.decodeIfPresent(Bool.self, forKey: .isCleared) ?? false
         isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed) ?? false

@@ -287,18 +287,41 @@ enum MysteryEventPool {
                 ("study-pack", "Study the Pack", [.gainExperience(8)]),
                 ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")])
             ]
+        ),
+        ev(
+            id: MysteryEventPool.corruptionAltarID,
+            title: "Corruption Altar",
+            narrative: "A cracked stone altar bleeds violet light from its seams. Offer an item and the altar remakes it without mercy — for better or worse — then seals it as Corrupted forever. You may also walk away untouched.",
+            artID: "destination-corruption-altar",
+            choices: [
+                ("corrupt-item", "Corrupt an Item", [.corruptItem]),
+                ("leave", "Leave", [.leave])
+            ]
         )
     ]
+
+    static let corruptionAltarID = "corruption-altar"
 
     static func event(matching id: String) -> MysteryEvent? {
         all.first { $0.id == id }
     }
 
+    /// Weighted pick: Corruption Altar at 25% when chapter-eligible, inventory-eligible, and off cooldown.
     static func pickMysteryEvent(
+        context: MysteryEventPickContext,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
-        guard let event = all.randomElement(using: &randomNumberGenerator) else {
-            preconditionFailure("MysteryEventPool.all must be non-empty")
+        let nonAltar = all.filter { $0.id != corruptionAltarID }
+        let canOfferAltar = context.allowsCorruptionAltar
+            && context.hasEligibleCorruptTarget
+            && context.corruptionAltarCooldownRemaining == 0
+        if canOfferAltar,
+           Int.random(in: 1 ... 100, using: &randomNumberGenerator) <= MysteryEventPickContext.corruptionAltarReadyChancePercent,
+           let altar = event(matching: corruptionAltarID) {
+            return altar
+        }
+        guard let event = nonAltar.randomElement(using: &randomNumberGenerator) else {
+            preconditionFailure("MysteryEventPool must contain non-altar events")
         }
         return event
     }

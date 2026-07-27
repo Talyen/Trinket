@@ -8,12 +8,16 @@ enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
     case choosingItem
+    case selectingCorruptItem
+    case revealingCorruption
     case reward
 }
 
 enum MysteryChoiceOutcome: Equatable {
     case reveal(unlockedCombatantID: String)
     case chooseItem(candidates: [InventoryItem])
+    case selectCorruptItem
+    case corruptionReveal(ItemCorruptionResult)
     case reward(MysteryEffectApplyResult, journey: JourneyProgressState?)
     case dismiss(journey: JourneyProgressState?)
     case failed
@@ -34,6 +38,8 @@ final class MysteryEncounterSession: Identifiable {
     private(set) var phase: MysteryEncounterPhase = .reading
     private(set) var unlockedCombatantID: String?
     private(set) var itemCandidates: [InventoryItem] = []
+    private(set) var corruptibleItems: [InventoryItem] = []
+    private(set) var corruptionResult: ItemCorruptionResult?
     private(set) var applyResult: MysteryEffectApplyResult?
     private(set) var isResolvingChoice = false
     private(set) var persistFailureMessage: String?
@@ -46,8 +52,21 @@ final class MysteryEncounterSession: Identifiable {
         phase == .choosingItem && !itemCandidates.isEmpty
     }
 
+    var showsCorruptItemChoice: Bool {
+        phase == .selectingCorruptItem && !corruptibleItems.isEmpty
+    }
+
+    var showsCorruptionReveal: Bool {
+        phase == .revealingCorruption && corruptionResult != nil
+    }
+
     var showsReward: Bool {
         phase == .reward && applyResult != nil
+    }
+
+    var isCorruptionAltar: Bool {
+        event.id == GameContent.corruptionAltarEventID
+            || event.choices.contains { $0.effects.contains(.corruptItem) }
     }
 
     /// True while the encounter is still waiting for a reading-phase choice.
@@ -71,14 +90,18 @@ final class MysteryEncounterSession: Identifiable {
     static func open(
         stage: Stage? = nil,
         labyrinthNodeID: String? = nil,
-        forcedEventID: String?
-    ) -> MysteryEncounterSession? {
+        forcedEventID: String?,
+        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
+        pinnedLabyrinthEventID: String? = nil
+    ) -> (session: MysteryEncounterSession, resolvedEventID: String)? {
         let event: MysteryEvent
         let sessionStage: Stage
         if let labyrinthNodeID {
             event = GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: labyrinthNodeID,
-                forcedEventID: forcedEventID
+                forcedEventID: forcedEventID,
+                pinnedEventID: pinnedLabyrinthEventID,
+                context: pickContext
             )
             sessionStage = GameContent.syntheticLabyrinthStage(
                 nodeID: labyrinthNodeID,
@@ -94,6 +117,7 @@ final class MysteryEncounterSession: Identifiable {
             var pickRNG = SystemRandomNumberGenerator()
             event = GameContent.resolveMysteryEncounterEvent(
                 authored: authoredEvent,
+                context: pickContext,
                 using: &pickRNG
             )
             sessionStage = stage
@@ -101,12 +125,13 @@ final class MysteryEncounterSession: Identifiable {
             return nil
         }
 
-        return MysteryEncounterSession(
+        let session = MysteryEncounterSession(
             stage: sessionStage,
             event: event,
             combatant: GameContent.combatant(forMysteryEvent: event),
             labyrinthNodeID: labyrinthNodeID
         )
+        return (session, event.id)
     }
 }
 
@@ -130,9 +155,29 @@ extension MysteryEncounterSession {
         persistFailureMessage = nil
     }
 
+    func presentCorruptItemChoice(items: [InventoryItem]) {
+        corruptibleItems = items
+        phase = .selectingCorruptItem
+        isResolvingChoice = false
+        persistFailureMessage = nil
+    }
+
+    func presentCorruptionReveal(result: ItemCorruptionResult) {
+        corruptionResult = result
+        phase = .revealingCorruption
+        isResolvingChoice = false
+        persistFailureMessage = nil
+    }
+
     func presentReward(result: MysteryEffectApplyResult) {
         applyResult = result
         phase = .reward
+        isResolvingChoice = false
+        persistFailureMessage = nil
+    }
+
+    func returnToReading() {
+        phase = .reading
         isResolvingChoice = false
         persistFailureMessage = nil
     }
@@ -163,6 +208,14 @@ extension MysteryEncounterSession {
         )
     }
 
+    private func noteMysteryCadence(save: inout PlayerSave) {
+        if isCorruptionAltar {
+            ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
+        } else {
+            ItemCorruptionApplier.noteMysteryCompleted(save: &save)
+        }
+    }
+
     /// Applies the chosen effects and optionally completes progress in one mutation.
     func resolveChoice(
         choiceID: String?,
@@ -178,6 +231,21 @@ extension MysteryEncounterSession {
             return .failed
         }
 
+        if choice.effects.contains(.corruptItem) {
+            let targets = ItemCorruption.eligibleTargets(in: save.inventory)
+            guard !targets.isEmpty else {
+                markResolvedWithoutReveal()
+                return .failed
+            }
+            return .selectCorruptItem
+        }
+
+        if choice.effects.contains(.leave) {
+            noteMysteryCadence(save: &save)
+            let journey = completeProgress(save: &save)
+            return .dismiss(journey: journey)
+        }
+
         let applyResult = MysteryEffectApplier.apply(
             choice.effects,
             stageID: stage.id,
@@ -187,21 +255,18 @@ extension MysteryEncounterSession {
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
-            // Journey recruits delay completion for the unlock screen; authored
-            // reopen safety auto-completes if already unlocked. Labyrinth mystery
-            // events are re-rolled from the unlocked roster, so complete the node
-            // with the unlock to prevent kill/relaunch double-recruits.
             if labyrinthNodeID != nil {
                 _ = completeProgress(save: &save)
             }
+            noteMysteryCadence(save: &save)
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
         }
 
-        // Choose-item presents candidates next; grant + complete on selection.
         if !applyResult.chooseItemCandidates.isEmpty {
             return .chooseItem(candidates: applyResult.chooseItemCandidates)
         }
 
+        noteMysteryCadence(save: &save)
         let journey = completeProgress(save: &save)
         if !applyResult.isEmpty {
             return .reward(applyResult, journey: journey)
@@ -219,16 +284,47 @@ extension MysteryEncounterSession {
 
         markChoiceStarted()
         MysteryEffectApplier.grantChosenItem(item, save: &save)
+        noteMysteryCadence(save: &save)
         let journey = completeProgress(save: &save)
         return .reward(MysteryEffectApplyResult(grantedItems: [item]), journey: journey)
     }
 
-    func applyOutcome(_ outcome: MysteryChoiceOutcome) {
+    /// Corrupts the chosen inventory item, records altar encounter, and completes progress.
+    func corruptSelectedItem(
+        itemID: String,
+        save: inout PlayerSave,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> MysteryChoiceOutcome {
+        guard phase == .selectingCorruptItem else { return .failed }
+        guard !isResolvingChoice else { return .failed }
+        guard corruptibleItems.contains(where: { $0.id == itemID }) else { return .failed }
+
+        markChoiceStarted()
+        let apply = ItemCorruptionApplier.corrupt(
+            itemID: itemID,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+        guard case let .success(result) = apply else {
+            markResolvedWithoutReveal()
+            return .failed
+        }
+        noteMysteryCadence(save: &save)
+        _ = completeProgress(save: &save)
+        return .corruptionReveal(result)
+    }
+
+    func applyOutcome(_ outcome: MysteryChoiceOutcome, inventory: PlayerInventoryState? = nil) {
         switch outcome {
         case let .reveal(unlockedCombatantID):
             presentReveal(unlockedCombatantID: unlockedCombatantID)
         case let .chooseItem(candidates):
             presentItemChoice(candidates: candidates)
+        case .selectCorruptItem:
+            let items = inventory.map(ItemCorruption.eligibleTargets(in:)) ?? []
+            presentCorruptItemChoice(items: items)
+        case let .corruptionReveal(result):
+            presentCorruptionReveal(result: result)
         case let .reward(result, _):
             presentReward(result: result)
         case .dismiss, .failed:

@@ -20,33 +20,48 @@ public extension GameContent {
         return RecruitEventPool.event(matching: id)
     }
 
+    static var corruptionAltarEventID: String {
+        MysteryEventPool.corruptionAltarID
+    }
+
     static func pickMysteryEvent(
+        context: MysteryEventPickContext = .excludingCorruptionAltar,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
-        MysteryEventPool.pickMysteryEvent(using: &randomNumberGenerator)
+        MysteryEventPool.pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
     /// Resolves an ordinary Mystery. Recruit events are intentionally excluded.
     static func resolveMysteryEncounterEvent(
         authored: MysteryEvent?,
+        context: MysteryEventPickContext = .excludingCorruptionAltar,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
-        authored ?? pickMysteryEvent(using: &randomNumberGenerator)
+        authored ?? pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
     /// Seeded Labyrinth mystery pick (stable per node so reopen does not re-roll).
+    /// Prefer a pinned `mysteryEventID` on the node when present.
     static func resolveLabyrinthMysteryEvent(
         nodeID: String,
-        forcedEventID: String?
+        forcedEventID: String?,
+        pinnedEventID: String? = nil,
+        context: MysteryEventPickContext = .excludingCorruptionAltar
     ) -> MysteryEvent {
+        if let forcedEventID,
+           let forced = mysteryEvent(matching: forcedEventID) ?? recruitEvent(matching: forcedEventID) {
+            return forced
+        }
+        if let pinnedEventID,
+           let pinned = mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID) {
+            return pinned
+        }
         var randomNumberGenerator = SeededRandomNumberGenerator(
             seed: stableSeed(for: "labyrinth-mystery-\(nodeID)")
         )
-        let authoredEvent = forcedEventID.flatMap {
-            mysteryEvent(matching: $0) ?? recruitEvent(matching: $0)
-        }
         return resolveMysteryEncounterEvent(
-            authored: authoredEvent,
+            authored: nil,
+            context: context,
             using: &randomNumberGenerator
         )
     }

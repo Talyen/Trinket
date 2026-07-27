@@ -127,20 +127,59 @@ extension AppState {
         guard activeShopEncounter == nil else { return nil }
         guard battle.activeBattle == nil else { return nil }
 
-        guard let session = MysteryEncounterSession.open(
+        let pickContext = mysteryEventPickContext(for: stage, labyrinthNodeID: labyrinthNodeID)
+        let pinnedLabyrinthEventID = labyrinthNodeID.flatMap { labyrinth.nodes[$0]?.mysteryEventID }
+
+        guard let opened = MysteryEncounterSession.open(
             stage: stage,
             labyrinthNodeID: labyrinthNodeID,
-            forcedEventID: forcedEventID
+            forcedEventID: forcedEventID,
+            pickContext: pickContext,
+            pinnedLabyrinthEventID: pinnedLabyrinthEventID
         ) else {
             return nil
         }
 
-        activeMysteryEncounter = session
+        if let labyrinthNodeID,
+           pinnedLabyrinthEventID == nil,
+           !opened.session.event.isRecruit {
+            do {
+                try playerSave.performBatchMutation { save in
+                    guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
+                    node.mysteryEventID = opened.resolvedEventID
+                    save.labyrinth.nodes[labyrinthNodeID] = node
+                }
+            } catch {
+                appStateLogger.error(
+                    "Failed to pin labyrinth mystery event: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
+
+        activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
-        if session.event.isRecruit {
+        if opened.session.event.isRecruit {
             _ = resolveActiveMysteryChoice()
         }
         return nil
+    }
+
+    private func mysteryEventPickContext(
+        for stage: Stage?,
+        labyrinthNodeID: String?
+    ) -> MysteryEventPickContext {
+        let allowsCorruptionAltar: Bool = {
+            if labyrinthNodeID != nil {
+                return true
+            }
+            guard let stage else { return false }
+            return stage.chapterNumber >= 2
+        }()
+        return MysteryEventPickContext(
+            allowsCorruptionAltar: allowsCorruptionAltar,
+            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
+            corruptionAltarCooldownRemaining: playerSave.currentSave.corruptionAltarCooldownRemaining
+        )
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
@@ -192,6 +231,47 @@ extension AppState {
         }
 
         return applyMysteryOutcome(outcome, session: session)
+    }
+
+    /// Corrupts the selected inventory item at the Corruption Altar.
+    @discardableResult
+    func corruptActiveMysteryItem(itemID: String) -> Bool {
+        guard let session = activeMysteryEncounter else { return false }
+        guard session.showsCorruptItemChoice else { return false }
+
+        var outcome = MysteryChoiceOutcome.failed
+        do {
+            try playerSave.performBatchMutation { save in
+                var randomNumberGenerator = SystemRandomNumberGenerator()
+                outcome = session.corruptSelectedItem(
+                    itemID: itemID,
+                    save: &save,
+                    using: &randomNumberGenerator
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to corrupt mystery item: \(error.localizedDescription, privacy: .public)"
+            )
+            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
+            return false
+        }
+
+        return applyMysteryOutcome(outcome, session: session)
+    }
+
+    func cancelActiveMysteryCorruptSelection() {
+        guard let session = activeMysteryEncounter, session.showsCorruptItemChoice else { return }
+        session.returnToReading()
+    }
+
+    /// Dismisses the corruption reveal after the player acknowledges the outcome.
+    @discardableResult
+    func finishActiveMysteryCorruptionReveal() -> Bool {
+        guard let session = activeMysteryEncounter, session.showsCorruptionReveal else { return false }
+        sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+        activeMysteryEncounter = nil
+        return true
     }
 
     /// Completes the mystery stage/node only after persistence succeeds so a failed finish
@@ -254,6 +334,12 @@ extension AppState {
             session.applyOutcome(outcome)
             return true
         case .reveal, .chooseItem:
+            session.applyOutcome(outcome)
+            return true
+        case .selectCorruptItem:
+            session.applyOutcome(outcome, inventory: inventory)
+            return true
+        case .corruptionReveal:
             session.applyOutcome(outcome)
             return true
         }

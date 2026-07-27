@@ -125,6 +125,11 @@ public enum ArtCatalog {
             thumbnailImageName: "companion_mana_moth_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
+        "fox": CombatantArtReference(
+            imageName: "companion_fox_card",
+            thumbnailImageName: "companion_fox_card_thumb",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.36)
+        ),
         "living_armor": CombatantArtReference(
             imageName: "enemy_living_armor_card",
             thumbnailImageName: "enemy_living_armor_card_thumb",

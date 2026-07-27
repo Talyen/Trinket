@@ -8,6 +8,7 @@ public final class PlayerSaveRoot {
     public var schemaVersion: Int = PlayerSave.currentSchemaVersion
     public var modifiedAt: Date = Date()
     public var sessionGeneration: UInt64 = 0
+    public var corruptionAltarCooldownRemaining: Int = 0
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyProgressModel.root)
     public var journey: JourneyProgressModel?

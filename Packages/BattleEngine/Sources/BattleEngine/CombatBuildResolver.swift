@@ -56,11 +56,16 @@ public enum CombatBuildResolver {
     private static func affixProfile(
         for item: InventoryItem
     ) -> CombatModifierProfile {
-        item.affixes.reduce(into: CombatModifierProfile.zero) { partial, affix in
-            guard let definition = GameContent.itemAffixDefinition(matching: affix.id) else {
+        item.affixes.enumerated().reduce(into: CombatModifierProfile.zero) { partial, element in
+            let (index, affix) = element
+            let power: ItemAffixPower
+            if let overrides = item.affixPowers, overrides.indices.contains(index) {
+                power = overrides[index]
+            } else if let definition = GameContent.itemAffixDefinition(matching: affix.id) {
+                power = definition.power(for: item.rarity)
+            } else {
                 return
             }
-            let power = definition.power(for: item.rarity)
             partial.merge(power.modifiers)
             power.triggers.apply(to: &partial)
         }

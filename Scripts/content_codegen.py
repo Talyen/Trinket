@@ -371,6 +371,8 @@ def modifier_token_to_swift(token: str) -> str:
         return f".leechHealing({token.split(':', 1)[1]})"
     if token.startswith("gold_gained:"):
         return f".goldGained({token.split(':', 1)[1]})"
+    if token.startswith("gold_gained_percent:"):
+        return f".goldGainedPercent({token.split(':', 1)[1]})"
     if token.startswith("block_gained:"):
         return f".blockGained({token.split(':', 1)[1]})"
     if token.startswith("bleed_duration:"):
@@ -501,6 +503,30 @@ def triggers_swift(raw: str) -> str:
             values["dodgeBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_purge:"):
             values["holyDamagePurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_enemy_stunned_purge_all:"):
+            values["enemyStunnedPurgeAll"] = "true"
+        elif token.startswith("on_enemy_stunned_purge:"):
+            values["enemyStunnedPurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_critical_purge_all:"):
+            values["criticalPurgeAll"] = "true"
+        elif token.startswith("on_critical_purge:"):
+            values["criticalPurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_leech_restore_mana:"):
+            values["leechRestoreManaFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_gain_mana_block:"):
+            values["gainManaBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_defeat_enemy_gold:"):
+            values["defeatEnemyGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_leech_gold:"):
+            values["leechGoldFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_dodge_heal:"):
+            values["dodgeHealFlat"] = token.split(":", 1)[1]
+        elif token.startswith("dodge_chance_below_health_percent:"):
+            _, threshold, bonus = token.split(":", 2)
+            values["dodgeChanceBelowHealthPercentThreshold"] = threshold
+            values["dodgeChanceBelowHealthPercentBonus"] = bonus
+        elif token.startswith("on_dodge_deal_stun:"):
+            values["dodgeDealStunFlat"] = token.split(":", 1)[1]
         elif token.startswith("block_per_turn:"):
             values["blockPerTurn"] = token.split(":", 1)[1]
         elif token.startswith("first_hit_double_damage:"):
@@ -515,6 +541,21 @@ def triggers_swift(raw: str) -> str:
             values["damageIncreasesEveryOtherTurn"] = "true"
         else:
             raise ValueError(f"Unknown trigger token: {token}")
+    # Affix-reaction labels map to CombatTraitTriggers init args backed by affixReactions.
+    affix_reaction_labels = [
+        "enemyStunnedPurgeCount",
+        "enemyStunnedPurgeAll",
+        "criticalPurgeCount",
+        "criticalPurgeAll",
+        "leechRestoreManaFlat",
+        "gainManaBlockFlat",
+        "defeatEnemyGoldFlat",
+        "leechGoldFlat",
+        "dodgeHealFlat",
+        "dodgeChanceBelowHealthPercentThreshold",
+        "dodgeChanceBelowHealthPercentBonus",
+        "dodgeDealStunFlat",
+    ]
     order = [
         "cleanseBonusHeal",
         "gainGoldBonusHealSelf",
@@ -571,6 +612,11 @@ def triggers_swift(raw: str) -> str:
         "damageIncreasesEveryOtherTurn",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
+    affix_parts = [f"{label}: {values[label]}" for label in affix_reaction_labels if label in values]
+    if affix_parts:
+        parts.append(
+            "affixReactions: CombatAffixReactionTriggers(" + ", ".join(affix_parts) + ")"
+        )
     if not parts:
         return "CombatTraitTriggers()"
     return "CombatTraitTriggers(" + ", ".join(parts) + ")"

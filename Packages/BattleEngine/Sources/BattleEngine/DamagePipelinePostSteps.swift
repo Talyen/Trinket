@@ -39,6 +39,24 @@ package extension DamagePipeline {
         ))
     }
 
+    static func applyCriticalReaction(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        guard state.isCritical,
+              state.healthLost > 0,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy,
+              state.combatant.role == .enemy
+        else { return }
+        state.damageEvents.append(contentsOf: CombatReactionEngine.afterCriticalHit(
+            to: state.combatant,
+            source: source.combatant,
+            in: &context
+        ))
+    }
+
     static func applyControlMeter(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
@@ -119,6 +137,10 @@ package extension DamagePipeline {
                 target: state.combatant,
                 amount: restored,
                 keyword: .mana
+            ))
+            state.damageEvents.append(contentsOf: CombatReactionEngine.afterGainMana(
+                by: state.combatant,
+                in: &context
             ))
         }
     }

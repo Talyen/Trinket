@@ -57,3 +57,13 @@ branding	Branding	trinket	stun	8	Mark the enemy when they are Stunned.	Mark the 
 elusive	Elusive	trinket	dodge	8	Gain 5% Dodge chance.	Gain 12% Dodge chance.			dodge_chance_bonus:0.05	dodge_chance_bonus:0.12
 untouchable	Untouchable	armor	dodge,block	8	Gain 2 Block when you Dodge.	Gain 4 Block when you Dodge.			on_dodge_block:2	on_dodge_block:4
 nullifying	Nullifying	weapon	purge,holy	8	Purge 1 status effect when you deal Holy damage.	Purge 1 status effect when you deal Holy damage.			on_holy_damage_purge:1	on_holy_damage_purge:1
+disrupting	Disrupting	weapon	purge,stun	8	Purge 1 status effect when you Stun the enemy.	Purge all status effects when you Stun the enemy.			on_enemy_stunned_purge:1	on_enemy_stunned_purge_all:true
+unmaking	Unmaking	weapon	purge,physical	8	Purge 1 status effect from the enemy when you Critically Hit.	Purge all status effects from the enemy when you Critically Hit.			on_critical_purge:1	on_critical_purge_all:true
+siphoning	Siphoning	trinket	mana,leech	8	Restore 1 Mana when you Leech.	Restore 2 Mana when you Leech.			on_leech_restore_mana:1	on_leech_restore_mana:2
+arcane_ward	Arcane Ward	armor	mana,block	8	Gain 2 Block when you gain Mana.	Gain 4 Block when you gain Mana.			on_gain_mana_block:2	on_gain_mana_block:4
+gilded	Gilded	trinket	gold	8	Increase Gold gained by 10%.	Increase Gold gained by 20%.	gold_gained_percent:0.10	gold_gained_percent:0.20		
+bounty	Bounty	trinket	gold	8	Gain 4 Gold when you defeat an enemy.	Gain 8 Gold when you defeat an enemy.			on_defeat_enemy_gold:4	on_defeat_enemy_gold:8
+blood_price	Blood Price	trinket	gold,leech	8	Gain 1 Gold when you Leech.	Gain 2 Gold when you Leech.			on_leech_gold:1	on_leech_gold:2
+sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge.	Restore 3 Health when you Dodge.			on_dodge_heal:1	on_dodge_heal:3
+blur	Blur	trinket	dodge,health	8	Gain 15% Dodge chance while below 50% Health.	Gain 30% Dodge chance while below 50% Health.			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
+whiplash	Whiplash	weapon	dodge,stun	8	Deal 3 Stun damage when you Dodge.	Deal 5 Stun damage when you Dodge.			on_dodge_deal_stun:3	on_dodge_deal_stun:5

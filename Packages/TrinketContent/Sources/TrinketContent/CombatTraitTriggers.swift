@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
+public final class CombatTraitTriggers: @unchecked Sendable {
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var restoreHealthAlsoHealHero: Int
@@ -55,6 +55,7 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
     public var onHitAttackerBurn: Int
     public var turnFreezeDamageAllEnemies: Int
     public var damageIncreasesEveryOtherTurn: Bool
+    public var affixReactions: CombatAffixReactionTriggers?
 
     public init(
         cleanseBonusHeal: Int = 0,
@@ -109,7 +110,8 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         leechChancePercent: Double = 0,
         onHitAttackerBurn: Int = 0,
         turnFreezeDamageAllEnemies: Int = 0,
-        damageIncreasesEveryOtherTurn: Bool = false
+        damageIncreasesEveryOtherTurn: Bool = false,
+        affixReactions: CombatAffixReactionTriggers? = nil
     ) {
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
@@ -164,14 +166,75 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         self.onHitAttackerBurn = onHitAttackerBurn
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
         self.damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn
+        self.affixReactions = affixReactions.map { $0.copy() }
     }
 
-    public mutating func merge(_ other: CombatTraitTriggers) {
+    public func copy() -> CombatTraitTriggers {
+        CombatTraitTriggers(
+            cleanseBonusHeal: cleanseBonusHeal,
+            gainGoldBonusHealSelf: gainGoldBonusHealSelf,
+            restoreHealthAlsoHealHero: restoreHealthAlsoHealHero,
+            controlResistancePercent: controlResistancePercent,
+            dodgeChanceBonus: dodgeChanceBonus,
+            ambushBonusDamage: ambushBonusDamage,
+            regenerationAmount: regenerationAmount,
+            regenerationIntervalTurns: regenerationIntervalTurns,
+            passiveMitigationFlat: passiveMitigationFlat,
+            thornsPercent: thornsPercent,
+            cannotBeHealed: cannotBeHealed,
+            burnDecaySlowPercent: burnDecaySlowPercent,
+            shieldErosionKeyword: shieldErosionKeyword,
+            shieldErosionTicks: shieldErosionTicks,
+            mitigationShredKeyword: mitigationShredKeyword,
+            mitigationShredMultiplier: mitigationShredMultiplier,
+            mitigationShredDurationTurns: mitigationShredDurationTurns,
+            freezeControlVulnerabilityPercent: freezeControlVulnerabilityPercent,
+            mitigationEffectivenessPenaltyPercent: mitigationEffectivenessPenaltyPercent,
+            leechHealingMultiplier: leechHealingMultiplier,
+            hemorrhageBleedBonus: hemorrhageBleedBonus,
+            onBleedApplyPoison: onBleedApplyPoison,
+            onBurnApplyPoison: onBurnApplyPoison,
+            onBleedDealBurnDamage: onBleedDealBurnDamage,
+            poisonDecayIncreaseChance: poisonDecayIncreaseChance,
+            freezeDamageWhileBurningBonus: freezeDamageWhileBurningBonus,
+            damageWhileTargetFrozenBonus: damageWhileTargetFrozenBonus,
+            damageBelowHealthPercentThreshold: damageBelowHealthPercentThreshold,
+            damageBelowHealthPercentKeyword: damageBelowHealthPercentKeyword,
+            damageBelowHealthPercentBonus: damageBelowHealthPercentBonus,
+            damageAfterDodgeBonus: damageAfterDodgeBonus,
+            blockBrokenBlockFlat: blockBrokenBlockFlat,
+            companionLeechSharePercent: companionLeechSharePercent,
+            onceBelowHealthPercentThreshold: onceBelowHealthPercentThreshold,
+            onceBelowHealthPercentHeal: onceBelowHealthPercentHeal,
+            blockOnDeathsDoor: blockOnDeathsDoor,
+            spendManaBlockFlat: spendManaBlockFlat,
+            holyDamageBlockFlat: holyDamageBlockFlat,
+            holyDamageCleanseCount: holyDamageCleanseCount,
+            holyDamageHealFlat: holyDamageHealFlat,
+            dodgeGoldFlat: dodgeGoldFlat,
+            ignoreEnemyMitigationPercent: ignoreEnemyMitigationPercent,
+            stunDealPhysicalFlat: stunDealPhysicalFlat,
+            damageWhileTargetStunnedBonus: damageWhileTargetStunnedBonus,
+            enemyStunnedApplyMarked: enemyStunnedApplyMarked,
+            dodgeBlockFlat: dodgeBlockFlat,
+            holyDamagePurgeCount: holyDamagePurgeCount,
+            blockPerTurn: blockPerTurn,
+            firstHitDoubleDamage: firstHitDoubleDamage,
+            leechChancePercent: leechChancePercent,
+            onHitAttackerBurn: onHitAttackerBurn,
+            turnFreezeDamageAllEnemies: turnFreezeDamageAllEnemies,
+            damageIncreasesEveryOtherTurn: damageIncreasesEveryOtherTurn,
+            affixReactions: affixReactions
+        )
+    }
+
+    public func merge(_ other: CombatTraitTriggers) {
         mergeBaseTriggers(other)
         mergeAdvancedTriggers(other)
+        mergeNewAffixTriggers(other)
     }
 
-    private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
+    private func mergeBaseTriggers(_ other: CombatTraitTriggers) {
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
@@ -203,7 +266,7 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         poisonDecayIncreaseChance += other.poisonDecayIncreaseChance
     }
 
-    private mutating func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
+    private func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
         freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
         damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
         damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
@@ -234,5 +297,14 @@ public struct CombatTraitTriggers: Equatable, Hashable, Sendable {
         onHitAttackerBurn += other.onHitAttackerBurn
         turnFreezeDamageAllEnemies += other.turnFreezeDamageAllEnemies
         damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
+    }
+
+    private func mergeNewAffixTriggers(_ other: CombatTraitTriggers) {
+        guard let otherAffix = other.affixReactions else { return }
+        if affixReactions == nil {
+            affixReactions = otherAffix.copy()
+        } else {
+            ensureAffixReactions().merge(otherAffix)
+        }
     }
 }

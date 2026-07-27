@@ -71,6 +71,17 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         }
     }
 
+    /// Amounts that `grant` would actually add after the material cap (zeros omitted).
+    public func receivableAmounts(from rewards: [ResourceAmount]) -> [ResourceAmount] {
+        rewards.compactMap { reward in
+            guard reward.resource != .gold, reward.quantity > 0 else { return nil }
+            let current = resources[reward.resource, default: 0]
+            let granted = min(current + reward.quantity, Self.maxMaterialBalance) - current
+            guard granted > 0 else { return nil }
+            return ResourceAmount(reward.resource, granted)
+        }
+    }
+
     public static func clampedMaterialBalance(_ quantity: Int) -> Int {
         min(max(quantity, 0), maxMaterialBalance)
     }

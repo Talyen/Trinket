@@ -174,7 +174,11 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             amount: max(amount, restored),
             keyword: .mana
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        if restored > 0 {
+            events.append(contentsOf: CombatReactionEngine.afterGainMana(by: target, in: &context))
+        }
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 

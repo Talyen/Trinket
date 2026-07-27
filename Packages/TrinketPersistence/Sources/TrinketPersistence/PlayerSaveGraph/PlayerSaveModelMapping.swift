@@ -160,13 +160,19 @@ extension InventoryModel {
                             keywords: keywords
                         )
                     }
+                let affixPowers: [ItemAffixPower]? = {
+                    guard let data = item.affixPowersJSON else { return nil }
+                    return try? ItemAffixPowerCoding.decode(data)
+                }()
                 return InventoryItem(
                     id: item.id,
                     templateID: item.templateID,
                     baseType: baseType,
                     rarity: Rarity(rawValue: item.rarityID) ?? .basic,
                     displayName: item.displayName,
-                    affixes: affixes
+                    affixes: affixes,
+                    isCorrupted: item.isCorrupted,
+                    affixPowers: affixPowers
                 )
             })
     }

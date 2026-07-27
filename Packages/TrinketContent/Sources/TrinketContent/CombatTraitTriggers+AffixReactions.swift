@@ -1,0 +1,133 @@
+import Foundation
+import TrinketCore
+
+public extension CombatTraitTriggers {
+    var enemyStunnedPurgeCount: Int {
+        get { affixReactions?.enemyStunnedPurgeCount ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().enemyStunnedPurgeCount = newValue
+        }
+    }
+
+    var enemyStunnedPurgeAll: Bool {
+        get { affixReactions?.enemyStunnedPurgeAll ?? false }
+        set {
+            if affixReactions == nil, !newValue {
+                return
+            }
+            ensureAffixReactions().enemyStunnedPurgeAll = newValue
+        }
+    }
+
+    var criticalPurgeCount: Int {
+        get { affixReactions?.criticalPurgeCount ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().criticalPurgeCount = newValue
+        }
+    }
+
+    var criticalPurgeAll: Bool {
+        get { affixReactions?.criticalPurgeAll ?? false }
+        set {
+            if affixReactions == nil, !newValue {
+                return
+            }
+            ensureAffixReactions().criticalPurgeAll = newValue
+        }
+    }
+
+    var leechRestoreManaFlat: Int {
+        get { affixReactions?.leechRestoreManaFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().leechRestoreManaFlat = newValue
+        }
+    }
+
+    var gainManaBlockFlat: Int {
+        get { affixReactions?.gainManaBlockFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().gainManaBlockFlat = newValue
+        }
+    }
+
+    var defeatEnemyGoldFlat: Int {
+        get { affixReactions?.defeatEnemyGoldFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().defeatEnemyGoldFlat = newValue
+        }
+    }
+
+    var leechGoldFlat: Int {
+        get { affixReactions?.leechGoldFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().leechGoldFlat = newValue
+        }
+    }
+
+    var dodgeHealFlat: Int {
+        get { affixReactions?.dodgeHealFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().dodgeHealFlat = newValue
+        }
+    }
+
+    var dodgeChanceBelowHealthPercentThreshold: Double {
+        get { affixReactions?.dodgeChanceBelowHealthPercentThreshold ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().dodgeChanceBelowHealthPercentThreshold = newValue
+        }
+    }
+
+    var dodgeChanceBelowHealthPercentBonus: Double {
+        get { affixReactions?.dodgeChanceBelowHealthPercentBonus ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().dodgeChanceBelowHealthPercentBonus = newValue
+        }
+    }
+
+    var dodgeDealStunFlat: Int {
+        get { affixReactions?.dodgeDealStunFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().dodgeDealStunFlat = newValue
+        }
+    }
+
+    func ensureAffixReactions() -> CombatAffixReactionTriggers {
+        if let existing = affixReactions {
+            return existing
+        }
+        let created = CombatAffixReactionTriggers()
+        affixReactions = created
+        return created
+    }
+}

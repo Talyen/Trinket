@@ -24,6 +24,10 @@ struct MysteryEncounterView: View {
                 unlockRevealContent(unlockedID: unlockedID)
             } else if session.showsReward, let result = session.applyResult {
                 MysteryRewardContent(session: session, result: result)
+            } else if session.showsCorruptionReveal, let result = session.corruptionResult {
+                MysteryCorruptionRevealContent(session: session, result: result)
+            } else if session.showsCorruptItemChoice {
+                MysteryCorruptItemChoiceContent(session: session)
             } else if session.showsItemChoice {
                 MysteryItemChoiceContent(
                     session: session,
@@ -178,6 +182,7 @@ struct MysteryEncounterView: View {
     }
 
     @ViewBuilder
+    // swiftlint:disable:next function_body_length
     private func mysteryReward(for effect: MysteryEffect) -> some View {
         switch effect {
         case let .gainGold(amount):
@@ -237,6 +242,22 @@ struct MysteryEncounterView: View {
                 value: "Unlock",
                 systemIcon: "person.crop.circle.badge.plus",
                 tint: TrinketDesign.Colors.accent
+            )
+
+        case .corruptItem:
+            rewardSummary(
+                title: "Corrupt Item",
+                value: "Risk",
+                systemIcon: "flame.fill",
+                tint: TrinketDesign.Colors.destructive
+            )
+
+        case .leave:
+            rewardSummary(
+                title: "Walk Away",
+                value: "Safe",
+                systemIcon: "figure.walk",
+                tint: .secondary
             )
         }
     }
@@ -302,7 +323,12 @@ struct MysteryEncounterView: View {
 
     @ViewBuilder
     private var heroArtwork: some View {
-        if let artID = session.event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
+        if let artID = session.event.artID, let art = ArtCatalog.encounterArtByID[artID] {
+            Image.preparedAsset(named: art.imageName)
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
+        } else if let artID = session.event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
             Image.preparedAsset(named: art.imageName)
                 .resizable()
                 .scaledToFill()
@@ -456,7 +482,7 @@ private enum UnlockRevealPhase: Int, Comparable {
 
 @MainActor
 @ViewBuilder
-private func mysteryPersistFailureBanner(
+func mysteryPersistFailureBanner(
     _ message: String?,
     centered: Bool = false
 ) -> some View {

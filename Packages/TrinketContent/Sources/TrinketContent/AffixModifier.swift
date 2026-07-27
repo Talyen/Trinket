@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-public enum AffixModifier: Equatable, Hashable, Sendable {
+public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case strength(Int)
     case agility(Int)
     case toughness(Int)
@@ -15,6 +15,7 @@ public enum AffixModifier: Equatable, Hashable, Sendable {
     case leechGainedPercent(Double)
     case leechHealing(Int)
     case goldGained(Int)
+    case goldGainedPercent(Double)
     case blockGained(Int)
     case leechDuration(Int)
     case bleedDuration(Int)

@@ -10,7 +10,8 @@ cold_blood	Cold Blood	Increase Agility by 2.	agility:2
 razor_claws	Razor Claws	Increase Bleed damage dealt by 1.	damage_dealt:bleed:1	
 immortal_ember	Immortal Ember	Increase Burn damage dealt by 1.	damage_dealt:burn:1	
 pack_ferocity	Pack Ferocity	Increase Bleed duration by 1.	bleed_duration:1	
-loyal_comfort	Loyal Comfort	Restore 1 Health to the Hero when restoring Health.		on_restore_health_heal_hero:1
+gold_retriever	Gold Retriever	Increase Gold gained by 1.	gold_gained:1	
+sly_trickery	Sly Trickery	Gain 1 Gold when you Dodge.		on_dodge_gold:1
 purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_cleanse_heal:1
 unliving_frame	Unliving Frame	Decrease Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
 arcane_reservoir	Arcane Reservoir	Increase Maximum Mana by 3.	maximum_mana:3	

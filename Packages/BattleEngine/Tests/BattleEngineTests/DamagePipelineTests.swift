@@ -20,7 +20,8 @@ struct DamagePipelineTests {
         "Leech",
         "ControlMeter",
         "ReactiveOnHit",
-        "HolyReaction"
+        "HolyReaction",
+        "CriticalReaction"
     ]
 
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {

@@ -1,9 +1,17 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
 package extension BattleState {
     mutating func addGold(_ amount: Int, sourceActorID: String) {
-        gold += amount + modifiers(for: sourceActorID).goldGainedBonus
+        gold += goldGranted(for: amount, sourceActorID: sourceActorID)
+    }
+
+    /// Flat + percent bonuses applied to an outgoing gold grant (Lucky / Gilded).
+    func goldGranted(for amount: Int, sourceActorID: String) -> Int {
+        let profile = modifiers(for: sourceActorID)
+        let scaled = Int(floor(Double(amount) * (1 + max(0, profile.goldGainedPercent))))
+        return scaled + profile.goldGainedBonus
     }
 
     @discardableResult

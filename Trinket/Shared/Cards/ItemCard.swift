@@ -22,8 +22,16 @@ struct ItemCard: View {
             },
             label: {
                 VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                    TrinketRarityLabel(rarity: item.rarity)
-                        .lineLimit(1)
+                    HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+                        TrinketRarityLabel(rarity: item.rarity)
+                            .lineLimit(1)
+                        if item.isCorrupted {
+                            Text("Corrupted")
+                                .trinketTypography(.caption)
+                                .foregroundStyle(TrinketDesign.Colors.destructive)
+                                .lineLimit(1)
+                        }
+                    }
 
                     Text(item.displayName)
                         .trinketTypography(.cardLabel)

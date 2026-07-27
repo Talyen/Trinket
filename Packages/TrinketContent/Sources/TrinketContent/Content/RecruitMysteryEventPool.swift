@@ -147,6 +147,14 @@ enum RecruitEventPool {
             narrative: "A scarab the size of a buckler blocks a narrow pass-not as a threat, but as a door. When you nod, it turns and takes point.",
             choiceID: "welcome",
             choiceLabel: "Guard our flank."
+        ),
+        recruit(
+            id: "recruit-fox",
+            combatantID: "fox",
+            title: "A Tail on the Shrine Path",
+            narrative: "Lantern light catches a white-tipped brush among the stones. A fox sits as if it has been waiting, ears tipped forward, then rises and glances down the trail you meant to take.",
+            choiceID: "welcome",
+            choiceLabel: "Walk with me."
         )
     ]
 

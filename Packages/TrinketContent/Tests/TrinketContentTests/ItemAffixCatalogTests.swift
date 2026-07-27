@@ -90,4 +90,21 @@ struct ItemAffixCatalogTests {
         try #expect(riposte.keywords == [.physical, .dodge])
         try #expect(riposte.basic.description == "Deal 3 additional damage on your next attack after Dodging.")
     }
+
+    @Test func underrepresentedKeywordAffixesUseExpectedCopy() throws {
+        let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
+
+        let disrupting = try #require(byID["disrupting"])
+        try #expect(disrupting.basic.description == "Purge 1 status effect when you Stun the enemy.")
+        try #expect(disrupting.astral.description == "Purge all status effects when you Stun the enemy.")
+
+        let unmaking = try #require(byID["unmaking"])
+        try #expect(unmaking.basic.description == "Purge 1 status effect from the enemy when you Critically Hit.")
+
+        let gilded = try #require(byID["gilded"])
+        try #expect(gilded.basic.modifiers == [.goldGainedPercent(0.10)])
+
+        let blur = try #require(byID["blur"])
+        try #expect(blur.basic.description == "Gain 15% Dodge chance while below 50% Health.")
+    }
 }

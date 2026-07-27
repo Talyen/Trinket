@@ -12,6 +12,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var leechGainedBonus: Double
     public var leechHealingBonus: Int
     public var goldGainedBonus: Int
+    public var goldGainedPercent: Double
     public var blockGainedBonus: Int
     public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
@@ -36,6 +37,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechGainedBonus: Double = 0,
         leechHealingBonus: Int = 0,
         goldGainedBonus: Int = 0,
+        goldGainedPercent: Double = 0,
         blockGainedBonus: Int = 0,
         leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
@@ -57,6 +59,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.leechGainedBonus = leechGainedBonus
         self.leechHealingBonus = leechHealingBonus
         self.goldGainedBonus = goldGainedBonus
+        self.goldGainedPercent = goldGainedPercent
         self.blockGainedBonus = blockGainedBonus
         self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
@@ -91,6 +94,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechGainedBonus += other.leechGainedBonus
         leechHealingBonus += other.leechHealingBonus
         goldGainedBonus += other.goldGainedBonus
+        goldGainedPercent += other.goldGainedPercent
         blockGainedBonus += other.blockGainedBonus
         leechDurationBonus += other.leechDurationBonus
         bleedDurationBonus += other.bleedDurationBonus
@@ -105,10 +109,19 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
         manaCostReductionPercent += other.manaCostReductionPercent
-        triggers.merge(other.triggers)
+        uniqueTriggers().merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
         }
+    }
+
+    /// Copy-on-write for heap-backed `triggers` so `CombatModifierProfile.zero` stays immutable.
+    @discardableResult
+    public mutating func uniqueTriggers() -> CombatTraitTriggers {
+        if !isKnownUniquelyReferenced(&triggers) {
+            triggers = triggers.copy()
+        }
+        return triggers
     }
 
     public mutating func merge(_ modifier: AffixModifier) {

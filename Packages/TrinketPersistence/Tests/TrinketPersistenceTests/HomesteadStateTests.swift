@@ -98,4 +98,33 @@ struct HomesteadStateTests {
         try #expect(homestead.resources[.stone] == PlayerHomesteadState.maxMaterialBalance)
         try #expect(homestead.resources[.food] == 3)
     }
+
+    @Test func receivableAmountsMirrorGrantClamp() throws {
+        let uncapped = PlayerHomesteadState(resources: [:], nodeTiers: [:])
+        let rewards = [
+            ResourceAmount(.iron, 8),
+            ResourceAmount(.wood, 4)
+        ]
+        try #expect(uncapped.receivableAmounts(from: rewards) == rewards)
+
+        let partial = PlayerHomesteadState(
+            resources: [
+                .iron: PlayerHomesteadState.maxMaterialBalance - 2,
+                .wood: PlayerHomesteadState.maxMaterialBalance
+            ],
+            nodeTiers: [:]
+        )
+        try #expect(partial.receivableAmounts(from: rewards) == [
+            ResourceAmount(.iron, 2)
+        ])
+
+        let full = PlayerHomesteadState(
+            resources: [
+                .iron: PlayerHomesteadState.maxMaterialBalance,
+                .wood: PlayerHomesteadState.maxMaterialBalance
+            ],
+            nodeTiers: [:]
+        )
+        try #expect(full.receivableAmounts(from: rewards).isEmpty)
+    }
 }

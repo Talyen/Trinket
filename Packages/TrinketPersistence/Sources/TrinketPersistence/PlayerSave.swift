@@ -1,7 +1,8 @@
 import Foundation
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 11
+    public static let currentSchemaVersion = 12
+    public static let corruptionAltarCooldownAfterEncounter = 6
 
     public var schemaVersion: Int
     public var modifiedAt: Date
@@ -12,6 +13,8 @@ public struct PlayerSave: Equatable, Sendable {
     public var homestead: PlayerHomesteadState
     public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
+    /// Mysteries remaining before Corruption Altar can roll again at full weight.
+    public var corruptionAltarCooldownRemaining: Int
 
     public static var fresh: PlayerSave {
         PlayerSave(
@@ -73,7 +76,8 @@ public struct PlayerSave: Equatable, Sendable {
         inventory: PlayerInventoryState,
         homestead: PlayerHomesteadState = .freshStart,
         spires: PlayerSpiresState = .freshStart,
-        labyrinth: PlayerLabyrinthState = .freshStart
+        labyrinth: PlayerLabyrinthState = .freshStart,
+        corruptionAltarCooldownRemaining: Int = 0
     ) {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
@@ -84,6 +88,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.homestead = homestead
         self.spires = spires
         self.labyrinth = labyrinth
+        self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
     }
 }
 
@@ -99,6 +104,7 @@ extension PlayerSave: Codable {
         case spires
         case aspects
         case labyrinth
+        case corruptionAltarCooldownRemaining
     }
 
     public init(from decoder: Decoder) throws {
@@ -124,6 +130,10 @@ extension PlayerSave: Codable {
             WireLabyrinthState.self,
             forKey: .labyrinth
         )?.labyrinth() ?? .freshStart
+        corruptionAltarCooldownRemaining = try container.decodeIfPresent(
+            Int.self,
+            forKey: .corruptionAltarCooldownRemaining
+        ) ?? 0
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -137,5 +147,6 @@ extension PlayerSave: Codable {
         try container.encode(WireHomesteadState(homestead), forKey: .homestead)
         try container.encode(WireSpiresState(spires), forKey: .spires)
         try container.encode(WireLabyrinthState(labyrinth), forKey: .labyrinth)
+        try container.encode(corruptionAltarCooldownRemaining, forKey: .corruptionAltarCooldownRemaining)
     }
 }

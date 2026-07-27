@@ -131,7 +131,7 @@ struct BattleSimulatorTests {
                 battlesPerTier: 8,
                 seed: 21,
                 tiers: [.early],
-                jobs: 2
+                jobs: 1
             )
         )
         #expect(report.records.isEmpty)
@@ -147,7 +147,7 @@ struct BattleSimulatorTests {
                 battlesPerTier: 6,
                 seed: 22,
                 tiers: [.middle],
-                jobs: 2
+                jobs: 1
             )
         )
         #expect(!(report.affixContrasts.isEmpty))

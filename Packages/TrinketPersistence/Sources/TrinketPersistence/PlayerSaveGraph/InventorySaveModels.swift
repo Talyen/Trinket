@@ -21,6 +21,8 @@ public final class InventoryItemModel {
     public var rarityID: String = Rarity.basic.rawValue
     public var displayName: String = ""
     public var sortIndex: Int = 0
+    public var isCorrupted: Bool = false
+    public var affixPowersJSON: Data?
     public var inventory: InventoryModel?
 
     @Relationship(deleteRule: .cascade, inverse: \ItemAffixModel.item)
@@ -34,6 +36,12 @@ public final class InventoryItemModel {
         baseTypeID = item.baseType.id
         rarityID = item.rarity.rawValue
         displayName = item.displayName
+        isCorrupted = item.isCorrupted
+        if let powers = item.affixPowers {
+            affixPowersJSON = try? ItemAffixPowerCoding.encode(powers)
+        } else {
+            affixPowersJSON = nil
+        }
         affixes = item.affixes.enumerated().map { index, affix in
             let model = ItemAffixModel(affix: affix)
             model.sortIndex = index

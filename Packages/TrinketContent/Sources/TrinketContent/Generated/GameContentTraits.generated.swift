@@ -82,11 +82,18 @@ enum GameContentTraitsGenerated {
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
-            id: "loyal_comfort",
-            name: "Loyal Comfort",
-            description: "Restore 1 Health to the Hero when restoring Health.",
+            id: "gold_retriever",
+            name: "Gold Retriever",
+            description: "Increase Gold gained by 1.",
+            modifiers: [.goldGained(1)],
+            triggers: CombatTraitTriggers()
+        ),
+        CombatantTraitDefinition(
+            id: "sly_trickery",
+            name: "Sly Trickery",
+            description: "Gain 1 Gold when you Dodge.",
             modifiers: [],
-            triggers: CombatTraitTriggers(restoreHealthAlsoHealHero: 1)
+            triggers: CombatTraitTriggers(dodgeGoldFlat: 1)
         ),
         CombatantTraitDefinition(
             id: "purifying_wisdom",
