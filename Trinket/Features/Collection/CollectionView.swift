@@ -1,14 +1,25 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
+import TrinketPersistence
 
 struct CollectionView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(OptionsStore.self) private var options
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
     @State private var salvageSuccessCount = 0
     @Namespace private var zoomNamespace
+
+    let consumePendingPresentation: () -> LaunchPresentation?
+
+    init(consumePendingPresentation: @escaping () -> LaunchPresentation? = { nil }) {
+        self.consumePendingPresentation = consumePendingPresentation
+    }
 
     var body: some View {
         collectionBrowseContent
@@ -25,7 +36,7 @@ struct CollectionView: View {
             }
             .sheet(item: $selectedItem) { item in
                 NavigationStack {
-                    ItemDetailView.inventorySalvageDetail(item: item, appState: appState) { didSucceed in
+                    ItemDetailView.inventorySalvageDetail(item: item, saveStore: appState) { didSucceed in
                         if didSucceed {
                             salvageSuccessCount += 1
                         }
@@ -49,7 +60,9 @@ struct CollectionView: View {
                 NavigationStack {
                     RosterCombatantDetailView(
                         kind: context.kind,
-                        combatantID: context.combatantID
+                        combatantID: context.combatantID,
+                        hapticsEnabled: options.hapticsEnabled,
+                        effectsVolume: options.effectsVolume
                     )
                 }
                 .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))
@@ -68,7 +81,7 @@ struct CollectionView: View {
             .trinketSensoryFeedback(
                 .success,
                 trigger: salvageSuccessCount,
-                enabled: appState.options.hapticsEnabled
+                enabled: options.hapticsEnabled
             )
     }
 
@@ -128,7 +141,7 @@ struct CollectionView: View {
     }
 
     private func presentPendingLaunchRoute() {
-        guard let presentation = appState.consumePendingCollectionPresentation() else { return }
+        guard let presentation = consumePendingPresentation() else { return }
 
         Task { @MainActor in
             switch presentation {

@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// The Play tab's root: two broad choices with a clear visual promise.
 ///
@@ -8,7 +11,7 @@ import TrinketDesignSystem
 /// home for the currently available open-ended sub-modes while the future
 /// world map is being designed.
 struct PlayModeHubView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     let onOpenCampaign: () -> Void
     let onOpenExplore: () -> Void

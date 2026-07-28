@@ -24,6 +24,12 @@ packages:
     path: Packages/TrinketDesignSystem
   TrinketTestSupport:
     path: Packages/TrinketTestSupport
+  TrinketFeatureSupport:
+    path: Packages/TrinketFeatureSupport
+  TrinketBattleFeature:
+    path: Packages/TrinketBattleFeature
+  TrinketAppState:
+    path: Packages/TrinketAppState
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -54,6 +60,9 @@ targets:
       - package: BattleEngine
       - package: TrinketPersistence
       - package: TrinketDesignSystem
+      - package: TrinketFeatureSupport
+      - package: TrinketBattleFeature
+      - package: TrinketAppState
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
@@ -72,16 +81,12 @@ targets:
     sources:
       - path: TrinketUITests
         type: syncedFolder
-      - path: Trinket/Shared
-        type: syncedFolder
-        includes:
-          - AccessibilityID.swift
-          - FramePacing.swift
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Trinket
+      - package: TrinketFeatureSupport
   TrinketTests:
     type: bundle.unit-test
     platform: iOS
@@ -100,6 +105,9 @@ targets:
       - package: TrinketPersistence
       - package: TrinketDesignSystem
       - package: TrinketTestSupport
+      - package: TrinketFeatureSupport
+      - package: TrinketBattleFeature
+      - package: TrinketAppState
 
 schemes:
   Trinket:

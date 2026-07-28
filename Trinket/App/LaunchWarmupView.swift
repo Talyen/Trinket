@@ -1,5 +1,8 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct LaunchWarmupView: View {
     /// Cosmetic fill duration — matches the minimum launch display hold.

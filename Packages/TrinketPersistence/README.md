@@ -8,11 +8,12 @@ Player save model, SwiftData stores, and CloudKit sync.
 - **`PlayerSaveStoreConfiguration`** — Store URL / `ModelConfiguration` / fetch-root helpers (keeps open plumbing out of the hub body).
 - **Domain actions** — `PlayerHomesteadStore` owns cross-slice homestead build/upgrade; single-slice reads/writes use hub properties (`save.journey`, `save.roster`, `save.inventory`, `save.homestead`). Prefer `save.homesteadStore.buildOrUpgradeNode` for homestead player actions.
 - **Value types** — `PlayerSave`, `PlayerRosterState`, `PlayerHomesteadState`, etc. hold pure rules and calculation snapshots, not the canonical persisted form.
-- **Options and shell session** — `OptionsStore` uses `UserDefaults` explicitly. `PlayerShellSessionStore` persists tab, map-scroll, and last Play-mode session keys in a local SwiftData store (not `PlayerSave` / CloudKit), and migrates legacy session keys from `UserDefaults`.
+- **Shell session** — `PlayerShellSessionStore` persists tab, map-scroll, and last Play-mode session keys in a local SwiftData store (not `PlayerSave` / CloudKit), and migrates legacy session keys from `UserDefaults`. Device-local `OptionsStore` is owned by `TrinketAppState`.
 
 ## Key conventions
 
 - Player-save disk/CloudKit writes route through `PlayerSaveStore.performBatchMutation` / slice setters; shell-session writes stay in `PlayerShellSessionStore`
+- A mutation diffs `PlayerSaveSlice` values, reconciles only changed slices, and rolls back only touched slices; preserve stable child-row identities during reconciliation
 - Put cross-slice player actions on `PlayerHomesteadStore` (or a real action type), not empty pass-through facades or new hub methods
 - Write-through tests: mutate → reload from disk → assert
 - All store methods should be `@MainActor`

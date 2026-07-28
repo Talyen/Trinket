@@ -1,5 +1,8 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
@@ -95,7 +98,9 @@ struct ContentView: View {
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
-                    CollectionView()
+                    CollectionView {
+                        appState.consumePendingCollectionPresentation()
+                    }
                 }
             }
 
@@ -107,7 +112,20 @@ struct ContentView: View {
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
-                    OptionsView()
+                    OptionsView(
+                        persistenceStatusMessage: { appState.persistenceStatusMessage },
+                        applyMusicVolumeLive: { volume, phase in
+                            appState.applyMusicVolumeLive(volume, scenePhase: phase)
+                        },
+                        playToggleSFX: { isEnabled, volume in
+                            appState.sfxPlayer.play(
+                                isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
+                                volume: volume
+                            )
+                        },
+                        resetGameplayProgress: appState.resetGameplayProgress,
+                        unlockAllContent: appState.unlockAllContent
+                    )
                 }
             }
         }

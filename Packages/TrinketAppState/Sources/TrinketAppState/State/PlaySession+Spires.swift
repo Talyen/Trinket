@@ -1,0 +1,115 @@
+import Foundation
+import TrinketBattleFeature
+import TrinketContent
+import TrinketCore
+import TrinketFeatureSupport
+import TrinketPersistence
+
+public extension PlaySession {
+    @discardableResult
+    func startSpireBattle(for floor: SpireFloor) -> StageMapMessage? {
+        guard battle.activeBattle == nil else { return nil }
+
+        guard let spire = GameContent.spire(id: floor.spireID) else {
+            return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
+        }
+
+        guard spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue) else {
+            if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
+                return StageMapMessage(
+                    title: "Floor Cleared",
+                    message: "This floor is already complete."
+                )
+            }
+            return StageMapMessage(
+                title: "Floor Locked",
+                message: "Clear earlier floors first."
+            )
+        }
+
+        let attunement = SpireAttunement.evaluate(
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            spire: spire
+        )
+        guard attunement.isReady else {
+            return StageMapMessage(title: "Not Attuned", message: attunement.message)
+        }
+
+        guard let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor) else {
+            return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
+        }
+
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .spire(spireID: floor.spireID, floor: floor.floor),
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+        )
+        activateBattle(
+            resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
+        )
+        return nil
+    }
+
+    func prepareSpireBattle(for floor: SpireFloor) {
+        guard battle.activeBattle == nil,
+              let spire = GameContent.spire(id: floor.spireID),
+              spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
+              SpireAttunement.evaluate(
+                  hero: roster.activeHero,
+                  companion: roster.activeCompanion,
+                  spire: spire
+              ).isReady,
+              let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor)
+        else { return }
+
+        let loot = ActiveBattleConfiguration.lootPackage(
+            for: .spire(spireID: floor.spireID, floor: floor.floor),
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+        )
+        battle.prepareBattleRun(makeBattleConfiguration(
+            resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
+            hero: roster.activeHero,
+            companion: roster.activeCompanion,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: loot?.asStageReward ?? .empty,
+            pendingRewardItem: loot?.item
+        ))
+    }
+
+    @discardableResult
+    internal func completeSpireFloor(
+        _ floor: SpireFloor,
+        hero: Combatant,
+        companion: Combatant,
+        battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil
+    ) -> Bool {
+        do {
+            try playerSave.performBatchMutation { save in
+                SpireCompletion.complete(
+                    floor: floor,
+                    hero: hero,
+                    companion: companion,
+                    battleEarnedGold: battleEarnedGold,
+                    materialRewards: materialRewards,
+                    rewardItem: rewardItem,
+                    save: &save
+                )
+            }
+            return true
+        } catch {
+            appStateLogger.error(
+                "Failed to persist Spire floor: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+    }
+}

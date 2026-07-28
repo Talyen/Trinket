@@ -1,7 +1,10 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 private enum HomesteadProjectRowMetrics {

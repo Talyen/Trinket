@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Shared active encounter card used by linear Stage Select surfaces.
 struct StageSelectActiveCard<
@@ -9,7 +12,7 @@ struct StageSelectActiveCard<
     PartyPickerSheet: View,
     ArtworkAccessory: View
 >: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool

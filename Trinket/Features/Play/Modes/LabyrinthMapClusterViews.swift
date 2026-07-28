@@ -1,80 +1,10 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
-
-enum LabyrinthMapNodeState: Equatable {
-    case locked
-    case reachable
-    case cleared
-}
-
-enum LabyrinthMapPresentation {
-    static func floorNodes(
-        for cluster: LabyrinthCluster,
-        in state: PlayerLabyrinthState
-    ) -> [LabyrinthNode] {
-        cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
-            let left = $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            let right = $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            return left.row == right.row ? left.column < right.column : left.row < right.row
-        }
-    }
-
-    static func effectiveType(
-        for node: LabyrinthNode,
-        unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>
-    ) -> LabyrinthNodeType {
-        guard node.type.canonical == .recruit else { return node.type.canonical }
-        let resolution = GameContent.resolveRecruitEncounter(
-            configuredEventID: node.recruitEventID,
-            encounterID: node.id,
-            unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs
-        )
-        if case .mystery = resolution {
-            return .mystery
-        }
-        return .recruit
-    }
-
-    static func state(for node: LabyrinthNode, in labyrinth: PlayerLabyrinthState) -> LabyrinthMapNodeState {
-        if node.isCleared {
-            return .cleared
-        }
-        return labyrinth.isNodeReachable(node.id) ? .reachable : .locked
-    }
-
-    static func actionTitle(for _: LabyrinthNode, type: LabyrinthNodeType) -> String {
-        switch type.canonical {
-        case .battle: "Battle"
-        case .boss: "Challenge Boss"
-        case .shop: "Visit Shop"
-        case .rest: "Rest at Shrine"
-        case .mystery, .event: "Approach Mystery"
-        case .recruit: "Recruit"
-        case .craft: "Use Crafting Altar"
-        case .entrance: "Enter Labyrinth"
-        }
-    }
-
-    static func tint(for type: LabyrinthNodeType) -> Color {
-        switch type.canonical {
-        case .battle, .boss: TrinketDesign.Colors.encounterBattle
-        case .shop: TrinketDesign.Colors.encounterShop
-        case .rest: TrinketDesign.Colors.encounterRest
-        case .mystery, .event, .recruit, .craft, .entrance: TrinketDesign.Colors.encounterEvent
-        }
-    }
-
-    static func symbolName(for type: LabyrinthNodeType, recruitEventID: String?) -> String {
-        if type.canonical == .recruit {
-            return GameContent.recruitEncounterSymbolName(forEventID: recruitEventID)
-        }
-        return type.symbolName
-    }
-}
 
 struct LabyrinthFloorMap: View {
     private static let maximumMapScale: CGFloat = 2
@@ -165,7 +95,7 @@ struct LabyrinthFloorMap: View {
 }
 
 private struct LabyrinthMapNodeSeal: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
@@ -302,7 +232,7 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
 }
 
 struct LabyrinthNodeInspector: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState

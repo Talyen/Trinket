@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 /// Smoke tests that share one launch configuration can subclass this type to avoid

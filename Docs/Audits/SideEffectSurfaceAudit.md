@@ -17,8 +17,8 @@ Confirm unexpected effect ownership and fix violations using existing seams. A c
 |--------|-------------------|
 | Disk / encoder I/O | `Packages/TrinketPersistence/`; save-store temp-dir harnesses in PersistenceTests / TrinketTests support (`SaveTestSupport`) — not `TrinketTestSupport` |
 | `UserDefaults` | Options store + legacy shell-session migration — not `PlayerSave` |
-| Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
-| Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Trinket/BattleShell/` player cache + battle cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into `Trinket/Audio/` |
+| Audio (`AVAudioPlayer`, etc.) | `Packages/TrinketAppState/.../Audio/` only |
+| Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Packages/TrinketBattleFeature` player cache + cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into app audio |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
 | Seeded RNG | `Double.random(using: &…)` in battle/tests; injected RNG seams only |
 | CloudKit / SwiftData sync | `TrinketPersistence` / `ModelConfiguration` wiring |
@@ -29,7 +29,7 @@ Confirm unexpected effect ownership and fix violations using existing seams. A c
 
 - **Battle:** no unseeded `random` / `UUID()` / `Date()` in rule code; handlers take injected RNG; content randomness accepts `RandomNumberGenerator`.
 - **Persistence:** player-save disk/CloudKit writes route through `PlayerSaveStore` / `TrinketPersistence`; shell-session writes stay in `PlayerShellSessionStore`; domain stores mutate memory then delegate.
-- **AV triage:** audio types only in `Trinket/Audio/`; catalog-backed Ultimate cinematic `AVPlayer` in BattleShell is allowlisted.
+- **AV triage:** audio types only in `TrinketAppState` audio sources; catalog-backed Ultimate cinematic `AVPlayer` in `TrinketBattleFeature` is allowlisted.
 - **CloudKit:** OS-managed SwiftData sync may not import `CloudKit` directly — absence of `CKRecord` is not a failure if configured via `ModelConfiguration`.
 - **UI:** decorative randomness must not re-roll on every `body`; per-battle seeds generated at orchestration (`AppState.startBattle`), not buried in defaults.
 - Do **not** use `// UIStyleCheck: allow` for side-effect exceptions.

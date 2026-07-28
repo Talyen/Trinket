@@ -6,20 +6,30 @@ Unit and UI test conventions for Trinket. Agent workflow / command router: **`AG
 
 **Swift Testing only** in `TrinketTests/` and package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-swift-testing-migration.sh`.
 
-Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views → UI smoke/deploy, not unit tests.
+Keep semantic tests beside their owning package. `TrinketTests` is reserved for
+integration behavior that truly belongs to the final app target. SwiftUI shipping
+journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 
 ## Ownership
 
 | Concern | Owner |
 |---------|-------|
 | Battle rules / handlers / golden paths | `Packages/BattleEngine/Tests/` (see that package’s README) |
+| Shared presentation models / caches / frame analysis | `Packages/TrinketFeatureSupport/Tests/` |
+| Battle session / feedback / spectacle / layout | `Packages/TrinketBattleFeature/Tests/` |
+| AppState / Play and encounter sessions / options / audio routing | `Packages/TrinketAppState/Tests/` |
 | Catalogs / content invariants | `TrinketContentTests` |
 | Stores / persistence write-through | `TrinketPersistenceTests` |
-| App shell (`AppState`, `BattleSession`, …) | `TrinketTests/` only |
+| Final app-target integration only | `TrinketTests/` |
 
 ## Fixtures
 
-Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses (`SaveTestSupport`) live beside PersistenceTests and TrinketTests — not in TrinketTestSupport — so TestSupport stays Persistence-free. App suites: `AppTestContext` / `AppTestSupport`. Persistence: `PersistenceTestContext`. Battle RNG: always `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via `EffectHandlers.all`.
+Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses live
+beside Persistence and AppState tests—not in `TrinketTestSupport`—so TestSupport stays
+Persistence-free. App suites use `AppTestContext` / `AppTestSupport`; Persistence uses
+`PersistenceTestContext`. Battle RNG: always
+`BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via
+`EffectHandlers.all`.
 
 ## Unit conventions
 
@@ -60,8 +70,9 @@ New user flows still need a stable `AccessibilityID` selector (or an existing ap
 Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Homestead/Play presentation contracts is not a style-only change:
 
 1. Run path-scoped `./Scripts/verify-changed.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
-2. `Trinket/Shared/AccessibilityID.swift` routes to the lean smoke canaries that pin selectors.
-3. `Trinket/Features/Homestead/*` also routes unit tests so `HomesteadPresentationTests` stays aligned with row/footer state.
+2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
+   shared-support package check; UI callers route to their lean smoke owner.
+3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the verify-changed style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
 Verify with the AGENTS Task→Command Router (toolchain permitting), using
@@ -69,7 +80,7 @@ Verify with the AGENTS Task→Command Router (toolchain permitting), using
 
 - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
 - **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
-- **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test.sh unit <Class>`
+- **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh TrinketAppState`
 - **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
 - **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, bare smoke, `smoke-full`, and exhaustive UI remain pre-push/CI work.
 

@@ -1,11 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryEncounterView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Bindable var session: MysteryEncounterSession
 
     @State private var selectedDetail: CombatantDetailContext?
@@ -46,6 +49,8 @@ struct MysteryEncounterView: View {
                 RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID,
+                    hapticsEnabled: appState.options.hapticsEnabled,
+                    effectsVolume: appState.options.effectsVolume,
                     hidesNavigationBar: false
                 )
             }

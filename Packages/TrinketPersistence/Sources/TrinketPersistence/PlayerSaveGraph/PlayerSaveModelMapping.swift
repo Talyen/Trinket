@@ -1,5 +1,6 @@
 import Foundation
 import os
+import SwiftData
 import TrinketContent
 import TrinketCore
 
@@ -25,19 +26,209 @@ extension JourneyProgressModel {
         )
     }
 
-    func update(from state: JourneyProgressState) {
+    func update(from state: JourneyProgressState, context: ModelContext?) {
         activeChapterID = state.activeChapterID
         activeStageID = state.activeStageID
         lastCompletedStageID = state.lastCompletedStageID
         let allStageIDs = state.completedStageIDs.union(state.claimedRewardStageIDs)
-        stages = allStageIDs.sorted().map {
-            JourneyStageProgressModel(
-                stageID: $0,
-                isCompleted: state.completedStageIDs.contains($0),
-                rewardsClaimed: state.claimedRewardStageIDs.contains($0)
-            )
-        }
+        stages = reconcileModels(
+            existing: stages ?? [],
+            values: allStageIDs.sorted(),
+            existingKey: \.stageID,
+            valueKey: { $0 },
+            make: { JourneyStageProgressModel(stageID: $0) },
+            update: { model, stageID in
+                model.stageID = stageID
+                model.isCompleted = state.completedStageIDs.contains(stageID)
+                model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
+            },
+            context: context
+        )
         stages?.linkEach(to: self, parent: \.journey)
+    }
+}
+
+private struct UnlockedCombatantValue {
+    let combatantID: String
+    let role: String
+
+    var key: String {
+        "\(role):\(combatantID)"
+    }
+}
+
+private struct EquipmentLoadoutValue {
+    let combatantID: String
+    let loadout: EquipmentLoadout
+}
+
+extension RosterModel {
+    private func updateEquipmentLoadout(
+        _ model: EquipmentLoadoutModel,
+        from value: EquipmentLoadoutValue,
+        context: ModelContext?
+    ) {
+        model.combatantID = value.combatantID
+        let slots = value.loadout.itemIDsBySlot
+            .map { (slotID: $0.key.rawValue, itemID: $0.value) }
+            .sorted { $0.slotID < $1.slotID }
+        model.slots = reconcileModels(
+            existing: model.slots ?? [],
+            values: slots,
+            existingKey: \.slotID,
+            valueKey: { $0.slotID },
+            make: { EquipmentSlotModel(slotID: $0.slotID, itemID: $0.itemID) },
+            update: { slotModel, slot in
+                slotModel.slotID = slot.slotID
+                slotModel.itemID = slot.itemID
+            },
+            context: context
+        )
+        model.slots?.linkEach(to: model, parent: \.loadout)
+    }
+
+    private func updatePrimaryStats(_ model: PrimaryStatsModel, combatantID: String, stats: PrimaryStats) {
+        model.combatantID = combatantID
+        model.strength = stats.strength
+        model.agility = stats.agility
+        model.toughness = stats.toughness
+        model.intellect = stats.intellect
+        model.wisdom = stats.wisdom
+    }
+}
+
+extension InventoryItemModel {
+    func update(from item: InventoryItem, context: ModelContext?) {
+        id = item.id
+        templateID = item.templateID
+        baseTypeID = item.baseType.id
+        rarityID = item.rarity.rawValue
+        displayName = item.displayName
+        isCorrupted = item.isCorrupted
+        affixPowersJSON = item.affixPowers.flatMap { try? ItemAffixPowerCoding.encode($0) }
+        let values = item.affixes.enumerated().map { (index: $0.offset, affix: $0.element) }
+        affixes = reconcileModels(
+            existing: affixes ?? [],
+            values: values,
+            existingKey: \.id,
+            valueKey: { $0.affix.id },
+            make: { ItemAffixModel(affix: $0.affix) },
+            update: { model, value in
+                model.id = value.affix.id
+                model.title = value.affix.title
+                model.affixDescription = value.affix.description
+                model.keywordRawValues = value.affix.keywords.map(\.rawValue).sorted()
+                model.sortIndex = value.index
+            },
+            context: context
+        )
+        affixes?.linkEach(to: self, parent: \.item)
+    }
+}
+
+extension RosterModel {
+    func update(from roster: PlayerRosterState, context: ModelContext?) {
+        activeHeroID = roster.activeHeroID
+        activeCompanionID = roster.activeCompanionID
+        gold = roster.gold
+        updateUnlockedCombatants(from: roster, context: context)
+        updateProgressions(from: roster, context: context)
+        updateAbilityLoadouts(from: roster, context: context)
+        updateEquipmentLoadouts(from: roster, context: context)
+        updatePrimaryStats(from: roster, context: context)
+    }
+
+    private func updateUnlockedCombatants(from roster: PlayerRosterState, context: ModelContext?) {
+        let unlockedValues = roster.unlockedHeroIDs.sorted().map {
+            UnlockedCombatantValue(combatantID: $0, role: "hero")
+        } + roster.unlockedCompanionIDs.sorted().map {
+            UnlockedCombatantValue(combatantID: $0, role: "companion")
+        }
+        unlockedCombatants = reconcileModels(
+            existing: unlockedCombatants ?? [],
+            values: unlockedValues,
+            existingKey: { "\($0.role):\($0.combatantID)" },
+            valueKey: { $0.key },
+            make: { UnlockedCombatantModel(combatantID: $0.combatantID, role: $0.role) },
+            update: { model, value in
+                model.combatantID = value.combatantID
+                model.role = value.role
+            },
+            context: context
+        )
+        unlockedCombatants?.linkEach(to: self, parent: \.roster)
+    }
+
+    private func updateProgressions(from roster: PlayerRosterState, context: ModelContext?) {
+        let progressionValues = roster.progressions.sorted { $0.key < $1.key }
+        progressions = reconcileModels(
+            existing: progressions ?? [],
+            values: progressionValues,
+            existingKey: \.combatantID,
+            valueKey: { $0.key },
+            make: { CombatantProgressionModel(combatantID: $0.key, progression: $0.value) },
+            update: { model, value in
+                model.combatantID = value.key
+                model.level = value.value.level
+                model.currentXP = value.value.currentXP
+                model.requiredXP = value.value.requiredXP
+            },
+            context: context
+        )
+        progressions?.linkEach(to: self, parent: \.roster)
+    }
+
+    private func updateAbilityLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
+        let abilityValues = roster.abilityLoadouts.sorted { $0.key < $1.key }
+        abilityLoadouts = reconcileModels(
+            existing: abilityLoadouts ?? [],
+            values: abilityValues,
+            existingKey: \.combatantID,
+            valueKey: { $0.key },
+            make: { AbilityLoadoutModel(combatantID: $0.key, loadout: $0.value) },
+            update: { model, value in
+                model.combatantID = value.key
+                model.basicID = value.value.basic?.id
+                model.skillID = value.value.skill?.id
+                model.ultimateID = value.value.ultimate?.id
+            },
+            context: context
+        )
+        abilityLoadouts?.linkEach(to: self, parent: \.roster)
+    }
+
+    private func updateEquipmentLoadouts(from roster: PlayerRosterState, context: ModelContext?) {
+        let equipmentValues = roster.equipmentLoadouts
+            .map { EquipmentLoadoutValue(combatantID: $0.key, loadout: $0.value) }
+            .sorted { $0.combatantID < $1.combatantID }
+        equipmentLoadouts = reconcileModels(
+            existing: equipmentLoadouts ?? [],
+            values: equipmentValues,
+            existingKey: \.combatantID,
+            valueKey: { $0.combatantID },
+            make: { EquipmentLoadoutModel(combatantID: $0.combatantID) },
+            update: { model, value in
+                self.updateEquipmentLoadout(model, from: value, context: context)
+            },
+            context: context
+        )
+        equipmentLoadouts?.linkEach(to: self, parent: \.roster)
+    }
+
+    private func updatePrimaryStats(from roster: PlayerRosterState, context: ModelContext?) {
+        let statValues = roster.primaryStatOverrides.sorted { $0.key < $1.key }
+        primaryStats = reconcileModels(
+            existing: primaryStats ?? [],
+            values: statValues,
+            existingKey: \.combatantID,
+            valueKey: { $0.key },
+            make: { PrimaryStatsModel(combatantID: $0.key, stats: $0.value) },
+            update: { model, value in
+                self.updatePrimaryStats(model, combatantID: value.key, stats: value.value)
+            },
+            context: context
+        )
+        primaryStats?.linkEach(to: self, parent: \.roster)
     }
 }
 
@@ -97,43 +288,6 @@ extension RosterModel {
             primaryStatOverrides: statValues
         )
     }
-
-    func update(from roster: PlayerRosterState) {
-        activeHeroID = roster.activeHeroID
-        activeCompanionID = roster.activeCompanionID
-        gold = roster.gold
-
-        unlockedCombatants = roster.unlockedHeroIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "hero") }
-            + roster.unlockedCompanionIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "companion") }
-        unlockedCombatants?.linkEach(to: self, parent: \.roster)
-
-        progressions = roster.progressions
-            .sorted { $0.key < $1.key }
-            .map { CombatantProgressionModel(combatantID: $0.key, progression: $0.value) }
-        progressions?.linkEach(to: self, parent: \.roster)
-
-        abilityLoadouts = roster.abilityLoadouts
-            .sorted { $0.key < $1.key }
-            .map { AbilityLoadoutModel(combatantID: $0.key, loadout: $0.value) }
-        abilityLoadouts?.linkEach(to: self, parent: \.roster)
-
-        equipmentLoadouts = roster.equipmentLoadouts
-            .sorted { $0.key < $1.key }
-            .map { combatantID, loadout in
-                let model = EquipmentLoadoutModel(combatantID: combatantID)
-                model.slots = loadout.itemIDsBySlot
-                    .map { EquipmentSlotModel(slotID: $0.key.rawValue, itemID: $0.value) }
-                    .sorted { $0.slotID < $1.slotID }
-                model.slots?.linkEach(to: model, parent: \.loadout)
-                return model
-            }
-        equipmentLoadouts?.linkEach(to: self, parent: \.roster)
-
-        primaryStats = roster.primaryStatOverrides
-            .sorted { $0.key < $1.key }
-            .map { PrimaryStatsModel(combatantID: $0.key, stats: $0.value) }
-        primaryStats?.linkEach(to: self, parent: \.roster)
-    }
 }
 
 extension InventoryModel {
@@ -189,16 +343,21 @@ extension InventoryModel {
             })
     }
 
-    func update(from inventory: PlayerInventoryState) {
-        items = inventory.items.enumerated().map { index, item in
-            let model = InventoryItemModel(item: item)
-            model.sortIndex = index
-            return model
-        }
-        items?.forEach { item in
-            item.inventory = self
-            item.affixes?.linkEach(to: item, parent: \.item)
-        }
+    func update(from inventory: PlayerInventoryState, context: ModelContext?) {
+        let values = inventory.items.enumerated().map { (index: $0.offset, item: $0.element) }
+        items = reconcileModels(
+            existing: items ?? [],
+            values: values,
+            existingKey: \.id,
+            valueKey: { $0.item.id },
+            make: { InventoryItemModel(item: $0.item) },
+            update: { model, value in
+                model.update(from: value.item, context: context)
+                model.sortIndex = value.index
+            },
+            context: context
+        )
+        items?.linkEach(to: self, parent: \.inventory)
     }
 }
 
@@ -219,14 +378,39 @@ extension HomesteadModel {
         return PlayerHomesteadState(resources: resolvedResources, nodeTiers: resolvedNodeTiers)
     }
 
-    func update(from homestead: PlayerHomesteadState) {
-        resources = homestead.resources
-            .map { HomesteadResourceBalanceModel(resourceID: $0.key.rawValue, quantity: $0.value) }
+    func update(from homestead: PlayerHomesteadState, context: ModelContext?) {
+        let resourceValues = homestead.resources
+            .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
             .sorted { $0.resourceID < $1.resourceID }
+        resources = reconcileModels(
+            existing: resources ?? [],
+            values: resourceValues,
+            existingKey: \.resourceID,
+            valueKey: { $0.resourceID },
+            make: { HomesteadResourceBalanceModel(resourceID: $0.resourceID, quantity: $0.quantity) },
+            update: { model, value in
+                model.resourceID = value.resourceID
+                model.quantity = value.quantity
+            },
+            context: context
+        )
         resources?.linkEach(to: self, parent: \.homestead)
-        nodeTiers = homestead.nodeTiers
-            .map { HomesteadNodeTierModel(nodeID: $0.key.rawValue, tier: $0.value) }
+
+        let tierValues = homestead.nodeTiers
+            .map { (nodeID: $0.key.rawValue, tier: $0.value) }
             .sorted { $0.nodeID < $1.nodeID }
+        nodeTiers = reconcileModels(
+            existing: nodeTiers ?? [],
+            values: tierValues,
+            existingKey: \.nodeID,
+            valueKey: { $0.nodeID },
+            make: { HomesteadNodeTierModel(nodeID: $0.nodeID, tier: $0.tier) },
+            update: { model, value in
+                model.nodeID = value.nodeID
+                model.tier = value.tier
+            },
+            context: context
+        )
         nodeTiers?.linkEach(to: self, parent: \.homestead)
     }
 }
@@ -241,14 +425,20 @@ extension SpiresProgressModel {
         return PlayerSpiresState(highestClearedFloorBySpireID: map)
     }
 
-    func update(from state: PlayerSpiresState) {
-        let existing = floors ?? []
-        for row in existing {
-            row.spires = nil
-        }
-        floors = state.highestClearedFloorBySpireID
-            .sorted { $0.key < $1.key }
-            .map { SpireFloorProgressModel(spireID: $0.key, highestClearedFloor: max(0, $0.value)) }
+    func update(from state: PlayerSpiresState, context: ModelContext?) {
+        let values = state.highestClearedFloorBySpireID.sorted { $0.key < $1.key }
+        floors = reconcileModels(
+            existing: floors ?? [],
+            values: values,
+            existingKey: \.spireID,
+            valueKey: { $0.key },
+            make: { SpireFloorProgressModel(spireID: $0.key, highestClearedFloor: max(0, $0.value)) },
+            update: { model, value in
+                model.spireID = value.key
+                model.highestClearedFloor = max(0, value.value)
+            },
+            context: context
+        )
         floors?.linkEach(to: self, parent: \.spires)
     }
 }
@@ -306,6 +496,36 @@ extension Array {
     ) {
         forEach { $0[keyPath: keyPath] = parent }
     }
+}
+
+private func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
+    existing: [Model],
+    values: [Value],
+    existingKey: (Model) -> Key,
+    valueKey: (Value) -> Key,
+    make: (Value) -> Model,
+    update: (Model, Value) -> Void,
+    context: ModelContext?
+) -> [Model] {
+    var modelsByKey: [Key: Model] = [:]
+    for model in existing {
+        let key = existingKey(model)
+        if modelsByKey[key] == nil {
+            modelsByKey[key] = model
+        } else {
+            context?.delete(model)
+        }
+    }
+
+    let reconciled = values.map { value in
+        let model = modelsByKey.removeValue(forKey: valueKey(value)) ?? make(value)
+        update(model, value)
+        return model
+    }
+    for removed in modelsByKey.values {
+        context?.delete(removed)
+    }
+    return reconciled
 }
 
 private extension Dictionary {

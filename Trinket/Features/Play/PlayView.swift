@@ -1,11 +1,14 @@
 import BattleEngine
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct PlayView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
 
@@ -23,7 +26,7 @@ struct PlayView: View {
         .onAppear {
             restorePlayDestinationIfNeeded()
         }
-        .onChange(of: appState.selectedTab) { previousTab, newTab in
+        .onChange(of: appState.shellSession.selectedTab) { previousTab, newTab in
             guard newTab == .play, previousTab != .play else { return }
             // A normal Play-tab visit is a fresh choice. Pending destinations
             // are consumed only for battle/deep-link restoration below.
@@ -43,7 +46,7 @@ struct PlayView: View {
     private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
         guard appState.battle.activeBattle == nil else { return }
 
-        if let destination = appState.consumePendingPlayDestination() {
+        if let destination = appState.consumePendingDestination() {
             apply(destination)
             return
         }
@@ -75,7 +78,7 @@ struct PlayView: View {
 
 /// Mode hub + campaign/explore destinations. Does not observe battle overlays.
 private struct PlayBrowsingStack: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @Binding var navigationPath: [PlayLaunchDestination]
@@ -186,7 +189,7 @@ private struct PlayBrowsingStack: View {
 
 /// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
 private struct PlayBattleOverlay: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     var body: some View {
         let configuration = appState.battle.activeBattle
@@ -194,7 +197,26 @@ private struct PlayBattleOverlay: View {
         // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
-                BattleView(configuration: configuration)
+                BattleView(
+                    configuration: configuration,
+                    battleSession: appState.battle,
+                    journey: appState.journey,
+                    homestead: appState.homestead,
+                    completeBattle: { [weak appState] configuration, earnedGold, rewards in
+                        appState?.completeActiveBattle(
+                            configuration,
+                            battleEarnedGold: earnedGold,
+                            materialRewards: rewards
+                        ) ?? false
+                    },
+                    restartBattle: { [weak appState] in
+                        appState?.restartActiveBattle()
+                    },
+                    retreat: { [weak appState] in
+                        appState?.endBattleReturningToOrigin()
+                    },
+                    performanceScenario: AppEnvironment.shared.battlePerformanceScenario
+                )
             } else {
                 Color.clear
                     .accessibilityHidden(true)
@@ -209,7 +231,7 @@ private struct PlayBattleOverlay: View {
 
 /// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.
 private struct PlaySessionPresentationModifier: ViewModifier {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Binding var stageMessage: StageMapMessage?
 
     func body(content: Content) -> some View {
@@ -263,7 +285,7 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 }
 
 private struct PlayEncounterCoversModifier: ViewModifier {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     func body(content: Content) -> some View {
         content

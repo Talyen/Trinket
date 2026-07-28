@@ -1,5 +1,8 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Shared ScrollView + adaptive card grid chrome for Play mode hubs.
 /// Card contents and navigation stay at the call site.

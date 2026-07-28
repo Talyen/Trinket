@@ -30,7 +30,10 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 
 ## Evidence bar
 
-Wrong owner per [Architecture.md](../Platform/Architecture.md), real review/test cost from mixed jobs on one type, and an existing home (engine handler, store slice, `BattleShell`, `Shared/`, feature session) — not a greenfield layer.
+Wrong owner per [Architecture.md](../Platform/Architecture.md), real review/test cost
+from mixed jobs on one type, and an existing home (engine handler, store slice,
+Battle presentation lane, `TrinketFeatureSupport`, or feature session)—not a
+greenfield layer.
 
 ## Domain rules
 
@@ -43,13 +46,18 @@ Follow Architecture ownership and app-layer imports:
 | Card combat rules | `BattleEngine` (`EffectHandlers/`, engines, `BattleState+*` plumbing) |
 | Save graph, stores, CloudKit wiring | `TrinketPersistence` |
 | Shared chrome | `TrinketDesignSystem` |
-| Tab shell, sessions, options | `Trinket/State`, `Trinket/App` |
+| Tab shell, sessions, options | `Packages/TrinketAppState` |
 | Product screens | `Trinket/Features` |
-| Active battle configuration / victory glue | `Trinket/BattleShell` |
-| Game-specific shared UI | `Trinket/Shared` |
+| Active battle configuration / battle outcome | `Packages/TrinketBattleFeature` |
+| Game-specific shared UI | `Packages/TrinketFeatureSupport` |
 
 **Hub containment** (Architecture): keep `BattleState` and `PlayerSaveStore` thin — new work goes to handlers, engines, store slices, or `+` plumbing files, not feature-specific methods on the hub.
 
-**App layers:** `State/` must not import feature views; `BattleShell/` must not import `Features/`; packages must not import app feature UI.
+**Module layers:** `TrinketFeatureSupport` must stay below `TrinketBattleFeature` and
+`TrinketAppState`; Battle must not import AppState; packages must not import the app
+module.
 
-Prefer restoring rules to engines/stores, keeping tab/session wiring on thin `AppState` / `*Session` types, and extracting presentation into Shared or feature folders. Propose hub splits when local moves would leave the same gravity well intact.
+Prefer restoring rules to engines/stores, keeping tab/session wiring on thin
+`AppState` / `*Session` types, and extracting reusable presentation into
+`TrinketFeatureSupport`. Propose hub splits when local moves would leave the same
+gravity well intact.

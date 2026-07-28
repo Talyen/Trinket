@@ -1,6 +1,9 @@
 import os
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
+import TrinketFeatureSupport
 import TrinketPersistence
 
 private let trinketAppLogger = Logger(
@@ -58,12 +61,12 @@ struct TrinketApp: App {
     }
 
     private func priorityImageNames(for appState: AppState) -> [String] {
-        let activeParty = [appState.roster.activeHero, appState.roster.activeCompanion]
+        let activeParty = [appState.playerSave.roster.activeHero, appState.playerSave.roster.activeCompanion]
             .compactMap(\.artReference)
             .flatMap { reference in
                 [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
             }
-        let activeEnemy = appState.journey.activeStageID
+        let activeEnemy = appState.playerSave.journey.activeStageID
             .flatMap(GameContent.stage(id:))?
             .encounterCombatantArtReference
         let enemyNames = activeEnemy.map { reference in
@@ -102,35 +105,42 @@ private struct PreparedAppRoot: View {
             }
         }
         .environment(appState)
+        .environment(appState.play)
+        .environment(appState.battle)
+        .environment(appState.options)
+        .environment(appState.playerSave)
+        .environment(\.playSFX) { id, volume in
+            appState.sfxPlayer.play(id, volume: volume)
+        }
         #if DEBUG
-            .debugFPSOverlay()
+        .debugFPSOverlay()
         #endif
-            .task {
-                MetricKitSubscriber.shared.start()
-                guard !isResourcePreparationComplete else { return }
-                appState.prepareLaunchPerformanceResources()
-                // Align the minimum hold with first paint (same yield as the
-                // progress fill) so a warm cache cannot dismiss before the bar runs.
-                await Task.yield()
-                let displayedAt = ContinuousClock.now
-                await BattlePresentationWarmup.prepareAndWait(
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale
-                )
-                await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
-                guard !Task.isCancelled else { return }
-                if let stageID = appState.journey.activeStageID,
-                   let stage = GameContent.stage(id: stageID) {
-                    appState.prepareBattle(for: stage)
-                }
-                let hold = Self.minimumLaunchDisplayDuration
-                    - displayedAt.duration(to: ContinuousClock.now)
-                if hold > .zero {
-                    try? await Task.sleep(for: hold)
-                }
-                guard !Task.isCancelled else { return }
-                isResourcePreparationComplete = true
+        .task {
+            MetricKitSubscriber.shared.start()
+            guard !isResourcePreparationComplete else { return }
+            appState.prepareLaunchPerformanceResources()
+            // Align the minimum hold with first paint (same yield as the
+            // progress fill) so a warm cache cannot dismiss before the bar runs.
+            await Task.yield()
+            let displayedAt = ContinuousClock.now
+            await BattlePresentationWarmup.prepareAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+            await artworkCache.prepareAll(priorityImageNames: priorityImageNames)
+            guard !Task.isCancelled else { return }
+            if let stageID = appState.playerSave.journey.activeStageID,
+               let stage = GameContent.stage(id: stageID) {
+                appState.play.prepareBattle(for: stage)
             }
+            let hold = Self.minimumLaunchDisplayDuration
+                - displayedAt.duration(to: ContinuousClock.now)
+            if hold > .zero {
+                try? await Task.sleep(for: hold)
+            }
+            guard !Task.isCancelled else { return }
+            isResourcePreparationComplete = true
+        }
     }
 
     private var shouldPrepareCastEffects: Bool {

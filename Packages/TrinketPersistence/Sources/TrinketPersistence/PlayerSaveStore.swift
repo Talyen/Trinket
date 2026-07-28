@@ -30,6 +30,7 @@ public final class PlayerSaveStore {
     private var root: PlayerSaveRoot
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
+    private var pendingRollbackSlices: PlayerSaveSlice = []
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -171,22 +172,26 @@ public final class PlayerSaveStore {
         candidate.modifiedAt = Date()
         candidate = PlayerSaveSanitizer.sanitize(candidate)
         try PlayerSaveSanitizer.validate(candidate)
-        root.update(from: candidate)
+        let changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
+        root.apply(candidate, slices: changedSlices, context: context)
 
         if persistImmediately {
             do {
                 try saveGraph()
                 lastPersistenceError = nil
             } catch {
-                root.update(from: snapshot)
+                root.apply(snapshot, slices: changedSlices, context: context)
                 lastPersistenceError = .writeFailed
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
             }
-        } else if pendingRollbackSnapshot == nil {
-            // Keep the last persisted snapshot across coalesced deferred mutations so a
-            // failed flush rolls back past every unsaved change, not only the latest one.
-            pendingRollbackSnapshot = snapshot
+        } else {
+            if pendingRollbackSnapshot == nil {
+                // Keep the last persisted snapshot across coalesced deferred mutations so a
+                // failed flush rolls back past every unsaved change, not only the latest one.
+                pendingRollbackSnapshot = snapshot
+            }
+            pendingRollbackSlices.formUnion(changedSlices)
         }
     }
 
@@ -198,6 +203,7 @@ public final class PlayerSaveStore {
         do {
             try saveGraph()
             pendingRollbackSnapshot = nil
+            pendingRollbackSlices = []
             lastPersistenceError = nil
         } catch {
             rollbackPendingMutationIfNeeded()
@@ -219,6 +225,7 @@ public final class PlayerSaveStore {
             do {
                 try saveGraph()
                 pendingRollbackSnapshot = nil
+                pendingRollbackSlices = []
                 lastPersistenceError = nil
             } catch {
                 rollbackPendingMutationIfNeeded()
@@ -232,8 +239,9 @@ public final class PlayerSaveStore {
 
     private func rollbackPendingMutationIfNeeded() {
         guard let pendingRollbackSnapshot else { return }
-        root.update(from: pendingRollbackSnapshot)
+        root.apply(pendingRollbackSnapshot, slices: pendingRollbackSlices, context: context)
         self.pendingRollbackSnapshot = nil
+        pendingRollbackSlices = []
     }
 
     private func resetRoot(with save: PlayerSave) throws {
@@ -241,12 +249,13 @@ public final class PlayerSaveStore {
         // clear failure left duplicate `id == "primary"` rows so a later cold start
         // could reload stale progress instead of the reset snapshot.
         let snapshot = currentSave
-        root.update(from: PlayerSaveSanitizer.sanitize(save))
+        root.update(from: PlayerSaveSanitizer.sanitize(save), context: context)
         do {
             try saveGraph()
             pendingRollbackSnapshot = nil
+            pendingRollbackSlices = []
         } catch {
-            root.update(from: snapshot)
+            root.update(from: snapshot, context: context)
             throw error
         }
     }
@@ -302,7 +311,7 @@ public final class PlayerSaveStore {
     private func ensureRequiredGraph() {
         var save = currentSave
         save = PlayerSaveSanitizer.sanitize(save)
-        root.update(from: save)
+        root.update(from: save, context: context)
         do {
             try context.save()
         } catch {

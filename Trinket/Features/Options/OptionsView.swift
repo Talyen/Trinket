@@ -1,17 +1,27 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct OptionsView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(OptionsStore.self) private var optionsStore
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
     @State private var actionErrorMessage: String?
+
+    let persistenceStatusMessage: () -> String?
+    let applyMusicVolumeLive: (Double, ScenePhase) -> Void
+    let playToggleSFX: (Bool, Double) -> Void
+    let resetGameplayProgress: () -> Bool
+    let unlockAllContent: () -> Bool
+
     var body: some View {
-        @Bindable var options = appState.options
+        @Bindable var options = optionsStore
 
         Form {
-            if let message = appState.persistenceStatusMessage {
+            if let message = persistenceStatusMessage() {
                 Section("Progress Status") {
                     Label(message, systemImage: "externaldrive.badge.exclamationmark")
                         .trinketTypography(.secondaryBody)
@@ -25,7 +35,7 @@ struct OptionsView: View {
                     title: "Music",
                     value: $options.musicVolume,
                     onLiveChange: { volume in
-                        appState.applyMusicVolumeLive(volume, scenePhase: scenePhase)
+                        applyMusicVolumeLive(volume, scenePhase)
                     }
                 )
 
@@ -45,10 +55,7 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier("Haptics Toggle")
                 .onChange(of: options.hapticsEnabled) { _, isEnabled in
-                    appState.sfxPlayer.play(
-                        isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
-                        volume: options.effectsVolume
-                    )
+                    playToggleSFX(isEnabled, options.effectsVolume)
                 }
             }
 
@@ -71,7 +78,7 @@ struct OptionsView: View {
             #if DEBUG
             Section {
                 Button("Unlock All") {
-                    if !appState.unlockAllContent() {
+                    if !unlockAllContent() {
                         actionErrorMessage = "Couldn't unlock content. Try again."
                     }
                 }
@@ -94,7 +101,7 @@ struct OptionsView: View {
             isPresented: $isResetConfirmationPresented
         ) {
             Button("Reset Game Progress", role: .destructive) {
-                if !appState.resetGameplayProgress() {
+                if !resetGameplayProgress() {
                     actionErrorMessage = "Couldn't reset progress. Try again."
                 }
             }

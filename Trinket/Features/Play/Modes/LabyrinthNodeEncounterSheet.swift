@@ -1,5 +1,8 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Shared NavigationStack chrome for Labyrinth rest / craft node sheets.
 /// Mode-specific facts and actions stay at the call site.

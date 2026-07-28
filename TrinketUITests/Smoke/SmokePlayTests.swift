@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 final class SmokePlayTests: SeededSmokeUITestCase {

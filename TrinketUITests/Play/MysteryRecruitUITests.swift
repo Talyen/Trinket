@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 /// Exhaustive Mystery encounter journeys via deep link (kept out of smoke-full).

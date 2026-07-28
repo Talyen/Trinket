@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadBuildControl {

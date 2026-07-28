@@ -1,16 +1,15 @@
 import QuartzCore
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import UIKit
 
 #if DEBUG
 
 enum DebugPreferenceKey {
     static let showFPSOverlay = "debug.showFPSOverlay"
-}
-
-enum FramePacingMeasurementControl {
-    static let reset = Notification.Name("Trinket.FramePacing.Reset")
 }
 
 /// Corner frame-pacing readout for local diagnostics. Under XCTest it publishes only

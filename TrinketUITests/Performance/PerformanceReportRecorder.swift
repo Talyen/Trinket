@@ -1,4 +1,5 @@
 import Foundation
+import TrinketFeatureSupport
 import XCTest
 
 enum PerformanceReportRecorder {

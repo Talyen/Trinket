@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct EncounterArtwork: View {
     let stage: Stage

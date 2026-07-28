@@ -1,4 +1,7 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
+import TrinketFeatureSupport
 
 /// Last-resort launch UI when even in-memory AppState bootstrap fails.
 struct AppBootstrapFailureView: View {

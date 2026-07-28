@@ -1,9 +1,12 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct SpiresHubView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     var body: some View {
         PlayModeHubScreen(

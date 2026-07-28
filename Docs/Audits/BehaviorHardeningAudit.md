@@ -28,7 +28,7 @@ Prioritize P0–P1 among confirmed findings.
 - `PlayerSaveStore` surfaces write failures (`lastPersistenceError`); silent save failure is data loss.
 - Mutations update `modifiedAt` and sanitize via `PlayerSaveSanitizer` where applicable; debounced writes coalesce without duplicate/stale/out-of-order persistence.
 - Stage completion / reward grant: double “Continue” must not double-grant; `adjustedMaterialRewards` is pure for the same inputs.
-- Suspect silent `try?` on save, sync, battle outcome, or state transitions. **Allowlist:** non-fatal audio (`Trinket/Audio/`).
+- Suspect silent `try?` on save, sync, battle outcome, or state transitions. **Allowlist:** non-fatal audio (`Packages/TrinketAppState/.../Audio/`).
 - Store load failure → default/in-memory recovery + log, not crash.
 - Prefer existing coverage. Add a regression only when the test-addition gate passes; battle edges use `rngSeed: 0`, and store edges use the existing empty/partial/corrupt recovery owners.
 

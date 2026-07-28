@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 /// Battle frame-pacing gates. Real play and drag handling use actual XCUI gestures;

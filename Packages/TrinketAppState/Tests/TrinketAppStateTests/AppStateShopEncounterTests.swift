@@ -1,0 +1,125 @@
+import Foundation
+import Testing
+import TrinketBattleFeature
+import TrinketContent
+import TrinketFeatureSupport
+import TrinketPersistence
+import TrinketTestSupport
+@testable import TrinketAppState
+
+@MainActor
+struct AppStateShopEncounterTests {
+    let context: AppTestContext
+
+    init() throws {
+        context = try AppTestContext()
+    }
+
+    @Test func shopStageOpensEncounterWithOffers() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+
+        let session = try #require(state.activeShopEncounter)
+        #expect(session.stage.id == "chapter-2-stage-8")
+        #expect(!session.offers.isEmpty)
+        // Opening a shop does not advance journey progress.
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
+    }
+
+    @Test func reopeningShopAfterPurchaseDoesNotBurnGoldOnSameOffer() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+
+        let firstSession = try #require(state.activeShopEncounter)
+        let offer = try #require(firstSession.offers.first)
+        try state.playerSave.performBatchMutation { save in
+            save.roster.gold = offer.price * 3
+        }
+
+        #expect(state.purchaseActiveShopOffer(offerID: offer.id))
+        let goldAfterFirst = state.roster.gold
+        let itemsAfterFirst = state.inventory.items.count
+        let firstVisitToken = firstSession.visitToken
+
+        state.dismissActiveShopEncounterWithoutCompleting()
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+
+        let secondSession = try #require(state.activeShopEncounter)
+        #expect(secondSession.visitToken != firstVisitToken)
+        #expect(secondSession.offers.first?.id == offer.id)
+
+        #expect(state.purchaseActiveShopOffer(offerID: offer.id))
+        #expect(state.roster.gold == goldAfterFirst - offer.price)
+        #expect(state.inventory.items.count == itemsAfterFirst + 1)
+        let ownedIDs = Set(state.inventory.items.map(\.id))
+        #expect(ownedIDs.count == itemsAfterFirst + 1)
+    }
+
+    @Test func finishShopEncounterCompletesStageWithoutFreeItemReward() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(stage.rewards.itemTemplateIDs.isEmpty)
+
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+        try state.playerSave.performBatchMutation { save in
+            save.roster.gold = 0
+        }
+        let itemsBefore = state.inventory.items.count
+
+        state.finishActiveShopEncounter()
+
+        #expect(state.activeShopEncounter == nil)
+        #expect(state.journey.completedStageIDs.contains("chapter-2-stage-8"))
+        #expect(state.journey.activeStageID == "chapter-2-stage-9")
+        #expect(state.roster.gold == 0)
+        #expect(state.inventory.items.count == itemsBefore)
+    }
+
+    @Test func dismissShopEncounterDoesNotCompleteStage() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+
+        _ = state.handleStagePrimaryAction(for: stage)
+        #expect(state.activeShopEncounter != nil)
+
+        state.dismissActiveShopEncounterWithoutCompleting()
+
+        #expect(state.activeShopEncounter == nil)
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
+        #expect(!state.journey.completedStageIDs.contains("chapter-2-stage-8"))
+    }
+
+    @Test func mysteryEncounterDoesNotOpenWhileShopIsActive() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let shopStage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        let mysteryStage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+
+        #expect(state.handleStagePrimaryAction(for: shopStage) == nil)
+        #expect(state.activeShopEncounter != nil)
+
+        #expect(state.beginMysteryEncounter(for: mysteryStage) == nil)
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.activeShopEncounter != nil)
+    }
+
+    #if DEBUG
+    @Test func finishShopEncounterSurfacesLeaveFailureWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+        let session = try #require(state.activeShopEncounter)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter != nil)
+        #expect(session.leaveFailureMessage != nil)
+
+        #expect(state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter == nil)
+    }
+    #endif
+}

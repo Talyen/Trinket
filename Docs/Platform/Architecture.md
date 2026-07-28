@@ -5,14 +5,9 @@ High-level structure for Trinket.
 ## Repository layout
 
 ```text
-Trinket/                    App target — shell, features, presentation glue
-  App/                      Entry, environment, tab routing
-  Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  BattleShell/              ActiveBattleConfiguration, victory orchestration
-  State/                    AppState, BattleSession, OptionsStore
-  Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
-  Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
-  Audio/                    MusicPlayer, SFXPlayer, and AVFoundation glue
+Trinket/                    Thin app target — entry, roots, non-Battle product screens
+  App/                      TrinketApp, ContentView, launch/error presentation
+  Features/                 Play, Collection, Homestead, and Options screens
   Assets.xcassets           Processed art (HEIC) from ArtManifest
   Resources/Music           AAC tracks from MusicManifest
   Resources/SFX             AAC clips from SoundManifest
@@ -24,6 +19,9 @@ Packages/
   BattleEngine/             Card combat rules, effect handlers, decks/hand
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
+  TrinketFeatureSupport/    Shared game UI, presentation models, IDs, artwork/frame support
+  TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
+  TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
   TrinketTestSupport/       Shared combat/content fixtures (CombatantFixtures, battle parties)
 
 ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.tsv, …
@@ -51,10 +49,11 @@ Manifests and pipelines live outside the app folder:
 | Heroes, companions, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and card combat | `BattleEngine` | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
 | Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
-| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors; motion primitives. Battle-specific feedback *recipes* live in `Trinket/State/` |
-| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState` (wiring), encounter `*Session` types, `BattleSession` |
-| Product screens | `Trinket/Features` | One folder per tab or major flow |
-| Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
+| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
+| Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI, configuration and outcome |
+| App and Play orchestration | `TrinketAppState` | `AppState` composition, `PlaySession`, encounter sessions, preferences, audio routing |
+| App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
 
 ## Product tabs vs code
@@ -67,12 +66,12 @@ Play → Collection → Homestead → Options
 
 Code mapping:
 
-| UI label | `AppTab` | Feature folder |
+| UI label | `AppTab` | Feature owner |
 |----------|----------|----------------|
-| Play | `.play` | `Features/Play` |
-| Collection | `.collection` | `Features/Collection` — Heroes, Companions, and Inventory |
-| Homestead | `.homestead` | `Features/Homestead` |
-| Options | `.options` | `Features/Options` |
+| Play | `.play` | `Trinket/Features/Play` |
+| Collection | `.collection` | `Trinket/Features/Collection` — Heroes, Companions, and Inventory |
+| Homestead | `.homestead` | `Trinket/Features/Homestead` |
+| Options | `.options` | `Trinket/Features/Options` |
 
 ## Generate workflow
 
@@ -104,49 +103,50 @@ After editing art, music, SFX, or cinematic manifests:
 
 ### Package graph
 
-Arrows point upward to the dependency: `A ↑ B` means B depends on A.
+Arrows mean “may depend on.” Every edge points downward; reverse edges are forbidden.
 
 ```text
-TrinketCore
-  ↑
-TrinketContent
-  ↑
-  ├── BattleEngine
-  ├── TrinketPersistence
-  └── Trinket app
-
-TrinketCore
-  ↑
-TrinketDesignSystem
-  ↑
 Trinket app
+  ├── TrinketAppState
+  │     ├── TrinketBattleFeature
+  │     │     └── TrinketFeatureSupport
+  │     └──────── TrinketFeatureSupport
+  ├── TrinketBattleFeature
+  └── TrinketFeatureSupport
+
+TrinketFeatureSupport ──→ BattleEngine
+        │                 TrinketPersistence
+        │                 TrinketContent
+        │                 TrinketDesignSystem
+        └───────────────→ TrinketCore
+
+BattleEngine ───────────→ TrinketContent ──→ TrinketCore
+TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
+TrinketDesignSystem ───────────────────────→ TrinketCore
 ```
 
-`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent` (both depend on `TrinketContent` and transitively on `TrinketCore`, but not on each other). `Trinket app` also directly imports `BattleEngine`, `TrinketPersistence`, and `TrinketContent` as needed — the diagram highlights the two main dependency chains. `TrinketDesignSystem` depends on `TrinketCore` only so shared chrome can use domain primitives such as `Keyword` and `ItemSlot` without importing feature or content catalogs. Homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
+`BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
+`TrinketFeatureSupport` may use read-only combat build/resolution types for shared detail
+presentation, but it cannot depend on `TrinketBattleFeature` or `TrinketAppState`.
+`TrinketBattleFeature` cannot depend on `TrinketAppState`. No package may import the
+`Trinket` app module. `./Scripts/check-module-boundaries.sh` enforces these rules in
+both source imports and package manifests.
 
-Packages must not import `Trinket` app code or SwiftUI feature views.
-
-### App target layers
-
-| Layer | May import | Must not import |
-|-------|------------|-----------------|
-| `BattleShell/` | packages, `Models/` | `Features/` |
-| `Features/` | packages, `State/`, `Shared/`, `Models/` | — |
-| `State/` | packages, `Models/` | feature views |
-| `Models/` | packages, SwiftUI | `State/`, `Features/` |
-
-App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imports.py` can bootstrap imports after refactors.
+The app target is a composition root and view host. App views receive the narrowest
+available owner (`PlaySession`, an encounter session, `BattleSession`, or one of
+Battle’s read lanes) instead of observing `AppState` for unrelated state.
 
 ## Persistence overview
 
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, aspects, labyrinth). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, aspects, and labyrinth records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and mode progress.
 - **Save hub:** `PlayerSaveStore` opens the versioned `ModelContainer` via `PlayerSaveMigrationPlan`, `ModelContainerBootstrap`, and `PlayerSaveStoreConfiguration`. A failed canonical-store open preserves the on-disk files and uses an explicitly degraded in-memory fallback; only a player-requested reset deletes progress. Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
-- **Options/preferences:** `OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (selected tab, map scroll, and last Play mode) remains on the local `PlayerShellSessionStore`; legacy battle-resume keys are discarded. The app is always dark mode (no appearance preference).
+- **Write locality:** Every mutation computes a `PlayerSaveSlice` diff. Setters and batches reconcile and save only changed slices; rollback refreshes only touched slices. Stable child-row identities are preserved when values change.
+- **Options/preferences:** `TrinketAppState.OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (selected tab, map scroll, and last Play mode) remains on the local `PlayerShellSessionStore`; legacy battle-resume keys are discarded. The app is always dark mode (no appearance preference).
 - **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements. Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`
-- **Audio:** `Trinket/Audio/MusicPlayer` uses ambient `AVAudioPlayer` by design — see `Trinket/Audio/README.md`.
+- **Audio:** `TrinketAppState.MusicPlayer` uses ambient `AVAudioPlayer` by design.
 
 ## Extension policy (hub containment)
 
@@ -170,14 +170,17 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Swift Testing unit + XCTest UI (tiered via `.xctestplan` files)
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
-- Battle presentation is SwiftUI; SpriteKit is not in use
-- Battle simulation lives in `BattleSimBridge`; fine-grained observable projections remain in `BattleSession`. `playCard` mutates
-  the stored state via the bridge, publishes one presentation snapshot plus feedback/outcome work, and returns a typed
-  rejection/commit result. `BattleView` then publishes the owner swing and release-time cast in causal order.
+- Battle presentation is SwiftUI; SpriteKit is not in use.
+- Battle simulation lives behind `BattleSimBridge`. `BattleSession` owns lifecycle and
+  commands; `BattlePresentationState`, `BattleFeedbackLane`, and
+  `BattleSpectacleState` are distinct observable read lanes. A committed engine
+  transition publishes one combat snapshot before its feedback/outcome work.
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
   `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
-- App tests run via `./Scripts/test.sh unit`; package tests run via `./Scripts/test-package.sh <Package>` in addition to `TrinketTests`
+- Semantic tests live with their package owner. `./Scripts/test.sh unit` compiles the
+  app unit target and runs all production package suites; focused iteration uses
+  `./Scripts/test-package.sh <Package>`.
 
 ### Battle UIKit feedback island
 
@@ -208,4 +211,4 @@ Do not start these without a concrete forcing function:
 |----------|----------|
 | Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam; keep new generators beside existing ones |
 | CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
-| Further `BattleSession` presentation-file growth | Sim bridge extracted to `BattleSimBridge`; deepen presentation controller split only if `BattleSession+Presentation` / feedback files keep growing |
+| Further Battle presentation splitting | Simulation, projection, feedback, and spectacle already have distinct owners; split again only when one lane has a concrete independent responsibility |

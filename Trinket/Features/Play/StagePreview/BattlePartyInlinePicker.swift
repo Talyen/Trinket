@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 enum BattlePartySlot: String {
@@ -49,7 +52,7 @@ enum BattlePartySlot: String {
 
 /// Journey's shared, single-sheet party editor.
 struct StageBattlePartyPickerSheet: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectionFeedbackTrigger = 0
@@ -168,7 +171,7 @@ struct StageBattlePartyPickerSheet: View {
 
 /// Full-grid party slot picker pushed from a shelf header.
 private struct BattlePartySlotGridView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     @State private var selectionFeedbackTrigger = 0
 

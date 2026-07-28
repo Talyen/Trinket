@@ -321,7 +321,16 @@ fi
 
 run_package_tests() {
   local xcodebuild_action="$1"
-  local packages=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
+  local packages=(
+    TrinketCore
+    TrinketContent
+    BattleEngine
+    TrinketPersistence
+    TrinketDesignSystem
+    TrinketFeatureSupport
+    TrinketBattleFeature
+    TrinketAppState
+  )
   local failed=0
   local build_seconds=0
   local test_seconds=0

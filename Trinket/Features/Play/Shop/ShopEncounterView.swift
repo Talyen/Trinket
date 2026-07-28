@@ -1,10 +1,13 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct ShopEncounterView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Bindable var session: ShopEncounterSession
 
     @State private var selectedOffer: ShopOffer?

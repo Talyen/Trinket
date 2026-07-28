@@ -14,7 +14,7 @@ Duplicate surfaces look like parallel product screens that differ mainly by labe
 |------|---------------------|
 | Parallel hub / encounter shells with the same section stack | Agents copied a shell instead of parameterizing mode/content |
 | Near-identical detail / summary / picker layouts across tabs | Same grid, chrome, and empty states with tiny diffs |
-| Repeated reward / outcome / artwork wrappers | Shell already exists (or should) under `Features/Shared` or DesignSystem |
+| Repeated reward / outcome / artwork wrappers | Shell already exists (or should) in `TrinketFeatureSupport` or DesignSystem |
 | Same grid / card stack / sheet scaffolding in 3+ files | Layout ownership belongs in one helper, not N call sites |
 | Diverged twins that used to match | Copy-paste drift — bugs get fixed in one sibling only |
 
@@ -36,8 +36,8 @@ Ownership follows [Architecture.md](../Platform/Architecture.md):
 
 | Surface kind | Prefer owner |
 |--------------|--------------|
-| App-wide cards, detail panes, keyword text, AccessibilityID | `Trinket/Shared/` |
-| Cross-Play-mode shells (reward reveal, shared encounter chrome) | `Trinket/Features/Shared/` or the dominant Play owner |
+| App-wide cards, detail panes, keyword text, AccessibilityID | `TrinketFeatureSupport` |
+| Cross-Play-mode shells (reward reveal, shared encounter chrome) | `TrinketFeatureSupport` or the dominant Play owner |
 | Glass / surfaces / typography / Metrics | `TrinketDesignSystem` |
 | Mode-specific content bindings | Stay in the feature folder; pass data into the shared shell |
 

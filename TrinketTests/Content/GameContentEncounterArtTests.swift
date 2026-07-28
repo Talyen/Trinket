@@ -1,5 +1,8 @@
 import Testing
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
+import TrinketFeatureSupport
 @testable import Trinket
 
 struct GameContentEncounterArtTests {

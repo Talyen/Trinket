@@ -1,4 +1,7 @@
 import Testing
+import TrinketAppState
+import TrinketBattleFeature
+import TrinketFeatureSupport
 
 extension Tag {
     @Tag static var catalog: Self

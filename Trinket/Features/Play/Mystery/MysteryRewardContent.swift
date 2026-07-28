@@ -1,11 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Bindable var session: MysteryEncounterSession

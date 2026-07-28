@@ -217,7 +217,7 @@ run_verification_command() {
       ;;
     package)
       case "$argument" in
-        BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketTestSupport)
+        BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleFeature|TrinketAppState|TrinketTestSupport)
           ./Scripts/test-package.sh "$argument" ;;
         *) echo "Unknown structured package check: $argument" >&2; return 2 ;;
       esac

@@ -1,11 +1,15 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(OptionsStore.self) private var options
     @State private var build = HomesteadBuildControl()
 
     let definition: HomesteadNodeDefinition
@@ -70,13 +74,13 @@ struct HomesteadNodeDetailView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: build.upgradeEventCount,
-            enabled: appState.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
         .homesteadBuildErrorAlert(build: $build)
     }
 
     private func buildOrUpgrade() {
-        build.perform(definition, saveStore: appState.playerSave)
+        build.perform(definition, saveStore: appState)
     }
 }
 

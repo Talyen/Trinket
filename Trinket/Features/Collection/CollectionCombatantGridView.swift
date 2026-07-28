@@ -1,9 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
+import TrinketPersistence
 
 struct CollectionCombatantGridView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(OptionsStore.self) private var options
     @State private var selectedCombatant: CombatantDetailContext?
     @Namespace private var zoomNamespace
 
@@ -50,7 +55,9 @@ struct CollectionCombatantGridView: View {
             NavigationStack {
                 RosterCombatantDetailView(
                     kind: context.kind,
-                    combatantID: context.combatantID
+                    combatantID: context.combatantID,
+                    hapticsEnabled: options.hapticsEnabled,
+                    effectsVolume: options.effectsVolume
                 )
             }
             .navigationTransition(.zoom(sourceID: context.combatantID, in: zoomNamespace))

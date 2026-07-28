@@ -1,8 +1,11 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct LabyrinthRestView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Environment(\.dismiss) private var dismiss
     let session: LabyrinthNodeSession
 

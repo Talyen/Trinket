@@ -11,4 +11,11 @@ Standing Apple platform guidance for Trinket. Prefer durable policy here over mi
 | [IdentityPlan.md](IdentityPlan.md) | Guest-first identity: iCloud = cross-device progress; no login splash / SIWA / Google |
 | [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Device-led workflow for performance, memory, or energy regressions |
 
-Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design system / chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid motion: `TrinketMotion` in `Packages/TrinketDesignSystem/`. Balance sweeps: [BattleEngine README](../../Packages/BattleEngine/README.md) and `./Scripts/balance-sweep.sh`.
+Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Package boundaries:
+[FeatureSupport](../../Packages/TrinketFeatureSupport/README.md),
+[BattleFeature](../../Packages/TrinketBattleFeature/README.md), and
+[AppState](../../Packages/TrinketAppState/README.md). Design system / chrome:
+[TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid
+motion: `TrinketMotion` in `Packages/TrinketDesignSystem/`. Balance sweeps:
+[BattleEngine README](../../Packages/BattleEngine/README.md) and
+`./Scripts/balance-sweep.sh`.

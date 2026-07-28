@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 /// Exhaustive merchant shop journey via deep link (kept out of smoke-full).

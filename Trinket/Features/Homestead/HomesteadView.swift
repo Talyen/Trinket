@@ -1,11 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlayerSaveStore.self) private var appState
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private var homestead: PlayerHomesteadState {

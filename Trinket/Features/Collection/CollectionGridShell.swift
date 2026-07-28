@@ -1,5 +1,8 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Shared scroll container and grid layout shell for Collection browse screens.
 @MainActor

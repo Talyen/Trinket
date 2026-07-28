@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Cinematic header and scrolling body shared by linear Stage Select surfaces.
 struct StageSelectScreen<HeroArt: View, Content: View>: View {
@@ -41,7 +44,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
 
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
 

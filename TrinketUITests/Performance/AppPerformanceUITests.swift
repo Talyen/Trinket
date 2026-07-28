@@ -1,3 +1,4 @@
+import TrinketFeatureSupport
 import XCTest
 
 /// Core app journeys measured with native render-pipeline hitches and the shared

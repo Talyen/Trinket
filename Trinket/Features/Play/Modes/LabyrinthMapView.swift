@@ -1,10 +1,13 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @State private var nodeMessage: StageMapMessage?
     @State private var viewedFloor = 1
     @State private var selectedNodeID: String?

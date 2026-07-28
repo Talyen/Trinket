@@ -1,6 +1,9 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Shared active + future encounter list for linear Stage Select surfaces.
 struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {

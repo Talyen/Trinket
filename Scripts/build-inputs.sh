@@ -43,6 +43,9 @@ build_input_paths=(
   Packages/BattleEngine
   Packages/TrinketPersistence
   Packages/TrinketDesignSystem
+  Packages/TrinketFeatureSupport
+  Packages/TrinketBattleFeature
+  Packages/TrinketAppState
   Packages/TrinketTestSupport
   ContentManifest
   ArtManifest

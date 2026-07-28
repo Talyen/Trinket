@@ -91,7 +91,16 @@ if [[ "$APP_ONLY" == "true" ]]; then
   exit 0
 fi
 
-PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
+PACKAGES=(
+  TrinketCore
+  TrinketContent
+  BattleEngine
+  TrinketPersistence
+  TrinketDesignSystem
+  TrinketFeatureSupport
+  TrinketBattleFeature
+  TrinketAppState
+)
 
 # Package schemes use per-package DerivedData tenants so they can build in
 # parallel without contending on a shared build.db. App products stay in

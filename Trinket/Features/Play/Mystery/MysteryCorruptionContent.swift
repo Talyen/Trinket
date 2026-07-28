@@ -1,11 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryCorruptItemChoiceContent: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Bindable var session: MysteryEncounterSession
 
     var body: some View {
@@ -54,7 +57,7 @@ struct MysteryCorruptItemChoiceContent: View {
 }
 
 struct MysteryCorruptionRevealContent: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
     @Bindable var session: MysteryEncounterSession
     let result: ItemCorruptionResult
 

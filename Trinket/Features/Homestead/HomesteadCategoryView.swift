@@ -1,14 +1,17 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Per-category Homestead list: category hero, wallet, and project rows.
 struct HomesteadCategoryView: View {
     let category: HomesteadNodeCategory
 
-    @Environment(AppState.self) private var appState
+    @Environment(PlayerSaveStore.self) private var appState
     @Namespace private var zoomNamespace
 
     private var homestead: PlayerHomesteadState {

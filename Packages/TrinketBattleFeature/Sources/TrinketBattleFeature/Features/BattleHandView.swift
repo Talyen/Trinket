@@ -1,0 +1,186 @@
+import BattleEngine
+import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
+import TrinketFeatureSupport
+
+/// Fan pose captured at pickup so hand reflow cannot retarget a held card.
+private struct HeldCardLayoutSnapshot: Equatable {
+    var width: CGFloat
+    var height: CGFloat
+    var restingRotation: CGFloat
+    var restingOffsetY: CGFloat
+    var restingCenter: CGPoint
+    var fanOffsetX: CGFloat
+}
+
+private struct HeldCardInteraction: Equatable {
+    let cardID: Int
+    let layout: HeldCardLayoutSnapshot
+}
+
+struct BattleHandView: View {
+    let cards: [BattleCard]
+    let isPlayable: (BattleCard) -> Bool
+    let onTap: (BattleCard) -> Void
+    let onPlay: (BattleCard, CardActivationRequest) -> Bool
+    let hapticsEnabled: Bool
+    let battleFrame: CGRect
+    var configuration: BattleHandMotionConfiguration = .init()
+    /// Fires when any hand card press/drag begins or ends (including tap-to-detail).
+    var onCardInteractionChanged: ((Bool) -> Void)?
+    /// Drag exceeded tap slop — start party attack wind-up for this card's owner.
+    var onAttackWindUp: ((BattleCard) -> Void)?
+    /// Card returned to hand without casting — cancel wind-up for this card's owner.
+    var onAttackCancel: ((BattleCard) -> Void)?
+
+    var body: some View {
+        GeometryReader { geometry in
+            let layout = BattleHandLayout.metrics(
+                containerWidth: geometry.size.width,
+                cardCount: cards.count,
+                configuration: configuration
+            )
+            let poses = cards.indices.map { index in
+                HeldCardLayoutSnapshot(
+                    width: layout.cardWidth,
+                    height: layout.cardHeight,
+                    restingRotation: BattleHandLayout.rotation(
+                        index: index,
+                        cardCount: cards.count,
+                        fanAngleStep: configuration.fanAngleStep
+                    ),
+                    restingOffsetY: BattleHandLayout.restingOffsetY(
+                        index: index,
+                        cardCount: cards.count,
+                        fanLiftStep: configuration.fanLiftStep
+                    ),
+                    restingCenter: BattleHandLayout.restingCenter(
+                        index: index,
+                        metrics: layout,
+                        cardCount: cards.count,
+                        containerFrame: battleFrame,
+                        configuration: configuration
+                    ),
+                    fanOffsetX: BattleHandLayout.cardOffsetX(
+                        index: index,
+                        metrics: layout,
+                        containerWidth: geometry.size.width
+                    )
+                )
+            }
+            ZStack(alignment: .bottom) {
+                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
+                    let liveSnapshot = poses[index]
+                    let isHeld = heldInteraction?.cardID == card.id
+                    let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
+
+                    BattleAbilityCardView(
+                        card: card,
+                        isPlayable: isPlayable(card),
+                        width: snapshot.width,
+                        height: snapshot.height,
+                        restingRotation: snapshot.restingRotation,
+                        restingOffsetY: snapshot.restingOffsetY,
+                        configuration: configuration,
+                        restingCenter: snapshot.restingCenter,
+                        hapticsEnabled: hapticsEnabled,
+                        onTap: { onTap(card) },
+                        onPlay: { command in onPlay(card, command) },
+                        onInteractionChanged: { isActive in
+                            if isActive {
+                                // Freeze the pose from the interaction start frame so later
+                                // draws / reflow cannot rewrite the held card's fan.
+                                if heldInteraction?.cardID != card.id {
+                                    heldInteraction = HeldCardInteraction(
+                                        cardID: card.id,
+                                        layout: liveSnapshot
+                                    )
+                                }
+                                onCardInteractionChanged?(true)
+                            } else if heldInteraction?.cardID == card.id {
+                                heldInteraction = nil
+                                onCardInteractionChanged?(false)
+                            }
+                        },
+                        onAttackWindUp: { onAttackWindUp?(card) },
+                        onAttackCancel: { onAttackCancel?(card) }
+                    )
+                    .offset(x: snapshot.fanOffsetX)
+                    .zIndex(isHeld ? 100 : Double(index))
+                    .animation(isHeld ? nil : configuration.handReflow, value: liveSnapshot)
+                    .transition(
+                        .asymmetric(
+                            insertion: .offset(
+                                x: card.owner == .hero
+                                    ? -configuration.dealInsertOffsetX
+                                    : configuration.dealInsertOffsetX,
+                                y: configuration.dealInsertOffsetY
+                            )
+                            .combined(with: .opacity)
+                            .combined(with: .scale(scale: configuration.dealInsertScale))
+                            .animation(configuration.deal),
+                            removal: .identity
+                        )
+                    )
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+        }
+
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Battle.hand)
+    }
+
+    @State private var heldInteraction: HeldCardInteraction?
+
+    /// Production entry point (default motion configuration).
+    init(
+        cards: [BattleCard],
+        isPlayable: @escaping (BattleCard) -> Bool,
+        onTap: @escaping (BattleCard) -> Void,
+        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        hapticsEnabled: Bool,
+        battleFrame: CGRect,
+        onCardInteractionChanged: ((Bool) -> Void)? = nil,
+        onAttackWindUp: ((BattleCard) -> Void)? = nil,
+        onAttackCancel: ((BattleCard) -> Void)? = nil
+    ) {
+        self.init(
+            cards: cards,
+            isPlayable: isPlayable,
+            onTap: onTap,
+            onPlay: onPlay,
+            hapticsEnabled: hapticsEnabled,
+            battleFrame: battleFrame,
+            configuration: .init(),
+            onCardInteractionChanged: onCardInteractionChanged,
+            onAttackWindUp: onAttackWindUp,
+            onAttackCancel: onAttackCancel
+        )
+    }
+
+    init(
+        cards: [BattleCard],
+        isPlayable: @escaping (BattleCard) -> Bool,
+        onTap: @escaping (BattleCard) -> Void,
+        onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        hapticsEnabled: Bool,
+        battleFrame: CGRect,
+        configuration: BattleHandMotionConfiguration,
+        onCardInteractionChanged: ((Bool) -> Void)? = nil,
+        onAttackWindUp: ((BattleCard) -> Void)? = nil,
+        onAttackCancel: ((BattleCard) -> Void)? = nil
+    ) {
+        self.cards = cards
+        self.isPlayable = isPlayable
+        self.onTap = onTap
+        self.onPlay = onPlay
+        self.hapticsEnabled = hapticsEnabled
+        self.battleFrame = battleFrame
+        self.configuration = configuration
+        self.onCardInteractionChanged = onCardInteractionChanged
+        self.onAttackWindUp = onAttackWindUp
+        self.onAttackCancel = onAttackCancel
+    }
+}

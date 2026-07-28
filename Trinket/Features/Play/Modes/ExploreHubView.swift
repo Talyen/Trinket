@@ -1,11 +1,14 @@
 import SwiftUI
+import TrinketAppState
+import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 /// Explore mode hub: Spires and Labyrinth entry cards under Play.
 /// World-map chrome can replace the art treatment later without changing destinations.
 struct ExploreHubView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(PlaySession.self) private var appState
 
     var body: some View {
         PlayModeHubScreen(

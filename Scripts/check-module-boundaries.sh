@@ -15,28 +15,28 @@ check_no_import() {
   done < <(rg -l "$pattern" "$folder" -g '*.swift' 2>/dev/null || true)
 }
 
-# App layering: BattleShell must not reference Features.
-check_no_import "Trinket/BattleShell" 'Features/' 'BattleShell must not reference Features/'
+check_no_package_dependency() {
+  local package="$1"
+  local dependency="$2"
+  local reason="$3"
+  local manifest="Packages/$package/Package.swift"
 
-# State must not reference feature views by folder path.
-check_no_import "Trinket/State" 'Features/' 'State must not reference Features/'
-
-# Models are presentation helpers — no State or Features coupling.
-check_no_import "Trinket/Models" 'Features/' 'Models must not reference Features/'
-check_no_import "Trinket/Models" 'State/' 'Models must not reference State/'
+  if rg -q "\"$dependency\"" "$manifest"; then
+    violations+=("$manifest: $reason")
+  fi
+}
 
 # Packages must not import the app module.
 while IFS= read -r file; do
   [[ -n "$file" ]] && violations+=("$file: packages must not import Trinket app module")
 done < <(rg -l '^import Trinket$' Packages -g '*.swift' 2>/dev/null || true)
 
-# TrinketDesignSystem must depend on TrinketCore only.
-for forbidden in TrinketContent BattleEngine TrinketPersistence; do
-  if rg -q "import $forbidden" Packages/TrinketDesignSystem/Sources -g '*.swift'; then
-    while IFS= read -r file; do
-      violations+=("$file: TrinketDesignSystem must not import $forbidden")
-    done < <(rg -l "import $forbidden" Packages/TrinketDesignSystem/Sources -g '*.swift')
-  fi
+# Enforce the package DAG in both source imports and Package.swift declarations.
+for forbidden in TrinketContent BattleEngine TrinketPersistence TrinketFeatureSupport TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/TrinketDesignSystem/Sources" "^import $forbidden$" \
+    "TrinketDesignSystem must not import $forbidden"
+  check_no_package_dependency TrinketDesignSystem "$forbidden" \
+    "TrinketDesignSystem must not depend on $forbidden"
 done
 
 # BattleEngine and TrinketPersistence are siblings — no cross-imports.
@@ -46,12 +46,32 @@ for pkg in BattleEngine TrinketPersistence; do
   else
     forbidden="BattleEngine"
   fi
-  if rg -q "import $forbidden" "Packages/$pkg/Sources" -g '*.swift'; then
-    while IFS= read -r file; do
-      violations+=("$file: $pkg must not import $forbidden")
-    done < <(rg -l "import $forbidden" "Packages/$pkg/Sources" -g '*.swift')
-  fi
+  check_no_import "Packages/$pkg/Sources" "^import $forbidden$" \
+    "$pkg must not import $forbidden"
+  check_no_package_dependency "$pkg" "$forbidden" \
+    "$pkg must not depend on $forbidden"
 done
+
+for forbidden in TrinketFeatureSupport TrinketBattleFeature TrinketAppState; do
+  for package in BattleEngine TrinketPersistence; do
+    check_no_import "Packages/$package/Sources" "^import $forbidden$" \
+      "$package must not import the higher-level $forbidden module"
+    check_no_package_dependency "$package" "$forbidden" \
+      "$package must not depend on the higher-level $forbidden package"
+  done
+done
+
+for forbidden in TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/TrinketFeatureSupport/Sources" "^import $forbidden$" \
+    "TrinketFeatureSupport must not import $forbidden"
+  check_no_package_dependency TrinketFeatureSupport "$forbidden" \
+    "TrinketFeatureSupport must not depend on $forbidden"
+done
+
+check_no_import "Packages/TrinketBattleFeature/Sources" '^import TrinketAppState$' \
+  'TrinketBattleFeature must not import TrinketAppState'
+check_no_package_dependency TrinketBattleFeature TrinketAppState \
+  'TrinketBattleFeature must not depend on TrinketAppState'
 
 if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2

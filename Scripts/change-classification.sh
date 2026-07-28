@@ -131,11 +131,11 @@ trinket_classify_smoke_target() {
   local path="$1"
 
   case "$path" in
-    Trinket/Features/Battle/*|Trinket/App/PreparedArtworkCache.swift|TrinketUITests/Battle/*)
+    Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
       # Hand-drag safety is FullUI-only; agents still use the battle load canary.
       trinket_add_smoke_target SmokeBattleTests
       ;;
-    Trinket/Features/Collection/*|Trinket/Features/Options/*|Trinket/Features/Shared/*|Trinket/Shared/Detail/*|TrinketUITests/Collection/*)
+    Trinket/Features/Collection/*|Trinket/Features/Options/*|TrinketUITests/Collection/*)
       trinket_add_smoke_target SmokeCollectionTests
       ;;
     Trinket/Features/Homestead/*|TrinketUITests/Homestead/*)
@@ -143,7 +143,7 @@ trinket_classify_smoke_target() {
       # Presentation row/footer contracts live in unit tests, not smoke.
       TRINKET_NEEDS_UNIT=true
       ;;
-    Trinket/Shared/AccessibilityID.swift)
+    Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift)
       # ID renames can break any surface; run the lean smoke canaries that pin selectors.
       trinket_add_smoke_target SmokePlayTests
       trinket_add_smoke_target SmokeHomesteadTests
@@ -243,30 +243,58 @@ trinket_classify_path() {
       trinket_add_package TrinketDesignSystem
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
+    Packages/TrinketFeatureSupport/*.swift|Packages/TrinketFeatureSupport/**/*.swift)
+      TRINKET_HAS_SWIFT=true
+      TRINKET_NEEDS_STYLE=true
+      TRINKET_HAS_FEATURE=true
+      trinket_add_package TrinketFeatureSupport
+      TRINKET_AUTHORED_PATHS+=("$path")
+      if [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift ]]; then
+        TRINKET_NEEDS_SMOKE=true
+        trinket_classify_smoke_target "$path"
+      elif [[ "$path" == Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift ]]; then
+        TRINKET_NEEDS_SMOKE=true
+        trinket_add_smoke_target SmokeBattleTests
+      fi
+      ;;
+    Packages/TrinketBattleFeature/*.swift|Packages/TrinketBattleFeature/**/*.swift)
+      TRINKET_HAS_SWIFT=true
+      TRINKET_NEEDS_STYLE=true
+      TRINKET_NEEDS_SMOKE=true
+      TRINKET_HAS_FEATURE=true
+      trinket_add_package TrinketBattleFeature
+      TRINKET_AUTHORED_PATHS+=("$path")
+      trinket_classify_smoke_target "$path"
+      ;;
+    Packages/TrinketAppState/*.swift|Packages/TrinketAppState/**/*.swift)
+      TRINKET_HAS_SWIFT=true
+      TRINKET_NEEDS_STYLE=true
+      TRINKET_NEEDS_UNIT=true
+      TRINKET_HAS_APP_STATE=true
+      trinket_add_package TrinketAppState
+      TRINKET_AUTHORED_PATHS+=("$path")
+      if [[ "$path" == Packages/TrinketAppState/Sources/TrinketAppState/Audio/* ]]; then
+        TRINKET_HAS_AUDIO=true
+      fi
+      ;;
     Packages/TrinketTestSupport/*.swift|Packages/TrinketTestSupport/**/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_UNIT=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Trinket/State/*|Trinket/App/*|Trinket/BattleShell/*|TrinketTests/*|Trinket/Audio/*)
+    Trinket/App/*|TrinketTests/*)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_UNIT=true
       TRINKET_AUTHORED_PATHS+=("$path")
-      if [[ "$path" == Trinket/Audio/* ]]; then TRINKET_HAS_AUDIO=true; fi
-      if [[ "$path" == Trinket/State/* || "$path" == Trinket/App/* || "$path" == Trinket/BattleShell/* ]]; then TRINKET_HAS_APP_STATE=true; fi
-      if [[ "$path" == Trinket/App/PreparedArtworkCache.swift ]]; then
-        TRINKET_NEEDS_SMOKE=true
-        TRINKET_HAS_FEATURE=true
-        trinket_classify_smoke_target "$path"
-      fi
+      if [[ "$path" == Trinket/App/* ]]; then TRINKET_HAS_APP_STATE=true; fi
       ;;
     Docs/*|*.md|Scripts/*|.github/*)
       TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Trinket/Features/*|Trinket/Shared/*|Trinket/Models/*|TrinketUITests/*)
+    Trinket/Features/*|TrinketUITests/*)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
       TRINKET_NEEDS_SMOKE=true
@@ -294,17 +322,14 @@ trinket_classify_path() {
     Packages/TrinketDesignSystem/*)
       trinket_add_boundary_warning "TrinketDesignSystem may depend on TrinketCore only; keep app, BattleEngine, and TrinketContent imports out."
       ;;
+    Packages/TrinketFeatureSupport/*)
+      trinket_add_boundary_warning "TrinketFeatureSupport must stay below TrinketBattleFeature and TrinketAppState in the package DAG."
+      ;;
+    Packages/TrinketBattleFeature/*)
+      trinket_add_boundary_warning "TrinketBattleFeature must not import or depend on TrinketAppState."
+      ;;
     Packages/*)
-      trinket_add_boundary_warning "Packages must not import the Trinket app or feature views; keep package dependencies within the package layer."
-      ;;
-    Trinket/BattleShell/*)
-      trinket_add_boundary_warning "BattleShell must not import Trinket/Features."
-      ;;
-    Trinket/State/*)
-      trinket_add_boundary_warning "State must not import feature views."
-      ;;
-    Trinket/Models/*)
-      trinket_add_boundary_warning "Models must not import State or Features."
+      trinket_add_boundary_warning "Packages must not import the Trinket app; keep dependencies within the enforced package DAG."
       ;;
   esac
 }
@@ -333,6 +358,8 @@ trinket_classify_paths() {
       case "$package" in
         BattleEngine) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketPersistence) trinket_add_context_card Docs/AgentContext/persistence.md ;;
+        TrinketBattleFeature) trinket_add_context_card Docs/AgentContext/battle.md ;;
+        TrinketFeatureSupport|TrinketAppState) trinket_add_context_card Docs/AgentContext/swiftui-features.md ;;
       esac
     done
   fi
@@ -421,9 +448,9 @@ trinket_build_verification_plan() {
       trinket_add_verification package "$package" "./Scripts/test-package.sh $package"
     done
   fi
-  # App compile gap-fill: Features/Shared/Models set NEEDS_SMOKE even when no
-  # SmokeClass resolves, which used to leave style-only plans that miss Swift 6
-  # concurrency / Testing-macro compile errors. build.sh is compile-only
+  # App compile gap-fill: presentation/feature paths can set NEEDS_SMOKE even when no
+  # SmokeClass resolves. Avoid style-only plans that miss Swift 6 concurrency /
+  # Testing-macro compile errors. build.sh is compile-only
   # (generic simulator destination, no boot) and does not expand smoke.
   # Skip scheduling when unit or a resolved smoke target already compiles the app.
   if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_UNIT" != true ]] \
