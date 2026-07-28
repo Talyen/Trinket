@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 import Testing
 import TrinketContent
@@ -30,6 +31,43 @@ final class PlayerSaveStoreTests {
         try #expect(secondStore.homestead.resources[.crystal] == 2)
         _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
+    }
+
+    @Test func versionedStoreAdoptsCurrentUnversionedSchema() throws {
+        let storeURL = context.storeURL()
+        let legacySchema = Schema(PlayerSaveSchemaV1.models)
+        do {
+            let container = try ModelContainer(
+                for: legacySchema,
+                configurations: ModelConfiguration(
+                    schema: legacySchema,
+                    url: storeURL,
+                    cloudKitDatabase: .none
+                )
+            )
+            let modelContext = ModelContext(container)
+            modelContext.insert(PlayerSaveRoot(save: .testSeed))
+            try modelContext.save()
+        }
+
+        let versionedStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+
+        try #expect(versionedStore.roster == .testSeed)
+        try #expect(versionedStore.inventory == .testSeed)
+        try #expect(versionedStore.homestead == .testSeed)
+        try #expect(!versionedStore.isPersistenceDegraded)
+    }
+
+    @Test func invalidStoreFallsBackWithoutDeletingSourceFiles() throws {
+        let storeURL = context.storeURL()
+        let originalData = Data("not-a-sqlite-store".utf8)
+        try originalData.write(to: storeURL)
+
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+
+        try #expect(store.isPersistenceDegraded)
+        try #expect(store.lastPersistenceError != nil)
+        try #expect(Data(contentsOf: storeURL) == originalData)
     }
 
     @Test func swiftDataGraphStoresIndependentRecords() throws {
@@ -290,6 +328,33 @@ final class PlayerSaveStoreTests {
 
         try #expect(store.roster.gold == 10)
         try #expect(store.lastPersistenceError == .writeFailed)
+    }
+
+    @Test func resetGameplayProgressRollsBackWhenSaveFails() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        store.grantGold(10)
+        let snapshot = store.currentSave
+        store.forcesNextSaveFailure = true
+
+        let error = try #require(throws: PlayerSavePersistenceError.self) {
+            try store.resetGameplayProgress()
+        }
+        guard case .writeFailed = error else {
+            Issue.record("Expected writeFailed, got \(error)")
+            return
+        }
+
+        try #expect(store.currentSave == snapshot)
+        try #expect(store.lastPersistenceError == .writeFailed)
+
+        store.flushPendingPersistence()
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.currentSave == snapshot)
     }
 
     @Test func deferredFlushRollsBackToLastPersistedSnapshotAcrossMutations() async throws {

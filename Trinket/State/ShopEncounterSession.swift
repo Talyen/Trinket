@@ -2,7 +2,6 @@ import Foundation
 import Observation
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 
 enum ShopEncounterOpenResult {
     case opened(ShopEncounterSession)
@@ -108,33 +107,5 @@ final class ShopEncounterSession: Identifiable {
 
     func clearLeaveFailure() {
         leaveFailureMessage = nil
-    }
-
-    /// Purchases into an open save mutation. Caller owns `isPurchasing` / sold-out updates.
-    func purchaseIntoSave(offerID: String, save: inout PlayerSave) -> ShopPurchaseResult? {
-        guard let offer = offers.first(where: { $0.id == offerID }) else { return nil }
-        return ShopPurchaseApplier.purchase(
-            offer: offer,
-            visitToken: visitToken,
-            stageID: stage.id,
-            save: &save
-        )
-    }
-
-    /// Completes the shop stage/node inside an open save mutation.
-    @discardableResult
-    func completeProgress(
-        hero: Combatant,
-        companion: Combatant,
-        save: inout PlayerSave
-    ) -> JourneyProgressState? {
-        StageCompletion.completeEncounter(
-            stage: stage,
-            labyrinthNodeID: labyrinthNodeID,
-            hero: hero,
-            companion: companion,
-            in: GameContent.chapters,
-            save: &save
-        )
     }
 }

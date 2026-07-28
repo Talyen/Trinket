@@ -28,8 +28,10 @@ public final class PlayerSaveRoot {
     }
 }
 
-public enum PlayerSaveGraph {
-    public static let schema = Schema([
+enum PlayerSaveSchemaV1: VersionedSchema {
+    static let versionIdentifier = Schema.Version(1, 0, 0)
+
+    static let models: [any PersistentModel.Type] = [
         PlayerSaveRoot.self,
         JourneyProgressModel.self,
         JourneyStageProgressModel.self,
@@ -49,5 +51,17 @@ public enum PlayerSaveGraph {
         SpiresProgressModel.self,
         SpireFloorProgressModel.self,
         LabyrinthProgressModel.self,
-    ])
+    ]
+}
+
+enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
+    static let schemas: [any VersionedSchema.Type] = [
+        PlayerSaveSchemaV1.self,
+    ]
+
+    static let stages: [MigrationStage] = []
+}
+
+public enum PlayerSaveGraph {
+    public static let schema = Schema(versionedSchema: PlayerSaveSchemaV1.self)
 }

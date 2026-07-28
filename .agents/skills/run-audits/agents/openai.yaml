@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Trinket Audits"
+  short_description: "Orchestrate evidence-led Trinket audit passes"
+  default_prompt: "Use $run-audits to run the cited Trinket audits and implement confirmed findings."

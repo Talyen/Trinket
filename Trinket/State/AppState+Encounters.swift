@@ -45,7 +45,7 @@ extension AppState {
     func purchaseActiveShopOffer(offerID: String) -> Bool {
         guard let session = activeShopEncounter else { return false }
         guard !session.isPurchasing else { return false }
-        guard session.offers.contains(where: { $0.id == offerID }) else { return false }
+        guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
         guard !session.isSoldOut(offerID) else {
             session.markPurchaseFailed(message: "That item is already sold.")
             sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
@@ -56,7 +56,12 @@ extension AppState {
         var purchaseResult: ShopPurchaseResult?
         do {
             try playerSave.performBatchMutation { save in
-                purchaseResult = session.purchaseIntoSave(offerID: offerID, save: &save)
+                purchaseResult = ShopPurchaseApplier.purchase(
+                    offer: offer,
+                    visitToken: session.visitToken,
+                    stageID: session.stage.id,
+                    save: &save
+                )
             }
         } catch {
             appStateLogger.error(
@@ -93,9 +98,12 @@ extension AppState {
         var resultingJourney: JourneyProgressState?
         do {
             try playerSave.performBatchMutation { save in
-                resultingJourney = session.completeProgress(
+                resultingJourney = StageCompletion.completeEncounter(
+                    stage: session.stage,
+                    labyrinthNodeID: session.labyrinthNodeID,
                     hero: save.roster.activeHero,
                     companion: save.roster.activeCompanion,
+                    in: GameContent.chapters,
                     save: &save
                 )
             }

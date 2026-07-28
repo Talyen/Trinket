@@ -8,6 +8,11 @@ private let labyrinthMapLogger = Logger(
     category: "LabyrinthMapPayload"
 )
 
+private let inventoryMappingLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "InventoryMapping"
+)
+
 extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
         let stageModels = stages ?? []
@@ -162,7 +167,14 @@ extension InventoryModel {
                     }
                 let affixPowers: [ItemAffixPower]? = {
                     guard let data = item.affixPowersJSON else { return nil }
-                    return try? ItemAffixPowerCoding.decode(data)
+                    do {
+                        return try ItemAffixPowerCoding.decode(data)
+                    } catch {
+                        inventoryMappingLogger.error(
+                            "Failed to decode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                        )
+                        return nil
+                    }
                 }()
                 return InventoryItem(
                     id: item.id,

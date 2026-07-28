@@ -40,9 +40,6 @@ public final class PlayerSaveStore {
     /// `true` when disk store failed and an in-memory fallback container is active.
     public private(set) var isPersistenceDegraded = false
 
-    /// `true` when a corrupt on-disk store was deleted and replaced with a fresh container.
-    public private(set) var recoveredAfterStoreDeletion = false
-
     #if DEBUG
     public var forcesNextSaveFailure = false
     #endif
@@ -119,22 +116,18 @@ public final class PlayerSaveStore {
 
         let openResult = try ModelContainerBootstrap.open(
             schema: schema,
+            migrationPlan: PlayerSaveMigrationPlan.self,
             primaryConfiguration: resolved.config,
             logger: logger,
             logLabel: "player save",
             storeURLForRecovery: resolved.recoveryURL,
-            deleteStoreOnFailure: !inMemoryOnly
+            deleteStoreOnFailure: false
         )
         container = openResult.container
-        recoveredAfterStoreDeletion = openResult.recoveredAfterStoreDeletion
         if openResult.usedInMemoryFallback {
             isPersistenceDegraded = true
             lastPersistenceError = .storeUnavailable(
                 "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space."
-            )
-        } else if openResult.recoveredAfterStoreDeletion {
-            lastPersistenceError = .storeUnavailable(
-                "Saved progress on this device was damaged and had to be reset. Previous progress could not be recovered."
             )
         }
         context = ModelContext(container)
@@ -247,9 +240,15 @@ public final class PlayerSaveStore {
         // Update the existing primary root in place. Delete+insert after a swallowed
         // clear failure left duplicate `id == "primary"` rows so a later cold start
         // could reload stale progress instead of the reset snapshot.
+        let snapshot = currentSave
         root.update(from: PlayerSaveSanitizer.sanitize(save))
-        try saveGraph()
-        pendingRollbackSnapshot = nil
+        do {
+            try saveGraph()
+            pendingRollbackSnapshot = nil
+        } catch {
+            root.update(from: snapshot)
+            throw error
+        }
     }
 
     public func resetGameplayProgress() throws {

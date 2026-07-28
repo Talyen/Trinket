@@ -11,6 +11,7 @@ enum ModelContainerBootstrap {
 
     static func open(
         schema: Schema,
+        migrationPlan: (any SchemaMigrationPlan.Type)? = nil,
         primaryConfiguration: ModelConfiguration,
         logger: Logger,
         logLabel: String,
@@ -18,7 +19,11 @@ enum ModelContainerBootstrap {
         deleteStoreOnFailure: Bool = true
     ) throws -> OpenResult {
         do {
-            let container = try ModelContainer(for: schema, configurations: primaryConfiguration)
+            let container = try ModelContainer(
+                for: schema,
+                migrationPlan: migrationPlan,
+                configurations: primaryConfiguration
+            )
             return OpenResult(container: container, usedInMemoryFallback: false, recoveredAfterStoreDeletion: false)
         } catch {
             logger.error(
@@ -27,7 +32,11 @@ enum ModelContainerBootstrap {
 
             if deleteStoreOnFailure, let storeURL = storeURLForRecovery {
                 deleteStoreFiles(at: storeURL, logger: logger, logLabel: logLabel)
-                if let recovered = try? ModelContainer(for: schema, configurations: primaryConfiguration) {
+                if let recovered = try? ModelContainer(
+                    for: schema,
+                    migrationPlan: migrationPlan,
+                    configurations: primaryConfiguration
+                ) {
                     logger.notice("Recovered \(logLabel, privacy: .public) store after deleting corrupt files.")
                     return OpenResult(
                         container: recovered,
@@ -39,7 +48,11 @@ enum ModelContainerBootstrap {
 
             let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
             do {
-                let container = try ModelContainer(for: schema, configurations: fallbackConfig)
+                let container = try ModelContainer(
+                    for: schema,
+                    migrationPlan: migrationPlan,
+                    configurations: fallbackConfig
+                )
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")
                 return OpenResult(container: container, usedInMemoryFallback: true, recoveredAfterStoreDeletion: false)
             } catch let fallbackError {

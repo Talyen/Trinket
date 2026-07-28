@@ -89,7 +89,12 @@ extension AppState {
         session.clearFailure()
         do {
             try playerSave.performBatchMutation { save in
-                _ = session.finishRest(save: &save)
+                LabyrinthCompletion.complete(
+                    nodeID: session.nodeID,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    save: &save
+                )
             }
         } catch {
             appStateLogger.error(
@@ -113,7 +118,12 @@ extension AppState {
         var forged = false
         do {
             try playerSave.performBatchMutation { save in
-                forged = session.forge(save: &save)
+                forged = LabyrinthCompletion.forgeAtAltar(
+                    nodeID: session.nodeID,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    save: &save
+                )
             }
         } catch {
             appStateLogger.error(
@@ -135,7 +145,12 @@ extension AppState {
         guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
         do {
             try playerSave.performBatchMutation { save in
-                _ = session.leaveWithoutForging(save: &save)
+                LabyrinthCompletion.complete(
+                    nodeID: session.nodeID,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    save: &save
+                )
             }
         } catch {
             appStateLogger.error(

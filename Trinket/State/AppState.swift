@@ -157,9 +157,9 @@ final class AppState {
         }
     }
 
-    /// True when save storage is degraded or was recovered by wiping a corrupt store.
+    /// True when the canonical player store could not be opened and persistence is in-memory.
     var requiresPersistenceRecoveryAcknowledgement: Bool {
-        playerSave.isPersistenceDegraded || playerSave.recoveredAfterStoreDeletion
+        playerSave.isPersistenceDegraded
     }
 
     var playChapter: Chapter {

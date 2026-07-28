@@ -244,10 +244,6 @@ public enum StatGrowth {
         )
     }
 
-    private static func scaledByCurve(_ amount: Int, _ t: Double) -> Int {
-        Int((Double(amount) * t).rounded())
-    }
-
     public static func apply(
         maxHealth: Int,
         maxMana: Int,

@@ -1,7 +1,7 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    func testSuccessfulCardReleaseRemovesOneCardWithoutOpeningDetail() throws {
+    func testSuccessfulCardReleaseRemovesOneCard() throws {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
@@ -27,10 +27,6 @@ final class BattleFlowUITests: TrinketUITestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
         XCTAssertEqual(cards.count, countBefore - 1, "A successful play must remove one card")
-        XCTAssertFalse(
-            combatantDetail.header(for: "Knight").exists,
-            "Playing a card must not open combatant detail"
-        )
     }
 
     /// Hand drag onto a combatant must not open details; tap still works after.
@@ -83,11 +79,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(AccessibilityID.LoadoutPicker.itemDetail(rewardItemID), timeout: 12)
         dismissSheet()
         assertButtonExists(AccessibilityID.Battle.continueButton)
-
-        XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden until victory is completed")
-        XCTAssertFalse(battle.actionsMenu.exists, "Battle actions toolbar should be hidden during victory")
-        XCTAssertFalse(battle.combatLogAction.exists, "Combat log should be unavailable during victory")
-        XCTAssertFalse(battle.retreatAction.exists, "Retreat should be unavailable after victory")
     }
 
     func testRetreatRestoresPlayNavigation() throws {

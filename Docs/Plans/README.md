@@ -6,4 +6,4 @@ This folder may hold design reference images and **active agent execution plans*
 
 Active:
 
-(none)
+- [App Architecture Boundaries Plan](AppArchitectureBoundariesPlan.md)

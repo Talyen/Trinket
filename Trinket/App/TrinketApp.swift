@@ -106,7 +106,7 @@ private struct PreparedAppRoot: View {
             .debugFPSOverlay()
         #endif
             .task {
-                MetricKitHitchSubscriber.shared.start()
+                MetricKitSubscriber.shared.start()
                 guard !isResourcePreparationComplete else { return }
                 appState.prepareLaunchPerformanceResources()
                 // Align the minimum hold with first paint (same yield as the
