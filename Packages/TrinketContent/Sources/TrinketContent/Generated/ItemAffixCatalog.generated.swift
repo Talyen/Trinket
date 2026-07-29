@@ -253,8 +253,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.mana, .burn, .freeze],
             weight: 8,
-            basic: ItemAffixPower(description: "Increase Maximum Mana by 3.", modifiers: [.maximumMana(3)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increase Maximum Mana by 6.", modifiers: [.maximumMana(6)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Increase Maximum Mana by 4.", modifiers: [.maximumMana(4)], triggers: CombatTraitTriggers()),
+            astral: ItemAffixPower(description: "Increase Maximum Mana by 8.", modifiers: [.maximumMana(8)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalogSupport.affix(
             id: "beastbond",

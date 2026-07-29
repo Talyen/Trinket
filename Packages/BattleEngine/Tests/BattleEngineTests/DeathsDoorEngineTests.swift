@@ -10,7 +10,7 @@ struct DeathsDoorEngineTests {
         companionHP: Int = 10,
         enemyHP: Int = 50,
         heroModifiers: CombatModifierProfile = .zero
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyHP)
@@ -19,7 +19,7 @@ struct DeathsDoorEngineTests {
             companion: CombatantRuntime(combatant: companion, initialHealth: companionHP),
             enemy: CombatantRuntime(combatant: enemy)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,

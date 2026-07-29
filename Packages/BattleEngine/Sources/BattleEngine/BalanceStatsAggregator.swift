@@ -15,6 +15,26 @@ public struct WinRateSummary: Equatable, Sendable {
     public var flagReason: String?
 }
 
+/// Gameplay duration thresholds on sim `rounds` (`turnCount` = player phase + enemy phase).
+public enum BalanceDurationThresholds {
+    public static let trashMaxRounds = 10
+    public static let bossMaxRounds = 20
+}
+
+public struct BalanceDurationBucketStats: Equatable, Sendable {
+    public var battles: Int
+    public var longBattles: Int
+    public var averageRounds: Double
+    public var averageRoundsWhenLong: Double
+    public var maxRounds: Int
+    public var worstEnemyID: String?
+
+    public var longRate: Double {
+        guard battles > 0 else { return 0 }
+        return Double(longBattles) / Double(battles)
+    }
+}
+
 public struct BalanceTierStats: Sendable {
     public var tier: SimulationPowerTier
     public var battles: Int
@@ -23,6 +43,8 @@ public struct BalanceTierStats: Sendable {
     public var averageRounds: Double
     public var averagePartyHPOnWin: Double
     public var averageEnemyHPOnLoss: Double
+    public var trashDuration: BalanceDurationBucketStats
+    public var bossDuration: BalanceDurationBucketStats
     public var heroes: [WinRateSummary]
     public var companions: [WinRateSummary]
     public var enemies: [WinRateSummary]
@@ -49,6 +71,14 @@ public enum BalanceStatsAggregator {
                 averagePartyHPOnWin: average(wins.map(\.result.partyHPRemainingFraction)),
                 averageEnemyHPOnLoss: average(
                     records.filter { !$0.result.isVictory }.map(\.result.enemyHPRemainingFraction)
+                ),
+                trashDuration: durationStats(
+                    records.filter { !$0.isBoss },
+                    maxRounds: BalanceDurationThresholds.trashMaxRounds
+                ),
+                bossDuration: durationStats(
+                    records.filter(\.isBoss),
+                    maxRounds: BalanceDurationThresholds.bossMaxRounds
                 ),
                 heroes: margin(
                     records: records,
@@ -77,6 +107,32 @@ public enum BalanceStatsAggregator {
                 )
             )
         }
+    }
+
+    private static func durationStats(
+        _ records: [BalanceBattleRecord],
+        maxRounds: Int
+    ) -> BalanceDurationBucketStats {
+        guard !records.isEmpty else {
+            return BalanceDurationBucketStats(
+                battles: 0,
+                longBattles: 0,
+                averageRounds: 0,
+                averageRoundsWhenLong: 0,
+                maxRounds: 0,
+                worstEnemyID: nil
+            )
+        }
+        let long = records.filter { $0.result.rounds > maxRounds }
+        let worst = records.max(by: { $0.result.rounds < $1.result.rounds })
+        return BalanceDurationBucketStats(
+            battles: records.count,
+            longBattles: long.count,
+            averageRounds: average(records.map { Double($0.result.rounds) }),
+            averageRoundsWhenLong: average(long.map { Double($0.result.rounds) }),
+            maxRounds: worst?.result.rounds ?? 0,
+            worstEnemyID: worst?.enemyID
+        )
     }
 
     private static func margin(

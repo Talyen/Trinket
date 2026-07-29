@@ -1,60 +1,9 @@
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
-import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
-
-struct MysteryCorruptItemChoiceContent: View {
-    @Environment(PlaySession.self) private var appState
-    @Bindable var session: MysteryEncounterSession
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    Text("Offer an Item")
-                        .trinketTypography(.screenTitle)
-                        .accessibilityIdentifier(AccessibilityID.Mystery.corruptItemTitle)
-
-                    Text("Choose gear to corrupt. The altar remakes it once — forever.")
-                        .trinketTypography(.body)
-                        .foregroundStyle(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    mysteryPersistFailureBanner(session.persistFailureMessage)
-                }
-
-                LazyVGrid(
-                    columns: TrinketDesign.Metrics.collectionGridItems,
-                    spacing: TrinketDesign.Metrics.largeSpacing
-                ) {
-                    ForEach(session.corruptibleItems) { item in
-                        EncounterItemTile(
-                            item: item,
-                            showsName: true,
-                            isDisabled: session.isResolvingChoice,
-                            accessibilityID: AccessibilityID.Mystery.corruptItemCard(itemID: item.id),
-                            onSelect: { _ = appState.corruptActiveMysteryItem(itemID: item.id) }
-                        )
-                    }
-                }
-
-                Button("Back") {
-                    appState.cancelActiveMysteryCorruptSelection()
-                }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    accessibilityIdentifier: AccessibilityID.Mystery.corruptCancelButton
-                )
-                .disabled(session.isResolvingChoice)
-            }
-            .padding(TrinketDesign.Metrics.extraLargeSpacing)
-        }
-    }
-}
 
 struct MysteryCorruptionRevealContent: View {
     @Environment(PlaySession.self) private var appState

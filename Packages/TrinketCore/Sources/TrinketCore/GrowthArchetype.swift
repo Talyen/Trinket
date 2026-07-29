@@ -144,6 +144,8 @@ public enum StatGrowth {
         }
         var growth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
         growth.maxMana = 0
+        // Enemy bulk comes from gear-compensation multipliers, not flat HP/level.
+        growth.maxHealth = 0
         return growth
     }
 
@@ -155,9 +157,7 @@ public enum StatGrowth {
             $0.value(in: identityStats) > $1.value(in: identityStats)
         }
 
-        var delta = StatGrowthDelta(
-            maxHealth: levelsAbove * 2
-        )
+        var delta = StatGrowthDelta()
         ranked.first?.apply(levelsAbove, to: &delta)
         if ranked.count > 1 {
             ranked[1].apply(every(levelsAbove, interval: 2, amount: 1), to: &delta)
@@ -175,17 +175,24 @@ public enum StatGrowth {
         return delta
     }
 
-    /// Flat gear-compensation for bosses (2.0x HP and 2.0x stats) and normal enemies (1.5x HP and 1.5x stats).
+    /// Level-scaled gear-compensation for enemies that do not carry player equipment.
+    /// Normals stay below bosses at every band: early 1.75/2.0, mid 2.1/2.25, late 2.4/2.5.
     static func enemyGearCompensation(
-        level _: Int,
+        level: Int,
         identityStats _: PrimaryStats,
         isBoss: Bool = false
     ) -> EnemyGearCompensation {
-        let healthMultiplier: Double = isBoss ? 2.0 : 1.5
-        let primaryStatMultiplier: Double = isBoss ? 2.0 : 1.5
+        let (normal, boss) = if level < 20 {
+            (1.75, 2.0)
+        } else if level < 40 {
+            (2.1, 2.25)
+        } else {
+            (2.4, 2.5)
+        }
+        let multiplier = isBoss ? boss : normal
         return EnemyGearCompensation(
-            healthMultiplier: healthMultiplier,
-            primaryStatMultiplier: primaryStatMultiplier,
+            healthMultiplier: multiplier,
+            primaryStatMultiplier: multiplier,
             statDelta: .zero
         )
     }

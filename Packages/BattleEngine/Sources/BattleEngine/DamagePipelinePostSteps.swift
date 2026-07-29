@@ -7,7 +7,7 @@ package extension DamagePipeline {
 
     static func applyLeech(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.healthLost > 0,
               let sourceActorID = state.sourceActorID,
@@ -24,7 +24,7 @@ package extension DamagePipeline {
 
     static func applyHolyReaction(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.healthLost > 0,
               state.damageKeyword == .holy,
@@ -41,7 +41,7 @@ package extension DamagePipeline {
 
     static func applyCriticalReaction(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.isCritical,
               state.healthLost > 0,
@@ -59,7 +59,7 @@ package extension DamagePipeline {
 
     static func applyControlMeter(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         // Buildup uses post-mitigation / post-crit damage before shields
         // (`buildupDamage`). Shields protect health, not control meters.
@@ -80,7 +80,7 @@ package extension DamagePipeline {
 
     static func applyReactiveOnHit(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         // Retaliation damage must never re-enter wards (mutual thorns ping-pong).
         guard !state.isDodged, !state.isRetaliation, let sourceActorID = state.sourceActorID else { return }
@@ -122,7 +122,7 @@ package extension DamagePipeline {
 
     private static func applyManaShieldOnHit(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         for active in activeEffects {
@@ -148,7 +148,7 @@ package extension DamagePipeline {
     private static func applyOnHitWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         var thornsStacks = 0
@@ -205,7 +205,7 @@ package extension DamagePipeline {
         keyword: Keyword,
         attacker: CombatantRuntime,
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard amount > 0 else { return }
         let outcome = context.resolveDamage(

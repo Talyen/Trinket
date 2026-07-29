@@ -13,7 +13,7 @@ struct MarkedConsumeTests {
 
         let heroRuntime = CombatantRuntime(combatant: hero)
         let enemyRuntime = CombatantRuntime(combatant: enemy, initialActiveEffects: [shield, mark])
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: heroRuntime,
                 companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),

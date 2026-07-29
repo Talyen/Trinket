@@ -7,7 +7,7 @@ package extension DamagePipeline {
 
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.applyDodge,
               state.amount > 0,
@@ -58,9 +58,15 @@ package extension DamagePipeline {
 
     static func dodgeChance(
         for state: DamageResolutionState,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Double {
-        var chance = state.combatant.primaryStats.dodgeChance
+        let attackerAgility = state.sourceActorID
+            .flatMap { context.roster.combatant(for: $0) }?
+            .primaryStats.agility ?? 0
+
+        var chance = state.combatant.primaryStats.contestedDodgeChance(
+            againstAttackerAgility: attackerAgility
+        )
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
@@ -72,12 +78,12 @@ package extension DamagePipeline {
                 chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
             }
         }
-        return min(0.75, chance)
+        return min(dodgeChanceCap(for: state.combatant), max(0, chance))
     }
 
     static func applyCriticalGate(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.amount > 0,
               let sourceActorID = state.sourceActorID,
@@ -86,7 +92,10 @@ package extension DamagePipeline {
               let actor = context.roster.combatant(for: sourceActorID)
         else { return }
 
-        var chance = actor.primaryStats.criticalChance(for: damageKeyword)
+        var chance = actor.primaryStats.contestedCriticalChance(
+            for: damageKeyword,
+            againstDefenderToughness: state.combatant.primaryStats.toughness
+        )
         chance += state.abilityCriticalChanceBonus
 
         let sourceEffects = context.roster.activeEffects(for: actor.combatant)
@@ -96,7 +105,7 @@ package extension DamagePipeline {
             }
         }
 
-        // Guaranteed crits bypass the 0.75 soft cap and the RNG roll so
+        // Guaranteed crits bypass the soft cap and the RNG roll so
         // "always Criticals if the enemy has a buff" / next-strike critical are actually always.
         if state.guaranteedCritical {
             applyCritical(to: &state)
@@ -108,9 +117,25 @@ package extension DamagePipeline {
             return
         }
 
-        chance = min(0.75, chance)
+        chance = min(criticalChanceCap(for: actor.combatant), max(0, chance))
         guard Double.random(in: 0 ... 1, using: &context.rng) < chance else { return }
         applyCritical(to: &state)
+    }
+
+    /// Dodge soft cap for the defending combatant (enemy archetype vs player 75%).
+    static func dodgeChanceCap(for combatant: Combatant) -> Double {
+        guard combatant.role == .enemy else {
+            return PrimaryStats.playerChanceCap
+        }
+        return combatant.growthArchetype.enemyDodgeChanceCap
+    }
+
+    /// Crit soft cap for the attacking combatant (enemy archetype vs player 75%).
+    static func criticalChanceCap(for combatant: Combatant) -> Double {
+        guard combatant.role == .enemy else {
+            return PrimaryStats.playerChanceCap
+        }
+        return combatant.growthArchetype.enemyCriticalChanceCap
     }
 
     private static func applyCritical(to state: inout DamageResolutionState) {

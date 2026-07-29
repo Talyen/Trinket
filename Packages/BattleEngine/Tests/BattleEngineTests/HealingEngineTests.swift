@@ -5,7 +5,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 
 struct HealingEngineTests {
-    private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleEngineContext {
+    private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleState {
         BattleTestFixtures.makePipelineContext(seed: seed)
     }
 
@@ -138,7 +138,7 @@ struct HealingEngineTests {
             companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
         )
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,

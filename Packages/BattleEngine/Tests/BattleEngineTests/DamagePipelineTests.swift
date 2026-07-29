@@ -24,7 +24,7 @@ struct DamagePipelineTests {
         "CriticalReaction",
     ]
 
-    private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
+    private func makeContext(seed: UInt64 = 1772) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
@@ -32,7 +32,7 @@ struct DamagePipelineTests {
             companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 0,
@@ -64,17 +64,18 @@ struct DamagePipelineTests {
     }
 
     @Test func executedStepNamesShortCircuitAfterDodge() throws {
+        // Player-capped defender so contested high agi can reach the 75% soft cap (enemies cannot).
         let stats = PrimaryStats(agility: 280)
         let target = CombatantFixtures.combatant(
-            id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
+            id: "target", role: .hero, maxHealth: 50, primaryStats: stats
         )
-        let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
+        let source = CombatantFixtures.combatant(id: "source", role: .enemy, maxHealth: 50)
         let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            hero: CombatantRuntime(combatant: target, initialActiveEffects: []),
             companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
+            enemy: CombatantRuntime(combatant: source, initialActiveEffects: [])
         )
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,
@@ -90,14 +91,14 @@ struct DamagePipelineTests {
         let executed = DamagePipeline.executedStepNames(
             for: .directAbilityHit(
                 amount: 10,
-                target: context.roster.enemy.combatant,
+                target: target,
                 keyword: .physical,
                 sourceActorID: "source"
             ),
             in: &context
         )
 
-        try #expect(executed == ["DodgeGate"], "High agility should dodge and short-circuit")
+        try #expect(executed == ["DodgeGate"], "High agility defender should dodge and short-circuit")
     }
 
     @Test func healthCostSkipsAttackPipelineSteps() throws {

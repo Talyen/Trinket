@@ -11,7 +11,7 @@ struct HalveShieldHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         guard DefensePoolEngine.halveBlock(on: target, in: &context) else {
@@ -57,7 +57,7 @@ struct ControlMeterHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)

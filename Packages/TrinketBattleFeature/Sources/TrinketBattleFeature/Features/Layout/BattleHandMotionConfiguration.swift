@@ -112,22 +112,6 @@ struct BattleHandMotionConfiguration: Equatable {
         .spring(response: dealResponse, dampingFraction: dealDamping)
     }
 
-    var pickup: Animation {
-        .spring(response: pickupResponse, dampingFraction: pickupDamping)
-    }
-
-    var readiness: Animation {
-        .spring(response: readinessResponse, dampingFraction: readinessDamping)
-    }
-
-    var cardCommit: Animation {
-        .spring(response: cardCommitResponse, dampingFraction: cardCommitDamping)
-    }
-
-    var impact: Animation {
-        .spring(response: impactResponse, dampingFraction: impactDamping)
-    }
-
     var effectiveHeldTiltDegrees: Double {
         cardMaximumTiltDegrees * tiltLeanMultiplier
     }

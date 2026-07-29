@@ -46,54 +46,6 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Battle: Sendable {
-        /// Immediate press response before a drag direction is established.
-        public static var cardPress: Animation {
-            .spring(response: 0.16, dampingFraction: 1.0)
-        }
-
-        /// Semantic pickup response for a card leaving the hand.
-        ///
-        /// Keep this separate from `cardPress` so card-play callers can describe
-        /// intent without coupling to the current drag implementation.
-        public static var pickup: Animation {
-            .spring(response: 0.2, dampingFraction: 1.0)
-        }
-
-        /// Semantic readiness response when a card or pane becomes a valid target.
-        public static var readiness: Animation {
-            .spring(response: 0.24, dampingFraction: 0.94)
-        }
-
-        /// Restrained, interruptible motion for directly manipulated ability cards.
-        public static var cardLift: Animation {
-            .spring(response: 0.2, dampingFraction: 1.0)
-        }
-
-        /// Short, purposeful flight from the hand into the battlefield.
-        public static var cardCommit: Animation {
-            .spring(response: 0.28, dampingFraction: 0.92)
-        }
-
-        /// Purposeful cast travel from the hand toward the battlefield.
-        public static var cast: Animation {
-            cardCommit
-        }
-
-        /// Tight, slightly bouncy landing response when a cast resolves.
-        public static var impact: Animation {
-            .spring(response: 0.18, dampingFraction: 0.82)
-        }
-
-        /// Slight overshoot is reserved for returning an object after a drag.
-        public static var cardReturn: Animation {
-            .spring(response: 0.38, dampingFraction: 0.82)
-        }
-
-        /// Name for a return animation when the caller is not modeling a card.
-        public static var returning: Animation {
-            cardReturn
-        }
-
         /// Particle activation of a played card.
         public static let cardActivationDuration: TimeInterval = 1.0
 
@@ -106,21 +58,6 @@ public enum TrinketMotion: Sendable {
         /// Spring used while a freshly dealt hand settles into its fan.
         public static var deal: Animation {
             .spring(response: 0.3, dampingFraction: 0.94)
-        }
-
-        /// Spring used when the hand reflows around a draw or played card.
-        public static var handReflow: Animation {
-            .spring(response: 0.34, dampingFraction: 0.92)
-        }
-
-        /// Semantic alias for layout movement after a cast or deal.
-        public static var reflow: Animation {
-            handReflow
-        }
-
-        /// Explicit card-named alias for `cast`.
-        public static var cardCast: Animation {
-            cast
         }
 
         public static let cardHeldScale = 1.035

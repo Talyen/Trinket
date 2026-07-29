@@ -21,7 +21,7 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
         guard let gain = pool.decodeGain(adjusted) else {
@@ -72,7 +72,7 @@ struct LeechHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .leech = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -120,7 +120,7 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .nextHolyStrike = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -164,7 +164,7 @@ struct NextStrikeDoubleHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .nextStrikeDouble = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -208,7 +208,7 @@ struct EvadeNextHitHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .evadeNextHit = effect else {
             return EffectApplyOutcome(events: [], didApply: false)

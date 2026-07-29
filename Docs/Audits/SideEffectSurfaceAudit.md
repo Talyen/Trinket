@@ -15,7 +15,7 @@ Confirm unexpected effect ownership and fix violations using existing seams. A c
 
 | Effect | Allowed locations |
 |--------|-------------------|
-| Disk / encoder I/O | `Packages/TrinketPersistence/`; save-store temp-dir harnesses in PersistenceTests / TrinketTests support (`SaveTestSupport`) — not `TrinketTestSupport` |
+| Disk / encoder I/O | `Packages/TrinketPersistence/`; save-store temp-dir harnesses in PersistenceTests / TrinketTests / TrinketAppStateTests support (`SaveTestSupport`) — not `TrinketTestSupport` |
 | `UserDefaults` | Options store + legacy shell-session migration — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Packages/TrinketAppState/.../Audio/` only |
 | Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Packages/TrinketBattleFeature` player cache + cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into app audio |

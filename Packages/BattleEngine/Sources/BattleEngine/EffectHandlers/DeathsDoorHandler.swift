@@ -19,7 +19,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in _: inout BattleEngineContext
+        in _: inout BattleState
     ) -> EffectApplyOutcome {
         _ = effect; _ = ability; _ = source; _ = target
         return EffectApplyOutcome(events: [], didApply: false)
@@ -28,7 +28,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectTurnOutcome {
         var updated = active
         updated.remainingTurns -= 1

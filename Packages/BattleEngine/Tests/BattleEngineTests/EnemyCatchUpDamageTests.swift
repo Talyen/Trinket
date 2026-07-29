@@ -11,7 +11,7 @@ struct EnemyCatchUpDamageTests {
         companionHP: Int,
         enemyHP: Int,
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 100)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
@@ -20,7 +20,7 @@ struct EnemyCatchUpDamageTests {
             companion: CombatantRuntime(combatant: companion, initialHealth: companionHP),
             enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 1,

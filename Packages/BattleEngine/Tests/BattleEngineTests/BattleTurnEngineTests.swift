@@ -8,7 +8,7 @@ struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
         seed: UInt64 = 1772
-    ) -> (context: BattleEngineContext, matchup: BattleMatchup) {
+    ) -> (context: BattleState, matchup: BattleMatchup) {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -25,7 +25,7 @@ struct BattleTurnEngineTests {
             companion: CombatantRuntime(combatant: companion, initialActiveEffects: []),
             enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: actorEffects)
         )
-        let context = BattleEngineContext(
+        let context = BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 1,
@@ -80,7 +80,7 @@ struct BattleTurnEngineTests {
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero, initialHealth: 5),
                 companion: CombatantRuntime(combatant: companion),
@@ -147,7 +147,7 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(
                     combatant: hero,
@@ -200,7 +200,7 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),
@@ -245,7 +245,7 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),
@@ -301,7 +301,7 @@ struct BattleTurnEngineTests {
             role: .enemy,
             maxHealth: 5
         )
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),

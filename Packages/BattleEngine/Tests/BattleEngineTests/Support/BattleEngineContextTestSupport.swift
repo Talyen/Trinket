@@ -2,7 +2,7 @@ import TrinketContent
 import TrinketCore
 @testable import BattleEngine
 
-extension BattleEngineContext {
+extension BattleState {
     @discardableResult
     mutating func applyTestDamage(
         _ amount: Int,

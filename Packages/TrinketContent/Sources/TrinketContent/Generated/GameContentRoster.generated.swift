@@ -224,7 +224,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .pixieDust],
                 skills: [.manaPotion, .manaShield],
-                ultimates: [.meteor, .glacialWard]
+                ultimates: [.meteor, .blizzard]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
             growthArchetype: .mage

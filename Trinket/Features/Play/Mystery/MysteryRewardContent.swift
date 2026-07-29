@@ -85,7 +85,7 @@ struct MysteryRewardContent: View {
                         artworkName: hero.artReference?.thumbnailImageName ?? hero.artReference?.imageName,
                         pre: heroProgressionBefore,
                         post: heroProgressionAfter,
-                        fillColor: TrinketDesign.Colors.progression,
+                        fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.grantedExperience,
                         snapToFinal: false,
                         onAnimationCompleted: experienceBarCompleted
@@ -96,7 +96,7 @@ struct MysteryRewardContent: View {
                         artworkName: companion.artReference?.thumbnailImageName ?? companion.artReference?.imageName,
                         pre: companionProgressionBefore,
                         post: companionProgressionAfter,
-                        fillColor: TrinketDesign.Colors.progression,
+                        fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.grantedExperience,
                         snapToFinal: false,
                         onAnimationCompleted: experienceBarCompleted

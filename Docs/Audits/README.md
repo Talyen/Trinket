@@ -82,11 +82,13 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 | Concern | Owner audit |
 |---------|-------------|
 | Dead / unused symbols | `DeadCodeRatioAudit.md` |
+| Live dual paths / retained compatibility shims | `DualPathRetentionAudit.md` |
+| Authored mass / growth hotspots (retrospective) | `AuthoredMassGrowthAudit.md` |
 | RNG / I/O seams | `SideEffectSurfaceAudit.md` |
 | Persistence / idempotency / swallowed errors | `BehaviorHardeningAudit.md` |
 | Concurrency / Sendable | `SwiftConcurrencyDataRaceAudit.md` |
 | Force casts / unwraps / typing escapes | `TypeSafetyAudit.md` |
-| Unit/package test value, runtime, redundancy, and tier ownership | `UnitTestAudit.md` |
+| Unit/package test value, runtime, redundancy, fixture sprawl, and tier ownership | `UnitTestAudit.md` |
 | UI / smoke / exhaustive test quality | `E2ETestQualityAudit.md` |
 | Opportunistic defect hunt | `BugHuntingAudit.md` |
 | Doc drift | `DocumentationStalenessAudit.md` |
@@ -95,7 +97,7 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 | Over-engineered / verbose / inelegant agent slop | `InelegantSlopAudit.md` |
 | Copy-paste feature screens / shells | `DuplicateFeatureSurfaceAudit.md` |
 | Misplaced logic in AppState / hubs / mega-views | `StateGravityOwnershipAudit.md` |
-| Change locality / agent context and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
+| Change locality / agent context, guidance-surface, and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
 
 Package/layer imports are continuously enforced by [Architecture.md](../Platform/Architecture.md) and `./Scripts/check-module-boundaries.sh`; they are not a user-invoked audit.

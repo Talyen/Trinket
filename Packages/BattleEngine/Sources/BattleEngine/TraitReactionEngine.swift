@@ -7,7 +7,7 @@ package enum TraitReactionEngine {
     package static func healAfterCleanse(
         source: Combatant,
         target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.cleanseBonusHeal,
@@ -19,7 +19,7 @@ package enum TraitReactionEngine {
 
     package static func healSelfAfterGoldGain(
         source: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         resolveBonusHeal(
             amount: context.modifiers(for: source.id).triggers.gainGoldBonusHealSelf,
@@ -32,7 +32,7 @@ package enum TraitReactionEngine {
     package static func healHeroAfterRestore(
         source: Combatant,
         hero: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         guard source.id != hero.id else { return .empty }
         return resolveBonusHeal(
@@ -48,7 +48,7 @@ package enum TraitReactionEngine {
         amount: Int,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleEngineContext,
+        in context: inout BattleState,
         suppressTraitReactions: Bool = false
     ) -> CombatOutcome {
         guard amount > 0 else { return .empty }
@@ -71,7 +71,7 @@ package enum TraitReactionEngine {
 }
 
 private extension Combatant {
-    func traitDisplayName(in context: BattleEngineContext) -> String {
+    func traitDisplayName(in context: BattleState) -> String {
         context.modifiers(for: id).traitDisplayName ?? "Trait"
     }
 }

@@ -18,7 +18,7 @@ package enum DamagePipeline {
     package struct Step {
         package let name: String
         package let phase: DamagePhase
-        let apply: @Sendable (inout DamageResolutionState, inout BattleEngineContext) -> Void
+        let apply: @Sendable (inout DamageResolutionState, inout BattleState) -> Void
     }
 
     /// Canonical damage resolution order. Toughness-based inherent DR runs after
@@ -48,7 +48,7 @@ package enum DamagePipeline {
 
     public static func run(
         state: inout DamageResolutionState,
-        in context: inout BattleEngineContext,
+        in context: inout BattleState,
         onStep: ((String) -> Void)? = nil
     ) {
         // Authored "Lose N Health" costs are exact HP — not attacks.
@@ -83,7 +83,7 @@ package enum DamagePipeline {
     /// Test helper: records step names actually executed for a damage request.
     package static func executedStepNames(
         for request: DamageRequest,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [String] {
         guard request.amount > 0 else { return [] }
 

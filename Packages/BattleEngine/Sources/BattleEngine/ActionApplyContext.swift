@@ -4,7 +4,7 @@ import TrinketCore
 
 /// Per-action context passed into effect handlers during `performAction`.
 /// Keeps action-scoped coordination (such as paired direct damage) out of
-/// `BattleEngineContext`.
+/// `BattleState`.
 public struct ActionApplyContext {
     public let pairedDirectDamage: [(Keyword, Int)]
 

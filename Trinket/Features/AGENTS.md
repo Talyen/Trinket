@@ -3,7 +3,7 @@
 Feature work belongs in the matching `Features/<flow>/` folder. Feature UI and state wiring must conform to `Docs/AgentContext/swiftui-features.md`.
 
 - Use shared state through the environment; feature views may own transient local `@State` but not app or session stores. Scope observability to the smallest subtree that needs it.
-- Visual chrome and colors come from `TrinketDesignSystem` and shared views in `Trinket/Shared/`. Never introduce one-off `Color` / system palette literals — extend the design system instead.
+- Visual chrome and colors come from `TrinketDesignSystem` and shared game views in `Packages/TrinketFeatureSupport`. Never introduce one-off `Color` / system palette literals — extend the design system instead.
 - `@ViewBuilder` helpers must compile under Swift 6 strict concurrency (file-level helpers that call DesignSystem / view modifiers need `@MainActor`, or live as methods on a `View`).
 - New player flows need stable accessibility identifiers suitable for smoke tests. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies. Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
 - Feature changes must pass path-scoped verification before handoff.

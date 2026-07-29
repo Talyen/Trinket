@@ -9,7 +9,7 @@ public enum EffectTurnEngine {
         category: "EffectTurnEngine"
     )
 
-    public static func advanceAll(context: inout BattleEngineContext, matchup: BattleMatchup) -> [ActionEvent] {
+    public static func advanceAll(context: inout BattleState, matchup: BattleMatchup) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
         for participant in BattleParticipant.effectTurnOrder {
@@ -36,7 +36,7 @@ public enum EffectTurnEngine {
     public static func advanceEffects(
         _ effects: [ActiveEffect],
         target: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
         var turnOutcomes: [Int: (updatedStack: ActiveEffect?, removeAfter: Bool)] = [:]

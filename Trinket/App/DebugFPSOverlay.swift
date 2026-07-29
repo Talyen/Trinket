@@ -8,46 +8,14 @@ import UIKit
 
 #if DEBUG
 
-enum DebugPreferenceKey {
-    static let showFPSOverlay = "debug.showFPSOverlay"
-}
-
-/// Corner frame-pacing readout for local diagnostics. Under XCTest it publishes only
-/// a machine-readable accessibility node when explicitly enabled.
+/// Installs the XCTest frame-metrics accessibility probe when `-enable-frame-metrics` is set.
 struct DebugFPSOverlayModifier: ViewModifier {
-    @AppStorage(DebugPreferenceKey.showFPSOverlay) private var isEnabled = false
-
-    /// Kill switch: keeps CADisplayLink off even if a stored preference is still true.
-    private static let isVisualOverlayEnabled = false
-
     private var enableFrameMetrics: Bool {
         AppEnvironment.shared.enableFrameMetrics
     }
 
-    private var underXCTest: Bool {
-        DebugRuntime.isUnderXCTest
-    }
-
-    private var showVisualBadge: Bool {
-        Self.isVisualOverlayEnabled && isEnabled && !underXCTest
-    }
-
     func body(content: Content) -> some View {
         content
-            .overlay {
-                if showVisualBadge {
-                    FramePacingVisualBadgeHost()
-                        .allowsHitTesting(false)
-                }
-            }
-            // Own sampling lifetime here — not on the badge's appear/disappear — so the
-            // launch warmup → ContentView swap cannot pause the display link.
-            .onAppear {
-                syncVisualSampling(showVisualBadge)
-            }
-            .onChange(of: showVisualBadge) { _, show in
-                syncVisualSampling(show)
-            }
             .background {
                 if enableFrameMetrics {
                     // UIWindow probe stays above Battle shell swaps and fullScreen covers
@@ -59,39 +27,6 @@ struct DebugFPSOverlayModifier: ViewModifier {
                         }
                 }
             }
-    }
-
-    private func syncVisualSampling(_ show: Bool) {
-        let monitor = FramePacingMonitor.visualShared
-        if show {
-            monitor.start(publishesAutomatically: true)
-        } else {
-            monitor.pauseSampling()
-        }
-    }
-}
-
-enum DebugRuntime {
-    static var isUnderXCTest: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }
-}
-
-/// Human-facing badge only. Measurement probes live in `FramePacingMetricsProbe`.
-///
-/// Reads the process-wide observable sampler directly. Sampling lifetime is owned by
-/// `DebugFPSOverlayModifier` so SwiftUI remounts cannot pause the display link or
-/// strand updates in a stale `@State` handler closure.
-private struct FramePacingVisualBadgeHost: View {
-    @State private var monitor = FramePacingMonitor.visualShared
-
-    var body: some View {
-        FramePacingBadge(report: monitor.latestReport)
-            .safeAreaPadding(.top, 4)
-            .safeAreaPadding(.leading, 6)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
     }
 }
 
@@ -161,7 +96,7 @@ final class FramePacingMetricsProbe {
 
         // Measurement publishes once, after its display link is paused. Periodic
         // main-thread sorting would otherwise create the stalls being measured.
-        monitor.start(publishesAutomatically: false) { [weak self] report in
+        monitor.start { [weak self] report in
             self?.metricsLabel?.accessibilityValue = report.accessibilityValue
         }
 
@@ -232,35 +167,11 @@ private final class PassThroughWindow: UIWindow {
     }
 }
 
-private struct FramePacingBadge: View {
-    let report: FramePacingReport
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-            Text(String(format: "%.0f FPS", report.averageFPS))
-                .font(.system(.caption2, design: .monospaced).weight(.bold))
-            Text(String(format: "1%% %.0f", report.onePercentLowFPS))
-                .font(.system(.caption2, design: .monospaced))
-        }
-        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
-        .background {
-            Capsule(style: .continuous)
-                .fill(TrinketDesign.Colors.Overlay.ink.opacity(0.72))
-        }
-    }
-}
-
 @MainActor
-@Observable
 final class FramePacingMonitor: NSObject {
     /// Survives ContentView shell swaps during `-enable-frame-metrics` UITests.
     /// Keeps a 30s buffer so a full soak window is never clipped before snapshot.
     static let measurementShared = FramePacingMonitor(windowSeconds: 30)
-    /// Survives launch/shell remounts for the DEBUG FPS badge without stopping sampling.
-    /// Five-second window keeps 1% low sensitive to recent stutters while debugging.
-    static let visualShared = FramePacingMonitor(windowSeconds: 5)
 
     private struct Sample: Sendable {
         let interval: CFTimeInterval
@@ -274,23 +185,16 @@ final class FramePacingMonitor: NSObject {
         BattlePerformanceTiming.monitorWarmupSeconds
     }
 
-    /// Publishing every half-second keeps the badge responsive without matching frame cadence.
-    private static let publishInterval: CFTimeInterval = 0.5
-
     private let windowSeconds: CFTimeInterval
     private let capacity: Int
-    @ObservationIgnored private var displayLink: CADisplayLink?
-    @ObservationIgnored private var previousTimestamp: CFTimeInterval = 0
-    @ObservationIgnored private var startTimestamp: CFTimeInterval = 0
-    @ObservationIgnored private var lastPublishTimestamp: CFTimeInterval = 0
-    @ObservationIgnored private var storage: [Sample?]
-    @ObservationIgnored private var nextWriteIndex = 0
-    @ObservationIgnored private var sampleCount = 0
-    @ObservationIgnored private var analysisTask: Task<Void, Never>?
-    @ObservationIgnored private var scheduledSnapshotTask: Task<Void, Never>?
-    @ObservationIgnored private var handler: ((FramePacingReport) -> Void)?
-    @ObservationIgnored private var publishesAutomatically = true
-    private(set) var latestReport = FramePacingReport.empty
+    private var displayLink: CADisplayLink?
+    private var previousTimestamp: CFTimeInterval = 0
+    private var startTimestamp: CFTimeInterval = 0
+    private var storage: [Sample?]
+    private var nextWriteIndex = 0
+    private var sampleCount = 0
+    private var scheduledSnapshotTask: Task<Void, Never>?
+    private var handler: ((FramePacingReport) -> Void)?
 
     private init(windowSeconds: CFTimeInterval) {
         self.windowSeconds = windowSeconds
@@ -300,14 +204,10 @@ final class FramePacingMonitor: NSObject {
         storage = Array(repeating: nil, count: capacity)
     }
 
-    func start(
-        publishesAutomatically: Bool = true,
-        onUpdate: ((FramePacingReport) -> Void)? = nil
-    ) {
+    func start(onUpdate: ((FramePacingReport) -> Void)? = nil) {
         if let onUpdate {
             handler = onUpdate
         }
-        self.publishesAutomatically = publishesAutomatically
         if let displayLink {
             // Drop the pause gap so the next tick re-seeds interval baselines.
             previousTimestamp = 0
@@ -319,32 +219,15 @@ final class FramePacingMonitor: NSObject {
         displayLink = link
     }
 
-    /// Stops the display link when the DEBUG overlay preference is off.
-    func pauseSampling() {
-        handler = nil
-        displayLink?.isPaused = true
-    }
-
     func resetMeasurement() {
-        analysisTask?.cancel()
-        analysisTask = nil
         scheduledSnapshotTask?.cancel()
         scheduledSnapshotTask = nil
         displayLink?.isPaused = false
         previousTimestamp = 0
         startTimestamp = 0
-        lastPublishTimestamp = 0
         nextWriteIndex = 0
         sampleCount = 0
         storage = Array(repeating: nil, count: capacity)
-        latestReport = .empty
-    }
-
-    func stop() {
-        displayLink?.invalidate()
-        displayLink = nil
-        handler = nil
-        resetMeasurement()
     }
 
     /// Freezes collection before reporting so the diagnostic publication cannot
@@ -353,7 +236,21 @@ final class FramePacingMonitor: NSObject {
         displayLink?.isPaused = true
         // Always publish — including empty — so XCTest can distinguish "snapshot
         // fired with no samples" from "snapshot never published".
-        publishReport(synchronously: true, allowEmpty: true)
+        let ordered: [Sample] = if sampleCount < capacity {
+            storage.prefix(sampleCount).compactMap(\.self)
+        } else {
+            (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
+        }
+        let samples = Self.samples(inLast: windowSeconds, from: ordered)
+        let report = if samples.isEmpty {
+            FramePacingReport.empty
+        } else {
+            FramePacingAnalyzer.report(
+                intervals: samples.map(\.interval),
+                expectedFrameDurations: samples.map(\.expectedFrameDuration)
+            )
+        }
+        handler?(report)
     }
 
     func scheduleSnapshot(after delay: Duration) {
@@ -371,7 +268,6 @@ final class FramePacingMonitor: NSObject {
         if previousTimestamp == 0 {
             previousTimestamp = timestamp
             startTimestamp = timestamp
-            lastPublishTimestamp = timestamp
             return
         }
 
@@ -388,58 +284,6 @@ final class FramePacingMonitor: NSObject {
             )
             nextWriteIndex = (nextWriteIndex + 1) % capacity
             sampleCount = min(sampleCount + 1, capacity)
-        }
-
-        guard publishesAutomatically,
-              timestamp - lastPublishTimestamp >= Self.publishInterval else { return }
-        lastPublishTimestamp = timestamp
-        // Publish on the display-link turn. Percentile work over the ring buffer is
-        // cheap; avoiding Task.detached prevents cancel/resume races from dropping
-        // every update and leaving the badge stuck at the empty report.
-        publishReport(synchronously: true)
-    }
-
-    private func publishReport(synchronously: Bool, allowEmpty: Bool = false) {
-        let ordered: [Sample] = if sampleCount < capacity {
-            storage.prefix(sampleCount).compactMap(\.self)
-        } else {
-            (storage[nextWriteIndex...] + storage[..<nextWriteIndex]).compactMap(\.self)
-        }
-        let samples = Self.samples(inLast: windowSeconds, from: ordered)
-        if samples.isEmpty {
-            guard allowEmpty else { return }
-            latestReport = .empty
-            handler?(.empty)
-            return
-        }
-        analysisTask?.cancel()
-
-        let intervals = samples.map(\.interval)
-        let expectedDurations = samples.map(\.expectedFrameDuration)
-
-        if synchronously {
-            let built = FramePacingAnalyzer.report(
-                intervals: intervals,
-                expectedFrameDurations: expectedDurations
-            )
-            latestReport = built
-            handler?(built)
-            return
-        }
-
-        let capturedHandler = handler
-        // Concurrency-Safety: outer Task stays on @MainActor for handler delivery;
-        // Task.detached runs pure percentile analysis off the display-link actor.
-        analysisTask = Task { @MainActor in
-            let built = await Task.detached(priority: .utility) {
-                FramePacingAnalyzer.report(
-                    intervals: intervals,
-                    expectedFrameDurations: expectedDurations
-                )
-            }.value
-            guard !Task.isCancelled else { return }
-            latestReport = built
-            capturedHandler?(built)
         }
     }
 

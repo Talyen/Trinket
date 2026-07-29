@@ -135,7 +135,7 @@ trinket_classify_smoke_target() {
       # Hand-drag safety is FullUI-only; agents still use the battle load canary.
       trinket_add_smoke_target SmokeBattleTests
       ;;
-    Trinket/Features/Collection/*|Trinket/Features/Options/*|TrinketUITests/Collection/*)
+    Trinket/Features/Collection/*|TrinketUITests/Collection/*)
       trinket_add_smoke_target SmokeCollectionTests
       ;;
     Trinket/Features/Homestead/*|TrinketUITests/Homestead/*)
@@ -269,7 +269,6 @@ trinket_classify_path() {
     Packages/TrinketAppState/*.swift|Packages/TrinketAppState/**/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      TRINKET_NEEDS_UNIT=true
       TRINKET_HAS_APP_STATE=true
       trinket_add_package TrinketAppState
       TRINKET_AUTHORED_PATHS+=("$path")

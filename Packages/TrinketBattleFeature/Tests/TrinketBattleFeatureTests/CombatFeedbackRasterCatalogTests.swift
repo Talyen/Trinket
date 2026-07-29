@@ -32,7 +32,7 @@ struct CombatFeedbackRasterCatalogTests {
         )
         #expect(canvasItems.count == 3)
 
-        let first = try #require(pool.raster(
+        let first = try #require(pool.prepare(
             for: canvasItems[0],
             dynamicTypeSize: .large,
             displayScale: 2
@@ -44,8 +44,8 @@ struct CombatFeedbackRasterCatalogTests {
         ))
         #expect(first === reused)
 
-        _ = pool.raster(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
-        _ = pool.raster(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
+        _ = pool.prepare(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
+        _ = pool.prepare(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
         let snapshot = pool.snapshot()
         #expect(snapshot.entryCount == 2)
         #expect(snapshot.estimatedByteCount > 0)

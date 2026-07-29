@@ -95,6 +95,22 @@ struct ManaEmpowermentTests {
         try #expect(burnStackPotency(on: battle) == 3)
     }
 
+    @Test func burnEmpowermentScalesWithMaxMana() throws {
+        var battle = makeBattle(
+            heroAbilities: [.fireball],
+            heroMaxMana: 20,
+            heroMana: 20
+        )
+        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.fireball.id })
+        let events = try battle.playCard(cardID: card.id)
+
+        try #expect(battle.mana(of: battle.hero) == 19)
+        let abilityEvent = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.fireball.id })
+        // Base fireball 2 + max(1, 20/10) empower = 4.
+        try #expect(abilityEvent.amount == 4)
+        try #expect(burnStackPotency(on: battle) == 4)
+    }
+
     @Test func burnAbilityAtZeroManaPlaysWithoutBonus() throws {
         var battle = makeBattle(
             heroAbilities: [.fireball],

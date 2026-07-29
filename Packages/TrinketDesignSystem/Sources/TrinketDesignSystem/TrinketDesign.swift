@@ -17,12 +17,6 @@ public enum TrinketDesign {
         public static let informational = ThemePalette.trinket.informational
         public static let arcane = ThemePalette.trinket.arcane
 
-        /// Compatibility aliases for existing feature code. New chrome should use the role names above.
-        public static let appBackground = canvas
-        public static let cardArtAccent = accentEmphasized
-        public static let selection = accent
-        public static let progression = accentEmphasized
-
         public static let health = ThemePalette.trinket.health
         public static let healthRestore = ThemePalette.trinket.healthRestore
         public static let healthTrailingDamage = health.opacity(0.35)

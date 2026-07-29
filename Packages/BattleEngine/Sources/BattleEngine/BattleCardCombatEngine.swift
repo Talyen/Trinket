@@ -5,7 +5,7 @@ import TrinketCore
 /// Orchestrates player card plays, the enemy turn, and end-of-round effect ticks.
 public enum BattleCardCombatEngine {
     /// Shuffles loadout decks and clears hand state. Does not draw the opening hand.
-    public static func bootstrapDecks(context: inout BattleEngineContext) {
+    public static func bootstrapDecks(context: inout BattleState) {
         context.heroDeck = CombatDeck.shuffled(
             from: context.hero.abilityLoadout,
             rng: &context.rng
@@ -21,13 +21,13 @@ public enum BattleCardCombatEngine {
     }
 
     /// Headless / test convenience: bootstrap decks and fill the opening hand immediately.
-    public static func bootstrapDecksAndOpeningHand(context: inout BattleEngineContext) {
+    public static func bootstrapDecksAndOpeningHand(context: inout BattleState) {
         bootstrapDecks(context: &context)
         drawOpeningHand(context: &context)
     }
 
     /// Draws the full opening hand (up to `BattleHand.maxSize`) and refreshes skip owners.
-    public static func drawOpeningHand(context: inout BattleEngineContext) {
+    public static func drawOpeningHand(context: inout BattleState) {
         while drawNextOpeningHandCard(context: &context) {}
         finalizeOpeningHand(context: &context)
     }
@@ -35,7 +35,7 @@ public enum BattleCardCombatEngine {
     /// Draws one opening-hand card using the same owner-pick rules as bulk opening draw.
     /// Returns `false` when the hand is full or no eligible deck remains.
     @discardableResult
-    public static func drawNextOpeningHandCard(context: inout BattleEngineContext) -> Bool {
+    public static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
         guard context.hand.count < BattleHand.maxSize else { return false }
         let eligible = [BattleParticipant.hero, .companion].filter { owner in
             context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
@@ -45,7 +45,7 @@ public enum BattleCardCombatEngine {
     }
 
     /// Call after a paced opening deal finishes so skip owners match a bulk draw.
-    public static func finalizeOpeningHand(context: inout BattleEngineContext) {
+    public static func finalizeOpeningHand(context: inout BattleState) {
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
     }
 
@@ -53,7 +53,7 @@ public enum BattleCardCombatEngine {
     public static func playCard(
         cardID: Int,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) throws -> [ActionEvent] {
         guard !context.isBattleOver else { throw BattlePlayError.battleOver }
         guard context.phase == .playerTurn else { throw BattlePlayError.notPlayerTurn }
@@ -88,7 +88,7 @@ public enum BattleCardCombatEngine {
     @discardableResult
     public static func endTurn(
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
             return []
@@ -151,7 +151,7 @@ public enum BattleCardCombatEngine {
 
     /// Restores +1 Mana to living party members with a Mana pool.
     private static func restoreManaAtPlayerTurnStart(
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
@@ -176,7 +176,7 @@ public enum BattleCardCombatEngine {
         return events
     }
 
-    public static func isCardPlayable(_ card: BattleCard, in context: BattleEngineContext) -> Bool {
+    public static func isCardPlayable(_ card: BattleCard, in context: BattleState) -> Bool {
         guard context.phase == .playerTurn, !context.isBattleOver else { return false }
         let runtime = context.roster[card.owner]
         guard runtime.isAlive else { return false }
@@ -191,7 +191,7 @@ public enum BattleCardCombatEngine {
     public static func drawCards(
         count: Int,
         for owner: BattleParticipant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> Int {
         var drawn = 0
         for _ in 0 ..< count {
@@ -206,7 +206,7 @@ public enum BattleCardCombatEngine {
 
     private static func resolveEnemyTurn(
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         let enemy = matchup.enemy
         guard context.roster.enemy.isAlive else { return [] }
@@ -228,7 +228,7 @@ public enum BattleCardCombatEngine {
         )
     }
 
-    private static func skippingOwners(in context: BattleEngineContext) -> Set<BattleParticipant> {
+    private static func skippingOwners(in context: BattleState) -> Set<BattleParticipant> {
         var skipping: Set<BattleParticipant> = []
         for owner in [BattleParticipant.hero, .companion] {
             let combatant = context.roster[owner].combatant
@@ -246,7 +246,7 @@ public enum BattleCardCombatEngine {
     private static func drawCardsBalanced(
         heroCount: Int,
         companionCount: Int,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) {
         var remaining: [BattleParticipant: Int] = [.hero: heroCount, .companion: companionCount]
         let tieWinner: BattleParticipant = context.turnCount.isMultiple(of: 2) ? .hero : .companion
@@ -280,7 +280,7 @@ public enum BattleCardCombatEngine {
 
     /// Returns defeated-owner cards from hand/buffer to their decks so dead
     /// companion/hero cards cannot permanently fill hand slots.
-    private static func discardDefeatedOwnerCards(context: inout BattleEngineContext) {
+    private static func discardDefeatedOwnerCards(context: inout BattleState) {
         guard !context.roster.hero.isAlive || !context.roster.companion.isAlive else { return }
         let survivingHand = context.hand.cards.filter { context.roster[$0.owner].isAlive }
         for card in context.hand.cards where !context.roster[card.owner].isAlive {
@@ -301,7 +301,7 @@ public enum BattleCardCombatEngine {
 
     /// Moves buffered cards into the hand in FIFO order until the hand is full.
     /// Skips defeated-owner cards (defensive; callers also purge before promote).
-    private static func promoteFromBuffer(context: inout BattleEngineContext) {
+    private static func promoteFromBuffer(context: inout BattleState) {
         guard !context.handBuffer.isEmpty else { return }
         while !context.hand.isFull {
             guard let card = context.handBuffer.dequeue() else { return }
@@ -314,7 +314,7 @@ public enum BattleCardCombatEngine {
     }
 
     @discardableResult
-    private static func drawOne(owner: BattleParticipant, context: inout BattleEngineContext) -> Bool {
+    private static func drawOne(owner: BattleParticipant, context: inout BattleState) -> Bool {
         guard context.roster[owner].isAlive else { return false }
 
         let ability: Ability? = switch owner {
@@ -337,7 +337,7 @@ public enum BattleCardCombatEngine {
         return true
     }
 
-    private static func deck(for owner: BattleParticipant, in context: BattleEngineContext) -> CombatDeck {
+    private static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {
         switch owner {
         case .hero: context.heroDeck
         case .companion: context.companionDeck
@@ -348,7 +348,7 @@ public enum BattleCardCombatEngine {
     private static func putAbilityOnBottom(
         _ ability: Ability,
         owner: BattleParticipant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) {
         switch owner {
         case .hero:

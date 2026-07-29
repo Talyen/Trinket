@@ -187,22 +187,6 @@ final class CombatFeedbackRasterPool {
         return raster
     }
 
-    /// Compatibility entry point used by tests and the performance harness.
-    @discardableResult
-    func raster(
-        for canvasItem: CombatFeedbackCanvasItem,
-        dynamicTypeSize: DynamicTypeSize,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat
-    ) -> CombatFeedbackRaster? {
-        prepare(
-            for: canvasItem,
-            dynamicTypeSize: dynamicTypeSize,
-            layoutDirection: layoutDirection,
-            displayScale: displayScale
-        )
-    }
-
     /// Eagerly composes every canvas item for the supplied feedback rows.
     /// When `useFrameBudget` is true, composes at most one miss per display-link
     /// tick so multi-target batches stay off a single publish frame.

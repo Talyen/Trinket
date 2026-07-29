@@ -14,7 +14,7 @@ struct DoTDamageTests {
         sourceStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
             sourcePrimaryStats: sourceStats,
@@ -39,7 +39,7 @@ struct DoTDamageTests {
 
     @Test(arguments: [TickBonusCase.intellectStat, .itemDamageDealt])
     private func resolveTurnDamageAppliesDamageBonuses(caseKind: TickBonusCase) throws {
-        let context: BattleEngineContext
+        let context: BattleState
         let expectedHealthLost: Int
         switch caseKind {
         case .intellectStat:

@@ -11,7 +11,7 @@ struct InstantHealHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let outcome = HealingEngine.resolveHeal(
@@ -44,7 +44,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let loggedAmount: Int
@@ -98,7 +98,7 @@ struct DrawCardsHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)

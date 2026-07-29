@@ -37,7 +37,7 @@ pounce	Pounce	skill	Deal 3 Stun damage.
 predators-focus	Predator's Focus	skill	Your next attack is a guaranteed Critical Hit.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage.
 serrated-edge	Serrated Edge	skill	Applies Bleeding.
-smite	Smite	skill	Deal 4 Holy damage.
+smite	Smite	skill	Deal 5 Holy damage.
 spiked-shield	Spiked Shield	skill	Gain 2 Block and Gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block.
@@ -57,7 +57,7 @@ golden-plate	Golden Plate	ultimate	Gain 1 Block for every 7 Gold.
 hemorrhage	Hemorrhage	ultimate	Applies Bleeding.
 luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage.
-molten-bulwark	Molten Bulwark	ultimate	Deal 6 Burn damage or gain 6 Block.
+molten-bulwark	Molten Bulwark	ultimate	Deal 4 Burn damage and Gain 4 Block.
 pack-tactics	Pack Tactics	ultimate	Draw 1 card, Draw 1 card and Restore 3 Health.
 panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs.
 phoenix-feather	Phoenix Feather	ultimate	Restore 3 Health and Revive an Ally to 3 Health.

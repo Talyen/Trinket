@@ -23,7 +23,7 @@ public struct BalanceSweepConfig: Equatable, Sendable {
     /// Concurrent battle workers. `1` = sequential; `0` = use active processor count.
     public var jobs: Int
 
-    public static let defaultBattlesPerTier = 1000
+    public static let defaultBattlesPerTier = 100
     public static let defaultOutputDirectory = "BalanceSweepReports"
 
     public init(

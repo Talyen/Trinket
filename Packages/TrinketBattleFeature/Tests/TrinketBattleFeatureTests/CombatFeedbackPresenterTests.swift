@@ -418,9 +418,9 @@ extension CombatFeedbackPresenterTests {
         ].flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: now) }
 
         let byID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
-        #expect(try #require(byID[1]).feedbackVisualStyle.symbolName == "circle.circle.fill")
-        #expect(try #require(byID[2]).feedbackVisualStyle.symbolName == "moon.stars.fill")
-        #expect(try #require(byID[3]).feedbackVisualStyle.symbolName == "moon.stars.fill")
+        #expect(try #require(byID[1]).chipPresentation.trailingTint.symbolName == "circle.circle.fill")
+        #expect(try #require(byID[2]).chipPresentation.trailingTint.symbolName == "moon.stars.fill")
+        #expect(try #require(byID[3]).chipPresentation.trailingTint.symbolName == "moon.stars.fill")
 
         let thorns = try #require(byID[4]).chipPresentation
         #expect(try #require(byID[4]).label == .word(.status(.thorns)))

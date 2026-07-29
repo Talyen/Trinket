@@ -13,7 +13,7 @@ struct CombatPipelineTests {
         targetEffects: [ActiveEffect] = [],
         sourcePrimaryStats: PrimaryStats = PrimaryStats(),
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         BattleTestFixtures.makePipelineContext(
             targetMaxHealth: targetMaxHealth,
             targetPrimaryStats: targetPrimaryStats,
@@ -30,10 +30,31 @@ struct CombatPipelineTests {
     // MARK: - Dodge
 
     @Test func applyDamageDodgeRespectsChanceAndSkipFlags() throws {
-        // Cap dodge via agility: 0.05 + 280 * 0.0025 = 0.75
+        // Player-capped defender (hero role) so contested high agi can still reach the 75% soft cap.
+        // Enemy archetype caps would clamp this below certainty.
         let stats = PrimaryStats(agility: 280)
-        var context = makeContext(targetPrimaryStats: stats, seed: 1772)
-        let (lost, events) = context.applyTestDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
+        let target = CombatantFixtures.combatant(
+            id: "target", role: .hero, maxHealth: 50, primaryStats: stats
+        )
+        let source = CombatantFixtures.combatant(id: "source", role: .enemy, maxHealth: 50)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        var context = BattleState(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: target, initialActiveEffects: []),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: source, initialActiveEffects: [])
+            ),
+            rng: SeededRandomNumberGenerator(seed: 1772),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let (lost, events) = context.applyTestDamage(10, to: target, sourceActorID: "source")
         try #expect(lost == 0)
         try #expect(events.contains { $0.effectKind == .dodgeApplied })
 
@@ -188,7 +209,7 @@ struct CombatPipelineTests {
                 maximumHealthBonus: 50
             )
         )
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,

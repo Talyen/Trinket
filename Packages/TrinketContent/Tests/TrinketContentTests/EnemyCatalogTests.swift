@@ -9,7 +9,7 @@ struct EnemyCatalogTests {
         "the_iron_bear",
     ]
 
-    private static let bossBaseHealth: Set<Int> = [24, 26, 27, 28]
+    private static let bossBaseHealth: Set<Int> = [31, 32]
 
     @Test(arguments: GameContent.enemies)
     func enemyCatalogInvariants(enemy: Enemy) throws {
@@ -73,7 +73,7 @@ struct EnemyCatalogTests {
     func enemiesUsePrimaryStatBudget(enemy: Enemy) throws {
         let stats = enemy.combatant.primaryStats
         let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-        let expected = enemy.isBoss ? 60 : 50
+        let expected = enemy.isBoss ? 60 : 55
         try #expect(
             total == expected,
             "\(enemy.name) primary stats should sum to \(expected), got \(total)"

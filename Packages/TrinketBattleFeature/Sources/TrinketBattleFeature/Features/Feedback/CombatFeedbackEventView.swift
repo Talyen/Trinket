@@ -42,11 +42,3 @@ enum CombatFeedbackMotionSampler {
         )
     }
 }
-
-extension CombatFeedbackItem {
-    /// Primary (trailing) visual style for the chip. Dual-icon chips expose the
-    /// subject keyword / role via `chipPresentation` instead.
-    var feedbackVisualStyle: Keyword.VisualStyle {
-        chipPresentation.trailingTint
-    }
-}

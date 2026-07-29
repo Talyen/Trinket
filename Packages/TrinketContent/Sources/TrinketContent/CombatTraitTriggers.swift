@@ -1,6 +1,9 @@
 import Foundation
 import TrinketCore
 
+/// Concurrency-Safety: `@unchecked Sendable` — heap-backed mutable class; callers mutate
+/// only after `CombatModifierProfile.uniqueTriggers()` CoW ensures a unique copy; no
+/// concurrent shared mutation.
 public final class CombatTraitTriggers: @unchecked Sendable {
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int

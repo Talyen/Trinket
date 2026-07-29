@@ -6,7 +6,7 @@ import TrinketCore
 package enum HealingEngine {
     static func resolveHeal(
         _ request: HealRequest,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         guard context.roster.health(for: request.target) > 0 else { return .empty }
         if context.modifiers(for: request.target.id).triggers.cannotBeHealed {
@@ -60,7 +60,7 @@ package enum HealingEngine {
         _ damage: Int,
         sourceActorID: String,
         abilityHasLeech: Bool = false,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         guard damage > 0,
               let actor = context.roster.combatant(for: sourceActorID),
@@ -132,7 +132,7 @@ package enum HealingEngine {
     private static func rollRestorationCritical(
         for request: HealRequest,
         amount: inout Int,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatFlag? {
         guard amount > 0,
               let sourceActorID = request.sourceActorID,
@@ -150,13 +150,17 @@ package enum HealingEngine {
         }
         guard critKeyword.allowsCriticalHits else { return nil }
 
-        var chance = actor.primaryStats.criticalChance(for: critKeyword)
+        var chance = actor.primaryStats.contestedCriticalChance(
+            for: critKeyword,
+            againstDefenderToughness: request.target.primaryStats.toughness
+        )
         for active in context.roster.activeEffects(for: actor.combatant) {
             if case let .criticalChanceBonus(bonus, _) = active.effect {
                 chance += bonus
             }
         }
-        chance = min(0.75, chance)
+        let cap = DamagePipeline.criticalChanceCap(for: actor.combatant)
+        chance = min(cap, max(0, chance))
         guard chance > 0,
               Double.random(in: 0 ... 1, using: &context.rng) < chance
         else { return nil }

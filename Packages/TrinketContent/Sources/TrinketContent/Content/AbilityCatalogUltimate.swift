@@ -91,12 +91,10 @@ enum AbilityCatalogUltimate {
         amount: 6, keyword: .burn
     )
 
-    static let moltenBulwark = Ability(
+    static let moltenBulwark = AbilityBuilder.directHit(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
-        outcomeBranches: [
-            AbilityOutcomeBranch(damageComponents: [DamageComponent(6, keyword: .burn)]),
-            AbilityOutcomeBranch(effects: [.shield(.block, 6)]),
-        ]
+        amount: 4, keyword: .burn,
+        extras: [TargetedEffect(.shield(.block, 4))]
     )
 
     static let packTactics = Ability(

@@ -11,7 +11,7 @@ struct BattleMechanicsTests {
         enemy: Combatant,
         heroMana: Int? = nil,
         enemyEffects: [ActiveEffect] = []
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let heroRuntime = CombatantRuntime(
             combatant: hero,
             initialMana: heroMana
@@ -25,7 +25,7 @@ struct BattleMechanicsTests {
             companion: CombatantRuntime(combatant: companion),
             enemy: enemyRuntime
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,
@@ -108,7 +108,7 @@ struct BattleMechanicsTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(
                     combatant: hero,

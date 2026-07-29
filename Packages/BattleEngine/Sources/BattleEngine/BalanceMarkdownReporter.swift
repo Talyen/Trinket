@@ -13,28 +13,13 @@ public enum BalanceMarkdownReporter {
                 elapsedSeconds: report.elapsedSeconds
             )
         }
+        return renderIdentityOrContrast(report)
+    }
+
+    private static func renderIdentityOrContrast(_ report: BalanceSweepReport) -> String {
         let tiers = BalanceStatsAggregator.summarize(report: report)
         var lines: [String] = []
-        lines.append("# Balance Sweep Report")
-        lines.append("")
-        lines.append("- Mode: `\(report.config.mode.rawValue)`")
-        lines.append("- Policy: `\(report.policyID)`")
-        lines.append("- Seed: `\(report.config.seed)`")
-        lines.append("- Battles per tier: `\(report.config.battlesPerTier)`")
-        lines.append("- Jobs: `\(report.config.resolvedJobs)`")
-        lines.append("- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))")
-        lines.append("- Identity battles: `\(report.records.count)`")
-        lines.append("- Ability contrast rows: `\(report.abilityContrasts.count)`")
-        lines.append("- Affix contrast rows: `\(report.affixContrasts.count)`")
-        lines.append(String(format: "- Elapsed: `%.2fs`", report.elapsedSeconds))
-        if report.elapsedSeconds > 0, !report.records.isEmpty {
-            lines.append(String(
-                format: "- Identity throughput: `%.1f` battles/sec",
-                Double(report.records.count) / report.elapsedSeconds
-            ))
-        }
-        lines.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
-        lines.append("")
+        appendReportHeader(report, into: &lines)
 
         if !report.records.isEmpty {
             for tierStats in tiers where tierStats.battles > 0 {
@@ -58,14 +43,47 @@ public enum BalanceMarkdownReporter {
             )
         }
 
+        appendReportNotes(policyID: report.policyID, into: &lines)
+        return lines.joined(separator: "\n")
+    }
+
+    private static func appendReportHeader(_ report: BalanceSweepReport, into lines: inout [String]) {
+        lines.append("# Balance Sweep Report")
+        lines.append("")
+        lines.append("- Mode: `\(report.config.mode.rawValue)`")
+        lines.append("- Policy: `\(report.policyID)`")
+        lines.append("- Seed: `\(report.config.seed)`")
+        lines.append("- Battles per tier: `\(report.config.battlesPerTier)`")
+        lines.append("- Jobs: `\(report.config.resolvedJobs)`")
+        lines.append("- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))")
+        lines.append("- Identity battles: `\(report.records.count)`")
+        lines.append("- Ability contrast rows: `\(report.abilityContrasts.count)`")
+        lines.append("- Affix contrast rows: `\(report.affixContrasts.count)`")
+        lines.append(String(format: "- Elapsed: `%.2fs`", report.elapsedSeconds))
+        if report.elapsedSeconds > 0, !report.records.isEmpty {
+            lines.append(String(
+                format: "- Identity throughput: `%.1f` battles/sec",
+                Double(report.records.count) / report.elapsedSeconds
+            ))
+        }
+        lines.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
+        lines.append(
+            "- Too-long fights: trash `>\(BalanceDurationThresholds.trashMaxRounds)` rounds, boss `>\(BalanceDurationThresholds.bossMaxRounds)` rounds (sim `turnCount` = player phase + enemy phase)."
+        )
+        lines.append("")
+    }
+
+    private static func appendReportNotes(policyID: String, into lines: inout [String]) {
         lines.append("## Notes")
         lines.append("")
-        lines.append("- Win rates are under `\(report.policyID)` autoplay, not human play.")
+        lines.append("- Win rates are under `\(policyID)` autoplay, not human play.")
         lines.append("- Identity ability/affix rows are presence margins (entity appeared in loadout/gear).")
         lines.append("- Contrast lifts hold partner/enemy/gear fixed and swap only the focus entity.")
         lines.append("- Enemy ⚠ flags compare against `StatGrowth.enemyGearCompensation` target bands.")
+        lines.append(
+            "- Duration ⚠ LONG uses gameplay thresholds (trash >\(BalanceDurationThresholds.trashMaxRounds) / boss >\(BalanceDurationThresholds.bossMaxRounds) rounds)."
+        )
         lines.append("")
-        return lines.joined(separator: "\n")
     }
 
     private static func appendIdentityTier(_ tierStats: BalanceTierStats, into lines: inout [String]) {
@@ -85,6 +103,7 @@ public enum BalanceMarkdownReporter {
             tierStats.averageEnemyHPOnLoss * 100
         ))
         lines.append("")
+        appendDurationSection(tierStats, into: &lines)
         appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
         appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
         appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
@@ -92,6 +111,48 @@ public enum BalanceMarkdownReporter {
         if tierStats.tier.includesGear {
             appendSection(title: "Item Affixes", summaries: tierStats.affixes, into: &lines, limit: 25)
         }
+    }
+
+    private static func appendDurationSection(_ tierStats: BalanceTierStats, into lines: inout [String]) {
+        lines.append("### Duration")
+        lines.append("")
+        lines.append("| Bucket | Threshold | n | LONG% | Avg rounds | Avg when LONG | Max rounds | Worst enemy | Flag |")
+        lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|")
+        appendDurationRow(
+            label: "trash",
+            threshold: BalanceDurationThresholds.trashMaxRounds,
+            stats: tierStats.trashDuration,
+            into: &lines
+        )
+        appendDurationRow(
+            label: "boss",
+            threshold: BalanceDurationThresholds.bossMaxRounds,
+            stats: tierStats.bossDuration,
+            into: &lines
+        )
+        lines.append("")
+    }
+
+    private static func appendDurationRow(
+        label: String,
+        threshold: Int,
+        stats: BalanceDurationBucketStats,
+        into lines: inout [String]
+    ) {
+        let flag = stats.longBattles > 0 ? "⚠ LONG" : ""
+        let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "—"
+        lines.append(String(
+            format: "| %@ | >%d | %d | %.1f%% | %.1f | %.1f | %d | %@ | %@ |",
+            label,
+            threshold,
+            stats.battles,
+            stats.longRate * 100,
+            stats.averageRounds,
+            stats.averageRoundsWhenLong,
+            stats.maxRounds,
+            worst,
+            flag
+        ))
     }
 
     private static func appendContrasts(

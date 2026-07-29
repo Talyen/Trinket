@@ -126,7 +126,11 @@ enum AbilityValidator {
 
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "blood-offering", "smite":
+        case "blood-offering":
+            total == 4
+        case "smite":
+            total == 5
+        case "molten-bulwark":
             total == 4
         case "ice-shot":
             total == 2

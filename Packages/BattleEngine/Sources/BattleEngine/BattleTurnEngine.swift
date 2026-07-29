@@ -14,7 +14,7 @@ public enum BattleTurnEngine {
         _ ability: Ability,
         actor: Combatant,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext,
+        context: inout BattleState,
         spendMana: Bool = false
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
@@ -33,7 +33,7 @@ public enum BattleTurnEngine {
     /// Consumes a pending stun/freeze skip for `actor` and records the action.
     public static func consumeActionSkip(
         for actor: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
         guard let index = currentEffects.firstIndex(where: { $0.effect.isActionSkipPending }) else {
@@ -64,7 +64,7 @@ public enum BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext,
+        context: inout BattleState,
         spendMana: Bool
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
@@ -137,7 +137,7 @@ public enum BattleTurnEngine {
     }
 
     @discardableResult
-    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) -> [ActionEvent] {
+    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleState) -> [ActionEvent] {
         guard ability.manaCost > 0, actor.hasMana else { return [] }
         let cost = context.modifiers(for: actor.id).effectiveManaCost(for: ability)
         guard cost > 0 else { return [] }
@@ -173,7 +173,7 @@ extension BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var resolvedComponents: [ResolvedDamageComponent] = []
@@ -314,7 +314,7 @@ extension BattleTurnEngine {
 
     private static func activeDamageKeywordOverride(
         for actor: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> (keyword: Keyword, bonus: Int)? {
         for active in context.roster.activeEffects(for: actor) where active.remainingTurns > 0 {
             if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
@@ -333,7 +333,7 @@ extension BattleTurnEngine {
 
     private static func hasNextHolyStrike(
         for actor: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { active in
             if case .nextHolyStrike = active.effect {
@@ -345,7 +345,7 @@ extension BattleTurnEngine {
 
     private static func removeNextHolyStrike(
         for actor: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: actor)
         effects.removeAll {
@@ -358,7 +358,7 @@ extension BattleTurnEngine {
 
     private static func hasNextStrikeDouble(
         for actor: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { active in
             if case .nextStrikeDouble = active.effect {
@@ -370,7 +370,7 @@ extension BattleTurnEngine {
 
     private static func removeNextStrikeDouble(
         for actor: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: actor)
         effects.removeAll {
@@ -384,7 +384,7 @@ extension BattleTurnEngine {
 
     private static func hasNextStrikeCritical(
         for actor: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { active in
             if case .nextStrikeCritical = active.effect {
@@ -396,7 +396,7 @@ extension BattleTurnEngine {
 
     private static func removeNextStrikeCritical(
         for actor: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: actor)
         effects.removeAll {
@@ -414,7 +414,7 @@ extension BattleTurnEngine {
         abilityTarget: Combatant,
         matchup: BattleMatchup,
         pairedDirectDamage: [(Keyword, Int)],
-        context: inout BattleEngineContext,
+        context: inout BattleState,
         events: inout [ActionEvent]
     ) -> [String] {
         var appliedEffectLogs: [String] = []
@@ -472,7 +472,7 @@ extension BattleTurnEngine {
         _ effect: Effect,
         target: Combatant,
         actor _: Combatant,
-        context: BattleEngineContext
+        context: BattleState
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
         if case .resourceGain(.gold, _) = effect {
@@ -489,7 +489,7 @@ extension BattleTurnEngine {
 
     private static func recordAction(
         for actor: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         context.actionCount += 1
         guard var runtime = context.roster.runtime(for: actor) else { return [] }
@@ -505,7 +505,7 @@ extension BattleTurnEngine {
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant,
-        context: BattleEngineContext
+        context: BattleState
     ) -> Combatant {
         switch target {
         case .abilityTarget:

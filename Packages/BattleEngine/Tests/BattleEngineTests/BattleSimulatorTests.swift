@@ -98,6 +98,7 @@ struct BattleSimulatorTests {
         let markdown = BalanceMarkdownReporter.render(report)
         #expect(markdown.contains("# Balance Sweep Report"))
         #expect(markdown.contains("### Heroes"))
+        #expect(markdown.contains("### Duration"))
         #expect(markdown.contains("Avg rounds"))
     }
 

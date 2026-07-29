@@ -6,7 +6,7 @@ import TrinketCore
 package enum EnemyTraitEngine {
     package static func turnRegeneration(
         for combatant: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.regenerationAmount > 0,
@@ -34,7 +34,7 @@ package enum EnemyTraitEngine {
 
     package static func turnBlock(
         for combatant: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.blockPerTurn > 0,
@@ -55,7 +55,7 @@ package enum EnemyTraitEngine {
 
     package static func turnFreeze(
         for combatant: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
@@ -87,7 +87,7 @@ package enum EnemyTraitEngine {
     package static func traitAttackerBurn(
         defender: Combatant,
         attackerID: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.onHitAttackerBurn > 0,
@@ -108,7 +108,7 @@ package enum EnemyTraitEngine {
     package static func applyShieldErosion(
         keyword: Keyword,
         to combatant: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.shieldErosionTicks > 0,
@@ -141,7 +141,7 @@ package enum EnemyTraitEngine {
     package static func applyMitigationShred(
         keyword: Keyword,
         to combatant: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) {
         let profile = context.modifiers(for: combatant.id)
         guard profile.triggers.mitigationShredDurationTurns > 0,
@@ -159,7 +159,7 @@ package enum EnemyTraitEngine {
         damageTaken: Int,
         defender: Combatant,
         attackerID: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.thornsPercent > 0, damageTaken > 0,
@@ -218,13 +218,13 @@ package enum EnemyTraitEngine {
     package static func bonusBleedPotency(
         ability: Ability,
         sourceID: String,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Int {
         guard ability.id == "hemorrhage" else { return 0 }
         return context.modifiers(for: sourceID).triggers.hemorrhageBleedBonus
     }
 
-    private static func traitName(for combatant: Combatant, in context: BattleEngineContext) -> String {
+    private static func traitName(for combatant: Combatant, in context: BattleState) -> String {
         context.modifiers(for: combatant.id).traitDisplayName ?? "Trait"
     }
 }

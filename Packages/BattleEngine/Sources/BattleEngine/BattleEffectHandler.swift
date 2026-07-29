@@ -43,12 +43,12 @@ public protocol BattleEffectHandler: Sendable {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectTurnOutcome
     /// Builds the player-facing summary line for a stack of active effects
     /// of this kind, all sharing the same `keyword`. Returning `nil` means
@@ -64,7 +64,7 @@ public extension BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectTurnOutcome {
         _ = target; _ = context
         switch active.effect {

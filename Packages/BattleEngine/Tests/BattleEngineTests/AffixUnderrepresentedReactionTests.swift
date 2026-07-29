@@ -66,7 +66,7 @@ struct AffixUnderrepresentedReactionTests {
         )
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: source, initialMana: 0),
                 companion: CombatantRuntime(combatant: companion),
@@ -105,6 +105,63 @@ struct AffixUnderrepresentedReactionTests {
 
         try #expect(context.gold == 4)
         try #expect(events.contains { $0.abilityName == "Bounty" && $0.amount == 4 })
+    }
+
+    @Test func bountyGrantsGoldFromCompanionWhenAlive() throws {
+        var context = BattleTestFixtures.makePipelineContext()
+        let companion = context.roster.companion.combatant
+        context = BattleState(
+            roster: context.roster,
+            rng: context.rng,
+            nextEffectID: context.nextEffectID,
+            nextEventID: context.nextEventID,
+            events: context.events,
+            gold: context.gold,
+            initialGold: context.initialGold,
+            heroModifiers: .zero,
+            companionModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 3))
+            ),
+            enemyModifiers: .zero
+        )
+
+        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+
+        try #expect(context.gold == 3)
+        try #expect(events.contains {
+            $0.abilityName == "Bounty" && $0.amount == 3 && $0.actorName == companion.name
+        })
+    }
+
+    @Test func bountyGrantsCompanionGoldWhenHeroIsDead() throws {
+        var context = BattleTestFixtures.makePipelineContext()
+        let hero = context.roster.hero.combatant
+        let companion = context.roster.companion.combatant
+        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
+        context = BattleState(
+            roster: context.roster,
+            rng: context.rng,
+            nextEffectID: context.nextEffectID,
+            nextEventID: context.nextEventID,
+            events: context.events,
+            gold: context.gold,
+            initialGold: context.initialGold,
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 4))
+            ),
+            companionModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 3))
+            ),
+            enemyModifiers: .zero
+        )
+
+        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+
+        try #expect(context.gold == 3)
+        try #expect(events.count == 1)
+        try #expect(events.contains {
+            $0.abilityName == "Bounty" && $0.amount == 3 && $0.actorName == companion.name
+        })
     }
 
     @Test func gildedIncreasesGoldGrantedByPercent() throws {

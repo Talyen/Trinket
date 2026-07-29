@@ -9,7 +9,7 @@ package enum ControlMeterEngine {
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) {
@@ -67,7 +67,7 @@ package enum ControlMeterEngine {
         return []
     }
 
-    public static func threshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
+    public static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
         combatant.primaryStats.controlMeterThreshold(
             baseMaxHealth: context.roster.maxHealth(for: combatant)
         )
@@ -94,7 +94,7 @@ package enum ControlMeterEngine {
     private static func applyThresholdReached(
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
@@ -151,7 +151,7 @@ package enum ControlMeterEngine {
     private static func updateBuildup(
         _ update: ControlMeterUpdate,
         currentEffects: inout [ActiveEffect],
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         let buildup = Effect.controlMeter(update.keyword, update.newAmount, update.threshold)
         if let existingIndex = update.existingIndex {

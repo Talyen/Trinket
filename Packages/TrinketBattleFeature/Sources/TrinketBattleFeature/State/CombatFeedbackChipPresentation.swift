@@ -141,7 +141,7 @@ struct CombatFeedbackChipPresentation {
         )
     }
 
-    /// Trailing tint for numeric / single-style chips — mirrors legacy `feedbackVisualStyle`.
+    /// Trailing tint for numeric / single-style chips.
     private static func trailingStyle(
         keyword: Keyword,
         visualRole: CombatFeedbackVisualRole,

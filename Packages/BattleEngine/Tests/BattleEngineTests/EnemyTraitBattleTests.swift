@@ -14,8 +14,8 @@ struct EnemyTraitBattleTests {
         hero: Combatant,
         companion: Combatant,
         enemyBuild: CombatBuild
-    ) -> BattleEngineContext {
-        BattleEngineContext(
+    ) -> BattleState {
+        BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),

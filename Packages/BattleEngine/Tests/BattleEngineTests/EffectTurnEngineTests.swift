@@ -9,7 +9,7 @@ struct EffectTurnEngineTests {
         heroHP: Int = 50,
         enemyHP: Int = 50,
         enemyEffects: [ActiveEffect] = []
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
@@ -18,7 +18,7 @@ struct EffectTurnEngineTests {
             companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP, initialActiveEffects: enemyEffects)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 0),
             nextEffectID: 10,

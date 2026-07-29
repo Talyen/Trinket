@@ -22,7 +22,7 @@ struct ThornsHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .thorns(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -72,7 +72,7 @@ struct MarkedHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .marked(bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -123,7 +123,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -175,7 +175,7 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -219,7 +219,7 @@ struct DamageKeywordOverrideHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)

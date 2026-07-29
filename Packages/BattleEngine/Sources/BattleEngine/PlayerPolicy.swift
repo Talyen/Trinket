@@ -66,6 +66,10 @@ public struct GreedyHeuristicPolicy: Sendable {
                 value += amount
             case let .burn(amount), let .poison(amount), let .bleed(amount):
                 value += amount * 2
+            case let .resourceGain(keyword, amount):
+                value += keyword == .mana ? amount * 2 : amount
+            case .convertManaToBlock:
+                value += 4
             default:
                 value += 2
             }

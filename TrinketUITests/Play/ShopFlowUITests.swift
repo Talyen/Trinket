@@ -21,23 +21,16 @@ final class ShopFlowUITests: TrinketUITestCase {
         let offerCards = app.buttons.matching(
             NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
         )
-        offerCards.firstMatch.tap()
+        let firstOfferCard = offerCards.firstMatch
+        firstOfferCard.tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         dismissSheet()
 
-        let buyButtons = app.buttons.matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Buy ")
-        )
-        var purchased = false
-        for index in 0 ..< buyButtons.count {
-            let buyButton = buyButtons.element(boundBy: index)
-            if buyButton.exists, buyButton.isHittable, buyButton.isEnabled {
-                buyButton.tap()
-                purchased = true
-                break
-            }
-        }
-        XCTAssertTrue(purchased, "Expected at least one enabled shop Buy control")
+        let offerID = firstOfferCard.identifier.replacingOccurrences(of: " shop offer", with: "")
+        let buyButton = button(AccessibilityID.Shop.buyButton(offerID: offerID))
+        scrollUntilVisible(buyButton, swipingUp: true, requireHittable: true)
+        XCTAssertTrue(buyButton.isEnabled, "Expected shop buy control to be enabled for \(offerID)")
+        tapWhenReady(buyButton)
 
         let leaveButton = button(AccessibilityID.Shop.leaveButton)
         scrollUntilVisible(leaveButton, swipingUp: true, requireHittable: true)

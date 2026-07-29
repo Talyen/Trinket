@@ -7,7 +7,7 @@ package enum CombatReactionEngine {
     package static func afterBleedApplied(
         to target: Combatant,
         sourceActorID: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard context.roster.combatant(for: sourceActorID) != nil else { return [] }
         let profile = context.modifiers(for: sourceActorID)
@@ -41,7 +41,7 @@ package enum CombatReactionEngine {
         keyword: Keyword,
         to target: Combatant,
         sourceActorID: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard keyword == .burn else { return [] }
         let potency = context.modifiers(for: sourceActorID).triggers.onBurnApplyPoison
@@ -60,7 +60,7 @@ package enum CombatReactionEngine {
 package extension CombatReactionEngine {
     static func affixDamageBonus(
         for state: DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> Int {
         guard let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
@@ -112,7 +112,7 @@ package extension CombatReactionEngine {
         return bonus
     }
 
-    static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterDodge(by combatant: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: combatant.id)
         var events: [ActionEvent] = []
 
@@ -154,7 +154,7 @@ package extension CombatReactionEngine {
 
     static func afterBlockBroken(
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         guard profile.triggers.blockBrokenBlockFlat > 0 else { return [] }
@@ -168,7 +168,7 @@ package extension CombatReactionEngine {
         )
     }
 
-    static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterEnemyStunned(in context: inout BattleState) -> [ActionEvent] {
         let profile = context.heroModifiers
         let shouldReact = profile.triggers.stunDealPhysicalFlat > 0
             || profile.triggers.enemyStunnedApplyMarked
@@ -211,7 +211,7 @@ package extension CombatReactionEngine {
         return events
     }
 
-    static func afterSpendMana(by actor: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.spendManaBlockFlat
         guard amount > 0 else { return [] }
         return applyBlock(
@@ -226,7 +226,7 @@ package extension CombatReactionEngine {
     static func afterHolyDamageDealt(
         to enemy: Combatant,
         source: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: source.id)
         var events: [ActionEvent] = []
@@ -291,7 +291,7 @@ package extension CombatReactionEngine {
 
     static func shareHeroLeechWithCompanion(
         restored: Int,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let percent = context.heroModifiers.triggers.companionLeechSharePercent
         guard restored > 0,
@@ -318,7 +318,7 @@ package extension CombatReactionEngine {
 
     static func afterHealthDropped(
         target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
         guard profile.triggers.onceBelowHealthPercentThreshold > 0,
@@ -362,7 +362,7 @@ package extension CombatReactionEngine {
         abilityName: String,
         count: Int,
         purgeAll: Bool,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard purgeAll || count > 0 else { return [] }
         var enemyEffects = context.roster.activeEffects(for: target)
@@ -408,7 +408,7 @@ package extension CombatReactionEngine {
         sourceActorID: String,
         actorName: String,
         abilityName: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         var effects = context.roster.activeEffects(for: target)
         effects.removeAll {
@@ -441,7 +441,7 @@ package extension CombatReactionEngine {
         to target: Combatant,
         source: Combatant,
         abilityName: String,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         let adjusted = context.adjustedOutgoingEffect(
             .shield(.block, amount),

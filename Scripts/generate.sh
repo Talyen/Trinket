@@ -8,6 +8,54 @@ export LANG=C
 
 cd "$(dirname "$0")/.."
 
+# Prefer Xcode's macOS SDK for SPM/`swift run` (AbilityInventoryDump). Newer macOS /
+# CLT betas can leave a CommandLineTools SDK that mismatches Xcode's swiftc.
+ensure_xcode_macos_sdk() {
+  if [[ -z "${DEVELOPER_DIR:-}" ]]; then
+    local selected=""
+    if command -v xcode-select >/dev/null 2>&1; then
+      selected="$(xcode-select -p 2>/dev/null || true)"
+    fi
+    if [[ -n "$selected" && -d "$selected" ]]; then
+      export DEVELOPER_DIR="$selected"
+    elif [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
+      export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+    fi
+  fi
+
+  if ! command -v xcrun >/dev/null 2>&1; then
+    echo "error: xcrun not found; install Xcode or set DEVELOPER_DIR." >&2
+    return 1
+  fi
+
+  local sdk_path="${SDKROOT:-}"
+  if [[ -z "$sdk_path" || ! -d "$sdk_path" ]]; then
+    sdk_path="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+  fi
+  if [[ -z "$sdk_path" || ! -d "$sdk_path" ]]; then
+    echo "error: unable to resolve macOS SDK via xcrun --sdk macosx." >&2
+    return 1
+  fi
+  if [[ "$sdk_path" == *"/CommandLineTools/"* ]]; then
+    echo "error: macOS SDK resolved to Command Line Tools ($sdk_path)." >&2
+    echo "Point xcode-select / DEVELOPER_DIR at Xcode.app and retry." >&2
+    return 1
+  fi
+  export SDKROOT="$sdk_path"
+
+  if [[ -n "${DEVELOPER_DIR:-}" ]]; then
+    local toolchain_bin="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    local developer_bin="$DEVELOPER_DIR/usr/bin"
+    if [[ -d "$toolchain_bin" ]]; then
+      export PATH="$toolchain_bin:$developer_bin:$PATH"
+    elif [[ -d "$developer_bin" ]]; then
+      export PATH="$developer_bin:$PATH"
+    fi
+  fi
+}
+
+ensure_xcode_macos_sdk
+
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
 FORCE_XCODEGEN=false
@@ -108,6 +156,7 @@ Env:
   TRINKET_FORCE_XCODEGEN=1       Same as --force-xcodegen
   TRINKET_REQUIRE_PINNED_TOOLS=1 Require .tools/xcodegen on PATH (agent push gate)
   FORCE_ASSET_REENCODE=1         Force art/SFX/music/app-icon re-encode even when up to date
+  DEVELOPER_DIR / SDKROOT        Optional overrides; otherwise Xcode (not CLT) is selected
 EOF
 }
 

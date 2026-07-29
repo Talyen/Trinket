@@ -11,13 +11,13 @@ struct TraitBattleTests {
         enemy: Combatant,
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero),
             companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: enemy)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,
@@ -36,7 +36,7 @@ struct TraitBattleTests {
         abilityName: String,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         let ability = Ability(
             id: "test-\(abilityName)",

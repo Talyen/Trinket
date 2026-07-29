@@ -74,7 +74,7 @@ package enum DefensePoolEngine {
         for combatant: Combatant,
         effects _: [ActiveEffect],
         profile: CombatModifierProfile,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Double {
         var percent = combatant.primaryStats.toughnessMitigationPercent
         if let runtime = context.roster.runtime(for: combatant),
@@ -92,7 +92,7 @@ package enum DefensePoolEngine {
         pool: Pool,
         to target: Combatant,
         keyword: Keyword? = nil,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard amount > 0 else { return }
         var effects = context.roster.activeEffects(for: target)
@@ -122,7 +122,7 @@ package enum DefensePoolEngine {
         _ amount: Int,
         pool: Pool,
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: target)
         effects.removeAll { pool.matches($0.effect) }
@@ -140,7 +140,7 @@ package enum DefensePoolEngine {
     /// Halves pooled Block at end of round (floor).
     package static func decayBlockAtEndOfRound(
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         let current = points(in: context.roster.activeEffects(for: target), pool: .block)
         guard current > 0 else { return }
@@ -150,7 +150,7 @@ package enum DefensePoolEngine {
     /// Halves pooled Block (floor). Used by `Effect.halveShield`.
     package static func halveBlock(
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> Bool {
         let current = points(in: context.roster.activeEffects(for: target), pool: .block)
         guard current > 0 else { return false }

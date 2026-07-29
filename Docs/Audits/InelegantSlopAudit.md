@@ -16,8 +16,8 @@ Slop looks industrious but fails a pragmatism test: more types, indirection, com
 | `*Manager` / `*Helper` / `*Coordinator` / `*Wrapper` for one function | Noun theater around a free function or method |
 | Narrating comments / restated docs | Rephrases the signature instead of encoding non-obvious intent |
 | Boolean parameter soup | Combinatorial call sites that should be an enum or two methods |
-| Deep nesting / giant `body` / god file | Complexity that should be extracted *or* collapsed, not both layered |
-| Pass-through wrappers / rename-only typealiases | Extra names that do not add a boundary |
+| Deep nesting / giant `body` / god file | Ceremony/indirection inside an otherwise right-sized owner; prefer AuthoredMassGrowth when the primary cost is absolute size / mixed jobs with correct ownership |
+| Pass-through wrappers / rename-only typealiases | Extra names that do not add a boundary — only when there is no surviving twin path; otherwise DualPathRetention |
 | Premature DI / config objects for 2–3 fields | Framework cosplay for a local call |
 | Defensive `??` / `Result` / `Any` stacks without a real failure mode | Ceremony that hides the real invariant |
 | Near-duplicate blocks with tiny diffs | Copy-paste growth instead of one parameterized path |
@@ -30,7 +30,7 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, design-system tokens, catalog/codegen boundaries, or module import rules.
 - Do not rewrite battle pipeline math “for clarity” without package tests proving equivalence.
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
-- Prefer the owning audit when the hit is primarily dead code, boundaries, concurrency, type-safety escapes, duplicate feature surfaces, or state-ownership drift.
+- Prefer the owning audit when the hit is primarily dead code, dual-path retention, authored mass/growth, boundaries, concurrency, type-safety escapes, duplicate feature surfaces, or state-ownership drift.
 
 ## Evidence bar
 

@@ -6,7 +6,7 @@ package extension CombatReactionEngine {
     static func afterCriticalHit(
         to enemy: Combatant,
         source: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
         let profile = context.modifiers(for: source.id)
@@ -20,7 +20,7 @@ package extension CombatReactionEngine {
         )
     }
 
-    static func afterGainMana(by actor: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.gainManaBlockFlat
         guard amount > 0 else { return [] }
         return applyBlock(
@@ -32,7 +32,7 @@ package extension CombatReactionEngine {
         )
     }
 
-    static func afterLeech(by actor: Combatant, in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterLeech(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let profile = context.modifiers(for: actor.id)
         var events: [ActionEvent] = []
 
@@ -73,27 +73,52 @@ package extension CombatReactionEngine {
         return events
     }
 
-    static func afterEnemyDefeated(in context: inout BattleEngineContext) -> [ActionEvent] {
-        let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
-        guard amount > 0, context.roster.hero.isAlive else { return [] }
-        let hero = context.roster.hero.combatant
-        let granted = context.goldGranted(for: amount, sourceActorID: hero.id)
-        context.addGold(amount, sourceActorID: hero.id)
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
-            actorName: hero.name,
-            abilityName: "Bounty",
-            target: hero,
-            amount: granted,
-            keyword: .gold
-        )]
+    static func afterEnemyDefeated(in context: inout BattleState) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+
+        if context.roster.hero.isAlive {
+            let hero = context.roster.hero.combatant
+            let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
+            if amount > 0 {
+                let granted = context.goldGranted(for: amount, sourceActorID: hero.id)
+                context.addGold(amount, sourceActorID: hero.id)
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    actorName: hero.name,
+                    abilityName: "Bounty",
+                    target: hero,
+                    amount: granted,
+                    keyword: .gold
+                ))
+            }
+        }
+
+        if context.roster.companion.isAlive {
+            let companion = context.roster.companion.combatant
+            let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
+            if amount > 0 {
+                let granted = context.goldGranted(for: amount, sourceActorID: companion.id)
+                context.addGold(amount, sourceActorID: companion.id)
+                events.append(context.nextEvent(
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    actorName: companion.name,
+                    abilityName: "Bounty",
+                    target: companion,
+                    amount: granted,
+                    keyword: .gold
+                ))
+            }
+        }
+
+        return events
     }
 
     static func applySidestepHeal(
         for combatant: Combatant,
         profile: CombatModifierProfile,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeHealFlat > 0 else { return [] }
         return HealingEngine.resolveHeal(
@@ -115,7 +140,7 @@ package extension CombatReactionEngine {
     static func applyWhiplashStun(
         for combatant: Combatant,
         profile: CombatModifierProfile,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard profile.triggers.dodgeDealStunFlat > 0, context.roster.enemy.isAlive else { return [] }
         // Avoid nesting a full damage pipeline inside DodgeGate (stack overflow in

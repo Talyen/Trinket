@@ -230,7 +230,7 @@ struct AffixReactionBattleTests {
             maxHealth: 50
         )
         let enemyCombatant = passiveEnemy(maxHealth: 100)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: heroCombatant),
                 companion: CombatantRuntime(combatant: passiveCompanion()),

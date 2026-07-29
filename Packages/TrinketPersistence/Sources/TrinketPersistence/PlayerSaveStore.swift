@@ -212,11 +212,6 @@ public final class PlayerSaveStore {
         }
     }
 
-    public func flushPendingSave() async {
-        await Task.yield()
-        flushPendingPersistence()
-    }
-
     private func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in

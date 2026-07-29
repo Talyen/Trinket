@@ -11,7 +11,7 @@ struct ConvertManaToBlockHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .convertManaToBlock = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -45,7 +45,7 @@ struct ShieldFromManaHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .shieldFromMana = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -77,7 +77,7 @@ struct ShieldFromHalfManaHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .shieldFromHalfMana = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -110,7 +110,7 @@ struct ShieldFromGoldHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .shieldFromGold(goldPerBlock) = effect, goldPerBlock > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -153,7 +153,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .maximumManaBonus(amount) = effect, amount > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -196,7 +196,7 @@ struct NextStrikeCriticalHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .nextStrikeCritical = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -235,7 +235,7 @@ struct FreezeNextAttackerHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case .freezeNextAttacker = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -269,7 +269,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -325,7 +325,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -364,7 +364,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectTurnOutcome {
         guard case let .recurringDamage(keyword, potency, _) = active.effect,
               active.remainingTurns > 0
@@ -412,7 +412,7 @@ struct HolyDamageBonusFromBlockHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .holyDamageBonusFromBlock(durationTurns) = effect, durationTurns > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -451,7 +451,7 @@ struct ReviveHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .revive(health) = effect, health > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)

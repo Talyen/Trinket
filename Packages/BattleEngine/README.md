@@ -6,7 +6,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 Products from `Package.swift`:
 
-- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
+- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleState`.
 - **BattleBalanceTools** — App-unlinked library for headless simulation, balance policies, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
 - **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
@@ -36,16 +36,16 @@ Products from `Package.swift`:
 Manual CLI only — **no CI gates** or scheduled automations.
 
 ```sh
-./Scripts/balance-sweep.sh --battles-per-tier 1000 --seed 1
+./Scripts/balance-sweep.sh --seed 1
 ./Scripts/balance-sweep.sh --mode ability-contrast --battles-per-tier 200
 ./Scripts/balance-sweep.sh --mode affix-contrast --tiers middle,lateGame
-./Scripts/balance-sweep.sh --mode all --jobs 8
+./Scripts/balance-sweep.sh --mode all --battles-per-tier 1000
 ```
 
 Writes markdown under `BalanceSweepReports/` (gitignored). Requires a local Swift toolchain (Xcode 26+).
 Modes: `identity` (default), `ability-contrast`, `affix-contrast`, `all`.
 
-Locked tooling choices: greedy-v1 autoplay policy; default 1,000 battles per Early/Mid/Late tier; keyword-aligned gear (generics allowed); catalog identities + scaled level (not journey graph); reproducible seeds.
+Locked tooling choices: greedy-v1 autoplay policy; default 100 battles per Early/Mid/Late tier; keyword-aligned gear (generics allowed); catalog identities + scaled level (not journey graph); reproducible seeds.
 
 ## Adding a new effect
 

@@ -4,6 +4,10 @@ import TrinketCore
 /// Heap-backed so `CombatTraitTriggers.affixReactions` stays pointer-sized.
 /// Inline `Optional<large struct>` permanently bloated every profile copy and
 /// overflowed balance-sim worker stacks.
+///
+/// Concurrency-Safety: `@unchecked Sendable` — heap-backed mutable class; merged only
+/// after `CombatTraitTriggers` CoW / `copy()` ensures a unique trigger bag; no concurrent
+/// shared mutation.
 public final class CombatAffixReactionTriggers: @unchecked Sendable {
     public var enemyStunnedPurgeCount: Int = 0
     public var enemyStunnedPurgeAll: Bool = false

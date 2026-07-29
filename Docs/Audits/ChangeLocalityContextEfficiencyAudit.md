@@ -15,8 +15,9 @@ Identify repeated high-friction clusters and simplify them through existing sour
 | A local path routes unrelated context cards, skills, or verification tiers | Routine work pays avoidable reading or execution cost |
 | Routine successful commands emit repetitive output, or failures require opening raw logs | Useful signal is buried in avoidable tool output |
 | A frequently changed owner requires unrelated code to understand one concern | The semantic change is not locally reviewable |
+| Agent guidance surface restates the same policy across nested `AGENTS.md`, AgentContext cards, skills, or audit guides | Agents re-read duplicated guardrails; Platform docs / root `AGENTS.md` / executable scripts should own the canonical copy |
 
-**Not this audit:** import legality → the enforced module-boundary gate; wrong semantic ownership → StateGravityOwnershipAudit; local ceremony → InelegantSlopAudit; duplicate UI → DuplicateFeatureSurfaceAudit; unit/UI test runtime and portfolio ownership → UnitTestAudit or E2ETestQualityAudit.
+**Not this audit:** import legality → the enforced module-boundary gate; wrong semantic ownership → StateGravityOwnershipAudit; local ceremony → InelegantSlopAudit; duplicate UI → DuplicateFeatureSurfaceAudit; unit/UI test runtime and portfolio ownership → UnitTestAudit or E2ETestQualityAudit; live authored mass without locality/routing friction → AuthoredMassGrowthAudit; dual live paths → DualPathRetentionAudit.
 
 ## Hard stops
 
@@ -38,7 +39,7 @@ A finding requires all of:
 
 ## Domain rules
 
-Executable scripts and checked-in configuration own tool behavior; Platform documents own architecture and testing policy; `AGENTS.md` owns repository-wide guardrails; context cards contain only routed exceptions. Prefer links over copied policy, but keep the minimum local instruction needed to make a routed card actionable.
+Executable scripts and checked-in configuration own tool behavior; Platform documents own architecture and testing policy; `AGENTS.md` owns repository-wide guardrails; context cards, nested guides, skills, and audits contain only routed exceptions or distinct scope — not restated root policy. Prefer links over copied policy, but keep the minimum local instruction needed to make a routed card actionable. Guidance-surface findings succeed when duplicated policy collapses to one owner and required preread shrinks.
 
 Count authored inputs separately from generated outputs and assets. Verification may narrow only when dependency and behavior evidence proves the removed tier or preread is unrelated. Route the finding to a neighboring audit when locality cost is secondary to that audit's concern.
 

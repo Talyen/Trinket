@@ -11,7 +11,7 @@ package enum DoTApplicator {
         sourceActorID: String,
         dealImmediateDamage: Bool,
         suppressAffixReactions: Bool = false,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
@@ -59,7 +59,7 @@ package enum DoTApplicator {
         sourceActorID: String,
         dealImmediateDamage: Bool,
         suppressAffixReactions: Bool = false,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 

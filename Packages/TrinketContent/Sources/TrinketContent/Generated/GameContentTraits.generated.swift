@@ -175,8 +175,8 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "the_blight_treant_trait",
             name: "The Blight Treant",
-            description: "Damage increases by 1 every other turn.",
-            modifiers: [],
+            description: "Poison and Bleed damage taken reduced by 20%. Holy damage taken increased by 30%. Damage increases by 1 every other turn.",
+            modifiers: [.damageTakenPercent(.poison, 0.20), .damageTakenPercent(.bleed, 0.20), .damageTakenVulnerability(.holy, 0.30)],
             triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
@@ -189,16 +189,16 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
-            description: "Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 30%. Damage increases by 1 every other turn.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 1, damageIncreasesEveryOtherTurn: true)
+            description: "Deals 2 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.20)],
+            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 2, damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
             id: "the_iron_bear_trait",
             name: "The Iron Bear",
-            description: "Reduces incoming damage taken by 1. Damage increases by 1 every other turn.",
-            modifiers: [],
-            triggers: CombatTraitTriggers(passiveMitigationFlat: 1, damageIncreasesEveryOtherTurn: true)
+            description: "Physical damage taken reduced by 25%. Damage increases by 1 every other turn.",
+            modifiers: [.damageTakenPercent(.physical, 0.25)],
+            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
             id: "goblin_trait",

@@ -33,11 +33,12 @@ package extension BattleState {
 
 public extension BattleTurnEngine {
     /// Spends 1 Mana to raise Burn/Freeze damage numbers on `ability` when available.
+    /// Empowerment scales with max mana: `max(1, maxMana / 10)`.
     @discardableResult
     static func spendManaToEmpowerBurnOrFreezeIfNeeded(
         for ability: inout Ability,
         actor: Combatant,
-        context: inout BattleEngineContext
+        context: inout BattleState
     ) -> [ActionEvent] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
         guard let runtime = context.roster.runtime(for: actor),
@@ -46,7 +47,8 @@ public extension BattleTurnEngine {
         else { return [] }
         let spent = context.spendMana(1, for: actor)
         guard spent > 0 else { return [] }
-        ability = ability.empoweredByMana(amount: 1)
+        let empowerAmount = max(1, runtime.maxMana / 10)
+        ability = ability.empoweredByMana(amount: empowerAmount)
         return CombatReactionEngine.afterSpendMana(by: actor, in: &context)
     }
 }

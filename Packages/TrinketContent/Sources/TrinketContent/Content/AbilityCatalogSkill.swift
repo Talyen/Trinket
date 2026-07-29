@@ -115,7 +115,7 @@ enum AbilityCatalogSkill {
 
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        damageComponents: [DamageComponent(4, keyword: .holy)]
+        damageComponents: [DamageComponent(5, keyword: .holy)]
     )
 
     static let spikedShield = Ability(

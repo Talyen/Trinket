@@ -26,7 +26,7 @@ vampiric	Vampiric	trinket	leech	8	Leech restores 10% more Health.	Leech restores
 bloodstone	Bloodstone	trinket	leech,health	8	Leech restores 1 additional Health.	Leech restores 2 additional Health.	leech_healing:1	leech_healing:2		
 rime	Rime	trinket	freeze	8	Increase Freeze damage by 1.	Increase Freeze damage by 2.	damage_dealt:freeze:1	damage_dealt:freeze:2		
 stunning	Stunning	trinket	stun	8	Increase Stun damage by 1.	Increase Stun damage by 2.	damage_dealt:stun:1	damage_dealt:stun:2		
-manabound	Manabound	trinket	mana,burn,freeze	8	Increase Maximum Mana by 3.	Increase Maximum Mana by 6.	maximum_mana:3	maximum_mana:6		
+manabound	Manabound	trinket	mana,burn,freeze	8	Increase Maximum Mana by 4.	Increase Maximum Mana by 8.	maximum_mana:4	maximum_mana:8		
 beastbond	Beastbond	trinket	health	8	Your Companion deals 1 additional damage.	Your Companion deals 2 additional damage.	companion_damage_dealt:1	companion_damage_dealt:2		
 biting	Biting	trinket	bleed,leech	8	Bleed lasts 1 additional turn.	Bleed lasts 2 additional turns.	bleed_duration:1	bleed_duration:2		
 infected	Infected	weapon	bleed,poison	8	Apply 1 Poison when you apply Bleed.	Apply 2 Poison when you apply Bleed.			on_bleed_apply_poison:1	on_bleed_apply_poison:2

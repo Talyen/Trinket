@@ -9,7 +9,7 @@ struct ControlMeterEngineTests {
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
         seed: UInt64 = 1772
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: targetMaxHealth
         )
@@ -19,7 +19,7 @@ struct ControlMeterEngineTests {
             companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 0,

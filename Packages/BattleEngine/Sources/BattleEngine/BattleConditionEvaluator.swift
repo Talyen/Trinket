@@ -9,7 +9,7 @@ public enum BattleConditionEvaluator {
         enemy: Combatant,
         hero: Combatant,
         companion: Combatant,
-        context: BattleEngineContext
+        context: BattleState
     ) -> Bool {
         switch condition {
         case .enemyBleeding:
@@ -45,7 +45,7 @@ public enum BattleConditionEvaluator {
     public static func lowestHealthAlly(
         hero: Combatant,
         companion: Combatant,
-        context: BattleEngineContext
+        context: BattleState
     ) -> Combatant {
         let heroHealth = context.roster.health(for: hero)
         let companionHealth = context.roster.health(for: companion)
@@ -66,7 +66,7 @@ public enum BattleConditionEvaluator {
     private static func hasDebuffKeyword(
         _ keyword: Keyword,
         on combatant: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             guard active.effect.keyword == keyword else { return false }
@@ -84,7 +84,7 @@ public enum BattleConditionEvaluator {
     private static func hasPendingControl(
         _ keyword: Keyword,
         on combatant: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             guard case let .controlMeter(meterKeyword, amount, threshold) = active.effect else { return false }
@@ -92,7 +92,7 @@ public enum BattleConditionEvaluator {
         }
     }
 
-    private static func hasMarked(on combatant: Combatant, in context: BattleEngineContext) -> Bool {
+    private static func hasMarked(on combatant: Combatant, in context: BattleState) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
             if case .marked = active.effect {
                 return true

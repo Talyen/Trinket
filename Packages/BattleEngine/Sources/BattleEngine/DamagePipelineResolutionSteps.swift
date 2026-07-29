@@ -7,7 +7,7 @@ package extension DamagePipeline {
 
     static func applyDamageBonus(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         if let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword,
@@ -62,7 +62,7 @@ package extension DamagePipeline {
     static func outgoingDamageBonus(
         for sourceActorID: String,
         keyword: Keyword,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Int {
         let profile = context.modifiers(for: sourceActorID)
         var bonus = profile.damageDealtBonus(for: keyword)
@@ -78,7 +78,7 @@ package extension DamagePipeline {
     /// Hidden catch-up: when the enemy's HP% exceeds the party average, reduce enemy outgoing damage by 1.
     private static func shouldApplyEnemyCatchUpPenalty(
         for state: DamageResolutionState,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         guard let sourceActorID = state.sourceActorID,
               context.roster.combatant(for: sourceActorID)?.role == .enemy
@@ -95,14 +95,14 @@ package extension DamagePipeline {
 
     private static func healthPercent(
         for combatant: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Double {
         let maxHealth = context.roster.maxHealth(for: combatant)
         guard maxHealth > 0 else { return 0 }
         return Double(context.roster.health(for: combatant)) / Double(maxHealth)
     }
 
-    private static func partyAverageHealthPercent(in context: BattleEngineContext) -> Double {
+    private static func partyAverageHealthPercent(in context: BattleState) -> Double {
         let heroPercent = healthPercent(for: context.roster.hero.combatant, in: context)
         let companionPercent = healthPercent(for: context.roster.companion.combatant, in: context)
         return (heroPercent + companionPercent) / 2.0
@@ -110,7 +110,7 @@ package extension DamagePipeline {
 
     static func applyMarkedBonus(
         to state: inout DamageResolutionState,
-        in _: inout BattleEngineContext
+        in _: inout BattleState
     ) {
         guard state.sourceActorID != nil else { return }
         let effects = state.activeEffects
@@ -137,7 +137,7 @@ package extension DamagePipeline {
 
     static func applyItemReduction(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.remaining > 0 else {
             state.buildupDamage = 0
@@ -165,7 +165,7 @@ package extension DamagePipeline {
 
     static func applyCriticalMultiply(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         _ = context
         guard state.isCritical, state.remaining > 0 else {
@@ -181,7 +181,7 @@ package extension DamagePipeline {
     /// plus flat passive mitigation from traits/affixes.
     static func applyMitigation(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.remaining > 0 else { return }
 
@@ -216,7 +216,7 @@ package extension DamagePipeline {
 
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         var effects = context.roster.activeEffects(for: state.combatant)
         guard let index = effects.firstIndex(where: {
@@ -272,7 +272,7 @@ package extension DamagePipeline {
 
     static func applyTakeDamage(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         context.roster.setActiveEffects(state.activeEffects, for: state.combatant)
         var lost = 0
@@ -288,7 +288,7 @@ package extension DamagePipeline {
 
     static func applyMarkedConsume(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         guard state.markedBonusApplied else { return }
 
@@ -316,7 +316,7 @@ package extension DamagePipeline {
 
     static func applyDeathsDoor(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         state.damageEvents.append(contentsOf: DeathsDoorEngine.resolveAfterDamage(
             to: state.combatant,

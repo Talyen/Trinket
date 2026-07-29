@@ -18,7 +18,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard matches(active.effect) else { return EffectTurnOutcome() }
         let slowPercent = context.modifiers(for: target.id).triggers.burnDecaySlowPercent
         let nextPotency: Int = if keyword == .burn {
@@ -57,7 +57,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -93,7 +93,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 
     private func poisonPotencyAfterTurn(
         _ active: ActiveEffect,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> Int {
         guard case let .poison(potency) = active.effect else {
             return active.effect.potencyAfterTurn()
@@ -113,7 +113,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTurnOutcome {
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) -> EffectTurnOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return EffectTurnOutcome()
         }
@@ -150,7 +150,7 @@ struct BleedHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         guard context.roster.health(for: target) > 0 else {

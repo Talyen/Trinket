@@ -77,7 +77,7 @@ struct VictoryView: View {
                     artworkName: summary.heroArtworkName,
                     pre: summary.heroProgressionBefore,
                     post: summary.heroProgressionAfter,
-                    fillColor: TrinketDesign.Colors.progression,
+                    fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.experience,
                     snapToFinal: false,
                     onAnimationCompleted: experienceBarCompleted
@@ -89,7 +89,7 @@ struct VictoryView: View {
                     artworkName: summary.companionArtworkName,
                     pre: summary.companionProgressionBefore,
                     post: summary.companionProgressionAfter,
-                    fillColor: TrinketDesign.Colors.progression,
+                    fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.companionExperience,
                     snapToFinal: false,
                     onAnimationCompleted: experienceBarCompleted

@@ -2,9 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Mutation surface passed to rule engines. Same storage as `BattleState`.
-public typealias BattleEngineContext = BattleState
-
 /// Top-level battle facade: UI calls `playCard` / `endTurn`; rule engines mutate
 /// via `package` APIs in `BattleState+*.swift`. Put effect rules in
 /// `EffectHandlers/`, shared math in existing engines, and never add
@@ -206,7 +203,7 @@ public struct BattleState {
 
     /// Runs `body` against the battle state in place, then refreshes the log
     /// when `tracksLog` is enabled.
-    package mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
+    package mutating func withEngineContext<R>(_ body: (inout Self) throws -> R) rethrows -> R {
         let result = try body(&self)
         finishMutation(rebuildLog: true)
         return result

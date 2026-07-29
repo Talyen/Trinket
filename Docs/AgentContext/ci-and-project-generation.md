@@ -49,7 +49,10 @@ This card adds the CI/project-generation exceptions:
   separate one-shot infra rerun from `.github/workflows/nightly-infra-rerun.yml`
   when attempt 1 fails on infrastructure only.
 - `generate.sh` exports `LC_ALL=C` / `LANG=C` so asset hash TSV headers stay
-  stable on CI locales. Asset prepare scripts also preserve the two header lines
+  stable on CI locales. It also pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's
+  macOS SDK (rejects Command Line Tools SDK) before `content_codegen` / SPM
+  `swift run`, so newer macOS/CLT betas cannot mismatch Xcode's `swiftc`. Asset
+  prepare scripts also preserve the two header lines
   and sort data rows with `LC_ALL=C sort` — keep that pattern for any new
   `*SourceHashes.generated.tsv` writer. `generate.sh` prefers `.tools/xcodegen`.
   `--force-xcodegen` (or `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so

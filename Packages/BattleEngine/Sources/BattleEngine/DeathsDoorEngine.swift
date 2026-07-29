@@ -8,14 +8,14 @@ package enum DeathsDoorEngine {
         combatant.role == .hero || combatant.role == .companion
     }
 
-    public static func isActive(for combatant: Combatant, in context: BattleEngineContext) -> Bool {
+    public static func isActive(for combatant: Combatant, in context: BattleState) -> Bool {
         context.roster.isDeathsDoorActive(for: combatant)
     }
 
     /// Lethal protection while Death's Door is active, or for the remainder of the tick it expired.
     public static func hasLethalProtection(
         for combatant: Combatant,
-        in context: BattleEngineContext
+        in context: BattleState
     ) -> Bool {
         if isActive(for: combatant, in: context) {
             return true
@@ -30,7 +30,7 @@ package enum DeathsDoorEngine {
 
     public static func resolveAfterDamage(
         to combatant: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         guard applies(to: combatant) else { return [] }
 
@@ -50,7 +50,7 @@ package enum DeathsDoorEngine {
 
     private static func trigger(
         on combatant: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> [ActionEvent] {
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.hasConsumedDeathsDoor = true
@@ -89,7 +89,7 @@ package enum DeathsDoorEngine {
 
     private static func clampToMinimumHP(
         on combatant: Combatant,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) {
         context.roster.mutateRuntime(for: combatant) { runtime in
             runtime.currentHealth = max(1, runtime.currentHealth)

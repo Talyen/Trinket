@@ -10,7 +10,7 @@ package enum DoTDamage {
         keyword: Keyword,
         target: Combatant,
         sourceActorID: String?,
-        in context: inout BattleEngineContext
+        in context: inout BattleState
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 

@@ -245,23 +245,6 @@ final class PlayerSaveStoreTests {
         }
     }
 
-    @Test func flushPendingSavePersistsDeferredMutationThroughReload() async throws {
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-            persistSaveImmediately: false
-        )
-        store.grantGold(17)
-        try #expect(store.roster.gold == 17)
-
-        await store.flushPendingSave()
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 17)
-        try #expect(store.lastPersistenceError == nil)
-    }
-
     @Test func flushPendingPersistencePersistsDeferredMutationThroughReload() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
@@ -357,7 +340,7 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.currentSave == snapshot)
     }
 
-    @Test func deferredFlushRollsBackToLastPersistedSnapshotAcrossMutations() async throws {
+    @Test func deferredFlushRollsBackToLastPersistedSnapshotAcrossMutations() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
@@ -378,7 +361,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.gold == 30)
 
         store.forcesNextSaveFailure = true
-        await store.flushPendingSave()
+        store.flushPendingPersistence()
 
         try #expect(store.roster.gold == 10)
         try #expect(store.lastPersistenceError == .writeFailed)

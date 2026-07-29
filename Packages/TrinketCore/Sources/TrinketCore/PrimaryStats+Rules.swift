@@ -4,6 +4,9 @@ import Foundation
 /// are intentionally side-effect-free so they can be tested without standing up
 /// a `BattleState`.
 public extension PrimaryStats {
+    /// Player / companion soft cap for dodge and crit after contest + bonuses.
+    static let playerChanceCap: Double = 0.75
+
     /// Pure diminishing returns curve formula: stat / (stat + 80).
     /// Returns a value between 0.0 (0%) and 1.0 (100%).
     static func diminishingReturnsPercent(for statValue: Int) -> Double {
@@ -33,10 +36,13 @@ public extension PrimaryStats {
         }
     }
 
-    /// Probability that an incoming attack is dodged, capped at 75%.
-    /// Scales with Agility using the diminishing returns curve.
-    var dodgeChance: Double {
-        min(0.75, diminishingReturnsPercent(for: agility))
+    /// Contested dodge: defender agility minus attacker agility (accuracy), floored at 0.
+    /// Soft-cap is applied by the caller (player 75% / enemy archetype caps).
+    func contestedDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
+        max(
+            0,
+            diminishingReturnsPercent(for: agility) - diminishingReturnsPercent(for: attackerAgility)
+        )
     }
 
     /// Percentage damage reduction from Toughness using the diminishing returns curve.
@@ -53,12 +59,15 @@ public extension PrimaryStats {
         return max(1, Int(ceil(baseThreshold * agilityResist)))
     }
 
-    /// Base critical-hit chance for the given keyword, before ability or item
-    /// bonuses. Capped at 75%. Keywords that do not allow criticals return 0.
-    /// Scales using the primary stat diminishing returns curve.
-    func criticalChance(for keyword: Keyword) -> Double {
+    /// Contested critical-hit chance for the given keyword: attacker keyword stat
+    /// minus defender toughness, floored at 0. Soft-cap is applied by the caller.
+    /// Keywords that do not allow criticals return 0.
+    func contestedCriticalChance(
+        for keyword: Keyword,
+        againstDefenderToughness defenderToughness: Int
+    ) -> Double {
         guard keyword.allowsCriticalHits else { return 0 }
-        let statBonus: Double = switch keyword {
+        let attackCurve: Double = switch keyword {
         case .physical, .bleed, .stun:
             diminishingReturnsPercent(for: agility)
         case .burn, .freeze:
@@ -68,6 +77,26 @@ public extension PrimaryStats {
         default:
             0.0
         }
-        return min(0.75, statBonus)
+        return max(0, attackCurve - diminishingReturnsPercent(for: defenderToughness))
+    }
+}
+
+public extension GrowthArchetype {
+    /// Soft cap on contested dodge chance when this archetype is an enemy.
+    var enemyDodgeChanceCap: Double {
+        switch self {
+        case .assassin: 0.35
+        case .bruiser: 0.25
+        case .mage, .tank, .support: 0.15
+        }
+    }
+
+    /// Soft cap on contested crit chance when this archetype is an enemy.
+    var enemyCriticalChanceCap: Double {
+        switch self {
+        case .assassin: 0.35
+        case .bruiser, .mage: 0.30
+        case .tank, .support: 0.20
+        }
     }
 }

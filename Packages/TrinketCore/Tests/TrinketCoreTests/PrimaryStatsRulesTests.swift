@@ -21,11 +21,13 @@ struct PrimaryStatsRulesTests {
         try #expect(stats.statDamageBonusPercent(keyword: .block) == 0.0)
     }
 
-    @Test func dodgeChanceCapsAtSeventyFivePercent() throws {
-        try #expect(PrimaryStats(agility: 0).dodgeChance == 0.0)
-        try #expect(abs((PrimaryStats(agility: 20).dodgeChance) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 80).dodgeChance) - 0.50) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 1000).dodgeChance) - 0.75) < 0.0001)
+    @Test func contestedDodgeSubtractsAttackerAgility() throws {
+        let defender = PrimaryStats(agility: 80)
+        try #expect(defender.contestedDodgeChance(againstAttackerAgility: 80) == 0.0)
+        try #expect(abs(defender.contestedDodgeChance(againstAttackerAgility: 0) - 0.50) < 0.0001)
+        try #expect(abs(defender.contestedDodgeChance(againstAttackerAgility: 20) - 0.30) < 0.0001)
+        // Attacker higher agi cannot produce negative dodge.
+        try #expect(PrimaryStats(agility: 20).contestedDodgeChance(againstAttackerAgility: 80) == 0.0)
     }
 
     @Test func toughnessMitigationMatchesFormula() throws {
@@ -53,25 +55,48 @@ struct PrimaryStatsRulesTests {
         }
     }
 
-    @Test func criticalChanceUsesStatDiminishingReturnsScaling() throws {
-        try #expect(PrimaryStats().criticalChance(for: .physical) == 0.0)
-        try #expect(abs((PrimaryStats(agility: 20).criticalChance(for: .physical)) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(intellect: 20).criticalChance(for: .burn)) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .holy)) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .health)) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(wisdom: 20).criticalChance(for: .leech)) - 0.20) < 0.0001)
-        try #expect(abs((PrimaryStats(agility: 1000).criticalChance(for: .physical)) - 0.75) < 0.0001)
+    @Test func contestedCriticalSubtractsDefenderToughness() throws {
+        let attacker = PrimaryStats(agility: 80, intellect: 80, wisdom: 80)
+        try #expect(attacker.contestedCriticalChance(for: .physical, againstDefenderToughness: 80) == 0.0)
+        try #expect(abs(
+            attacker.contestedCriticalChance(for: .physical, againstDefenderToughness: 0) - 0.50
+        ) < 0.0001)
+        try #expect(abs(
+            attacker.contestedCriticalChance(for: .burn, againstDefenderToughness: 20) - 0.30
+        ) < 0.0001)
+        try #expect(abs(
+            attacker.contestedCriticalChance(for: .holy, againstDefenderToughness: 20) - 0.30
+        ) < 0.0001)
+        try #expect(
+            PrimaryStats(agility: 20).contestedCriticalChance(for: .physical, againstDefenderToughness: 80) == 0.0
+        )
     }
 
-    @Test func criticalChanceIsZeroForNonCrittableKeywords() throws {
+    @Test func contestedCriticalIsZeroForNonCrittableKeywords() throws {
         let stats = PrimaryStats(agility: 100, intellect: 100, wisdom: 100)
         for keyword: Keyword in [.block, .dodge, .purge, .gold, .mana, .deathsDoor] {
-            try #expect(stats.criticalChance(for: keyword) == 0, "\(keyword.rawValue)")
+            try #expect(
+                stats.contestedCriticalChance(for: keyword, againstDefenderToughness: 0) == 0,
+                "\(keyword.rawValue)"
+            )
             try #expect(!keyword.allowsCriticalHits, "\(keyword.rawValue)")
         }
         try #expect(Keyword.health.allowsCriticalHits)
         try #expect(Keyword.leech.allowsCriticalHits)
         try #expect(Keyword.physical.allowsCriticalHits)
+    }
+
+    @Test func enemyArchetypeChanceCapsMatchDesign() throws {
+        try #expect(GrowthArchetype.assassin.enemyDodgeChanceCap == 0.35)
+        try #expect(GrowthArchetype.assassin.enemyCriticalChanceCap == 0.35)
+        try #expect(GrowthArchetype.bruiser.enemyDodgeChanceCap == 0.25)
+        try #expect(GrowthArchetype.bruiser.enemyCriticalChanceCap == 0.30)
+        try #expect(GrowthArchetype.mage.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.mage.enemyCriticalChanceCap == 0.30)
+        try #expect(GrowthArchetype.tank.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.tank.enemyCriticalChanceCap == 0.20)
+        try #expect(GrowthArchetype.support.enemyDodgeChanceCap == 0.15)
+        try #expect(GrowthArchetype.support.enemyCriticalChanceCap == 0.20)
     }
 
     @Test func negativeStatInputsReturnZeroForDamageBonus() throws {

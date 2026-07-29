@@ -18,8 +18,9 @@ enum BattleTestFixtures {
         targetEffects: [ActiveEffect] = [],
         sourcePrimaryStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = deterministicNonCriticalSeed
-    ) -> BattleEngineContext {
+    ) -> BattleState {
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: targetMaxHealth,
             primaryStats: targetPrimaryStats
@@ -34,7 +35,7 @@ enum BattleTestFixtures {
             companion: CombatantRuntime(combatant: companion),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
-        return BattleEngineContext(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 0,
@@ -44,7 +45,7 @@ enum BattleTestFixtures {
             initialGold: 0,
             heroModifiers: heroModifiers,
             companionModifiers: .zero,
-            enemyModifiers: .zero
+            enemyModifiers: enemyModifiers
         )
     }
 

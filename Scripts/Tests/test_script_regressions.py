@@ -72,6 +72,13 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("export LC_ALL=C", text)
         self.assertIn("export LANG=C", text)
 
+    def test_generate_pins_xcode_macos_sdk(self) -> None:
+        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
+        self.assertIn("ensure_xcode_macos_sdk", text)
+        self.assertIn("export DEVELOPER_DIR=", text)
+        self.assertIn("export SDKROOT=", text)
+        self.assertIn("CommandLineTools", text)
+
     def test_legacy_sync_fails_closed_on_duplicate_basenames(self) -> None:
         duplicate_paths = [
             ROOT / "TrinketTests" / "Shared.swift",

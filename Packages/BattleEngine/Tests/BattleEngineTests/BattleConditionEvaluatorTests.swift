@@ -9,7 +9,7 @@ struct BattleConditionEvaluatorTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),
@@ -42,7 +42,7 @@ struct BattleConditionEvaluatorTests {
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         let expiredBleed = ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0, sourceActorID: hero.id)
-        var context = BattleEngineContext(
+        var context = BattleState(
             roster: BattleRoster(
                 hero: CombatantRuntime(combatant: hero),
                 companion: CombatantRuntime(combatant: companion),
