@@ -42,8 +42,6 @@ struct BattleSessionSimulationTests {
     @Test func claimedStageRewardsAutoCompleteThenPersistRetryRestoresLootChrome() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        var journey = JourneyProgressState.initial
-        journey.markRewardsClaimed(for: stage)
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = 0
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
@@ -51,10 +49,11 @@ struct BattleSessionSimulationTests {
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
+            stageRewardsAlreadyClaimed: true
         )
 
-        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
+        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(earnedGold == session.state?.earnedGold ?? 0)
         #expect(!(session.spectacle.isShowingVictory))
@@ -64,7 +63,7 @@ struct BattleSessionSimulationTests {
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
         #expect(session.feedback.hitReactionsByTargetID[companionID]?.kind == .celebrate)
 
-        session.presentVictoryChromeForPersistRetry(homestead: .freshStart)
+        session.presentVictoryChromeForPersistRetry()
 
         #expect(session.spectacle.isShowingVictory)
         #expect(session.spectacle.victorySummary != nil)
@@ -104,7 +103,7 @@ struct BattleSessionSimulationTests {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+        _ = session.playCard(cardID: card.id)
 
         #expect(!(session.feedback.activeItems.isEmpty))
         let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
@@ -117,14 +116,10 @@ struct BattleSessionSimulationTests {
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
         let committed = session.playCard(
-            cardID: card.id,
-            journey: .initial,
-            homestead: .freshStart
+            cardID: card.id
         )
         let rejected = session.playCard(
-            cardID: Int.max,
-            journey: .initial,
-            homestead: .freshStart
+            cardID: Int.max
         )
 
         #expect(committed == .committed(earnedGold: nil))
@@ -137,7 +132,7 @@ struct BattleSessionSimulationTests {
         let initialEnemyHealth = try #require(session.presentation.enemy?.health)
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+        _ = session.playCard(cardID: card.id)
 
         let state = try #require(session.state)
         #expect(session.presentation.configurationID == configurationID)
@@ -163,7 +158,7 @@ struct BattleSessionSimulationTests {
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
         while !(session.state?.isBattleOver ?? true) {
-            _ = session.endTurn(journey: .initial, homestead: .freshStart)
+            _ = session.endTurn()
         }
 
         #expect(session.state?.isPartyDefeated == true)
@@ -182,7 +177,7 @@ struct BattleSessionSimulationTests {
         )
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+        _ = session.playCard(cardID: card.id)
         #expect(!(session.feedback.activeItems.isEmpty))
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) ?? 0 < 100)
 
@@ -350,16 +345,14 @@ struct BattleSessionSimulationTests {
         #expect(session.hasPlayableCard)
         let tickWhilePlayable = try #require(session.state?.turnCount)
 
-        session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
+        session.considerAutoEndTurn()
         try await Task.sleep(for: .milliseconds(30))
         #expect(session.state?.turnCount == tickWhilePlayable)
         #expect(session.canEndTurn)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
             let resolution = session.playCard(
-                cardID: card.id,
-                journey: .initial,
-                homestead: .freshStart
+                cardID: card.id
             )
             if resolution.earnedGold != nil || session.outcome != nil {
                 return
@@ -378,7 +371,7 @@ struct BattleSessionSimulationTests {
     @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+        _ = session.playCard(cardID: card.id)
         session.syncLogForDisplay()
         #expect(!(session.state?.log.isEmpty ?? true))
 

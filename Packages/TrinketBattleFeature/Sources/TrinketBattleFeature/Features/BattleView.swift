@@ -23,8 +23,6 @@ public struct BattleView: View {
 
     private let configuration: ActiveBattleConfiguration
     private let battleSession: BattleSession
-    private let journey: JourneyProgressState
-    private let homestead: PlayerHomesteadState
     private let completeBattle: (ActiveBattleConfiguration, Int, [ResourceAmount]?) -> Bool
     private let restartBattle: () -> Void
     private let retreat: () -> Void
@@ -35,8 +33,6 @@ public struct BattleView: View {
     public init(
         configuration: ActiveBattleConfiguration,
         battleSession: BattleSession,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState,
         completeBattle: @escaping (ActiveBattleConfiguration, Int, [ResourceAmount]?) -> Bool,
         restartBattle: @escaping () -> Void,
         retreat: @escaping () -> Void,
@@ -44,8 +40,6 @@ public struct BattleView: View {
     ) {
         self.configuration = configuration
         self.battleSession = battleSession
-        self.journey = journey
-        self.homestead = homestead
         self.completeBattle = completeBattle
         self.restartBattle = restartBattle
         self.retreat = retreat
@@ -114,7 +108,7 @@ public struct BattleView: View {
 
             #if DEBUG
             Button {
-                battleSession.debugSkipCombat(homestead: homestead)
+                battleSession.debugSkipCombat()
             } label: {
                 Label("Skip Combat", systemImage: "forward.end")
             }
@@ -250,8 +244,6 @@ public struct BattleView: View {
                 if let scenario = performanceScenario {
                     BattlePerformanceScenarioHarness(
                         scenario: scenario,
-                        journey: journey,
-                        homestead: homestead,
                         battleSession: battleSession,
                         battleSize: geometry.size,
                         castPresentation: castPresentation
@@ -279,9 +271,7 @@ public struct BattleView: View {
 
     private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
         let outcome = battleSession.playCard(
-            cardID: card.id,
-            journey: journey,
-            homestead: homestead
+            cardID: card.id
         )
         guard case let .committed(earnedGold) = outcome else { return false }
         if let earnedGold {
@@ -317,7 +307,7 @@ public struct BattleView: View {
             if !didPersist {
                 // Fall back to victory chrome so Loot All can retry; retreat stays locked
                 // once outcome is resolved, so silent failure would hard-stick the fight.
-                battleSession.presentVictoryChromeForPersistRetry(homestead: homestead)
+                battleSession.presentVictoryChromeForPersistRetry()
                 persistFailureMessage = StageMapMessage(
                     title: "Couldn't Save Progress",
                     message: "Your victory was not saved. Stay on this screen and try Continue again."
@@ -328,7 +318,7 @@ public struct BattleView: View {
 
     private func prepareAutoEndTurn(_ battleSession: BattleSession) {
         wireAutoEndTurn(battleSession)
-        battleSession.considerAutoEndTurn(journey: journey, homestead: homestead)
+        battleSession.considerAutoEndTurn()
     }
 
     private func completeClaimedStageVictoryIfNeeded(earnedGold: Int) {
@@ -339,7 +329,7 @@ public struct BattleView: View {
             nil
         )
         if !didPersist {
-            battleSession.presentVictoryChromeForPersistRetry(homestead: homestead)
+            battleSession.presentVictoryChromeForPersistRetry()
             persistFailureMessage = StageMapMessage(
                 title: "Couldn't Save Progress",
                 message: "Your victory was not saved. Stay on this screen and try Continue again."

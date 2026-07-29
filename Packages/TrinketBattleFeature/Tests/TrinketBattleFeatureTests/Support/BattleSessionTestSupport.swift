@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketPersistence
 import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
@@ -74,8 +73,6 @@ enum BattleSessionTestSupport {
     static func driveUntilOutcome(
         _ session: BattleSession,
         at date: Date = .now,
-        journey: JourneyProgressState = .initial,
-        homestead: PlayerHomesteadState = .freshStart,
         maxActions: Int = 200
     ) -> Int? {
         var earnedGold: Int?
@@ -89,9 +86,7 @@ enum BattleSessionTestSupport {
             if let card = session.hand.first(where: { session.isCardPlayable($0) }) {
                 earnedGold = session.playCard(
                     cardID: card.id,
-                    at: date,
-                    journey: journey,
-                    homestead: homestead
+                    at: date
                 ).earnedGold
                 if earnedGold != nil {
                     break
@@ -99,7 +94,7 @@ enum BattleSessionTestSupport {
                 continue
             }
             if session.canEndTurn {
-                earnedGold = session.endTurn(at: date, journey: journey, homestead: homestead)
+                earnedGold = session.endTurn(at: date)
                 if earnedGold != nil {
                     break
                 }
@@ -116,8 +111,6 @@ enum BattleSessionTestSupport {
         _ abilityID: String,
         on session: BattleSession,
         at date: Date = .now,
-        journey: JourneyProgressState = .initial,
-        homestead: PlayerHomesteadState = .freshStart,
         maxActions: Int = 40
     ) -> BattleCard? {
         var actions = 0
@@ -135,14 +128,12 @@ enum BattleSessionTestSupport {
             if let other = session.hand.first(where: { session.isCardPlayable($0) }) {
                 _ = session.playCard(
                     cardID: other.id,
-                    at: date,
-                    journey: journey,
-                    homestead: homestead
+                    at: date
                 )
                 continue
             }
             if session.canEndTurn {
-                _ = session.endTurn(at: date, journey: journey, homestead: homestead)
+                _ = session.endTurn(at: date)
                 continue
             }
             break
@@ -156,23 +147,17 @@ enum BattleSessionTestSupport {
         _ abilityID: String,
         on session: BattleSession,
         at date: Date = .now,
-        journey: JourneyProgressState = .initial,
-        homestead: PlayerHomesteadState = .freshStart,
         maxActions: Int = 40
     ) -> Int? {
         guard let card = drawUntilPlayable(
             abilityID,
             on: session,
             at: date,
-            journey: journey,
-            homestead: homestead,
             maxActions: maxActions
         ) else { return nil }
         return session.playCard(
             cardID: card.id,
-            at: date,
-            journey: journey,
-            homestead: homestead
+            at: date
         ).earnedGold
     }
 }

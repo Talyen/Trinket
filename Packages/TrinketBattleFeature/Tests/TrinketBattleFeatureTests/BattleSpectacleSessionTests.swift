@@ -108,9 +108,7 @@ struct BattleSpectacleSessionTests {
         let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now,
-            journey: .initial,
-            homestead: .freshStart
+            at: now
         )
 
         let cinematic = try #require(session.spectacle.activeCinematic)
@@ -169,9 +167,7 @@ struct BattleSpectacleSessionTests {
         let beforeFeedbackCount = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now,
-            journey: .initial,
-            homestead: .freshStart
+            at: now
         )
 
         #expect(session.spectacle.activeCinematic == nil)
@@ -222,9 +218,7 @@ struct BattleSpectacleSessionTests {
         let feedbackBefore = session.feedback.activeItems.count
         _ = session.playCard(
             cardID: secondUltimate.id,
-            at: secondUltimateAt,
-            journey: .initial,
-            homestead: .freshStart
+            at: secondUltimateAt
         )
         #expect(session.spectacle.activeCinematic == nil)
         #expect(session.feedback.activeItems.count > feedbackBefore)
@@ -255,7 +249,7 @@ struct BattleSpectacleSessionTests {
 
         // Enemy ultimate cadence is every 6th action.
         for _ in 0 ..< 6 {
-            _ = session.endTurn(journey: .initial, homestead: .freshStart)
+            _ = session.endTurn()
         }
 
         #expect(session.spectacle.activeCinematic == nil)
@@ -290,9 +284,7 @@ struct BattleSpectacleSessionTests {
         )
         _ = session.playCard(
             cardID: ultimate.id,
-            at: now,
-            journey: .initial,
-            homestead: .freshStart
+            at: now
         )
 
         let cinematic = try #require(session.spectacle.activeCinematic)

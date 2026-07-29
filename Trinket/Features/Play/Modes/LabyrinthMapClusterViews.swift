@@ -309,7 +309,7 @@ struct LabyrinthNodeInspector: View {
     }
 
     private var enemyDetail: CombatantCardDetail? {
-        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else {
+        guard let encounter = labyrinth.resolvedEncounter(for: node) else {
             return nil
         }
         return CombatantCardDetail(

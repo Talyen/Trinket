@@ -152,7 +152,7 @@ struct SpireClimbView: View {
     }
 
     private func showEnemyDetails(for floor: SpireFloor) {
-        guard let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor) else { return }
+        guard let encounter = spires.resolvedEncounter(for: floor) else { return }
         battle.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant,

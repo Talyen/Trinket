@@ -32,7 +32,7 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
 }
 
 struct InventoryGridView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var selectedItem: InventoryItem?
@@ -40,7 +40,7 @@ struct InventoryGridView: View {
     @Namespace private var zoomNamespace
 
     var body: some View {
-        let inventoryState = appState.inventory
+        let inventoryState = playerSave.inventory
         let items = filteredItems(from: inventoryState)
 
         CollectionGridShell(items: items) { item in
@@ -80,7 +80,7 @@ struct InventoryGridView: View {
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
-                ItemDetailView.inventorySalvageDetail(item: item, saveStore: appState) { didSucceed in
+                ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
                     if didSucceed {
                         salvageSuccessCount += 1
                     }

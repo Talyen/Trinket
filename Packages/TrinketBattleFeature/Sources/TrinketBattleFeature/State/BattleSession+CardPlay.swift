@@ -1,6 +1,5 @@
 import Foundation
 import TrinketFeatureSupport
-import TrinketPersistence
 
 extension BattleSession {
     /// Plays a card from hand. A typed result keeps a successful non-victory play
@@ -8,16 +7,12 @@ extension BattleSession {
     @discardableResult
     func playCard(
         cardID: Int,
-        at date: Date = .now,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
+        at date: Date = .now
     ) -> BattleCardPlayResolution {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
-        autoEndJourney = journey
-        autoEndHomestead = homestead
         guard spectacle.activeCinematic == nil,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
@@ -50,7 +45,7 @@ extension BattleSession {
             ) {
                 presentResolvedEvents(events, at: date)
             }
-            let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
+            let earnedGold = handleOutcomeIfNeeded(at: date)
             if earnedGold == nil {
                 scheduleAutoEndIfNeeded()
             }

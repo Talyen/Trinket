@@ -55,9 +55,26 @@ public enum StageCompletion {
     public static func resolvedGoldReward(
         stageGold: Int,
         battleEarnedGold: Int,
+        goldFindPercent: Int
+    ) -> Int {
+        HomesteadEffects(
+            heroModifiers: [],
+            companionModifiers: [],
+            astralChanceBonusPercent: 0,
+            goldFindPercent: goldFindPercent
+        ).adjustedGold(stageGold + battleEarnedGold)
+    }
+
+    public static func resolvedGoldReward(
+        stageGold: Int,
+        battleEarnedGold: Int,
         homestead: PlayerHomesteadState
     ) -> Int {
-        homestead.effects.adjustedGold(stageGold + battleEarnedGold)
+        resolvedGoldReward(
+            stageGold: stageGold,
+            battleEarnedGold: battleEarnedGold,
+            goldFindPercent: homestead.effects.goldFindPercent
+        )
     }
 
     public static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {

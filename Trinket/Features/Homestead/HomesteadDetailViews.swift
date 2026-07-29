@@ -8,7 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var build = HomesteadBuildControl()
 
@@ -18,11 +18,11 @@ struct HomesteadNodeDetailView: View {
     private let bodyStackSpacing = TrinketDesign.Metrics.homesteadBodySpacing
 
     private var homestead: PlayerHomesteadState {
-        appState.homestead
+        playerSave.homestead
     }
 
     private var roster: PlayerRosterState {
-        appState.roster
+        playerSave.roster
     }
 
     private var status: HomesteadProjectStatus {
@@ -80,7 +80,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
-        build.perform(definition, saveStore: appState)
+        build.perform(definition, saveStore: playerSave)
     }
 }
 

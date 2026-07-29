@@ -182,7 +182,7 @@ private struct PlayBrowsingStack: View {
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
-        guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else { return nil }
+        guard let encounter = journey.resolvedEncounter(for: stage) else { return nil }
 
         return CombatantCardDetail(
             combatant: encounter.combatant,
@@ -194,7 +194,6 @@ private struct PlayBrowsingStack: View {
 /// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
 private struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
-    @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
         let configuration = play.battle.activeBattle
@@ -205,8 +204,6 @@ private struct PlayBattleOverlay: View {
                 BattleView(
                     configuration: configuration,
                     battleSession: play.battle,
-                    journey: playerSave.journey,
-                    homestead: playerSave.homestead,
                     completeBattle: { [weak play] configuration, earnedGold, rewards in
                         play?.completeActiveBattle(
                             configuration,

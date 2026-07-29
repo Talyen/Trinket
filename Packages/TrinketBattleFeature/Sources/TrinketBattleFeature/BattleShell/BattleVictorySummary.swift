@@ -34,8 +34,7 @@ public struct BattleVictorySummary: Equatable {
 
     public static func make(
         configuration: ActiveBattleConfiguration,
-        state: BattleState,
-        homestead: PlayerHomesteadState
+        state: BattleState
     ) -> Self {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.hero.progression.level
@@ -60,7 +59,7 @@ public struct BattleVictorySummary: Equatable {
         let totalGold = StageCompletion.resolvedGoldReward(
             stageGold: stageReward.gold,
             battleEarnedGold: rawBattleEarnedGold,
-            homestead: homestead
+            goldFindPercent: configuration.goldFindPercent
         )
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)

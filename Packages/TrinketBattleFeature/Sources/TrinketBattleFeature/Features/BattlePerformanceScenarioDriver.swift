@@ -3,15 +3,12 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
 #if DEBUG
 
 @MainActor
 struct BattlePerformanceScenarioDriver {
     let scenario: BattlePerformanceScenario
-    let journey: JourneyProgressState
-    let homestead: PlayerHomesteadState
     let battleSession: BattleSession
     let battleSize: CGSize
     let castPresentation: BattleCastPresentationState
@@ -50,19 +47,12 @@ struct BattlePerformanceScenarioDriver {
 
     private func runEngineFeedback() -> String? {
         guard let card = playableCard() else { return "no-playable-card" }
-        let outcome = battleSession.playCard(
-            cardID: card.id,
-            journey: journey,
-            homestead: homestead
-        )
+        let outcome = battleSession.playCard(cardID: card.id)
         return outcome.didCommit ? nil : "commit-rejected"
     }
 
     private func runTurnTransition() -> String? {
-        _ = battleSession.endTurn(
-            journey: journey,
-            homestead: homestead
-        )
+        _ = battleSession.endTurn()
         return nil
     }
 
@@ -71,11 +61,7 @@ struct BattlePerformanceScenarioDriver {
         if let combatantID = battleSession.combatantID(for: card.owner) {
             battleSession.beginAttackWindUp(for: combatantID)
         }
-        let outcome = battleSession.playCard(
-            cardID: card.id,
-            journey: journey,
-            homestead: homestead
-        )
+        let outcome = battleSession.playCard(cardID: card.id)
         guard outcome.didCommit else { return "commit-rejected" }
         if let combatantID = battleSession.combatantID(for: card.owner) {
             battleSession.commitAttackSwing(for: combatantID)

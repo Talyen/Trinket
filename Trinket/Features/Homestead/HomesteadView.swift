@@ -8,15 +8,15 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private var homestead: PlayerHomesteadState {
-        appState.homestead
+        playerSave.homestead
     }
 
     private var roster: PlayerRosterState {
-        appState.roster
+        playerSave.roster
     }
 
     var body: some View {

@@ -49,7 +49,8 @@ Follow Architecture ownership and app-layer imports:
 | Shared chrome | `TrinketDesignSystem` |
 | Tab shell, sessions, options | `Packages/TrinketAppState` |
 | Product screens | `Trinket/Features` |
-| Active battle configuration / battle outcome | `Packages/TrinketBattleFeature` |
+| Active battle configuration assembly / battle outcome | `Packages/TrinketBattleFeature` |
+| Encounter/loot resolve for battle launch | `Packages/TrinketAppState` (`PlayBattleLaunch`) |
 | Game-specific shared UI | `Packages/TrinketFeatureSupport` |
 
 **Hub containment** (Architecture): keep `BattleState` and `PlayerSaveStore` thin — new work goes to handlers, engines, store slices, or `+` plumbing files, not feature-specific methods on the hub.

@@ -5,7 +5,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
 enum BattleCardPlayResolution: Equatable, Sendable {
     case rejected
@@ -70,11 +69,6 @@ public final class BattleSession {
     var preparedBattleRun: PreparedBattleRun? {
         preparedBattleRunsByToken.values.first
     }
-
-    @ObservationIgnored
-    var autoEndJourney: JourneyProgressState?
-    @ObservationIgnored
-    var autoEndHomestead: PlayerHomesteadState?
 
     /// Test seam for outcome timing. Production derives the delay from active spectacle.
     @ObservationIgnored
@@ -166,12 +160,7 @@ public final class BattleSession {
     }
 
     /// Schedules a delayed end turn when nothing in hand is playable.
-    func considerAutoEndTurn(
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
-    ) {
-        autoEndJourney = journey
-        autoEndHomestead = homestead
+    func considerAutoEndTurn() {
         scheduleAutoEndIfNeeded()
     }
 
@@ -247,16 +236,12 @@ public final class BattleSession {
     /// when an already-claimed stage victory should auto-complete.
     @discardableResult
     func endTurn(
-        at date: Date = .now,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
+        at date: Date = .now
     ) -> Int? {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
-        autoEndJourney = journey
-        autoEndHomestead = homestead
         guard canEndTurn, state != nil else {
             feedback.noteItemsChanged()
             return nil
@@ -280,19 +265,10 @@ public final class BattleSession {
             }
         }
         presentResolvedEvents(events, at: date)
-        let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
+        let earnedGold = handleOutcomeIfNeeded(at: date)
         if earnedGold == nil {
             scheduleAutoEndIfNeeded()
         }
         return earnedGold
-    }
-
-    static func stageRewardsAlreadyClaimed(
-        stageID: String?,
-        journey: JourneyProgressState
-    ) -> Bool {
-        guard let stageID,
-              let stage = GameContent.stage(id: stageID) else { return false }
-        return journey.hasClaimedRewards(for: stage)
     }
 }

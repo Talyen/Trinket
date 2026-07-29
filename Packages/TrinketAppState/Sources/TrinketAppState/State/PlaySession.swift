@@ -8,6 +8,7 @@ import TrinketPersistence
 /// Play-tab shell and mode registry: navigation, shared battle launch, and victory routing.
 ///
 /// Mode-specific flow lives on `journey`, `labyrinth`, `spires`, and `encounters`.
+/// Shared battle lifecycle glue lives on `PlayBattleLaunch` / `PlayBattleCompletion`.
 /// Save slices are read from `playerSave` — not forwarded through this type.
 @MainActor
 @Observable
@@ -24,6 +25,7 @@ public final class PlaySession {
     public let encounters: EncounterPlayMode
 
     let battleLaunch: PlayBattleLaunch
+    let battleCompletion: PlayBattleCompletion
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     public private(set) var mapScrollFocus: MapScrollFocus?
@@ -57,12 +59,6 @@ public final class PlaySession {
         self.battleLaunch = battleLaunch
 
         // Deferred focus wiring: modes capture this box before `self` can form a weak ref.
-        // Concurrency-Safety: `@unchecked Sendable` — `note` is written once on the
-        // MainActor after modes are constructed and invoked only from mode presentation
-        // paths on the MainActor; never called from a concurrent executor.
-        final class MapScrollFocusBox: @unchecked Sendable {
-            var note: ((String) -> Void)?
-        }
         let focusBox = MapScrollFocusBox()
         let noteMapScrollFocus: (String) -> Void = { targetID in
             focusBox.note?(targetID)
@@ -95,7 +91,31 @@ public final class PlaySession {
         self.labyrinth = labyrinth
         self.spires = spires
         self.encounters = encounters
+        battleCompletion = PlayBattleCompletion(
+            playerSave: playerSave,
+            battle: battle,
+            journey: journey,
+            labyrinth: labyrinth,
+            spires: spires
+        )
+        Self.bindModes(
+            journey: journey,
+            labyrinth: labyrinth,
+            encounters: encounters,
+            focusBox: focusBox,
+            noteMapScrollFocus: { [weak self] targetID in
+                self?.noteMapScrollFocus(targetID)
+            }
+        )
+    }
 
+    private static func bindModes(
+        journey: JourneyPlayMode,
+        labyrinth: LabyrinthPlayMode,
+        encounters: EncounterPlayMode,
+        focusBox: MapScrollFocusBox,
+        noteMapScrollFocus: @escaping (String) -> Void
+    ) {
         journey.bind(encounters: encounters)
         labyrinth.bind(encounters: encounters)
         encounters.bindCompletion(
@@ -106,9 +126,7 @@ public final class PlaySession {
                 labyrinth?.completeNodeOrPersistFailure(nodeID: nodeID)
             }
         )
-        focusBox.note = { [weak self] targetID in
-            self?.noteMapScrollFocus(targetID)
-        }
+        focusBox.note = noteMapScrollFocus
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -139,43 +157,14 @@ public final class PlaySession {
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil
     ) -> Bool {
-        guard battle.activeBattle != nil else { return false }
-
-        let hero = configuration.hero.combatant
-        let companion = configuration.companion.combatant
-        let persisted: Bool = switch configuration.resumeToken {
-        case .journey:
-            journey.persistVictory(
-                for: configuration,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
-            )
-        case .spire:
-            spires.persistVictory(
-                for: configuration,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
-            )
-        case .labyrinth:
-            labyrinth.persistVictory(
-                for: configuration,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
-            )
-        case .none:
-            battleEarnedGold > 0 ? grantBattleEarnedGold(battleEarnedGold) : true
-        }
-        if persisted {
-            queueReturnToBattleOrigin(from: configuration.resumeToken)
-            battle.endBattle()
-        }
-        return persisted
+        battleCompletion.completeActiveBattle(
+            configuration,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards,
+            queueReturnToOrigin: { [weak self] token in
+                self?.queueReturnToBattleOrigin(from: token)
+            }
+        )
     }
 
     func clearTransientState() {
@@ -199,4 +188,11 @@ public final class PlaySession {
         }
         return journey.isActive(stage)
     }
+}
+
+// Concurrency-Safety: `@unchecked Sendable` — `note` is written once on the
+// MainActor after modes are constructed and invoked only from mode presentation
+// paths on the MainActor; never called from a concurrent executor.
+private final class MapScrollFocusBox: @unchecked Sendable {
+    var note: ((String) -> Void)?
 }

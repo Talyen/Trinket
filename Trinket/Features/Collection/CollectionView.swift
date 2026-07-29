@@ -7,7 +7,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct CollectionView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
@@ -36,7 +36,7 @@ struct CollectionView: View {
             }
             .sheet(item: $selectedItem) { item in
                 NavigationStack {
-                    ItemDetailView.inventorySalvageDetail(item: item, saveStore: appState) { didSucceed in
+                    ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
                         if didSucceed {
                             salvageSuccessCount += 1
                         }
@@ -86,7 +86,7 @@ struct CollectionView: View {
     }
 
     private var collectionBrowseContent: some View {
-        let inventoryState = appState.inventory
+        let inventoryState = playerSave.inventory
         let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
         let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
 
@@ -97,7 +97,7 @@ struct CollectionView: View {
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
                     combatants: Array(
-                        appState.roster.collectionHeroes.prefix(shelfLimit)
+                        playerSave.roster.collectionHeroes.prefix(shelfLimit)
                     )
                 )
 
@@ -106,7 +106,7 @@ struct CollectionView: View {
                     accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
                     kind: .companion,
                     combatants: Array(
-                        appState.roster.collectionCompanions.prefix(shelfLimit)
+                        playerSave.roster.collectionCompanions.prefix(shelfLimit)
                     )
                 )
 
@@ -148,7 +148,7 @@ struct CollectionView: View {
             case let .collectionCombatant(context):
                 selectedCombatant = context
             case let .collectionItem(itemID):
-                if let owned = appState.inventory.item(matching: itemID) {
+                if let owned = playerSave.inventory.item(matching: itemID) {
                     selectedItem = owned
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
                     selectedItem = template
@@ -174,7 +174,7 @@ struct CollectionView: View {
             ForEach(combatants) { combatant in
                 CollectionCombatantButton(
                     combatant: combatant,
-                    isLocked: !appState.roster.isUnlocked(combatant),
+                    isLocked: !playerSave.roster.isUnlocked(combatant),
                     cardWidth: nil,
                     showsName: false
                 ) {

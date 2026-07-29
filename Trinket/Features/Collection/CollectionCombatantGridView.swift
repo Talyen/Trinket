@@ -7,7 +7,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct CollectionCombatantGridView: View {
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedCombatant: CombatantDetailContext?
     @Namespace private var zoomNamespace
@@ -23,8 +23,8 @@ struct CollectionCombatantGridView: View {
 
     private var combatants: [Combatant] {
         switch kind {
-        case .hero: appState.roster.collectionHeroes
-        case .companion: appState.roster.collectionCompanions
+        case .hero: playerSave.roster.collectionHeroes
+        case .companion: playerSave.roster.collectionCompanions
         }
     }
 
@@ -32,7 +32,7 @@ struct CollectionCombatantGridView: View {
         CollectionGridShell(items: combatants) { combatant in
             CollectionCombatantButton(
                 combatant: combatant,
-                isLocked: !appState.roster.isUnlocked(combatant),
+                isLocked: !playerSave.roster.isUnlocked(combatant),
                 cardWidth: nil
             ) {
                 selectedCombatant = CombatantDetailContext(

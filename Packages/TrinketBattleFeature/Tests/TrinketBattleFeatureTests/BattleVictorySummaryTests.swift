@@ -45,8 +45,7 @@ struct BattleVictorySummaryTests {
         let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: state,
-            homestead: .freshStart
+            state: state
         )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
         let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
@@ -96,8 +95,7 @@ struct BattleVictorySummaryTests {
         let scaledState = try #require(scaledSession.state)
         let scaledSummary = try BattleVictorySummary.make(
             configuration: scaledConfiguration,
-            state: scaledState,
-            homestead: .freshStart
+            state: scaledState
         )
         let expectedScaledCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
         #expect(scaledSummary.experience == 0)
@@ -147,8 +145,7 @@ struct BattleVictorySummaryTests {
         let state = try #require(session.state)
         let summary = BattleVictorySummary.make(
             configuration: configuration,
-            state: state,
-            homestead: .freshStart
+            state: state
         )
         let baseXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
         let expectedXP = StageCompletion.adjustedExperienceAward(baseXP, xpPercent: 20)
@@ -172,11 +169,13 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
+            homestead: homestead,
             stageReward: StageReward(gold: 100, itemTemplateIDs: [])
         )
         let session = BattleSession(openingHandDrawStagger: 0)
@@ -184,18 +183,17 @@ struct BattleVictorySummaryTests {
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let state = try #require(session.state)
-        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
         let summary = BattleVictorySummary.make(
             configuration: configuration,
-            state: state,
-            homestead: homestead
+            state: state
         )
 
         let expectedTotal = StageCompletion.resolvedGoldReward(
             stageGold: 100,
             battleEarnedGold: state.earnedGold,
-            homestead: homestead
+            goldFindPercent: configuration.goldFindPercent
         )
+        #expect(configuration.goldFindPercent > 0)
         #expect(summary.rawBattleEarnedGold == state.earnedGold)
         #expect(summary.totalGold == expectedTotal)
         // Display `battleGold` absorbs the homestead remainder; re-feeding it into
@@ -205,7 +203,7 @@ struct BattleVictorySummaryTests {
             StageCompletion.resolvedGoldReward(
                 stageGold: 100,
                 battleEarnedGold: summary.battleGold,
-                homestead: homestead
+                goldFindPercent: configuration.goldFindPercent
             ) > expectedTotal
         )
     }

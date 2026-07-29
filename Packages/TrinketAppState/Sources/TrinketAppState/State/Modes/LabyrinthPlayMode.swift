@@ -6,7 +6,7 @@ import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Labyrinth map flow: enter, node routing, rest/craft, and labyrinth battle victory.
+/// Labyrinth map flow: enter, node routing, rest/craft, and node completion writes.
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
@@ -208,34 +208,27 @@ public final class LabyrinthPlayMode {
         return true
     }
 
+    public func resolvedEncounter(for node: LabyrinthNode) -> (combatant: Combatant, level: Int)? {
+        PlayBattleLaunch.resolvedLabyrinthEncounter(for: node)
+    }
+
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
         let labyrinth = playerSave.labyrinth
-        let roster = playerSave.roster
-        let homestead = playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
         let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else {
+        guard let encounter = resolvedEncounter(for: node) else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .labyrinth(nodeID: nodeID),
-            labyrinth: labyrinth,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        battleLaunch.activateBattle(
+        battleLaunch.activateCombat(
             resumeToken: .labyrinth(nodeID: nodeID),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item,
-            universalModifiers: ActiveBattleConfiguration.labyrinthCombatModifiers(from: effects)
+            encounter: encounter,
+            universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
+            labyrinth: labyrinth
         )
         return nil
     }
@@ -249,44 +242,15 @@ public final class LabyrinthPlayMode {
 
     private func prepareBattle(nodeID: String) {
         let labyrinth = playerSave.labyrinth
-        let roster = playerSave.roster
-        let homestead = playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
         let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else { return }
+        guard let encounter = resolvedEncounter(for: node) else { return }
 
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .labyrinth(nodeID: nodeID),
-            labyrinth: labyrinth,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        battle.prepareBattleRun(battleLaunch.makeBattleConfiguration(
+        battleLaunch.prepareCombat(
             resumeToken: .labyrinth(nodeID: nodeID),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item,
-            universalModifiers: ActiveBattleConfiguration.labyrinthCombatModifiers(from: effects)
-        ))
-    }
-
-    func persistVictory(
-        for configuration: ActiveBattleConfiguration,
-        hero: Combatant,
-        companion: Combatant,
-        battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]?
-    ) -> Bool {
-        guard case let .labyrinth(nodeID) = configuration.resumeToken else { return false }
-        return completeNode(
-            nodeID: nodeID,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: battleEarnedGold,
-            materialRewards: materialRewards,
-            rewardItem: configuration.pendingRewardItem
+            encounter: encounter,
+            universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
+            labyrinth: labyrinth
         )
     }
 

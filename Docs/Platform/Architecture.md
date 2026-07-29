@@ -51,8 +51,8 @@ Manifests and pipelines live outside the app folder:
 | Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
-| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI, configuration and outcome |
-| App and Play orchestration | `TrinketAppState` | `AppState` composition; `PlaySession` shell/registry (battle launch + victory router); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode`; encounter sessions; preferences; audio routing |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; `ActiveBattleConfiguration` assembles pre-resolved party/enemy/reward inputs only (including claimed-stage policy and gold-find percent) |
+| App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only; `PlaySession` shell/registry; `PlayBattleLaunch` (encounter/loot resolution + configure/activate) + `PlayBattleCompletion` (victory routing); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
 
@@ -137,8 +137,10 @@ available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
 lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
 `PlaySession` remains in the environment for shell concerns (pending destination, map
-scroll, battle victory routing). Play screens read save slices from `PlayerSaveStore`
-directly — not through `PlaySession` facades.
+scroll, battle victory routing via `PlayBattleCompletion`). Play screens read save
+slices from `PlayerSaveStore` directly — not through `PlaySession` facades. Mode
+types own map/node/floor selection and mode-unique completion writes; they must not
+re-absorb the shared victory persist→dismiss sequence.
 
 ## Persistence overview
 
@@ -155,11 +157,13 @@ directly — not through `PlaySession` facades.
 ## Extension policy (hub containment)
 
 Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type bodies with feature-specific logic.
+Keep `AppState` as composition/wiring — new Play feature methods belong on mode owners or on `PlayBattleLaunch` / `PlayBattleCompletion`, not on `AppState`.
 
 | Hub | Put new code here | Not here |
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve on `PlayBattleLaunch` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `ActiveBattleConfiguration` / Battle UI |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
@@ -214,5 +218,6 @@ Do not start these without a concrete forcing function:
 | Deferral | Why wait |
 |----------|----------|
 | Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam; keep new generators beside existing ones |
+| Split `TrinketFeatureSupport` by product domain | Shared UI/presentation layer is intentional until a domain folder has an independent consumer or mixed-job hotspot that forces a carve-out; prefer collapsing duplicate shells in place first |
 | CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
 | Further Battle presentation splitting | Simulation, projection, feedback, and spectacle already have distinct owners; split again only when one lane has a concrete independent responsibility |

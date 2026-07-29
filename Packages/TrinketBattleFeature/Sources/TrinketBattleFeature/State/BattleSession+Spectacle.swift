@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
 extension BattleSession {
     public func presentCombatantDetail(_ detail: CombatantCardDetail) {
@@ -92,11 +91,7 @@ extension BattleSession {
     private func presentDeferredOutcomeIfNeeded(at date: Date) {
         switch outcome {
         case .victory:
-            if let journey = autoEndJourney,
-               Self.stageRewardsAlreadyClaimed(
-                   stageID: activeBattle?.stageID,
-                   journey: journey
-               ) {
+            if activeBattle?.stageRewardsAlreadyClaimed == true {
                 publishPartyCelebrateReactions(at: date)
                 onTurnAutoEnded?(state?.earnedGold ?? 0)
                 return
@@ -128,17 +123,12 @@ extension BattleSession {
     }
 
     func handleOutcomeIfNeeded(
-        at date: Date,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
+        at date: Date
     ) -> Int? {
         guard let configuration = activeBattle else { return nil }
         switch outcome {
         case .victory:
-            if Self.stageRewardsAlreadyClaimed(
-                stageID: configuration.stageID,
-                journey: journey
-            ) {
+            if configuration.stageRewardsAlreadyClaimed {
                 // Keep the Ultimate on screen; collapse fires claimed-stage auto-complete.
                 if spectacle.activeCinematic != nil {
                     return nil
@@ -149,8 +139,7 @@ extension BattleSession {
             guard let battleState = state else { return nil }
             spectacle.victorySummary = BattleVictorySummary.make(
                 configuration: configuration,
-                state: battleState,
-                homestead: homestead
+                state: battleState
             )
             // Defer outcome chrome until Ultimate collapse so the killing blow finishes.
             if spectacle.activeCinematic == nil {
@@ -224,7 +213,7 @@ extension BattleSession {
 
     /// Surfaces victory chrome after a claimed-stage auto-complete persist failure so
     /// the player can retry via Loot All instead of remaining stuck on the battlefield.
-    func presentVictoryChromeForPersistRetry(homestead: PlayerHomesteadState) {
+    func presentVictoryChromeForPersistRetry() {
         guard outcome == .victory,
               let configuration = activeBattle,
               let battleState = state,
@@ -233,15 +222,14 @@ extension BattleSession {
         if spectacle.victorySummary == nil {
             spectacle.victorySummary = BattleVictorySummary.make(
                 configuration: configuration,
-                state: battleState,
-                homestead: homestead
+                state: battleState
             )
         }
         spectacle.isShowingVictory = true
     }
 
     #if DEBUG
-    func debugSkipCombat(homestead: PlayerHomesteadState) {
+    func debugSkipCombat() {
         guard let configuration = activeBattle,
               let battleState = state,
               !spectacle.isShowingVictory,
@@ -255,8 +243,7 @@ extension BattleSession {
         clearSpectacle()
         spectacle.victorySummary = BattleVictorySummary.make(
             configuration: configuration,
-            state: battleState,
-            homestead: homestead
+            state: battleState
         )
         spectacle.isShowingVictory = true
         presentationEnvironment.playSFX([SFXID.victory])
@@ -428,9 +415,7 @@ extension BattleSession {
     func scheduleAutoEndIfNeeded() {
         cancelPendingAutoEnd()
         guard !isSuspendedForScenePhase,
-              canEndTurn, !hasPlayableCard,
-              let journey = autoEndJourney,
-              let homestead = autoEndHomestead else { return }
+              canEndTurn, !hasPlayableCard else { return }
 
         let settleDelay = autoEndTurnDelay
         pendingAutoEndTask = Task { @MainActor [weak self] in
@@ -449,7 +434,7 @@ extension BattleSession {
                 }
             }
 
-            let earnedGold = endTurn(journey: journey, homestead: homestead)
+            let earnedGold = endTurn()
             onTurnAutoEnded?(earnedGold)
         }
     }
@@ -503,8 +488,6 @@ extension BattleSession {
         preparedBattleRunsByToken.removeAll(keepingCapacity: true)
         pendingPreparedRun = nil
         onTurnAutoEnded = nil
-        autoEndJourney = nil
-        autoEndHomestead = nil
         state = nil
         presentation.clear()
         feedback.clear()

@@ -6,7 +6,7 @@ import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Journey/campaign stage flow: primary actions, prepare/start battle, and stage victory.
+/// Journey/campaign stage flow: map actions, prepare/start battle, and journey-unique victory writes.
 @MainActor
 @Observable
 public final class JourneyPlayMode {
@@ -66,27 +66,22 @@ public final class JourneyPlayMode {
         return scrollTarget
     }
 
-    func persistVictory(
-        for configuration: ActiveBattleConfiguration,
+    /// Journey-unique victory write + map-scroll focus. Token resolution lives on `PlayBattleCompletion`.
+    func applyBattleVictory(
+        stage: Stage,
         hero: Combatant,
         companion: Combatant,
         battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]?
+        materialRewards: [ResourceAmount]?,
+        rewardItem: InventoryItem?
     ) -> Bool {
-        guard case let .journey(stageID) = configuration.resumeToken else { return false }
-        guard let stage = GameContent.stage(id: stageID) else {
-            appStateLogger.error(
-                "Missing stage for resume token: \(stageID, privacy: .public)"
-            )
-            return false
-        }
         guard let resultingJourney = persistStageCompletions(
             [stage],
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
-            rewardItem: configuration.pendingRewardItem
+            rewardItem: rewardItem
         ) else {
             return false
         }
@@ -94,16 +89,19 @@ public final class JourneyPlayMode {
         return true
     }
 
+    public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
+        PlayBattleLaunch.resolvedEncounter(for: stage)
+    }
+
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
 
-        guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else {
+        guard let encounter = resolvedEncounter(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
         let roster = playerSave.roster
-        let homestead = playerSave.homestead
         if battle.activatePreparedJourneyBattle(
             stageID: stage.id,
             heroID: roster.activeHero.id,
@@ -113,46 +111,21 @@ public final class JourneyPlayMode {
             return nil
         }
 
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .journey(stageID: stage.id),
-            enemy: encounter.combatant,
-            encounterLevel: encounter.level,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        battleLaunch.activateBattle(
+        battleLaunch.activateCombat(
             resumeToken: .journey(stageID: stage.id),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item
+            encounter: encounter
         )
         return nil
     }
 
     public func prepareBattle(for stage: Stage) {
-        let roster = playerSave.roster
-        let homestead = playerSave.homestead
         guard battle.activeBattle == nil,
-              let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage)
+              let encounter = resolvedEncounter(for: stage)
         else { return }
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .journey(stageID: stage.id),
-            enemy: encounter.combatant,
-            encounterLevel: encounter.level,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        let configuration = battleLaunch.makeBattleConfiguration(
+        battleLaunch.prepareCombat(
             resumeToken: .journey(stageID: stage.id),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item
+            encounter: encounter
         )
-        battle.prepareBattleRun(configuration)
     }
 
     @discardableResult

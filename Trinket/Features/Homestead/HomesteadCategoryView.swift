@@ -11,15 +11,15 @@ import TrinketPersistence
 struct HomesteadCategoryView: View {
     let category: HomesteadNodeCategory
 
-    @Environment(PlayerSaveStore.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Namespace private var zoomNamespace
 
     private var homestead: PlayerHomesteadState {
-        appState.homestead
+        playerSave.homestead
     }
 
     private var roster: PlayerRosterState {
-        appState.roster
+        playerSave.roster
     }
 
     private var definitions: [HomesteadNodeDefinition] {

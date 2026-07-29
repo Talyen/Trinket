@@ -6,7 +6,7 @@ import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Spire climb flow: prepare/start floor battles and spire victory persistence.
+/// Spire climb flow: prepare/start floor battles and floor completion writes.
 @MainActor
 @Observable
 public final class SpiresPlayMode {
@@ -24,6 +24,10 @@ public final class SpiresPlayMode {
         self.battleLaunch = battleLaunch
     }
 
+    public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
+        PlayBattleLaunch.resolvedSpireEncounter(for: floor)
+    }
+
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
@@ -34,7 +38,6 @@ public final class SpiresPlayMode {
 
         let spires = playerSave.spires
         let roster = playerSave.roster
-        let homestead = playerSave.homestead
 
         guard spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
@@ -58,22 +61,13 @@ public final class SpiresPlayMode {
             return StageMapMessage(title: "Not Attuned", message: attunement.message)
         }
 
-        guard let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor) else {
+        guard let encounter = resolvedEncounter(for: floor) else {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .spire(spireID: floor.spireID, floor: floor.floor),
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        battleLaunch.activateBattle(
+        battleLaunch.activateCombat(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item
+            encounter: encounter
         )
         return nil
     }
@@ -81,7 +75,6 @@ public final class SpiresPlayMode {
     public func prepareBattle(for floor: SpireFloor) {
         let spires = playerSave.spires
         let roster = playerSave.roster
-        let homestead = playerSave.homestead
         guard battle.activeBattle == nil,
               let spire = GameContent.spire(id: floor.spireID),
               spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
@@ -90,45 +83,12 @@ public final class SpiresPlayMode {
                   companion: roster.activeCompanion,
                   spire: spire
               ).isReady,
-              let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor)
+              let encounter = resolvedEncounter(for: floor)
         else { return }
 
-        let loot = ActiveBattleConfiguration.lootPackage(
-            for: .spire(spireID: floor.spireID, floor: floor.floor),
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
-        )
-        battle.prepareBattleRun(battleLaunch.makeBattleConfiguration(
+        battleLaunch.prepareCombat(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item
-        ))
-    }
-
-    func persistVictory(
-        for configuration: ActiveBattleConfiguration,
-        hero: Combatant,
-        companion: Combatant,
-        battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]?
-    ) -> Bool {
-        guard case let .spire(spireID, floorNumber) = configuration.resumeToken else { return false }
-        guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
-            appStateLogger.error(
-                "Missing spire floor for resume token: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
-            )
-            return false
-        }
-        return completeFloor(
-            floor,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: battleEarnedGold,
-            materialRewards: materialRewards,
-            rewardItem: configuration.pendingRewardItem
+            encounter: encounter
         )
     }
 

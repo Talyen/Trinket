@@ -149,8 +149,7 @@ private extension PlaySession {
         else { return }
         battle.spectacle.victorySummary = BattleVictorySummary.make(
             configuration: configuration,
-            state: battleState,
-            homestead: playerSave.homestead
+            state: battleState
         )
         battle.spectacle.isShowingVictory = true
     }

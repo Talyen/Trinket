@@ -1,14 +1,11 @@
 import TrinketFeatureSupport
 #if DEBUG
 import SwiftUI
-import TrinketPersistence
 
 /// A small measurement shell around production battle UI. Finger-driven scenarios
 /// are stimulated by XCUI; component gates use the same session mutation methods.
 struct BattlePerformanceScenarioHarness: View {
     let scenario: BattlePerformanceScenario
-    let journey: JourneyProgressState
-    let homestead: PlayerHomesteadState
     let battleSession: BattleSession
     let battleSize: CGSize
     let castPresentation: BattleCastPresentationState
@@ -56,8 +53,6 @@ struct BattlePerformanceScenarioHarness: View {
 
         let driver = BattlePerformanceScenarioDriver(
             scenario: scenario,
-            journey: journey,
-            homestead: homestead,
             battleSession: battleSession,
             battleSize: battleSize,
             castPresentation: castPresentation

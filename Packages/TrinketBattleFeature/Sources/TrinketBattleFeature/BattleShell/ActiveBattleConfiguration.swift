@@ -5,6 +5,9 @@ import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
+/// Assembles a battle run from pre-resolved party, enemy, and reward inputs.
+/// Mode owners / `PlayBattleLaunch` resolve encounters, loot, claimed-stage policy,
+/// and gold-find percent before calling `make`.
 public struct ActiveBattleConfiguration: Identifiable {
     public struct PartyMember: Equatable {
         public let combatant: Combatant
@@ -29,6 +32,10 @@ public struct ActiveBattleConfiguration: Identifiable {
     public let rewardItems: [InventoryItem]
     public let pendingRewardItem: InventoryItem?
     public let experienceBonusPercent: Int
+    /// Homestead gold-find baked at launch so victory display needs no live homestead.
+    public let goldFindPercent: Int
+    /// Journey claimed-stage policy baked at launch so Battle never reads journey progress.
+    public let stageRewardsAlreadyClaimed: Bool
     public let universalModifiers: [AffixModifier]
 
     public var hasProgressionRewards: Bool {
@@ -59,90 +66,6 @@ public struct ActiveBattleConfiguration: Identifiable {
         return nil
     }
 
-    public static func resolvedEncounter(
-        for stage: Stage
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = stage.resolvedBattleEnemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
-        else { return nil }
-
-        return scaledEnemy(
-            catalogEnemy,
-            level: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        )
-    }
-
-    public static func resolvedSpireEncounter(
-        for floor: SpireFloor
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        return scaledEnemy(catalogEnemy, level: SpireCompletion.enemyLevel(for: floor))
-    }
-
-    public static func resolvedLabyrinthEncounter(
-        for node: LabyrinthNode
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = node.enemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID)
-        else { return nil }
-        return scaledEnemy(
-            catalogEnemy,
-            level: LabyrinthCompletion.enemyLevel(for: node)
-        )
-    }
-
-    /// Seeded combat loot for battle chrome and grant paths. Pure formulas stay in Persistence.
-    public static func lootPackage(
-        for resumeToken: ActiveBattleResumeToken?,
-        enemy: Combatant? = nil,
-        encounterLevel: Int = 0,
-        labyrinth: PlayerLabyrinthState? = nil,
-        astralChanceBonusPercent: Int = 0
-    ) -> BattleLootPackage? {
-        let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
-        switch resumeToken {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID),
-                  stage.encounter.isCombat
-            else { return nil }
-            return BattleLoot.resolveJourney(
-                stage: stage,
-                encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case let .spire(spireID, floorNumber):
-            guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
-                return nil
-            }
-            return SpireCompletion.resolveLoot(
-                for: floor,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case let .labyrinth(nodeID):
-            guard let labyrinth,
-                  let node = labyrinth.node(id: nodeID),
-                  node.type.isCombat
-            else { return nil }
-            return LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: labyrinth.effects(for: nodeID),
-                worldSeed: labyrinth.worldSeed,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case .none:
-            return nil
-        }
-    }
-
-    private static func scaledEnemy(
-        _ enemy: Enemy,
-        level: Int
-    ) -> (combatant: Combatant, level: Int) {
-        (CombatantLevelScaler.scale(enemy: enemy, level: level), level)
-    }
-
     @MainActor
     public static func make(
         resumeToken: ActiveBattleResumeToken? = nil,
@@ -157,23 +80,12 @@ public struct ActiveBattleConfiguration: Identifiable {
         stageReward: StageReward? = nil,
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = []
     ) -> Self {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(universalModifiers)
-        var rng = SeededRandomNumberGenerator(seed: rngSeed)
-        let resolvedPendingRewardItem = pendingRewardItem
-            ?? pendingSpireRewardItem(
-                resumeToken: resumeToken,
-                astralChanceBonusPercent: homesteadState.effects.astralChanceBonusPercent,
-                using: &rng
-            )
-        let rewardItems = resolvedRewardItems(
-            resumeToken: resumeToken,
-            stageReward: stageReward,
-            pendingRewardItem: resolvedPendingRewardItem
-        )
         let homesteadEffects = homesteadState.effects
         return Self(
             resumeToken: resumeToken,
@@ -197,24 +109,16 @@ public struct ActiveBattleConfiguration: Identifiable {
             enemyModifiers: enemyModifiers,
             inventoryState: inventoryState,
             stageReward: stageReward,
-            rewardItems: rewardItems,
-            pendingRewardItem: resolvedPendingRewardItem,
+            rewardItems: resolvedRewardItems(
+                stageReward: stageReward,
+                pendingRewardItem: pendingRewardItem
+            ),
+            pendingRewardItem: pendingRewardItem,
             experienceBonusPercent: experienceBonusPercent,
+            goldFindPercent: homesteadEffects.goldFindPercent,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers
         )
-    }
-
-    private static func pendingSpireRewardItem(
-        resumeToken: ActiveBattleResumeToken?,
-        astralChanceBonusPercent: Int,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> InventoryItem? {
-        _ = randomNumberGenerator
-        guard case .spire = resumeToken else { return nil }
-        return lootPackage(
-            for: resumeToken,
-            astralChanceBonusPercent: astralChanceBonusPercent
-        )?.item
     }
 
     private static func partyMember(
@@ -248,7 +152,7 @@ public struct ActiveBattleConfiguration: Identifiable {
         guard let enemy else {
             return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
-        // Preserve the encounter combatant (already journey-scaled by `resolvedEncounter`).
+        // Preserve the encounter combatant (already scaled by PlayBattleLaunch).
         // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
         // with the catalog base combatant.
         if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
@@ -259,26 +163,13 @@ public struct ActiveBattleConfiguration: Identifiable {
     }
 
     private static func resolvedRewardItems(
-        resumeToken: ActiveBattleResumeToken?,
         stageReward: StageReward?,
         pendingRewardItem: InventoryItem?
     ) -> [InventoryItem] {
         if let pendingRewardItem {
             return [pendingRewardItem]
         }
-        switch resumeToken {
-        case .spire, .labyrinth, .journey, .none:
-            guard let stageReward else { return [] }
-            return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
-        }
-    }
-
-    /// Maps Labyrinth damage-dealt bonuses into battle-wide affix modifiers.
-    public static func labyrinthCombatModifiers(
-        from effects: LabyrinthModifierEffects
-    ) -> [AffixModifier] {
-        effects.damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
+        guard let stageReward else { return [] }
+        return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
     }
 }
