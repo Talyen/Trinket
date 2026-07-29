@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryEncounterView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
 
@@ -36,7 +37,7 @@ struct MysteryEncounterView: View {
                 MysteryItemChoiceContent(
                     session: session,
                     onSelectItem: { itemID in
-                        _ = play.encounters.selectActiveMysteryItem(itemID: itemID)
+                        _ = encounters.selectActiveMysteryItem(itemID: itemID)
                     }
                 )
             } else {
@@ -50,8 +51,8 @@ struct MysteryEncounterView: View {
                 RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID,
-                    hapticsEnabled: play.options.hapticsEnabled,
-                    effectsVolume: play.options.effectsVolume,
+                    hapticsEnabled: options.hapticsEnabled,
+                    effectsVolume: options.effectsVolume,
                     hidesNavigationBar: false
                 )
             }
@@ -120,7 +121,7 @@ struct MysteryEncounterView: View {
 
             Button {
                 guard let selectedChoiceID else { return }
-                _ = play.encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
+                _ = encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
             } label: {
                 Text("Confirm")
                     .frame(maxWidth: .infinity)
@@ -134,7 +135,7 @@ struct MysteryEncounterView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: choiceFeedbackTrigger,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 

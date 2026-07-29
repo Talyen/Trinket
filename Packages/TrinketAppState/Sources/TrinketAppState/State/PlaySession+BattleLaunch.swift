@@ -6,44 +6,11 @@ import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-extension PlaySession {
-    @discardableResult
-    func grantBattleEarnedGold(_ amount: Int) -> Bool {
-        guard amount > 0 else { return true }
-        do {
-            try playerSave.performBatchMutation { save in
-                save.roster.grantGold(amount)
-            }
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
-        }
-    }
-
-    public func restartActiveBattle() {
-        guard let activeBattle = battle.activeBattle else { return }
-
-        let roster = playerSave.roster
-        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
-            ?? roster.activeHero
-        let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
-            ?? roster.activeCompanion
-
-        activateBattle(
-            resumeToken: activeBattle.resumeToken,
-            hero: hero,
-            companion: companion,
-            enemy: activeBattle.enemy,
-            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            experienceBonusPercent: activeBattle.experienceBonusPercent,
-            pendingRewardItem: activeBattle.pendingRewardItem,
-            universalModifiers: activeBattle.universalModifiers
-        )
-    }
+/// Shared battle configuration + activation used by mode owners and the Play shell.
+@MainActor
+struct PlayBattleLaunch {
+    let playerSave: PlayerSaveStore
+    let battle: BattleSession
 
     /// Installs a fresh battle configuration and syncs the tick loop.
     func activateBattle(
@@ -107,6 +74,46 @@ extension PlaySession {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             universalModifiers: universalModifiers
+        )
+    }
+}
+
+extension PlaySession {
+    @discardableResult
+    func grantBattleEarnedGold(_ amount: Int) -> Bool {
+        guard amount > 0 else { return true }
+        do {
+            try playerSave.performBatchMutation { save in
+                save.roster.grantGold(amount)
+            }
+            return true
+        } catch {
+            appStateLogger.error(
+                "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+    }
+
+    public func restartActiveBattle() {
+        guard let activeBattle = battle.activeBattle else { return }
+
+        let roster = playerSave.roster
+        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
+            ?? roster.activeHero
+        let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
+            ?? roster.activeCompanion
+
+        battleLaunch.activateBattle(
+            resumeToken: activeBattle.resumeToken,
+            hero: hero,
+            companion: companion,
+            enemy: activeBattle.enemy,
+            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+            stageReward: activeBattle.stageReward,
+            experienceBonusPercent: activeBattle.experienceBonusPercent,
+            pendingRewardItem: activeBattle.pendingRewardItem,
+            universalModifiers: activeBattle.universalModifiers
         )
     }
 }

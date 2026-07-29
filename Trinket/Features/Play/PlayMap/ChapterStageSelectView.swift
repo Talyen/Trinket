@@ -45,7 +45,8 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
 
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(JourneyPlayMode.self) private var journey
+    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
@@ -54,7 +55,7 @@ struct ChapterStageSelectView: View {
     let onEnemyTap: (Stage) -> Void
 
     private var chapter: Chapter {
-        play.journey.playChapter
+        journey.playChapter
     }
 
     var body: some View {
@@ -110,12 +111,12 @@ struct ChapterStageSelectView: View {
                     dynamicTypeSize: dynamicTypeSize,
                     displayScale: displayScale
                 )
-                play.battle.prepareBattlePresentation(
+                battle.prepareBattlePresentation(
                     heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
                     companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
                 )
                 if let stageID = playerSave.journey.activeStageID {
-                    let names = play.battle.preparedAbilityArtworkNames(
+                    let names = battle.preparedAbilityArtworkNames(
                         for: .journey(stageID: stageID)
                     )
                     await PreparedArtworkCache.shared.prepareAndPin(names: names)
@@ -140,7 +141,7 @@ struct ChapterStageSelectView: View {
         guard let stageID = playerSave.journey.activeStageID,
               let stage = GameContent.stage(id: stageID),
               stage.encounter.isCombat else { return }
-        play.journey.prepareBattle(for: stage)
+        journey.prepareBattle(for: stage)
     }
 
     private var stageRows: [StageSelectRowPresentation<Stage>] {

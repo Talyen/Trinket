@@ -10,11 +10,13 @@ target composes these modules but packages never import the app.
 
 Use current SwiftUI: `NavigationStack`, modern `Tab`, sheets, `ToolbarItem`, adaptive text roles (`.primary` / `.secondary`), `@Observable` environment state, and `@Bindable`. Prefer the narrowest environment owner for a subtree (`BattleSession`, encounter sessions) over whole `AppState` when the view only needs that slice. Use `TrinketDesign`, `.trinketSurface`, `.trinketMaterial`, `.trinketGlassChip`, `TrinketHeroScrim`, and `.trinketOnArtText`; do not create local substitutes or one-off colors (`Color.green`, `.white`, `Color(red:)`, app-bundle `Color("…")`). New colors belong in `DesignColors.xcassets` via the design system. Use `TrinketMotion` for reusable fluid motion. File-level `@ViewBuilder` helpers that touch DesignSystem modifiers must be `@MainActor` (or methods on a `View`) so Swift 6 concurrency accepts them.
 
-Give a view the narrowest owner it needs: `PlaySession` (and its mode coordinators),
-a specific encounter session, `BattleSession`, or a Battle read lane. Play screens take
-`PlaySession` for orchestration and `PlayerSaveStore` for save slices — do not reintroduce
-slice facades on `PlaySession`. Do not pass `AppState` through a feature tree when
-explicit values and actions suffice.
+Give a view the narrowest owner it needs: a Play mode coordinator
+(`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode`),
+`PlaySession` only for shell navigation/victory routing, a specific encounter session,
+`BattleSession`, or a Battle read lane. Play screens take mode owners for orchestration
+and `PlayerSaveStore` for save slices — do not reintroduce slice facades on
+`PlaySession`. Do not pass `AppState` through a feature tree when explicit values and
+actions suffice.
 
 New player flows need a stable `AccessibilityID` from `TrinketFeatureSupport` (or an
 existing appropriate one) for UI automation. Add or extend a smoke/exhaustive UI test

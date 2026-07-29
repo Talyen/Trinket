@@ -8,7 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -110,7 +110,7 @@ struct MysteryRewardContent: View {
 
     private func completeLootAll() {
         guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = play.encounters.finishActiveMysteryEncounter()
+        isCompleting = encounters.finishActiveMysteryEncounter()
     }
 
     private func experienceBarCompleted() {

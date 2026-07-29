@@ -7,7 +7,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryUnlockContent: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let unlockedID: String
@@ -29,7 +30,7 @@ struct MysteryUnlockContent: View {
                     .trinketSensoryFeedback(
                         .success,
                         trigger: unlockFeedbackTrigger,
-                        enabled: play.options.hapticsEnabled
+                        enabled: options.hapticsEnabled
                     )
                     .onAppear {
                         unlockFeedbackTrigger += 1
@@ -87,7 +88,7 @@ struct MysteryUnlockContent: View {
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
             onPrimaryAction: {
-                _ = play.encounters.finishActiveMysteryEncounter()
+                _ = encounters.finishActiveMysteryEncounter()
             },
             pinsPrimaryActionToBottom: false,
             primaryActionWidthFraction: 0.5

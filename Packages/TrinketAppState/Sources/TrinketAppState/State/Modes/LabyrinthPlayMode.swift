@@ -10,25 +10,45 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
-    private weak var sessionRef: PlaySession?
+    private let playerSave: PlayerSaveStore
+    private let battle: BattleSession
+    private let battleLaunch: PlayBattleLaunch
+    private var encounters: EncounterPlayMode?
 
     public var activeNodeSession: LabyrinthNodeSession?
 
-    func attach(to session: PlaySession) {
-        sessionRef = session
+    init(
+        playerSave: PlayerSaveStore,
+        battle: BattleSession,
+        battleLaunch: PlayBattleLaunch
+    ) {
+        self.playerSave = playerSave
+        self.battle = battle
+        self.battleLaunch = battleLaunch
     }
 
-    private var session: PlaySession {
-        guard let sessionRef else {
-            preconditionFailure("LabyrinthPlayMode used before attach")
+    func bind(encounters: EncounterPlayMode) {
+        self.encounters = encounters
+    }
+
+    private var boundEncounters: EncounterPlayMode {
+        guard let encounters else {
+            preconditionFailure("LabyrinthPlayMode used before encounters bind")
         }
-        return sessionRef
+        return encounters
+    }
+
+    private var canBeginTransientEncounter: Bool {
+        battle.activeBattle == nil
+            && boundEncounters.activeShopEncounter == nil
+            && boundEncounters.activeMysteryEncounter == nil
+            && activeNodeSession == nil
     }
 
     @discardableResult
     public func enter() -> StageMapMessage? {
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.enter(save: &save)
             }
         } catch {
@@ -42,11 +62,11 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     public func handleNodeAction(nodeID: String) -> StageMapMessage? {
-        guard session.canBeginTransientEncounter else { return nil }
+        guard canBeginTransientEncounter else { return nil }
         if let message = enter() {
             return message
         }
-        let labyrinth = session.playerSave.labyrinth
+        let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID) else {
             return StageMapMessage(title: "Path Missing", message: "This path is not ready yet.")
         }
@@ -54,14 +74,14 @@ public final class LabyrinthPlayMode {
             return StageMapMessage(title: "Path Closed", message: "Clear another path to reach this node.")
         }
 
-        let roster = session.playerSave.roster
+        let roster = playerSave.roster
         switch node.type.canonical {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
-            return session.encounters.beginShopEncounter(labyrinthNodeID: nodeID)
+            return boundEncounters.beginShopEncounter(labyrinthNodeID: nodeID)
         case .mystery, .event:
-            return session.encounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
+            return boundEncounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
         case .recruit:
             let resolution = GameContent.resolveRecruitEncounter(
                 configuredEventID: node.recruitEventID,
@@ -69,7 +89,7 @@ public final class LabyrinthPlayMode {
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs
             )
-            return session.encounters.beginMysteryEncounter(
+            return boundEncounters.beginMysteryEncounter(
                 labyrinthNodeID: nodeID,
                 forcedEventID: resolution.event.id
             )
@@ -84,23 +104,23 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func beginRest(nodeID: String) -> StageMapMessage? {
-        guard session.canBeginTransientEncounter else { return nil }
-        let labyrinth = session.playerSave.labyrinth
+        guard canBeginTransientEncounter else { return nil }
+        let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
             return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
         }
         activeNodeSession = LabyrinthNodeSession.rest(
             node: node,
             effects: labyrinth.effects(for: nodeID),
-            homestead: session.playerSave.homestead
+            homestead: playerSave.homestead
         )
         return nil
     }
 
     @discardableResult
     func beginCraft(nodeID: String) -> StageMapMessage? {
-        guard session.canBeginTransientEncounter else { return nil }
-        let labyrinth = session.playerSave.labyrinth
+        guard canBeginTransientEncounter else { return nil }
+        let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .craft else {
             return StageMapMessage(title: "Altar Missing", message: "This path is not ready yet.")
         }
@@ -113,7 +133,7 @@ public final class LabyrinthPlayMode {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .rest else { return false }
         sessionNode.clearFailure()
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
                     nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
@@ -142,7 +162,7 @@ public final class LabyrinthPlayMode {
         sessionNode.clearFailure()
         var forged = false
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 forged = LabyrinthCompletion.forgeAtAltar(
                     nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
@@ -169,7 +189,7 @@ public final class LabyrinthPlayMode {
     public func leaveActiveCraftWithoutForging() -> Bool {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
                     nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
@@ -190,10 +210,10 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
-        guard session.battle.activeBattle == nil else { return nil }
-        let labyrinth = session.playerSave.labyrinth
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
+        guard battle.activeBattle == nil else { return nil }
+        let labyrinth = playerSave.labyrinth
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
@@ -207,7 +227,7 @@ public final class LabyrinthPlayMode {
             labyrinth: labyrinth,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        session.activateBattle(
+        battleLaunch.activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -221,16 +241,16 @@ public final class LabyrinthPlayMode {
     }
 
     public func prepareReachableBattles() {
-        guard session.battle.activeBattle == nil else { return }
-        for nodeID in session.playerSave.labyrinth.reachableNodeIDs() {
+        guard battle.activeBattle == nil else { return }
+        for nodeID in playerSave.labyrinth.reachableNodeIDs() {
             prepareBattle(nodeID: nodeID)
         }
     }
 
     private func prepareBattle(nodeID: String) {
-        let labyrinth = session.playerSave.labyrinth
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
+        let labyrinth = playerSave.labyrinth
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
         let effects = labyrinth.effects(for: nodeID)
         guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else { return }
@@ -240,7 +260,7 @@ public final class LabyrinthPlayMode {
             labyrinth: labyrinth,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        session.battle.prepareBattleRun(session.makeBattleConfiguration(
+        battle.prepareBattleRun(battleLaunch.makeBattleConfiguration(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -290,11 +310,11 @@ public final class LabyrinthPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil
     ) -> Bool {
-        let roster = session.playerSave.roster
+        let roster = playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
                     nodeID: nodeID,
                     hero: resolvedHero,

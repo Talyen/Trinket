@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct ShopEncounterView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: ShopEncounterSession
 
@@ -62,7 +63,7 @@ struct ShopEncounterView: View {
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
-                        play.encounters.finishActiveShopEncounter()
+                        encounters.finishActiveShopEncounter()
                     } label: {
                         Text("Leave Shop")
                             .frame(maxWidth: .infinity)
@@ -110,12 +111,12 @@ struct ShopEncounterView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: purchaseFeedbackTrigger,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
         .trinketSensoryFeedback(
             .error,
             trigger: purchaseErrorFeedbackTrigger,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 
@@ -187,7 +188,7 @@ struct ShopEncounterView: View {
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
-        if play.encounters.purchaseActiveShopOffer(offerID: offerID) {
+        if encounters.purchaseActiveShopOffer(offerID: offerID) {
             purchaseFeedbackTrigger += 1
             if dismissDetail {
                 selectedOffer = nil

@@ -52,7 +52,7 @@ enum BattlePartySlot: String {
 
 /// Journey's shared, single-sheet party editor.
 struct StageBattlePartyPickerSheet: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
@@ -92,7 +92,7 @@ struct StageBattlePartyPickerSheet: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 
@@ -172,7 +172,7 @@ struct StageBattlePartyPickerSheet: View {
 
 /// Full-grid party slot picker pushed from a shelf header.
 private struct BattlePartySlotGridView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @State private var selectionFeedbackTrigger = 0
@@ -207,7 +207,7 @@ private struct BattlePartySlotGridView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 

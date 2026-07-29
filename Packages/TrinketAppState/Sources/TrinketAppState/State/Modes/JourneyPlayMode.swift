@@ -10,21 +10,37 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class JourneyPlayMode {
-    private weak var sessionRef: PlaySession?
+    private let playerSave: PlayerSaveStore
+    private let battle: BattleSession
+    private let battleLaunch: PlayBattleLaunch
+    private let noteMapScrollFocus: (String) -> Void
+    private var encounters: EncounterPlayMode?
 
-    func attach(to session: PlaySession) {
-        sessionRef = session
+    init(
+        playerSave: PlayerSaveStore,
+        battle: BattleSession,
+        battleLaunch: PlayBattleLaunch,
+        noteMapScrollFocus: @escaping (String) -> Void
+    ) {
+        self.playerSave = playerSave
+        self.battle = battle
+        self.battleLaunch = battleLaunch
+        self.noteMapScrollFocus = noteMapScrollFocus
     }
 
-    private var session: PlaySession {
-        guard let sessionRef else {
-            preconditionFailure("JourneyPlayMode used before attach")
+    func bind(encounters: EncounterPlayMode) {
+        self.encounters = encounters
+    }
+
+    private var boundEncounters: EncounterPlayMode {
+        guard let encounters else {
+            preconditionFailure("JourneyPlayMode used before encounters bind")
         }
-        return sessionRef
+        return encounters
     }
 
     public var playChapter: Chapter {
-        GameContent.chapter(id: session.playerSave.journey.activeChapterID) ?? GameContent.chapters[0]
+        GameContent.chapter(id: playerSave.journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
     /// Completes a stage and returns the map scroll target when persistence succeeds.
@@ -46,7 +62,7 @@ public final class JourneyPlayMode {
             return nil
         }
         let scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
-        session.noteMapScrollFocus(scrollTarget)
+        noteMapScrollFocus(scrollTarget)
         return scrollTarget
     }
 
@@ -74,21 +90,21 @@ public final class JourneyPlayMode {
         ) else {
             return false
         }
-        session.noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         return true
     }
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
-        guard session.battle.activeBattle == nil else { return nil }
+        guard battle.activeBattle == nil else { return nil }
 
         guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
-        if session.battle.activatePreparedJourneyBattle(
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
+        if battle.activatePreparedJourneyBattle(
             stageID: stage.id,
             heroID: roster.activeHero.id,
             companionID: roster.activeCompanion.id,
@@ -103,7 +119,7 @@ public final class JourneyPlayMode {
             encounterLevel: encounter.level,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        session.activateBattle(
+        battleLaunch.activateBattle(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -116,9 +132,9 @@ public final class JourneyPlayMode {
     }
 
     public func prepareBattle(for stage: Stage) {
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
-        guard session.battle.activeBattle == nil,
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
+        guard battle.activeBattle == nil,
               let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage)
         else { return }
         let loot = ActiveBattleConfiguration.lootPackage(
@@ -127,7 +143,7 @@ public final class JourneyPlayMode {
             encounterLevel: encounter.level,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        let configuration = session.makeBattleConfiguration(
+        let configuration = battleLaunch.makeBattleConfiguration(
             resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -136,7 +152,7 @@ public final class JourneyPlayMode {
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item
         )
-        session.battle.prepareBattleRun(configuration)
+        battle.prepareBattleRun(configuration)
     }
 
     @discardableResult
@@ -146,21 +162,21 @@ public final class JourneyPlayMode {
         case .battle, .randomBattle:
             startBattle(for: resolvedStage)
         case .mysteryEvent:
-            session.encounters.beginMysteryEncounter(for: resolvedStage)
+            boundEncounters.beginMysteryEncounter(for: resolvedStage)
         case .recruit:
-            session.encounters.beginMysteryEncounter(
+            boundEncounters.beginMysteryEncounter(
                 for: resolvedStage,
                 forcedEventID: resolvedStage.encounter.recruitEventID
             )
         case .shop:
-            session.encounters.beginShopEncounter(for: resolvedStage)
+            boundEncounters.beginShopEncounter(for: resolvedStage)
         case .event, .rest:
             completeStageOrPersistFailure(resolvedStage)
         }
     }
 
     func resolvedCampaignStage(_ stage: Stage) -> Stage {
-        let roster = session.playerSave.roster
+        let roster = playerSave.roster
         return GameContent.resolveRecruitStage(
             stage,
             unlockedHeroIDs: roster.unlockedHeroIDs,
@@ -170,7 +186,7 @@ public final class JourneyPlayMode {
 
     /// Completes a stage, returning a save-failure message when persistence fails.
     func completeStageOrPersistFailure(_ stage: Stage) -> StageMapMessage? {
-        let roster = session.playerSave.roster
+        let roster = playerSave.roster
         guard completeStage(
             stage,
             hero: roster.activeHero,
@@ -196,9 +212,9 @@ public final class JourneyPlayMode {
     ) -> JourneyProgressState? {
         guard !stages.isEmpty else { return nil }
 
-        var resultingJourney = session.playerSave.journey
+        var resultingJourney = playerSave.journey
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 if resetJourney {
                     save.journey = .initial
                 }

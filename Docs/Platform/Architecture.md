@@ -133,10 +133,12 @@ presentation, but it cannot depend on `TrinketBattleFeature` or `TrinketAppState
 both source imports and package manifests.
 
 The app target is a composition root and view host. App views receive the narrowest
-available owner (`PlaySession` mode coordinators, an encounter session, `BattleSession`,
-or one of Battle’s read lanes) instead of observing `AppState` for unrelated state.
-Play screens read save slices from `PlayerSaveStore` directly — not through `PlaySession`
-facades.
+available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
+`EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
+lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
+`PlaySession` remains in the environment for shell concerns (pending destination, map
+scroll, battle victory routing). Play screens read save slices from `PlayerSaveStore`
+directly — not through `PlaySession` facades.
 
 ## Persistence overview
 

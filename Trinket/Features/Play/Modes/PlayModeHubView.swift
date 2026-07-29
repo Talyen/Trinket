@@ -12,7 +12,8 @@ import TrinketPersistence
 /// home for the currently available open-ended sub-modes while the future
 /// world map is being designed.
 struct PlayModeHubView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(JourneyPlayMode.self) private var journey
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
 
     let onOpenCampaign: () -> Void
@@ -31,7 +32,7 @@ struct PlayModeHubView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: committedSelection,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 
@@ -64,7 +65,7 @@ struct PlayModeHubView: View {
                let stage = GameContent.stage(id: stageID) {
                 return stage.mapLabel
             }
-            return "Chapter \(play.journey.playChapter.number) · Complete"
+            return "Chapter \(journey.playChapter.number) · Complete"
         case .explore:
             return nil
         }

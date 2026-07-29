@@ -106,6 +106,10 @@ private struct PreparedAppRoot: View {
         }
         .environment(appState)
         .environment(appState.play)
+        .environment(appState.play.journey)
+        .environment(appState.play.labyrinth)
+        .environment(appState.play.spires)
+        .environment(appState.play.encounters)
         .environment(appState.battle)
         .environment(appState.options)
         .environment(appState.playerSave)

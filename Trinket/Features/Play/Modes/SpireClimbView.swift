@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct SpireClimbView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(SpiresPlayMode.self) private var spires
+    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -88,11 +89,11 @@ struct SpireClimbView: View {
                     StageSelectList(
                         rows: rows,
                         isPrimaryActionDisabled: { _ in
-                            play.battle.activeBattle != nil || !isPartyAttuned(to: spire)
+                            battle.activeBattle != nil || !isPartyAttuned(to: spire)
                         },
                         onArtworkTap: showEnemyDetails,
                         onPrimaryAction: { floor in
-                            if let message = play.spires.startBattle(for: floor) {
+                            if let message = spires.startBattle(for: floor) {
                                 floorMessage = message
                             }
                         },
@@ -152,7 +153,7 @@ struct SpireClimbView: View {
 
     private func showEnemyDetails(for floor: SpireFloor) {
         guard let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor) else { return }
-        play.battle.presentCombatantDetail(
+        battle.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant,
                 inventoryState: playerSave.inventory
@@ -165,7 +166,7 @@ struct SpireClimbView: View {
             spireID: spireID,
             floor: activeFloorNumber
         ) else { return }
-        play.spires.prepareBattle(for: floor)
+        spires.prepareBattle(for: floor)
     }
 
     private func warmActiveFloorPresentation() {
@@ -175,7 +176,7 @@ struct SpireClimbView: View {
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
-            play.battle.prepareBattlePresentation(
+            battle.prepareBattlePresentation(
                 heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
                 companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
             )
@@ -183,7 +184,7 @@ struct SpireClimbView: View {
                 spireID: spireID,
                 floor: activeFloorNumber
             )
-            let names = play.battle.preparedAbilityArtworkNames(for: token)
+            let names = battle.preparedAbilityArtworkNames(for: token)
             await PreparedArtworkCache.shared.prepareAndPin(names: names)
         }
     }

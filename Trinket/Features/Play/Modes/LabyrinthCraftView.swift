@@ -6,7 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthCraftView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
     let session: LabyrinthNodeSession
@@ -21,7 +21,7 @@ struct LabyrinthCraftView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraftFailure,
             onLeave: {
-                play.labyrinth.dismissActiveNodeSessionWithoutCompleting()
+                labyrinth.dismissActiveNodeSessionWithoutCompleting()
                 dismiss()
             },
             facts: {
@@ -31,7 +31,7 @@ struct LabyrinthCraftView: View {
             },
             actions: {
                 Button {
-                    if play.labyrinth.forgeActiveCraft() {
+                    if labyrinth.forgeActiveCraft() {
                         dismiss()
                     }
                 } label: {
@@ -43,7 +43,7 @@ struct LabyrinthCraftView: View {
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftForge)
 
                 Button {
-                    if play.labyrinth.leaveActiveCraftWithoutForging() {
+                    if labyrinth.leaveActiveCraftWithoutForging() {
                         dismiss()
                     }
                 } label: {

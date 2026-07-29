@@ -232,7 +232,8 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
 }
 
 struct LabyrinthNodeInspector: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
 
     let node: LabyrinthNode
@@ -275,14 +276,14 @@ struct LabyrinthNodeInspector: View {
     var body: some View {
         StageSelectActiveCard(
             presentation: presentation,
-            isPrimaryActionDisabled: play.battle.activeBattle != nil,
+            isPrimaryActionDisabled: battle.activeBattle != nil,
             onArtworkTap: {
                 if let enemyDetail {
-                    play.battle.presentCombatantDetail(enemyDetail)
+                    battle.presentCombatantDetail(enemyDetail)
                 }
             },
             onPrimaryAction: {
-                if let message = play.labyrinth.handleNodeAction(nodeID: node.id) {
+                if let message = labyrinth.handleNodeAction(nodeID: node.id) {
                     onMessage(message)
                 }
             },

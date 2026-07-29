@@ -7,7 +7,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
-    @Environment(PlaySession.self) private var play
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var nodeMessage: StageMapMessage?
     @State private var viewedFloor = 1
@@ -49,13 +50,13 @@ struct LabyrinthMapView: View {
         }
         .onAppear {
             if !state.hasMap {
-                _ = play.labyrinth.enter()
+                _ = labyrinth.enter()
             }
             viewedFloor = max(1, state.currentFloorNumber)
-            play.labyrinth.prepareReachableBattles()
+            labyrinth.prepareReachableBattles()
         }
         .onChange(of: playerSave.labyrinth) { previous, current in
-            play.labyrinth.prepareReachableBattles()
+            labyrinth.prepareReachableBattles()
             if current.currentFloorNumber > previous.currentFloorNumber {
                 selectedNodeID = nil
                 showFloor(current.currentFloorNumber)
@@ -63,9 +64,9 @@ struct LabyrinthMapView: View {
                 self.selectedNodeID = nil
             }
         }
-        .onChange(of: playerSave.roster) { _, _ in play.labyrinth.prepareReachableBattles() }
-        .onChange(of: playerSave.inventory) { _, _ in play.labyrinth.prepareReachableBattles() }
-        .onChange(of: playerSave.homestead) { _, _ in play.labyrinth.prepareReachableBattles() }
+        .onChange(of: playerSave.roster) { _, _ in labyrinth.prepareReachableBattles() }
+        .onChange(of: playerSave.inventory) { _, _ in labyrinth.prepareReachableBattles() }
+        .onChange(of: playerSave.homestead) { _, _ in labyrinth.prepareReachableBattles() }
         .alert(item: $nodeMessage) { message in
             Alert(
                 title: Text(message.title),
@@ -102,7 +103,7 @@ struct LabyrinthMapView: View {
             Text("The path remembers. Descend when you are ready.")
         } actions: {
             Button("Enter") {
-                if let message = play.labyrinth.enter() {
+                if let message = labyrinth.enter() {
                     nodeMessage = message
                 } else {
                     viewedFloor = max(1, state.currentFloorNumber)
@@ -154,7 +155,7 @@ struct LabyrinthMapView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectedNodeID,
-            enabled: play.options.hapticsEnabled
+            enabled: options.hapticsEnabled
         )
     }
 

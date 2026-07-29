@@ -9,6 +9,7 @@ import TrinketPersistence
 
 struct PlayView: View {
     @Environment(PlaySession.self) private var play
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
 
@@ -66,7 +67,7 @@ struct PlayView: View {
         case .spiresHub:
             path = [.explore, .spiresHub]
         case .labyrinthMap:
-            _ = play.labyrinth.enter()
+            _ = labyrinth.enter()
             path = [.explore, .labyrinthMap]
         case let .spireClimb(spireID):
             path = [.explore, .spiresHub, .spireClimb(spireID)]
@@ -79,6 +80,8 @@ struct PlayView: View {
 /// Mode hub + campaign/explore destinations. Does not observe battle overlays.
 private struct PlayBrowsingStack: View {
     @Environment(PlaySession.self) private var play
+    @Environment(JourneyPlayMode.self) private var journey
+    @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
@@ -117,7 +120,7 @@ private struct PlayBrowsingStack: View {
     }
 
     private func openMode(_ destination: PlayLaunchDestination) {
-        guard play.battle.activeBattle == nil else { return }
+        guard battle.activeBattle == nil else { return }
 
         if destination == .campaign {
             // Front-load Stage Select battle prep on the mode-card press so the
@@ -131,19 +134,19 @@ private struct PlayBrowsingStack: View {
         if let stageID = playerSave.journey.activeStageID,
            let stage = GameContent.stage(id: stageID),
            stage.encounter.isCombat {
-            play.journey.prepareBattle(for: stage)
+            journey.prepareBattle(for: stage)
         }
         Task { @MainActor in
             await BattlePresentationWarmup.prepareAndWait(
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
-            play.battle.prepareBattlePresentation(
+            battle.prepareBattlePresentation(
                 heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
                 companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
             )
             if let stageID = playerSave.journey.activeStageID {
-                let names = play.battle.preparedAbilityArtworkNames(
+                let names = battle.preparedAbilityArtworkNames(
                     for: .journey(stageID: stageID)
                 )
                 await PreparedArtworkCache.shared.prepareAndPin(names: names)
@@ -167,7 +170,7 @@ private struct PlayBrowsingStack: View {
                 AppFramePacingSignposts.Name.stageSelectBattleActivate,
                 detail: "stage=\(stage.id)"
             )
-            if let message = play.journey.handleStagePrimaryAction(for: stage) {
+            if let message = journey.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
             }
         }
@@ -175,7 +178,7 @@ private struct PlayBrowsingStack: View {
 
     private func showEnemyDetails(for stage: Stage) {
         guard let detail = enemyDetail(for: stage) else { return }
-        play.battle.presentCombatantDetail(detail)
+        battle.presentCombatantDetail(detail)
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
@@ -287,14 +290,15 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 }
 
 private struct PlayEncounterCoversModifier: ViewModifier {
-    @Environment(PlaySession.self) private var play
+    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(LabyrinthPlayMode.self) private var labyrinth
 
     func body(content: Content) -> some View {
         content
             .fullScreenCover(
                 item: dismissibleSessionBinding(
-                    get: { play.encounters.activeMysteryEncounter },
-                    dismissWithoutCompleting: { play.encounters.dismissActiveMysteryEncounterWithoutCompleting() }
+                    get: { encounters.activeMysteryEncounter },
+                    dismissWithoutCompleting: { encounters.dismissActiveMysteryEncounterWithoutCompleting() }
                 )
             ) { session in
                 MysteryEncounterView(session: session)
@@ -302,8 +306,8 @@ private struct PlayEncounterCoversModifier: ViewModifier {
             }
             .fullScreenCover(
                 item: dismissibleSessionBinding(
-                    get: { play.encounters.activeShopEncounter },
-                    dismissWithoutCompleting: { play.encounters.dismissActiveShopEncounterWithoutCompleting() }
+                    get: { encounters.activeShopEncounter },
+                    dismissWithoutCompleting: { encounters.dismissActiveShopEncounterWithoutCompleting() }
                 )
             ) { session in
                 ShopEncounterView(session: session)
@@ -311,8 +315,8 @@ private struct PlayEncounterCoversModifier: ViewModifier {
             }
             .sheet(
                 item: dismissibleSessionBinding(
-                    get: { play.labyrinth.activeNodeSession },
-                    dismissWithoutCompleting: { play.labyrinth.dismissActiveNodeSessionWithoutCompleting() }
+                    get: { labyrinth.activeNodeSession },
+                    dismissWithoutCompleting: { labyrinth.dismissActiveNodeSessionWithoutCompleting() }
                 )
             ) { session in
                 switch session.kind {

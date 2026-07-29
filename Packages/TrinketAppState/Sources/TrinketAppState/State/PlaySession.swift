@@ -23,6 +23,8 @@ public final class PlaySession {
     public let spires: SpiresPlayMode
     public let encounters: EncounterPlayMode
 
+    let battleLaunch: PlayBattleLaunch
+
     public private(set) var pendingDestination: PlayLaunchDestination?
     public private(set) var mapScrollFocus: MapScrollFocus?
 
@@ -51,19 +53,59 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        let journey = JourneyPlayMode()
-        let labyrinth = LabyrinthPlayMode()
-        let spires = SpiresPlayMode()
-        let encounters = EncounterPlayMode()
+        let battleLaunch = PlayBattleLaunch(playerSave: playerSave, battle: battle)
+        self.battleLaunch = battleLaunch
+
+        // Deferred focus wiring: modes capture this box before `self` can form a weak ref.
+        final class MapScrollFocusBox: @unchecked Sendable {
+            var note: ((String) -> Void)?
+        }
+        let focusBox = MapScrollFocusBox()
+        let noteMapScrollFocus: (String) -> Void = { targetID in
+            focusBox.note?(targetID)
+        }
+
+        let journey = JourneyPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch,
+            noteMapScrollFocus: noteMapScrollFocus
+        )
+        let labyrinth = LabyrinthPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
+        let spires = SpiresPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
+        let encounters = EncounterPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            options: options,
+            sfxPlayer: sfxPlayer,
+            noteMapScrollFocus: noteMapScrollFocus
+        )
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
         self.encounters = encounters
 
-        journey.attach(to: self)
-        labyrinth.attach(to: self)
-        spires.attach(to: self)
-        encounters.attach(to: self)
+        journey.bind(encounters: encounters)
+        labyrinth.bind(encounters: encounters)
+        encounters.bindCompletion(
+            completeJourneyStage: { [weak journey] stage in
+                journey?.completeStageOrPersistFailure(stage)
+            },
+            completeLabyrinthNode: { [weak labyrinth] nodeID in
+                labyrinth?.completeNodeOrPersistFailure(nodeID: nodeID)
+            }
+        )
+        focusBox.note = { [weak self] targetID in
+            self?.noteMapScrollFocus(targetID)
+        }
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -143,13 +185,6 @@ public final class PlaySession {
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
         shellSession.resetToDefaults(selectingTab: .play)
-    }
-
-    var canBeginTransientEncounter: Bool {
-        battle.activeBattle == nil
-            && encounters.activeShopEncounter == nil
-            && encounters.activeMysteryEncounter == nil
-            && labyrinth.activeNodeSession == nil
     }
 
     static func shouldRestoreMapScroll(

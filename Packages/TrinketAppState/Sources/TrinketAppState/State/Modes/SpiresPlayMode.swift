@@ -10,30 +10,31 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class SpiresPlayMode {
-    private weak var sessionRef: PlaySession?
+    private let playerSave: PlayerSaveStore
+    private let battle: BattleSession
+    private let battleLaunch: PlayBattleLaunch
 
-    func attach(to session: PlaySession) {
-        sessionRef = session
-    }
-
-    private var session: PlaySession {
-        guard let sessionRef else {
-            preconditionFailure("SpiresPlayMode used before attach")
-        }
-        return sessionRef
+    init(
+        playerSave: PlayerSaveStore,
+        battle: BattleSession,
+        battleLaunch: PlayBattleLaunch
+    ) {
+        self.playerSave = playerSave
+        self.battle = battle
+        self.battleLaunch = battleLaunch
     }
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
-        guard session.battle.activeBattle == nil else { return nil }
+        guard battle.activeBattle == nil else { return nil }
 
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }
 
-        let spires = session.playerSave.spires
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
+        let spires = playerSave.spires
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
 
         guard spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
@@ -65,7 +66,7 @@ public final class SpiresPlayMode {
             for: .spire(spireID: floor.spireID, floor: floor.floor),
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        session.activateBattle(
+        battleLaunch.activateBattle(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -78,10 +79,10 @@ public final class SpiresPlayMode {
     }
 
     public func prepareBattle(for floor: SpireFloor) {
-        let spires = session.playerSave.spires
-        let roster = session.playerSave.roster
-        let homestead = session.playerSave.homestead
-        guard session.battle.activeBattle == nil,
+        let spires = playerSave.spires
+        let roster = playerSave.roster
+        let homestead = playerSave.homestead
+        guard battle.activeBattle == nil,
               let spire = GameContent.spire(id: floor.spireID),
               spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
               SpireAttunement.evaluate(
@@ -96,7 +97,7 @@ public final class SpiresPlayMode {
             for: .spire(spireID: floor.spireID, floor: floor.floor),
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        session.battle.prepareBattleRun(session.makeBattleConfiguration(
+        battle.prepareBattleRun(battleLaunch.makeBattleConfiguration(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -141,7 +142,7 @@ public final class SpiresPlayMode {
         rewardItem: InventoryItem? = nil
     ) -> Bool {
         do {
-            try session.playerSave.performBatchMutation { save in
+            try playerSave.performBatchMutation { save in
                 SpireCompletion.complete(
                     floor: floor,
                     hero: hero,
