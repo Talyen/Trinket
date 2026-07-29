@@ -25,7 +25,6 @@ public final class AppState {
     public let sfxPlayer: SFXPlayer
     public var shellScenePhase: ScenePhase = .active
     public var options: OptionsStore
-    public var battle: BattleSession
     public let play: PlaySession
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
@@ -92,7 +91,6 @@ public final class AppState {
                 }
             )
         )
-        battle = resolvedBattle
         play = PlaySession(
             playerSave: dependencies.playerSave,
             shellSession: dependencies.shellSession,
@@ -158,7 +156,6 @@ public final class AppState {
 
     /// Ends any live encounter and resets shell session after a full progress rewrite.
     private func clearTransientPlaySession() {
-        battle.endBattle()
         play.clearTransientState()
     }
 
@@ -198,7 +195,7 @@ public final class AppState {
     }
 
     public func trimMemoryFootprint() {
-        battle.trimMemoryFootprint(releaseBattleLog: true)
+        play.battle.trimMemoryFootprint(releaseBattleLog: true)
         musicPlayer.clearEncounterResumePositions()
         sfxPlayer.stopAll()
     }
@@ -208,7 +205,7 @@ public final class AppState {
         musicPlayer.update(
             route: MusicRoute.resolve(
                 selectedTab: selectedTab,
-                activeBattle: battle.activeBattle,
+                activeBattle: play.battle.activeBattle,
                 sceneIsActive: scenePhase == .active,
                 musicVolume: volume
             ),
@@ -236,20 +233,20 @@ public final class AppState {
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
         switch phase {
         case .background:
-            battle.setSuspendedForScenePhase(true)
+            play.battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
             shellSession.flushPendingPersistence()
             playerSave.flushPendingPersistence()
         case .inactive:
-            battle.setSuspendedForScenePhase(true)
+            play.battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             shellSession.flushPendingPersistence()
             playerSave.flushPendingPersistence()
         case .active:
             // Launch tab is applied once during bootstrap / finishBootstrap.
             // Re-forcing Play on every foreground would wipe the persisted shell tab.
-            battle.setSuspendedForScenePhase(false)
+            play.battle.setSuspendedForScenePhase(false)
         @unknown default:
             break
         }

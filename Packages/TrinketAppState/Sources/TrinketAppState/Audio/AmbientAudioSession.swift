@@ -1,7 +1,6 @@
 import AVFoundation
 import Foundation
 import os
-import TrinketBattleFeature
 import TrinketFeatureSupport
 
 enum AudioLogging {

@@ -51,8 +51,8 @@ Manifests and pipelines live outside the app folder:
 | Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
-| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; `ActiveBattleConfiguration` assembles pre-resolved party/enemy/reward inputs only (including claimed-stage policy and gold-find percent) |
-| App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only; `PlaySession` shell/registry; `PlayBattleLaunch` (encounter/loot resolution + configure/activate) + `PlayBattleCompletion` (victory routing); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; `ActiveBattleConfiguration` is a pure DTO of pre-resolved party/enemy/reward inputs (opaque `BattleRunKey`, defeat action, progression flag, music stage id, claimed-stage policy, gold-find percent, baked XP/material awards). BattleFeature must not branch on play-mode identity or assemble from live save slices. |
+| App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
 
@@ -136,11 +136,16 @@ The app target is a composition root and view host. App views receive the narrow
 available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
 lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
-`PlaySession` remains in the environment for shell concerns (pending destination, map
-scroll, battle victory routing via `PlayBattleCompletion`). Play screens read save
-slices from `PlayerSaveStore` directly — not through `PlaySession` facades. Mode
-types own map/node/floor selection and mode-unique completion writes; they must not
-re-absorb the shared victory persist→dismiss sequence.
+Shell battle activation routes through `PlaySession.battle` (injected into the
+environment from `appState.play.battle`). `PlaySession` remains in the environment for
+shell concerns (pending destination, map scroll, battle victory routing via
+`PlayBattleCompletion`). Play screens read save slices from `PlayerSaveStore` directly —
+not through `PlaySession` facades. Mode types own map/node/floor selection and
+mode-unique completion writes; they must not re-absorb the shared victory
+persist→dismiss sequence. `PlayBattleOrigin` is AppState-owned; `PlayBattleLaunch`
+bakes party builds, XP/materials, and presentation fields into a pure
+`ActiveBattleConfiguration` DTO. Battle receives only opaque `BattleRunKey` plus those
+baked fields — never live roster/inventory/homestead or Persistence reward math.
 
 ## Persistence overview
 
@@ -163,7 +168,7 @@ Keep `AppState` as composition/wiring — new Play feature methods belong on mod
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
-| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve on `PlayBattleLaunch` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `ActiveBattleConfiguration` / Battle UI |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/reward bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `ActiveBattleConfiguration` / Battle UI; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.

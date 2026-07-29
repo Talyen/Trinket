@@ -37,9 +37,9 @@ struct AppStateLabyrinthTests {
         let message = state.labyrinth.startBattle(nodeID: combatNodeID)
         #expect(message == nil)
         let battle = try #require(state.battle.activeBattle)
-        #expect(battle.labyrinthNodeID == combatNodeID)
         #expect(battle.hasProgressionRewards)
-        #expect(battle.resumeToken == .labyrinth(nodeID: combatNodeID))
+        #expect(battle.defeatPrimaryAction == .retreat)
+        #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
     }
 
     @Test func completeActiveBattleClearsLabyrinthNode() throws {

@@ -8,7 +8,7 @@ import TrinketPersistence
 /// Shared battle victory persist + dismiss used by the Play shell.
 ///
 /// Mode owners supply only mode-unique save writes (and journey map-scroll focus).
-/// Token resolution and the post-persist dismiss sequence live here.
+/// Origin resolution and the post-persist dismiss sequence live here.
 @MainActor
 struct PlayBattleCompletion {
     let playerSave: PlayerSaveStore
@@ -23,21 +23,23 @@ struct PlayBattleCompletion {
         _ configuration: ActiveBattleConfiguration,
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil,
-        queueReturnToOrigin: (ActiveBattleResumeToken?) -> Void
+        queueReturnToOrigin: (PlayBattleOrigin?) -> Void
     ) -> Bool {
         guard battle.activeBattle != nil else { return false }
 
         let hero = configuration.hero.combatant
         let companion = configuration.companion.combatant
+        let origin = configuration.runKey.flatMap(PlayBattleOrigin.init(runKey:))
         let persisted = persistVictory(
             for: configuration,
+            origin: origin,
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards
         )
         if persisted {
-            queueReturnToOrigin(configuration.resumeToken)
+            queueReturnToOrigin(origin)
             battle.endBattle()
         }
         return persisted
@@ -45,16 +47,17 @@ struct PlayBattleCompletion {
 
     private func persistVictory(
         for configuration: ActiveBattleConfiguration,
+        origin: PlayBattleOrigin?,
         hero: Combatant,
         companion: Combatant,
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]?
     ) -> Bool {
-        switch configuration.resumeToken {
+        switch origin {
         case let .journey(stageID):
             guard let stage = GameContent.stage(id: stageID) else {
                 appStateLogger.error(
-                    "Missing stage for resume token: \(stageID, privacy: .public)"
+                    "Missing stage for battle origin: \(stageID, privacy: .public)"
                 )
                 return false
             }
@@ -69,7 +72,7 @@ struct PlayBattleCompletion {
         case let .spire(spireID, floorNumber):
             guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
                 appStateLogger.error(
-                    "Missing spire floor for resume token: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
+                    "Missing spire floor for battle origin: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
                 )
                 return false
             }

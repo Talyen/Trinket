@@ -1,4 +1,3 @@
-import TrinketBattleFeature
 import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistence
@@ -35,10 +34,10 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
         }
     }
 
-    /// Maps a battle origin token to a Play return destination.
+    /// Maps a battle origin to a Play return destination.
     /// Journey battles return to the Campaign stage screen (Mode Hub peer).
-    static func returning(from token: ActiveBattleResumeToken?) -> Self? {
-        switch token {
+    static func returning(from origin: PlayBattleOrigin?) -> Self? {
+        switch origin {
         case .none:
             nil
         case .journey:

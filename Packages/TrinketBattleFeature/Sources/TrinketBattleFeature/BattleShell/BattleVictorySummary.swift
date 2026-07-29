@@ -32,35 +32,24 @@ public struct BattleVictorySummary: Equatable {
         experience > 0 || companionExperience > 0
     }
 
+    /// Assembles victory chrome from launch-baked awards plus mid-battle earned gold.
+    /// Does not re-derive XP / material Persistence policy.
     public static func make(
         configuration: ActiveBattleConfiguration,
         state: BattleState
     ) -> Self {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
-        let enemyLevel = configuration.enemyEncounterLevel ?? configuration.hero.progression.level
-        let heroXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.hero.progression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestHeroLevel,
-            xpPercent: configuration.experienceBonusPercent
-        )
-        let companionXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.companion.progression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestCompanionLevel,
-            xpPercent: configuration.experienceBonusPercent
-        )
+        let heroXP = configuration.heroExperienceAward
+        let companionXP = configuration.companionExperienceAward
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
-        let materialRewards = StageCompletion.resolvedMaterialRewards(
-            stageReward: stageReward
-        )
         let rawBattleEarnedGold = state.earnedGold
-        let totalGold = StageCompletion.resolvedGoldReward(
-            stageGold: stageReward.gold,
-            battleEarnedGold: rawBattleEarnedGold,
+        let totalGold = HomesteadEffects(
+            heroModifiers: [],
+            companionModifiers: [],
+            astralChanceBonusPercent: 0,
             goldFindPercent: configuration.goldFindPercent
-        )
+        ).adjustedGold(stageReward.gold + rawBattleEarnedGold)
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)
 
@@ -75,7 +64,7 @@ public struct BattleVictorySummary: Equatable {
             heroArtworkName: configuration.hero.combatant.artReference?.thumbnailImageName,
             companionArtworkName: configuration.companion.combatant.artReference?.thumbnailImageName,
             rewardItems: configuration.rewardItems,
-            materialRewards: materialRewards,
+            materialRewards: configuration.materialRewards,
             heroProgressionBefore: configuration.hero.progression,
             heroProgressionAfter: heroAfter,
             companionProgressionBefore: configuration.companion.progression,

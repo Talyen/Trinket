@@ -13,7 +13,7 @@ struct ContentView: View {
     var body: some View {
         // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
-            if appState.battle.activeBattle != nil {
+            if appState.play.battle.activeBattle != nil {
                 PlayView()
                     .transition(.opacity)
             } else {
@@ -21,7 +21,7 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: appState.battle.activeBattle?.id)
+        .animation(TrinketMotion.Screen.crossfade, value: appState.play.battle.activeBattle?.id)
         .tint(TrinketDesign.Colors.accent)
         .preferredColorScheme(.dark)
         .alert(
@@ -48,7 +48,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            if appState.battle.activeBattle != nil {
+            if appState.play.battle.activeBattle != nil {
                 localSelectedTab = .play
                 appState.selectedTab = .play
             } else {
@@ -57,14 +57,14 @@ struct ContentView: View {
             appState.reconcileShellState(.appeared, scenePhase: scenePhase)
         }
         .onChange(of: localSelectedTab) { _, newTab in
-            guard appState.battle.activeBattle == nil || newTab == .play else {
+            guard appState.play.battle.activeBattle == nil || newTab == .play else {
                 localSelectedTab = .play
                 return
             }
             appState.selectedTab = newTab
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            guard appState.battle.activeBattle == nil || newTab == .play else {
+            guard appState.play.battle.activeBattle == nil || newTab == .play else {
                 appState.selectedTab = .play
                 localSelectedTab = .play
                 return
@@ -72,7 +72,7 @@ struct ContentView: View {
             localSelectedTab = newTab
             appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
         }
-        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
+        .onChange(of: appState.play.battle.activeBattle?.id) { _, newValue in
             if newValue != nil {
                 localSelectedTab = .play
                 appState.selectedTab = .play
@@ -141,7 +141,7 @@ struct ContentView: View {
         Binding(
             get: { localSelectedTab },
             set: { newTab in
-                guard appState.battle.activeBattle == nil || newTab == .play else { return }
+                guard appState.play.battle.activeBattle == nil || newTab == .play else { return }
                 localSelectedTab = newTab
             }
         )

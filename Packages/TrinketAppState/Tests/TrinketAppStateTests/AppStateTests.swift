@@ -43,17 +43,17 @@ struct AppStateTests {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
         )
-        #expect(state.battle.activeBattle != nil)
-        #expect(!state.battle.isSuspendedForScenePhase)
+        #expect(state.play.battle.activeBattle != nil)
+        #expect(!state.play.battle.isSuspendedForScenePhase)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .inactive)
-        #expect(state.battle.isSuspendedForScenePhase)
+        #expect(state.play.battle.isSuspendedForScenePhase)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
-        #expect(state.battle.isSuspendedForScenePhase)
+        #expect(state.play.battle.isSuspendedForScenePhase)
 
         state.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
-        #expect(!state.battle.isSuspendedForScenePhase)
+        #expect(!state.play.battle.isSuspendedForScenePhase)
     }
 
     @Test func scenePhaseFlushesDeferredPlayerSaveSynchronously() throws {
@@ -140,13 +140,13 @@ struct AppStateTests {
         switch screen {
         case "battle":
             #expect(state.selectedTab == .play)
-            let activeBattle = try #require(state.battle.activeBattle)
-            #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
+            let activeBattle = try #require(state.play.battle.activeBattle)
+            #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: "chapter-1-stage-1").runKey)
         case "battle-victory":
-            let activeBattle = try #require(state.battle.activeBattle)
-            #expect(activeBattle.resumeToken == .journey(stageID: "chapter-1-stage-1"))
-            #expect(state.battle.spectacle.isShowingVictory)
-            #expect(state.battle.spectacle.victorySummary != nil)
+            let activeBattle = try #require(state.play.battle.activeBattle)
+            #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: "chapter-1-stage-1").runKey)
+            #expect(state.play.battle.spectacle.isShowingVictory)
+            #expect(state.play.battle.spectacle.victorySummary != nil)
             #expect(state.selectedTab == .play)
         case "shop":
             let session = try #require(state.play.encounters.activeShopEncounter)

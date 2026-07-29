@@ -10,7 +10,7 @@ extension AppState {
     /// visible. Navigation and the first combat action therefore never inherit it.
     public func prepareLaunchPerformanceResources() {
         sfxPlayer.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
-        battle.prepareAllBattleCinematics()
+        play.battle.prepareAllBattleCinematics()
     }
 
     struct BootstrapDependencies {

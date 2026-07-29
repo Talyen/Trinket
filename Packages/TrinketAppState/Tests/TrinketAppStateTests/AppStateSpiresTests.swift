@@ -22,7 +22,7 @@ struct AppStateSpiresTests {
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let message = state.spires.startBattle(for: floor)
         #expect(message == nil)
-        #expect(state.battle.activeBattle?.resumeToken == .spire(spireID: .ironVein, floor: 1))
+        #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)
         #expect(state.battle.activeBattle?.enemy != nil)
         #expect(state.battle.activeBattle?.pendingRewardItem != nil)
     }
@@ -60,7 +60,7 @@ struct AppStateSpiresTests {
 
         let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
         #expect(state.spires.startBattle(for: floor) == nil)
-        #expect(state.battle.activeBattle?.resumeToken == .spire(spireID: spire.id, floor: 1))
+        #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: spire.id, floor: 1).runKey)
     }
 
     @Test func startSpireBattleRejectsLockedAndClearedFloors() throws {

@@ -34,7 +34,7 @@ struct AppStateSessionPersistenceTests {
         #expect(state.selectedTab == .play)
         #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
         // Battles are never restored from legacy shell keys.
-        #expect(state.battle.activeBattle == nil)
+        #expect(state.play.battle.activeBattle == nil)
         #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
         // Map scroll target still restores.
         #expect(state.play.mapScrollStageID == "chapter-2-stage-1")

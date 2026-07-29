@@ -23,7 +23,7 @@ struct BattleSessionAppIntegrationTests {
 
         #expect(message == nil)
         let activeBattle = try #require(appState.battle.activeBattle)
-        #expect(activeBattle.resumeToken == .journey(stageID: stage.id))
+        #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
     }
 
     @Test func startBattleIgnoresRequestWhenBattleAlreadyActive() throws {
@@ -79,7 +79,7 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        #expect(restarted.resumeToken == original.resumeToken)
+        #expect(restarted.runKey == original.runKey)
         #expect(restarted.hero.combatant.id == original.hero.combatant.id)
         #expect(restarted.id != original.id)
     }
@@ -105,7 +105,7 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        #expect(restarted.labyrinthNodeID == combatNodeID)
+        #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
         #expect(restarted.universalModifiers == original.universalModifiers)
         #expect(restarted.pendingRewardItem == original.pendingRewardItem)
         #expect(restarted.rewardItems == original.rewardItems)

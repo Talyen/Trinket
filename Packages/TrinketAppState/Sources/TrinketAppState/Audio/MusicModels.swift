@@ -59,7 +59,7 @@ enum MusicRoute: Equatable {
         }
 
         if let activeBattle, let enemyID = activeBattle.enemy?.id {
-            return encounter(stageID: activeBattle.stageID, enemyID: enemyID)
+            return encounter(stageID: activeBattle.musicStageID, enemyID: enemyID)
         }
 
         return menuTrack()

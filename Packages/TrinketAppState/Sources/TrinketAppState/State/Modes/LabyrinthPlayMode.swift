@@ -13,35 +13,26 @@ public final class LabyrinthPlayMode {
     private let playerSave: PlayerSaveStore
     private let battle: BattleSession
     private let battleLaunch: PlayBattleLaunch
-    private var encounters: EncounterPlayMode?
+    private let encounters: EncounterPlayMode
 
     public var activeNodeSession: LabyrinthNodeSession?
 
     init(
         playerSave: PlayerSaveStore,
         battle: BattleSession,
-        battleLaunch: PlayBattleLaunch
+        battleLaunch: PlayBattleLaunch,
+        encounters: EncounterPlayMode
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
-    }
-
-    func bind(encounters: EncounterPlayMode) {
         self.encounters = encounters
-    }
-
-    private var boundEncounters: EncounterPlayMode {
-        guard let encounters else {
-            preconditionFailure("LabyrinthPlayMode used before encounters bind")
-        }
-        return encounters
     }
 
     private var canBeginTransientEncounter: Bool {
         battle.activeBattle == nil
-            && boundEncounters.activeShopEncounter == nil
-            && boundEncounters.activeMysteryEncounter == nil
+            && encounters.activeShopEncounter == nil
+            && encounters.activeMysteryEncounter == nil
             && activeNodeSession == nil
     }
 
@@ -79,9 +70,9 @@ public final class LabyrinthPlayMode {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
-            return boundEncounters.beginShopEncounter(labyrinthNodeID: nodeID)
+            return encounters.beginShopEncounter(labyrinthNodeID: nodeID)
         case .mystery, .event:
-            return boundEncounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
+            return encounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
         case .recruit:
             let resolution = GameContent.resolveRecruitEncounter(
                 configuredEventID: node.recruitEventID,
@@ -89,7 +80,7 @@ public final class LabyrinthPlayMode {
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs
             )
-            return boundEncounters.beginMysteryEncounter(
+            return encounters.beginMysteryEncounter(
                 labyrinthNodeID: nodeID,
                 forcedEventID: resolution.event.id
             )
@@ -225,7 +216,7 @@ public final class LabyrinthPlayMode {
         }
 
         battleLaunch.activateCombat(
-            resumeToken: .labyrinth(nodeID: nodeID),
+            origin: .labyrinth(nodeID: nodeID),
             encounter: encounter,
             universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
             labyrinth: labyrinth
@@ -247,7 +238,7 @@ public final class LabyrinthPlayMode {
         guard let encounter = resolvedEncounter(for: node) else { return }
 
         battleLaunch.prepareCombat(
-            resumeToken: .labyrinth(nodeID: nodeID),
+            origin: .labyrinth(nodeID: nodeID),
             encounter: encounter,
             universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
             labyrinth: labyrinth

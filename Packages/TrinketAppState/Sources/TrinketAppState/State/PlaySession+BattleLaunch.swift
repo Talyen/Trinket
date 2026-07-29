@@ -8,8 +8,9 @@ import TrinketPersistence
 
 /// Shared battle configuration + activation used by mode owners and the Play shell.
 ///
-/// Encounter and loot resolution for launch live here (orchestration).
-/// `ActiveBattleConfiguration.make` only assembles pre-resolved inputs.
+/// Encounter/loot resolve and party/reward bake live here. Battle receives a pure
+/// `ActiveBattleConfiguration` DTO — no live save slices or Persistence policy inside
+/// BattleFeature.
 @MainActor
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
@@ -52,14 +53,14 @@ struct PlayBattleLaunch {
 
     /// Seeded combat loot for battle chrome and grant paths. Pure formulas stay in Persistence.
     static func lootPackage(
-        for resumeToken: ActiveBattleResumeToken?,
+        for origin: PlayBattleOrigin?,
         enemy: Combatant? = nil,
         encounterLevel: Int = 0,
         labyrinth: PlayerLabyrinthState? = nil,
         astralChanceBonusPercent: Int = 0
     ) -> BattleLootPackage? {
         let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
-        switch resumeToken {
+        switch origin {
         case let .journey(stageID):
             guard let stage = GameContent.stage(id: stageID),
                   stage.encounter.isCombat
@@ -107,13 +108,13 @@ struct PlayBattleLaunch {
 
     /// Shared activate after mode-specific gates. Resolves loot from the save homestead.
     func activateCombat(
-        resumeToken: ActiveBattleResumeToken,
+        origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
         universalModifiers: [AffixModifier] = [],
         labyrinth: PlayerLabyrinthState? = nil
     ) {
         let loot = Self.lootPackage(
-            for: resumeToken,
+            for: origin,
             enemy: encounter.combatant,
             encounterLevel: encounter.level,
             labyrinth: labyrinth,
@@ -121,7 +122,7 @@ struct PlayBattleLaunch {
         )
         let roster = playerSave.roster
         activateBattle(
-            resumeToken: resumeToken,
+            origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
@@ -134,13 +135,13 @@ struct PlayBattleLaunch {
 
     /// Shared prepare after mode-specific gates. Resolves loot from the save homestead.
     func prepareCombat(
-        resumeToken: ActiveBattleResumeToken,
+        origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
         universalModifiers: [AffixModifier] = [],
         labyrinth: PlayerLabyrinthState? = nil
     ) {
         let loot = Self.lootPackage(
-            for: resumeToken,
+            for: origin,
             enemy: encounter.combatant,
             encounterLevel: encounter.level,
             labyrinth: labyrinth,
@@ -148,7 +149,7 @@ struct PlayBattleLaunch {
         )
         let roster = playerSave.roster
         battle.prepareBattleRun(makeBattleConfiguration(
-            resumeToken: resumeToken,
+            origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
@@ -161,7 +162,7 @@ struct PlayBattleLaunch {
 
     /// Installs a fresh battle configuration and syncs the tick loop.
     func activateBattle(
-        resumeToken: ActiveBattleResumeToken? = nil,
+        origin: PlayBattleOrigin? = nil,
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant?,
@@ -171,9 +172,9 @@ struct PlayBattleLaunch {
         pendingRewardItem: InventoryItem? = nil,
         universalModifiers: [AffixModifier] = []
     ) {
-        if let resumeToken,
+        if let origin,
            battle.activatePreparedBattle(
-               resumeToken: resumeToken,
+               runKey: origin.runKey,
                heroID: hero.id,
                companionID: companion.id,
                enemyID: enemy?.id
@@ -181,7 +182,7 @@ struct PlayBattleLaunch {
             return
         }
         battle.activeBattle = makeBattleConfiguration(
-            resumeToken: resumeToken,
+            origin: origin,
             hero: hero,
             companion: companion,
             enemy: enemy,
@@ -194,7 +195,7 @@ struct PlayBattleLaunch {
     }
 
     func makeBattleConfiguration(
-        resumeToken: ActiveBattleResumeToken?,
+        origin: PlayBattleOrigin?,
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant?,
@@ -207,8 +208,8 @@ struct PlayBattleLaunch {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
-        return ActiveBattleConfiguration.make(
-            resumeToken: resumeToken,
+        return Self.assembleConfiguration(
+            runKey: origin?.runKey,
             rngSeed: rngSeed,
             hero: hero,
             companion: companion,
@@ -221,22 +222,156 @@ struct PlayBattleLaunch {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                resumeToken: resumeToken,
+                origin: origin,
                 journey: playerSave.journey
             ),
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: origin != nil,
+            musicStageID: origin?.musicStageID
+        )
+    }
+
+    /// Bakes party builds, enemy trait modifiers, XP/materials, and presentation fields
+    /// into a pure BattleFeature DTO.
+    static func assembleConfiguration(
+        runKey: BattleRunKey? = nil,
+        rngSeed: UInt64,
+        hero: Combatant,
+        companion: Combatant,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState = .freshStart,
+        enemy: Combatant? = nil,
+        enemyEncounterLevel: Int? = nil,
+        stageReward: StageReward? = nil,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        universalModifiers: [AffixModifier] = [],
+        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
+        hasProgressionRewards: Bool = false,
+        musicStageID: String? = nil
+    ) -> ActiveBattleConfiguration {
+        let enemyBuild = resolvedEnemyBuild(enemy: enemy)
+        var enemyModifiers = enemyBuild.modifiers
+        enemyModifiers.merge(universalModifiers)
+        let homesteadEffects = homesteadState.effects
+        let heroMember = partyMember(
+            combatant: hero,
+            rosterState: rosterState,
+            inventoryState: inventoryState,
+            additionalModifiers: homesteadEffects.heroModifiers + universalModifiers
+        )
+        let companionMember = partyMember(
+            combatant: companion,
+            rosterState: rosterState,
+            inventoryState: inventoryState,
+            additionalModifiers: homesteadEffects.companionModifiers + universalModifiers
+        )
+        let resolvedStageReward = stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
+        let enemyLevel = enemyEncounterLevel ?? heroMember.progression.level
+        return ActiveBattleConfiguration(
+            runKey: runKey,
+            rngSeed: rngSeed,
+            hero: heroMember,
+            companion: companionMember,
+            enemy: enemyBuild.combatant,
+            enemyEncounterLevel: enemyEncounterLevel,
+            highestHeroLevel: rosterState.highestHeroLevel,
+            highestCompanionLevel: rosterState.highestCompanionLevel,
+            enemyModifiers: enemyModifiers,
+            inventoryState: inventoryState,
+            stageReward: stageReward,
+            rewardItems: resolvedRewardItems(
+                stageReward: stageReward,
+                pendingRewardItem: pendingRewardItem
+            ),
+            pendingRewardItem: pendingRewardItem,
+            experienceBonusPercent: experienceBonusPercent,
+            goldFindPercent: homesteadEffects.goldFindPercent,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            universalModifiers: universalModifiers,
+            defeatPrimaryAction: defeatPrimaryAction,
+            hasProgressionRewards: hasProgressionRewards,
+            musicStageID: musicStageID,
+            heroExperienceAward: StageCompletion.battleExperienceAward(
+                playerLevel: heroMember.progression.level,
+                enemyLevel: enemyLevel,
+                highestLevel: rosterState.highestHeroLevel,
+                xpPercent: experienceBonusPercent
+            ),
+            companionExperienceAward: StageCompletion.battleExperienceAward(
+                playerLevel: companionMember.progression.level,
+                enemyLevel: enemyLevel,
+                highestLevel: rosterState.highestCompanionLevel,
+                xpPercent: experienceBonusPercent
+            ),
+            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward)
         )
     }
 
     /// Journey claimed-stage policy for battle chrome / auto-complete. Baked at launch.
     static func stageRewardsAlreadyClaimed(
-        resumeToken: ActiveBattleResumeToken?,
+        origin: PlayBattleOrigin?,
         journey: JourneyProgressState
     ) -> Bool {
-        guard case let .journey(stageID) = resumeToken,
+        guard case let .journey(stageID) = origin,
               let stage = GameContent.stage(id: stageID)
         else { return false }
         return journey.hasClaimedRewards(for: stage)
+    }
+
+    private static func partyMember(
+        combatant: Combatant,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        additionalModifiers: [AffixModifier] = []
+    ) -> ActiveBattleConfiguration.PartyMember {
+        let progression = rosterState.progression(for: combatant)
+        let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
+        let build = CombatBuildResolver.build(
+            combatant: CombatantLevelScaler.scale(
+                combatant: combatant,
+                level: progression.level
+            ),
+            equipmentLoadout: equipmentLoadout,
+            inventory: inventoryState.items,
+            additionalModifiers: additionalModifiers
+        )
+        return ActiveBattleConfiguration.PartyMember(
+            combatant: build.combatant,
+            progression: progression,
+            equipmentLoadout: equipmentLoadout,
+            modifiers: build.modifiers
+        )
+    }
+
+    private static func resolvedEnemyBuild(
+        enemy: Combatant?
+    ) -> CombatBuild {
+        guard let enemy else {
+            return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
+        }
+        // Preserve the encounter combatant (already scaled by launch).
+        // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
+        // with the catalog base combatant.
+        if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
+            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
+            return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
+        }
+        return CombatBuild(combatant: enemy, modifiers: .zero)
+    }
+
+    private static func resolvedRewardItems(
+        stageReward: StageReward?,
+        pendingRewardItem: InventoryItem?
+    ) -> [InventoryItem] {
+        if let pendingRewardItem {
+            return [pendingRewardItem]
+        }
+        guard let stageReward else { return [] }
+        return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
     }
 
     private static func scaledEnemy(
@@ -256,9 +391,10 @@ public extension PlaySession {
             ?? roster.activeHero
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
+        let origin = activeBattle.runKey.flatMap(PlayBattleOrigin.init(runKey:))
 
         battleLaunch.activateBattle(
-            resumeToken: activeBattle.resumeToken,
+            origin: origin,
             hero: hero,
             companion: companion,
             enemy: activeBattle.enemy,

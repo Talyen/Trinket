@@ -66,7 +66,7 @@ public final class SpiresPlayMode {
         }
 
         battleLaunch.activateCombat(
-            resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter
         )
         return nil
@@ -87,7 +87,7 @@ public final class SpiresPlayMode {
         else { return }
 
         battleLaunch.prepareCombat(
-            resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
+            origin: .spire(spireID: floor.spireID, floor: floor.floor),
             encounter: encounter
         )
     }

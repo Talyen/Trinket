@@ -69,7 +69,7 @@ final class AppTestContext {
             userDefaults: userDefaults
         )
         // Unit tests expect a full hand before the next statement; skip paced deal.
-        state.battle.openingHandDrawStagger = 0
+        state.play.battle.openingHandDrawStagger = 0
         return state
     }
 
@@ -86,7 +86,7 @@ final class AppTestContext {
             shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults
         )
-        state.battle.openingHandDrawStagger = 0
+        state.play.battle.openingHandDrawStagger = 0
         return state
     }
 

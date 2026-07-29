@@ -2,23 +2,35 @@ import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Assembles a battle run from pre-resolved party, enemy, and reward inputs.
-/// Mode owners / `PlayBattleLaunch` resolve encounters, loot, claimed-stage policy,
-/// and gold-find percent before calling `make`.
+/// Battle-run DTO of pre-resolved party, enemy, and reward inputs.
+/// Mode owners / `PlayBattleLaunch` bake builds, XP, materials, and presentation
+/// fields before constructing this value. BattleFeature never reads live save slices
+/// or re-derives Persistence reward policy here.
 public struct ActiveBattleConfiguration: Identifiable {
     public struct PartyMember: Equatable {
         public let combatant: Combatant
         public let progression: CombatantProgression
         public let equipmentLoadout: EquipmentLoadout
         public let modifiers: CombatModifierProfile
+
+        public init(
+            combatant: Combatant,
+            progression: CombatantProgression,
+            equipmentLoadout: EquipmentLoadout,
+            modifiers: CombatModifierProfile
+        ) {
+            self.combatant = combatant
+            self.progression = progression
+            self.equipmentLoadout = equipmentLoadout
+            self.modifiers = modifiers
+        }
     }
 
     public let id = UUID()
-    /// Journey / Spire / Labyrinth origin. `nil` is a non-progression battle.
-    public let resumeToken: ActiveBattleResumeToken?
+    /// Opaque prepared-run key. Battle never interprets play-mode identity from this.
+    public let runKey: BattleRunKey?
     public let rngSeed: UInt64
     public let hero: PartyMember
     public let companion: PartyMember
@@ -37,23 +49,65 @@ public struct ActiveBattleConfiguration: Identifiable {
     /// Journey claimed-stage policy baked at launch so Battle never reads journey progress.
     public let stageRewardsAlreadyClaimed: Bool
     public let universalModifiers: [AffixModifier]
+    /// Defeat chrome action baked at launch (retreat vs restart).
+    public let defeatPrimaryAction: BattleDefeatPrimaryAction
+    /// Whether victory grants progression rewards (`Loot All` vs `Battle Again`).
+    public let hasProgressionRewards: Bool
+    /// Journey stage id for music routing only; nil for non-journey battles.
+    public let musicStageID: String?
+    /// XP awards baked at launch so victory chrome does not re-derive Persistence policy.
+    public let heroExperienceAward: Int
+    public let companionExperienceAward: Int
+    public let materialRewards: [ResourceAmount]
 
-    public var hasProgressionRewards: Bool {
-        resumeToken != nil
-    }
-
-    public var stageID: String? {
-        if case let .journey(stageID) = resumeToken {
-            return stageID
-        }
-        return nil
-    }
-
-    public var labyrinthNodeID: String? {
-        if case let .labyrinth(nodeID) = resumeToken {
-            return nodeID
-        }
-        return nil
+    public init(
+        runKey: BattleRunKey? = nil,
+        rngSeed: UInt64,
+        hero: PartyMember,
+        companion: PartyMember,
+        enemy: Combatant? = nil,
+        enemyEncounterLevel: Int? = nil,
+        highestHeroLevel: Int,
+        highestCompanionLevel: Int,
+        enemyModifiers: CombatModifierProfile,
+        inventoryState: PlayerInventoryState,
+        stageReward: StageReward? = nil,
+        rewardItems: [InventoryItem] = [],
+        pendingRewardItem: InventoryItem? = nil,
+        experienceBonusPercent: Int = 0,
+        goldFindPercent: Int = 0,
+        stageRewardsAlreadyClaimed: Bool = false,
+        universalModifiers: [AffixModifier] = [],
+        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
+        hasProgressionRewards: Bool = false,
+        musicStageID: String? = nil,
+        heroExperienceAward: Int = 0,
+        companionExperienceAward: Int = 0,
+        materialRewards: [ResourceAmount] = []
+    ) {
+        self.runKey = runKey
+        self.rngSeed = rngSeed
+        self.hero = hero
+        self.companion = companion
+        self.enemy = enemy
+        self.enemyEncounterLevel = enemyEncounterLevel
+        self.highestHeroLevel = highestHeroLevel
+        self.highestCompanionLevel = highestCompanionLevel
+        self.enemyModifiers = enemyModifiers
+        self.inventoryState = inventoryState
+        self.stageReward = stageReward
+        self.rewardItems = rewardItems
+        self.pendingRewardItem = pendingRewardItem
+        self.experienceBonusPercent = experienceBonusPercent
+        self.goldFindPercent = goldFindPercent
+        self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
+        self.universalModifiers = universalModifiers
+        self.defeatPrimaryAction = defeatPrimaryAction
+        self.hasProgressionRewards = hasProgressionRewards
+        self.musicStageID = musicStageID
+        self.heroExperienceAward = heroExperienceAward
+        self.companionExperienceAward = companionExperienceAward
+        self.materialRewards = materialRewards
     }
 
     public func partyMember(for combatantID: String) -> PartyMember? {
@@ -64,112 +118,5 @@ public struct ActiveBattleConfiguration: Identifiable {
             return companion
         }
         return nil
-    }
-
-    @MainActor
-    public static func make(
-        resumeToken: ActiveBattleResumeToken? = nil,
-        rngSeed: UInt64,
-        hero: Combatant,
-        companion: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState = .freshStart,
-        enemy: Combatant? = nil,
-        enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
-    ) -> Self {
-        let enemyBuild = resolvedEnemyBuild(enemy: enemy)
-        var enemyModifiers = enemyBuild.modifiers
-        enemyModifiers.merge(universalModifiers)
-        let homesteadEffects = homesteadState.effects
-        return Self(
-            resumeToken: resumeToken,
-            rngSeed: rngSeed,
-            hero: partyMember(
-                combatant: hero,
-                rosterState: rosterState,
-                inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.heroModifiers + universalModifiers
-            ),
-            companion: partyMember(
-                combatant: companion,
-                rosterState: rosterState,
-                inventoryState: inventoryState,
-                additionalModifiers: homesteadEffects.companionModifiers + universalModifiers
-            ),
-            enemy: enemyBuild.combatant,
-            enemyEncounterLevel: enemyEncounterLevel,
-            highestHeroLevel: rosterState.highestHeroLevel,
-            highestCompanionLevel: rosterState.highestCompanionLevel,
-            enemyModifiers: enemyModifiers,
-            inventoryState: inventoryState,
-            stageReward: stageReward,
-            rewardItems: resolvedRewardItems(
-                stageReward: stageReward,
-                pendingRewardItem: pendingRewardItem
-            ),
-            pendingRewardItem: pendingRewardItem,
-            experienceBonusPercent: experienceBonusPercent,
-            goldFindPercent: homesteadEffects.goldFindPercent,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers
-        )
-    }
-
-    private static func partyMember(
-        combatant: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        additionalModifiers: [AffixModifier] = []
-    ) -> PartyMember {
-        let progression = rosterState.progression(for: combatant)
-        let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
-        let build = CombatBuildResolver.build(
-            combatant: CombatantLevelScaler.scale(
-                combatant: combatant,
-                level: progression.level
-            ),
-            equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState.items,
-            additionalModifiers: additionalModifiers
-        )
-        return PartyMember(
-            combatant: build.combatant,
-            progression: progression,
-            equipmentLoadout: equipmentLoadout,
-            modifiers: build.modifiers
-        )
-    }
-
-    private static func resolvedEnemyBuild(
-        enemy: Combatant?
-    ) -> CombatBuild {
-        guard let enemy else {
-            return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
-        }
-        // Preserve the encounter combatant (already scaled by PlayBattleLaunch).
-        // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
-        // with the catalog base combatant.
-        if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
-            return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
-        }
-        return CombatBuild(combatant: enemy, modifiers: .zero)
-    }
-
-    private static func resolvedRewardItems(
-        stageReward: StageReward?,
-        pendingRewardItem: InventoryItem?
-    ) -> [InventoryItem] {
-        if let pendingRewardItem {
-            return [pendingRewardItem]
-        }
-        guard let stageReward else { return [] }
-        return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
     }
 }

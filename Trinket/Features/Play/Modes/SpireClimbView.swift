@@ -180,11 +180,12 @@ struct SpireClimbView: View {
                 heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
                 companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
             )
-            let token = ActiveBattleResumeToken.spire(
-                spireID: spireID,
-                floor: activeFloorNumber
+            let names = battle.preparedAbilityArtworkNames(
+                for: PlayBattleOrigin.spire(
+                    spireID: spireID,
+                    floor: activeFloorNumber
+                ).runKey
             )
-            let names = battle.preparedAbilityArtworkNames(for: token)
             await PreparedArtworkCache.shared.prepareAndPin(names: names)
         }
     }

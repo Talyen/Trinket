@@ -8,7 +8,7 @@ import TrinketPersistence
 @MainActor
 enum ActiveBattleConfigurationTestSupport {
     static func make(
-        resumeToken: ActiveBattleResumeToken? = nil,
+        origin: PlayBattleOrigin? = nil,
         rngSeed: UInt64 = 0,
         hero: Combatant,
         companion: Combatant,
@@ -23,8 +23,8 @@ enum ActiveBattleConfigurationTestSupport {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = []
     ) throws -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            resumeToken: resumeToken,
+        PlayBattleLaunch.assembleConfiguration(
+            runKey: origin?.runKey,
             rngSeed: rngSeed,
             hero: hero,
             companion: companion,
@@ -37,7 +37,10 @@ enum ActiveBattleConfigurationTestSupport {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: origin != nil,
+            musicStageID: origin?.musicStageID
         )
     }
 }

@@ -15,8 +15,7 @@ public final class EncounterPlayMode {
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
     let noteMapScrollFocus: (String) -> Void
-    private var completeJourneyStage: ((Stage) -> StageMapMessage?)?
-    private var completeLabyrinthNode: ((String) -> StageMapMessage?)?
+    private let completionPorts: EncounterCompletionPorts
 
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
@@ -26,33 +25,27 @@ public final class EncounterPlayMode {
         battle: BattleSession,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        noteMapScrollFocus: @escaping (String) -> Void
+        noteMapScrollFocus: @escaping (String) -> Void,
+        completionPorts: EncounterCompletionPorts
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.options = options
         self.sfxPlayer = sfxPlayer
         self.noteMapScrollFocus = noteMapScrollFocus
-    }
-
-    func bindCompletion(
-        completeJourneyStage: @escaping (Stage) -> StageMapMessage?,
-        completeLabyrinthNode: @escaping (String) -> StageMapMessage?
-    ) {
-        self.completeJourneyStage = completeJourneyStage
-        self.completeLabyrinthNode = completeLabyrinthNode
+        self.completionPorts = completionPorts
     }
 
     private var boundCompleteJourneyStage: (Stage) -> StageMapMessage? {
-        guard let completeJourneyStage else {
-            preconditionFailure("EncounterPlayMode used before completion bind")
+        guard let completeJourneyStage = completionPorts.completeJourneyStage else {
+            preconditionFailure("EncounterPlayMode used before PlayModeGraph wired completion ports")
         }
         return completeJourneyStage
     }
 
     private var boundCompleteLabyrinthNode: (String) -> StageMapMessage? {
-        guard let completeLabyrinthNode else {
-            preconditionFailure("EncounterPlayMode used before completion bind")
+        guard let completeLabyrinthNode = completionPorts.completeLabyrinthNode else {
+            preconditionFailure("EncounterPlayMode used before PlayModeGraph wired completion ports")
         }
         return completeLabyrinthNode
     }
@@ -177,4 +170,11 @@ public final class EncounterPlayMode {
     public func dismissActiveShopEncounterWithoutCompleting() {
         activeShopEncounter = nil
     }
+}
+
+/// MainActor box filled by `PlayModeGraph` before any encounter completion call.
+@MainActor
+final class EncounterCompletionPorts {
+    var completeJourneyStage: ((Stage) -> StageMapMessage?)?
+    var completeLabyrinthNode: ((String) -> StageMapMessage?)?
 }

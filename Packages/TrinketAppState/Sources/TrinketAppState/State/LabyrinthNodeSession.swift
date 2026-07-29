@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import TrinketBattleFeature
 import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistence

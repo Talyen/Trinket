@@ -45,12 +45,14 @@ struct BattleSessionSimulationTests {
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = 0
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: stage.id),
+            runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy,
-            stageRewardsAlreadyClaimed: true
+            stageRewardsAlreadyClaimed: true,
+            hasProgressionRewards: true,
+            musicStageID: stage.id
         )
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)

@@ -14,29 +14,20 @@ public final class JourneyPlayMode {
     private let battle: BattleSession
     private let battleLaunch: PlayBattleLaunch
     private let noteMapScrollFocus: (String) -> Void
-    private var encounters: EncounterPlayMode?
+    private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
         battle: BattleSession,
         battleLaunch: PlayBattleLaunch,
-        noteMapScrollFocus: @escaping (String) -> Void
+        noteMapScrollFocus: @escaping (String) -> Void,
+        encounters: EncounterPlayMode
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.noteMapScrollFocus = noteMapScrollFocus
-    }
-
-    func bind(encounters: EncounterPlayMode) {
         self.encounters = encounters
-    }
-
-    private var boundEncounters: EncounterPlayMode {
-        guard let encounters else {
-            preconditionFailure("JourneyPlayMode used before encounters bind")
-        }
-        return encounters
     }
 
     public var playChapter: Chapter {
@@ -102,8 +93,9 @@ public final class JourneyPlayMode {
         }
 
         let roster = playerSave.roster
-        if battle.activatePreparedJourneyBattle(
-            stageID: stage.id,
+        let origin = PlayBattleOrigin.journey(stageID: stage.id)
+        if battle.activatePreparedBattle(
+            runKey: origin.runKey,
             heroID: roster.activeHero.id,
             companionID: roster.activeCompanion.id,
             enemyID: encounter.combatant.id
@@ -112,7 +104,7 @@ public final class JourneyPlayMode {
         }
 
         battleLaunch.activateCombat(
-            resumeToken: .journey(stageID: stage.id),
+            origin: origin,
             encounter: encounter
         )
         return nil
@@ -123,7 +115,7 @@ public final class JourneyPlayMode {
               let encounter = resolvedEncounter(for: stage)
         else { return }
         battleLaunch.prepareCombat(
-            resumeToken: .journey(stageID: stage.id),
+            origin: .journey(stageID: stage.id),
             encounter: encounter
         )
     }
@@ -135,14 +127,14 @@ public final class JourneyPlayMode {
         case .battle, .randomBattle:
             startBattle(for: resolvedStage)
         case .mysteryEvent:
-            boundEncounters.beginMysteryEncounter(for: resolvedStage)
+            encounters.beginMysteryEncounter(for: resolvedStage)
         case .recruit:
-            boundEncounters.beginMysteryEncounter(
+            encounters.beginMysteryEncounter(
                 for: resolvedStage,
                 forcedEventID: resolvedStage.encounter.recruitEventID
             )
         case .shop:
-            boundEncounters.beginShopEncounter(for: resolvedStage)
+            encounters.beginShopEncounter(for: resolvedStage)
         case .event, .rest:
             completeStageOrPersistFailure(resolvedStage)
         }

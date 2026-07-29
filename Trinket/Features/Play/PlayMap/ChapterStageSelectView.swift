@@ -117,7 +117,7 @@ struct ChapterStageSelectView: View {
                 )
                 if let stageID = playerSave.journey.activeStageID {
                     let names = battle.preparedAbilityArtworkNames(
-                        for: .journey(stageID: stageID)
+                        for: PlayBattleOrigin.journey(stageID: stageID).runKey
                     )
                     await PreparedArtworkCache.shared.prepareAndPin(names: names)
                 }

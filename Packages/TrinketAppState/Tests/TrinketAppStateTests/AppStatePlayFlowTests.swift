@@ -23,7 +23,7 @@ struct AppStatePlayFlowTests {
 
         #expect(state.journey.startBattle(for: stage) == nil)
 
-        #expect(state.battle.activeBattle?.resumeToken == .journey(stageID: stage.id))
+        #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
         #expect(state.battle.state != nil)
     }
 
@@ -96,7 +96,7 @@ struct AppStatePlayFlowTests {
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
             let configuration = try ActiveBattleConfigurationTestSupport.make(
-                resumeToken: .journey(stageID: "missing-stage-bug-hunt-audit"),
+                origin: .journey(stageID: "missing-stage-bug-hunt-audit"),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
                 companion: state.playerSave.roster.activeCompanion,
@@ -114,7 +114,7 @@ struct AppStatePlayFlowTests {
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
             let configuration = try ActiveBattleConfigurationTestSupport.make(
-                resumeToken: .spire(spireID: .ironVein, floor: 9999),
+                origin: .spire(spireID: .ironVein, floor: 9999),
                 rngSeed: 0,
                 hero: state.playerSave.roster.activeHero,
                 companion: state.playerSave.roster.activeCompanion,
@@ -140,7 +140,7 @@ struct AppStatePlayFlowTests {
 
         #expect(state.unlockAllContent())
 
-        #expect(state.battle.activeBattle == nil)
+        #expect(state.play.battle.activeBattle == nil)
         #expect(state.play.mapScrollStageID == nil)
         #expect(state.play.shellSession.selectedTab == .play)
     }

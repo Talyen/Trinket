@@ -1,4 +1,3 @@
-import TrinketBattleFeature
 import TrinketFeatureSupport
 
 public enum AppTab: String, CaseIterable, Sendable {

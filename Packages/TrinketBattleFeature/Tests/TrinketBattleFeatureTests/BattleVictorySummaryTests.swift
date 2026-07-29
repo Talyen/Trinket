@@ -24,7 +24,7 @@ struct BattleVictorySummaryTests {
         let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
             .rewardInstance(for: "chapter-1-stage-1")
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .journey(stageID: "chapter-1-stage-1"),
+            runKey: BattleRunKey("journey|chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -35,7 +35,9 @@ struct BattleVictorySummaryTests {
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
             ]),
-            pendingRewardItem: lootItem
+            pendingRewardItem: lootItem,
+            hasProgressionRewards: true,
+            musicStageID: "chapter-1-stage-1"
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
@@ -127,7 +129,7 @@ struct BattleVictorySummaryTests {
             affixes: []
         )
         let configuration = try ActiveBattleConfigurationTestSupport.make(
-            resumeToken: .labyrinth(nodeID: "audit-node"),
+            runKey: BattleRunKey("labyrinth|audit-node"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -136,7 +138,9 @@ struct BattleVictorySummaryTests {
             roster: rosterState,
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
             experienceBonusPercent: 20,
-            pendingRewardItem: pendingItem
+            pendingRewardItem: pendingItem,
+            defeatPrimaryAction: .retreat,
+            hasProgressionRewards: true
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration

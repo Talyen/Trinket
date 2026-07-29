@@ -110,7 +110,7 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.labyrinth)
         .environment(appState.play.spires)
         .environment(appState.play.encounters)
-        .environment(appState.battle)
+        .environment(appState.play.battle)
         .environment(appState.options)
         .environment(appState.playerSave)
         .environment(\.playSFX) { id, volume in

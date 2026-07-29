@@ -144,7 +144,8 @@ public struct BattleView: View {
                 )
                 .transition(.opacity)
             } else if battleSession.spectacle.isShowingDefeat {
-                if configuration.labyrinthNodeID != nil {
+                switch configuration.defeatPrimaryAction {
+                case .retreat:
                     DefeatView(
                         enemyName: configuration.enemy?.name ?? "Enemy",
                         primaryButtonTitle: "Return to Map",
@@ -154,7 +155,7 @@ public struct BattleView: View {
                         }
                     )
                     .transition(.opacity)
-                } else {
+                case .restart:
                     DefeatView(
                         enemyName: configuration.enemy?.name ?? "Enemy",
                         onPrimaryAction: {

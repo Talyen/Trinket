@@ -55,78 +55,26 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        let battleLaunch = PlayBattleLaunch(playerSave: playerSave, battle: battle)
-        self.battleLaunch = battleLaunch
-
-        // Deferred focus wiring: modes capture this box before `self` can form a weak ref.
-        let focusBox = MapScrollFocusBox()
-        let noteMapScrollFocus: (String) -> Void = { targetID in
-            focusBox.note?(targetID)
-        }
-
-        let journey = JourneyPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch,
-            noteMapScrollFocus: noteMapScrollFocus
-        )
-        let labyrinth = LabyrinthPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch
-        )
-        let spires = SpiresPlayMode(
-            playerSave: playerSave,
-            battle: battle,
-            battleLaunch: battleLaunch
-        )
-        let encounters = EncounterPlayMode(
+        // Bridge focus before `self` is fully formed — modes call through the box.
+        let focusBridge = MapScrollFocusBox()
+        let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            noteMapScrollFocus: noteMapScrollFocus
-        )
-        self.journey = journey
-        self.labyrinth = labyrinth
-        self.spires = spires
-        self.encounters = encounters
-        battleCompletion = PlayBattleCompletion(
-            playerSave: playerSave,
-            battle: battle,
-            journey: journey,
-            labyrinth: labyrinth,
-            spires: spires
-        )
-        Self.bindModes(
-            journey: journey,
-            labyrinth: labyrinth,
-            encounters: encounters,
-            focusBox: focusBox,
-            noteMapScrollFocus: { [weak self] targetID in
-                self?.noteMapScrollFocus(targetID)
+            noteMapScrollFocus: { targetID in
+                focusBridge.note?(targetID)
             }
         )
-    }
-
-    private static func bindModes(
-        journey: JourneyPlayMode,
-        labyrinth: LabyrinthPlayMode,
-        encounters: EncounterPlayMode,
-        focusBox: MapScrollFocusBox,
-        noteMapScrollFocus: @escaping (String) -> Void
-    ) {
-        journey.bind(encounters: encounters)
-        labyrinth.bind(encounters: encounters)
-        encounters.bindCompletion(
-            completeJourneyStage: { [weak journey] stage in
-                journey?.completeStageOrPersistFailure(stage)
-            },
-            completeLabyrinthNode: { [weak labyrinth] nodeID in
-                labyrinth?.completeNodeOrPersistFailure(nodeID: nodeID)
-            }
-        )
-        focusBox.note = noteMapScrollFocus
+        battleLaunch = graph.battleLaunch
+        journey = graph.journey
+        labyrinth = graph.labyrinth
+        spires = graph.spires
+        encounters = graph.encounters
+        battleCompletion = graph.battleCompletion
+        focusBridge.note = { [weak self] targetID in
+            self?.noteMapScrollFocus(targetID)
+        }
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -134,12 +82,13 @@ public final class PlaySession {
         return pendingDestination
     }
 
-    func queueReturnToBattleOrigin(from token: ActiveBattleResumeToken?) {
-        pendingDestination = PlayLaunchDestination.returning(from: token)
+    func queueReturnToBattleOrigin(from origin: PlayBattleOrigin?) {
+        pendingDestination = PlayLaunchDestination.returning(from: origin)
     }
 
     public func endBattleReturningToOrigin() {
-        queueReturnToBattleOrigin(from: battle.activeBattle?.resumeToken)
+        let origin = battle.activeBattle?.runKey.flatMap(PlayBattleOrigin.init(runKey:))
+        queueReturnToBattleOrigin(from: origin)
         shellSession.selectedTab = .play
         battle.endBattle()
     }
@@ -161,8 +110,8 @@ public final class PlaySession {
             configuration,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
-            queueReturnToOrigin: { [weak self] token in
-                self?.queueReturnToBattleOrigin(from: token)
+            queueReturnToOrigin: { [weak self] origin in
+                self?.queueReturnToBattleOrigin(from: origin)
             }
         )
     }
@@ -187,6 +136,85 @@ public final class PlaySession {
             return false
         }
         return journey.isActive(stage)
+    }
+}
+
+/// Assembles a fully wired Play mode graph in one place — no deferred bind steps.
+@MainActor
+enum PlayModeGraph {
+    struct Assembled {
+        let battleLaunch: PlayBattleLaunch
+        let journey: JourneyPlayMode
+        let labyrinth: LabyrinthPlayMode
+        let spires: SpiresPlayMode
+        let encounters: EncounterPlayMode
+        let battleCompletion: PlayBattleCompletion
+    }
+
+    static func assemble(
+        playerSave: PlayerSaveStore,
+        battle: BattleSession,
+        options: OptionsStore,
+        sfxPlayer: SFXPlayer,
+        noteMapScrollFocus: @escaping (String) -> Void
+    ) -> Assembled {
+        let battleLaunch = PlayBattleLaunch(playerSave: playerSave, battle: battle)
+        let focusBox = MapScrollFocusBox()
+        let deferredFocus: (String) -> Void = { targetID in
+            focusBox.note?(targetID)
+        }
+        let completionPorts = EncounterCompletionPorts()
+
+        let encounters = EncounterPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            options: options,
+            sfxPlayer: sfxPlayer,
+            noteMapScrollFocus: deferredFocus,
+            completionPorts: completionPorts
+        )
+        let journey = JourneyPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch,
+            noteMapScrollFocus: deferredFocus,
+            encounters: encounters
+        )
+        let labyrinth = LabyrinthPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch,
+            encounters: encounters
+        )
+        let spires = SpiresPlayMode(
+            playerSave: playerSave,
+            battle: battle,
+            battleLaunch: battleLaunch
+        )
+        let battleCompletion = PlayBattleCompletion(
+            playerSave: playerSave,
+            battle: battle,
+            journey: journey,
+            labyrinth: labyrinth,
+            spires: spires
+        )
+
+        completionPorts.completeJourneyStage = { [weak journey] stage in
+            journey?.completeStageOrPersistFailure(stage)
+        }
+        completionPorts.completeLabyrinthNode = { [weak labyrinth] nodeID in
+            labyrinth?.completeNodeOrPersistFailure(nodeID: nodeID)
+        }
+        focusBox.note = noteMapScrollFocus
+
+        return Assembled(
+            battleLaunch: battleLaunch,
+            journey: journey,
+            labyrinth: labyrinth,
+            spires: spires,
+            encounters: encounters,
+            battleCompletion: battleCompletion
+        )
     }
 }
 

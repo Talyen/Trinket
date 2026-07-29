@@ -62,12 +62,12 @@ public final class BattleSession {
     @ObservationIgnored
     public private(set) var isSuspendedForScenePhase = false
     @ObservationIgnored
-    var preparedBattleRunsByToken: [ActiveBattleResumeToken: PreparedBattleRun] = [:]
+    var preparedBattleRunsByKey: [BattleRunKey: PreparedBattleRun] = [:]
     @ObservationIgnored
     var pendingPreparedRun: PreparedBattleRun?
 
     var preparedBattleRun: PreparedBattleRun? {
-        preparedBattleRunsByToken.values.first
+        preparedBattleRunsByKey.values.first
     }
 
     /// Test seam for outcome timing. Production derives the delay from active spectacle.

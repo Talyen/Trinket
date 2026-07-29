@@ -7,8 +7,8 @@ Use for card rules, effects, decks/hands, turn flow, and battle presentation.
 | Domain primitives | `Packages/TrinketCore` |
 | Authored combatants, abilities, stages | `Packages/TrinketContent` and `ContentManifest/` |
 | Rules, effect handlers, deck/hand | `Packages/BattleEngine` |
-| Battle lifecycle, configuration assembly, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`ActiveBattleConfiguration` takes pre-resolved inputs including claimed-stage policy and gold-find percent) |
-| App launch/reward orchestration (encounter + loot resolve, activate) | `Packages/TrinketAppState` (`PlayBattleLaunch`, mode owners) |
+| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`ActiveBattleConfiguration` is a pure DTO of pre-resolved inputs including opaque `BattleRunKey`, defeat action, progression flag, music stage id, claimed-stage policy, gold-find percent, and baked XP/material awards). Must not branch on play-mode identity (journey/spire/labyrinth) or assemble from live save slices. |
+| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleConfiguration`, `PlayBattleCompletion`, mode owners) |
 
 For rules, start with `BattleState`, the matching `EffectHandlers/` type, and the
 closest test in `Packages/BattleEngine/Tests/`. `BattleState` is a facade: add shared
@@ -20,7 +20,8 @@ For presentation, `BattleSession` is the lifecycle/command facade.
 bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns
 cinematics and outcome timing. Views observe the narrow lane they render. App-level
 options and audio enter through `BattlePresentationEnvironment`; Battle never imports
-`TrinketAppState`.
+`TrinketAppState`. Victory chrome uses launch-baked awards — do not re-derive
+`StageCompletion` policy inside BattleFeature outcome math.
 
 For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Use `BattleStateTestFactory.makeBattle(..., rngSeed: 0)` and `EffectHandlers.all`. Do not assert full log prose.
 

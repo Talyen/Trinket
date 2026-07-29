@@ -466,7 +466,7 @@ extension BattleSession {
                 configurationID: configuration.id
             )
         }
-        preparedBattleRunsByToken.removeAll(keepingCapacity: true)
+        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         feedback.clear()
         clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
@@ -485,7 +485,7 @@ extension BattleSession {
     func clearRunState() {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
-        preparedBattleRunsByToken.removeAll(keepingCapacity: true)
+        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         pendingPreparedRun = nil
         onTurnAutoEnded = nil
         state = nil
