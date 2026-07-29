@@ -15,7 +15,7 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 | Baseline commit | Set after |
 |-----------------|-----------|
-| _none — next run is full-repo_ | — |
+| `b45f1a8a` | full all-audits pass 2026-07-29 |
 
 ## Open proposals
 

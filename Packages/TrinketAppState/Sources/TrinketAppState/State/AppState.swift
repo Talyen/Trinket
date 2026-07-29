@@ -199,7 +199,7 @@ public final class AppState {
 
     public func trimMemoryFootprint() {
         battle.trimMemoryFootprint(releaseBattleLog: true)
-        musicPlayer.trimMemoryFootprint()
+        musicPlayer.clearEncounterResumePositions()
         sfxPlayer.stopAll()
     }
 

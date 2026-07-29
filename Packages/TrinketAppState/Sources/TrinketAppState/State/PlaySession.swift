@@ -57,6 +57,9 @@ public final class PlaySession {
         self.battleLaunch = battleLaunch
 
         // Deferred focus wiring: modes capture this box before `self` can form a weak ref.
+        // Concurrency-Safety: `@unchecked Sendable` — `note` is written once on the
+        // MainActor after modes are constructed and invoked only from mode presentation
+        // paths on the MainActor; never called from a concurrent executor.
         final class MapScrollFocusBox: @unchecked Sendable {
             var note: ((String) -> Void)?
         }
@@ -121,10 +124,6 @@ public final class PlaySession {
         queueReturnToBattleOrigin(from: battle.activeBattle?.resumeToken)
         shellSession.selectedTab = .play
         battle.endBattle()
-    }
-
-    public func presentCombatLog() {
-        battle.presentBattleLog()
     }
 
     public func noteMapScrollFocus(_ targetID: String) {
@@ -200,20 +199,4 @@ public final class PlaySession {
         }
         return journey.isActive(stage)
     }
-
-    #if DEBUG
-    @discardableResult
-    func unlockAllContent() -> Bool {
-        do {
-            try playerSave.unlockAllContent()
-        } catch {
-            appStateLogger.error(
-                "Failed to unlock all content: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
-        }
-        clearTransientState()
-        return true
-    }
-    #endif
 }

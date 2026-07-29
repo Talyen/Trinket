@@ -1,6 +1,6 @@
 # TrinketUITests
 
-UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: `Docs/Platform/Testing.md`. UI test selector constants: `Trinket/Shared/AccessibilityID.swift`.
+UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: `Docs/Platform/Testing.md`. UI test selector constants: `Packages/TrinketFeatureSupport/.../AccessibilityID.swift`.
 
 ## Layout
 

@@ -42,6 +42,6 @@ SFX_AAC_BITRATE=96000 ./Scripts/prepare-sfx-assets.sh
 
 ## Runtime Routing
 
-`SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by `Trinket/Audio/SFXPlayer`, which applies `OptionsStore.effectsVolume` × `volumeGain`.
+`SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by `Packages/TrinketAppState/.../Audio/SFXPlayer.swift`, which applies `OptionsStore.effectsVolume` × `volumeGain`.
 
 Stable IDs cover UI chrome, ability draw/play, keyword-typed combat feedback, and outcome / mystery stingers — not per-ability, enemy, hero, or companion content.

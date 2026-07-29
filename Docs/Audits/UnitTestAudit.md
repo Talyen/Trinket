@@ -32,10 +32,10 @@ Shared scale: [README.md](README.md).
 
 | Helper | Location |
 |--------|----------|
-| `AppTestContext` / `AppTestSupport` | `TrinketTests/Support/` |
+| `AppTestContext` / `AppTestSupport` | `Packages/TrinketAppState/Tests/TrinketAppStateTests/Support/` |
 | `PersistenceTestContext` | `TrinketPersistenceTests/Support/` |
 | `CombatantFixtures`, battle parties | `Packages/TrinketTestSupport/` |
-| `SaveTestSupport` | PersistenceTests + TrinketTests support (not TrinketTestSupport) |
+| `SaveTestSupport` | PersistenceTests + TrinketAppStateTests support (not TrinketTestSupport) |
 | `BattleStateTestFactory`, `BattleTestFixtures` | `Packages/BattleEngine/Tests/` |
 
 **Quality:** assert semantics (events, HP deltas, reload-from-disk), not log fingerprints; no empty tests; no `try?` that hides failures (`#expect(throws:)` / `#require`).

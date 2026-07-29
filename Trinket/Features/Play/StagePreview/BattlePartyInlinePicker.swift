@@ -48,6 +48,19 @@ enum BattlePartySlot: String {
         guard let spire else { return true }
         return SpireAttunement.matches(combatant, spire: spire)
     }
+
+    func orderedCombatants(in roster: PlayerRosterState, spire: SpireDefinition?) -> [Combatant] {
+        let selectedID = selectedID(in: roster)
+        let combatants = combatants(in: roster)
+        guard let selected = combatants.first(where: { $0.id == selectedID }) else {
+            return combatants.filter { Self.isEligible($0, for: spire) }
+        }
+
+        let eligibleAlternatives = combatants.filter {
+            $0.id != selectedID && Self.isEligible($0, for: spire)
+        }
+        return [selected] + eligibleAlternatives
+    }
 }
 
 /// Journey's shared, single-sheet party editor.
@@ -149,17 +162,7 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
-        let roster = playerSave.roster
-        let selectedID = slot.selectedID(in: roster)
-        let combatants = slot.combatants(in: roster)
-        guard let selected = combatants.first(where: { $0.id == selectedID }) else {
-            return combatants.filter { BattlePartySlot.isEligible($0, for: spire) }
-        }
-
-        let eligibleAlternatives = combatants.filter {
-            $0.id != selectedID && BattlePartySlot.isEligible($0, for: spire)
-        }
-        return [selected] + eligibleAlternatives
+        slot.orderedCombatants(in: playerSave.roster, spire: spire)
     }
 
     private var partyPickerAccessibilityID: String {
@@ -212,17 +215,7 @@ private struct BattlePartySlotGridView: View {
     }
 
     private var orderedCombatants: [Combatant] {
-        let roster = playerSave.roster
-        let selectedID = slot.selectedID(in: roster)
-        let combatants = slot.combatants(in: roster)
-        guard let selected = combatants.first(where: { $0.id == selectedID }) else {
-            return combatants.filter { BattlePartySlot.isEligible($0, for: spire) }
-        }
-
-        let eligibleAlternatives = combatants.filter {
-            $0.id != selectedID && BattlePartySlot.isEligible($0, for: spire)
-        }
-        return [selected] + eligibleAlternatives
+        slot.orderedCombatants(in: playerSave.roster, spire: spire)
     }
 
     private func select(_ combatant: Combatant) {

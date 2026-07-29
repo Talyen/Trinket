@@ -7,6 +7,9 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthMapView: View {
+    /// Bottom inset so the floor map clears the selected-node inspector overlay.
+    private static let inspectorScrollClearance: CGFloat = 360
+
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -132,7 +135,12 @@ struct LabyrinthMapView: View {
                 .transition(.opacity.combined(with: .offset(y: 12)))
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.top, TrinketDesign.Metrics.smallSpacing)
-                .padding(.bottom, selectedNode == nil ? TrinketDesign.Metrics.extraLargeSpacing : 360)
+                .padding(
+                    .bottom,
+                    selectedNode == nil
+                        ? TrinketDesign.Metrics.extraLargeSpacing
+                        : Self.inspectorScrollClearance
+                )
             }
             .scrollIndicators(.hidden)
             .defaultScrollAnchor(.top)

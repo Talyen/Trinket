@@ -15,4 +15,4 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Combatant equipment rules | `CombatantEquipmentTests` | Hero vs companion slots |
 | Encounter level scaling | `EncounterLevelResolverTests` | Chapter span |
 
-**Not here:** `ArtCatalog` cross-refs (`Packages/TrinketContent/Tests/TrinketContentTests/ArtCatalogIntegrationTests.swift`). Encounter art wiring (`TrinketTests/Content/GameContentEncounterArtTests.swift`). `PlayerRosterState` battle-config logic (`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/PlayerRosterStateTests.swift`).
+**Not here:** `ArtCatalog` cross-refs (`Packages/TrinketContent/Tests/TrinketContentTests/ArtCatalogIntegrationTests.swift`). Encounter art presentation wiring (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`). `PlayerRosterState` battle-config logic (`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/PlayerRosterStateTests.swift`).

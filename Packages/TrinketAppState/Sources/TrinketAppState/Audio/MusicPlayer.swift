@@ -67,10 +67,6 @@ final class MusicPlayer {
         fadeTask = nil
     }
 
-    func trimMemoryFootprint() {
-        clearEncounterResumePositions()
-    }
-
     func clearEncounterResumePositions() {
         resumePositions = resumePositions.filter { entry in
             entry.key.contextKind == .menu

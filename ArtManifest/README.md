@@ -40,7 +40,7 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
-`CombatantArtReference`, `ItemArtReference`, and `EncounterArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Trinket/Shared/Cards/CombatantArtwork.swift`). Background and resource callers always use the full `imageName`.
+`CombatantArtReference`, `ItemArtReference`, and `EncounterArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Packages/TrinketFeatureSupport/.../Shared/Cards/CombatantArtwork.swift`). Background and resource callers always use the full `imageName`.
 
 ## Generate Curated Assets
 

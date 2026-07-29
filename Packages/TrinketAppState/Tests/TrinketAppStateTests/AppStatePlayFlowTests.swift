@@ -132,20 +132,18 @@ struct AppStatePlayFlowTests {
     }
     #endif
 
-    #if DEBUG
     @Test func unlockAllContentUnlocksRosterAndClearsBattle() throws {
-        let state = try context.makePlaySession()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.journey.startBattle(for: stage)
-        state.noteMapScrollFocus("chapter-1-stage-2")
+        _ = state.play.journey.startBattle(for: stage)
+        state.play.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.unlockAllContent())
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.mapScrollStageID == nil)
-        #expect(state.shellSession.selectedTab == .play)
+        #expect(state.play.mapScrollStageID == nil)
+        #expect(state.play.shellSession.selectedTab == .play)
     }
-    #endif
 
     @Test func shouldRestoreMapScrollIgnoresCompletedStage() {
         var journey = JourneyProgressState.initial
@@ -242,13 +240,13 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
 
-    @Test func presentCombatLogShowsLogWithoutChangingTabs() throws {
+    @Test func presentBattleLogShowsLogWithoutChangingTabs() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
         state.shellSession.selectedTab = .options
 
-        state.presentCombatLog()
+        state.battle.presentBattleLog()
 
         #expect(state.shellSession.selectedTab == .options)
         #expect(state.battle.isShowingBattleLog)

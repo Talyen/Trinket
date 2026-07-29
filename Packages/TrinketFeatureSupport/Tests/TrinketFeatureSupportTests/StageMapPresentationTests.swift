@@ -50,9 +50,43 @@ struct StageMapPresentationTests {
 
         #expect(rows[1].stage.encounterSubjectName == "Mystery")
         #expect(rows[1].stage.encounterTypeTitle == "Recruit")
+        #expect(rows[1].stage.encounterCombatantArtReference == nil)
+        #expect(rows[1].stage.encounterArtReference != nil)
+        #expect(abs(rows[1].stage.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
         let bossRows = rows.filter(\.isBoss)
         #expect(bossRows.count == 1)
         #expect(bossRows[0].stage.encounterTypeTitle == "Boss")
+    }
+
+    @Test func battleStagesPreferEnemyArtOverEncounterArt() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
+
+        #expect(GameContent.encounterArtID(for: stage) == nil)
+        #expect(stage.encounterArtReference == nil)
+        _ = try #require(stage.encounterCombatantArtReference)
+        #expect(stage.encounterSubjectName == "Slime")
+    }
+
+    @Test func shopStagesFallBackToMerchantSubjectName() {
+        let stage = Stage(
+            id: "test-shop",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            encounter: .shop,
+            rewards: .empty
+        )
+
+        #expect(GameContent.encounterArtID(for: stage) == nil)
+        #expect(stage.encounterSubjectName == "Merchant")
+    }
+
+    @Test func mappedEventStagesResolveEncounterArtWithoutPinningCatalogIDs() throws {
+        let stage = try #require(GameContent.chapters[1].stages.first { $0.id == "chapter-2-stage-8" })
+
+        #expect(GameContent.encounterArtID(for: stage) != nil)
+        _ = try #require(stage.encounterArtReference)
+        #expect(!(stage.encounterSubjectName.isEmpty))
     }
 
     @Test func spireRowsHideClearedFloorsAndEndWithBossBeforeCompletion() throws {
