@@ -185,7 +185,10 @@ struct AffixReactionBattleTests {
             hero: hero(abilities: [], maxHealth: 20),
             companion: passiveCompanion(maxHealth: 1),
             enemy: enemy,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(onceBelowHealthPercentThreshold: 0.25, onceBelowHealthPercentHeal: 3))
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                onceBelowHealthPercentThreshold: 0.25,
+                onceBelowHealthPercentHeal: 3
+            ))
         )
 
         let first = BattleTestFixtures.endTurn(on: &battle)
@@ -296,7 +299,12 @@ struct AffixReactionBattleTests {
 
     @Test func holyDamageAffixesGrantBlockCleanseHealAndPurge() throws {
         var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(holyDamageBlockFlat: 1, holyDamageCleanseCount: 1, holyDamageHealFlat: 3, holyDamagePurgeCount: 1))
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
+                holyDamageBlockFlat: 1,
+                holyDamageCleanseCount: 1,
+                holyDamageHealFlat: 3,
+                holyDamagePurgeCount: 1
+            ))
         )
         let hero = context.roster.hero.combatant
         let enemy = context.roster.enemy.combatant

@@ -86,7 +86,9 @@ struct OptionsView: View {
             } header: {
                 Text("Developer")
             } footer: {
-                Text("Unlock All is Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1.")
+                Text(
+                    "Unlock All is Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1."
+                )
             }
             #endif
         }

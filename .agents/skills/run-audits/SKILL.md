@@ -11,9 +11,10 @@ Execute audit guides as repeatable evidence-led passes. Keep `Docs/Audits/README
 
 1. Read the applicable `AGENTS.md` instructions.
 2. Read `Docs/Audits/README.md` fully.
-3. Resolve the audits the user cited. “All audits” means every audit Markdown file directly under `Docs/Audits/` except `README.md`; it does not include linked platform playbooks.
-4. Read each selected audit fully before probing its scope. Read large sets incrementally rather than dumping the directory into one tool result.
-5. Inspect the existing worktree and preserve unrelated changes.
+3. Read `Docs/Audits/Proposals.md`: use its scope baseline for routine passes, and skip open/rejected proposals and accepted non-findings unless new evidence supersedes an entry.
+4. Resolve the audits the user cited. “All audits” means every audit Markdown file directly under `Docs/Audits/` except `README.md` and `Proposals.md`; it does not include linked platform playbooks.
+5. Read each selected audit fully before probing its scope. Read large sets incrementally rather than dumping the directory into one tool result.
+6. Inspect the existing worktree and preserve unrelated changes.
 
 Do not run an uncited sibling audit, broaden an audit into a standing cleanup effort, or manufacture findings. Zero confirmed findings is a successful result.
 
@@ -64,7 +65,7 @@ After each worker finishes:
 5. Run `./Scripts/verify-changed.sh --isolate --paths <integrated changed paths...>` once from the root after integration. Do not multiply the same full gate across workers and root.
 6. Review `./Scripts/change-budget.sh` warnings when surfaced and record any necessary justification.
 
-Do not edit audit guides to record results. Put shipped findings, deferred proposals, verification, skips, and budget justification in the handoff, commit, or PR requested by the user.
+Do not edit audit guides to record results. Record durable proposals and accepted non-findings in `Docs/Audits/Proposals.md` per its hygiene rules, and advance its scope baseline after a completed pass. Put shipped findings, verification, skips, and budget justification in the handoff, commit, or PR requested by the user.
 
 ## Handoff
 

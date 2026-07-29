@@ -14,6 +14,7 @@ jobs:
   changes:
     name: Path filter
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
@@ -36,7 +37,7 @@ jobs:
               - 'Raw Assets/**'
               - 'Scripts/**'
               - 'project.yml'
-              - 'Package.resolved'
+              - 'Trinket.xcodeproj/**'
               - '*.xctestplan'
               - '.swiftlint.yml'
               - '.swiftformat'

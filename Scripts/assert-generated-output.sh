@@ -1,4 +1,55 @@
 #!/usr/bin/env bash
+# Generated-output assert helpers. Executable as a gate; sourceable for the
+# shared tracked-path list (agent-push-gate XcodeGen-unavailable fallback).
+
+trinket_set_generated_tracked_paths() {
+  local include_assets="${1:-false}"
+  local include_pbxproj="${2:-true}"
+
+  TRACKED_PATHS=()
+  if [[ "$include_pbxproj" == true ]]; then
+    TRACKED_PATHS+=(
+      "Trinket.xcodeproj/project.pbxproj"
+    )
+  fi
+  TRACKED_PATHS+=(
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
+  )
+
+  if [[ "$include_assets" == true ]]; then
+    TRACKED_PATHS+=(
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv"
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
+      "Trinket/Assets.xcassets"
+      "Trinket/Resources/Music"
+      "Trinket/Resources/SFX"
+      "Trinket/Resources/Cinematics"
+    )
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return 0 2>/dev/null || true
+fi
+
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -58,39 +109,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-TRACKED_PATHS=(
-  "Trinket.xcodeproj/project.pbxproj"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift"
-  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
-)
-
-if [[ "$INCLUDE_ASSETS" == true ]]; then
-  TRACKED_PATHS+=(
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv"
-    "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
-    "Trinket/Assets.xcassets"
-    "Trinket/Resources/Music"
-    "Trinket/Resources/SFX"
-    "Trinket/Resources/Cinematics"
-  )
-fi
+trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
 run_generate() {
   if [[ "$INCLUDE_ASSETS" == true ]]; then

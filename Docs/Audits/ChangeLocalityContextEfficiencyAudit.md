@@ -17,7 +17,7 @@ Identify repeated high-friction clusters and simplify them through existing sour
 | A frequently changed owner requires unrelated code to understand one concern | The semantic change is not locally reviewable |
 | Agent guidance surface restates the same policy across nested `AGENTS.md`, AgentContext cards, skills, or audit guides | Agents re-read duplicated guardrails; Platform docs / root `AGENTS.md` / executable scripts should own the canonical copy |
 
-**Not this audit:** import legality → the enforced module-boundary gate; wrong semantic ownership → StateGravityOwnershipAudit; local ceremony → InelegantSlopAudit; duplicate UI → DuplicateFeatureSurfaceAudit; unit/UI test runtime and portfolio ownership → UnitTestAudit or E2ETestQualityAudit; live authored mass without locality/routing friction → AuthoredMassGrowthAudit; dual live paths → DualPathRetentionAudit.
+**Not this audit:** import legality → the enforced module-boundary gate; live authored mass without locality/routing friction → AuthoredMassGrowthAudit; dual live paths → DualPathRetentionAudit. Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 
@@ -31,8 +31,8 @@ Identify repeated high-friction clusters and simplify them through existing sour
 
 A finding requires all of:
 
-- **Recurrence:** at least three comparable instances, or two with demonstrated drift or an avoidable failure
-- **Causality:** co-change and size alone are not evidence
+- **Recurrence:** at least three comparable instances, or two with demonstrated drift or an avoidable failure. Acceptable recurrence evidence: version-control co-change history, duplicated policy/command text visible in current sources, or friction recorded in prior run handoffs or `Proposals.md`
+- **Causality:** co-change and size alone are not evidence — name the shared policy, duplicated command, or missing source of truth that forces the repeated cost
 - **Excess surface:** separate necessary behavior, tests, generated output, and verification from the avoidable portion
 - **Existing home:** an executable source of truth, semantic owner, or current routing mechanism that should absorb the remedy
 - **Measurable direction:** before/after proxy with correctness coverage and required context intact

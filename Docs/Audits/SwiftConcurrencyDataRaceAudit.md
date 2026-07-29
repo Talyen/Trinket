@@ -15,13 +15,14 @@ Fix confirmed concurrency violations. Do not add actors, async APIs, cancellatio
 
 ## Severity
 
+Shared scale: [README.md](README.md). Because `SWIFT_STRICT_CONCURRENCY=complete` already fails the build on most isolation errors, this audit's value concentrates in P1–P2 — what the compiler accepts but should not be trusted.
+
 | Sev | Description | Action |
 |-----|-------------|--------|
 | P0 | Unsynchronized shared mutable state on hot paths | Fix now |
 | P1 | Undocumented `@unchecked` / `nonisolated(unsafe)` | Document or refactor |
 | P2 | Blocking call on actor/main; leaking unstructured Task | Establish correct executor, ownership, and cancellation; do not convert APIs to async by default |
-| P3 | `DispatchQueue` legacy bridge | Modernize when touching |
-| P4 | Unnecessary `Task.detached` | Prefer structured Task |
+| P3 | `DispatchQueue` legacy bridge; unnecessary `Task.detached` | Modernize / prefer structured Task when touching |
 
 ## Domain rules
 

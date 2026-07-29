@@ -11,9 +11,41 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
+  preflight:
+    name: Check for new commits
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Skip when HEAD already passed the last Nightly
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch; running."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          last_green_sha="$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/nightly.yml/runs?status=success&branch=main&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // empty')"
+          if [ "$last_green_sha" = "${{ github.sha }}" ]; then
+            echo "HEAD ${{ github.sha }} already passed the last successful Nightly; skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New commits since last successful Nightly (${last_green_sha:-none}); running."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   gate:
+    needs: preflight
+    if: needs.preflight.outputs.run == 'true'
     uses: ./.github/workflows/gate.yml
 
   integration:
@@ -24,6 +56,17 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
+      - name: Restore warm build cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .DerivedData
+          # Never matches exactly; restore-keys picks up the most recent cache
+          # saved by the tests.yml build job for a warm incremental build.
+          key: build-nightly-${{ github.run_id }}
+          restore-keys: |
+            build-
+      - name: Clear cached test diagnostics after cache restore
+        run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
       - name: Build all test bundles
         run: ./Scripts/build-for-testing.sh
         env:

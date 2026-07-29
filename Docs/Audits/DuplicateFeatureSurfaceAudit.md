@@ -18,7 +18,7 @@ Duplicate surfaces look like parallel product screens that differ mainly by labe
 | Same grid / card stack / sheet scaffolding in 3+ files | Layout ownership belongs in one helper, not N call sites |
 | Diverged twins that used to match | Copy-paste drift — bugs get fixed in one sibling only |
 
-**Not this audit:** single-file ceremony → InelegantSlop; raw Metrics/typography literals → AppleNativeUI; unused symbols → DeadCode; logic living in the wrong module → StateGravity.
+**Not this audit:** single-file ceremony → InelegantSlop; raw Metrics/typography literals without a structural twin → AppleNativeUI. Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 

@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       scope:
-        description: 'Test scope (standard, exhaustive)'
+        description: Test scope
         required: true
-        default: 'standard'
+        type: choice
+        default: standard
+        options:
+          - standard
+          - exhaustive
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -18,113 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  changes:
-    uses: ./.github/workflows/changes.yml
-
-  gate:
-    needs: changes
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    uses: ./.github/workflows/gate.yml
-
-  assets-gate:
-    name: Asset codegen
-    needs: [changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true'
-    runs-on: macos-26
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh --assets
-      - run: ./Scripts/assert-generated-output.sh --assets
-      - name: Locale-stable asset regenerate
-        run: |
-          LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 ./Scripts/generate.sh --assets
-          ./Scripts/assert-generated-output.sh --assets
-
-  build:
-    name: Build for testing
-    needs: [changes, gate]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    runs-on: macos-26
-    timeout-minutes: 25
-    outputs:
-      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: ./.github/actions/setup-trinket
-
-      - name: Export build cache key
-        id: export-build-cache-key
-        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore warm build cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: .DerivedData
-          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-          restore-keys: |
-            build-
-
-      - name: Build for testing
-        run: ./Scripts/build-for-testing.sh
-        env:
-          SKIP_GENERATE: 1
-
-      - name: Prune DerivedData before cache save
-        run: ./Scripts/prune-derived-data-cache.sh
-
-      - name: Save build cache for test jobs
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: .DerivedData
-          key: ${{ steps.export-build-cache-key.outputs.key }}
-
-  unit:
-    name: Unit tests
-    needs: [changes, build]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    runs-on: macos-26
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: unit
-          command: ./Scripts/test.sh unit --no-build
-
-  smoke:
-    name: Smoke tests
-    needs: [changes, build]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
-    runs-on: macos-26
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: smoke
-          rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh smoke-full --no-build
-
-  exhaustive-ui:
-    name: Exhaustive UI tests
-    needs: [changes, build]
-    if: >-
-      needs.changes.outputs.code == 'true' &&
-      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive'))
-    runs-on: macos-26
-    timeout-minutes: 35
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: exhaustive-ui
-          rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh ui --no-build
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      include-exhaustive: ${{ github.event_name == 'push' || inputs.scope == 'exhaustive' }}

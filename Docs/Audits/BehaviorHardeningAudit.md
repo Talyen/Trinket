@@ -35,3 +35,7 @@ Prioritize P0–P1 among confirmed findings.
 ## Evidence bar
 
 User-visible failure, reproducible data corruption, non-idempotent transition, or silent persistence error path.
+
+## Example signals
+
+Silent `try?` on save/sync/battle-outcome paths, reward grants that repeat on a double “Continue”, transitions that mutate before validating, mutations missing `modifiedAt` or sanitizer routing, store load failures that crash instead of recovering with a log.

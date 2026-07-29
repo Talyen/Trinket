@@ -3,14 +3,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# shellcheck source=build-inputs.sh
-source ./Scripts/build-inputs.sh
-
-echo "=== Ensure pinned tools ==="
-./Scripts/ensure-ci-tools.sh
-export PATH="$PWD/.tools:$PATH"
-export TRINKET_REQUIRE_PINNED_TOOLS=1
-
 # Full deploy gate. Runs CI gate checks plus unit and full UI tests.
 # Intended for pre-merge / nightly runs, not the local iteration loop.
 #
@@ -33,30 +25,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-RESULTS_DIR="$PWD/.DerivedData/TestResults"
-echo "=== Preparing generated build inputs ==="
-prepare_generated_inputs "$RESULTS_DIR"
+./Scripts/ci-gate.sh
+# Prevent subsequent test.sh tiers from regenerating after the gate's force generate.
 export SKIP_GENERATE=1
-
-echo ""
-echo "=== Assert generated output is committed ==="
-./Scripts/assert-generated-output.sh
-
-echo ""
-echo "=== Module boundary check ==="
-./Scripts/check-module-boundaries.sh
-
-echo ""
-echo "=== Swift Testing migration gate ==="
-./Scripts/check-swift-testing-migration.sh
-
-echo ""
-echo "=== Style check ==="
-./Scripts/test.sh style
-
-echo ""
-echo "=== Validate release notes config ==="
-./Scripts/release-notes.sh validate
 
 echo ""
 echo "=== Unit tests ==="

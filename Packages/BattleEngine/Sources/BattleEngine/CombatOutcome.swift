@@ -34,11 +34,6 @@ public struct CombatOutcome: Equatable {
     public var isCritical: Bool {
         flags.contains(.critical)
     }
-
-    /// Alias retained while callers migrate from tuple returns.
-    public var damageEvents: [ActionEvent] {
-        events
-    }
 }
 
 /// Semantic markers for combat mutations. Populated from pipeline state and events.

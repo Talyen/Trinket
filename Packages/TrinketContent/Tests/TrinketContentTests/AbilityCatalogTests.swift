@@ -5,7 +5,10 @@ import TrinketCore
 struct AbilityCatalogTests {
     @Test func catalogIDsAreUniqueAndUnknownLookupReturnsNil() throws {
         let ids = AbilityCatalog.all.map(\.id)
-        try #expect(Set(ids).count == ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
+        try #expect(
+            Set(ids).count == ids.count,
+            "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)"
+        )
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 

@@ -71,15 +71,15 @@ Agents do **not** edit `CHANGELOG.md` per commit. Release scripts generate it at
 
 ## Verification gates & test tiers
 
-Task → script routing for day-to-day work lives in `AGENTS.md`. This section owns gate composition and tier inventory.
+This section owns day-to-day task → script routing, gate composition, and tier inventory; `AGENTS.md` defers here for all of them.
 
 | Gate | Runs |
 |------|------|
 | `ci-gate.sh` | generate → assert (vs HEAD) → boundaries → Swift Testing check → style → release-notes validate |
 | `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **pre-push companion** |
-| `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
-| GitHub `pr.yml` | gate → one **build-for-testing** → parallel **unit** and **smoke-full** (DerivedData cache) on `macos-26` |
-| GitHub `ci.yml` (main) | Same build-once fan-out, plus exhaustive UI on `macos-26` |
+| `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **pre-merge** |
+| GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit** and **smoke-full** (DerivedData cache) on `macos-26` |
+| GitHub `ci.yml` (main) | Same shared `tests.yml` fan-out with exhaustive UI included |
 
 | Tier | Command | When |
 |------|---------|------|
@@ -123,7 +123,9 @@ After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI wh
 path filters skipped substantive jobs; on failure prints check annotations plus a
 short log excerpt; simulator/XCUITest launch flakes get one `gh run rerun --failed`
 via `./Scripts/ci-infra-rerun.sh`). Nightly uses the same classifier from
-`.github/workflows/nightly-infra-rerun.yml` for a single attempt-1 infra retry.
+`.github/workflows/nightly-infra-rerun.yml` for a single attempt-1 infra retry;
+real (non-infra) failures create or update a "Nightly failing on main" issue.
+Nightly skips its expensive jobs when HEAD already passed the last successful run.
 Task-scoped verification does not replace the pre-push or pre-merge gates.
 
 Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
@@ -142,10 +144,10 @@ Xcode synchronized folders so ordinary source-file additions and deletions do no
 regeneration. CI reports timing regressions from per-run artifacts, but does not fail a
 passing suite solely because hosted-runner session overhead exceeds a wall-clock budget.
 Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run dirs are
-kept; one-off legacy run dirs under `.DerivedData/runs/` and orphan `Trinket Run *`
-simulators are pruned by `./Scripts/prune-derived-data-cache.sh` (age via
-`TRINKET_RUN_MAX_AGE_DAYS`, default 3; set `TRINKET_PRUNE_ORPHAN_SIMULATORS=0` to skip
-sim deletes). Parallel source trees:
+kept; one-off legacy run dirs under `.DerivedData/runs/` are pruned by
+`./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3).
+That script never mutates simulator devices — simulator lifecycle stays in
+`ensure-simulator.sh`. Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
 
 `performance.sh` is intentionally separate from smoke and integration gates. It takes an
@@ -177,7 +179,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 1. Land correct source/docs changes.
 2. Run what you can: `./Scripts/generate.sh`, `./Scripts/assert-generated-output.sh` (commit check) or `--idempotent` after a local generate, `./Scripts/check-module-boundaries.sh`, `./Scripts/check-ui-style.sh`, `./Scripts/ci-gate.sh`.
 3. Skip `build.sh` / `test.sh` / simulator work — state that clearly in the commit/PR body.
-4. When Xcode 26 + simulator **are** present, `build.sh` / `test.sh` (or the AGENTS Task Router row) are mandatory before claiming the change is verified.
+4. When Xcode 26 + simulator **are** present, `build.sh` / `test.sh` (per the tier table above) are mandatory before claiming the change is verified.
 
 ## Commands
 
@@ -221,8 +223,11 @@ Options:
 - `--skip-tests` — skip deploy gate (avoid except emergencies)
 - `--no-tag` — commit release assets without tagging
 
-Pushing a `v*` tag triggers `.github/workflows/release.yml`, which creates a GitHub
-Release and uploads App Store note artifacts.
+Pushing a `v*` tag triggers `.github/workflows/release.yml`, which verifies the
+tagged commit is on `main` with a green Trinket CI run (waiting for it when main
+and the tag are pushed together), then creates a GitHub Release and uploads App
+Store note artifacts. The full test suite is not re-run at tag time — `release.sh`
+runs `test-deploy.sh` before tagging and the main push runs full CI.
 
 ## Style & lint ownership
 
@@ -247,7 +252,7 @@ The app-wide palette is centralized in `TrinketDesignSystem`: feature views use 
 | File | Role |
 |------|------|
 | `.swiftformat` / `.swiftlint.yml` | Format + semantic lint (see Style & lint ownership) |
-| `Scripts/swift-source-dirs.env` | Shared Swift roots for `format.sh` / `lint.sh` |
+| `Scripts/swift-source-dirs.env` | Shared Swift roots for `format.sh` / `lint.sh`, plus `TRINKET_TEST_PACKAGES` |
 | `cliff.toml` | Developer changelog (Keep a Changelog categories) |
 | `cliff-appstore.toml` | Alternate git-cliff template (plain bullets) |
 | `ReleaseNotes/.prompt.md` | Generated prompt for optional AI polish (gitignored) |

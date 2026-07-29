@@ -2,6 +2,9 @@
 # Shared generated-input and --no-build freshness helpers.
 # Source this file from build/test entry points; it intentionally has no main.
 
+# shellcheck source=swift-source-dirs.env
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/swift-source-dirs.env"
+
 generation_paths_newer_than() {
   local stamp="$1"
   shift
@@ -38,14 +41,12 @@ build_input_paths=(
   Trinket
   TrinketTests
   TrinketUITests
-  Packages/TrinketCore
-  Packages/TrinketContent
-  Packages/BattleEngine
-  Packages/TrinketPersistence
-  Packages/TrinketDesignSystem
-  Packages/TrinketFeatureSupport
-  Packages/TrinketBattleFeature
-  Packages/TrinketAppState
+)
+for _trinket_test_package in "${TRINKET_TEST_PACKAGES[@]}"; do
+  build_input_paths+=("Packages/$_trinket_test_package")
+done
+unset _trinket_test_package
+build_input_paths+=(
   Packages/TrinketTestSupport
   ContentManifest
   ArtManifest

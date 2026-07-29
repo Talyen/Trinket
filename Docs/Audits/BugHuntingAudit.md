@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm candidate defects and fix confirmed ones. A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites; defer P4/P5 by default. Significant structural remedies are proposals per [README.md](README.md).
+Confirm candidate defects and fix confirmed ones. A pass with no confirmed defect is successful. Do not re-run sibling audits’ full suites; route maintainability and concurrency-risk hits to their owning audits by default. Significant structural remedies are proposals per [README.md](README.md).
 
 ## Hard stops
 
@@ -19,14 +19,16 @@ Confirm candidate defects and fix confirmed ones. A pass with no confirmed defec
 
 ## Severity
 
+Shared scale: [README.md](README.md).
+
 | Sev | Criteria | Default disposition |
 |-----|----------|---------------------|
 | P0 | Crash / data loss / double reward / save corruption | Fix now |
 | P1 | Wrong battle/progress/UI state | Fix now |
 | P2 | Degraded UX (stuck spinner, missing dismiss) | Fix when confirmed and scoped |
 | P3 | Recoverable failure without appropriate diagnostics | Fix only if trivial |
-| P4 | Maintainability (orphaned state) | Defer to DeadCodeRatioAudit |
-| P5 | Future concurrency risk | Defer to SwiftConcurrencyDataRaceAudit |
+
+Maintainability hits (orphaned state) route to DeadCodeRatioAudit; future concurrency risk routes to SwiftConcurrencyDataRaceAudit — do not track them as low-severity findings here.
 
 ## Example signals
 

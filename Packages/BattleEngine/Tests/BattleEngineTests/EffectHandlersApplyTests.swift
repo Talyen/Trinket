@@ -10,7 +10,13 @@ struct EffectHandlersApplyTests {
     @Test func burnHandlerAppliesBurnEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
-        let outcome = EffectHandlersTestSupport.dispatch(.burn(3), ability: CombatantFixtures.ability(), source: battle.hero, target: enemy, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .burn(3),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: enemy,
+            battle: &battle
+        )
         try #expect(outcome.didApply)
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
@@ -73,8 +79,20 @@ struct EffectHandlersApplyTests {
 
     @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        _ = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        _ = EffectHandlersTestSupport.dispatch(
+            .standardLeechBuff,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .standardLeechBuff,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
         try #expect(outcome.didApply)
         let leechStacks = battle.activeEffects(of: battle.hero).filter { $0.effect.keyword == .leech }
         try #expect(leechStacks.count == 1)
@@ -147,7 +165,13 @@ struct EffectHandlersApplyTests {
 
     @Test func cleanseWithoutDebuffsDoesNotApply() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .cleanse(.poison),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
         try #expect(!(outcome.didApply))
         try #expect(outcome.events.isEmpty)
     }
@@ -157,7 +181,13 @@ struct EffectHandlersApplyTests {
     @Test func resourceGainHandlerAddsGold() throws {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
-        let outcome = EffectHandlersTestSupport.dispatch(resourceEffect, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(
+            resourceEffect,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
         try #expect(outcome.didApply)
         try #expect(battle.gold == 13)
         try #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })

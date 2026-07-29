@@ -30,7 +30,7 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 - Do not collapse intentional seams: battle RNG injection, persistence write coalescing, design-system tokens, catalog/codegen boundaries, or module import rules.
 - Do not rewrite battle pipeline math “for clarity” without package tests proving equivalence.
 - Do not turn this into a style-only rename sweep, docs rewrite, or mass delete of tests that encode real invariants.
-- Prefer the owning audit when the hit is primarily dead code, dual-path retention, authored mass/growth, boundaries, concurrency, type-safety escapes, duplicate feature surfaces, or state-ownership drift.
+- Prefer the owning audit when the ceremony has a surviving twin path (DualPathRetention) or the primary cost is absolute size with correct ownership (AuthoredMassGrowth). Full routing: [README.md](README.md) confusable pairs.
 
 ## Evidence bar
 

@@ -6,7 +6,7 @@ let package = Package(
     name: "TrinketCore",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(

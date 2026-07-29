@@ -27,19 +27,20 @@ Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer t
 
 ## Scoring
 
+Shared scale: [README.md](README.md).
+
 | Score | Criteria |
 |-------|----------|
 | P0 | Flaky CI failure, crash in test harness |
 | P1 | Clear multi-second savings or flaky class fix |
 | P2 | Tier misplacement / duplicate coverage with real cost |
-| P3 | Consistency (helpers, naming) |
-| P4 | Nice-to-have — skip unless trivial |
+| P3 | Consistency (helpers, naming), nice-to-haves — skip unless trivial |
 
 ## Domain rules
 
 UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
 
-Successful fixes preserve unique journey coverage while improving reliability or tier fit: delete duplicate journeys/assertions; shorten excessive waits after stable entry; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; use stable accessibility queries over brittle indexes.
+Successful fixes preserve unique journey coverage while improving reliability or tier fit: delete duplicate journeys/assertions; shorten excessive waits after stable entry; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; use stable accessibility queries over brittle indexes. Report the before/after direction in the handoff: suite runtime, journey count, or flaky-class removed.
 
 ## Example signals
 

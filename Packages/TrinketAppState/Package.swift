@@ -16,6 +16,9 @@ let package = Package(
         .package(path: "../TrinketContent"),
         .package(path: "../BattleEngine"),
         .package(path: "../TrinketPersistence"),
+        // No source-level imports, but required at link time: TrinketBattleFeature
+        // public initializers use TrinketDesignSystem values as default arguments,
+        // which Swift emits into this (calling) module.
         .package(path: "../TrinketDesignSystem"),
         .package(path: "../TrinketFeatureSupport"),
         .package(path: "../TrinketBattleFeature"),
@@ -42,10 +45,9 @@ let package = Package(
                 "TrinketContent",
                 "BattleEngine",
                 "TrinketPersistence",
-                "TrinketDesignSystem",
                 "TrinketFeatureSupport",
                 "TrinketBattleFeature",
-                "TrinketTestSupport",
+                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
             ]
         ),
     ]

@@ -32,12 +32,8 @@ Runs Swift package test schemes from inside their package directories, allocatin
 a unique result bundle for each invocation so repeated runs do not collide.
 
 Packages:
-  TrinketCore
-  TrinketContent
-  BattleEngine
-  TrinketPersistence
-  TrinketDesignSystem
 USAGE
+  printf '  %s\n' "${TRINKET_TEST_PACKAGES[@]}"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -103,6 +99,9 @@ if [[ -z "$DESTINATION" ]]; then
 fi
 
 mkdir -p "$RESULTS_DIR"
+if [[ "$ACTION" == "test" ]]; then
+  prepare_generated_inputs "$RESULTS_DIR"
+fi
 
 for package in "${PACKAGES[@]}"; do
   scheme="$(package_test_scheme "$package")"

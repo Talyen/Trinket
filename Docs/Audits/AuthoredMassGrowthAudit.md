@@ -17,7 +17,7 @@ Confirm authored production or test hotspots whose size or mixed jobs cost more 
 | Fat mapping / sanitizer / session / lab files that force unrelated code prereads because of mixed jobs | One change requires reading load-bearing neighbors it does not own |
 | Over-expanded test matrices or support harnesses dwarfing unique assertions | Maintenance cost sits in harness mass, not semantic coverage — prefer UnitTest when the hit is primarily portfolio ownership |
 
-**Not this audit:** unused symbols → DeadCode; single-path ceremony with correct ownership → InelegantSlop; copy-paste UI shells → DuplicateFeatureSurface; wrong semantic owner → StateGravity; retained parallel live implementations / shims → DualPathRetention; recurring co-touch / routing / guidance duplication → ChangeLocality; per-change advisory growth → `change-budget.sh` only.
+**Not this audit:** single-path ceremony with correct ownership → InelegantSlop; unused symbols → DeadCode; per-change advisory growth → `change-budget.sh` only. Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 
@@ -38,6 +38,6 @@ All of:
 
 ## Domain rules
 
-Inventory authored Swift under app and packages; count production and test separately. Skip generated output, build artifacts, and ContentManifest / catalog volume. Allowlist justified density (battle rule pipelines, save graph mapping when co-location is the invariant, intentional spectacle labs). Prefer collapse/delete → move jobs to the existing owner → split a hub only when [Architecture.md](../Platform/Architecture.md) hub containment already expects handlers/engines/`+` files and the local move removes mixed jobs.
+Inventory authored Swift under app and packages; count production and test separately. Use a reproducible proxy — the largest authored files per package by LOC, production and test ranked separately — so successive runs rank the same hotspots and the handoff can compare against the prior run’s inventory. Skip generated output, build artifacts, and ContentManifest / catalog volume. Allowlist justified density (battle rule pipelines, save graph mapping when co-location is the invariant, intentional spectacle labs). Prefer collapse/delete → move jobs to the existing owner → split a hub only when [Architecture.md](../Platform/Architecture.md) hub containment already expects handlers/engines/`+` files and the local move removes mixed jobs.
 
 Successful fixes leave a smaller hotspot or delete the avoidable portion; proposals for significant hub splits follow the README right-size policy.

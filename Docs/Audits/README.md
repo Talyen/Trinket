@@ -15,6 +15,19 @@ Every finding must state:
 
 A candidate signal is not a finding. **Zero findings is a successful audit result.** Never invent a fix or a structural proposal to satisfy a quota.
 
+### Severity scale
+
+Audits share one scale and map their domain examples onto it:
+
+| Sev | Meaning |
+|-----|---------|
+| P0 | Fix now: crash, data loss/corruption, flaky CI, failing enforced gate |
+| P1 | Fix now: confirmed wrong behavior or clear, measured maintenance cost |
+| P2 | Fix when confirmed and scoped: tier misplacement, degraded UX, undocumented unsafe escape |
+| P3 | Optional: style/consistency; only when trivial or already touching that surface |
+
+A hit whose severity belongs to another audit's concern is routed there, not tracked as a low-severity finding here.
+
 Unless the cited audit explicitly owns the behavior, do not change player-facing balance/copy/layout, accessibility identifiers, generated output, deterministic battle seeds, or architectural boundaries. Do not add a package/framework or weaken a test/gate to make a finding disappear.
 
 ### Right-size policy
@@ -22,7 +35,7 @@ Unless the cited audit explicitly owns the behavior, do not change player-facing
 Prefer the smallest remedy that removes the confirmed cause. Related hits may justify one cohesive change, but shared ownership alone does not justify a new seam or framework.
 
 - **Ship in-pass:** confirmed local fixes that fully address the finding and do not paper over a larger root cause.
-- **Propose and stop:** significant refactors, package moves, new seams, or architecture changes. Do not implement those in the same unsupervised pass; present the proposal and wait for approval.
+- **Propose and stop:** significant refactors, package moves, new seams, or architecture changes. Do not implement those in the same unsupervised pass; present the proposal, record it in [Proposals.md](Proposals.md), and wait for approval.
 - **Proposal bar** (all must hold, else do not propose):
   1. Confirmed evidence (a signal alone is not enough)
   2. Clear maintenance or correctness win (not taste)
@@ -34,9 +47,19 @@ Prefer the smallest remedy that removes the confirmed cause. Related hits may ju
 
 Inventory confirmed findings and, before unsupervised multi-finding fixes, write an implementation plan covering them. If overall scope is large, break the plan into distinct phases. Do not dump or read a directory wholesale or run unrelated full-repo sweeps.
 
-Record outcomes in the handoff/commit/PR, never in an audit. Do not append run logs, Done tables, or dated status to these guides.
+Record outcomes in the handoff/commit/PR, never in an audit guide. Do not append run logs, Done tables, or dated status to these guides.
 
 Agents choose their own probes and process. Audits state invariants, evidence bars, and success criteria — not investigation choreography.
+
+### Run memory
+
+[Proposals.md](Proposals.md) is the only durable state between runs: the routine-scope baseline commit, open proposals awaiting approval, rejected proposals, and accepted non-findings. Read it during triage and skip listed items unless new evidence supersedes an entry; write new proposals and accepted non-findings there, following its hygiene rules.
+
+### Run scope and cadence
+
+Routine passes (every few days) default their candidate inventory to code changed since the baseline commit in [Proposals.md](Proposals.md); run whole-codebase passes on request or at a longer interval, then advance the baseline. Recent-change scope fits the defect classes agent sessions re-seed fastest: slop ceremony, dead code, dual paths, duplicate surfaces, ownership drift, typing escapes, effect-seam leaks, concurrency escapes, persistence regressions, test-portfolio growth, and opportunistic bugs.
+
+`AuthoredMassGrowthAudit`, `ChangeLocalityContextEfficiencyAudit`, and `DocumentationStalenessAudit` are retrospective inventories — prefer whole-repo passes at a longer cadence (weekly or on request) over including them in every routine rotation.
 
 ### Orchestrated runs
 
@@ -99,6 +122,24 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 | Misplaced logic in AppState / hubs / mega-views | `StateGravityOwnershipAudit.md` |
 | Change locality / agent context, guidance-surface, and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
+
+### Confusable pairs
+
+This table is the canonical routing for commonly confused hits. Audit guides keep at most their two or three closest neighbors and defer the rest here; one problem produces one finding under one owner.
+
+| If the hit is… | Owner |
+|----------------|-------|
+| Zero live consumers | DeadCodeRatio |
+| Reachable twin path or forwarding shim (correct owner) | DualPathRetention |
+| Single surviving path that is pure ceremony | InelegantSlop |
+| Wrong semantic owner, with or without a leftover twin | StateGravityOwnership (move, then delete the old path) |
+| Large or mixed-jobs surface with correct owner and a single path | AuthoredMassGrowth |
+| Copy-paste product screens or repeated view scaffolding across 3+ files | DuplicateFeatureSurface (including repeated grid scaffolding spotted during AppleNativeUI passes) |
+| Raw layout/typography literals without a structural twin | AppleNativeUI |
+| Duplicate, weak, or over-expanded test coverage | UnitTest (unit/package) or E2ETestQuality (UI tiers) |
+| Recurring co-touch, duplicated policy/commands, or guidance-surface duplication | ChangeLocalityContextEfficiency |
+| Silent persistence/transition failure without ownership drift | BehaviorHardening |
+| Effect primitive outside its allowlisted seam | SideEffectSurface |
 
 Package/layer imports are continuously enforced by [Architecture.md](../Platform/Architecture.md) and `./Scripts/check-module-boundaries.sh`; they are not a user-invoked audit.
 

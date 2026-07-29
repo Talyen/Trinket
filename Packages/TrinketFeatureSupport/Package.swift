@@ -35,9 +35,7 @@ let package = Package(
                 "TrinketFeatureSupport",
                 "TrinketCore",
                 "TrinketContent",
-                "BattleEngine",
                 "TrinketPersistence",
-                "TrinketDesignSystem",
             ]
         ),
     ]

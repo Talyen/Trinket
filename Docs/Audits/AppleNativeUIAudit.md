@@ -18,12 +18,15 @@ Reduce unjustified custom layout/typography while preserving intentional game UI
 
 ## Severity
 
-| Priority | Cluster | Typical signal |
-|----------|---------|----------------|
-| 1 | Spacing / padding literals | Raw spacing next to existing Metrics; manual insets before glass/wallet/badge modifiers |
-| 1 | Duplicated grids | Same adaptive grid scaffolding in 3+ files |
-| 2 | Typography / scale gaps | Point-sized fonts; roles unused where they map; non-scaling text bands |
-| 3 | Justified custom / competing rules | Keep product behavior; extract/document constants or one shared layout helper |
+Shared scale: [README.md](README.md).
+
+| Sev | Cluster | Typical signal |
+|-----|---------|----------------|
+| P1 | Spacing / padding literals | Raw spacing next to existing Metrics; manual insets before glass/wallet/badge modifiers |
+| P2 | Typography / scale gaps | Point-sized fonts; roles unused where they map; non-scaling text bands |
+| P3 | Justified custom / competing rules | Keep product behavior; extract/document constants or one shared layout helper |
+
+Same grid / scaffolding structure repeated across 3+ files is a duplicate feature surface — route it to DuplicateFeatureSurfaceAudit rather than fixing it as a token migration.
 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
 

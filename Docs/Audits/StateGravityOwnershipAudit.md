@@ -19,7 +19,7 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 | Mega-view `body` that orchestrates rewards, catalog lookups, and mutations | View owns too many jobs; extract session/store or shared UI |
 | New `*Manager` / parallel hub beside `AppState` for one flow | Invented gravity well instead of an extension on the real owner |
 
-**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; unused APIs → DeadCode; verbose ceremony with correct ownership → InelegantSlop; duplicate screens with correct owners → DuplicateFeatureSurface; correct owner with leftover twin / shim → DualPathRetention; silent save bugs without ownership drift → BehaviorHardening.
+**Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with leftover twin / shim → DualPathRetention; verbose ceremony with correct ownership → InelegantSlop. Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 
@@ -30,10 +30,11 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 
 ## Evidence bar
 
-Wrong owner per [Architecture.md](../Platform/Architecture.md), real review/test cost
-from mixed jobs on one type, and an existing home (engine handler, store slice,
-Battle presentation lane, `TrinketFeatureSupport`, or feature session)—not a
-greenfield layer.
+All of:
+
+- **Wrong owner** per [Architecture.md](../Platform/Architecture.md)
+- **Real cost:** review or test cost from mixed jobs sharing one type or lifetime
+- **Existing home:** engine handler, store slice, Battle presentation lane, `TrinketFeatureSupport`, or feature session — not a greenfield layer
 
 ## Domain rules
 

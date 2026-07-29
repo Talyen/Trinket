@@ -8,7 +8,6 @@ set -euo pipefail
 #   SIMULATOR_DESTINATION   e.g. platform=iOS Simulator,id=...
 
 SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
-SIMULATOR_PREFERRED_DEVICE="iPhone 17 Pro"
 SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 
 resolve_or_create_simulator() {
@@ -242,8 +241,4 @@ ensure_test_simulator_logged() {
 
   mkdir -p "$results_dir"
   ensure_test_simulator "$@" > >(tee -a "$results_dir/simulator.log") 2>&1
-}
-
-destination_for_udid() {
-  echo "platform=iOS Simulator,id=$1"
 }

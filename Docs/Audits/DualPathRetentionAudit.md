@@ -17,7 +17,7 @@ Confirm two reachable paths for one behavior (or a reachable shim that only forw
 | Deprecated entry that only exists to call the new entry | Reachable twin with no unique behavior |
 | Permanent feature-flag or build-time switch that still ships both implementations of one behavior | Loser path has no remaining distinct consumer |
 
-**Not this audit:** zero live consumers → DeadCode; single surviving name that is pure ceremony (no second reachable path) → InelegantSlop; wrong owner **and** leftover twin → StateGravity (move, then delete the old path); wrong owner without a twin → StateGravity; duplicate product screens / shells → DuplicateFeatureSurface; duplicate or over-expanded test harnesses asserting one rule → UnitTest or E2ETestQuality; live mass / mixed jobs on a single path → AuthoredMassGrowth; legacy `DispatchQueue` when isolation/data-race is the issue → SwiftConcurrencyDataRaceAudit; intentional seams (RNG injection, persistence coalescing, Options vs PlayerSave, catalog/codegen).
+**Not this audit:** zero live consumers → DeadCode; single surviving name that is pure ceremony (no second reachable path) → InelegantSlop; wrong owner, with or without a twin → StateGravity (move, then delete the old path); intentional seams (RNG injection, persistence coalescing, Options vs PlayerSave, catalog/codegen). Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 
@@ -25,7 +25,6 @@ Confirm two reachable paths for one behavior (or a reachable shim that only forw
 - Do not delete a migration path while save or shell-session clients still require the old shape — confirm the consumer window is closed first.
 - Do not rewrite battle pipeline math or save wire format under this audit; prove equivalence via existing package owners when a dual rule path is confirmed.
 - Do not demote or delete package `public` API that is an intentional cross-package contract without the same consumer inventory DeadCode requires.
-- Prefer the owning audit when the hit is primarily unused, ceremony-only (no twin), ownership drift (with or without a twin), duplicate UI, test-portfolio fit, authored mass on a single path, or concurrency isolation.
 
 ## Evidence bar
 

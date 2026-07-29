@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh
+      - run: ./Scripts/generate.sh --force-xcodegen
       - name: Assert generated output is committed
         run: |
           if ! ./Scripts/assert-generated-output.sh; then

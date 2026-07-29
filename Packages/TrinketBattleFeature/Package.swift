@@ -42,7 +42,7 @@ let package = Package(
                 "TrinketPersistence",
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
-                "TrinketTestSupport",
+                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
             ]
         ),
     ]

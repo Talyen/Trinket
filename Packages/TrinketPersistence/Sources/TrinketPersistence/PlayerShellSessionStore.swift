@@ -129,11 +129,10 @@ public final class PlayerShellSessionStore {
     private static func loadOrCreateRecord(in context: ModelContext) -> (record: PlayerShellSession, needsInitialSave: Bool) {
         if let existing = fetchRecord(in: context) {
             return (existing, false)
-        } else {
-            let newRecord = PlayerShellSession()
-            context.insert(newRecord)
-            return (newRecord, true)
         }
+        let newRecord = PlayerShellSession()
+        context.insert(newRecord)
+        return (newRecord, true)
     }
 
     public func clearMapScrollState() {

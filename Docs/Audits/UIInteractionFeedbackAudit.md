@@ -30,3 +30,5 @@ Fix confirmed navigation/feedback/accessibility defects across flows. Reuse exis
 ## Evidence bar
 
 Interactive flow missing a dismiss path, visible feedback, or stable identifier; gesture fight; or double-trigger on a primary action.
+
+**Static vs runtime evidence:** missing dismiss paths, missing confirmation on destructive actions, missing `accessibilityIdentifier`s, non-`Button` interactive elements, missing rapid-tap debounce, and missing `scenePhase` handling are confirmable from source and may ship in an unattended pass. Gesture fights, feedback feel, and progress-indicator timing normally need a running app — without Simulator access, record them as candidates in the handoff (or `Proposals.md` when durable) rather than shipping speculative fixes.

@@ -155,11 +155,13 @@ run_is_path_filtered_only() {
   local run_id="$1"
   local run_data
   run_data="$(gh run view "$run_id" --json jobs 2>/dev/null || echo '{}')"
+  # The path-filter job appears as "changes / Path filter" (or nested under the
+  # reusable tests.yml as "tests / changes / Path filter"); exclude it by suffix.
   local non_skipped
   non_skipped="$(
     jq -r '
       [.jobs[]?
-        | select(.name != "changes / Path filter" and .name != "changes")
+        | select((.name | endswith("Path filter") or endswith("changes")) | not)
         | select(.conclusion != "skipped" and .conclusion != "cancelled")
       ] | length' <<<"$run_data"
   )"
@@ -167,7 +169,7 @@ run_is_path_filtered_only() {
   total="$(
     jq -r '
       [.jobs[]?
-        | select(.name != "changes / Path filter" and .name != "changes")
+        | select((.name | endswith("Path filter") or endswith("changes")) | not)
       ] | length' <<<"$run_data"
   )"
   if [[ -z "$non_skipped" || -z "$total" ]]; then

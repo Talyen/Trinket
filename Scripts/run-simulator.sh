@@ -3,6 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Must match PRODUCT_BUNDLE_IDENTIFIER in project.yml.
 BUNDLE_ID="com.ryanmcintire.Trinket"
 
 # shellcheck source=run-env.sh
@@ -21,7 +22,10 @@ source ./Scripts/ensure-simulator.sh
 trinket_sim_slot_ensure
 ensure_test_simulator
 
-xcodebuild build \
+# shellcheck source=xcode-runner.sh
+source ./Scripts/xcode-runner.sh
+xcode_runner_run --label "run-simulator" --verbose -- \
+  xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination "$SIMULATOR_DESTINATION" \

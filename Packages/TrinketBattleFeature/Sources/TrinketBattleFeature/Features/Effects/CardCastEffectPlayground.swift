@@ -81,8 +81,18 @@ private struct CardCastEffectPlayground: View {
                     parameterSlider("Edge depth weight", value: $configuration.dissolveEdgeDepthWeight, range: 0 ... 1.5, format: "%.2f")
                     parameterSlider("Noise weight", value: $configuration.dissolveNoiseWeight, range: 0 ... 1, format: "%.2f")
                     parameterSlider("Cell size", value: $configuration.dissolveCellSize, range: 1 ... 12, format: "%.0f px")
-                    parameterSlider("Threshold midpoint", value: $configuration.dissolveThresholdMidpoint, range: 0.2 ... 0.8, format: "%.2f")
-                    parameterSlider("Threshold contrast", value: $configuration.dissolveThresholdContrast, range: 10 ... 200, format: "%.0f")
+                    parameterSlider(
+                        "Threshold midpoint",
+                        value: $configuration.dissolveThresholdMidpoint,
+                        range: 0.2 ... 0.8,
+                        format: "%.2f"
+                    )
+                    parameterSlider(
+                        "Threshold contrast",
+                        value: $configuration.dissolveThresholdContrast,
+                        range: 10 ... 200,
+                        format: "%.0f"
+                    )
                 }
 
                 Button("Reset Defaults") {

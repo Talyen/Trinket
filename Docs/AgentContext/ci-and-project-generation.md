@@ -88,7 +88,7 @@ This card adds the CI/project-generation exceptions:
   build/test/compile work. Linux portable SwiftLint also skips SourceKit `custom_rules`
   and can under-report idiomatic findings vs macOS CI — treat local style PASS as
   provisional for CI parity.
-- CI (`pr.yml` / `ci.yml`) builds once, prunes DerivedData with
+- CI (`pr.yml` / `ci.yml`, via the shared `tests.yml`) builds once, prunes DerivedData with
   `Scripts/prune-derived-data-cache.sh`, saves a run-scoped cache, and fans out unit /
   smoke / exhaustive UI via `.github/actions/test-job` (`--no-build`, rebuild-on-miss).
   Smoke/UI cache-miss rebuilds use `build-for-testing.sh --app-only`.

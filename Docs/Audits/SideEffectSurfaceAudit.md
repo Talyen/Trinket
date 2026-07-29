@@ -10,6 +10,7 @@ Confirm unexpected effect ownership and fix violations using existing seams. A c
 
 - Audio `try?` + log is acceptable; do not “fix” it into crashing paths.
 - Release-shaped CloudKit checklist work belongs in `Docs/Platform/CloudKitPreShipChecklist.md` — not this audit.
+- A legitimate new effect seam that Architecture supports is not a finding; propose an allowlist-row update per the [README.md](README.md) right-size policy instead of re-flagging it every run.
 
 ## Allowlisted seams
 

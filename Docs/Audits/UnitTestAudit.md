@@ -18,11 +18,13 @@ Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases w
 
 ## Fix priority
 
-**Tier 1:** same assertion owned twice; weaker app-shell echoes of package owners; exact catalog counts, pixel tables, plain-struct round trips, empty/commented tests, hidden `try?`, or multi-second waits. Also fixture/support harnesses whose LOC dwarfs unique semantic assertions; presentation, layout-constant, glyph, or plumbing cases that [Testing.md](../Platform/Testing.md) already bans; `@Test(arguments:)` (or sibling case fans) whose expanded executions dominate runtime without a distinct invariant per case.
+Shared scale: [README.md](README.md).
 
-**Tier 2:** merge sibling cases only when it reduces executed work or setup cost; reuse an existing fixture; inject short intervals; move an assertion to its cheaper semantic owner and delete the weaker copy; trim support helpers that exist only to feed deleted or merged cases.
+**P1:** same assertion owned twice; weaker app-shell echoes of package owners; exact catalog counts, pixel tables, plain-struct round trips, empty/commented tests, hidden `try?`, or multi-second waits. Also fixture/support harnesses whose LOC dwarfs unique semantic assertions; presentation, layout-constant, glyph, or plumbing cases that [Testing.md](../Platform/Testing.md) already bans; `@Test(arguments:)` (or sibling case fans) whose expanded executions dominate runtime without a distinct invariant per case.
 
-**Tier 3 (only if quick):** drop redundant assertions inside a kept test; tags or `withKnownIssue` cleanup with demonstrated value.
+**P2:** merge sibling cases only when it reduces executed work or setup cost; reuse an existing fixture; inject short intervals; move an assertion to its cheaper semantic owner and delete the weaker copy; trim support helpers that exist only to feed deleted or merged cases.
+
+**P3 (only if quick):** drop redundant assertions inside a kept test; tags or `withKnownIssue` cleanup with demonstrated value.
 
 ## Domain rules
 
@@ -42,6 +44,6 @@ Confirm duplicate, weaker, implementation-detail, slow, or over-expanded cases w
 
 **Coverage ownership:** Battle rules live in package matrices; persistence in store/sanitizer journeys; catalogs in invariants rather than exact snapshots; app tests only own orchestration packages cannot express. Do not select work because a module has fewer files.
 
-**Fixture / support sprawl:** Prefer shared owners in the table above over package-local copies. A support file or test class that is primarily harness mass (setup, golden tables, presentation matrices) with few unique semantic assertions is a Tier-1 candidate — shrink or delete the harness, do not add more fixtures to “organize” it. Route live production mass without a test-portfolio angle to AuthoredMassGrowthAudit.
+**Fixture / support sprawl:** Prefer shared owners in the table above over package-local copies. A support file or test class that is primarily harness mass (setup, golden tables, presentation matrices) with few unique semantic assertions is a P1 candidate — shrink or delete the harness, do not add more fixtures to “organize” it. Route live production mass without a test-portfolio angle to AuthoredMassGrowthAudit.
 
-Track authored declarations and expanded executions separately. Inventory hotspots by both metrics: a merge or deletion is successful only when it reduces duplication, expanded executions, runtime/setup, or maintenance surface—not merely the number of `@Test` attributes.
+Track authored declarations and expanded executions separately. Inventory hotspots by both metrics: a merge or deletion is successful only when it reduces duplication, expanded executions, runtime/setup, or maintenance surface—not merely the number of `@Test` attributes. Report the before/after direction in the handoff: authored declarations, expanded executions, or suite runtime.

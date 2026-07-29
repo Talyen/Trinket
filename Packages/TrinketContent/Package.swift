@@ -6,7 +6,7 @@ let package = Package(
     name: "TrinketContent",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(
@@ -27,7 +27,11 @@ let package = Package(
             dependencies: ["TrinketCore"],
             exclude: [
                 "Generated/AbilityInventory.generated.tsv",
+                "Generated/AppIconSourceHashes.generated.tsv",
                 "Generated/ArtSourceHashes.generated.tsv",
+                "Generated/MusicSourceHashes.generated.tsv",
+                "Generated/SFXSourceHashes.generated.tsv",
+                "Generated/UltimateCinematicSourceHashes.generated.tsv",
             ]
         ),
         .executableTarget(
@@ -36,7 +40,7 @@ let package = Package(
         ),
         .testTarget(
             name: "TrinketContentTests",
-            dependencies: ["TrinketContent"]
+            dependencies: ["TrinketContent", "TrinketCore"]
         ),
     ]
 )

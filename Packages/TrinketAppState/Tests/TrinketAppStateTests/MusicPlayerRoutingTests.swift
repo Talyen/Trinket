@@ -20,7 +20,12 @@ struct MusicPlayerRoutingTests {
     }
 
     @Test(arguments: [
-        (enemyID: "skeleton", expectedTrackKind: MusicTrackKind.battle, expectedContext: MusicContextKind.battle, expectedTrackID: nil as String?),
+        (
+            enemyID: "skeleton",
+            expectedTrackKind: MusicTrackKind.battle,
+            expectedContext: MusicContextKind.battle,
+            expectedTrackID: nil as String?
+        ),
         (enemyID: "the_blight_treant", expectedTrackKind: .boss, expectedContext: .boss, expectedTrackID: "boss_blight_treant"),
     ])
     func activeBattlePlaysExpectedTrack(

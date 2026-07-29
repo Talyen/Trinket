@@ -6,7 +6,7 @@ let package = Package(
     name: "TrinketTestSupport",
     platforms: [
         .iOS(.v26),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(

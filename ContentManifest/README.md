@@ -147,7 +147,7 @@ Regenerate and verify committed output matches HEAD (CI / pre-push):
 For mid-task consistency after `./Scripts/generate.sh`, use
 `./Scripts/assert-generated-output.sh --idempotent` (what `verify-changed` runs).
 
-Legacy subcommands (`generate-content-catalogs.sh`, `generate-ability-shorthand.sh`) still work but print a notice to prefer `generate.sh`.
+Content-only regeneration (skip XcodeGen): `./Scripts/generate.sh --skip-xcodegen`.
 
 After changing manifests or custom tier files:
 

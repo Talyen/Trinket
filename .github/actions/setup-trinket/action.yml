@@ -8,7 +8,9 @@ runs:
       shell: bash
       run: |
         # DerivedData and generated project output depend on this exact toolchain.
-        preferred_versions=(26.5.0)
+        # shellcheck source=../../Scripts/tool-versions.env
+        source Scripts/tool-versions.env
+        preferred_versions=("$XCODE_VERSION")
         xcode_path=""
         for version in "${preferred_versions[@]}"; do
           for path in "/Applications/Xcode_${version}.app" "/Applications/Xcode_${version}"*.app; do
@@ -19,7 +21,7 @@ runs:
           done
         done
         if [ -z "$xcode_path" ]; then
-          echo "Xcode 26.5.0 is required but was not found on this runner." >&2
+          echo "Xcode ${XCODE_VERSION} is required but was not found on this runner." >&2
           echo "Installed Xcode apps:" >&2
           ls -1 /Applications/Xcode*.app 2>/dev/null || true
           exit 1

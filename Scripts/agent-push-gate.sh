@@ -137,37 +137,11 @@ if ! command -v xcodegen >/dev/null 2>&1; then
     ./Scripts/generate.sh --skip-xcodegen
   fi
   echo "=== Agent push gate: assert content catalogs ==="
-  TRACKED=(
-    Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityInventory.generated.tsv
-    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogIndex.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentStagesIndex.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentTraits.generated.swift
-    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift
-  )
-  if [[ "$INCLUDE_ASSETS" == true ]]; then
-    TRACKED+=(
-      Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift
-      Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv
-      Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift
-      Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv
-      Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift
-      Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv
-      Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift
-      Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv
-      Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv
-      Trinket/Assets.xcassets
-      Trinket/Resources/Music
-      Trinket/Resources/SFX
-      Trinket/Resources/Cinematics
-    )
-  fi
+  # shellcheck source=assert-generated-output.sh
+  source Scripts/assert-generated-output.sh
+  # Omit pbxproj: XcodeGen is unavailable, so project assert is deferred to CI.
+  trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" false
+  TRACKED=("${TRACKED_PATHS[@]}")
   tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED[@]}")"
   if [[ -z "$tracked_status" ]]; then
     :

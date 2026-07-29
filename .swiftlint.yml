@@ -48,6 +48,9 @@ opt_in_rules:
   - prefer_self_type_over_type_of_self
   - self_binding
   - unneeded_override
+  - shorthand_optional_binding
+  - superfluous_else
+  - fatal_error_message
   # no_empty_block omitted: fights Codable `init() {}`, SwiftUI dismiss
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 

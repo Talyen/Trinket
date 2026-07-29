@@ -114,7 +114,10 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).")
+        return EffectSummary(
+            keyword: keyword,
+            text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+        )
     }
 
     func apply(
@@ -166,7 +169,10 @@ struct RestoreManaOnHitHandler: BattleEffectHandler {
             }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks)).")
+        return EffectSummary(
+            keyword: keyword,
+            text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(turns: maxTicks))."
+        )
     }
 
     func apply(
