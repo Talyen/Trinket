@@ -1,15 +1,34 @@
 import Foundation
+import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-public extension PlaySession {
+/// Labyrinth map flow: enter, node routing, rest/craft, and labyrinth battle victory.
+@MainActor
+@Observable
+public final class LabyrinthPlayMode {
+    private weak var sessionRef: PlaySession?
+
+    public var activeNodeSession: LabyrinthNodeSession?
+
+    func attach(to session: PlaySession) {
+        sessionRef = session
+    }
+
+    private var session: PlaySession {
+        guard let sessionRef else {
+            preconditionFailure("LabyrinthPlayMode used before attach")
+        }
+        return sessionRef
+    }
+
     @discardableResult
-    func enterLabyrinth() -> StageMapMessage? {
+    public func enter() -> StageMapMessage? {
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 LabyrinthCompletion.enter(save: &save)
             }
         } catch {
@@ -22,11 +41,12 @@ public extension PlaySession {
     }
 
     @discardableResult
-    func handleLabyrinthNodeAction(nodeID: String) -> StageMapMessage? {
-        guard canBeginLabyrinthNodeEncounter() else { return nil }
-        if let message = enterLabyrinth() {
+    public func handleNodeAction(nodeID: String) -> StageMapMessage? {
+        guard session.canBeginTransientEncounter else { return nil }
+        if let message = enter() {
             return message
         }
+        let labyrinth = session.playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID) else {
             return StageMapMessage(title: "Path Missing", message: "This path is not ready yet.")
         }
@@ -34,13 +54,14 @@ public extension PlaySession {
             return StageMapMessage(title: "Path Closed", message: "Clear another path to reach this node.")
         }
 
+        let roster = session.playerSave.roster
         switch node.type.canonical {
         case .battle, .boss:
-            return startLabyrinthBattle(nodeID: nodeID)
+            return startBattle(nodeID: nodeID)
         case .shop:
-            return beginShopEncounter(labyrinthNodeID: nodeID)
+            return session.encounters.beginShopEncounter(labyrinthNodeID: nodeID)
         case .mystery, .event:
-            return beginMysteryEncounter(labyrinthNodeID: nodeID)
+            return session.encounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
         case .recruit:
             let resolution = GameContent.resolveRecruitEncounter(
                 configuredEventID: node.recruitEventID,
@@ -48,51 +69,53 @@ public extension PlaySession {
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs
             )
-            return beginMysteryEncounter(
+            return session.encounters.beginMysteryEncounter(
                 labyrinthNodeID: nodeID,
                 forcedEventID: resolution.event.id
             )
         case .rest:
-            return beginLabyrinthRest(nodeID: nodeID)
+            return beginRest(nodeID: nodeID)
         case .craft:
-            return beginLabyrinthCraft(nodeID: nodeID)
+            return beginCraft(nodeID: nodeID)
         case .entrance:
             return nil
         }
     }
 
     @discardableResult
-    internal func beginLabyrinthRest(nodeID: String) -> StageMapMessage? {
-        guard canBeginLabyrinthNodeEncounter() else { return nil }
+    func beginRest(nodeID: String) -> StageMapMessage? {
+        guard session.canBeginTransientEncounter else { return nil }
+        let labyrinth = session.playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .rest else {
             return StageMapMessage(title: "Shrine Missing", message: "This path is not ready yet.")
         }
-        activeLabyrinthNodeSession = LabyrinthNodeSession.rest(
+        activeNodeSession = LabyrinthNodeSession.rest(
             node: node,
             effects: labyrinth.effects(for: nodeID),
-            homestead: homestead
+            homestead: session.playerSave.homestead
         )
         return nil
     }
 
     @discardableResult
-    internal func beginLabyrinthCraft(nodeID: String) -> StageMapMessage? {
-        guard canBeginLabyrinthNodeEncounter() else { return nil }
+    func beginCraft(nodeID: String) -> StageMapMessage? {
+        guard session.canBeginTransientEncounter else { return nil }
+        let labyrinth = session.playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.canonical == .craft else {
             return StageMapMessage(title: "Altar Missing", message: "This path is not ready yet.")
         }
-        activeLabyrinthNodeSession = LabyrinthNodeSession.craft(node: node)
+        activeNodeSession = LabyrinthNodeSession.craft(node: node)
         return nil
     }
 
     @discardableResult
-    func finishActiveLabyrinthRest() -> Bool {
-        guard let session = activeLabyrinthNodeSession, session.kind == .rest else { return false }
-        session.clearFailure()
+    public func finishActiveRest() -> Bool {
+        guard let sessionNode = activeNodeSession, sessionNode.kind == .rest else { return false }
+        sessionNode.clearFailure()
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
-                    nodeID: session.nodeID,
+                    nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
                     companion: save.roster.activeCompanion,
                     save: &save
@@ -102,26 +125,26 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to finish Labyrinth rest: \(error.localizedDescription, privacy: .public)"
             )
-            session.markFailed("Couldn't save progress. Stay here and try Rest again.")
+            sessionNode.markFailed("Couldn't save progress. Stay here and try Rest again.")
             return false
         }
-        activeLabyrinthNodeSession = nil
+        activeNodeSession = nil
         return true
     }
 
-    func dismissActiveLabyrinthNodeSessionWithoutCompleting() {
-        activeLabyrinthNodeSession = nil
+    public func dismissActiveNodeSessionWithoutCompleting() {
+        activeNodeSession = nil
     }
 
     @discardableResult
-    func forgeActiveLabyrinthCraft() -> Bool {
-        guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
-        session.clearFailure()
+    public func forgeActiveCraft() -> Bool {
+        guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
+        sessionNode.clearFailure()
         var forged = false
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 forged = LabyrinthCompletion.forgeAtAltar(
-                    nodeID: session.nodeID,
+                    nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
                     companion: save.roster.activeCompanion,
                     save: &save
@@ -131,24 +154,24 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to forge at Labyrinth altar: \(error.localizedDescription, privacy: .public)"
             )
-            session.markFailed("The altar stays cold. Try again.")
+            sessionNode.markFailed("The altar stays cold. Try again.")
             return false
         }
         if forged {
-            activeLabyrinthNodeSession = nil
+            activeNodeSession = nil
             return true
         }
-        session.markFailed("Not enough Gold.")
+        sessionNode.markFailed("Not enough Gold.")
         return false
     }
 
     @discardableResult
-    func leaveActiveLabyrinthCraftWithoutForging() -> Bool {
-        guard let session = activeLabyrinthNodeSession, session.kind == .craft else { return false }
+    public func leaveActiveCraftWithoutForging() -> Bool {
+        guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
-                    nodeID: session.nodeID,
+                    nodeID: sessionNode.nodeID,
                     hero: save.roster.activeHero,
                     companion: save.roster.activeCompanion,
                     save: &save
@@ -158,16 +181,19 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to leave Labyrinth craft: \(error.localizedDescription, privacy: .public)"
             )
-            session.markFailed("The altar stays cold. Try again.")
+            sessionNode.markFailed("The altar stays cold. Try again.")
             return false
         }
-        activeLabyrinthNodeSession = nil
+        activeNodeSession = nil
         return true
     }
 
     @discardableResult
-    internal func startLabyrinthBattle(nodeID: String) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
+    func startBattle(nodeID: String) -> StageMapMessage? {
+        guard session.battle.activeBattle == nil else { return nil }
+        let labyrinth = session.playerSave.labyrinth
+        let roster = session.playerSave.roster
+        let homestead = session.playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
@@ -181,7 +207,7 @@ public extension PlaySession {
             labyrinth: labyrinth,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        activateBattle(
+        session.activateBattle(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -194,14 +220,17 @@ public extension PlaySession {
         return nil
     }
 
-    func prepareReachableLabyrinthBattles() {
-        guard battle.activeBattle == nil else { return }
-        for nodeID in labyrinth.reachableNodeIDs() {
-            prepareLabyrinthBattle(nodeID: nodeID)
+    public func prepareReachableBattles() {
+        guard session.battle.activeBattle == nil else { return }
+        for nodeID in session.playerSave.labyrinth.reachableNodeIDs() {
+            prepareBattle(nodeID: nodeID)
         }
     }
 
-    private func prepareLabyrinthBattle(nodeID: String) {
+    private func prepareBattle(nodeID: String) {
+        let labyrinth = session.playerSave.labyrinth
+        let roster = session.playerSave.roster
+        let homestead = session.playerSave.homestead
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
         let effects = labyrinth.effects(for: nodeID)
         guard let encounter = ActiveBattleConfiguration.resolvedLabyrinthEncounter(for: node) else { return }
@@ -211,7 +240,7 @@ public extension PlaySession {
             labyrinth: labyrinth,
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        battle.prepareBattleRun(makeBattleConfiguration(
+        session.battle.prepareBattleRun(session.makeBattleConfiguration(
             resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -223,8 +252,37 @@ public extension PlaySession {
         ))
     }
 
+    func persistVictory(
+        for configuration: ActiveBattleConfiguration,
+        hero: Combatant,
+        companion: Combatant,
+        battleEarnedGold: Int,
+        materialRewards: [ResourceAmount]?
+    ) -> Bool {
+        guard case let .labyrinth(nodeID) = configuration.resumeToken else { return false }
+        return completeNode(
+            nodeID: nodeID,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards,
+            rewardItem: configuration.pendingRewardItem
+        )
+    }
+
+    /// Completes a Labyrinth node, returning a save-failure message when persistence fails.
+    func completeNodeOrPersistFailure(nodeID: String) -> StageMapMessage? {
+        guard completeNode(nodeID: nodeID) else {
+            return StageMapMessage(
+                title: "Couldn't Save Progress",
+                message: "This path wasn't saved. Try again."
+            )
+        }
+        return nil
+    }
+
     @discardableResult
-    internal func completeLabyrinthNode(
+    func completeNode(
         nodeID: String,
         hero: Combatant? = nil,
         companion: Combatant? = nil,
@@ -232,10 +290,11 @@ public extension PlaySession {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil
     ) -> Bool {
+        let roster = session.playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 LabyrinthCompletion.complete(
                     nodeID: nodeID,
                     hero: resolvedHero,
@@ -253,12 +312,5 @@ public extension PlaySession {
             )
             return false
         }
-    }
-
-    private func canBeginLabyrinthNodeEncounter() -> Bool {
-        battle.activeBattle == nil
-            && activeShopEncounter == nil
-            && activeMysteryEncounter == nil
-            && activeLabyrinthNodeSession == nil
     }
 }

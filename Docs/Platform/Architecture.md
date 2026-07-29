@@ -52,7 +52,7 @@ Manifests and pipelines live outside the app folder:
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
 | Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI, configuration and outcome |
-| App and Play orchestration | `TrinketAppState` | `AppState` composition, `PlaySession`, encounter sessions, preferences, audio routing |
+| App and Play orchestration | `TrinketAppState` | `AppState` composition; `PlaySession` shell/registry (battle launch + victory router); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode`; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
 
@@ -133,8 +133,10 @@ presentation, but it cannot depend on `TrinketBattleFeature` or `TrinketAppState
 both source imports and package manifests.
 
 The app target is a composition root and view host. App views receive the narrowest
-available owner (`PlaySession`, an encounter session, `BattleSession`, or one of
-Battle’s read lanes) instead of observing `AppState` for unrelated state.
+available owner (`PlaySession` mode coordinators, an encounter session, `BattleSession`,
+or one of Battle’s read lanes) instead of observing `AppState` for unrelated state.
+Play screens read save slices from `PlayerSaveStore` directly — not through `PlaySession`
+facades.
 
 ## Persistence overview
 

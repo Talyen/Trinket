@@ -20,7 +20,7 @@ struct AppStateSpiresTests {
     @Test func startSpireBattleSucceedsForFreshAndAttunedParties() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let message = state.startSpireBattle(for: floor)
+        let message = state.spires.startBattle(for: floor)
         #expect(message == nil)
         #expect(state.battle.activeBattle?.resumeToken == .spire(spireID: .ironVein, floor: 1))
         #expect(state.battle.activeBattle?.enemy != nil)
@@ -31,15 +31,15 @@ struct AppStateSpiresTests {
         let state = try context.makePlaySession()
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let whelp = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
-        var roster = state.roster
+        var roster = state.playerSave.roster
         roster.unlockedHeroIDs.insert(rogue.id)
         roster.unlockedCompanionIDs.insert(whelp.id)
         roster.activeHeroID = rogue.id
         roster.activeCompanionID = whelp.id
-        state.roster = roster
+        state.playerSave.roster = roster
 
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let message = state.startSpireBattle(for: floor)
+        let message = state.spires.startBattle(for: floor)
         #expect(message?.title == "Not Attuned")
         #expect(state.battle.activeBattle == nil)
     }
@@ -51,26 +51,26 @@ struct AppStateSpiresTests {
             GameContent.companions.first { $0.keywordProfile.contains(spire.keyword) }
         )
         let state = try context.makePlaySession()
-        var roster = state.roster
+        var roster = state.playerSave.roster
         roster.unlockedHeroIDs.insert(hero.id)
         roster.unlockedCompanionIDs.insert(companion.id)
         roster.activeHeroID = hero.id
         roster.activeCompanionID = companion.id
-        state.roster = roster
+        state.playerSave.roster = roster
 
         let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
-        #expect(state.startSpireBattle(for: floor) == nil)
+        #expect(state.spires.startBattle(for: floor) == nil)
         #expect(state.battle.activeBattle?.resumeToken == .spire(spireID: spire.id, floor: 1))
     }
 
     @Test func startSpireBattleRejectsLockedAndClearedFloors() throws {
         let state = try context.makePlaySession()
-        let hero = state.roster.activeHero
-        let companion = state.roster.activeCompanion
+        let hero = state.playerSave.roster.activeHero
+        let companion = state.playerSave.roster.activeCompanion
 
         for floor in 1 ... 2 {
             let spireFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: floor))
-            state.completeSpireFloor(
+            state.spires.completeFloor(
                 spireFloor,
                 hero: hero,
                 companion: companion
@@ -78,16 +78,16 @@ struct AppStateSpiresTests {
         }
 
         let clearedFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        #expect(state.startSpireBattle(for: clearedFloor)?.title == "Floor Cleared")
+        #expect(state.spires.startBattle(for: clearedFloor)?.title == "Floor Cleared")
 
         let lockedFloor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 4))
-        #expect(state.startSpireBattle(for: lockedFloor)?.title == "Floor Locked")
+        #expect(state.spires.startBattle(for: lockedFloor)?.title == "Floor Locked")
     }
 
     @Test func startSpireBattlePreviewsFloorRewardItem() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        #expect(state.startSpireBattle(for: floor) == nil)
+        #expect(state.spires.startBattle(for: floor) == nil)
         #expect(state.battle.activeBattle?.pendingRewardItem != nil)
     }
 }

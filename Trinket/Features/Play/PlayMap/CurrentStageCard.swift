@@ -12,7 +12,7 @@ struct StageSelectActiveCard<
     PartyPickerSheet: View,
     ArtworkAccessory: View
 >: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
@@ -167,7 +167,7 @@ struct StageSelectActiveCard<
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
@@ -183,7 +183,7 @@ struct StageSelectActiveCard<
                 .contentShape(Rectangle())
         }
         .trinketQuietTapButtonStyle()
-        .disabled(appState.battle.activeBattle != nil)
+        .disabled(play.battle.activeBattle != nil)
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
     }
 }

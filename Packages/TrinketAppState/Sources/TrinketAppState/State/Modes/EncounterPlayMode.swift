@@ -1,37 +1,57 @@
 import Foundation
+import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-public extension PlaySession {
+/// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
+@MainActor
+@Observable
+public final class EncounterPlayMode {
+    private weak var sessionRef: PlaySession?
+
+    public var activeMysteryEncounter: MysteryEncounterSession?
+    public var activeShopEncounter: ShopEncounterSession?
+
+    func attach(to session: PlaySession) {
+        sessionRef = session
+    }
+
+    private var session: PlaySession {
+        guard let sessionRef else {
+            preconditionFailure("EncounterPlayMode used before attach")
+        }
+        return sessionRef
+    }
+
     @discardableResult
-    internal func beginShopEncounter(
+    func beginShopEncounter(
         for stage: Stage? = nil,
         labyrinthNodeID: String? = nil
     ) -> StageMapMessage? {
         guard activeShopEncounter == nil else { return nil }
         guard activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        guard session.battle.activeBattle == nil else { return nil }
 
         switch ShopEncounterSession.open(
             stage: stage,
             labyrinthNodeID: labyrinthNodeID,
-            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
+            astralChanceBonusPercent: session.playerSave.homestead.effects.astralChanceBonusPercent
         ) {
-        case let .opened(session):
-            activeShopEncounter = session
+        case let .opened(shopSession):
+            activeShopEncounter = shopSession
             return nil
         case .autoCompleted:
             if let labyrinthNodeID {
-                return completeLabyrinthNodeOrPersistFailure(nodeID: labyrinthNodeID)
+                return session.labyrinth.completeNodeOrPersistFailure(nodeID: labyrinthNodeID)
             }
             guard let stage else { return nil }
             appStateLogger.error(
                 "Shop stage \(stage.id, privacy: .public) produced no offers; completing stage."
             )
-            if let failure = completeStageOrPersistFailure(stage) {
+            if let failure = session.journey.completeStageOrPersistFailure(stage) {
                 return failure
             }
             return StageMapMessage(
@@ -44,24 +64,24 @@ public extension PlaySession {
     }
 
     @discardableResult
-    func purchaseActiveShopOffer(offerID: String) -> Bool {
-        guard let session = activeShopEncounter else { return false }
-        guard !session.isPurchasing else { return false }
-        guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
-        guard !session.isSoldOut(offerID) else {
-            session.markPurchaseFailed(message: "That item is already sold.")
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+    public func purchaseActiveShopOffer(offerID: String) -> Bool {
+        guard let shopSession = activeShopEncounter else { return false }
+        guard !shopSession.isPurchasing else { return false }
+        guard let offer = shopSession.offers.first(where: { $0.id == offerID }) else { return false }
+        guard !shopSession.isSoldOut(offerID) else {
+            shopSession.markPurchaseFailed(message: "That item is already sold.")
+            session.sfxPlayer.play(SFXID.uiDeny, volume: session.options.effectsVolume)
             return false
         }
 
-        session.markPurchaseStarted()
+        shopSession.markPurchaseStarted()
         var purchaseResult: ShopPurchaseResult?
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 purchaseResult = ShopPurchaseApplier.purchase(
                     offer: offer,
-                    visitToken: session.visitToken,
-                    stageID: session.stage.id,
+                    visitToken: shopSession.visitToken,
+                    stageID: shopSession.stage.id,
                     save: &save
                 )
             }
@@ -69,24 +89,24 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to purchase shop offer: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPurchaseFailed(message: "Purchase failed. Try again.")
+            shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
             return false
         }
 
         switch purchaseResult {
         case .success:
-            session.markPurchaseFinished(offerID: offerID)
-            sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
+            shopSession.markPurchaseFinished(offerID: offerID)
+            session.sfxPlayer.play(SFXID.uiBuySell, volume: session.options.effectsVolume)
             return true
         case .insufficientGold, .alreadyOwned:
-            session.markPurchaseFailed(
+            shopSession.markPurchaseFailed(
                 message: purchaseResult?.failureMessage ?? "Purchase failed."
             )
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+            session.sfxPlayer.play(SFXID.uiDeny, volume: session.options.effectsVolume)
             return false
         case .none:
-            session.markPurchaseFailed(message: "Purchase failed.")
-            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+            shopSession.markPurchaseFailed(message: "Purchase failed.")
+            session.sfxPlayer.play(SFXID.uiDeny, volume: session.options.effectsVolume)
             return false
         }
     }
@@ -94,15 +114,15 @@ public extension PlaySession {
     /// Completes the shop stage/node only after persistence succeeds so a failed leave
     /// does not drop the session while progress stays uncleared.
     @discardableResult
-    func finishActiveShopEncounter() -> Bool {
-        guard let session = activeShopEncounter else { return false }
-        session.clearLeaveFailure()
+    public func finishActiveShopEncounter() -> Bool {
+        guard let shopSession = activeShopEncounter else { return false }
+        shopSession.clearLeaveFailure()
         var resultingJourney: JourneyProgressState?
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 resultingJourney = StageCompletion.completeEncounter(
-                    stage: session.stage,
-                    labyrinthNodeID: session.labyrinthNodeID,
+                    stage: shopSession.stage,
+                    labyrinthNodeID: shopSession.labyrinthNodeID,
                     hero: save.roster.activeHero,
                     companion: save.roster.activeCompanion,
                     in: GameContent.chapters,
@@ -113,32 +133,34 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to leave shop encounter: \(error.localizedDescription, privacy: .public)"
             )
-            session.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
         }
         if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+            session.noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         }
         activeShopEncounter = nil
         return true
     }
 
-    func dismissActiveShopEncounterWithoutCompleting() {
+    public func dismissActiveShopEncounterWithoutCompleting() {
         activeShopEncounter = nil
     }
 
     @discardableResult
-    internal func beginMysteryEncounter(
+    func beginMysteryEncounter(
         for stage: Stage? = nil,
         labyrinthNodeID: String? = nil,
         forcedEventID: String? = nil
     ) -> StageMapMessage? {
         guard activeMysteryEncounter == nil else { return nil }
         guard activeShopEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        guard session.battle.activeBattle == nil else { return nil }
 
         let pickContext = mysteryEventPickContext(for: stage, labyrinthNodeID: labyrinthNodeID)
-        let pinnedLabyrinthEventID = labyrinthNodeID.flatMap { labyrinth.nodes[$0]?.mysteryEventID }
+        let pinnedLabyrinthEventID = labyrinthNodeID.flatMap {
+            session.playerSave.labyrinth.nodes[$0]?.mysteryEventID
+        }
 
         guard let opened = MysteryEncounterSession.open(
             stage: stage,
@@ -154,7 +176,7 @@ public extension PlaySession {
            pinnedLabyrinthEventID == nil,
            !opened.session.event.isRecruit {
             do {
-                try playerSave.performBatchMutation { save in
+                try session.playerSave.performBatchMutation { save in
                     guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
                     node.mysteryEventID = opened.resolvedEventID
                     save.labyrinth.nodes[labyrinthNodeID] = node
@@ -167,7 +189,7 @@ public extension PlaySession {
         }
 
         activeMysteryEncounter = opened.session
-        sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
+        session.sfxPlayer.play(SFXID.mysteryEvent, volume: session.options.effectsVolume)
         if opened.session.event.isRecruit {
             _ = resolveActiveMysteryChoice()
         }
@@ -187,25 +209,24 @@ public extension PlaySession {
         }()
         return MysteryEventPickContext(
             allowsCorruptionAltar: allowsCorruptionAltar,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory).isEmpty,
-            corruptionAltarCooldownRemaining: playerSave.currentSave.corruptionAltarCooldownRemaining
+            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(
+                in: session.playerSave.inventory
+            ).isEmpty,
+            corruptionAltarCooldownRemaining: session.playerSave.currentSave.corruptionAltarCooldownRemaining
         )
     }
 
     /// Applies the single (or first) choice for the active mystery encounter.
-    /// Recruit unlocks present the unlocked reward; choose-item choices present
-    /// candidates; other outcomes complete the stage in the same persist transaction
-    /// so effects cannot land without completion.
     @discardableResult
-    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
-        guard let session = activeMysteryEncounter else { return false }
-        guard session.canResolveChoice else { return false }
+    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+        guard let mysterySession = activeMysteryEncounter else { return false }
+        guard mysterySession.canResolveChoice else { return false }
 
         var outcome = MysteryChoiceOutcome.failed
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 var randomNumberGenerator = SystemRandomNumberGenerator()
-                outcome = session.resolveChoice(
+                outcome = mysterySession.resolveChoice(
                     choiceID: choiceID,
                     save: &save,
                     using: &randomNumberGenerator
@@ -215,45 +236,45 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to apply mystery effects: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
+            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
 
-        return applyMysteryOutcome(outcome, session: session)
+        return applyMysteryOutcome(outcome, session: mysterySession)
     }
 
     /// Grants the chosen mystery item and completes the stage/node in one transaction.
     @discardableResult
-    func selectActiveMysteryItem(itemID: String) -> Bool {
-        guard let session = activeMysteryEncounter else { return false }
+    public func selectActiveMysteryItem(itemID: String) -> Bool {
+        guard let mysterySession = activeMysteryEncounter else { return false }
 
         var outcome = MysteryChoiceOutcome.failed
         do {
-            try playerSave.performBatchMutation { save in
-                outcome = session.selectItem(itemID: itemID, save: &save)
+            try session.playerSave.performBatchMutation { save in
+                outcome = mysterySession.selectItem(itemID: itemID, save: &save)
             }
         } catch {
             appStateLogger.error(
                 "Failed to grant mystery item: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
+            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
 
-        return applyMysteryOutcome(outcome, session: session)
+        return applyMysteryOutcome(outcome, session: mysterySession)
     }
 
     /// Corrupts the selected inventory item at the Corruption Altar.
     @discardableResult
-    func corruptActiveMysteryItem(itemID: String) -> Bool {
-        guard let session = activeMysteryEncounter else { return false }
-        guard session.showsCorruptItemChoice else { return false }
+    public func corruptActiveMysteryItem(itemID: String) -> Bool {
+        guard let mysterySession = activeMysteryEncounter else { return false }
+        guard mysterySession.showsCorruptItemChoice else { return false }
 
         var outcome = MysteryChoiceOutcome.failed
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 var randomNumberGenerator = SystemRandomNumberGenerator()
-                outcome = session.corruptSelectedItem(
+                outcome = mysterySession.corruptSelectedItem(
                     itemID: itemID,
                     save: &save,
                     using: &randomNumberGenerator
@@ -263,23 +284,27 @@ public extension PlaySession {
             appStateLogger.error(
                 "Failed to corrupt mystery item: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPersistFailed("Couldn't save progress. Stay here and try again.")
+            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
 
-        return applyMysteryOutcome(outcome, session: session)
+        return applyMysteryOutcome(outcome, session: mysterySession)
     }
 
-    func cancelActiveMysteryCorruptSelection() {
-        guard let session = activeMysteryEncounter, session.showsCorruptItemChoice else { return }
-        session.returnToReading()
+    public func cancelActiveMysteryCorruptSelection() {
+        guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptItemChoice else {
+            return
+        }
+        mysterySession.returnToReading()
     }
 
     /// Dismisses the corruption reveal after the player acknowledges the outcome.
     @discardableResult
-    func finishActiveMysteryCorruptionReveal() -> Bool {
-        guard let session = activeMysteryEncounter, session.showsCorruptionReveal else { return false }
-        sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+    public func finishActiveMysteryCorruptionReveal() -> Bool {
+        guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptionReveal else {
+            return false
+        }
+        session.sfxPlayer.play(SFXID.victory, volume: session.options.effectsVolume)
         activeMysteryEncounter = nil
         return true
     }
@@ -287,70 +312,70 @@ public extension PlaySession {
     /// Completes the mystery stage/node only after persistence succeeds so a failed finish
     /// cannot clear the session while leaving progress uncleared (replay double-grants).
     @discardableResult
-    func finishActiveMysteryEncounter() -> Bool {
-        guard let session = activeMysteryEncounter else { return false }
-        session.clearPersistFailure()
-        if session.showsReward {
+    public func finishActiveMysteryEncounter() -> Bool {
+        guard let mysterySession = activeMysteryEncounter else { return false }
+        mysterySession.clearPersistFailure()
+        if mysterySession.showsReward {
             // Progress was already completed inside resolveChoice / selectItem.
             // Dismiss only — never re-grant.
-            sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+            session.sfxPlayer.play(SFXID.victory, volume: session.options.effectsVolume)
             activeMysteryEncounter = nil
             return true
         }
         var resultingJourney: JourneyProgressState?
         do {
-            try playerSave.performBatchMutation { save in
-                resultingJourney = session.completeProgress(save: &save)
+            try session.playerSave.performBatchMutation { save in
+                resultingJourney = mysterySession.completeProgress(save: &save)
             }
         } catch {
             appStateLogger.error(
                 "Failed to finish mystery encounter: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPersistFailed(
+            mysterySession.markPersistFailed(
                 "Couldn't save progress. Stay here and try Recruit again."
             )
             return false
         }
         if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+            session.noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
         }
-        sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
+        session.sfxPlayer.play(SFXID.victory, volume: session.options.effectsVolume)
         activeMysteryEncounter = nil
         return true
     }
 
-    func dismissActiveMysteryEncounterWithoutCompleting() {
+    public func dismissActiveMysteryEncounterWithoutCompleting() {
         activeMysteryEncounter = nil
     }
 
     @discardableResult
     private func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,
-        session: MysteryEncounterSession
+        session mysterySession: MysteryEncounterSession
     ) -> Bool {
         switch outcome {
         case .failed:
             return false
         case let .dismiss(journey):
             if let journey {
-                noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+                session.noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
             }
             activeMysteryEncounter = nil
             return true
         case let .reward(_, journey):
             if let journey {
-                noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+                session.noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
             }
-            session.applyOutcome(outcome)
+            mysterySession.applyOutcome(outcome)
             return true
         case .reveal, .chooseItem:
-            session.applyOutcome(outcome)
+            mysterySession.applyOutcome(outcome)
             return true
         case .selectCorruptItem:
-            session.applyOutcome(outcome, inventory: inventory)
+            mysterySession.applyOutcome(outcome, inventory: session.playerSave.inventory)
             return true
         case .corruptionReveal:
-            session.applyOutcome(outcome)
+            mysterySession.applyOutcome(outcome)
             return true
         }
     }

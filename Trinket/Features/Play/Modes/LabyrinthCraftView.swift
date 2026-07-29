@@ -3,9 +3,11 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct LabyrinthCraftView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
     let session: LabyrinthNodeSession
 
@@ -19,17 +21,17 @@ struct LabyrinthCraftView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraftFailure,
             onLeave: {
-                appState.dismissActiveLabyrinthNodeSessionWithoutCompleting()
+                play.labyrinth.dismissActiveNodeSessionWithoutCompleting()
                 dismiss()
             },
             facts: {
                 LabeledContent("Depth", value: "\(session.depth)")
                 LabeledContent("Forge cost", value: "\(session.goldAmount) Gold")
-                LabeledContent("Your gold", value: "\(appState.roster.gold)")
+                LabeledContent("Your gold", value: "\(playerSave.roster.gold)")
             },
             actions: {
                 Button {
-                    if appState.forgeActiveLabyrinthCraft() {
+                    if play.labyrinth.forgeActiveCraft() {
                         dismiss()
                     }
                 } label: {
@@ -37,11 +39,11 @@ struct LabyrinthCraftView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
-                .disabled(appState.roster.gold < session.goldAmount)
+                .disabled(playerSave.roster.gold < session.goldAmount)
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftForge)
 
                 Button {
-                    if appState.leaveActiveLabyrinthCraftWithoutForging() {
+                    if play.labyrinth.leaveActiveCraftWithoutForging() {
                         dismiss()
                     }
                 } label: {

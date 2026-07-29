@@ -1,13 +1,14 @@
-import BattleEngine
 import Observation
 import TrinketBattleFeature
 import TrinketContent
+import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-/// Stateful owner of Play-tab orchestration and transient encounter flows.
+/// Play-tab shell and mode registry: navigation, shared battle launch, and victory routing.
 ///
-/// AppState composes this session, while Play features observe it directly.
+/// Mode-specific flow lives on `journey`, `labyrinth`, `spires`, and `encounters`.
+/// Save slices are read from `playerSave` — not forwarded through this type.
 @MainActor
 @Observable
 public final class PlaySession {
@@ -17,42 +18,13 @@ public final class PlaySession {
     public let options: OptionsStore
     public let sfxPlayer: SFXPlayer
 
-    public var activeMysteryEncounter: MysteryEncounterSession?
-    public var activeShopEncounter: ShopEncounterSession?
-    public var activeLabyrinthNodeSession: LabyrinthNodeSession?
+    public let journey: JourneyPlayMode
+    public let labyrinth: LabyrinthPlayMode
+    public let spires: SpiresPlayMode
+    public let encounters: EncounterPlayMode
 
     public private(set) var pendingDestination: PlayLaunchDestination?
     public private(set) var mapScrollFocus: MapScrollFocus?
-
-    public var journey: JourneyProgressState {
-        get { playerSave.journey }
-        set { playerSave.journey = newValue }
-    }
-
-    public var roster: PlayerRosterState {
-        get { playerSave.roster }
-        set { playerSave.roster = newValue }
-    }
-
-    public var inventory: PlayerInventoryState {
-        get { playerSave.inventory }
-        set { playerSave.inventory = newValue }
-    }
-
-    public var homestead: PlayerHomesteadState {
-        get { playerSave.homestead }
-        set { playerSave.homestead = newValue }
-    }
-
-    public var spires: PlayerSpiresState {
-        get { playerSave.spires }
-        set { playerSave.spires = newValue }
-    }
-
-    public var labyrinth: PlayerLabyrinthState {
-        get { playerSave.labyrinth }
-        set { playerSave.labyrinth = newValue }
-    }
 
     public var mapScrollStageID: String? {
         get { shellSession.mapScrollStageID }
@@ -62,15 +34,6 @@ public final class PlaySession {
     public var lastPlayMode: PlayerShellSessionPlayMode {
         get { shellSession.lastPlayMode }
         set { shellSession.lastPlayMode = newValue }
-    }
-
-    public var selectedTab: AppTab {
-        get { AppTab(shellSessionTab: shellSession.selectedTab) ?? .play }
-        set { shellSession.selectedTab = PlayerShellSessionTab(rawValue: newValue.rawValue) ?? .play }
-    }
-
-    public var playChapter: Chapter {
-        GameContent.chapter(id: journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
     init(
@@ -87,6 +50,20 @@ public final class PlaySession {
         self.options = options
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
+
+        let journey = JourneyPlayMode()
+        let labyrinth = LabyrinthPlayMode()
+        let spires = SpiresPlayMode()
+        let encounters = EncounterPlayMode()
+        self.journey = journey
+        self.labyrinth = labyrinth
+        self.spires = spires
+        self.encounters = encounters
+
+        journey.attach(to: self)
+        labyrinth.attach(to: self)
+        spires.attach(to: self)
+        encounters.attach(to: self)
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -114,12 +91,65 @@ public final class PlaySession {
         mapScrollFocus = MapScrollFocus(stageID: targetID, revision: nextRevision)
     }
 
+    /// Persists victory rewards and ends the battle only when persistence succeeds.
+    @discardableResult
+    public func completeActiveBattle(
+        _ configuration: ActiveBattleConfiguration,
+        battleEarnedGold: Int,
+        materialRewards: [ResourceAmount]? = nil
+    ) -> Bool {
+        guard battle.activeBattle != nil else { return false }
+
+        let hero = configuration.hero.combatant
+        let companion = configuration.companion.combatant
+        let persisted: Bool = switch configuration.resumeToken {
+        case .journey:
+            journey.persistVictory(
+                for: configuration,
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            )
+        case .spire:
+            spires.persistVictory(
+                for: configuration,
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            )
+        case .labyrinth:
+            labyrinth.persistVictory(
+                for: configuration,
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            )
+        case .none:
+            battleEarnedGold > 0 ? grantBattleEarnedGold(battleEarnedGold) : true
+        }
+        if persisted {
+            queueReturnToBattleOrigin(from: configuration.resumeToken)
+            battle.endBattle()
+        }
+        return persisted
+    }
+
     func clearTransientState() {
         battle.endBattle()
-        activeMysteryEncounter = nil
-        activeShopEncounter = nil
-        activeLabyrinthNodeSession = nil
+        encounters.activeMysteryEncounter = nil
+        encounters.activeShopEncounter = nil
+        labyrinth.activeNodeSession = nil
         shellSession.resetToDefaults(selectingTab: .play)
+    }
+
+    var canBeginTransientEncounter: Bool {
+        battle.activeBattle == nil
+            && encounters.activeShopEncounter == nil
+            && encounters.activeMysteryEncounter == nil
+            && labyrinth.activeNodeSession == nil
     }
 
     static func shouldRestoreMapScroll(

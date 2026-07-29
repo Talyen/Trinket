@@ -8,7 +8,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct PlayView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
 
@@ -26,14 +26,14 @@ struct PlayView: View {
         .onAppear {
             restorePlayDestinationIfNeeded()
         }
-        .onChange(of: appState.shellSession.selectedTab) { previousTab, newTab in
+        .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
             guard newTab == .play, previousTab != .play else { return }
             // A normal Play-tab visit is a fresh choice. Pending destinations
             // are consumed only for battle/deep-link restoration below.
-            guard appState.battle.activeBattle == nil else { return }
+            guard play.battle.activeBattle == nil else { return }
             restorePlayDestinationIfNeeded(resetForNormalEntry: true)
         }
-        .onChange(of: appState.battle.activeBattle?.id) { _, newID in
+        .onChange(of: play.battle.activeBattle?.id) { _, newID in
             if newID == nil {
                 restorePlayDestinationIfNeeded()
             }
@@ -44,9 +44,9 @@ struct PlayView: View {
     /// Prefer pending post-battle / launch destinations. Otherwise leave the
     /// explicit path empty so the mode chooser is the Play root.
     private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
-        guard appState.battle.activeBattle == nil else { return }
+        guard play.battle.activeBattle == nil else { return }
 
-        if let destination = appState.consumePendingDestination() {
+        if let destination = play.consumePendingDestination() {
             apply(destination)
             return
         }
@@ -66,7 +66,7 @@ struct PlayView: View {
         case .spiresHub:
             path = [.explore, .spiresHub]
         case .labyrinthMap:
-            _ = appState.enterLabyrinth()
+            _ = play.labyrinth.enter()
             path = [.explore, .labyrinthMap]
         case let .spireClimb(spireID):
             path = [.explore, .spiresHub, .spireClimb(spireID)]
@@ -78,7 +78,8 @@ struct PlayView: View {
 
 /// Mode hub + campaign/explore destinations. Does not observe battle overlays.
 private struct PlayBrowsingStack: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @Binding var navigationPath: [PlayLaunchDestination]
@@ -116,7 +117,7 @@ private struct PlayBrowsingStack: View {
     }
 
     private func openMode(_ destination: PlayLaunchDestination) {
-        guard appState.battle.activeBattle == nil else { return }
+        guard play.battle.activeBattle == nil else { return }
 
         if destination == .campaign {
             // Front-load Stage Select battle prep on the mode-card press so the
@@ -127,22 +128,22 @@ private struct PlayBrowsingStack: View {
     }
 
     private func prepareCampaignBattleResources() {
-        if let stageID = appState.journey.activeStageID,
+        if let stageID = playerSave.journey.activeStageID,
            let stage = GameContent.stage(id: stageID),
            stage.encounter.isCombat {
-            appState.prepareBattle(for: stage)
+            play.journey.prepareBattle(for: stage)
         }
         Task { @MainActor in
             await BattlePresentationWarmup.prepareAndWait(
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
-            appState.battle.prepareBattlePresentation(
-                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
-                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+            play.battle.prepareBattlePresentation(
+                heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
+                companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
             )
-            if let stageID = appState.journey.activeStageID {
-                let names = appState.battle.preparedAbilityArtworkNames(
+            if let stageID = playerSave.journey.activeStageID {
+                let names = play.battle.preparedAbilityArtworkNames(
                     for: .journey(stageID: stageID)
                 )
                 await PreparedArtworkCache.shared.prepareAndPin(names: names)
@@ -151,8 +152,8 @@ private struct PlayBrowsingStack: View {
     }
 
     private func handleStageTap(_ stage: Stage) {
-        if appState.journey.isActive(stage) {
-            appState.noteMapScrollFocus(stage.id)
+        if playerSave.journey.isActive(stage) {
+            play.noteMapScrollFocus(stage.id)
             let interval = AppFramePacingSignposts.signposter.beginInterval(
                 AppFramePacingSignposts.Name.stageSelectBattleActivate
             )
@@ -166,7 +167,7 @@ private struct PlayBrowsingStack: View {
                 AppFramePacingSignposts.Name.stageSelectBattleActivate,
                 detail: "stage=\(stage.id)"
             )
-            if let message = appState.handleStagePrimaryAction(for: stage) {
+            if let message = play.journey.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
             }
         }
@@ -174,7 +175,7 @@ private struct PlayBrowsingStack: View {
 
     private func showEnemyDetails(for stage: Stage) {
         guard let detail = enemyDetail(for: stage) else { return }
-        appState.battle.presentCombatantDetail(detail)
+        play.battle.presentCombatantDetail(detail)
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
@@ -182,38 +183,39 @@ private struct PlayBrowsingStack: View {
 
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryState: appState.inventory
+            inventoryState: playerSave.inventory
         )
     }
 }
 
 /// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
 private struct PlayBattleOverlay: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
-        let configuration = appState.battle.activeBattle
+        let configuration = play.battle.activeBattle
         // The stack itself is stable; activation inserts only prepared battle
         // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
                 BattleView(
                     configuration: configuration,
-                    battleSession: appState.battle,
-                    journey: appState.journey,
-                    homestead: appState.homestead,
-                    completeBattle: { [weak appState] configuration, earnedGold, rewards in
-                        appState?.completeActiveBattle(
+                    battleSession: play.battle,
+                    journey: playerSave.journey,
+                    homestead: playerSave.homestead,
+                    completeBattle: { [weak play] configuration, earnedGold, rewards in
+                        play?.completeActiveBattle(
                             configuration,
                             battleEarnedGold: earnedGold,
                             materialRewards: rewards
                         ) ?? false
                     },
-                    restartBattle: { [weak appState] in
-                        appState?.restartActiveBattle()
+                    restartBattle: { [weak play] in
+                        play?.restartActiveBattle()
                     },
-                    retreat: { [weak appState] in
-                        appState?.endBattleReturningToOrigin()
+                    retreat: { [weak play] in
+                        play?.endBattleReturningToOrigin()
                     },
                     performanceScenario: AppEnvironment.shared.battlePerformanceScenario
                 )
@@ -231,11 +233,11 @@ private struct PlayBattleOverlay: View {
 
 /// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.
 private struct PlaySessionPresentationModifier: ViewModifier {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
     @Binding var stageMessage: StageMapMessage?
 
     func body(content: Content) -> some View {
-        @Bindable var battle = appState.battle
+        @Bindable var battle = play.battle
         content
             .modifier(PlayBattleOverlaySheetsModifier(battle: battle))
             .modifier(PlayEncounterCoversModifier())
@@ -285,14 +287,14 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 }
 
 private struct PlayEncounterCoversModifier: ViewModifier {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
 
     func body(content: Content) -> some View {
         content
             .fullScreenCover(
                 item: dismissibleSessionBinding(
-                    get: { appState.activeMysteryEncounter },
-                    dismissWithoutCompleting: { appState.dismissActiveMysteryEncounterWithoutCompleting() }
+                    get: { play.encounters.activeMysteryEncounter },
+                    dismissWithoutCompleting: { play.encounters.dismissActiveMysteryEncounterWithoutCompleting() }
                 )
             ) { session in
                 MysteryEncounterView(session: session)
@@ -300,8 +302,8 @@ private struct PlayEncounterCoversModifier: ViewModifier {
             }
             .fullScreenCover(
                 item: dismissibleSessionBinding(
-                    get: { appState.activeShopEncounter },
-                    dismissWithoutCompleting: { appState.dismissActiveShopEncounterWithoutCompleting() }
+                    get: { play.encounters.activeShopEncounter },
+                    dismissWithoutCompleting: { play.encounters.dismissActiveShopEncounterWithoutCompleting() }
                 )
             ) { session in
                 ShopEncounterView(session: session)
@@ -309,8 +311,8 @@ private struct PlayEncounterCoversModifier: ViewModifier {
             }
             .sheet(
                 item: dismissibleSessionBinding(
-                    get: { appState.activeLabyrinthNodeSession },
-                    dismissWithoutCompleting: { appState.dismissActiveLabyrinthNodeSessionWithoutCompleting() }
+                    get: { play.labyrinth.activeNodeSession },
+                    dismissWithoutCompleting: { play.labyrinth.dismissActiveNodeSessionWithoutCompleting() }
                 )
             ) { session in
                 switch session.kind {

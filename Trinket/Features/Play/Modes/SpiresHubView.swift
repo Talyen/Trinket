@@ -4,9 +4,10 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct SpiresHubView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
         PlayModeHubScreen(
@@ -43,8 +44,8 @@ struct SpiresHubView: View {
     private func isSpireUnlocked(_ spire: SpireDefinition) -> Bool {
         SpireAttunement.canEnter(
             spire,
-            heroes: appState.roster.heroes,
-            companions: appState.roster.companions
+            heroes: playerSave.roster.heroes,
+            companions: playerSave.roster.companions
         )
     }
 
@@ -54,7 +55,7 @@ struct SpiresHubView: View {
         }
 
         let clearedFloors = min(
-            appState.spires.highestClearedFloor(for: spire.id.rawValue),
+            playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
             spire.floorCount
         )
         return "\(clearedFloors) / \(spire.floorCount) Floors"

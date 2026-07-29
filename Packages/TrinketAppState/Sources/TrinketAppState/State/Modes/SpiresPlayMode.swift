@@ -1,18 +1,39 @@
 import Foundation
+import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 
-public extension PlaySession {
+/// Spire climb flow: prepare/start floor battles and spire victory persistence.
+@MainActor
+@Observable
+public final class SpiresPlayMode {
+    private weak var sessionRef: PlaySession?
+
+    func attach(to session: PlaySession) {
+        sessionRef = session
+    }
+
+    private var session: PlaySession {
+        guard let sessionRef else {
+            preconditionFailure("SpiresPlayMode used before attach")
+        }
+        return sessionRef
+    }
+
     @discardableResult
-    func startSpireBattle(for floor: SpireFloor) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
+    public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
+        guard session.battle.activeBattle == nil else { return nil }
 
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
         }
+
+        let spires = session.playerSave.spires
+        let roster = session.playerSave.roster
+        let homestead = session.playerSave.homestead
 
         guard spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue) else {
             if spires.isFloorCleared(floor.floor, spireID: floor.spireID.rawValue) {
@@ -44,7 +65,7 @@ public extension PlaySession {
             for: .spire(spireID: floor.spireID, floor: floor.floor),
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        activateBattle(
+        session.activateBattle(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -56,8 +77,11 @@ public extension PlaySession {
         return nil
     }
 
-    func prepareSpireBattle(for floor: SpireFloor) {
-        guard battle.activeBattle == nil,
+    public func prepareBattle(for floor: SpireFloor) {
+        let spires = session.playerSave.spires
+        let roster = session.playerSave.roster
+        let homestead = session.playerSave.homestead
+        guard session.battle.activeBattle == nil,
               let spire = GameContent.spire(id: floor.spireID),
               spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
               SpireAttunement.evaluate(
@@ -72,7 +96,7 @@ public extension PlaySession {
             for: .spire(spireID: floor.spireID, floor: floor.floor),
             astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent
         )
-        battle.prepareBattleRun(makeBattleConfiguration(
+        session.battle.prepareBattleRun(session.makeBattleConfiguration(
             resumeToken: .spire(spireID: floor.spireID, floor: floor.floor),
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -83,8 +107,32 @@ public extension PlaySession {
         ))
     }
 
+    func persistVictory(
+        for configuration: ActiveBattleConfiguration,
+        hero: Combatant,
+        companion: Combatant,
+        battleEarnedGold: Int,
+        materialRewards: [ResourceAmount]?
+    ) -> Bool {
+        guard case let .spire(spireID, floorNumber) = configuration.resumeToken else { return false }
+        guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
+            appStateLogger.error(
+                "Missing spire floor for resume token: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
+            )
+            return false
+        }
+        return completeFloor(
+            floor,
+            hero: hero,
+            companion: companion,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards,
+            rewardItem: configuration.pendingRewardItem
+        )
+    }
+
     @discardableResult
-    internal func completeSpireFloor(
+    func completeFloor(
         _ floor: SpireFloor,
         hero: Combatant,
         companion: Combatant,
@@ -93,7 +141,7 @@ public extension PlaySession {
         rewardItem: InventoryItem? = nil
     ) -> Bool {
         do {
-            try playerSave.performBatchMutation { save in
+            try session.playerSave.performBatchMutation { save in
                 SpireCompletion.complete(
                     floor: floor,
                     hero: hero,

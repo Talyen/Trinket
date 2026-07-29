@@ -95,7 +95,7 @@ struct LabyrinthFloorMap: View {
 }
 
 private struct LabyrinthMapNodeSeal: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
@@ -110,8 +110,8 @@ private struct LabyrinthMapNodeSeal: View {
     private var type: LabyrinthNodeType {
         LabyrinthMapPresentation.effectiveType(
             for: node,
-            unlockedHeroIDs: appState.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: appState.roster.unlockedCompanionIDs
+            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
         )
     }
 
@@ -232,7 +232,8 @@ private struct LabyrinthNodeButtonStyle: ButtonStyle {
 }
 
 struct LabyrinthNodeInspector: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
@@ -241,8 +242,8 @@ struct LabyrinthNodeInspector: View {
     private var type: LabyrinthNodeType {
         LabyrinthMapPresentation.effectiveType(
             for: node,
-            unlockedHeroIDs: appState.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: appState.roster.unlockedCompanionIDs
+            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
+            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
         )
     }
 
@@ -274,14 +275,14 @@ struct LabyrinthNodeInspector: View {
     var body: some View {
         StageSelectActiveCard(
             presentation: presentation,
-            isPrimaryActionDisabled: appState.battle.activeBattle != nil,
+            isPrimaryActionDisabled: play.battle.activeBattle != nil,
             onArtworkTap: {
                 if let enemyDetail {
-                    appState.battle.presentCombatantDetail(enemyDetail)
+                    play.battle.presentCombatantDetail(enemyDetail)
                 }
             },
             onPrimaryAction: {
-                if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
+                if let message = play.labyrinth.handleNodeAction(nodeID: node.id) {
                     onMessage(message)
                 }
             },
@@ -312,7 +313,7 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryState: appState.inventory
+            inventoryState: playerSave.inventory
         )
     }
 

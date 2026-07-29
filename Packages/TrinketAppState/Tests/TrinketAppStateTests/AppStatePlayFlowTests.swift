@@ -18,10 +18,10 @@ struct AppStatePlayFlowTests {
     @Test func preparedJourneyBattleActivatesConfigurationAndState() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        state.prepareBattle(for: stage)
+        state.journey.prepareBattle(for: stage)
         #expect(state.battle.activeBattle == nil)
 
-        #expect(state.startBattle(for: stage) == nil)
+        #expect(state.journey.startBattle(for: stage) == nil)
 
         #expect(state.battle.activeBattle?.resumeToken == .journey(stageID: stage.id))
         #expect(state.battle.state != nil)
@@ -30,29 +30,29 @@ struct AppStatePlayFlowTests {
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
+        _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
-        let initialGold = state.roster.gold
+        let initialGold = state.playerSave.roster.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.completedStageIDs.contains(stage.id))
-        #expect(state.roster.gold > initialGold + 4)
+        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.playerSave.journey.completedStageIDs.contains(stage.id))
+        #expect(state.playerSave.roster.gold > initialGold + 4)
 
-        let goldAfterFirstContinue = state.roster.gold
+        let goldAfterFirstContinue = state.playerSave.roster.gold
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.activeStageID == "chapter-1-stage-2")
-        #expect(state.roster.gold == goldAfterFirstContinue)
+        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.playerSave.roster.gold == goldAfterFirstContinue)
         let loot = BattleLoot.resolveJourney(
             stage: stage,
             encounterLevel: configuration.enemyEncounterLevel ?? 1,
             enemyIsBoss: false
         )
-        #expect(state.roster.gold == initialGold + 5 + loot.gold)
+        #expect(state.playerSave.roster.gold == initialGold + 5 + loot.gold)
     }
 
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
@@ -60,19 +60,19 @@ struct AppStatePlayFlowTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
-            hero: state.roster.activeHero,
-            companion: state.roster.activeCompanion,
+            hero: state.playerSave.roster.activeHero,
+            companion: state.playerSave.roster.activeCompanion,
             enemy: enemy
         )
         state.battle.activeBattle = configuration
-        let journeyBefore = state.journey
-        let initialGold = state.roster.gold
+        let journeyBefore = state.playerSave.journey
+        let initialGold = state.playerSave.roster.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 10)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey == journeyBefore)
-        #expect(state.roster.gold == initialGold + 10)
+        #expect(state.playerSave.journey == journeyBefore)
+        #expect(state.playerSave.roster.gold == initialGold + 10)
     }
 
     #if DEBUG
@@ -83,7 +83,7 @@ struct AppStatePlayFlowTests {
             let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
             let state = try context.makePlaySession(playerSave: playerSave)
             let stage = try #require(GameContent.chapters[0].stages.first)
-            _ = state.startBattle(for: stage)
+            _ = state.journey.startBattle(for: stage)
             let configuration = try #require(state.battle.activeBattle)
 
             playerSave.forcesNextSaveFailure = true
@@ -91,33 +91,33 @@ struct AppStatePlayFlowTests {
 
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
-            #expect(state.journey.activeStageID == stage.id)
+            #expect(state.playerSave.journey.activeStageID == stage.id)
         case "missing-stage":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
             let configuration = try ActiveBattleConfigurationTestSupport.make(
                 resumeToken: .journey(stageID: "missing-stage-bug-hunt-audit"),
                 rngSeed: 0,
-                hero: state.roster.activeHero,
-                companion: state.roster.activeCompanion,
+                hero: state.playerSave.roster.activeHero,
+                companion: state.playerSave.roster.activeCompanion,
                 enemy: enemy
             )
             state.battle.activeBattle = configuration
-            let goldBefore = state.roster.gold
+            let goldBefore = state.playerSave.roster.gold
 
             let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
             #expect(!didPersist)
             #expect(state.battle.activeBattle != nil)
-            #expect(state.roster.gold == goldBefore)
+            #expect(state.playerSave.roster.gold == goldBefore)
         case "missing-spire":
             let state = try context.makePlaySession()
             let enemy = try #require(GameContent.enemies.first?.combatant)
             let configuration = try ActiveBattleConfigurationTestSupport.make(
                 resumeToken: .spire(spireID: .ironVein, floor: 9999),
                 rngSeed: 0,
-                hero: state.roster.activeHero,
-                companion: state.roster.activeCompanion,
+                hero: state.playerSave.roster.activeHero,
+                companion: state.playerSave.roster.activeCompanion,
                 enemy: enemy
             )
             state.battle.activeBattle = configuration
@@ -136,14 +136,14 @@ struct AppStatePlayFlowTests {
     @Test func unlockAllContentUnlocksRosterAndClearsBattle() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
+        _ = state.journey.startBattle(for: stage)
         state.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.unlockAllContent())
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.mapScrollStageID == nil)
-        #expect(state.selectedTab == .play)
+        #expect(state.shellSession.selectedTab == .play)
     }
     #endif
 
@@ -161,38 +161,38 @@ struct AppStatePlayFlowTests {
         case "journey":
             let state = try context.makePlaySession()
             let stage = try #require(GameContent.chapters[0].stages.first)
-            _ = state.startBattle(for: stage)
-            state.selectedTab = .options
+            _ = state.journey.startBattle(for: stage)
+            state.shellSession.selectedTab = .options
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.selectedTab == .play)
+            #expect(state.shellSession.selectedTab == .play)
             #expect(state.consumePendingDestination() == .campaign)
         case "spire":
             let state = try makeProgressedStateForReturnTests()
             try attunePhysicalPartyForReturnTests(on: state)
 
             let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-            #expect(state.startSpireBattle(for: floor) == nil)
-            state.selectedTab = .options
+            #expect(state.spires.startBattle(for: floor) == nil)
+            state.shellSession.selectedTab = .options
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.selectedTab == .play)
+            #expect(state.shellSession.selectedTab == .play)
             #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
         case "labyrinth":
             let state = try context.makePlaySession(arguments: ["-reset-state"])
-            _ = state.enterLabyrinth()
+            _ = state.labyrinth.enter()
             let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
-            #expect(state.startLabyrinthBattle(nodeID: combatNodeID) == nil)
-            state.selectedTab = .options
+            #expect(state.labyrinth.startBattle(nodeID: combatNodeID) == nil)
+            state.shellSession.selectedTab = .options
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.selectedTab == .play)
+            #expect(state.shellSession.selectedTab == .play)
             #expect(state.consumePendingDestination() == .labyrinthMap)
         default:
             Issue.record("Unexpected origin \(origin)")
@@ -204,7 +204,7 @@ struct AppStatePlayFlowTests {
         try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        #expect(state.startSpireBattle(for: floor) == nil)
+        #expect(state.spires.startBattle(for: floor) == nil)
         let configuration = try #require(state.battle.activeBattle)
 
         #expect(state.completeActiveBattle(configuration, battleEarnedGold: 1))
@@ -213,12 +213,12 @@ struct AppStatePlayFlowTests {
 
     @Test func completeActiveBattleGoldMatchesVictorySummaryWhenHomesteadBonusActive() throws {
         let state = try context.makePlaySession()
-        var homestead = state.homestead
+        var homestead = state.playerSave.homestead
         homestead.nodeTiers[.wishingWell] = 2
-        state.homestead = homestead
+        state.playerSave.homestead = homestead
 
         let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
+        _ = state.journey.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
         // Loot All must pass raw mid-battle gold (summary.rawBattleEarnedGold), not the
         // homestead-adjusted display split (summary.battleGold).
@@ -231,26 +231,26 @@ struct AppStatePlayFlowTests {
         let expectedTotal = StageCompletion.resolvedGoldReward(
             stageGold: loot.gold,
             battleEarnedGold: rawBattleEarnedGold,
-            homestead: state.homestead
+            homestead: state.playerSave.homestead
         )
-        let initialGold = state.roster.gold
+        let initialGold = state.playerSave.roster.gold
 
         #expect(state.completeActiveBattle(
             configuration,
             battleEarnedGold: rawBattleEarnedGold
         ))
-        #expect(state.roster.gold == initialGold + expectedTotal)
+        #expect(state.playerSave.roster.gold == initialGold + expectedTotal)
     }
 
     @Test func presentCombatLogShowsLogWithoutChangingTabs() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        state.selectedTab = .options
+        _ = state.journey.startBattle(for: stage)
+        state.shellSession.selectedTab = .options
 
         state.presentCombatLog()
 
-        #expect(state.selectedTab == .options)
+        #expect(state.shellSession.selectedTab == .options)
         #expect(state.battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }
@@ -265,25 +265,25 @@ struct AppStatePlayFlowTests {
     }
 
     private func attunePhysicalPartyForReturnTests(on state: PlaySession) throws {
-        var roster = state.roster
+        var roster = state.playerSave.roster
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
         roster.unlock(rogue)
         roster.unlock(lizard)
         roster.setActiveHero(rogue)
         roster.setActiveCompanion(lizard)
-        state.roster = roster
+        state.playerSave.roster = roster
     }
 
     private func firstReachableCombatNodeIDForReturnTests(in state: PlaySession) -> String? {
         for _ in 0 ..< 24 {
-            if let matchID = state.labyrinth.reachableNodeIDs().first(where: { id in
-                state.labyrinth.node(id: id)?.type.isCombat == true
+            if let matchID = state.playerSave.labyrinth.reachableNodeIDs().first(where: { id in
+                state.playerSave.labyrinth.node(id: id)?.type.isCombat == true
             }) {
                 return matchID
             }
-            guard let next = state.labyrinth.reachableNodeIDs().first else { return nil }
-            state.completeLabyrinthNode(nodeID: next)
+            guard let next = state.playerSave.labyrinth.reachableNodeIDs().first else { return nil }
+            state.labyrinth.completeNode(nodeID: next)
         }
         return nil
     }

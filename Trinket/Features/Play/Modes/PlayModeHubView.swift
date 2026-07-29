@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 /// The Play tab's root: two broad choices with a clear visual promise.
 ///
@@ -11,7 +12,8 @@ import TrinketFeatureSupport
 /// home for the currently available open-ended sub-modes while the future
 /// world map is being designed.
 struct PlayModeHubView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let onOpenCampaign: () -> Void
     let onOpenExplore: () -> Void
@@ -29,7 +31,7 @@ struct PlayModeHubView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: committedSelection,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
@@ -58,11 +60,11 @@ struct PlayModeHubView: View {
     private func subtitle(for mode: Mode) -> String? {
         switch mode {
         case .campaign:
-            if let stageID = appState.journey.activeStageID,
+            if let stageID = playerSave.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
                 return stage.mapLabel
             }
-            return "Chapter \(appState.playChapter.number) · Complete"
+            return "Chapter \(play.journey.playChapter.number) · Complete"
         case .explore:
             return nil
         }

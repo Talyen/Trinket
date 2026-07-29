@@ -149,12 +149,12 @@ struct AppStateTests {
             #expect(state.battle.spectacle.victorySummary != nil)
             #expect(state.selectedTab == .play)
         case "shop":
-            let session = try #require(state.play.activeShopEncounter)
+            let session = try #require(state.play.encounters.activeShopEncounter)
             #expect(session.stage.id == "chapter-2-stage-8")
             #expect(!(session.offers.isEmpty))
             #expect(state.selectedTab == .play)
         case "mystery":
-            let session = try #require(state.play.activeMysteryEncounter)
+            let session = try #require(state.play.encounters.activeMysteryEncounter)
             #expect(session.stage.id == "chapter-1-stage-2")
             #expect(state.selectedTab == .play)
         case "options":
@@ -233,7 +233,7 @@ struct AppStateTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let initialGold = state.playerSave.roster.gold
 
-        let scrollTarget = state.play.completeStage(
+        let scrollTarget = state.play.journey.completeStage(
             stage,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion

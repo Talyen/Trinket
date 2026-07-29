@@ -126,7 +126,8 @@ private extension PlaySession {
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }
 
-        _ = persistStageCompletions(
+        let roster = playerSave.roster
+        _ = journey.persistStageCompletions(
             stages,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -136,32 +137,32 @@ private extension PlaySession {
 
     func startLaunchBattle() {
         guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
-        _ = startBattle(for: stage)
+        _ = journey.startBattle(for: stage)
     }
 
     /// Presents stage 1-1 victory chrome without running the live tick loop (UI tests).
     func startLaunchBattleVictory() {
         guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
-        _ = startBattle(for: stage)
+        _ = journey.startBattle(for: stage)
         guard let configuration = battle.activeBattle,
               let battleState = battle.state
         else { return }
         battle.spectacle.victorySummary = BattleVictorySummary.make(
             configuration: configuration,
             state: battleState,
-            homestead: homestead
+            homestead: playerSave.homestead
         )
         battle.spectacle.isShowingVictory = true
     }
 
     func startLaunchShop() {
         guard let stage = GameContent.stage(id: AppState.launchShopStageID) else { return }
-        _ = beginShopEncounter(for: stage)
+        _ = encounters.beginShopEncounter(for: stage)
     }
 
     func startLaunchMystery(recruitEventID: String?) {
         guard let stage = GameContent.stage(id: AppState.launchMysteryStageID) else { return }
-        _ = beginMysteryEncounter(for: stage, forcedEventID: recruitEventID)
+        _ = encounters.beginMysteryEncounter(for: stage, forcedEventID: recruitEventID)
     }
 }
 

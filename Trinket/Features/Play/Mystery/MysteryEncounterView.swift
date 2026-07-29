@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryEncounterView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
 
     @State private var selectedDetail: CombatantDetailContext?
@@ -35,7 +36,7 @@ struct MysteryEncounterView: View {
                 MysteryItemChoiceContent(
                     session: session,
                     onSelectItem: { itemID in
-                        _ = appState.selectActiveMysteryItem(itemID: itemID)
+                        _ = play.encounters.selectActiveMysteryItem(itemID: itemID)
                     }
                 )
             } else {
@@ -49,8 +50,8 @@ struct MysteryEncounterView: View {
                 RosterCombatantDetailView(
                     kind: context.kind,
                     combatantID: context.combatantID,
-                    hapticsEnabled: appState.options.hapticsEnabled,
-                    effectsVolume: appState.options.effectsVolume,
+                    hapticsEnabled: play.options.hapticsEnabled,
+                    effectsVolume: play.options.effectsVolume,
                     hidesNavigationBar: false
                 )
             }
@@ -119,7 +120,7 @@ struct MysteryEncounterView: View {
 
             Button {
                 guard let selectedChoiceID else { return }
-                _ = appState.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
+                _ = play.encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
             } label: {
                 Text("Confirm")
                     .frame(maxWidth: .infinity)
@@ -133,7 +134,7 @@ struct MysteryEncounterView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: choiceFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
@@ -184,7 +185,7 @@ struct MysteryEncounterView: View {
         case let .gainGold(amount):
             rewardSummary(
                 title: "Gold",
-                value: "\(appState.homestead.effects.adjustedGold(amount))",
+                value: "\(playerSave.homestead.effects.adjustedGold(amount))",
                 resource: .gold,
                 tint: HomesteadResource.gold.tint
             )

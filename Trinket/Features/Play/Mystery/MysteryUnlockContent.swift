@@ -7,7 +7,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryUnlockContent: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let unlockedID: String
     let onSelectDetail: (CombatantDetailContext) -> Void
@@ -28,7 +29,7 @@ struct MysteryUnlockContent: View {
                     .trinketSensoryFeedback(
                         .success,
                         trigger: unlockFeedbackTrigger,
-                        enabled: appState.options.hapticsEnabled
+                        enabled: play.options.hapticsEnabled
                     )
                     .onAppear {
                         unlockFeedbackTrigger += 1
@@ -86,7 +87,7 @@ struct MysteryUnlockContent: View {
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
             onPrimaryAction: {
-                _ = appState.finishActiveMysteryEncounter()
+                _ = play.encounters.finishActiveMysteryEncounter()
             },
             pinsPrimaryActionToBottom: false,
             primaryActionWidthFraction: 0.5
@@ -95,10 +96,10 @@ struct MysteryUnlockContent: View {
 
     private func revealCombatant(id: String) -> Combatant? {
         if let sessionCombatant = session.combatant, sessionCombatant.id == id {
-            return appState.roster.configuredCombatant(sessionCombatant)
+            return playerSave.roster.configuredCombatant(sessionCombatant)
         }
         let catalog = GameContent.heroes + GameContent.companions
         guard let combatant = catalog.first(where: { $0.id == id }) else { return nil }
-        return appState.roster.configuredCombatant(combatant)
+        return playerSave.roster.configuredCombatant(combatant)
     }
 }

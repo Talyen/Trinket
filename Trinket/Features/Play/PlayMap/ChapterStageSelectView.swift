@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 /// Cinematic header and scrolling body shared by linear Stage Select surfaces.
 struct StageSelectScreen<HeroArt: View, Content: View>: View {
@@ -44,7 +45,8 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
 
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
 
@@ -52,7 +54,7 @@ struct ChapterStageSelectView: View {
     let onEnemyTap: (Stage) -> Void
 
     private var chapter: Chapter {
-        appState.playChapter
+        play.journey.playChapter
     }
 
     var body: some View {
@@ -108,43 +110,43 @@ struct ChapterStageSelectView: View {
                     dynamicTypeSize: dynamicTypeSize,
                     displayScale: displayScale
                 )
-                appState.battle.prepareBattlePresentation(
-                    heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
-                    companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+                play.battle.prepareBattlePresentation(
+                    heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
+                    companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
                 )
-                if let stageID = appState.journey.activeStageID {
-                    let names = appState.battle.preparedAbilityArtworkNames(
+                if let stageID = playerSave.journey.activeStageID {
+                    let names = play.battle.preparedAbilityArtworkNames(
                         for: .journey(stageID: stageID)
                     )
                     await PreparedArtworkCache.shared.prepareAndPin(names: names)
                 }
             }
         }
-        .onChange(of: appState.journey) { _, _ in
+        .onChange(of: playerSave.journey) { _, _ in
             prepareActiveBattleRun()
         }
-        .onChange(of: appState.roster) { _, _ in
+        .onChange(of: playerSave.roster) { _, _ in
             prepareActiveBattleRun()
         }
-        .onChange(of: appState.inventory) { _, _ in
+        .onChange(of: playerSave.inventory) { _, _ in
             prepareActiveBattleRun()
         }
-        .onChange(of: appState.homestead) { _, _ in
+        .onChange(of: playerSave.homestead) { _, _ in
             prepareActiveBattleRun()
         }
     }
 
     private func prepareActiveBattleRun() {
-        guard let stageID = appState.journey.activeStageID,
+        guard let stageID = playerSave.journey.activeStageID,
               let stage = GameContent.stage(id: stageID),
               stage.encounter.isCombat else { return }
-        appState.prepareBattle(for: stage)
+        play.journey.prepareBattle(for: stage)
     }
 
     private var stageRows: [StageSelectRowPresentation<Stage>] {
         ChapterStageRowPresentation.rows(
             for: chapter,
-            progress: appState.journey
+            progress: playerSave.journey
         )
         .filter { !$0.isCompleted }
         .map { row in
@@ -179,7 +181,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
-        guard appState.journey.isActive(stage) else { return }
+        guard playerSave.journey.isActive(stage) else { return }
         onStageTap(stage)
     }
 

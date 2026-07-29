@@ -131,7 +131,7 @@ private struct PreparedAppRoot: View {
             guard !Task.isCancelled else { return }
             if let stageID = appState.playerSave.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
-                appState.play.prepareBattle(for: stage)
+                appState.play.journey.prepareBattle(for: stage)
             }
             let hold = Self.minimumLaunchDisplayDuration
                 - displayedAt.duration(to: ContinuousClock.now)

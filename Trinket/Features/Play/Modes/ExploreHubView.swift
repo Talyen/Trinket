@@ -4,11 +4,12 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 /// Explore mode hub: Spires and Labyrinth entry cards under Play.
 /// World-map chrome can replace the art treatment later without changing destinations.
 struct ExploreHubView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     var body: some View {
         PlayModeHubScreen(
@@ -30,7 +31,7 @@ struct ExploreHubView: View {
             NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
                 PlayModeArtworkCard(
                     title: "Labyrinth",
-                    subtitle: "Floor \(max(1, appState.labyrinth.currentFloorNumber))",
+                    subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
                     symbolName: nil,
                     artID: "gameModeLabyrinth",
                     fallbackArtID: "gameModeExplore"
@@ -47,7 +48,7 @@ struct ExploreHubView: View {
         }
         let clearedFloors = GameContent.spires.reduce(0) { partialResult, spire in
             partialResult + min(
-                appState.spires.highestClearedFloor(for: spire.id.rawValue),
+                playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
                 spire.floorCount
             )
         }

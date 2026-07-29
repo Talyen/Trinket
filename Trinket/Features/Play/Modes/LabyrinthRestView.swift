@@ -5,7 +5,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct LabyrinthRestView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
     @Environment(\.dismiss) private var dismiss
     let session: LabyrinthNodeSession
 
@@ -20,7 +20,7 @@ struct LabyrinthRestView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthRestFailure,
             onLeave: {
-                appState.dismissActiveLabyrinthNodeSessionWithoutCompleting()
+                play.labyrinth.dismissActiveNodeSessionWithoutCompleting()
                 dismiss()
             },
             facts: {
@@ -29,7 +29,7 @@ struct LabyrinthRestView: View {
             },
             actions: {
                 Button {
-                    if appState.finishActiveLabyrinthRest() {
+                    if play.labyrinth.finishActiveRest() {
                         dismiss()
                     }
                 } label: {

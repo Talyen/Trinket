@@ -5,9 +5,11 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct ShopEncounterView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: ShopEncounterSession
 
     @State private var selectedOffer: ShopOffer?
@@ -60,7 +62,7 @@ struct ShopEncounterView: View {
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
-                        appState.finishActiveShopEncounter()
+                        play.encounters.finishActiveShopEncounter()
                     } label: {
                         Text("Leave Shop")
                             .frame(maxWidth: .infinity)
@@ -88,7 +90,7 @@ struct ShopEncounterView: View {
                 ItemDetailView(
                     item: offer.item,
                     purchasePrice: offer.price,
-                    canAfford: appState.roster.gold >= offer.price,
+                    canAfford: playerSave.roster.gold >= offer.price,
                     isPurchaseDisabled: session.isPurchasing || session.isSoldOut(offer.id),
                     purchaseButtonTitleOverride: session.isSoldOut(offer.id) ? "Sold Out" : nil,
                     onPurchase: {
@@ -108,12 +110,12 @@ struct ShopEncounterView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: purchaseFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
         .trinketSensoryFeedback(
             .error,
             trigger: purchaseErrorFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
@@ -132,7 +134,7 @@ struct ShopEncounterView: View {
                 .trinketTypography(.badge)
                 .foregroundStyle(Keyword.gold.visualStyle.color)
 
-            Text("\(appState.roster.gold)")
+            Text("\(playerSave.roster.gold)")
                 .trinketTypography(.statValue)
                 .contentTransition(.numericText())
         }
@@ -143,7 +145,7 @@ struct ShopEncounterView: View {
         LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
             ForEach(session.offers) { offer in
                 let soldOut = session.isSoldOut(offer.id)
-                let canAfford = appState.roster.gold >= offer.price
+                let canAfford = playerSave.roster.gold >= offer.price
                 let canBuy = canAfford && !soldOut
                 VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     EncounterItemTile(
@@ -185,7 +187,7 @@ struct ShopEncounterView: View {
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
-        if appState.purchaseActiveShopOffer(offerID: offerID) {
+        if play.encounters.purchaseActiveShopOffer(offerID: offerID) {
             purchaseFeedbackTrigger += 1
             if dismissDetail {
                 selectedOffer = nil

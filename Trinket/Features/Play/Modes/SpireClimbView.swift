@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct SpireClimbView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
@@ -27,7 +28,7 @@ struct SpireClimbView: View {
 
     private var activeFloorNumber: Int {
         guard let spire else { return 1 }
-        return appState.spires.activeFloor(for: spireID.rawValue, floorCount: spire.floorCount)
+        return playerSave.spires.activeFloor(for: spireID.rawValue, floorCount: spire.floorCount)
     }
 
     var body: some View {
@@ -54,13 +55,13 @@ struct SpireClimbView: View {
         .onChange(of: activeFloorNumber) { _, _ in
             prepareActiveFloorBattle()
         }
-        .onChange(of: appState.roster) { _, _ in
+        .onChange(of: playerSave.roster) { _, _ in
             prepareActiveFloorBattle()
         }
-        .onChange(of: appState.inventory) { _, _ in
+        .onChange(of: playerSave.inventory) { _, _ in
             prepareActiveFloorBattle()
         }
-        .onChange(of: appState.homestead) { _, _ in
+        .onChange(of: playerSave.homestead) { _, _ in
             prepareActiveFloorBattle()
         }
     }
@@ -69,7 +70,7 @@ struct SpireClimbView: View {
         let rows = StageSelectRowPresentation<SpireFloor>.spireRows(
             for: spire,
             floors: floors,
-            progress: appState.spires
+            progress: playerSave.spires
         )
 
         return StageSelectScreen(
@@ -87,11 +88,11 @@ struct SpireClimbView: View {
                     StageSelectList(
                         rows: rows,
                         isPrimaryActionDisabled: { _ in
-                            appState.battle.activeBattle != nil || !isPartyAttuned(to: spire)
+                            play.battle.activeBattle != nil || !isPartyAttuned(to: spire)
                         },
                         onArtworkTap: showEnemyDetails,
                         onPrimaryAction: { floor in
-                            if let message = appState.startSpireBattle(for: floor) {
+                            if let message = play.spires.startBattle(for: floor) {
                                 floorMessage = message
                             }
                         },
@@ -143,18 +144,18 @@ struct SpireClimbView: View {
 
     private func isPartyAttuned(to spire: SpireDefinition) -> Bool {
         SpireAttunement.evaluate(
-            hero: appState.roster.activeHero,
-            companion: appState.roster.activeCompanion,
+            hero: playerSave.roster.activeHero,
+            companion: playerSave.roster.activeCompanion,
             spire: spire
         ).isReady
     }
 
     private func showEnemyDetails(for floor: SpireFloor) {
         guard let encounter = ActiveBattleConfiguration.resolvedSpireEncounter(for: floor) else { return }
-        appState.battle.presentCombatantDetail(
+        play.battle.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant,
-                inventoryState: appState.inventory
+                inventoryState: playerSave.inventory
             )
         )
     }
@@ -164,7 +165,7 @@ struct SpireClimbView: View {
             spireID: spireID,
             floor: activeFloorNumber
         ) else { return }
-        appState.prepareSpireBattle(for: floor)
+        play.spires.prepareBattle(for: floor)
     }
 
     private func warmActiveFloorPresentation() {
@@ -174,15 +175,15 @@ struct SpireClimbView: View {
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
-            appState.battle.prepareBattlePresentation(
-                heroUltimateID: appState.roster.activeHero.abilityLoadout.ultimate?.id,
-                companionUltimateID: appState.roster.activeCompanion.abilityLoadout.ultimate?.id
+            play.battle.prepareBattlePresentation(
+                heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
+                companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
             )
             let token = ActiveBattleResumeToken.spire(
                 spireID: spireID,
                 floor: activeFloorNumber
             )
-            let names = appState.battle.preparedAbilityArtworkNames(for: token)
+            let names = play.battle.preparedAbilityArtworkNames(for: token)
             await PreparedArtworkCache.shared.prepareAndPin(names: names)
         }
     }

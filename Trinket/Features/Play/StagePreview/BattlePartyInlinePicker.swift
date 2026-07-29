@@ -52,7 +52,8 @@ enum BattlePartySlot: String {
 
 /// Journey's shared, single-sheet party editor.
 struct StageBattlePartyPickerSheet: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectionFeedbackTrigger = 0
@@ -91,7 +92,7 @@ struct StageBattlePartyPickerSheet: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
@@ -115,7 +116,7 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func partyOption(_ combatant: Combatant, for slot: BattlePartySlot) -> some View {
-        let selected = combatant.id == slot.selectedID(in: appState.roster)
+        let selected = combatant.id == slot.selectedID(in: playerSave.roster)
         let eligible = BattlePartySlot.isEligible(combatant, for: spire)
 
         return Button {
@@ -141,14 +142,14 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        var roster = appState.roster
+        var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        appState.roster = roster
+        playerSave.roster = roster
         selectionFeedbackTrigger += 1
     }
 
     private func orderedCombatants(for slot: BattlePartySlot) -> [Combatant] {
-        let roster = appState.roster
+        let roster = playerSave.roster
         let selectedID = slot.selectedID(in: roster)
         let combatants = slot.combatants(in: roster)
         guard let selected = combatants.first(where: { $0.id == selectedID }) else {
@@ -171,7 +172,8 @@ struct StageBattlePartyPickerSheet: View {
 
 /// Full-grid party slot picker pushed from a shelf header.
 private struct BattlePartySlotGridView: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     @State private var selectionFeedbackTrigger = 0
 
@@ -181,7 +183,7 @@ private struct BattlePartySlotGridView: View {
     var body: some View {
         OptionPickerGrid(
             items: orderedCombatants,
-            isSelected: { $0.id == slot.selectedID(in: appState.roster) },
+            isSelected: { $0.id == slot.selectedID(in: playerSave.roster) },
             isEligible: { BattlePartySlot.isEligible($0, for: spire) },
             onSelect: select,
             accessibilityIdentifier: { combatant in
@@ -191,7 +193,7 @@ private struct BattlePartySlotGridView: View {
                 )
             },
             accessibilityValue: { combatant in
-                combatant.id == slot.selectedID(in: appState.roster) ? "Selected" : "Available"
+                combatant.id == slot.selectedID(in: playerSave.roster) ? "Selected" : "Available"
             },
             card: { combatant, isSelected in
                 CombatantCard(
@@ -205,12 +207,12 @@ private struct BattlePartySlotGridView: View {
         .trinketSensoryFeedback(
             .selection,
             trigger: selectionFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
+            enabled: play.options.hapticsEnabled
         )
     }
 
     private var orderedCombatants: [Combatant] {
-        let roster = appState.roster
+        let roster = playerSave.roster
         let selectedID = slot.selectedID(in: roster)
         let combatants = slot.combatants(in: roster)
         guard let selected = combatants.first(where: { $0.id == selectedID }) else {
@@ -224,10 +226,10 @@ private struct BattlePartySlotGridView: View {
     }
 
     private func select(_ combatant: Combatant) {
-        guard combatant.id != slot.selectedID(in: appState.roster) else { return }
-        var roster = appState.roster
+        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
+        var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        appState.roster = roster
+        playerSave.roster = roster
         selectionFeedbackTrigger += 1
     }
 }

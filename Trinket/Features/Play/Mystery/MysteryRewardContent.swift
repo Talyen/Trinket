@@ -8,7 +8,8 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
-    @Environment(PlaySession.self) private var appState
+    @Environment(PlaySession.self) private var play
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Bindable var session: MysteryEncounterSession
@@ -73,8 +74,8 @@ struct MysteryRewardContent: View {
     @ViewBuilder
     private var experiencePanel: some View {
         if result.grantedExperience > 0 {
-            let hero = appState.roster.activeHero
-            let companion = appState.roster.activeCompanion
+            let hero = playerSave.roster.activeHero
+            let companion = playerSave.roster.activeCompanion
             if let heroProgressionBefore = result.heroProgressionBefore,
                let heroProgressionAfter = result.heroProgressionAfter,
                let companionProgressionBefore = result.companionProgressionBefore,
@@ -109,7 +110,7 @@ struct MysteryRewardContent: View {
 
     private func completeLootAll() {
         guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = appState.finishActiveMysteryEncounter()
+        isCompleting = play.encounters.finishActiveMysteryEncounter()
     }
 
     private func experienceBarCompleted() {
