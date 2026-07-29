@@ -56,12 +56,48 @@ build_input_paths+=(
   "Raw Assets"
   Scripts
   project.yml
-  Package.resolved
+  BattlePerformance.xctestplan
+  FullUI.xctestplan
+  Integration.xctestplan
+  QuickSmoke.xctestplan
+  Smoke.xctestplan
+  Unit.xctestplan
 )
 
 generation_inputs_are_dirty() {
   local paths=("$@")
   [[ -n "$(git status --porcelain -- "${paths[@]}")" ]]
+}
+
+# Snapshot of build-input git porcelain at stamp time. Comparing against HEAD
+# alone would refuse --no-build in any dirty worktree after a fresh build.
+build_input_git_snapshot() {
+  git status --porcelain -- "${build_input_paths[@]}" 2>/dev/null || true
+}
+
+record_build_input_git_snapshot() {
+  local stamp="$1"
+  printf '%s\n' "$(build_input_git_snapshot)" >"${stamp}.gitstatus"
+}
+
+assert_build_input_git_snapshot_unchanged() {
+  local stamp="$1"
+  local fingerprint="$2"
+  local snapshot="${stamp}.gitstatus"
+  local previous=""
+  local current
+
+  # Legacy stamps without a sidecar: mtime-only (backward compatible).
+  [[ -f "$snapshot" ]] || return 0
+
+  previous="$(cat "$snapshot")"
+  current="$(build_input_git_snapshot)"
+  if [[ "$current" != "$previous" ]]; then
+    echo "--no-build refused because build-input git status changed after '$fingerprint':" >&2
+    echo "  (working tree edits under build inputs since the last matching build)" >&2
+    echo "Run without --no-build to rebuild app and test bundles." >&2
+    return 1
+  fi
 }
 
 prepare_generated_inputs() {
@@ -146,4 +182,9 @@ assert_no_build_inputs_are_fresh() {
     echo "Run without --no-build to rebuild app and test bundles." >&2
     return 1
   fi
+
+  # Prefer stamp-time porcelain snapshot over "dirty vs HEAD". Dirty worktrees
+  # are normal for local/agent flows; refuse only when build-input dirtiness
+  # changed since this fingerprint was stamped (catches preserved-mtime edits).
+  assert_build_input_git_snapshot_unchanged "$stamp" "$fingerprint"
 }

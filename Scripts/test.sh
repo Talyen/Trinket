@@ -351,14 +351,15 @@ run_package_tests() {
       package="$1"
       results_dir="$2"
       derived_data_path="$3"
-      destination="$4"
-      output_root="$5"
-      script_dir="$6"
-      repo_root="$7"
+      output_root="$4"
+      script_dir="$5"
+      repo_root="$6"
 
       export DERIVED_DATA_PATH="$derived_data_path"
       # shellcheck source=build-stamp.sh
       source "$script_dir/build-stamp.sh"
+      # shellcheck source=build-inputs.sh
+      source "$script_dir/build-inputs.sh"
       # shellcheck source=xcode-runner.sh
       source "$script_dir/xcode-runner.sh"
 
@@ -379,11 +380,13 @@ run_package_tests() {
         --quiet
         --working-directory "$repo_root/Packages/$package"
       )
+      # Match build-for-testing.sh: generic destination for compile so package
+      # tenants stay reusable with test-without-building on a concrete sim.
       xcode_runner_run "${build_runner_args[@]}" -- \
         xcodebuild build-for-testing \
           -scheme "$(package_test_scheme "$package")" \
           -sdk iphonesimulator \
-          -destination "$destination" \
+          -destination "generic/platform=iOS Simulator" \
           -derivedDataPath "$package_dd" \
           -resultBundlePath "$package_build_result" \
         || package_status=$?
@@ -392,7 +395,7 @@ run_package_tests() {
       fi
       printf "%s\n" "$package_status" >"$output_root/$package.status"
       exit "$package_status"
-    ' _ {} "$RESULTS_DIR" "$DERIVED_DATA_PATH" "$SIMULATOR_DESTINATION" "$package_build_output" "$SCRIPT_DIR" "$PWD" || failed=1
+    ' _ {} "$RESULTS_DIR" "$DERIVED_DATA_PATH" "$package_build_output" "$SCRIPT_DIR" "$PWD" || failed=1
 
     for package in "${packages[@]}"; do
       status_file="$package_build_output/$package.status"
@@ -527,7 +530,7 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then
-  touch "$BUILD_STAMP"
+  touch_build_stamp "$RESULTS_DIR" "$RUN_FINGERPRINT"
 fi
 
 if [[ -d "$RESULT_BUNDLE_PATH" ]]; then

@@ -21,6 +21,10 @@ touch_build_stamp() {
   stamp="$(build_stamp_path "$results_dir" "$fingerprint")"
   mkdir -p "$results_dir"
   touch "$stamp"
+  # Optional: build-inputs.sh defines the snapshot helper when sourced.
+  if declare -F record_build_input_git_snapshot >/dev/null 2>&1; then
+    record_build_input_git_snapshot "$stamp"
+  fi
 }
 
 package_test_scheme() {
@@ -37,3 +41,28 @@ package_derived_data_path() {
   local package="$1"
   printf '%s/packages/%s' "${DERIVED_DATA_PATH:?}" "$package"
 }
+
+# Fingerprints stamped after build-for-testing so test.sh --no-build can reuse
+# products. App-only builds omit unit/package/all (those need package schemes).
+# shellcheck disable=SC2034
+TRINKET_BUILD_FINGERPRINTS_APP=(
+  smoke
+  smoke_SmokeHomesteadTests
+  smoke_SmokeBattleTests
+  smoke_SmokeCollectionTests
+  smoke_SmokePlayTests
+  smoke_SmokeShopTests
+  smoke-full
+  ui
+  ui_BattleFlowUITests
+  ui_TabNavigationUITests_CollectionSearchUITests
+  ui_PlayMapUITests_MysteryRecruitUITests
+)
+
+# shellcheck disable=SC2034
+TRINKET_BUILD_FINGERPRINTS_FULL=(
+  unit
+  unit_TrinketTests
+  "${TRINKET_BUILD_FINGERPRINTS_APP[@]}"
+  all
+)

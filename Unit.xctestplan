@@ -13,7 +13,7 @@
     {
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "B49A29077FD105628976E325",
+        "identifier" : "F4E69EC44A81B8942F321B2F",
         "name" : "TrinketTests"
       }
     }

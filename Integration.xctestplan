@@ -13,17 +13,18 @@
     {
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "B49A29077FD105628976E325",
+        "identifier" : "F4E69EC44A81B8942F321B2F",
         "name" : "TrinketTests"
       }
     },
     {
       "skippedTests" : [
+        "AppPerformanceUITests",
         "BattlePerformanceUITests"
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "A76BC34F8DE0E1847F8183C5",
+        "identifier" : "2B112CD93B7BA74516E26AC2",
         "name" : "TrinketUITests"
       }
     }

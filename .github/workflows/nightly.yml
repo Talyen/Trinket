@@ -60,11 +60,10 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .DerivedData
-          # Never matches exactly; restore-keys picks up the most recent cache
-          # saved by the tests.yml build job for a warm incremental build.
-          key: build-nightly-${{ github.run_id }}
+          # Same two-tier key as tests.yml (exact full hash; nonsource prefix fallback).
+          key: build-${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}
           restore-keys: |
-            build-
+            build-${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}-
       - name: Clear cached test diagnostics after cache restore
         run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
       - name: Build all test bundles

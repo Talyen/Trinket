@@ -150,7 +150,7 @@ Options:
   --skip-xcodegen   Skip XcodeGen (content/asset codegen only)
   -h, --help        Show this help
 
-Prefer this script over individual generate-* subcommands.
+Prefer this script over calling prepare-* asset scripts or content_codegen.py directly.
 
 Env:
   TRINKET_FORCE_XCODEGEN=1       Same as --force-xcodegen
@@ -212,20 +212,21 @@ fi
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
   ensure_pinned_xcodegen_path
-  if command -v xcodegen >/dev/null 2>&1; then
-    if should_force_xcodegen; then
-      echo "Forcing XcodeGen regenerate (cache ignored)."
-      rm -f "$XCODEGEN_CACHE_PATH"
-      mkdir -p "$(dirname "$XCODEGEN_CACHE_PATH")"
-      xcodegen generate --cache-path "$XCODEGEN_CACHE_PATH"
-    else
-      xcodegen generate \
-        --use-cache \
-        --cache-path "$XCODEGEN_CACHE_PATH"
-    fi
+  if ! command -v xcodegen >/dev/null 2>&1; then
+    echo "error: xcodegen not found on PATH." >&2
+    echo "Install the pinned toolchain with ./Scripts/ensure-ci-tools.sh (places .tools/xcodegen)." >&2
+    echo "XcodeGen is required; the legacy sync-xcodeproj-sources.py fallback was removed." >&2
+    exit 1
+  fi
+  if should_force_xcodegen; then
+    echo "Forcing XcodeGen regenerate (cache ignored)."
+    rm -f "$XCODEGEN_CACHE_PATH"
+    mkdir -p "$(dirname "$XCODEGEN_CACHE_PATH")"
+    xcodegen generate --cache-path "$XCODEGEN_CACHE_PATH"
   else
-    echo "xcodegen not found; syncing legacy project sources into project.pbxproj"
-    python3 Scripts/sync-xcodeproj-sources.py
+    xcodegen generate \
+      --use-cache \
+      --cache-path "$XCODEGEN_CACHE_PATH"
   fi
 fi
 

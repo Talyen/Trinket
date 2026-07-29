@@ -1,11 +1,13 @@
 # Release pipeline
 
-Automated changelog and App Store release note generation for Trinket. Designed for
-agent-driven commits on `main` with release-boundary automation (no per-commit manual
-changelog editing).
+Automated changelog and App Store release note generation for Trinket, plus the
+day-to-day verification gates and test-tier routing that agents and local
+workflows use. Designed for agent-driven commits on `main` with release-boundary
+automation (no per-commit manual changelog editing).
 
 ## Overview
 
+Release artifact flow:
 ```mermaid
 flowchart LR
   commits[Git commits on main]
@@ -145,7 +147,8 @@ regeneration. CI reports timing regressions from per-run artifacts, but does not
 passing suite solely because hosted-runner session overhead exceeds a wall-clock budget.
 Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run dirs are
 kept; one-off legacy run dirs under `.DerivedData/runs/` are pruned by
-`./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3).
+`./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3;
+Intermediate/compilation-cache wipe only when `CI=true` or `--ci`).
 That script never mutates simulator devices — simulator lifecycle stays in
 `ensure-simulator.sh`. Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.

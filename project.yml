@@ -39,6 +39,8 @@ settings:
   configs:
     Debug:
       ASSETCATALOG_COMPILER_OPTIMIZATION: time
+    Release:
+      ASSETCATALOG_COMPILER_OPTIMIZATION: space
 targets:
   Trinket:
     type: application
@@ -67,6 +69,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
         GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
@@ -84,6 +87,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: Trinket
       - package: TrinketFeatureSupport
@@ -97,6 +101,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: Trinket
       - package: TrinketCore

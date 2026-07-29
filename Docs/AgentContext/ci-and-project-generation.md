@@ -89,9 +89,11 @@ This card adds the CI/project-generation exceptions:
   and can under-report idiomatic findings vs macOS CI — treat local style PASS as
   provisional for CI parity.
 - CI (`pr.yml` / `ci.yml`, via the shared `tests.yml`) builds once, prunes DerivedData with
-  `Scripts/prune-derived-data-cache.sh`, saves a run-scoped cache, and fans out unit /
-  smoke / exhaustive UI via `.github/actions/test-job` (`--no-build`, rebuild-on-miss).
-  Smoke/UI cache-miss rebuilds use `build-for-testing.sh --app-only`.
+  `Scripts/prune-derived-data-cache.sh`, uploads a run-scoped artifact for test fan-out, and
+  saves a two-tier warm cache (`build-<nonsource>-<full>`) only on exact miss — prefix
+  restore-keys reuse same toolchain/assets for incremental source rebuilds. Unit / smoke /
+  exhaustive UI restore that artifact via `.github/actions/test-job` (`--no-build`,
+  rebuild-on-miss). Smoke/UI artifact-miss rebuilds use `build-for-testing.sh --app-only`.
 - Parallel source trees: `./Scripts/agent-worktree.sh create <slug>` then verify with
   `--isolate` inside the sibling checkout.
 

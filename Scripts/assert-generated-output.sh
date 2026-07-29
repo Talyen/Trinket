@@ -111,6 +111,20 @@ done
 
 trinket_set_generated_tracked_paths "$INCLUDE_ASSETS" true
 
+# Plan target UUIDs must be PBXNativeTarget IDs in the generated project.
+assert_testplan_native_target_ids() {
+  local pbx_ids plan_ids id
+  pbx_ids="$(sed -n '/Begin PBXNativeTarget section/,/End PBXNativeTarget section/s/^[[:space:]]*\([A-F0-9]\{24\}\) \/\*.*/\1/p' Trinket.xcodeproj/project.pbxproj | sort -u)"
+  plan_ids="$(grep -hoE '"identifier"[[:space:]]*:[[:space:]]*"[A-F0-9]{24}"' ./*.xctestplan | grep -oE '[A-F0-9]{24}' | sort -u)"
+  while IFS= read -r id; do
+    [[ -z "$id" ]] && continue
+    if ! grep -qxF "$id" <<<"$pbx_ids"; then
+      echo "ERROR: .xctestplan identifier $id is not a PBXNativeTarget in project.pbxproj" >&2
+      return 1
+    fi
+  done <<<"$plan_ids"
+}
+
 run_generate() {
   if [[ "$INCLUDE_ASSETS" == true ]]; then
     ./Scripts/generate.sh --assets
@@ -147,6 +161,7 @@ print_tracked_diff_vs_head() {
 }
 
 if [[ "$MODE" == "idempotent" ]]; then
+  assert_testplan_native_target_ids
   before="$(snapshot_tracked)"
   run_generate
   after="$(snapshot_tracked)"
@@ -168,6 +183,8 @@ fi
 if [[ "$REGENERATE" == true ]]; then
   run_generate
 fi
+
+assert_testplan_native_target_ids
 
 tracked_status="$(git status --porcelain=v1 --untracked-files=all -- "${TRACKED_PATHS[@]}")"
 if [[ -z "$tracked_status" ]]; then

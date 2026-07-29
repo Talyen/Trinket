@@ -41,6 +41,7 @@ jobs:
               - '*.xctestplan'
               - '.swiftlint.yml'
               - '.swiftformat'
+              - 'cliff.toml'
               # Workflow/action changes that affect build/test behavior.
               - '.github/actions/**'
               - '.github/workflows/**'

@@ -71,20 +71,7 @@ xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
 
 if [[ "$APP_ONLY" == "true" ]]; then
   echo "=== build-for-testing: skipping package schemes (--app-only) ==="
-  CI_FINGERPRINTS=(
-    smoke
-    smoke_SmokeHomesteadTests
-    smoke_SmokeBattleTests
-    smoke_SmokeCollectionTests
-    smoke_SmokePlayTests
-    smoke_SmokeShopTests
-    smoke-full
-    ui
-    ui_BattleFlowUITests
-    ui_TabNavigationUITests_CollectionSearchUITests
-    ui_PlayMapUITests_MysteryRecruitUITests
-  )
-  for fingerprint in "${CI_FINGERPRINTS[@]}"; do
+  for fingerprint in "${TRINKET_BUILD_FINGERPRINTS_APP[@]}"; do
     touch_build_stamp "$RESULTS_DIR" "$fingerprint"
   done
   echo "=== build-for-testing complete (app-only) ==="
@@ -121,6 +108,8 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$package_build_jobs" -I{} bash -c '
 
   # shellcheck source=build-stamp.sh
   source "$script_dir/build-stamp.sh"
+  # shellcheck source=build-inputs.sh
+  source "$script_dir/build-inputs.sh"
   # shellcheck source=xcode-runner.sh
   source "$script_dir/xcode-runner.sh"
 
@@ -171,24 +160,7 @@ if [[ "$package_failed" -ne 0 ]]; then
   exit 1
 fi
 
-CI_FINGERPRINTS=(
-  unit
-  unit_TrinketTests
-  smoke
-  smoke_SmokeHomesteadTests
-  smoke_SmokeBattleTests
-  smoke_SmokeCollectionTests
-  smoke_SmokePlayTests
-  smoke_SmokeShopTests
-  smoke-full
-  ui
-  ui_BattleFlowUITests
-  ui_TabNavigationUITests_CollectionSearchUITests
-  ui_PlayMapUITests_MysteryRecruitUITests
-  all
-)
-
-for fingerprint in "${CI_FINGERPRINTS[@]}"; do
+for fingerprint in "${TRINKET_BUILD_FINGERPRINTS_FULL[@]}"; do
   touch_build_stamp "$RESULTS_DIR" "$fingerprint"
 done
 

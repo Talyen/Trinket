@@ -1,7 +1,9 @@
 name: Build and test
 
-# Shared build-once test fan-out used by pr.yml and ci.yml. The single
-# cache-key definition below is the source of truth for build inputs.
+# Shared build-once test fan-out used by pr.yml and ci.yml.
+# Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
+# build-<nonsource>- for same toolchain/assets incremental source rebuilds.
+# Within-run fan-out uses a run-scoped artifact of pruned .DerivedData.
 
 on:
   workflow_call:
@@ -49,38 +51,55 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 25
     outputs:
-      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
+      build-artifact: ${{ steps.export-build-ids.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
 
-      - name: Export build cache key
-        id: export-build-cache-key
-        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
+      - name: Export build cache and artifact ids
+        id: export-build-ids
+        run: |
+          # nonsource: toolchain/assets/build-config (Scripts/** includes tool-versions.env).
+          # full: nonsource + app/package/test Swift sources.
+          nonsource="${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+          full="${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+          echo "cache-key=build-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
+          echo "cache-restore-prefix=build-${nonsource}-" >> "$GITHUB_OUTPUT"
+          echo "artifact-name=${{ inputs.artifact-prefix }}build-derived-data-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
 
       - name: Restore warm build cache
+        id: restore-warm-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .DerivedData
-          # Never matches exactly; restore-keys picks up the most recent cache
-          # saved by a prior build job for a warm incremental build.
-          key: build-warm-${{ github.run_id }}
+          # Exact hit = identical tree. Prefix hit = same nonsource, safe incremental rebuild.
+          key: ${{ steps.export-build-ids.outputs.cache-key }}
           restore-keys: |
-            build-
+            ${{ steps.export-build-ids.outputs.cache-restore-prefix }}
 
       - name: Build for testing
         run: ./Scripts/build-for-testing.sh
         env:
           SKIP_GENERATE: 1
 
-      - name: Prune DerivedData before cache save
+      - name: Prune DerivedData before cache/artifact save
         run: ./Scripts/prune-derived-data-cache.sh
 
-      - name: Save build cache for test jobs
+      - name: Save warm build cache
+        if: steps.restore-warm-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .DerivedData
-          key: ${{ steps.export-build-cache-key.outputs.key }}
+          key: ${{ steps.export-build-ids.outputs.cache-key }}
+
+      - name: Upload build products for test jobs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.export-build-ids.outputs.artifact-name }}
+          path: .DerivedData
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
 
   unit:
     name: Unit tests
@@ -93,7 +112,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}unit
           command: ./Scripts/test.sh unit --no-build
 
@@ -108,7 +127,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}smoke
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh smoke-full --no-build
@@ -126,7 +145,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          build-artifact: ${{ needs.build.outputs.build-artifact }}
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build

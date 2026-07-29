@@ -8,7 +8,6 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -27,7 +26,6 @@ class ScriptRegressionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.codegen = load_script("content_codegen", "content_codegen.py")
-        cls.sync = load_script("sync_xcodeproj_sources", "sync-xcodeproj-sources.py")
 
     def test_publicize_ignores_braces_in_string_literals(self) -> None:
         source = 'struct Thing {\n    let brace = "}"\n    let value = 1\n}\n'
@@ -79,14 +77,30 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("export SDKROOT=", text)
         self.assertIn("CommandLineTools", text)
 
-    def test_legacy_sync_fails_closed_on_duplicate_basenames(self) -> None:
-        duplicate_paths = [
-            ROOT / "TrinketTests" / "Shared.swift",
-            ROOT / "TrinketTests" / "Nested" / "Shared.swift",
-        ]
-        with patch.object(self.sync, "discover_swift_files", return_value=duplicate_paths):
-            with self.assertRaises(SystemExit):
-                self.sync.sync_target("", "TrinketTests", "phase")
+    def test_generate_requires_xcodegen(self) -> None:
+        text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
+        self.assertIn("xcodegen not found on PATH", text)
+        self.assertNotIn("python3 Scripts/sync-xcodeproj-sources.py", text)
+        self.assertFalse((ROOT / "Scripts" / "sync-xcodeproj-sources.py").exists())
+
+    def test_build_inputs_include_xctestplans(self) -> None:
+        text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
+        for plan in (
+            "Unit.xctestplan",
+            "Smoke.xctestplan",
+            "QuickSmoke.xctestplan",
+            "FullUI.xctestplan",
+            "Integration.xctestplan",
+            "BattlePerformance.xctestplan",
+        ):
+            self.assertIn(plan, text)
+        self.assertNotIn("Package.resolved", text)
+
+    def test_prune_gates_bulk_wipe(self) -> None:
+        text = (ROOT / "Scripts" / "prune-derived-data-cache.sh").read_text(encoding="utf-8")
+        self.assertIn('CI_MODE=true', text)
+        self.assertIn("--ci", text)
+        self.assertIn("Skipping Intermediate/compilation-cache wipe", text)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "A76BC34F8DE0E1847F8183C5",
+        "identifier" : "2B112CD93B7BA74516E26AC2",
         "name" : "TrinketUITests"
       }
     }

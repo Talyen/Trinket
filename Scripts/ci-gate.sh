@@ -22,14 +22,15 @@ touch "$RESULTS_DIR/.last-generate.stamp"
 echo "=== Assert generated output is committed ==="
 ./Scripts/assert-generated-output.sh
 
+# Order matches .github/workflows/gate.yml: style → boundaries → swift-testing.
+echo "=== Style check ==="
+./Scripts/test.sh style
+
 echo "=== Module boundary check ==="
 ./Scripts/check-module-boundaries.sh
 
 echo "=== Swift Testing migration gate ==="
 ./Scripts/check-swift-testing-migration.sh
-
-echo "=== Style check ==="
-./Scripts/test.sh style
 
 echo "=== Validate release notes config ==="
 ./Scripts/release-notes.sh validate

@@ -1,11 +1,53 @@
 #!/usr/bin/env bash
-# Strip bulky DerivedData intermediates before CI cache save.
-# Keeps Build/ products and module caches needed for test-without-building.
-# Also reaps stale isolated run dirs and dead UI/sim concurrency slots.
+# Prune DerivedData for CI cache save, and reap stale local isolation metadata.
+#
+# Destructive Intermediate/Index/compilation-cache wipes run only when CI=true
+# or --ci is passed (GitHub Actions cache-save path). Local default runs keep
+# Build/Intermediates so incremental compiles stay warm; they still age-prune
+# one-off .DerivedData/runs/<id> tenants and reap dead UI/sim slots.
+#
+# Never mutates simulator devices — that stays in ensure-simulator.sh.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-DERIVED_DATA_PATH="${1:-$PWD/.DerivedData}"
+
+CI_MODE=false
+if [[ "${CI:-}" == "true" ]]; then
+  CI_MODE=true
+fi
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --ci)
+      CI_MODE=true
+      shift
+      ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./Scripts/prune-derived-data-cache.sh [--ci] [DERIVED_DATA_PATH]
+
+Without --ci (and when CI is unset): age-prune one-off isolated runs and reap
+dead UI/sim slots. Does not delete Build/Intermediates or compilation caches.
+
+With --ci or CI=true: also strip bulky rebuildable intermediates under the
+target DerivedData tree before saving a CI cache (keeps Build/Products).
+USAGE
+      exit 0
+      ;;
+    -*)
+      echo "Unknown argument: $1" >&2
+      echo "Usage: $0 [--ci] [DERIVED_DATA_PATH]" >&2
+      exit 1
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+DERIVED_DATA_PATH="${ARGS[0]:-$PWD/.DerivedData}"
 RUN_MAX_AGE_DAYS="${TRINKET_RUN_MAX_AGE_DAYS:-3}"
 SHARED_ROOT="$PWD/.DerivedData"
 
@@ -27,42 +69,51 @@ case "$DERIVED_DATA_PATH" in
     ;;
 esac
 
-echo "=== Pruning DerivedData cache bulk under $DERIVED_DATA_PATH ==="
+prune_derived_data_bulk() {
+  local target="$1"
+  echo "=== Pruning DerivedData cache bulk under $target ==="
 
-# Index / symbol stores are rebuildable and dominate cache size.
-# Keep Build/Products, ModuleCache, and SourcePackages so --no-build stays warm.
-# Intermediates are only needed for incremental compilation and add substantial
-# transfer cost to every fan-out test job.
-rm -rf \
-  "$DERIVED_DATA_PATH/Build/Intermediates.noindex" \
-  "$DERIVED_DATA_PATH/Build/ProfileData" \
-  "$DERIVED_DATA_PATH/Index.noindex" \
-  "$DERIVED_DATA_PATH/Index" \
-  "$DERIVED_DATA_PATH/SymbolCache" \
-  "$DERIVED_DATA_PATH/SDKStatCaches.noindex" \
-  "$DERIVED_DATA_PATH/CompilationCache.noindex" \
-  "$DERIVED_DATA_PATH/Logs" \
-  2>/dev/null || true
+  # Index / symbol stores are rebuildable and dominate cache size.
+  # Keep Build/Products, ModuleCache, and SourcePackages so --no-build stays warm.
+  # Intermediates are only needed for incremental compilation and add substantial
+  # transfer cost to every fan-out test job.
+  rm -rf \
+    "$target/Build/Intermediates.noindex" \
+    "$target/Build/ProfileData" \
+    "$target/Index.noindex" \
+    "$target/Index" \
+    "$target/SymbolCache" \
+    "$target/SDKStatCaches.noindex" \
+    "$target/CompilationCache.noindex" \
+    "$target/Logs" \
+    2>/dev/null || true
 
-# Per-package DerivedData tenants (parallel package builds).
-if [[ -d "$DERIVED_DATA_PATH/packages" ]]; then
-  find "$DERIVED_DATA_PATH/packages" -mindepth 1 -maxdepth 1 -type d -print0 \
-    | while IFS= read -r -d '' package_dd; do
-      rm -rf \
-        "$package_dd/Build/Intermediates.noindex" \
-        "$package_dd/Build/ProfileData" \
-        "$package_dd/Index.noindex" \
-        "$package_dd/Index" \
-        "$package_dd/SymbolCache" \
-        "$package_dd/SDKStatCaches.noindex" \
-        "$package_dd/CompilationCache.noindex" \
-        "$package_dd/Logs" \
-        2>/dev/null || true
-    done
+  # Per-package DerivedData tenants (parallel package builds).
+  if [[ -d "$target/packages" ]]; then
+    find "$target/packages" -mindepth 1 -maxdepth 1 -type d -print0 \
+      | while IFS= read -r -d '' package_dd; do
+        rm -rf \
+          "$package_dd/Build/Intermediates.noindex" \
+          "$package_dd/Build/ProfileData" \
+          "$package_dd/Index.noindex" \
+          "$package_dd/Index" \
+          "$package_dd/SymbolCache" \
+          "$package_dd/SDKStatCaches.noindex" \
+          "$package_dd/CompilationCache.noindex" \
+          "$package_dd/Logs" \
+          2>/dev/null || true
+      done
+  fi
+
+  # Drop xcresults from the cache blob (uploaded separately as artifacts).
+  find "$target/TestResults" -type d -name '*.xcresult' -prune -exec rm -rf {} + 2>/dev/null || true
+}
+
+if [[ "$CI_MODE" == "true" ]]; then
+  prune_derived_data_bulk "$DERIVED_DATA_PATH"
+else
+  echo "=== Skipping Intermediate/compilation-cache wipe (pass --ci or set CI=true) ==="
 fi
-
-# Drop xcresults from the cache blob (uploaded separately as artifacts).
-find "$DERIVED_DATA_PATH/TestResults" -type d -name '*.xcresult' -prune -exec rm -rf {} + 2>/dev/null || true
 
 # Isolated agent tenants under .DerivedData/runs/<id>.
 # Keep warm reusable slots (.DerivedData/runs/agent-N); age-prune one-off run ids only.

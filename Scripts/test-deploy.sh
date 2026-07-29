@@ -10,11 +10,11 @@ cd "$(dirname "$0")/.."
 #   ./Scripts/test-deploy.sh
 #   ./Scripts/test-deploy.sh --no-build   # re-run previously built test binaries
 
-NO_BUILD_FLAG=()
+NO_BUILD=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --no-build)
-      NO_BUILD_FLAG+=("$1")
+      NO_BUILD=true
       shift
       ;;
     *)
@@ -26,16 +26,22 @@ while [[ $# -gt 0 ]]; do
 done
 
 ./Scripts/ci-gate.sh
-# Prevent subsequent test.sh tiers from regenerating after the gate's force generate.
+# Prevent subsequent build/test wrappers from regenerating after the gate's force generate.
 export SKIP_GENERATE=1
+
+if [[ "$NO_BUILD" == "false" ]]; then
+  echo ""
+  echo "=== Build for testing (app + packages) ==="
+  ./Scripts/build-for-testing.sh
+fi
 
 echo ""
 echo "=== Unit tests ==="
-./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit
+./Scripts/test.sh unit --no-build
 
 echo ""
 echo "=== Full UI tests ==="
-./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui
+./Scripts/test.sh ui --no-build
 
 echo ""
 echo "=== All deploy checks passed ==="
