@@ -1,11 +1,5 @@
 import Foundation
 
-/// Hermite smoothstep on `0...1` (clamped). Shared by XP and enemy gear curves.
-func smoothstep(_ value: Double) -> Double {
-    let clamped = min(max(value, 0), 1)
-    return clamped * clamped * (3 - (2 * clamped))
-}
-
 enum ProgressionBracket: Equatable {
     case early
     case mid
@@ -42,7 +36,7 @@ public enum ExperienceScaling {
         guard gap > 0 else { return 1 }
 
         let normalized = 1.0 - (Double(gap) / Double(underlevelCutoff))
-        return smoothstep(normalized)
+        return progressionSmoothstep(normalized)
     }
 
     public static func baseBattleAward(forPlayerLevel level: Int) -> Int {

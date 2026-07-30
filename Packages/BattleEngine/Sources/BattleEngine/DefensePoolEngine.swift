@@ -87,19 +87,23 @@ package enum DefensePoolEngine {
         return max(0.0, min(1.0, percent))
     }
 
+    /// Adds fight-paced pool points. Returns the paced amount actually applied (0 when skipped).
+    @discardableResult
     package static func add(
         _ amount: Int,
         pool: Pool,
         to target: Combatant,
         keyword: Keyword? = nil,
+        sourceActorID: String? = nil,
         in context: inout BattleState
-    ) {
-        guard amount > 0 else { return }
+    ) -> Int {
+        let pacedAmount = sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount
+        guard pacedAmount > 0 else { return 0 }
         var effects = context.roster.activeEffects(for: target)
         if let index = effects.firstIndex(where: { pool.matches($0.effect) }),
            let updated = pool.withAmount(
                effects[index].effect,
-               amount: (pool.points(in: effects[index].effect) ?? 0) + amount
+               amount: (pool.points(in: effects[index].effect) ?? 0) + pacedAmount
            ) {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
@@ -108,14 +112,15 @@ package enum DefensePoolEngine {
                 sourceActorID: effects[index].sourceActorID
             )
             context.roster.setActiveEffects(effects, for: target)
-            return
+            return pacedAmount
         }
         context.appendEffect(
-            pool.makeEffect(keyword: keyword ?? pool.defaultKeyword, amount: amount),
+            pool.makeEffect(keyword: keyword ?? pool.defaultKeyword, amount: pacedAmount),
             to: target,
-            sourceID: target.id,
+            sourceID: sourceActorID ?? target.id,
             remainingTurns: 0
         )
+        return pacedAmount
     }
 
     package static func set(

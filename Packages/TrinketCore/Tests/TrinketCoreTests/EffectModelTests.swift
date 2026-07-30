@@ -3,7 +3,7 @@ import TrinketCore
 
 struct EffectModelTests {
     @Test func representativeEffectSummariesAndProperties() throws {
-        try #expect(Effect.burn(4).summary == "applies Burning")
+        try #expect(Effect.burn(4).summary == "applies Burning: 4 damage")
         try #expect(Effect.burn(4).potencyAfterTurn() == 2)
         try #expect(Effect.bleed(3).isBleed)
         try #expect(Effect.instantHeal(.health, 5).summary == "restore 5 Health")

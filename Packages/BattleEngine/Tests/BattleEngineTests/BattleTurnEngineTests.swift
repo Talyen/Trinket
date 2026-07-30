@@ -106,12 +106,13 @@ struct BattleTurnEngineTests {
         )
 
         try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
-        try #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == 8 })
+        let expectedBlock = context.paced(8, sourceActorID: hero.id)
+        try #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == expectedBlock })
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(
             context.roster.activeEffects(for: hero).contains {
                 if case let .shield(keyword, points) = $0.effect {
-                    return keyword == .block && points == 8
+                    return keyword == .block && points == expectedBlock
                 }
                 return false
             }

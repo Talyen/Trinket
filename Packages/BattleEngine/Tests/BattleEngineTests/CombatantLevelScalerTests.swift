@@ -24,17 +24,16 @@ struct CombatantLevelScalerTests {
         try #expect(scaledEnemy.maxHealth > skeleton.combatant.maxHealth)
     }
 
-    @Test func enemyScalerUsesBossProfile() throws {
+    @Test func enemyScalerAppliesUniformPowerMultiplier() throws {
         let boss = try #require(GameContent.enemy(matching: "the_forge_golem"))
-        let level = 3
+        let level = 20
         let scaled = CombatantLevelScaler.scale(enemy: boss, level: level)
+        let multipliers = EnemyPowerCurve.multipliers(level: level, isBoss: true)
 
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.enemyGrowth(
             archetype: boss.combatant.growthArchetype,
-            isBoss: true,
-            levelsAbove: levelsAbove,
-            identityStats: boss.combatant.primaryStats
+            levelsAbove: levelsAbove
         )
         let grown = StatGrowth.apply(
             maxHealth: boss.combatant.maxHealth,
@@ -42,12 +41,41 @@ struct CombatantLevelScalerTests {
             primaryStats: boss.combatant.primaryStats,
             growth: growth
         )
-        let expected = StatGrowth.applyEnemyGearCompensation(
+        let expected = StatGrowth.applyPowerMultiplier(
             maxHealth: grown.maxHealth,
             maxMana: grown.maxMana,
             primaryStats: grown.primaryStats,
-            level: level,
-            isBoss: true
+            healthMultiplier: multipliers.health,
+            statsMultiplier: multipliers.stats
+        )
+
+        try #expect(multipliers.health == multipliers.stats)
+        try #expect(scaled.primaryStats == expected.primaryStats)
+        try #expect(scaled.maxHealth == expected.maxHealth)
+    }
+
+    @Test func enemyScalerAppliesPowerCurve() throws {
+        let boss = try #require(GameContent.enemy(matching: "the_forge_golem"))
+        let level = 3
+        let scaled = CombatantLevelScaler.scale(enemy: boss, level: level)
+
+        let levelsAbove = StatGrowth.levelsAboveIdentity(level)
+        let growth = StatGrowth.enemyGrowth(
+            archetype: boss.combatant.growthArchetype,
+            levelsAbove: levelsAbove
+        )
+        let grown = StatGrowth.apply(
+            maxHealth: boss.combatant.maxHealth,
+            maxMana: boss.combatant.maxMana,
+            primaryStats: boss.combatant.primaryStats,
+            growth: growth
+        )
+        let expected = StatGrowth.applyPowerMultiplier(
+            maxHealth: grown.maxHealth,
+            maxMana: grown.maxMana,
+            primaryStats: grown.primaryStats,
+            healthMultiplier: EnemyPowerCurve.multipliers(level: level, isBoss: true).health,
+            statsMultiplier: EnemyPowerCurve.multipliers(level: level, isBoss: true).stats
         )
 
         try #expect(scaled.maxHealth == expected.maxHealth)
@@ -62,5 +90,20 @@ struct CombatantLevelScalerTests {
 
         try #expect(scaled.maxMana == 0)
         try #expect(!scaled.hasMana)
+    }
+
+    @Test func powerRatingReflectsScaledEnemy() throws {
+        let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
+        let snapshot = CombatantLevelScaler.powerRating(for: skeleton, level: 5)
+        let scaled = CombatantLevelScaler.scale(enemy: skeleton, level: 5)
+
+        try #expect(snapshot.level == 5)
+        try #expect(snapshot.maxHealth == scaled.maxHealth)
+        let statTotal = scaled.primaryStats.strength
+            + scaled.primaryStats.agility
+            + scaled.primaryStats.toughness
+            + scaled.primaryStats.intellect
+            + scaled.primaryStats.wisdom
+        try #expect(snapshot.rating == scaled.maxHealth + statTotal)
     }
 }

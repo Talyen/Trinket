@@ -22,6 +22,10 @@ struct EffectPresentationTests {
 
     @Test(arguments: [
         (Effect.shield(.block, 5), "gain 5 Block"),
+        (Effect.thorns(1), "gain 1 Thorns"),
+        (Effect.bleed(2), "applies Bleeding: 2 damage"),
+        (Effect.burn(4), "applies Burning: 4 damage"),
+        (Effect.poison(3), "applies Poisoned: 3 damage"),
         (
             .damageKeywordOverride(.holy, 3, 6),
             "your attacks become Holy damage and deal +3 for 6 turns"

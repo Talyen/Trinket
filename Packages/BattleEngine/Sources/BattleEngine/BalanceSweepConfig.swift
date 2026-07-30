@@ -64,6 +64,8 @@ public struct BalanceBattleRecord: Equatable, Sendable {
     public var isBoss: Bool
     public var heroAbilityIDs: [String]
     public var companionAbilityIDs: [String]
+    public var enemyAbilityIDs: [String]
+    public var enemyTraitID: String
     public var affixIDs: [String]
     public var seed: UInt64
     public var result: BattleSimResult

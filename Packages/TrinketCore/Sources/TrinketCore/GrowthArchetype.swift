@@ -48,46 +48,10 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
     }
 }
 
-struct EnemyGearCompensation: Equatable {
-    let healthMultiplier: Double
-    let primaryStatMultiplier: Double
-    let statDelta: StatGrowthDelta
-
-    static let none = Self(
-        healthMultiplier: 1.0,
-        primaryStatMultiplier: 1.0,
-        statDelta: .zero
-    )
-}
-
 public enum StatGrowth {
     /// Levels above identity (level 1). Level 1 returns zero growth.
     public static func levelsAboveIdentity(_ level: Int) -> Int {
         max(0, level - 1)
-    }
-
-    private enum RankedPrimaryStat: CaseIterable {
-        case strength, agility, toughness, intellect, wisdom
-
-        func value(in stats: PrimaryStats) -> Int {
-            switch self {
-            case .strength: stats.strength
-            case .agility: stats.agility
-            case .toughness: stats.toughness
-            case .intellect: stats.intellect
-            case .wisdom: stats.wisdom
-            }
-        }
-
-        func apply(_ amount: Int, to delta: inout StatGrowthDelta) {
-            switch self {
-            case .strength: delta.strength += amount
-            case .agility: delta.agility += amount
-            case .toughness: delta.toughness += amount
-            case .intellect: delta.intellect += amount
-            case .wisdom: delta.wisdom += amount
-            }
-        }
     }
 
     private static func every(_ levelsAbove: Int, interval: Int, amount: Int) -> Int {
@@ -134,120 +98,53 @@ public enum StatGrowth {
 
     public static func enemyGrowth(
         archetype: GrowthArchetype,
-        isBoss: Bool,
-        levelsAbove: Int,
-        identityStats: PrimaryStats
+        levelsAbove: Int
     ) -> StatGrowthDelta {
         guard levelsAbove > 0 else { return .zero }
-        if isBoss {
-            return bossGrowth(levelsAbove: levelsAbove, identityStats: identityStats)
-        }
         var growth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
         growth.maxMana = 0
-        // Enemy bulk comes from gear-compensation multipliers, not flat HP/level.
         growth.maxHealth = 0
         return growth
     }
 
-    private static func bossGrowth(
-        levelsAbove: Int,
-        identityStats: PrimaryStats
-    ) -> StatGrowthDelta {
-        let ranked = RankedPrimaryStat.allCases.sorted {
-            $0.value(in: identityStats) > $1.value(in: identityStats)
-        }
-
-        var delta = StatGrowthDelta()
-        ranked.first?.apply(levelsAbove, to: &delta)
-        if ranked.count > 1 {
-            ranked[1].apply(every(levelsAbove, interval: 2, amount: 1), to: &delta)
-        }
-        return delta
-    }
-
-    public static func enemyLateGameBracketBonus(identityStats: PrimaryStats) -> StatGrowthDelta {
-        var delta = StatGrowthDelta(toughness: 2)
-        if let topStat = RankedPrimaryStat.allCases.max(by: {
-            $0.value(in: identityStats) < $1.value(in: identityStats)
-        }) {
-            topStat.apply(1, to: &delta)
-        }
-        return delta
-    }
-
-    /// Level-scaled gear-compensation for enemies that do not carry player equipment.
-    /// Normals stay below bosses at every band: early 1.75/2.0, mid 2.1/2.25, late 2.4/2.5.
-    static func enemyGearCompensation(
-        level: Int,
-        identityStats _: PrimaryStats,
-        isBoss: Bool = false
-    ) -> EnemyGearCompensation {
-        let (normal, boss) = if level < 20 {
-            (1.75, 2.0)
-        } else if level < 40 {
-            (2.1, 2.25)
-        } else {
-            (2.4, 2.5)
-        }
-        let multiplier = isBoss ? boss : normal
-        return EnemyGearCompensation(
-            healthMultiplier: multiplier,
-            primaryStatMultiplier: multiplier,
-            statDelta: .zero
-        )
-    }
-
-    /// Applies gear-compensation scaling for enemies that do not carry player equipment.
-    public static func applyEnemyGearCompensation(
+    public static func applyPowerMultiplier(
         maxHealth: Int,
         maxMana: Int,
         primaryStats: PrimaryStats,
-        level: Int,
-        isBoss: Bool = false
+        multiplier: Double
     ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
-        let compensation = enemyGearCompensation(
-            level: level,
-            identityStats: primaryStats,
-            isBoss: isBoss
-        )
-        guard compensation != .none else {
-            return (maxHealth, maxMana, primaryStats)
-        }
-
-        let scaledHealth = max(
-            1,
-            Int((Double(maxHealth) * compensation.healthMultiplier).rounded())
-        )
-        let merged = apply(
-            maxHealth: scaledHealth,
+        applyPowerMultiplier(
+            maxHealth: maxHealth,
             maxMana: maxMana,
             primaryStats: primaryStats,
-            growth: compensation.statDelta
-        )
-        return (
-            merged.maxHealth,
-            merged.maxMana,
-            scalePrimaryStatsForEnemyGearCompensation(
-                merged.primaryStats,
-                multiplier: compensation.primaryStatMultiplier
-            )
+            healthMultiplier: multiplier,
+            statsMultiplier: multiplier
         )
     }
 
-    private static func scalePrimaryStatsForEnemyGearCompensation(
-        _ stats: PrimaryStats,
-        multiplier: Double
-    ) -> PrimaryStats {
-        guard multiplier != 1.0 else { return stats }
-        func scaled(_ value: Int) -> Int {
+    public static func applyPowerMultiplier(
+        maxHealth: Int,
+        maxMana: Int,
+        primaryStats: PrimaryStats,
+        healthMultiplier: Double,
+        statsMultiplier: Double
+    ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
+        guard healthMultiplier != 1.0 || statsMultiplier != 1.0 else {
+            return (maxHealth, maxMana, primaryStats)
+        }
+        func scaled(_ value: Int, multiplier: Double) -> Int {
             max(0, Int((Double(value) * multiplier).rounded()))
         }
-        return PrimaryStats(
-            strength: scaled(stats.strength),
-            agility: scaled(stats.agility),
-            toughness: scaled(stats.toughness),
-            intellect: scaled(stats.intellect),
-            wisdom: scaled(stats.wisdom)
+        return (
+            maxHealth: max(1, scaled(maxHealth, multiplier: healthMultiplier)),
+            maxMana: scaled(maxMana, multiplier: statsMultiplier),
+            primaryStats: PrimaryStats(
+                strength: scaled(primaryStats.strength, multiplier: statsMultiplier),
+                agility: scaled(primaryStats.agility, multiplier: statsMultiplier),
+                toughness: scaled(primaryStats.toughness, multiplier: statsMultiplier),
+                intellect: scaled(primaryStats.intellect, multiplier: statsMultiplier),
+                wisdom: scaled(primaryStats.wisdom, multiplier: statsMultiplier)
+            )
         )
     }
 

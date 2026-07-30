@@ -64,8 +64,8 @@ struct CombatBuildResolverTests {
         )
 
         try #expect(build.modifiers.maximumHealthBonus == 6)
-        try #expect(build.modifiers.blockGainedBonus == 3)
-        try #expect(build.effectiveMaxHealth == knight.maxHealth + knight.primaryStats.toughness + 6)
+        try #expect(build.modifiers.blockGainedBonus == 2)
+        try #expect(build.effectiveMaxHealth == knight.maxHealth + 6)
     }
 
     @Test func traitModifiersMergeIntoBuildProfile() throws {
@@ -76,7 +76,8 @@ struct CombatBuildResolverTests {
             inventory: []
         )
 
-        try #expect(build.modifiers.blockGainedBonus == 1)
+        try #expect(build.modifiers.triggers.holyDamageBlockFlat == 1)
+        try #expect(build.modifiers.triggers.stunDamageBlockFlat == 1)
         try #expect(build.modifiers.traitDisplayName == "Oathbound")
     }
 

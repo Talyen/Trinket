@@ -44,6 +44,34 @@ package enum TraitReactionEngine {
         )
     }
 
+    package static func cleanseAfterHeal(
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let count = context.modifiers(for: source.id).triggers.healCleanseCount
+        guard count > 0 else { return [] }
+
+        var events: [ActionEvent] = []
+        var effects = context.roster.activeEffects(for: target)
+        for _ in 0 ..< count {
+            guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else {
+                break
+            }
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .cleanseApplied,
+                actorName: source.name,
+                abilityName: source.traitDisplayName(in: context),
+                target: target,
+                amount: 0,
+                keyword: removedKeyword
+            ))
+        }
+        context.roster.setActiveEffects(effects, for: target)
+        return events
+    }
+
     private static func resolveBonusHeal(
         amount: Int,
         source: Combatant,

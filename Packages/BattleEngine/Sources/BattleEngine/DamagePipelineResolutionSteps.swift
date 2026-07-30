@@ -13,7 +13,7 @@ package extension DamagePipeline {
            let damageKeyword = state.damageKeyword,
            let actor = context.roster.combatant(for: sourceActorID) {
             state.statBonus = state.applyStatBonus
-                ? Int(round(Double(state.amount) * actor.primaryStats.statDamageBonusPercent(keyword: damageKeyword)))
+                ? CombatRounding.scaled(state.amount, multiplier: actor.primaryStats.statDamageBonusPercent(keyword: damageKeyword))
                 : 0
             state.itemBonus = state.applyItemBonus
                 ? outgoingDamageBonus(
@@ -49,13 +49,19 @@ package extension DamagePipeline {
            let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword {
             let percent = context.modifiers(for: sourceActorID).damageDealtPercent(for: damageKeyword)
-            let percentBonus = Int(floor(Double(max(0, state.remaining)) * percent))
+            let percentBonus = CombatRounding.scaled(max(0, state.remaining), multiplier: percent)
             state.itemBonus += percentBonus
             state.remaining += percentBonus
         }
-        if shouldApplyEnemyCatchUpPenalty(for: state, in: context) {
-            state.remaining = max(0, state.remaining - 1)
-        }
+        state.dealt = state.remaining
+    }
+
+    static func applyFightPacing(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard state.remaining > 0 else { return }
+        state.remaining = context.paced(state.remaining, sourceActorID: state.sourceActorID)
         state.dealt = state.remaining
     }
 
@@ -73,39 +79,6 @@ package extension DamagePipeline {
             bonus += context.turnCount / 2
         }
         return bonus
-    }
-
-    /// Hidden catch-up: when the enemy's HP% exceeds the party average, reduce enemy outgoing damage by 1.
-    private static func shouldApplyEnemyCatchUpPenalty(
-        for state: DamageResolutionState,
-        in context: BattleState
-    ) -> Bool {
-        guard let sourceActorID = state.sourceActorID,
-              context.roster.combatant(for: sourceActorID)?.role == .enemy
-        else { return false }
-
-        let enemy = context.roster.enemy
-        guard enemy.isAlive,
-              context.roster.maxHealth(for: enemy.combatant) > 0
-        else { return false }
-
-        let enemyPercent = healthPercent(for: enemy.combatant, in: context)
-        return enemyPercent > partyAverageHealthPercent(in: context)
-    }
-
-    private static func healthPercent(
-        for combatant: Combatant,
-        in context: BattleState
-    ) -> Double {
-        let maxHealth = context.roster.maxHealth(for: combatant)
-        guard maxHealth > 0 else { return 0 }
-        return Double(context.roster.health(for: combatant)) / Double(maxHealth)
-    }
-
-    private static func partyAverageHealthPercent(in context: BattleState) -> Double {
-        let heroPercent = healthPercent(for: context.roster.hero.combatant, in: context)
-        let companionPercent = healthPercent(for: context.roster.companion.combatant, in: context)
-        return (heroPercent + companionPercent) / 2.0
     }
 
     static func applyMarkedBonus(
@@ -154,11 +127,11 @@ package extension DamagePipeline {
         }
         let reduction = profile.damageTakenReduction(for: damageKeyword)
         if reduction > 0 {
-            state.remaining = Int(ceil(Double(state.remaining) * (1 - reduction)))
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 - reduction)
         }
         let vulnerability = profile.damageTakenVulnerability(for: damageKeyword)
         if vulnerability > 0 {
-            state.remaining = Int(ceil(Double(state.remaining) * (1 + vulnerability)))
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + vulnerability)
         }
         state.buildupDamage = state.remaining
     }
@@ -206,8 +179,7 @@ package extension DamagePipeline {
         }
 
         if effectivePercent > 0 {
-            let reduced = Double(remaining) * (1.0 - effectivePercent)
-            remaining = max(0, Int(reduced.rounded()))
+            remaining = CombatRounding.scaled(remaining, multiplier: 1.0 - effectivePercent)
         }
 
         state.remaining = remaining

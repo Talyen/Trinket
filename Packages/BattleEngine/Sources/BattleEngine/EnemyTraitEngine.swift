@@ -41,14 +41,21 @@ package enum EnemyTraitEngine {
               context.roster.health(for: combatant) > 0
         else { return [] }
 
-        DefensePoolEngine.add(profile.triggers.blockPerTurn, pool: .block, to: combatant, keyword: .block, in: &context)
+        let applied = DefensePoolEngine.add(
+            profile.triggers.blockPerTurn,
+            pool: .block,
+            to: combatant,
+            keyword: .block,
+            sourceActorID: combatant.id,
+            in: &context
+        )
         return [context.nextEvent(
             kind: .effect,
             effectKind: DefensePoolEngine.Pool.block.appliedEffectKind,
             actorName: combatant.name,
             abilityName: traitName(for: combatant, in: context),
             target: combatant,
-            amount: profile.triggers.blockPerTurn,
+            amount: applied,
             keyword: .block
         )]
     }
@@ -166,7 +173,7 @@ package enum EnemyTraitEngine {
               let attacker = context.roster.combatant(for: attackerID)?.combatant
         else { return [] }
 
-        let thornsAmount = max(1, Int(ceil(Double(damageTaken) * profile.triggers.thornsPercent)))
+        let thornsAmount = max(1, CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent))
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: thornsAmount,

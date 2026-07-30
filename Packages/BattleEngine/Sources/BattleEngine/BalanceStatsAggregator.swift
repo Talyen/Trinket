@@ -15,19 +15,36 @@ public struct WinRateSummary: Equatable, Sendable {
     public var flagReason: String?
 }
 
-/// Gameplay duration thresholds on sim `rounds` (`turnCount` = player phase + enemy phase).
+/// Gameplay duration goal bands on sim `rounds` (`turnCount` = player phase + enemy phase).
 public enum BalanceDurationThresholds {
+    public static let trashMinRounds = 5
     public static let trashMaxRounds = 10
+    public static let bossMinRounds = 10
     public static let bossMaxRounds = 20
+
+    public static var trashGoalBand: String {
+        "\(trashMinRounds)-\(trashMaxRounds)"
+    }
+
+    public static var bossGoalBand: String {
+        "\(bossMinRounds)-\(bossMaxRounds)"
+    }
 }
 
 public struct BalanceDurationBucketStats: Equatable, Sendable {
     public var battles: Int
+    public var shortBattles: Int
     public var longBattles: Int
     public var averageRounds: Double
+    public var averageRoundsWhenShort: Double
     public var averageRoundsWhenLong: Double
     public var maxRounds: Int
     public var worstEnemyID: String?
+
+    public var shortRate: Double {
+        guard battles > 0 else { return 0 }
+        return Double(shortBattles) / Double(battles)
+    }
 
     public var longRate: Double {
         guard battles > 0 else { return 0 }
@@ -49,6 +66,8 @@ public struct BalanceTierStats: Sendable {
     public var companions: [WinRateSummary]
     public var enemies: [WinRateSummary]
     public var abilities: [WinRateSummary]
+    public var enemyAbilities: [WinRateSummary]
+    public var enemyTraits: [WinRateSummary]
     public var affixes: [WinRateSummary]
 }
 
@@ -57,78 +76,102 @@ public enum BalanceStatsAggregator {
         report: BalanceSweepReport
     ) -> [BalanceTierStats] {
         report.config.tiers.map { tier in
-            let records = report.records.filter { $0.tier == tier }
-            let overallRate = winRate(records)
-            let threshold = report.config.peerDeltaFlagThreshold
-            let wins = records.filter(\.result.isVictory)
-
-            return BalanceTierStats(
+            summarizeTier(
                 tier: tier,
-                battles: records.count,
-                wins: wins.count,
-                timeouts: records.filter(\.result.timedOut).count,
-                averageRounds: average(records.map { Double($0.result.rounds) }),
-                averagePartyHPOnWin: average(wins.map(\.result.partyHPRemainingFraction)),
-                averageEnemyHPOnLoss: average(
-                    records.filter { !$0.result.isVictory }.map(\.result.enemyHPRemainingFraction)
-                ),
-                trashDuration: durationStats(
-                    records.filter { !$0.isBoss },
-                    maxRounds: BalanceDurationThresholds.trashMaxRounds
-                ),
-                bossDuration: durationStats(
-                    records.filter(\.isBoss),
-                    maxRounds: BalanceDurationThresholds.bossMaxRounds
-                ),
-                heroes: margin(
-                    records: records,
-                    ids: { [$0.heroID] },
-                    peerRate: overallRate,
-                    threshold: threshold
-                ),
-                companions: margin(
-                    records: records,
-                    ids: { [$0.companionID] },
-                    peerRate: overallRate,
-                    threshold: threshold
-                ),
-                enemies: enemyMargins(records: records),
-                abilities: margin(
-                    records: records,
-                    ids: { $0.heroAbilityIDs + $0.companionAbilityIDs },
-                    peerRate: overallRate,
-                    threshold: threshold
-                ),
-                affixes: margin(
-                    records: records,
-                    ids: \.affixIDs,
-                    peerRate: overallRate,
-                    threshold: threshold
-                )
+                records: report.records.filter { $0.tier == tier },
+                threshold: report.config.peerDeltaFlagThreshold
             )
         }
     }
 
+    private static func summarizeTier(
+        tier: SimulationPowerTier,
+        records: [BalanceBattleRecord],
+        threshold: Double
+    ) -> BalanceTierStats {
+        let overallRate = winRate(records)
+        let wins = records.filter(\.result.isVictory)
+        return BalanceTierStats(
+            tier: tier,
+            battles: records.count,
+            wins: wins.count,
+            timeouts: records.filter(\.result.timedOut).count,
+            averageRounds: average(records.map { Double($0.result.rounds) }),
+            averagePartyHPOnWin: average(wins.map(\.result.partyHPRemainingFraction)),
+            averageEnemyHPOnLoss: average(
+                records.filter { !$0.result.isVictory }.map(\.result.enemyHPRemainingFraction)
+            ),
+            trashDuration: durationStats(
+                records.filter { !$0.isBoss },
+                minRounds: BalanceDurationThresholds.trashMinRounds,
+                maxRounds: BalanceDurationThresholds.trashMaxRounds
+            ),
+            bossDuration: durationStats(
+                records.filter(\.isBoss),
+                minRounds: BalanceDurationThresholds.bossMinRounds,
+                maxRounds: BalanceDurationThresholds.bossMaxRounds
+            ),
+            heroes: margin(records: records, ids: { [$0.heroID] }, peerRate: overallRate, threshold: threshold),
+            companions: margin(
+                records: records, ids: { [$0.companionID] }, peerRate: overallRate, threshold: threshold
+            ),
+            enemies: enemyMargins(records: records),
+            abilities: margin(
+                records: records,
+                ids: { $0.heroAbilityIDs + $0.companionAbilityIDs },
+                peerRate: overallRate,
+                threshold: threshold
+            ),
+            enemyAbilities: opponentMargins(records: records, ids: \.enemyAbilityIDs, peerRate: overallRate, threshold: threshold),
+            enemyTraits: opponentMargins(
+                records: records, ids: { [$0.enemyTraitID] }, peerRate: overallRate, threshold: threshold
+            ),
+            affixes: margin(records: records, ids: \.affixIDs, peerRate: overallRate, threshold: threshold)
+        )
+    }
+
+    private static func opponentMargins(
+        records: [BalanceBattleRecord],
+        ids: (BalanceBattleRecord) -> [String],
+        peerRate: Double,
+        threshold: Double
+    ) -> [WinRateSummary] {
+        margin(
+            records: records,
+            ids: ids,
+            peerRate: peerRate,
+            threshold: threshold,
+            positiveFlag: "EASY",
+            negativeFlag: "HARD"
+        )
+    }
+
     private static func durationStats(
         _ records: [BalanceBattleRecord],
+        minRounds: Int,
         maxRounds: Int
     ) -> BalanceDurationBucketStats {
         guard !records.isEmpty else {
             return BalanceDurationBucketStats(
                 battles: 0,
+                shortBattles: 0,
                 longBattles: 0,
                 averageRounds: 0,
+                averageRoundsWhenShort: 0,
                 averageRoundsWhenLong: 0,
                 maxRounds: 0,
                 worstEnemyID: nil
             )
         }
+        let short = records.filter { $0.result.rounds < minRounds }
         let long = records.filter { $0.result.rounds > maxRounds }
         let worst = records.max(by: { $0.result.rounds < $1.result.rounds })
         return BalanceDurationBucketStats(
             battles: records.count,
+            shortBattles: short.count,
             longBattles: long.count,
             averageRounds: average(records.map { Double($0.result.rounds) }),
+            averageRoundsWhenShort: average(short.map { Double($0.result.rounds) }),
             averageRoundsWhenLong: average(long.map { Double($0.result.rounds) }),
             maxRounds: worst?.result.rounds ?? 0,
             worstEnemyID: worst?.enemyID
@@ -139,7 +182,9 @@ public enum BalanceStatsAggregator {
         records: [BalanceBattleRecord],
         ids: (BalanceBattleRecord) -> [String],
         peerRate: Double,
-        threshold: Double
+        threshold: Double,
+        positiveFlag: String = "HIGH",
+        negativeFlag: String = "LOW"
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int)] = [:]
         for record in records {
@@ -166,7 +211,7 @@ public enum BalanceStatsAggregator {
                 wilsonHigh: ci.high,
                 deltaVsPeer: delta,
                 flagged: flagged,
-                flagReason: flagged ? (delta > 0 ? "HIGH" : "LOW") : nil
+                flagReason: flagged ? (delta > 0 ? positiveFlag : negativeFlag) : nil
             )
         }
         .sorted { lhs, rhs in

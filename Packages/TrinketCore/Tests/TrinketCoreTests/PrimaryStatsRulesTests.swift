@@ -37,12 +37,12 @@ struct PrimaryStatsRulesTests {
         try #expect(abs(PrimaryStats(toughness: 120).toughnessMitigationPercent - 0.60) < 0.0001)
     }
 
-    @Test func controlMeterThresholdScalesWithAgilityAndCeilsBaseHealth() throws {
+    @Test func controlMeterThresholdScalesWithAgilityAndRoundsBaseHealth() throws {
         try #expect(PrimaryStats(agility: 0).controlMeterThreshold(baseMaxHealth: 100) == 20)
-        try #expect(PrimaryStats(agility: 20).controlMeterThreshold(baseMaxHealth: 101) == 25)
+        try #expect(PrimaryStats(agility: 20).controlMeterThreshold(baseMaxHealth: 101) == 24)
 
         let cases: [(maxHealth: Int, expectedThreshold: Int)] = [
-            (7, 2),
+            (7, 1),
             (20, 4),
             (50, 10),
             (100, 20),

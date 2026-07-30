@@ -39,6 +39,40 @@ package extension DamagePipeline {
         ))
     }
 
+    static func applyStunReaction(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard state.healthLost > 0,
+              state.damageKeyword == .stun,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy
+        else { return }
+        state.damageEvents.append(contentsOf: CombatReactionEngine.afterStunDamageDealt(
+            to: state.combatant,
+            source: source.combatant,
+            in: &context
+        ))
+    }
+
+    static func applyBurnReaction(
+        to state: inout DamageResolutionState,
+        in context: inout BattleState
+    ) {
+        guard state.healthLost > 0,
+              state.damageKeyword == .burn,
+              let sourceActorID = state.sourceActorID,
+              let source = context.roster.combatant(for: sourceActorID),
+              source.role != .enemy
+        else { return }
+        state.damageEvents.append(contentsOf: CombatReactionEngine.afterBurnDamageDealt(
+            to: state.combatant,
+            source: source.combatant,
+            in: &context
+        ))
+    }
+
     static func applyCriticalReaction(
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -69,11 +103,13 @@ package extension DamagePipeline {
               !state.isRetaliation,
               context.roster.health(for: state.combatant) > 0
         else { return }
+        // `buildupDamage` is post-mitigation damage already fight-paced in resolution.
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             state.buildupDamage,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
+            applyFightPacing: false,
             in: &context
         ))
     }
@@ -127,7 +163,8 @@ package extension DamagePipeline {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         for active in activeEffects {
             guard case let .restoreManaOnHit(amount, _) = active.effect else { continue }
-            let restored = context.restoreMana(amount, to: state.combatant, sourceActorID: state.combatant.id)
+            let pacedAmount = context.paced(amount, sourceActorID: state.combatant.id)
+            let restored = context.restoreMana(pacedAmount, to: state.combatant, sourceActorID: state.combatant.id)
             guard restored > 0 else { continue }
             state.damageEvents.append(context.nextEvent(
                 kind: .effect,
@@ -145,64 +182,93 @@ package extension DamagePipeline {
         }
     }
 
+    private struct OnHitWardTotals {
+        var thornsStacks = 0
+        var freezeOnHitAmount = 0
+        var shouldFreezeAttacker = false
+    }
+
+    private static func onHitWardTotals(from effects: [ActiveEffect]) -> OnHitWardTotals {
+        var totals = OnHitWardTotals()
+        for active in effects {
+            switch active.effect {
+            case let .thorns(amount):
+                totals.thornsStacks += amount
+            case let .freezeOnHit(amount):
+                totals.freezeOnHitAmount += amount
+            case .freezeNextAttacker:
+                totals.shouldFreezeAttacker = true
+            default:
+                continue
+            }
+        }
+        return totals
+    }
+
     private static func applyOnHitWards(
         to state: inout DamageResolutionState,
         attacker: CombatantRuntime,
         in context: inout BattleState
     ) {
-        let activeEffects = context.roster.activeEffects(for: state.combatant)
-        var thornsStacks = 0
-        var shouldFreezeAttacker = false
-        for active in activeEffects {
-            switch active.effect {
-            case let .thorns(amount):
-                thornsStacks += amount
-            case .freezeNextAttacker:
-                shouldFreezeAttacker = true
-            default:
-                continue
-            }
-        }
+        let wards = onHitWardTotals(from: context.roster.activeEffects(for: state.combatant))
 
         // Consume wards before nested resolveDamage so mutual thorns cannot recurse
         // even if a retaliation path forgets `isRetaliation`.
-        if thornsStacks > 0 {
+        if wards.thornsStacks > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
                 if case .thorns = $0 {
                     return true
                 }
                 return false
             }
-            appendThornsRetaliation(
-                amount: thornsStacks,
+            appendRetaliationDamage(
+                amount: wards.thornsStacks,
                 keyword: .physical,
+                abilityName: "Thorns",
                 attacker: attacker,
                 to: &state,
                 in: &context
             )
         }
 
-        if shouldFreezeAttacker {
+        if wards.freezeOnHitAmount > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .freezeNextAttacker = $0 {
+                if case .freezeOnHit = $0 {
                     return true
                 }
                 return false
             }
-            let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
-            state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-                threshold,
+            appendRetaliationDamage(
+                amount: wards.freezeOnHitAmount,
                 keyword: .freeze,
-                to: attacker.combatant,
-                sourceActorID: state.combatant.id,
+                abilityName: "Glacial Ward",
+                attacker: attacker,
+                to: &state,
                 in: &context
-            ))
+            )
         }
+
+        guard wards.shouldFreezeAttacker else { return }
+        ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
+            if case .freezeNextAttacker = $0 {
+                return true
+            }
+            return false
+        }
+        let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+            threshold,
+            keyword: .freeze,
+            to: attacker.combatant,
+            sourceActorID: state.combatant.id,
+            in: &context
+        ))
     }
 
-    private static func appendThornsRetaliation(
+    private static func appendRetaliationDamage(
         amount: Int,
         keyword: Keyword,
+        abilityName: String,
         attacker: CombatantRuntime,
         to state: inout DamageResolutionState,
         in context: inout BattleState
@@ -222,10 +288,10 @@ package extension DamagePipeline {
                 )
             )
         )
-        var thornsEvents = outcome.events
-        if let lastIndex = thornsEvents.indices.last {
-            let event = thornsEvents[lastIndex]
-            thornsEvents[lastIndex] = ActionEvent(
+        var retaliationEvents = outcome.events
+        if let lastIndex = retaliationEvents.indices.last {
+            let event = retaliationEvents[lastIndex]
+            retaliationEvents[lastIndex] = ActionEvent(
                 id: event.id,
                 actionID: event.actionID,
                 kind: event.kind,
@@ -233,7 +299,7 @@ package extension DamagePipeline {
                 actorID: state.combatant.id,
                 actorName: state.combatant.name,
                 abilityID: event.abilityID,
-                abilityName: "Thorns",
+                abilityName: abilityName,
                 abilityTier: event.abilityTier,
                 targetID: event.targetID,
                 targetName: event.targetName,
@@ -244,16 +310,16 @@ package extension DamagePipeline {
                 isCritical: event.isCritical
             )
         } else if outcome.healthLost > 0 {
-            thornsEvents.append(context.nextEvent(
+            retaliationEvents.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .thornsTriggered,
                 actorName: state.combatant.name,
-                abilityName: "Thorns",
+                abilityName: abilityName,
                 target: attacker.combatant,
                 amount: outcome.healthLost,
                 keyword: keyword
             ))
         }
-        state.damageEvents.append(contentsOf: thornsEvents)
+        state.damageEvents.append(contentsOf: retaliationEvents)
     }
 }

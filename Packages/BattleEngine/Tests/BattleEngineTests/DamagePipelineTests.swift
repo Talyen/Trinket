@@ -9,6 +9,7 @@ struct DamagePipelineTests {
         "DodgeGate",
         "CriticalGate",
         "DamageBonus",
+        "FightPacing",
         "MarkedBonus",
         "ItemReduction",
         "CriticalMultiply",
@@ -21,6 +22,8 @@ struct DamagePipelineTests {
         "ControlMeter",
         "ReactiveOnHit",
         "HolyReaction",
+        "StunReaction",
+        "BurnReaction",
         "CriticalReaction",
     ]
 
@@ -263,5 +266,37 @@ struct DamagePipelineTests {
             }
             return false
         })
+    }
+
+    @Test func freezeOnHitDealsFreezeRetaliationOnBlockedAttack() throws {
+        var context = makeContext(seed: 2)
+        let defender = context.roster.enemy.combatant
+        let attacker = context.roster.hero.combatant
+        context.roster.setActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .freezeOnHit(2), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .shield(.block, 50), remainingTurns: 0),
+            ],
+            for: defender
+        )
+
+        let attackerHealthBefore = context.roster.health(for: attacker)
+        let healthBefore = context.roster.health(for: defender)
+        _ = context.resolveDamage(
+            .directAbilityHit(
+                amount: 10,
+                target: defender,
+                keyword: .physical,
+                sourceActorID: attacker.id
+            )
+        )
+        try #expect(context.roster.health(for: defender) == healthBefore)
+        try #expect(context.roster.health(for: attacker) == attackerHealthBefore - 2)
+        try #expect(!(context.roster.activeEffects(for: defender).contains {
+            if case .freezeOnHit = $0.effect {
+                return true
+            }
+            return false
+        }))
     }
 }

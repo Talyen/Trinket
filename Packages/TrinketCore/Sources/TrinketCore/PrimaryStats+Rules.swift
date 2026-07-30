@@ -54,9 +54,8 @@ public extension PrimaryStats {
     /// effective max health (`base max + toughness`). Scales with Agility using
     /// the diminishing returns curve.
     func controlMeterThreshold(baseMaxHealth: Int) -> Int {
-        let baseThreshold = Double(baseMaxHealth) * 0.20
         let agilityResist = 1.0 + diminishingReturnsPercent(for: agility)
-        return max(1, Int(ceil(baseThreshold * agilityResist)))
+        return max(1, CombatRounding.rounded(Double(baseMaxHealth) * 0.20 * agilityResist))
     }
 
     /// Contested critical-hit chance for the given keyword: attacker keyword stat

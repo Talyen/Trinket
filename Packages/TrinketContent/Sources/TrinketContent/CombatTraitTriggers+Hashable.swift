@@ -3,6 +3,10 @@ import TrinketCore
 
 extension CombatTraitTriggers: Equatable {
     public static func == (lhs: CombatTraitTriggers, rhs: CombatTraitTriggers) -> Bool {
+        equalCore(lhs, rhs) && equalAdvanced(lhs, rhs)
+    }
+
+    private static func equalCore(_ lhs: CombatTraitTriggers, _ rhs: CombatTraitTriggers) -> Bool {
         lhs.cleanseBonusHeal == rhs.cleanseBonusHeal
             && lhs.gainGoldBonusHealSelf == rhs.gainGoldBonusHealSelf
             && lhs.restoreHealthAlsoHealHero == rhs.restoreHealthAlsoHealHero
@@ -33,23 +37,33 @@ extension CombatTraitTriggers: Equatable {
             && lhs.damageBelowHealthPercentThreshold == rhs.damageBelowHealthPercentThreshold
             && lhs.damageBelowHealthPercentKeyword == rhs.damageBelowHealthPercentKeyword
             && lhs.damageBelowHealthPercentBonus == rhs.damageBelowHealthPercentBonus
-            && lhs.damageAfterDodgeBonus == rhs.damageAfterDodgeBonus
+    }
+
+    private static func equalAdvanced(_ lhs: CombatTraitTriggers, _ rhs: CombatTraitTriggers) -> Bool {
+        lhs.damageAfterDodgeBonus == rhs.damageAfterDodgeBonus
             && lhs.blockBrokenBlockFlat == rhs.blockBrokenBlockFlat
             && lhs.companionLeechSharePercent == rhs.companionLeechSharePercent
             && lhs.onceBelowHealthPercentThreshold == rhs.onceBelowHealthPercentThreshold
             && lhs.onceBelowHealthPercentHeal == rhs.onceBelowHealthPercentHeal
             && lhs.blockOnDeathsDoor == rhs.blockOnDeathsDoor
             && lhs.spendManaBlockFlat == rhs.spendManaBlockFlat
+            && lhs.spendManaRandomDoTFlat == rhs.spendManaRandomDoTFlat
             && lhs.holyDamageBlockFlat == rhs.holyDamageBlockFlat
+            && lhs.stunDamageBlockFlat == rhs.stunDamageBlockFlat
             && lhs.holyDamageCleanseCount == rhs.holyDamageCleanseCount
             && lhs.holyDamageHealFlat == rhs.holyDamageHealFlat
+            && lhs.burnDamageHealFlat == rhs.burnDamageHealFlat
             && lhs.dodgeGoldFlat == rhs.dodgeGoldFlat
             && lhs.ignoreEnemyMitigationPercent == rhs.ignoreEnemyMitigationPercent
             && lhs.stunDealPhysicalFlat == rhs.stunDealPhysicalFlat
             && lhs.damageWhileTargetStunnedBonus == rhs.damageWhileTargetStunnedBonus
             && lhs.enemyStunnedApplyMarked == rhs.enemyStunnedApplyMarked
             && lhs.dodgeBlockFlat == rhs.dodgeBlockFlat
+            && lhs.dodgeApplyPoison == rhs.dodgeApplyPoison
             && lhs.holyDamagePurgeCount == rhs.holyDamagePurgeCount
+            && lhs.healCleanseCount == rhs.healCleanseCount
+            && lhs.onceDeathReviveHealth == rhs.onceDeathReviveHealth
+            && lhs.onceDeathReviveBlock == rhs.onceDeathReviveBlock
             && lhs.blockPerTurn == rhs.blockPerTurn
             && lhs.firstHitDoubleDamage == rhs.firstHitDoubleDamage
             && lhs.leechChancePercent == rhs.leechChancePercent
@@ -62,6 +76,11 @@ extension CombatTraitTriggers: Equatable {
 
 extension CombatTraitTriggers: Hashable {
     public func hash(into hasher: inout Hasher) {
+        hashCore(into: &hasher)
+        hashAdvanced(into: &hasher)
+    }
+
+    private func hashCore(into hasher: inout Hasher) {
         hasher.combine(cleanseBonusHeal)
         hasher.combine(gainGoldBonusHealSelf)
         hasher.combine(restoreHealthAlsoHealHero)
@@ -92,6 +111,9 @@ extension CombatTraitTriggers: Hashable {
         hasher.combine(damageBelowHealthPercentThreshold)
         hasher.combine(damageBelowHealthPercentKeyword)
         hasher.combine(damageBelowHealthPercentBonus)
+    }
+
+    private func hashAdvanced(into hasher: inout Hasher) {
         hasher.combine(damageAfterDodgeBonus)
         hasher.combine(blockBrokenBlockFlat)
         hasher.combine(companionLeechSharePercent)
@@ -99,16 +121,23 @@ extension CombatTraitTriggers: Hashable {
         hasher.combine(onceBelowHealthPercentHeal)
         hasher.combine(blockOnDeathsDoor)
         hasher.combine(spendManaBlockFlat)
+        hasher.combine(spendManaRandomDoTFlat)
         hasher.combine(holyDamageBlockFlat)
+        hasher.combine(stunDamageBlockFlat)
         hasher.combine(holyDamageCleanseCount)
         hasher.combine(holyDamageHealFlat)
+        hasher.combine(burnDamageHealFlat)
         hasher.combine(dodgeGoldFlat)
         hasher.combine(ignoreEnemyMitigationPercent)
         hasher.combine(stunDealPhysicalFlat)
         hasher.combine(damageWhileTargetStunnedBonus)
         hasher.combine(enemyStunnedApplyMarked)
         hasher.combine(dodgeBlockFlat)
+        hasher.combine(dodgeApplyPoison)
         hasher.combine(holyDamagePurgeCount)
+        hasher.combine(healCleanseCount)
+        hasher.combine(onceDeathReviveHealth)
+        hasher.combine(onceDeathReviveBlock)
         hasher.combine(blockPerTurn)
         hasher.combine(firstHitDoubleDamage)
         hasher.combine(leechChancePercent)

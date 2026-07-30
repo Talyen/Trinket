@@ -21,7 +21,14 @@ struct ConvertManaToBlockHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         _ = context.spendMana(mana, for: target)
-        DefensePoolEngine.add(mana, pool: .block, to: target, keyword: .block, in: &context)
+        let applied = DefensePoolEngine.add(
+            mana,
+            pool: .block,
+            to: target,
+            keyword: .block,
+            sourceActorID: source.id,
+            in: &context
+        )
         var events = CombatReactionEngine.afterSpendMana(by: target, in: &context)
         events.append(context.nextEvent(
             kind: .effect,
@@ -29,7 +36,7 @@ struct ConvertManaToBlockHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: mana,
+            amount: applied,
             keyword: .block
         ))
         return EffectApplyOutcome(events: events, didApply: true)
@@ -54,14 +61,21 @@ struct ShieldFromManaHandler: BattleEffectHandler {
         guard mana > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        DefensePoolEngine.add(mana, pool: .block, to: target, keyword: .block, in: &context)
+        let applied = DefensePoolEngine.add(
+            mana,
+            pool: .block,
+            to: target,
+            keyword: .block,
+            sourceActorID: source.id,
+            in: &context
+        )
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: mana,
+            amount: applied,
             keyword: .block
         )
         return EffectApplyOutcome(events: [event], didApply: true)
@@ -87,14 +101,21 @@ struct ShieldFromHalfManaHandler: BattleEffectHandler {
         guard block > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        DefensePoolEngine.add(block, pool: .block, to: target, keyword: .block, in: &context)
+        let applied = DefensePoolEngine.add(
+            block,
+            pool: .block,
+            to: target,
+            keyword: .block,
+            sourceActorID: source.id,
+            in: &context
+        )
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: block,
+            amount: applied,
             keyword: .block
         )
         return EffectApplyOutcome(events: [event], didApply: true)
@@ -119,14 +140,21 @@ struct ShieldFromGoldHandler: BattleEffectHandler {
         guard block > 0 else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        DefensePoolEngine.add(block, pool: .block, to: target, keyword: .block, in: &context)
+        let applied = DefensePoolEngine.add(
+            block,
+            pool: .block,
+            to: target,
+            keyword: .block,
+            sourceActorID: source.id,
+            in: &context
+        )
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: block,
+            amount: applied,
             keyword: .block
         )
         return EffectApplyOutcome(events: [event], didApply: true)
@@ -164,7 +192,11 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             sourceID: source.id,
             remainingTurns: 0
         )
-        let restored = context.restoreMana(amount, to: target, sourceActorID: source.id)
+        let restored = context.restoreMana(
+            context.paced(amount, sourceActorID: source.id),
+            to: target,
+            sourceActorID: source.id
+        )
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,

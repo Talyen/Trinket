@@ -10,14 +10,17 @@ struct AbilityDescriptionFormatterTests {
         try #expect(description.contains("Deal 1 Burn damage"))
         try #expect(!description.contains("applies Burning"))
         try #expect(
-            AbilityDescriptionFormatter.format(.fangs) == "Applies Bleeding. Leech."
+            AbilityDescriptionFormatter.format(.fangs) == "Deal 1 Bleed damage. Leech."
+        )
+        try #expect(
+            AbilityDescriptionFormatter.format(.rendingSlash) == "Deal 2 Bleed damage."
         )
         try #expect(
             AbilityDescriptionFormatter.format(.faustianBargain) == "Lose 2 Health. Deal 6 Burn damage."
         )
         try #expect(
             AbilityDescriptionFormatter.format(.cleanse)
-                == "Cleanse a status effect and Restore 2 Health."
+                == "Cleanse a status effect and Restore 3 Health."
         )
         try #expect(
             Ability.avatarOfJustice.summary

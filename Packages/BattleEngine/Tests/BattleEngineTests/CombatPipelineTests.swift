@@ -182,13 +182,14 @@ struct CombatPipelineTests {
             try #expect(context.roster.hero.currentHealth > before)
             try #expect(events.contains { $0.effectKind == .leechHeal })
         case "self":
+            let expectedLoss = context.paced(10, sourceActorID: "source")
             let (_, events) = context.applyTestDamage(
                 10,
                 to: context.roster.hero.combatant,
                 keyword: .physical,
                 sourceActorID: "source"
             )
-            try #expect(context.roster.hero.currentHealth == before - 10)
+            try #expect(context.roster.hero.currentHealth == before - expectedLoss)
             try #expect(!(events.contains { $0.effectKind == .leechHeal }))
         default:
             Issue.record("Unexpected leech mode \(mode)")

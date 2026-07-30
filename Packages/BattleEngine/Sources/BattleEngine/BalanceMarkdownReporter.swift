@@ -68,7 +68,7 @@ public enum BalanceMarkdownReporter {
         }
         lines.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
         lines.append(
-            "- Too-long fights: trash `>\(BalanceDurationThresholds.trashMaxRounds)` rounds, boss `>\(BalanceDurationThresholds.bossMaxRounds)` rounds (sim `turnCount` = player phase + enemy phase)."
+            "- Duration goal bands: trash `\(BalanceDurationThresholds.trashGoalBand)` rounds, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds (sim `turnCount` = player phase + enemy phase)."
         )
         lines.append("")
     }
@@ -77,11 +77,15 @@ public enum BalanceMarkdownReporter {
         lines.append("## Notes")
         lines.append("")
         lines.append("- Win rates are under `\(policyID)` autoplay, not human play.")
-        lines.append("- Identity ability/affix rows are presence margins (entity appeared in loadout/gear).")
-        lines.append("- Contrast lifts hold partner/enemy/gear fixed and swap only the focus entity.")
-        lines.append("- Enemy ⚠ flags compare against `StatGrowth.enemyGearCompensation` target bands.")
+        lines.append("- Identity party ability/affix rows are presence margins (entity appeared in loadout/gear).")
         lines.append(
-            "- Duration ⚠ LONG uses gameplay thresholds (trash >\(BalanceDurationThresholds.trashMaxRounds) / boss >\(BalanceDurationThresholds.bossMaxRounds) rounds)."
+            "- Enemy ability/trait rows are presence margins (opposing kit); ⚠ EASY / ⚠ HARD are player win rate vs tier peer."
+        )
+        lines.append("- Contrast lifts hold partner/enemy/gear fixed and swap only the focus entity.")
+        lines.append("- Enemy power uses `EnemyPowerCurve` stat anchors (L1/L20/L40); the same multiplier scales enemy HP and stats.")
+        lines.append("- Sweeps include hidden `FightPacing` comeback/clock scaling on authored combat magnitudes.")
+        lines.append(
+            "- Duration ⚠ SHORT / ⚠ LONG flag fights outside goal bands (trash \(BalanceDurationThresholds.trashGoalBand), boss \(BalanceDurationThresholds.bossGoalBand) rounds)."
         )
         lines.append("")
     }
@@ -107,7 +111,9 @@ public enum BalanceMarkdownReporter {
         appendSection(title: "Heroes", summaries: tierStats.heroes, into: &lines)
         appendSection(title: "Companions", summaries: tierStats.companions, into: &lines)
         appendSection(title: "Enemies", summaries: tierStats.enemies, into: &lines)
-        appendSection(title: "Abilities", summaries: tierStats.abilities, into: &lines, limit: 25)
+        appendSection(title: "Party Abilities", summaries: tierStats.abilities, into: &lines, limit: 25)
+        appendSection(title: "Enemy Abilities", summaries: tierStats.enemyAbilities, into: &lines, limit: 25)
+        appendSection(title: "Enemy Traits", summaries: tierStats.enemyTraits, into: &lines)
         if tierStats.tier.includesGear {
             appendSection(title: "Item Affixes", summaries: tierStats.affixes, into: &lines, limit: 25)
         }
@@ -116,17 +122,22 @@ public enum BalanceMarkdownReporter {
     private static func appendDurationSection(_ tierStats: BalanceTierStats, into lines: inout [String]) {
         lines.append("### Duration")
         lines.append("")
-        lines.append("| Bucket | Threshold | n | LONG% | Avg rounds | Avg when LONG | Max rounds | Worst enemy | Flag |")
-        lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|")
+        lines.append(
+            "| Bucket | Goal | n | SHORT% | LONG% | Avg rounds | "
+                + "Avg when SHORT | Avg when LONG | Max rounds | Worst enemy | Flag |"
+        )
+        lines.append(
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---|"
+        )
         appendDurationRow(
             label: "trash",
-            threshold: BalanceDurationThresholds.trashMaxRounds,
+            goalBand: BalanceDurationThresholds.trashGoalBand,
             stats: tierStats.trashDuration,
             into: &lines
         )
         appendDurationRow(
             label: "boss",
-            threshold: BalanceDurationThresholds.bossMaxRounds,
+            goalBand: BalanceDurationThresholds.bossGoalBand,
             stats: tierStats.bossDuration,
             into: &lines
         )
@@ -135,19 +146,28 @@ public enum BalanceMarkdownReporter {
 
     private static func appendDurationRow(
         label: String,
-        threshold: Int,
+        goalBand: String,
         stats: BalanceDurationBucketStats,
         into lines: inout [String]
     ) {
-        let flag = stats.longBattles > 0 ? "⚠ LONG" : ""
+        var flags: [String] = []
+        if stats.shortBattles > 0 {
+            flags.append("⚠ SHORT")
+        }
+        if stats.longBattles > 0 {
+            flags.append("⚠ LONG")
+        }
+        let flag = flags.joined(separator: " ")
         let worst = stats.worstEnemyID.map { "`\($0)`" } ?? "—"
         lines.append(String(
-            format: "| %@ | >%d | %d | %.1f%% | %.1f | %.1f | %d | %@ | %@ |",
+            format: "| %@ | %@ | %d | %.1f%% | %.1f%% | %.1f | %.1f | %.1f | %d | %@ | %@ |",
             label,
-            threshold,
+            goalBand,
             stats.battles,
+            stats.shortRate * 100,
             stats.longRate * 100,
             stats.averageRounds,
+            stats.averageRoundsWhenShort,
             stats.averageRoundsWhenLong,
             stats.maxRounds,
             worst,

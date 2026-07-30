@@ -28,7 +28,14 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
 
-        DefensePoolEngine.add(gain.amount, pool: pool, to: target, keyword: gain.keyword, in: &context)
+        let applied = DefensePoolEngine.add(
+            gain.amount,
+            pool: pool,
+            to: target,
+            keyword: gain.keyword,
+            sourceActorID: source.id,
+            in: &context
+        )
 
         let event = context.nextEvent(
             kind: .effect,
@@ -36,7 +43,7 @@ struct DefensePoolBuffHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: gain.amount,
+            amount: applied,
             keyword: gain.keyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)

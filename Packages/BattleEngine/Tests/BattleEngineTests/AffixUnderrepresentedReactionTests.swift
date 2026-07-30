@@ -186,10 +186,11 @@ struct AffixUnderrepresentedReactionTests {
         let enemy = context.roster.enemy.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
 
+        let expectedHeal = context.paced(3, sourceActorID: hero.id)
         let events = CombatReactionEngine.afterDodge(by: hero, in: &context)
 
-        try #expect(events.contains { $0.abilityName == "Sidestep" && $0.amount == 3 })
-        try #expect(context.roster.health(for: hero) == 8)
+        try #expect(context.roster.health(for: hero) == 5 + expectedHeal)
+        try #expect(events.contains { $0.abilityName == "Sidestep" && $0.amount == expectedHeal })
         try #expect(context.roster.health(for: enemy) == 17)
         try #expect(events.contains { $0.abilityName == "Whiplash" && $0.amount == 3 })
     }

@@ -59,8 +59,8 @@ enum GameContentRosterGenerated {
             maxMana: 10,
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .rayOfFrost],
-                skills: [.fireball, .frostbolt],
-                ultimates: [.meteor, .glacialWard]
+                skills: [.fireball, .glacialWard],
+                ultimates: [.meteor, .blizzard]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 8, intellect: 14, wisdom: 12),
             growthArchetype: .mage
@@ -117,7 +117,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.rayOfFrost, .iceShot],
                 skills: [.frostbolt, .coldSnap],
-                ultimates: [.glacialWard, .blizzard]
+                ultimates: [.blizzard, .astralArrow]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 14, wisdom: 11),
             growthArchetype: .mage
@@ -143,7 +143,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
                 skills: [.pounce, .venomFangs],
-                ultimates: [.packTactics, .shadowstep]
+                ultimates: [.shadowstep, .bloodthorn]
             ),
             primaryStats: PrimaryStats(strength: 12, agility: 12, toughness: 10, intellect: 8, wisdom: 8),
             growthArchetype: .bruiser
@@ -168,8 +168,8 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.rendingSlash, .fangs],
-                skills: [.venomFangs, .predatorsFocus],
+                basics: [.fangs, .rendingSlash],
+                skills: [.pounce, .predatorsFocus],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
@@ -197,7 +197,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.apple, .stargaze],
                 skills: [.heal, .cleanse],
-                ultimates: [.panaceaPotion, .glacialWard]
+                ultimates: [.panaceaPotion, .sunburst]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
             growthArchetype: .support
@@ -208,7 +208,7 @@ enum GameContentRosterGenerated {
             role: .companion,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .stab],
+                basics: [.slash, .block],
                 skills: [.darkPact, .sunder],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),

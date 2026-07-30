@@ -10,7 +10,7 @@ package extension CombatReactionEngine {
     ) -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
         let profile = context.modifiers(for: source.id)
-        return applyPurge(
+        var events = applyPurge(
             to: enemy,
             source: source,
             abilityName: "Unmaking",
@@ -18,6 +18,22 @@ package extension CombatReactionEngine {
             purgeAll: profile.triggers.criticalPurgeAll,
             in: &context
         )
+
+        if profile.triggers.criticalGoldFlat > 0 {
+            let granted = context.goldGranted(for: profile.triggers.criticalGoldFlat, sourceActorID: source.id)
+            context.addGold(profile.triggers.criticalGoldFlat, sourceActorID: source.id)
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .resourceGain,
+                actorName: source.name,
+                abilityName: profile.traitDisplayName ?? "Cutpurse",
+                target: source,
+                amount: granted,
+                keyword: .gold
+            ))
+        }
+
+        return events
     }
 
     static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
@@ -38,7 +54,7 @@ package extension CombatReactionEngine {
 
         if profile.triggers.leechRestoreManaFlat > 0 {
             let restored = context.restoreMana(
-                profile.triggers.leechRestoreManaFlat,
+                context.paced(profile.triggers.leechRestoreManaFlat, sourceActorID: actor.id),
                 to: actor,
                 sourceActorID: actor.id
             )

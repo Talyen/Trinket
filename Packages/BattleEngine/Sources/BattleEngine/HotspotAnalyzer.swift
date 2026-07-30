@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
@@ -49,6 +50,7 @@ public struct NodeHotspotSummary: Equatable, Sendable {
     public var wilsonHigh: Double
     public var averagePlayerLevel: Double
     public var averageEnemyLevel: Double
+    public var averageEnemyPowerRating: Double
     public var status: HotspotStatus
     public var flagReason: String?
 
@@ -61,6 +63,7 @@ public struct NodeHotspotSummary: Equatable, Sendable {
         wilsonHigh: Double,
         averagePlayerLevel: Double,
         averageEnemyLevel: Double,
+        averageEnemyPowerRating: Double,
         status: HotspotStatus,
         flagReason: String? = nil
     ) {
@@ -72,6 +75,7 @@ public struct NodeHotspotSummary: Equatable, Sendable {
         self.wilsonHigh = wilsonHigh
         self.averagePlayerLevel = averagePlayerLevel
         self.averageEnemyLevel = averageEnemyLevel
+        self.averageEnemyPowerRating = averageEnemyPowerRating
         self.status = status
         self.flagReason = flagReason
     }
@@ -101,6 +105,7 @@ public enum HotspotAnalyzer {
 
             let avgPlayer = total == 0 ? 0.0 : Double(recs.map(\.playerLevel).reduce(0, +)) / Double(total)
             let avgEnemy = total == 0 ? 0.0 : Double(recs.map(\.enemyLevel).reduce(0, +)) / Double(total)
+            let avgPowerRating = averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
             let levelGap = avgEnemy - avgPlayer
 
             let status: HotspotStatus
@@ -131,6 +136,7 @@ public enum HotspotAnalyzer {
                 wilsonHigh: wilson.high,
                 averagePlayerLevel: avgPlayer,
                 averageEnemyLevel: avgEnemy,
+                averageEnemyPowerRating: avgPowerRating,
                 status: status,
                 flagReason: reason
             )
@@ -145,5 +151,14 @@ public enum HotspotAnalyzer {
             }
             return lhs.step.stepIndex < rhs.step.stepIndex
         }
+    }
+
+    private static func averageEnemyPowerRating(
+        for step: ModeProgressionStep,
+        averageEnemyLevel: Double
+    ) -> Double {
+        guard let enemy = GameContent.enemy(matching: step.enemyID) else { return 0 }
+        let level = max(1, Int(averageEnemyLevel.rounded()))
+        return Double(CombatantLevelScaler.powerRating(for: enemy, level: level).rating)
     }
 }

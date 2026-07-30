@@ -50,8 +50,12 @@ struct ResourceGainHandler: BattleEffectHandler {
         let loggedAmount: Int
         switch keyword {
         case .mana:
-            let restored = context.restoreMana(amount, to: target, sourceActorID: source.id)
-            loggedAmount = amount
+            let restored = context.restoreMana(
+                context.paced(amount, sourceActorID: source.id),
+                to: target,
+                sourceActorID: source.id
+            )
+            loggedAmount = restored
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,

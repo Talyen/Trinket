@@ -7,23 +7,23 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "oathbound",
             name: "Oathbound",
-            description: "Increase Block gained by 1.",
-            modifiers: [.blockGained(1)],
-            triggers: CombatTraitTriggers()
+            description: "When you deal Holy or Stun damage, gain 1 Block.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(holyDamageBlockFlat: 1, stunDamageBlockFlat: 1)
         ),
         CombatantTraitDefinition(
             id: "cutpurse",
             name: "Cutpurse",
-            description: "Increase Gold gained by 1.",
-            modifiers: [.goldGained(1)],
-            triggers: CombatTraitTriggers()
+            description: "Gain 1 Gold when you Critically Hit.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(criticalGoldFlat: 1))
         ),
         CombatantTraitDefinition(
             id: "arcane_focus",
             name: "Arcane Focus",
-            description: "Increase Burn and Freeze damage dealt by 1.",
-            modifiers: [.damageDealt(.burn, 1), .damageDealt(.freeze, 1)],
-            triggers: CombatTraitTriggers()
+            description: "Deal 1 Burn or Freeze when you spend Mana.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(spendManaRandomDoTFlat: 1)
         ),
         CombatantTraitDefinition(
             id: "pack_leader",
@@ -34,17 +34,17 @@ enum GameContentTraitsGenerated {
         ),
         CombatantTraitDefinition(
             id: "soul_siphon",
-            name: "Soul Siphon",
-            description: "Increase Leech duration by 2.",
-            modifiers: [.leechDuration(2)],
-            triggers: CombatTraitTriggers()
+            name: "Bloodfire",
+            description: "When you deal Burn damage, restore 1 Health.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(burnDamageHealFlat: 1)
         ),
         CombatantTraitDefinition(
             id: "thick_hide",
             name: "Thick Hide",
-            description: "Increase Maximum Health by 2.",
-            modifiers: [.maximumHealth(2)],
-            triggers: CombatTraitTriggers()
+            description: "Restores 1 Health each turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTurns: 1)
         ),
         CombatantTraitDefinition(
             id: "permafrost",
@@ -56,9 +56,9 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "cold_blood",
             name: "Cold Blood",
-            description: "Increase Agility by 2.",
-            modifiers: [.agility(2)],
-            triggers: CombatTraitTriggers()
+            description: "When you Dodge, apply 2 Poison.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(dodgeApplyPoison: 2)
         ),
         CombatantTraitDefinition(
             id: "razor_claws",
@@ -69,10 +69,10 @@ enum GameContentTraitsGenerated {
         ),
         CombatantTraitDefinition(
             id: "immortal_ember",
-            name: "Immortal Ember",
-            description: "Increase Burn damage dealt by 1.",
-            modifiers: [.damageDealt(.burn, 1)],
-            triggers: CombatTraitTriggers()
+            name: "Rebirth",
+            description: "Revives and restores 10 Health the first time it dies each battle.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(onceDeathReviveHealth: 10)
         ),
         CombatantTraitDefinition(
             id: "pack_ferocity",
@@ -83,10 +83,10 @@ enum GameContentTraitsGenerated {
         ),
         CombatantTraitDefinition(
             id: "gold_retriever",
-            name: "Gold Retriever",
-            description: "Increase Gold gained by 1.",
-            modifiers: [.goldGained(1)],
-            triggers: CombatTraitTriggers()
+            name: "Bounty",
+            description: "Gain 3 Gold when you defeat an enemy.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(defeatEnemyGoldFlat: 3))
         ),
         CombatantTraitDefinition(
             id: "sly_trickery",
@@ -104,31 +104,31 @@ enum GameContentTraitsGenerated {
         ),
         CombatantTraitDefinition(
             id: "unliving_frame",
-            name: "Unliving Frame",
-            description: "Decrease Physical damage taken by 10%.",
-            modifiers: [.damageTakenPercent(.physical, 0.10)],
-            triggers: CombatTraitTriggers()
+            name: "Deathrattle",
+            description: "Revives and restores 10 Block the first time it dies each battle.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(onceDeathReviveHealth: 1, onceDeathReviveBlock: 10)
         ),
         CombatantTraitDefinition(
             id: "arcane_reservoir",
             name: "Arcane Reservoir",
-            description: "Increase Maximum Mana by 3.",
-            modifiers: [.maximumMana(3)],
-            triggers: CombatTraitTriggers()
+            description: "Gain 1 Block when you spend Mana.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(spendManaBlockFlat: 1)
         ),
         CombatantTraitDefinition(
             id: "fae_fortune",
             name: "Fae Fortune",
-            description: "Restore 1 Health when gaining Gold.",
+            description: "When you Heal, also Cleanse 1 debuff.",
             modifiers: [],
-            triggers: CombatTraitTriggers(gainGoldBonusHealSelf: 1)
+            triggers: CombatTraitTriggers(healCleanseCount: 1)
         ),
         CombatantTraitDefinition(
             id: "iron_carapace",
-            name: "Iron Carapace",
-            description: "Increase Block gained by 2.",
-            modifiers: [.blockGained(2)],
-            triggers: CombatTraitTriggers()
+            name: "Carapace",
+            description: "Gain 1 Block each turn.",
+            modifiers: [],
+            triggers: CombatTraitTriggers(blockPerTurn: 1)
         ),
         CombatantTraitDefinition(
             id: "living_armor_trait",
@@ -182,16 +182,16 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "the_forge_golem_trait",
             name: "The Forge Golem",
-            description: "Gains 1 Block each turn. Damage increases by 1 every other turn.",
+            description: "Damage increases by 1 every other turn.",
             modifiers: [],
-            triggers: CombatTraitTriggers(blockPerTurn: 1, damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
             id: "the_frostwarden_trait",
             name: "The Frostwarden",
-            description: "Deals 2 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.",
+            description: "Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.",
             modifiers: [.damageTakenVulnerability(.burn, 0.20)],
-            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 2, damageIncreasesEveryOtherTurn: true)
+            triggers: CombatTraitTriggers(turnFreezeDamageAllEnemies: 1, damageIncreasesEveryOtherTurn: true)
         ),
         CombatantTraitDefinition(
             id: "the_iron_bear_trait",

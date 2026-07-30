@@ -163,7 +163,7 @@ struct DeathsDoorEngineTests {
     }
 
     @Test func doTTickTriggersDeathsDoor() throws {
-        // Start at 2 HP so a 3-potency tick remains lethal after catch-up (−1 while enemy HP% leads).
+        // Start at 2 HP so a 3-potency tick leaves the hero at 1 HP and triggers Death's Door.
         var context = makeContext(heroHP: 2)
         let hero = context.roster.hero.combatant
         let outcome = context.resolveDoTTick(

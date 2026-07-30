@@ -151,7 +151,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public func effectiveManaCost(for ability: Ability) -> Int {
         guard ability.manaCost > 0 else { return 0 }
         let reduction = min(1, max(0, manaCostReductionPercent))
-        let reduced = Int(floor(Double(ability.manaCost) * (1 - reduction)))
+        let reduced = CombatRounding.scaled(ability.manaCost, multiplier: 1 - reduction)
         return max(0, reduced)
     }
 }
@@ -166,7 +166,7 @@ public struct CombatBuild: Equatable, Hashable, Sendable {
     }
 
     public var effectiveMaxHealth: Int {
-        combatant.maxHealth + combatant.primaryStats.toughness + modifiers.maximumHealthBonus
+        combatant.maxHealth + modifiers.maximumHealthBonus
     }
 
     public var effectiveMaxMana: Int {

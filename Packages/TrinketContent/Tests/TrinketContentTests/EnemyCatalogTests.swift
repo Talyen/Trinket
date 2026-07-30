@@ -9,8 +9,6 @@ struct EnemyCatalogTests {
         "the_iron_bear",
     ]
 
-    private static let bossBaseHealth: Set<Int> = [31, 32]
-
     @Test(arguments: GameContent.enemies)
     func enemyCatalogInvariants(enemy: Enemy) throws {
         if Self.bossIDs.contains(enemy.id) {
@@ -18,15 +16,8 @@ struct EnemyCatalogTests {
         } else {
             try #expect(!enemy.isBoss, "\(enemy.name) should not be a boss")
         }
-        if enemy.isBoss {
-            try #expect(
-                Self.bossBaseHealth.contains(enemy.maxHealth),
-                "\(enemy.name) should use a boss base HP band"
-            )
-        } else {
-            try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
-            try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
-        }
+        try #expect(enemy.maxHealth >= 11, "\(enemy.name) should have normal base HP")
+        try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
         try #expect(!enemy.combatant.growthArchetype.rawValue.isEmpty)
         try #expect(!enemy.combatant.hasMana, "\(enemy.name) should not have Mana")
         let loadout = enemy.combatant.abilityLoadout
@@ -48,6 +39,14 @@ struct EnemyCatalogTests {
 
         let treant = try #require(GameContent.enemies.first { $0.id == "the_blight_treant" })
         try #expect(treant.combatant.abilityLoadout.basic == .causticJab)
+
+        let frostwarden = try #require(GameContent.enemies.first { $0.id == "the_frostwarden" })
+        try #expect(frostwarden.combatant.abilityLoadout.basic == .rayOfFrost)
+        try #expect(frostwarden.combatant.abilityLoadout.skill == .glacialWard)
+        try #expect(frostwarden.combatant.abilityLoadout.ultimate == .blizzard)
+
+        let livingArmor = try #require(GameContent.enemies.first { $0.id == "living_armor" })
+        try #expect(livingArmor.combatant.abilityLoadout.ultimate == .thornMail)
     }
 
     @Test func idsAreUniqueAcrossCombatants() throws {
@@ -73,7 +72,7 @@ struct EnemyCatalogTests {
     func enemiesUsePrimaryStatBudget(enemy: Enemy) throws {
         let stats = enemy.combatant.primaryStats
         let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-        let expected = enemy.isBoss ? 60 : 55
+        let expected = 50
         try #expect(
             total == expected,
             "\(enemy.name) primary stats should sum to \(expected), got \(total)"

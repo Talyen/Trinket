@@ -18,7 +18,7 @@ public enum EffectSummaryBuilder {
         .bleed,
         .shield,
         .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-        .holyDamageBonusFromBlock, .nextStrikeCritical, .freezeNextAttacker, .maximumManaBonus,
+        .holyDamageBonusFromBlock, .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .maximumManaBonus,
         .recurringDamage,
         .controlMeter,
         .leech,

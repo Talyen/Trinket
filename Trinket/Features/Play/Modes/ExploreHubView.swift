@@ -21,7 +21,7 @@ struct ExploreHubView: View {
                     title: "The Spires",
                     subtitle: spiresProgressSubtitle,
                     symbolName: nil,
-                    artID: "spire-aureateChoir",
+                    artID: "gameModeSpires",
                     fallbackArtID: "gameModeExplore"
                 )
             }

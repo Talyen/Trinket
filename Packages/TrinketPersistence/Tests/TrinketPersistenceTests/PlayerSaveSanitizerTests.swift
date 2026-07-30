@@ -232,7 +232,7 @@ final class PlayerSaveSanitizerTests {
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
         try #expect(sanitized.loadout(for: ranger).ultimate?.id == "astral-arrow")
-        try #expect(sanitized.loadout(for: owl).ultimate?.id == "glacial-ward")
+        try #expect(sanitized.loadout(for: owl).ultimate?.id == "panacea-potion")
         try #expect(sanitized.loadout(for: ranger).ultimate?.id != "pack-tactics")
     }
 

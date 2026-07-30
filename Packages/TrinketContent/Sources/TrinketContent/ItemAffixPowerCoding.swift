@@ -33,6 +33,7 @@ public struct CombatAffixReactionTriggersSnapshot: Codable, Equatable, Sendable 
     public var enemyStunnedPurgeAll: Bool = false
     public var criticalPurgeCount: Int = 0
     public var criticalPurgeAll: Bool = false
+    public var criticalGoldFlat: Int = 0
     public var leechRestoreManaFlat: Int = 0
     public var gainManaBlockFlat: Int = 0
     public var defeatEnemyGoldFlat: Int = 0
@@ -47,6 +48,7 @@ public struct CombatAffixReactionTriggersSnapshot: Codable, Equatable, Sendable 
         enemyStunnedPurgeAll = value.enemyStunnedPurgeAll
         criticalPurgeCount = value.criticalPurgeCount
         criticalPurgeAll = value.criticalPurgeAll
+        criticalGoldFlat = value.criticalGoldFlat
         leechRestoreManaFlat = value.leechRestoreManaFlat
         gainManaBlockFlat = value.gainManaBlockFlat
         defeatEnemyGoldFlat = value.defeatEnemyGoldFlat
@@ -63,6 +65,7 @@ public struct CombatAffixReactionTriggersSnapshot: Codable, Equatable, Sendable 
             enemyStunnedPurgeAll: enemyStunnedPurgeAll,
             criticalPurgeCount: criticalPurgeCount,
             criticalPurgeAll: criticalPurgeAll,
+            criticalGoldFlat: criticalGoldFlat,
             leechRestoreManaFlat: leechRestoreManaFlat,
             gainManaBlockFlat: gainManaBlockFlat,
             defeatEnemyGoldFlat: defeatEnemyGoldFlat,
@@ -113,16 +116,23 @@ public struct CombatTraitTriggersSnapshot: Codable, Equatable, Sendable {
     public var onceBelowHealthPercentHeal: Int = 0
     public var blockOnDeathsDoor: Int = 0
     public var spendManaBlockFlat: Int = 0
+    public var spendManaRandomDoTFlat: Int = 0
     public var holyDamageBlockFlat: Int = 0
+    public var stunDamageBlockFlat: Int = 0
     public var holyDamageCleanseCount: Int = 0
     public var holyDamageHealFlat: Int = 0
+    public var burnDamageHealFlat: Int = 0
     public var dodgeGoldFlat: Int = 0
     public var ignoreEnemyMitigationPercent: Double = 0
     public var stunDealPhysicalFlat: Int = 0
     public var damageWhileTargetStunnedBonus: Int = 0
     public var enemyStunnedApplyMarked: Bool = false
     public var dodgeBlockFlat: Int = 0
+    public var dodgeApplyPoison: Int = 0
     public var holyDamagePurgeCount: Int = 0
+    public var healCleanseCount: Int = 0
+    public var onceDeathReviveHealth: Int = 0
+    public var onceDeathReviveBlock: Int = 0
     public var blockPerTurn: Int = 0
     public var firstHitDoubleDamage: Bool = false
     public var leechChancePercent: Double = 0
@@ -132,6 +142,11 @@ public struct CombatTraitTriggersSnapshot: Codable, Equatable, Sendable {
     public var affixReactions: CombatAffixReactionTriggersSnapshot?
 
     public init(_ value: CombatTraitTriggers) {
+        apply(value)
+    }
+
+    // swiftlint:disable:next function_body_length
+    private mutating func apply(_ value: CombatTraitTriggers) {
         cleanseBonusHeal = value.cleanseBonusHeal
         gainGoldBonusHealSelf = value.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero = value.restoreHealthAlsoHealHero
@@ -169,16 +184,23 @@ public struct CombatTraitTriggersSnapshot: Codable, Equatable, Sendable {
         onceBelowHealthPercentHeal = value.onceBelowHealthPercentHeal
         blockOnDeathsDoor = value.blockOnDeathsDoor
         spendManaBlockFlat = value.spendManaBlockFlat
+        spendManaRandomDoTFlat = value.spendManaRandomDoTFlat
         holyDamageBlockFlat = value.holyDamageBlockFlat
+        stunDamageBlockFlat = value.stunDamageBlockFlat
         holyDamageCleanseCount = value.holyDamageCleanseCount
         holyDamageHealFlat = value.holyDamageHealFlat
+        burnDamageHealFlat = value.burnDamageHealFlat
         dodgeGoldFlat = value.dodgeGoldFlat
         ignoreEnemyMitigationPercent = value.ignoreEnemyMitigationPercent
         stunDealPhysicalFlat = value.stunDealPhysicalFlat
         damageWhileTargetStunnedBonus = value.damageWhileTargetStunnedBonus
         enemyStunnedApplyMarked = value.enemyStunnedApplyMarked
         dodgeBlockFlat = value.dodgeBlockFlat
+        dodgeApplyPoison = value.dodgeApplyPoison
         holyDamagePurgeCount = value.holyDamagePurgeCount
+        healCleanseCount = value.healCleanseCount
+        onceDeathReviveHealth = value.onceDeathReviveHealth
+        onceDeathReviveBlock = value.onceDeathReviveBlock
         blockPerTurn = value.blockPerTurn
         firstHitDoubleDamage = value.firstHitDoubleDamage
         leechChancePercent = value.leechChancePercent
@@ -188,6 +210,7 @@ public struct CombatTraitTriggersSnapshot: Codable, Equatable, Sendable {
         affixReactions = value.affixReactions.map(CombatAffixReactionTriggersSnapshot.init)
     }
 
+    // swiftlint:disable:next function_body_length
     public func triggers() -> CombatTraitTriggers {
         CombatTraitTriggers(
             cleanseBonusHeal: cleanseBonusHeal,
@@ -227,16 +250,23 @@ public struct CombatTraitTriggersSnapshot: Codable, Equatable, Sendable {
             onceBelowHealthPercentHeal: onceBelowHealthPercentHeal,
             blockOnDeathsDoor: blockOnDeathsDoor,
             spendManaBlockFlat: spendManaBlockFlat,
+            spendManaRandomDoTFlat: spendManaRandomDoTFlat,
             holyDamageBlockFlat: holyDamageBlockFlat,
+            stunDamageBlockFlat: stunDamageBlockFlat,
             holyDamageCleanseCount: holyDamageCleanseCount,
             holyDamageHealFlat: holyDamageHealFlat,
+            burnDamageHealFlat: burnDamageHealFlat,
             dodgeGoldFlat: dodgeGoldFlat,
             ignoreEnemyMitigationPercent: ignoreEnemyMitigationPercent,
             stunDealPhysicalFlat: stunDealPhysicalFlat,
             damageWhileTargetStunnedBonus: damageWhileTargetStunnedBonus,
             enemyStunnedApplyMarked: enemyStunnedApplyMarked,
             dodgeBlockFlat: dodgeBlockFlat,
+            dodgeApplyPoison: dodgeApplyPoison,
             holyDamagePurgeCount: holyDamagePurgeCount,
+            healCleanseCount: healCleanseCount,
+            onceDeathReviveHealth: onceDeathReviveHealth,
+            onceDeathReviveBlock: onceDeathReviveBlock,
             blockPerTurn: blockPerTurn,
             firstHitDoubleDamage: firstHitDoubleDamage,
             leechChancePercent: leechChancePercent,

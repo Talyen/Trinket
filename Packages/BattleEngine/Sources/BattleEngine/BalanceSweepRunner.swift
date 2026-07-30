@@ -172,6 +172,8 @@ public enum BalanceSweepRunner {
             isBoss: enemy.isBoss,
             heroAbilityIDs: matchup.context.heroLoadout.abilities.map(\.id),
             companionAbilityIDs: matchup.context.companionLoadout.abilities.map(\.id),
+            enemyAbilityIDs: matchup.enemy.abilities.map(\.id),
+            enemyTraitID: enemy.traitID,
             affixIDs: matchup.context.heroAffixIDs + matchup.context.companionAffixIDs,
             seed: battleSeed,
             result: result

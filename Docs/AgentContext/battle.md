@@ -33,3 +33,9 @@ method). Bare `./Scripts/test.sh smoke` is only the Homestead canary. Read the o
 package README for its test boundary.
 
 Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Battle layout contracts (three-card hand, art ratios, no top chrome) live in that README.
+
+Enemy scaling uses `EnemyPowerCurve` (smoothstep stat anchors at L1/L20/L40) applied after archetype growth. The same multiplier scales enemy HP and stats. Tune encounter level first, then curve anchors, then per-enemy stat shape. Progression hotspot reports include average enemy power rating.
+
+Hidden fight pacing (`FightPacing`) band-scales authored combat magnitudes (damage, heals, block, DoT, control, ability mana) via comeback (losing side) and a progress-based clock (both sides). Passive turn-start mana drip is excluded.
+
+Percentage multipliers on combat integers (damage, healing, control buildup, mana/gold bonuses) round via `CombatRounding` in `TrinketCore` (nearest integer, ties to even). Integer division semantics (half Block, gold-per-Block, half mana) stay as truncating division.

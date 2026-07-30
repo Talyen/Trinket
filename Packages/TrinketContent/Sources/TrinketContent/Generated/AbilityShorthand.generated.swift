@@ -28,7 +28,7 @@ public extension Ability {
     static let fireArrow = AbilityCatalogBasic.fireArrow
     static let fireball = AbilityCatalogSkill.fireball
     static let frostbolt = AbilityCatalogSkill.frostbolt
-    static let glacialWard = AbilityCatalogUltimate.glacialWard
+    static let glacialWard = AbilityCatalogSkill.glacialWard
     static let goldenPlate = AbilityCatalogUltimate.goldenPlate
     static let heal = AbilityCatalogSkill.heal
     static let hemorrhage = AbilityCatalogUltimate.hemorrhage

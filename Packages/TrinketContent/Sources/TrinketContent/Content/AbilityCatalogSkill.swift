@@ -44,7 +44,7 @@ enum AbilityCatalogSkill {
         id: "cleanse", name: "Cleanse", tier: .skill,
         targetedEffects: [
             TargetedEffect(.cleanseRandom),
-            TargetedEffect(.instantHeal(.health, 2)),
+            TargetedEffect(.instantHeal(.health, 3)),
         ]
     )
 
@@ -71,6 +71,14 @@ enum AbilityCatalogSkill {
     static let frostbolt = AbilityBuilder.directHit(
         id: "frostbolt", name: "Frostbolt", tier: .skill,
         amount: 3, keyword: .freeze
+    )
+
+    static let glacialWard = Ability(
+        id: "glacial-ward", name: "Glacial Ward", tier: .skill,
+        targetedEffects: [
+            TargetedEffect(.shield(.block, 2)),
+            TargetedEffect(.freezeOnHit(2)),
+        ]
     )
 
     static let heal = Ability(
@@ -108,9 +116,9 @@ enum AbilityCatalogSkill {
         amount: 3, keyword: .stun
     )
 
-    static let serratedEdge = Ability(
+    static let serratedEdge = AbilityBuilder.directHit(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        targetedEffects: [TargetedEffect(.bleed(2))]
+        amount: 2, keyword: .bleed
     )
 
     static let smite = Ability(
@@ -169,6 +177,7 @@ enum AbilityCatalogSkill {
         darkPact,
         fireball,
         frostbolt,
+        glacialWard,
         heal,
         manaPotion,
         manaShield,

@@ -99,7 +99,13 @@ struct BattleSimulatorTests {
         #expect(markdown.contains("# Balance Sweep Report"))
         #expect(markdown.contains("### Heroes"))
         #expect(markdown.contains("### Duration"))
+        #expect(markdown.contains("### Party Abilities"))
+        #expect(markdown.contains("### Enemy Abilities"))
+        #expect(markdown.contains("### Enemy Traits"))
+        #expect(markdown.contains("SHORT%"))
         #expect(markdown.contains("Avg rounds"))
+        #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty })
+        #expect(report.records.allSatisfy { !$0.enemyTraitID.isEmpty })
     }
 
     @Test func parallelIdentityMatchesSequentialOutcomes() {

@@ -93,8 +93,17 @@ public enum EffectPresentation {
             "Next Strike Critical"
         case .evadeNextHit:
             "Evade Next Hit"
+        default:
+            glacialActiveBuffPhrase(for: effect)
+        }
+    }
+
+    private static func glacialActiveBuffPhrase(for effect: Effect) -> String? {
+        switch effect {
         case .freezeNextAttacker:
             "Glacial Ward"
+        case let .freezeOnHit(amount):
+            amount == 1 ? "Glacial Ward" : "Glacial Ward (\(amount))"
         case .maximumManaBonus:
             "Max Mana"
         case let .recurringDamage(keyword, potency, _):
@@ -129,6 +138,8 @@ public enum EffectPresentation {
             "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
         case .freezeNextAttacker:
             "Freeze the next attacker"
+        case let .freezeOnHit(amount):
+            "deal \(amount) Freeze damage next time you're hit"
         default:
             nil
         }
@@ -139,7 +150,7 @@ public enum EffectPresentation {
         case let .shield(.block, buffer):
             "gain \(buffer) Block"
         case let .thorns(stacks):
-            stacks == 1 ? "gain Thorns" : "gain \(stacks) Thorns"
+            "gain \(stacks) Thorns"
         case .nextHolyStrike:
             "your next Holy attack deals double damage and applies Burning"
         case .nextStrikeDouble:
@@ -228,9 +239,9 @@ public enum EffectPresentation {
         turns == 1 ? "for 1 turn" : "for \(turns) turns"
     }
 
-    private static func statusPhrase(for keyword: Keyword, amount _: Int) -> String {
+    private static func statusPhrase(for keyword: Keyword, amount: Int) -> String {
         let alias = keyword.statusAlias ?? keyword.rawValue
-        return "applies \(alias)"
+        return "applies \(alias): \(amount) damage"
     }
 
     private static func bleedActivePhrase(potency: Int, keyword: Keyword) -> String {

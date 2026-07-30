@@ -37,6 +37,7 @@ public enum EffectHandlers {
         .maximumManaBonus: MaximumManaBonusHandler(),
         .nextStrikeCritical: NextStrikeCriticalHandler(),
         .freezeNextAttacker: FreezeNextAttackerHandler(),
+        .freezeOnHit: FreezeOnHitHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
         .holyDamageBonusFromBlock: HolyDamageBonusFromBlockHandler(),

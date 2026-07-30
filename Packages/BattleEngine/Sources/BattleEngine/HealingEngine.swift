@@ -14,6 +14,9 @@ package enum HealingEngine {
         }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         var amount = request.amount + bonus
+        if request.logAs != .leech, let sourceActorID = request.sourceActorID {
+            amount = context.paced(amount, sourceActorID: sourceActorID)
+        }
         var flags: Set<CombatFlag> = []
 
         if let crit = rollRestorationCritical(for: request, amount: &amount, in: &context) {
@@ -51,6 +54,11 @@ package enum HealingEngine {
                 hero: context.roster.hero.combatant,
                 in: &context
             ).events)
+            events.append(contentsOf: TraitReactionEngine.cleanseAfterHeal(
+                source: source,
+                target: request.target,
+                in: &context
+            ))
         }
 
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
@@ -87,8 +95,8 @@ package enum HealingEngine {
         }
         guard leechPct > 0 else { return .empty }
 
-        var restored = Int(ceil(Double(damage) * leechPct))
-        restored = Int(ceil(Double(restored) * profile.triggers.leechHealingMultiplier))
+        var restored = CombatRounding.scaled(damage, multiplier: leechPct)
+        restored = CombatRounding.scaled(restored, multiplier: profile.triggers.leechHealingMultiplier)
         restored += profile.leechHealingBonus
         guard restored > 0 else { return .empty }
 

@@ -17,7 +17,7 @@ enum AbilityCatalogUltimate {
 
     static let blizzard = Ability(
         id: "blizzard", name: "Blizzard", tier: .ultimate,
-        targetedEffects: [TargetedEffect(.recurringDamage(.freeze, 2, 2))]
+        targetedEffects: [TargetedEffect(.recurringDamage(.freeze, 3, 2))]
     )
 
     static let bloodthorn = Ability(
@@ -57,14 +57,6 @@ enum AbilityCatalogUltimate {
             DamageComponent(6, keyword: .burn),
         ],
         targetedEffects: [TargetedEffect(.burn(6))]
-    )
-
-    static let glacialWard = Ability(
-        id: "glacial-ward", name: "Glacial Ward", tier: .ultimate,
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 3)),
-            TargetedEffect(.freezeNextAttacker),
-        ]
     )
 
     static let goldenPlate = Ability(
@@ -153,7 +145,6 @@ enum AbilityCatalogUltimate {
         combustion,
         earthquake,
         faustianBargain,
-        glacialWard,
         goldenPlate,
         hemorrhage,
         luckPotion,

@@ -4,25 +4,35 @@ import TrinketCore
 
 /// Stun/freeze control meter: tracks charge toward the next action skip.
 package enum ControlMeterEngine {
+    /// - Parameter applyFightPacing: When `true` (default), scales `amount` via fight pacing.
+    ///   Damage-pipeline callers pass `false` because `buildupDamage` is already paced.
     public static func applyMeterCharge(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
+        applyFightPacing: Bool = true,
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) {
             return []
         }
+        let pacedAmount = applyFightPacing
+            ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
+            : amount
+        guard pacedAmount > 0 else { return [] }
 
         let profile = context.modifiers(for: combatant.id)
-        var adjustedAmount = amount
+        var adjustedAmount = pacedAmount
         if profile.triggers.controlResistancePercent > 0 {
-            adjustedAmount = Int(floor(Double(adjustedAmount) * (1 - min(1, profile.triggers.controlResistancePercent))))
+            adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: 1 - min(1, profile.triggers.controlResistancePercent))
         }
         if keyword == .freeze, profile.triggers.freezeControlVulnerabilityPercent > 0 {
-            adjustedAmount = Int(ceil(Double(adjustedAmount) * (1 + profile.triggers.freezeControlVulnerabilityPercent)))
+            adjustedAmount = CombatRounding.scaled(
+                adjustedAmount,
+                multiplier: 1 + profile.triggers.freezeControlVulnerabilityPercent
+            )
         }
         guard adjustedAmount > 0 else { return [] }
 

@@ -27,6 +27,7 @@ package enum DamagePipeline {
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),
         Step(name: "DamageBonus", phase: .resolution, apply: applyDamageBonus),
+        Step(name: "FightPacing", phase: .resolution, apply: applyFightPacing),
         Step(name: "MarkedBonus", phase: .resolution, apply: applyMarkedBonus),
         Step(name: "ItemReduction", phase: .resolution, apply: applyItemReduction),
         Step(name: "CriticalMultiply", phase: .resolution, apply: applyCriticalMultiply),
@@ -39,6 +40,8 @@ package enum DamagePipeline {
         Step(name: "ControlMeter", phase: .post, apply: applyControlMeter),
         Step(name: "ReactiveOnHit", phase: .post, apply: applyReactiveOnHit),
         Step(name: "HolyReaction", phase: .post, apply: applyHolyReaction),
+        Step(name: "StunReaction", phase: .post, apply: applyStunReaction),
+        Step(name: "BurnReaction", phase: .post, apply: applyBurnReaction),
         Step(name: "CriticalReaction", phase: .post, apply: applyCriticalReaction),
     ]
 
@@ -68,6 +71,8 @@ package enum DamagePipeline {
             if state.isRetaliation,
                step.name == "ReactiveOnHit"
                || step.name == "HolyReaction"
+               || step.name == "StunReaction"
+               || step.name == "BurnReaction"
                || step.name == "CriticalReaction"
                || step.name == "ControlMeter" {
                 continue

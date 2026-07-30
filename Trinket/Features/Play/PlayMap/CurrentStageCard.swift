@@ -91,25 +91,11 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-                titleBlock
-                    .fixedSize(horizontal: true, vertical: false)
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            titleBlock
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
-
-                actionControls
-            }
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
-                titleBlock
-
-                HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    Spacer(minLength: 0)
-
-                    actionControls
-                }
-            }
+            actionControls
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
@@ -124,17 +110,20 @@ struct StageSelectActiveCard<
                 .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.75)
 
             Text(presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
 
             ForEach(Array(presentation.activeDetailLines.enumerated()), id: \.offset) { _, line in
                 Text(line)
                     .trinketTypography(.footnote)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
         }
     }
@@ -223,7 +212,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
             Image(systemName: presentation.symbolName)
                 .foregroundStyle(presentation.tint)
         }
-        .trinketTypography(.caption)
+        .trinketTypography(.footnote)
         .foregroundStyle(.secondary)
     }
 }

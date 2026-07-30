@@ -42,16 +42,23 @@ public final class CombatTraitTriggers: @unchecked Sendable {
     public var onceBelowHealthPercentHeal: Int
     public var blockOnDeathsDoor: Int
     public var spendManaBlockFlat: Int
+    public var spendManaRandomDoTFlat: Int
     public var holyDamageBlockFlat: Int
+    public var stunDamageBlockFlat: Int
     public var holyDamageCleanseCount: Int
     public var holyDamageHealFlat: Int
+    public var burnDamageHealFlat: Int
     public var dodgeGoldFlat: Int
     public var ignoreEnemyMitigationPercent: Double
     public var stunDealPhysicalFlat: Int
     public var damageWhileTargetStunnedBonus: Int
     public var enemyStunnedApplyMarked: Bool
     public var dodgeBlockFlat: Int
+    public var dodgeApplyPoison: Int
     public var holyDamagePurgeCount: Int
+    public var healCleanseCount: Int
+    public var onceDeathReviveHealth: Int
+    public var onceDeathReviveBlock: Int
     public var blockPerTurn: Int
     public var firstHitDoubleDamage: Bool
     public var leechChancePercent: Double
@@ -60,6 +67,7 @@ public final class CombatTraitTriggers: @unchecked Sendable {
     public var damageIncreasesEveryOtherTurn: Bool
     public var affixReactions: CombatAffixReactionTriggers?
 
+    // swiftlint:disable:next function_body_length
     public init(
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
@@ -98,16 +106,23 @@ public final class CombatTraitTriggers: @unchecked Sendable {
         onceBelowHealthPercentHeal: Int = 0,
         blockOnDeathsDoor: Int = 0,
         spendManaBlockFlat: Int = 0,
+        spendManaRandomDoTFlat: Int = 0,
         holyDamageBlockFlat: Int = 0,
+        stunDamageBlockFlat: Int = 0,
         holyDamageCleanseCount: Int = 0,
         holyDamageHealFlat: Int = 0,
+        burnDamageHealFlat: Int = 0,
         dodgeGoldFlat: Int = 0,
         ignoreEnemyMitigationPercent: Double = 0,
         stunDealPhysicalFlat: Int = 0,
         damageWhileTargetStunnedBonus: Int = 0,
         enemyStunnedApplyMarked: Bool = false,
         dodgeBlockFlat: Int = 0,
+        dodgeApplyPoison: Int = 0,
         holyDamagePurgeCount: Int = 0,
+        healCleanseCount: Int = 0,
+        onceDeathReviveHealth: Int = 0,
+        onceDeathReviveBlock: Int = 0,
         blockPerTurn: Int = 0,
         firstHitDoubleDamage: Bool = false,
         leechChancePercent: Double = 0,
@@ -153,16 +168,23 @@ public final class CombatTraitTriggers: @unchecked Sendable {
         self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
         self.blockOnDeathsDoor = blockOnDeathsDoor
         self.spendManaBlockFlat = spendManaBlockFlat
+        self.spendManaRandomDoTFlat = spendManaRandomDoTFlat
         self.holyDamageBlockFlat = holyDamageBlockFlat
+        self.stunDamageBlockFlat = stunDamageBlockFlat
         self.holyDamageCleanseCount = holyDamageCleanseCount
         self.holyDamageHealFlat = holyDamageHealFlat
+        self.burnDamageHealFlat = burnDamageHealFlat
         self.dodgeGoldFlat = dodgeGoldFlat
         self.ignoreEnemyMitigationPercent = ignoreEnemyMitigationPercent
         self.stunDealPhysicalFlat = stunDealPhysicalFlat
         self.damageWhileTargetStunnedBonus = damageWhileTargetStunnedBonus
         self.enemyStunnedApplyMarked = enemyStunnedApplyMarked
         self.dodgeBlockFlat = dodgeBlockFlat
+        self.dodgeApplyPoison = dodgeApplyPoison
         self.holyDamagePurgeCount = holyDamagePurgeCount
+        self.healCleanseCount = healCleanseCount
+        self.onceDeathReviveHealth = onceDeathReviveHealth
+        self.onceDeathReviveBlock = onceDeathReviveBlock
         self.blockPerTurn = blockPerTurn
         self.firstHitDoubleDamage = firstHitDoubleDamage
         self.leechChancePercent = leechChancePercent
@@ -173,141 +195,8 @@ public final class CombatTraitTriggers: @unchecked Sendable {
     }
 
     public func copy() -> CombatTraitTriggers {
-        CombatTraitTriggers(
-            cleanseBonusHeal: cleanseBonusHeal,
-            gainGoldBonusHealSelf: gainGoldBonusHealSelf,
-            restoreHealthAlsoHealHero: restoreHealthAlsoHealHero,
-            controlResistancePercent: controlResistancePercent,
-            dodgeChanceBonus: dodgeChanceBonus,
-            ambushBonusDamage: ambushBonusDamage,
-            regenerationAmount: regenerationAmount,
-            regenerationIntervalTurns: regenerationIntervalTurns,
-            passiveMitigationFlat: passiveMitigationFlat,
-            thornsPercent: thornsPercent,
-            cannotBeHealed: cannotBeHealed,
-            burnDecaySlowPercent: burnDecaySlowPercent,
-            shieldErosionKeyword: shieldErosionKeyword,
-            shieldErosionTicks: shieldErosionTicks,
-            mitigationShredKeyword: mitigationShredKeyword,
-            mitigationShredMultiplier: mitigationShredMultiplier,
-            mitigationShredDurationTurns: mitigationShredDurationTurns,
-            freezeControlVulnerabilityPercent: freezeControlVulnerabilityPercent,
-            mitigationEffectivenessPenaltyPercent: mitigationEffectivenessPenaltyPercent,
-            leechHealingMultiplier: leechHealingMultiplier,
-            hemorrhageBleedBonus: hemorrhageBleedBonus,
-            onBleedApplyPoison: onBleedApplyPoison,
-            onBurnApplyPoison: onBurnApplyPoison,
-            onBleedDealBurnDamage: onBleedDealBurnDamage,
-            poisonDecayIncreaseChance: poisonDecayIncreaseChance,
-            freezeDamageWhileBurningBonus: freezeDamageWhileBurningBonus,
-            damageWhileTargetFrozenBonus: damageWhileTargetFrozenBonus,
-            damageBelowHealthPercentThreshold: damageBelowHealthPercentThreshold,
-            damageBelowHealthPercentKeyword: damageBelowHealthPercentKeyword,
-            damageBelowHealthPercentBonus: damageBelowHealthPercentBonus,
-            damageAfterDodgeBonus: damageAfterDodgeBonus,
-            blockBrokenBlockFlat: blockBrokenBlockFlat,
-            companionLeechSharePercent: companionLeechSharePercent,
-            onceBelowHealthPercentThreshold: onceBelowHealthPercentThreshold,
-            onceBelowHealthPercentHeal: onceBelowHealthPercentHeal,
-            blockOnDeathsDoor: blockOnDeathsDoor,
-            spendManaBlockFlat: spendManaBlockFlat,
-            holyDamageBlockFlat: holyDamageBlockFlat,
-            holyDamageCleanseCount: holyDamageCleanseCount,
-            holyDamageHealFlat: holyDamageHealFlat,
-            dodgeGoldFlat: dodgeGoldFlat,
-            ignoreEnemyMitigationPercent: ignoreEnemyMitigationPercent,
-            stunDealPhysicalFlat: stunDealPhysicalFlat,
-            damageWhileTargetStunnedBonus: damageWhileTargetStunnedBonus,
-            enemyStunnedApplyMarked: enemyStunnedApplyMarked,
-            dodgeBlockFlat: dodgeBlockFlat,
-            holyDamagePurgeCount: holyDamagePurgeCount,
-            blockPerTurn: blockPerTurn,
-            firstHitDoubleDamage: firstHitDoubleDamage,
-            leechChancePercent: leechChancePercent,
-            onHitAttackerBurn: onHitAttackerBurn,
-            turnFreezeDamageAllEnemies: turnFreezeDamageAllEnemies,
-            damageIncreasesEveryOtherTurn: damageIncreasesEveryOtherTurn,
-            affixReactions: affixReactions
-        )
-    }
-
-    public func merge(_ other: CombatTraitTriggers) {
-        mergeBaseTriggers(other)
-        mergeAdvancedTriggers(other)
-        mergeNewAffixTriggers(other)
-    }
-
-    private func mergeBaseTriggers(_ other: CombatTraitTriggers) {
-        cleanseBonusHeal += other.cleanseBonusHeal
-        gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
-        restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
-        controlResistancePercent += other.controlResistancePercent
-        dodgeChanceBonus += other.dodgeChanceBonus
-        ambushBonusDamage += other.ambushBonusDamage
-        regenerationAmount += other.regenerationAmount
-        regenerationIntervalTurns = max(regenerationIntervalTurns, other.regenerationIntervalTurns)
-        passiveMitigationFlat += other.passiveMitigationFlat
-        thornsPercent += other.thornsPercent
-        cannotBeHealed = cannotBeHealed || other.cannotBeHealed
-        burnDecaySlowPercent += other.burnDecaySlowPercent
-        if shieldErosionKeyword == nil {
-            shieldErosionKeyword = other.shieldErosionKeyword
-        }
-        shieldErosionTicks += other.shieldErosionTicks
-        if mitigationShredKeyword == nil {
-            mitigationShredKeyword = other.mitigationShredKeyword
-        }
-        mitigationShredMultiplier = max(mitigationShredMultiplier, other.mitigationShredMultiplier)
-        mitigationShredDurationTurns = max(mitigationShredDurationTurns, other.mitigationShredDurationTurns)
-        freezeControlVulnerabilityPercent += other.freezeControlVulnerabilityPercent
-        mitigationEffectivenessPenaltyPercent += other.mitigationEffectivenessPenaltyPercent
-        leechHealingMultiplier *= other.leechHealingMultiplier
-        hemorrhageBleedBonus += other.hemorrhageBleedBonus
-        onBleedApplyPoison += other.onBleedApplyPoison
-        onBurnApplyPoison += other.onBurnApplyPoison
-        onBleedDealBurnDamage += other.onBleedDealBurnDamage
-        poisonDecayIncreaseChance += other.poisonDecayIncreaseChance
-    }
-
-    private func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
-        freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
-        damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
-        damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
-        if damageBelowHealthPercentKeyword == nil {
-            damageBelowHealthPercentKeyword = other.damageBelowHealthPercentKeyword
-        }
-        damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
-        damageAfterDodgeBonus += other.damageAfterDodgeBonus
-        blockBrokenBlockFlat += other.blockBrokenBlockFlat
-        companionLeechSharePercent += other.companionLeechSharePercent
-        onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
-        onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
-        blockOnDeathsDoor += other.blockOnDeathsDoor
-        spendManaBlockFlat += other.spendManaBlockFlat
-        holyDamageBlockFlat += other.holyDamageBlockFlat
-        holyDamageCleanseCount += other.holyDamageCleanseCount
-        holyDamageHealFlat += other.holyDamageHealFlat
-        dodgeGoldFlat += other.dodgeGoldFlat
-        ignoreEnemyMitigationPercent += other.ignoreEnemyMitigationPercent
-        stunDealPhysicalFlat += other.stunDealPhysicalFlat
-        damageWhileTargetStunnedBonus += other.damageWhileTargetStunnedBonus
-        enemyStunnedApplyMarked = enemyStunnedApplyMarked || other.enemyStunnedApplyMarked
-        dodgeBlockFlat += other.dodgeBlockFlat
-        holyDamagePurgeCount += other.holyDamagePurgeCount
-        blockPerTurn += other.blockPerTurn
-        firstHitDoubleDamage = firstHitDoubleDamage || other.firstHitDoubleDamage
-        leechChancePercent += other.leechChancePercent
-        onHitAttackerBurn += other.onHitAttackerBurn
-        turnFreezeDamageAllEnemies += other.turnFreezeDamageAllEnemies
-        damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
-    }
-
-    private func mergeNewAffixTriggers(_ other: CombatTraitTriggers) {
-        guard let otherAffix = other.affixReactions else { return }
-        if affixReactions == nil {
-            affixReactions = otherAffix.copy()
-        } else {
-            ensureAffixReactions().merge(otherAffix)
-        }
+        let copied = CombatTraitTriggers()
+        copied.merge(self)
+        return copied
     }
 }

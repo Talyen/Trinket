@@ -205,7 +205,10 @@ struct HealingEngineTests {
 
     @Test func silentHealsDoNotRollCritical() throws {
         var context = makeContext(seed: 1)
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 10 }
+        context.turnCount = 0
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 45 }
+        context.roster.mutateRuntime(for: context.roster.companion.combatant) { $0.currentHealth = 45 }
+        context.roster.mutateRuntime(for: context.roster.enemy.combatant) { $0.currentHealth = 45 }
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .criticalChanceBonus(1.0, 6), remainingTurns: 6)],
             for: context.roster.hero.combatant

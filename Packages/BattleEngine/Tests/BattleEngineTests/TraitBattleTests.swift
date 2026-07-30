@@ -79,7 +79,7 @@ struct TraitBattleTests {
         )
 
         let strengthPercent = wolf.primaryStats.statDamageBonusPercent(keyword: .physical)
-        let strengthBonus = Int((1.0 * strengthPercent).rounded())
+        let strengthBonus = CombatRounding.scaled(1, multiplier: strengthPercent)
         let packBonus = rangerBuild.modifiers.companionDamageDealtBonus
         try #expect(packBonus == 1)
         try #expect(outcome.healthLost == 1 + strengthBonus + packBonus)
@@ -116,38 +116,6 @@ struct TraitBattleTests {
 
         try #expect(outcome.didApply)
         try #expect(context.roster.health(for: hero) == 11)
-    }
-
-    @Test func faeFortuneHealsWhenGainingGold() throws {
-        let pixie = try #require(GameContent.companions.first { $0.id == "pixie" })
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let pixieBuild = CombatBuildResolver.build(
-            combatant: pixie,
-            equipmentLoadout: EquipmentLoadout(),
-            inventory: []
-        )
-        var context = makeContext(
-            hero: hero,
-            companion: pixieBuild.combatant,
-            enemy: enemy,
-            companionModifiers: pixieBuild.modifiers
-        )
-        context.roster.mutateRuntime(for: pixieBuild.combatant) {
-            $0.currentHealth = pixieBuild.effectiveMaxHealth - 1
-        }
-
-        _ = apply(
-            .resourceGain(.gold, 1),
-            abilityName: "Gold",
-            source: pixieBuild.combatant,
-            target: pixieBuild.combatant,
-            in: &context
-        )
-
-        try #expect(
-            context.roster.health(for: pixieBuild.combatant) == pixieBuild.effectiveMaxHealth
-        )
     }
 
     @Test func loyalComfortHealsHeroWhenCompanionRestoresHealth() throws {

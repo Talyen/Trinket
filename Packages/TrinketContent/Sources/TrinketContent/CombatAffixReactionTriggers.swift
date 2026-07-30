@@ -13,6 +13,7 @@ public final class CombatAffixReactionTriggers: @unchecked Sendable {
     public var enemyStunnedPurgeAll: Bool = false
     public var criticalPurgeCount: Int = 0
     public var criticalPurgeAll: Bool = false
+    public var criticalGoldFlat: Int = 0
     public var leechRestoreManaFlat: Int = 0
     public var gainManaBlockFlat: Int = 0
     public var defeatEnemyGoldFlat: Int = 0
@@ -27,6 +28,7 @@ public final class CombatAffixReactionTriggers: @unchecked Sendable {
         enemyStunnedPurgeAll: Bool = false,
         criticalPurgeCount: Int = 0,
         criticalPurgeAll: Bool = false,
+        criticalGoldFlat: Int = 0,
         leechRestoreManaFlat: Int = 0,
         gainManaBlockFlat: Int = 0,
         defeatEnemyGoldFlat: Int = 0,
@@ -40,6 +42,7 @@ public final class CombatAffixReactionTriggers: @unchecked Sendable {
         self.enemyStunnedPurgeAll = enemyStunnedPurgeAll
         self.criticalPurgeCount = criticalPurgeCount
         self.criticalPurgeAll = criticalPurgeAll
+        self.criticalGoldFlat = criticalGoldFlat
         self.leechRestoreManaFlat = leechRestoreManaFlat
         self.gainManaBlockFlat = gainManaBlockFlat
         self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
@@ -56,6 +59,7 @@ public final class CombatAffixReactionTriggers: @unchecked Sendable {
             enemyStunnedPurgeAll: enemyStunnedPurgeAll,
             criticalPurgeCount: criticalPurgeCount,
             criticalPurgeAll: criticalPurgeAll,
+            criticalGoldFlat: criticalGoldFlat,
             leechRestoreManaFlat: leechRestoreManaFlat,
             gainManaBlockFlat: gainManaBlockFlat,
             defeatEnemyGoldFlat: defeatEnemyGoldFlat,
@@ -72,6 +76,7 @@ public final class CombatAffixReactionTriggers: @unchecked Sendable {
         enemyStunnedPurgeAll = enemyStunnedPurgeAll || other.enemyStunnedPurgeAll
         criticalPurgeCount += other.criticalPurgeCount
         criticalPurgeAll = criticalPurgeAll || other.criticalPurgeAll
+        criticalGoldFlat += other.criticalGoldFlat
         leechRestoreManaFlat += other.leechRestoreManaFlat
         gainManaBlockFlat += other.gainManaBlockFlat
         defeatEnemyGoldFlat += other.defeatEnemyGoldFlat
@@ -92,6 +97,7 @@ extension CombatAffixReactionTriggers: Equatable {
             && lhs.enemyStunnedPurgeAll == rhs.enemyStunnedPurgeAll
             && lhs.criticalPurgeCount == rhs.criticalPurgeCount
             && lhs.criticalPurgeAll == rhs.criticalPurgeAll
+            && lhs.criticalGoldFlat == rhs.criticalGoldFlat
             && lhs.leechRestoreManaFlat == rhs.leechRestoreManaFlat
             && lhs.gainManaBlockFlat == rhs.gainManaBlockFlat
             && lhs.defeatEnemyGoldFlat == rhs.defeatEnemyGoldFlat
@@ -109,6 +115,7 @@ extension CombatAffixReactionTriggers: Hashable {
         hasher.combine(enemyStunnedPurgeAll)
         hasher.combine(criticalPurgeCount)
         hasher.combine(criticalPurgeAll)
+        hasher.combine(criticalGoldFlat)
         hasher.combine(leechRestoreManaFlat)
         hasher.combine(gainManaBlockFlat)
         hasher.combine(defeatEnemyGoldFlat)

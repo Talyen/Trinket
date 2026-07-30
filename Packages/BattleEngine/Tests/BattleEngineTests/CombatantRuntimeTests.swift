@@ -27,8 +27,8 @@ struct CombatantRuntimeTests {
 
     @Test func initialResourcesAccountForStatsAndOverrides() throws {
         let toughnessRuntime = CombatantRuntime(combatant: makeCombatant(maxHealth: 10, toughness: 5))
-        try #expect(toughnessRuntime.currentHealth == 15)
-        try #expect(toughnessRuntime.maxHealth == 15)
+        try #expect(toughnessRuntime.currentHealth == 10)
+        try #expect(toughnessRuntime.maxHealth == 10)
 
         let overrideRuntime = CombatantRuntime(
             combatant: makeCombatant(maxHealth: 20, toughness: 0),

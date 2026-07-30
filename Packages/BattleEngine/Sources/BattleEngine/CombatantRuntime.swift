@@ -43,6 +43,9 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant's Second Wind affix has healed once this battle.
     public var hasTriggeredSecondWind: Bool
 
+    /// True after this combatant's trait death-revive has fired once this battle.
+    public var hasTriggeredDeathRevive: Bool
+
     /// Pending flat damage bonus earned by dodging and consumed by the next damage dealt.
     public var pendingDamageAfterDodge: Int
 
@@ -64,6 +67,7 @@ public struct CombatantRuntime: Hashable {
         hasTriggeredAmbush: Bool = false,
         hasTriggeredFirstHitBonus: Bool = false,
         hasTriggeredSecondWind: Bool = false,
+        hasTriggeredDeathRevive: Bool = false,
         pendingDamageAfterDodge: Int = 0,
         mitigationShredUntilTurn: Int = 0,
         mitigationShredMultiplier: Double = 1
@@ -76,10 +80,11 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredAmbush = hasTriggeredAmbush
         self.hasTriggeredFirstHitBonus = hasTriggeredFirstHitBonus
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
+        self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.pendingDamageAfterDodge = pendingDamageAfterDodge
         self.mitigationShredUntilTurn = mitigationShredUntilTurn
         self.mitigationShredMultiplier = mitigationShredMultiplier
-        currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
+        currentHealth = initialHealth ?? (combatant.maxHealth + maximumHealthBonus)
         currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + (combatant.primaryStats.intellect / 5) + maximumManaBonus : 0)
         activeEffects = initialActiveEffects
         actionCount = 0
@@ -100,7 +105,7 @@ public struct CombatantRuntime: Hashable {
     }
 
     public var maxHealth: Int {
-        combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus
+        combatant.maxHealth + maximumHealthBonus
     }
 
     public var maxMana: Int {
@@ -163,7 +168,7 @@ public struct CombatantRuntime: Hashable {
     /// Wisdom's diminishing returns curve percentage. Returns the actual amount restored.
     public mutating func heal(_ amount: Int) -> Int {
         let wisdomPercent = primaryStats.diminishingReturnsPercent(for: primaryStats.wisdom)
-        let wisdomBonus = Int(round(Double(amount) * wisdomPercent))
+        let wisdomBonus = CombatRounding.scaled(amount, multiplier: wisdomPercent)
         let total = amount + wisdomBonus
         let space = max(0, maxHealth - currentHealth)
         let actual = min(total, space)

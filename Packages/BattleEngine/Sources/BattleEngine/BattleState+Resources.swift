@@ -10,7 +10,7 @@ package extension BattleState {
     /// Flat + percent bonuses applied to an outgoing gold grant (Lucky / Gilded).
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {
         let profile = modifiers(for: sourceActorID)
-        let scaled = Int(floor(Double(amount) * (1 + max(0, profile.goldGainedPercent))))
+        let scaled = CombatRounding.scaled(amount, multiplier: 1 + max(0, profile.goldGainedPercent))
         return scaled + profile.goldGainedBonus
     }
 
@@ -32,8 +32,13 @@ package extension BattleState {
 }
 
 public extension BattleTurnEngine {
-    /// Spends 1 Mana to raise Burn/Freeze damage numbers on `ability` when available.
-    /// Empowerment scales with max mana: `max(1, maxMana / 10)`.
+    /// Mana spent per +1 Burn/Freeze empowerment on a card play.
+    static let manaEmpowermentCost = 3
+    /// Burn/Freeze damage added per empowerment purchase.
+    static let manaEmpowermentBonus = 1
+
+    /// Spends `manaEmpowermentCost` Mana to raise Burn/Freeze damage numbers on `ability` by
+    /// `manaEmpowermentBonus` when the actor can afford it.
     @discardableResult
     static func spendManaToEmpowerBurnOrFreezeIfNeeded(
         for ability: inout Ability,
@@ -43,12 +48,11 @@ public extension BattleTurnEngine {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
         guard let runtime = context.roster.runtime(for: actor),
               runtime.maxMana > 0,
-              runtime.currentMana >= 1
+              runtime.currentMana >= manaEmpowermentCost
         else { return [] }
-        let spent = context.spendMana(1, for: actor)
-        guard spent > 0 else { return [] }
-        let empowerAmount = max(1, runtime.maxMana / 10)
-        ability = ability.empoweredByMana(amount: empowerAmount)
+        let spent = context.spendMana(manaEmpowermentCost, for: actor)
+        guard spent >= manaEmpowermentCost else { return [] }
+        ability = ability.empoweredByMana(amount: manaEmpowermentBonus)
         return CombatReactionEngine.afterSpendMana(by: actor, in: &context)
     }
 }

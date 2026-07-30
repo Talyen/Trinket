@@ -48,9 +48,9 @@ struct EnemyTraitBattleTests {
         )
 
         let drPercent = skeleton.combatant.primaryStats.toughnessMitigationPercent
-        let expectedPhysical = Int((10.0 * (1.0 - drPercent)).rounded())
-        let holyBefore = Double(Int((10.0 * 1.3).rounded(.up)))
-        let expectedHoly = Int((holyBefore * (1.0 - drPercent)).rounded())
+        let expectedPhysical = CombatRounding.scaled(10, multiplier: 1.0 - drPercent)
+        let holyBefore = CombatRounding.scaled(10, multiplier: 1.3)
+        let expectedHoly = CombatRounding.scaled(holyBefore, multiplier: 1.0 - drPercent)
         try #expect(physical.healthLost == expectedPhysical)
         try #expect(holy.healthLost == expectedHoly)
         try #expect(holy.healthLost > physical.healthLost)
@@ -75,11 +75,10 @@ struct EnemyTraitBattleTests {
         )
 
         let strengthPercent = mimic.combatant.primaryStats.statDamageBonusPercent(keyword: .physical)
-        let strengthBonus = Int((2.0 * strengthPercent).rounded())
+        let strengthBonus = CombatRounding.scaled(2, multiplier: strengthPercent)
         let baseDamage = 2 + strengthBonus
         try #expect(first.healthLost == baseDamage * 2)
-        // After the first hit the enemy leads on HP%, so catch-up reduces the follow-up by 1.
-        try #expect(second.healthLost == baseDamage - 1)
+        try #expect(second.healthLost == baseDamage)
     }
 
     @Test func livingArmorBlockPerTurnAndBleedReduction() throws {

@@ -103,7 +103,8 @@ id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness
 - `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
 - `is_boss`: `true` or `false`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
-- Primary-stat budget: non-boss enemies sum to **50**; bosses sum to **100** (2× baseline).
+- Primary-stat budget: `strength + agility + toughness + intellect + wisdom` must equal **50** for all combatants.
+- Boss difficulty comes from `is_boss` plus `EnemyPowerCurve` at encounter level, not separate HP/stat bands.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
 

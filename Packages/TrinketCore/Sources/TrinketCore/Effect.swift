@@ -108,6 +108,8 @@ public enum Effect: Hashable, Sendable {
     case nextStrikeCritical
     /// Next enemy attack that hits you applies Frozen once, then consumes (fires even if Block absorbs).
     case freezeNextAttacker
+    /// Deal Freeze damage to the next attacker, then consumes (fires even if Block absorbs).
+    case freezeOnHit(Int)
     /// Multiply an existing DoT stack's potency (e.g. double Burn).
     case multiplyDoT(Keyword, Int)
     /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
@@ -167,6 +169,7 @@ public enum Effect: Hashable, Sendable {
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
         case .freezeNextAttacker: .freeze
+        case .freezeOnHit: .freeze
         case let .multiplyDoT(k, _): k
         case let .recurringDamage(k, _, _): k
         case .holyDamageBonusFromBlock: .holy
@@ -178,6 +181,7 @@ public enum Effect: Hashable, Sendable {
         switch self {
         case let .burn(p), let .poison(p), let .bleed(p): p
         case let .thorns(p): p
+        case let .freezeOnHit(p): p
         case let .recurringDamage(_, p, _): p
         default: nil
         }
@@ -222,7 +226,7 @@ public enum Effect: Hashable, Sendable {
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .multiplyDoT, .revive:
+             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .multiplyDoT, .revive:
             0
         }
     }
@@ -232,7 +236,7 @@ public enum Effect: Hashable, Sendable {
         case let .burn(potency):
             let normalNext = potency / 2
             let loss = potency - normalNext
-            let adjustedLoss = Int(floor(Double(loss) * (1 - min(1, max(0, burnDecaySlowPercent)))))
+            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - min(1, max(0, burnDecaySlowPercent)))
             return potency - adjustedLoss
         case let .poison(potency):
             let decrease = max(1, potency * 25 / 100)
@@ -259,7 +263,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .holyDamageBonusFromBlock:
+             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .holyDamageBonusFromBlock:
             .actor
         }
     }

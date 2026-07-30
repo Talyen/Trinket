@@ -22,7 +22,7 @@ enum AbilityCatalogBasic {
 
     static let block = AbilityBuilder.buffOnly(
         id: "block", name: "Block", tier: .basic,
-        effects: [.shield(.block, 2)]
+        effects: [.shield(.block, 3)]
     )
 
     static let causticJab = Ability(
@@ -53,7 +53,7 @@ enum AbilityCatalogBasic {
 
     static let kindling = AbilityBuilder.directHit(
         id: "kindling", name: "Kindling", tier: .basic,
-        amount: 2, keyword: .burn
+        amount: 1, keyword: .burn
     )
 
     static let manaBerries = Ability(

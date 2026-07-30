@@ -42,6 +42,16 @@ public extension CombatTraitTriggers {
         }
     }
 
+    var criticalGoldFlat: Int {
+        get { affixReactions?.criticalGoldFlat ?? 0 }
+        set {
+            if affixReactions == nil, newValue == 0 {
+                return
+            }
+            ensureAffixReactions().criticalGoldFlat = newValue
+        }
+    }
+
     var leechRestoreManaFlat: Int {
         get { affixReactions?.leechRestoreManaFlat ?? 0 }
         set {

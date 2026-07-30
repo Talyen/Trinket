@@ -14,7 +14,7 @@ struct AbilityCatalogTests {
 
     @Test func doTPairingMatchesDamageComponents() throws {
         for ability in AbilityCatalog.all {
-            if ["mana-berries", "pixie-dust", "faustian-bargain", "serrated-edge", "hemorrhage"].contains(ability.id) {
+            if ["mana-berries", "pixie-dust", "faustian-bargain"].contains(ability.id) {
                 continue
             }
             for component in ability.damageComponents where component.target == .abilityTarget {
@@ -51,6 +51,21 @@ struct AbilityCatalogTests {
             }; return false
         })
         try #expect(ability.summary == "Deal 3 Burn damage.")
+
+        let bleedHit = AbilityBuilder.directHit(
+            id: "bleed-hit",
+            name: "Bleed Hit",
+            tier: .basic,
+            amount: 2,
+            keyword: .bleed
+        )
+        try #expect(bleedHit.damageComponents == [DamageComponent(2, keyword: .bleed)])
+        try #expect(bleedHit.effects.contains {
+            if case .bleed(2) = $0 {
+                return true
+            }; return false
+        })
+        try #expect(bleedHit.summary == "Deal 2 Bleed damage.")
     }
 
     @Test func empoweredByManaRaisesBurnAndFreezeNumbers() throws {
@@ -65,7 +80,7 @@ struct AbilityCatalogTests {
         try #expect(Ability.slash.empoweredByMana() == Ability.slash)
         try #expect(
             Ability.blizzard.empoweredByMana().targetedEffects
-                == [TargetedEffect(.recurringDamage(.freeze, 3, 2))]
+                == [TargetedEffect(.recurringDamage(.freeze, 4, 2))]
         )
     }
 
@@ -99,10 +114,10 @@ struct AbilityCatalogTests {
     }
 
     @Test func representativeAbilitySummariesPreserveProductContracts() throws {
-        try #expect(Ability.hemorrhage.summary == "Applies Bleeding.")
+        try #expect(Ability.hemorrhage.summary == "Deal 5 Bleed damage.")
         try #expect(!Ability.hemorrhage.hasLeech)
         try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
-        try #expect(Ability.serratedEdge.summary == "Applies Bleeding.")
+        try #expect(Ability.serratedEdge.summary == "Deal 2 Bleed damage.")
         try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
         try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
         try #expect(Ability.stab.directDamage == 2)
@@ -115,6 +130,14 @@ struct AbilityCatalogTests {
         try #expect(Ability.heal.directDamage == 0)
         try #expect(Ability.fangs.hasLeech)
         try #expect(Ability.rendingSlash.name == "Rend")
+    }
+
+    @Test func glacialWardIsSkillWithBlockAndFreezeRetaliation() throws {
+        try #expect(Ability.glacialWard.tier == .skill)
+        try #expect(
+            Ability.glacialWard.summary
+                == "Gain 2 Block and Deal 2 Freeze damage next time you're hit."
+        )
     }
 
     @Test func astralArrowOffersStunFreezeOrBurnBranches() throws {

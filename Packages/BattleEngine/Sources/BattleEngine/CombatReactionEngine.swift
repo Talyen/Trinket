@@ -149,6 +149,16 @@ package extension CombatReactionEngine {
         events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
         events.append(contentsOf: applyWhiplashStun(for: combatant, profile: profile, in: &context))
 
+        if profile.triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
+            events.append(contentsOf: context.applyDecayingDoT(
+                keyword: .poison,
+                potency: profile.triggers.dodgeApplyPoison,
+                to: context.roster.enemy.combatant,
+                sourceActorID: combatant.id,
+                dealImmediateDamage: true
+            ))
+        }
+
         return events
     }
 
@@ -212,15 +222,88 @@ package extension CombatReactionEngine {
     }
 
     static func afterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        let amount = context.modifiers(for: actor.id).triggers.spendManaBlockFlat
+        let profile = context.modifiers(for: actor.id)
+        var events: [ActionEvent] = []
+
+        if profile.triggers.spendManaBlockFlat > 0 {
+            events.append(contentsOf: applyBlock(
+                amount: profile.triggers.spendManaBlockFlat,
+                to: actor,
+                source: actor,
+                abilityName: "Aetherward",
+                in: &context
+            ))
+        }
+
+        let randomDoT = profile.triggers.spendManaRandomDoTFlat
+        if randomDoT > 0, context.roster.enemy.isAlive {
+            let enemy = context.roster.enemy.combatant
+            if Bool.random(using: &context.rng) {
+                events.append(contentsOf: context.applyDecayingDoT(
+                    keyword: .burn,
+                    potency: randomDoT,
+                    to: enemy,
+                    sourceActorID: actor.id,
+                    dealImmediateDamage: true
+                ))
+            } else {
+                events.append(contentsOf: context.resolveDamage(
+                    DamageRequest(
+                        amount: randomDoT,
+                        target: enemy,
+                        keyword: .freeze,
+                        sourceActorID: actor.id,
+                        options: DamageOptions(
+                            applyStatBonus: false,
+                            applyItemBonus: true,
+                            applyDodge: false,
+                            isRetaliation: true
+                        )
+                    )
+                ).events)
+            }
+        }
+
+        return events
+    }
+
+    static func afterStunDamageDealt(
+        to _: Combatant,
+        source: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let amount = context.modifiers(for: source.id).triggers.stunDamageBlockFlat
         guard amount > 0 else { return [] }
         return applyBlock(
             amount: amount,
-            to: actor,
-            source: actor,
-            abilityName: "Aetherward",
+            to: source,
+            source: source,
+            abilityName: context.modifiers(for: source.id).traitDisplayName ?? "Oathbound",
             in: &context
         )
+    }
+
+    static func afterBurnDamageDealt(
+        to _: Combatant,
+        source: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let amount = context.modifiers(for: source.id).triggers.burnDamageHealFlat
+        guard amount > 0 else { return [] }
+        return HealingEngine.resolveHeal(
+            HealRequest(
+                amount: amount,
+                target: source,
+                sourceActorID: source.id,
+                logAs: .instantHeal(
+                    actorName: source.name,
+                    abilityName: context.modifiers(for: source.id).traitDisplayName ?? "Bloodfire",
+                    keyword: .health,
+                    displayAmount: amount
+                )
+            ),
+            in: &context
+        ).events
     }
 
     static func afterHolyDamageDealt(
@@ -298,7 +381,7 @@ package extension CombatReactionEngine {
               percent > 0,
               context.roster.companion.isAlive
         else { return [] }
-        let share = max(1, Int(floor(Double(restored) * percent)))
+        let share = max(1, CombatRounding.scaled(restored, multiplier: percent))
         return HealingEngine.resolveHeal(
             HealRequest(
                 amount: share,
@@ -448,14 +531,16 @@ package extension CombatReactionEngine {
             sourceID: source.id
         )
         guard case let .shield(keyword, buffer) = adjusted else { return [] }
-        DefensePoolEngine.add(buffer, pool: .block, to: target, keyword: keyword, in: &context)
+        let applied = DefensePoolEngine.add(
+            buffer, pool: .block, to: target, keyword: keyword, sourceActorID: source.id, in: &context
+        )
         return [context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
             abilityName: abilityName,
             target: target,
-            amount: buffer,
+            amount: applied,
             keyword: keyword
         )]
     }

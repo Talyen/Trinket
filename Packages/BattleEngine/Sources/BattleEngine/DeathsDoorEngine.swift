@@ -36,6 +36,9 @@ package enum DeathsDoorEngine {
 
         let health = context.roster.health(for: combatant)
         if health == 0 {
+            if let reviveEvents = tryTraitDeathRevive(on: combatant, in: &context) {
+                return reviveEvents
+            }
             if !context.roster.hasConsumedDeathsDoor(for: combatant) {
                 return trigger(on: combatant, in: &context)
             }
@@ -46,6 +49,52 @@ package enum DeathsDoorEngine {
             clampToMinimumHP(on: combatant, in: &context)
         }
         return []
+    }
+
+    /// Policy C: unused trait death-revive fires before Death's Door and does not consume DD.
+    private static func tryTraitDeathRevive(
+        on combatant: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent]? {
+        guard let runtime = context.roster.runtime(for: combatant),
+              !runtime.hasTriggeredDeathRevive
+        else { return nil }
+
+        let triggers = context.modifiers(for: combatant.id).triggers
+        let reviveHealth = triggers.onceDeathReviveHealth
+        let reviveBlock = triggers.onceDeathReviveBlock
+        guard reviveHealth > 0 || reviveBlock > 0 else { return nil }
+
+        let healthToRestore = max(1, reviveHealth)
+        var revivedHealth = 0
+        context.roster.mutateRuntime(for: combatant) { runtime in
+            runtime.hasTriggeredDeathRevive = true
+            runtime.currentHealth = min(healthToRestore, runtime.maxHealth)
+            revivedHealth = runtime.currentHealth
+        }
+
+        let abilityName = context.modifiers(for: combatant.id).traitDisplayName ?? "Trait"
+        var events = [
+            context.nextEvent(
+                kind: .effect,
+                effectKind: .instantHeal,
+                actorName: combatant.name,
+                abilityName: abilityName,
+                target: combatant,
+                amount: revivedHealth,
+                keyword: .health
+            ),
+        ]
+        if reviveBlock > 0 {
+            events.append(contentsOf: CombatReactionEngine.applyBlock(
+                amount: reviveBlock,
+                to: combatant,
+                source: combatant,
+                abilityName: abilityName,
+                in: &context
+            ))
+        }
+        return events
     }
 
     private static func trigger(

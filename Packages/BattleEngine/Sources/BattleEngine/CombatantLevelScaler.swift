@@ -16,28 +16,37 @@ public enum CombatantLevelScaler {
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.enemyGrowth(
             archetype: enemy.combatant.growthArchetype,
-            isBoss: enemy.isBoss,
-            levelsAbove: levelsAbove,
-            identityStats: enemy.combatant.primaryStats
+            levelsAbove: levelsAbove
         )
         let scaled = scaledCombatant(enemy.combatant, growth: growth)
-        let compensated = StatGrowth.applyEnemyGearCompensation(
+        let power = EnemyPowerCurve.multipliers(level: level, isBoss: enemy.isBoss)
+        let powered = StatGrowth.applyPowerMultiplier(
             maxHealth: scaled.maxHealth,
             maxMana: scaled.maxMana,
             primaryStats: scaled.primaryStats,
-            level: level,
-            isBoss: enemy.isBoss
+            healthMultiplier: power.health,
+            statsMultiplier: power.stats
         )
         return Combatant(
             id: scaled.id,
             name: scaled.name,
             role: scaled.role,
-            maxHealth: compensated.maxHealth,
-            maxMana: compensated.maxMana,
+            maxHealth: powered.maxHealth,
+            maxMana: powered.maxMana,
             actionIntervalTurns: scaled.actionIntervalTurns,
             abilityChoices: scaled.abilityChoices,
-            primaryStats: compensated.primaryStats,
+            primaryStats: powered.primaryStats,
             growthArchetype: scaled.growthArchetype
+        )
+    }
+
+    public static func powerRating(for enemy: Enemy, level: Int) -> CombatPowerSnapshot {
+        let scaled = scale(enemy: enemy, level: level)
+        return CombatPowerRating.evaluate(
+            maxHealth: scaled.maxHealth,
+            primaryStats: scaled.primaryStats,
+            level: level,
+            powerMultiplier: EnemyPowerCurve.power(level: level, isBoss: enemy.isBoss)
         )
     }
 

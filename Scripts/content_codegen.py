@@ -483,12 +483,18 @@ def triggers_swift(raw: str) -> str:
             values["blockOnDeathsDoor"] = token.split(":", 1)[1]
         elif token.startswith("on_spend_mana_block:"):
             values["spendManaBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_spend_mana_random_dot:"):
+            values["spendManaRandomDoTFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_block:"):
             values["holyDamageBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_stun_damage_block:"):
+            values["stunDamageBlockFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_cleanse:"):
             values["holyDamageCleanseCount"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_heal:"):
             values["holyDamageHealFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_burn_damage_heal:"):
+            values["burnDamageHealFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_dodge_gold:"):
             values["dodgeGoldFlat"] = token.split(":", 1)[1]
         elif token.startswith("ignore_enemy_mitigation_percent:"):
@@ -501,8 +507,16 @@ def triggers_swift(raw: str) -> str:
             values["enemyStunnedApplyMarked"] = token.split(":", 1)[1]
         elif token.startswith("on_dodge_block:"):
             values["dodgeBlockFlat"] = token.split(":", 1)[1]
+        elif token.startswith("on_dodge_apply_poison:"):
+            values["dodgeApplyPoison"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_purge:"):
             values["holyDamagePurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_heal_cleanse:"):
+            values["healCleanseCount"] = token.split(":", 1)[1]
+        elif token.startswith("once_death_revive_health:"):
+            values["onceDeathReviveHealth"] = token.split(":", 1)[1]
+        elif token.startswith("once_death_revive_block:"):
+            values["onceDeathReviveBlock"] = token.split(":", 1)[1]
         elif token.startswith("on_enemy_stunned_purge_all:"):
             values["enemyStunnedPurgeAll"] = "true"
         elif token.startswith("on_enemy_stunned_purge:"):
@@ -511,6 +525,8 @@ def triggers_swift(raw: str) -> str:
             values["criticalPurgeAll"] = "true"
         elif token.startswith("on_critical_purge:"):
             values["criticalPurgeCount"] = token.split(":", 1)[1]
+        elif token.startswith("on_critical_gold:"):
+            values["criticalGoldFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_leech_restore_mana:"):
             values["leechRestoreManaFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_mana_block:"):
@@ -547,6 +563,7 @@ def triggers_swift(raw: str) -> str:
         "enemyStunnedPurgeAll",
         "criticalPurgeCount",
         "criticalPurgeAll",
+        "criticalGoldFlat",
         "leechRestoreManaFlat",
         "gainManaBlockFlat",
         "defeatEnemyGoldFlat",
@@ -594,16 +611,23 @@ def triggers_swift(raw: str) -> str:
         "onceBelowHealthPercentHeal",
         "blockOnDeathsDoor",
         "spendManaBlockFlat",
+        "spendManaRandomDoTFlat",
         "holyDamageBlockFlat",
+        "stunDamageBlockFlat",
         "holyDamageCleanseCount",
         "holyDamageHealFlat",
+        "burnDamageHealFlat",
         "dodgeGoldFlat",
         "ignoreEnemyMitigationPercent",
         "stunDealPhysicalFlat",
         "damageWhileTargetStunnedBonus",
         "enemyStunnedApplyMarked",
         "dodgeBlockFlat",
+        "dodgeApplyPoison",
         "holyDamagePurgeCount",
+        "healCleanseCount",
+        "onceDeathReviveHealth",
+        "onceDeathReviveBlock",
         "blockPerTurn",
         "firstHitDoubleDamage",
         "leechChancePercent",

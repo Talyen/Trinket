@@ -1,22 +1,22 @@
 id	name	description	modifiers	triggers
-oathbound	Oathbound	Increase Block gained by 1.	block_gained:1	
-cutpurse	Cutpurse	Increase Gold gained by 1.	gold_gained:1	
-arcane_focus	Arcane Focus	Increase Burn and Freeze damage dealt by 1.	damage_dealt:burn:1|damage_dealt:freeze:1	
+oathbound	Oathbound	When you deal Holy or Stun damage, gain 1 Block.		on_holy_damage_block:1|on_stun_damage_block:1
+cutpurse	Cutpurse	Gain 1 Gold when you Critically Hit.		on_critical_gold:1
+arcane_focus	Arcane Focus	Deal 1 Burn or Freeze when you spend Mana.		on_spend_mana_random_dot:1
 pack_leader	Pack Leader	Increase Companion damage dealt by 1.	companion_damage_dealt:1	
-soul_siphon	Soul Siphon	Increase Leech duration by 2.	leech_duration:2	
-thick_hide	Thick Hide	Increase Maximum Health by 2.	maximum_health:2	
+soul_siphon	Bloodfire	When you deal Burn damage, restore 1 Health.		on_burn_damage_heal:1
+thick_hide	Thick Hide	Restores 1 Health each turn.		regeneration:1:1
 permafrost	Permafrost	Increase Freeze damage dealt by 1.	damage_dealt:freeze:1	
-cold_blood	Cold Blood	Increase Agility by 2.	agility:2	
+cold_blood	Cold Blood	When you Dodge, apply 2 Poison.		on_dodge_apply_poison:2
 razor_claws	Razor Claws	Increase Bleed damage dealt by 1.	damage_dealt:bleed:1	
-immortal_ember	Immortal Ember	Increase Burn damage dealt by 1.	damage_dealt:burn:1	
+immortal_ember	Rebirth	Revives and restores 10 Health the first time it dies each battle.		once_death_revive_health:10
 pack_ferocity	Pack Ferocity	Increase Bleed duration by 1.	bleed_duration:1	
-gold_retriever	Gold Retriever	Increase Gold gained by 1.	gold_gained:1	
+gold_retriever	Bounty	Gain 3 Gold when you defeat an enemy.		on_defeat_enemy_gold:3
 sly_trickery	Sly Trickery	Gain 1 Gold when you Dodge.		on_dodge_gold:1
 purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_cleanse_heal:1
-unliving_frame	Unliving Frame	Decrease Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
-arcane_reservoir	Arcane Reservoir	Increase Maximum Mana by 3.	maximum_mana:3	
-fae_fortune	Fae Fortune	Restore 1 Health when gaining Gold.		on_gain_gold_heal:1
-iron_carapace	Iron Carapace	Increase Block gained by 2.	block_gained:2	
+unliving_frame	Deathrattle	Revives and restores 10 Block the first time it dies each battle.		once_death_revive_health:1|once_death_revive_block:10
+arcane_reservoir	Arcane Reservoir	Gain 1 Block when you spend Mana.		on_spend_mana_block:1
+fae_fortune	Fae Fortune	When you Heal, also Cleanse 1 debuff.		on_heal_cleanse:1
+iron_carapace	Carapace	Gain 1 Block each turn.		block_per_turn:1
 living_armor_trait	Living Armor	Gains 1 Block each turn. Reduce Bleed damage taken by 30%.	damage_taken_percent:bleed:0.30	block_per_turn:1
 mimic_trait	Mimic	Deals double damage on the first attack.		first_hit_double_damage:1
 mud_elemental_trait	Mud Elemental	Physical and Poison damage taken reduced by 20%.	damage_taken_percent:physical:0.20|damage_taken_percent:poison:0.20	
@@ -24,8 +24,8 @@ necromancer_trait	Necromancer	20% chance to Leech. Holy damage taken increased b
 plague_doctor_trait	Plague Doctor	Poison damage taken reduced by 30%.	damage_taken_percent:poison:0.30	
 skeleton_trait	Skeleton	Holy damage taken increased by 30%. Bleed damage taken reduced by 30%.	damage_taken_vulnerability:holy:0.30|damage_taken_percent:bleed:0.30	
 the_blight_treant_trait	The Blight Treant	Poison and Bleed damage taken reduced by 20%. Holy damage taken increased by 30%. Damage increases by 1 every other turn.	damage_taken_percent:poison:0.20|damage_taken_percent:bleed:0.20|damage_taken_vulnerability:holy:0.30	damage_increases_every_other_turn:1
-the_forge_golem_trait	The Forge Golem	Gains 1 Block each turn. Damage increases by 1 every other turn.		block_per_turn:1|damage_increases_every_other_turn:1
-the_frostwarden_trait	The Frostwarden	Deals 2 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.	damage_taken_vulnerability:burn:0.20	turn_freeze_all_enemies:2|damage_increases_every_other_turn:1
+the_forge_golem_trait	The Forge Golem	Damage increases by 1 every other turn.		damage_increases_every_other_turn:1
+the_frostwarden_trait	The Frostwarden	Deals 1 Freeze damage per turn to all enemies. Burn damage taken is increased by 20%. Damage increases by 1 every other turn.	damage_taken_vulnerability:burn:0.20	turn_freeze_all_enemies:1|damage_increases_every_other_turn:1
 the_iron_bear_trait	The Iron Bear	Physical damage taken reduced by 25%. Damage increases by 1 every other turn.	damage_taken_percent:physical:0.25	damage_increases_every_other_turn:1
 goblin_trait	Goblin	Burn damage taken increased by 30%.	damage_taken_vulnerability:burn:0.30	
 fire_elemental_trait	Fire Elemental	Burns attackers for 1 damage when hit. Freeze damage taken increased by 30%.	damage_taken_vulnerability:freeze:0.30	on_hit_attacker_burn:1

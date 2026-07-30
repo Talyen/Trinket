@@ -182,6 +182,6 @@ struct StatIntegrationTests {
         }
 
         let values = try #require(buildupValues)
-        try #expect(values.threshold == hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
+        try #expect(values.threshold == hero.primaryStats.controlMeterThreshold(baseMaxHealth: 100))
     }
 }

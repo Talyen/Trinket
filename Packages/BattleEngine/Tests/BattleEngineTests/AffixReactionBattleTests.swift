@@ -4,6 +4,28 @@ import TrinketContent
 import TrinketCore
 import TrinketTestSupport
 
+private func affixBleedAbility(potency: Int) -> Ability {
+    Ability(
+        id: "bleed-\(potency)",
+        name: "Bleed",
+        tier: .basic,
+        directDamage: 0,
+        description: "Bleed",
+        effects: [.bleed(potency)]
+    )
+}
+
+private func affixHealAbility(amount: Int) -> Ability {
+    Ability(
+        id: "heal-\(amount)",
+        name: "Heal",
+        tier: .basic,
+        directDamage: 0,
+        description: "Heal",
+        effects: [.instantHeal(.health, amount)]
+    )
+}
+
 struct AffixReactionBattleTests {
     private func hero(
         abilities: [Ability],
@@ -26,31 +48,9 @@ struct AffixReactionBattleTests {
         BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: maxHealth)
     }
 
-    private func bleedAbility(potency: Int) -> Ability {
-        Ability(
-            id: "bleed-\(potency)",
-            name: "Bleed",
-            tier: .basic,
-            directDamage: 0,
-            description: "Bleed",
-            effects: [.bleed(potency)]
-        )
-    }
-
-    private func healAbility(amount: Int) -> Ability {
-        Ability(
-            id: "heal-\(amount)",
-            name: "Heal",
-            tier: .basic,
-            directDamage: 0,
-            description: "Heal",
-            effects: [.instantHeal(.health, amount)]
-        )
-    }
-
     @Test func infectedAppliesPoisonWhenBleedIsApplied() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [bleedAbility(potency: 1)]),
+            hero: hero(abilities: [affixBleedAbility(potency: 1)]),
             companion: passiveCompanion(),
             enemy: passiveEnemy(),
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(onBleedApplyPoison: 1))
@@ -140,7 +140,7 @@ struct AffixReactionBattleTests {
             hasLeech: true
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [leechStrike, healAbility(amount: 10)], maxHealth: 30),
+            hero: hero(abilities: [leechStrike, affixHealAbility(amount: 10)], maxHealth: 30),
             companion: passiveCompanion(maxHealth: 20),
             enemy: passiveEnemy(),
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(companionLeechSharePercent: 1.0))
@@ -194,7 +194,9 @@ struct AffixReactionBattleTests {
         let first = BattleTestFixtures.endTurn(on: &battle)
         let second = BattleTestFixtures.endTurn(on: &battle)
 
-        try #expect(first.contains { $0.abilityName == "Second Wind" && $0.amount == 3 })
+        try #expect(first.contains {
+            $0.abilityName == "Second Wind" && $0.amount == battle.paced(3, sourceActorID: battle.hero.id)
+        })
         try #expect(!second.contains { $0.abilityName == "Second Wind" })
         // Second chip is lethal after the heal; Death's Door owns that hit and leaves 1 HP.
         try #expect(second.contains { $0.effectKind == .deathsDoorTriggered })
@@ -327,7 +329,7 @@ struct AffixReactionBattleTests {
         try #expect(events.contains { $0.abilityName == "Nullifying" })
         try #expect(!context.roster.activeEffects(for: hero).map(\.effect).contains(where: \.isRemovableDebuff))
         try #expect(!context.roster.activeEffects(for: enemy).map(\.effect).contains(where: \.isRemovableBuff))
-        try #expect(context.roster.health(for: hero) == 4)
+        try #expect(context.roster.health(for: hero) == 1 + context.paced(3, sourceActorID: hero.id))
     }
 
     @Test func paydayAndUntouchableFireWhenDodging() throws {

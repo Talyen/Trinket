@@ -59,6 +59,51 @@ struct ThornsHandler: BattleEffectHandler {
     }
 }
 
+struct FreezeOnHitHandler: BattleEffectHandler {
+    let kind: EffectKind = .freezeOnHit
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        let amount = stacks.reduce(0) { maxAmount, active in
+            if case let .freezeOnHit(value) = active.effect {
+                return max(maxAmount, value)
+            }
+            return maxAmount
+        }
+        guard amount > 0 else { return nil }
+        return EffectSummary(keyword: keyword, text: "Glacial Ward: \(amount) Freeze (until next hit).")
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleState
+    ) -> EffectApplyOutcome {
+        guard case let .freezeOnHit(amount) = effect, amount > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .freezeOnHit = $0 {
+                return true
+            }
+            return false
+        }
+        context.appendEffect(.freezeOnHit(amount), to: target, sourceID: source.id, remainingTurns: 0)
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .controlApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: amount,
+            keyword: .freeze
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
 struct MarkedHandler: BattleEffectHandler {
     let kind: EffectKind = .marked
 

@@ -2,17 +2,17 @@ id	name	tier	summary
 apple	Apple	basic	Restore 2 Health.
 bash	Bash	basic	Deal 2 Stun damage.
 blackjack	Blackjack	basic	Deal 2 Stun damage or steal 2 Gold.
-block	Block	basic	Gain 2 Block.
+block	Block	basic	Gain 3 Block.
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
-fangs	Fangs	basic	Applies Bleeding. Leech.
+fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
 fire-arrow	Fire Arrow	basic	Deal 1 Burn damage.
 ice-shot	Ice Shot	basic	Deal 2 Freeze damage.
-kindling	Kindling	basic	Deal 2 Burn damage.
+kindling	Kindling	basic	Deal 1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Mana.
 maul	Maul	basic	Deal 2 Stun damage or deal 2 Bleed damage.
 pixie-dust	Pixie Dust	basic	Deal 2 Burn damage or restore 2 Mana.
 ray-of-frost	Ray of Frost	basic	Deal 2 Freeze damage.
-rending-slash	Rend	basic	Applies Bleeding.
+rending-slash	Rend	basic	Deal 2 Bleed damage.
 shield-bash	Shield Bash	basic	Deal 1 Stun damage and Gain 1 Block.
 slash	Slash	basic	Deal 2 Physical damage.
 sniff-out	Sniff Out	basic	Mark the enemy.
@@ -22,13 +22,14 @@ venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage.
 blood-offering	Blood Offering	skill	Lose 1 Health. Deal 4 Bleed damage.
 bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold.
-briar-shield	Briar Shield	skill	Gain 2 Block and Gain Thorns.
+briar-shield	Briar Shield	skill	Gain 2 Block and Gain 1 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
-cleanse	Cleanse	skill	Cleanse a status effect and Restore 2 Health.
+cleanse	Cleanse	skill	Cleanse a status effect and Restore 3 Health.
 cold-snap	Cold Snap	skill	Deal 2 Freeze damage and Restore 1 Mana if the enemy is Frozen.
 dark-pact	Dark Pact	skill	Lose 1 Health. Draw 2 cards.
 fireball	Fireball	skill	Deal 2 Burn damage.
 frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
+glacial-ward	Glacial Ward	skill	Gain 2 Block and Deal 2 Freeze damage next time you're hit.
 heal	Heal	skill	Restore 5 Health.
 mana-potion	Mana Potion	skill	Restore 3 Mana.
 mana-shield	Mana Shield	skill	Convert all Mana into Block.
@@ -36,7 +37,7 @@ poison-dagger	Poison Dagger	skill	Deal 3 Poison damage.
 pounce	Pounce	skill	Deal 3 Stun damage.
 predators-focus	Predator's Focus	skill	Your next attack is a guaranteed Critical Hit.
 sap-arrow	Sap Arrow	skill	Deal 3 Stun damage.
-serrated-edge	Serrated Edge	skill	Applies Bleeding.
+serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage.
 smite	Smite	skill	Deal 5 Holy damage.
 spiked-shield	Spiked Shield	skill	Gain 2 Block and Gain 2 Thorns.
 steal	Steal	skill	Steal 3 Gold.
@@ -47,14 +48,13 @@ venom-fangs	Venom Fangs	skill	Deal 2 Poison damage. Leech.
 astral-arrow	Astral Arrow	ultimate	Deal 6 Stun damage, Deal 6 Freeze damage, or deal 6 Burn damage.
 avatar-of-justice	Avatar	ultimate	Gain Holy damage equal to your Block for 2 turns.
 blessed-aegis	Blessed Aegis	ultimate	Deal 6 Holy damage or gain 6 Block.
-blizzard	Blizzard	ultimate	Deal 2 Freeze damage each turn for 2 turns.
+blizzard	Blizzard	ultimate	Deal 3 Freeze damage each turn for 2 turns.
 bloodthorn	Bloodthorn	ultimate	Deal 4 Bleed damage or deal 3 Poison damage.
-combustion	Combustion	ultimate	Double the enemy's Burn if the enemy is Burning and Applies Burning if the enemy is not Burning.
+combustion	Combustion	ultimate	Double the enemy's Burn if the enemy is Burning and Applies Burning: 2 damage if the enemy is not Burning.
 earthquake	Earthquake	ultimate	Deal 6 Stun damage.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 6 Burn damage.
-glacial-ward	Glacial Ward	ultimate	Gain 3 Block and Freeze the next attacker.
 golden-plate	Golden Plate	ultimate	Gain 1 Block for every 7 Gold.
-hemorrhage	Hemorrhage	ultimate	Applies Bleeding.
+hemorrhage	Hemorrhage	ultimate	Deal 5 Bleed damage.
 luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage.
 molten-bulwark	Molten Bulwark	ultimate	Deal 4 Burn damage and Gain 4 Block.
