@@ -7,6 +7,10 @@ let package = Package(
     platforms: [.iOS(.v26)],
     products: [
         .library(
+            name: "TrinketFeatureContracts",
+            targets: ["TrinketFeatureContracts"]
+        ),
+        .library(
             name: "TrinketFeatureSupport",
             targets: ["TrinketFeatureSupport"]
         ),
@@ -24,6 +28,10 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "TrinketFeatureContracts",
+            dependencies: []
+        ),
+        .target(
             name: "TrinketFeatureSupport",
             dependencies: [
                 "TrinketCore",
@@ -35,6 +43,7 @@ let package = Package(
             name: "TrinketFeatureAdapters",
             dependencies: [
                 "TrinketFeatureSupport",
+                "TrinketFeatureContracts",
                 "TrinketCore",
                 "TrinketContent",
                 "BattleEngine",

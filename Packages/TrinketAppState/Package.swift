@@ -15,10 +15,8 @@ let package = Package(
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
         .package(path: "../BattleEngine"),
+        .package(path: "../TrinketBattleRuntime"),
         .package(path: "../TrinketPersistence"),
-        // No source-level imports, but required at link time: TrinketBattleFeature
-        // public initializers use TrinketDesignSystem values as default arguments,
-        // which Swift emits into this (calling) module.
         .package(path: "../TrinketDesignSystem"),
         .package(path: "../TrinketFeatureSupport"),
         .package(path: "../TrinketBattleFeature"),
@@ -31,11 +29,10 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "BattleEngine",
+                "TrinketBattleRuntime",
                 "TrinketPersistence",
                 "TrinketDesignSystem",
-                "TrinketFeatureSupport",
-                .product(name: "TrinketFeatureAdapters", package: "TrinketFeatureSupport"),
-                "TrinketBattleFeature",
+                .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
             ]
         ),
         .testTarget(
@@ -45,8 +42,10 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "BattleEngine",
+                "TrinketBattleRuntime",
                 "TrinketPersistence",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketFeatureAdapters", package: "TrinketFeatureSupport"),
                 "TrinketBattleFeature",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),

@@ -1,11 +1,14 @@
 import SwiftUI
 import TrinketAppState
 import TrinketBattleFeature
+import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @Environment(BattleSession.self) private var battle
     @Environment(\.scenePhase) private var scenePhase
     @State private var localSelectedTab: AppTab = .play
     @State private var didAcknowledgePersistenceRecovery = false
@@ -13,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
-            if appState.play.battle.activeBattle != nil {
+            if battle.lifecyclePhase == .active {
                 PlayView()
                     .transition(.opacity)
             } else {
@@ -21,7 +24,7 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: appState.play.battle.activeBattle?.id)
+        .animation(TrinketMotion.Screen.crossfade, value: battle.activeBattle?.id)
         .tint(TrinketDesign.Colors.accent)
         .preferredColorScheme(.dark)
         .alert(
@@ -48,7 +51,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            if appState.play.battle.activeBattle != nil {
+            if battle.lifecyclePhase == .active {
                 localSelectedTab = .play
                 appState.selectedTab = .play
             } else {
@@ -57,14 +60,14 @@ struct ContentView: View {
             appState.reconcileShellState(.appeared, scenePhase: scenePhase)
         }
         .onChange(of: localSelectedTab) { _, newTab in
-            guard appState.play.battle.activeBattle == nil || newTab == .play else {
+            guard battle.lifecyclePhase != .active || newTab == .play else {
                 localSelectedTab = .play
                 return
             }
             appState.selectedTab = newTab
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            guard appState.play.battle.activeBattle == nil || newTab == .play else {
+            guard battle.lifecyclePhase != .active || newTab == .play else {
                 appState.selectedTab = .play
                 localSelectedTab = .play
                 return
@@ -72,7 +75,7 @@ struct ContentView: View {
             localSelectedTab = newTab
             appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
         }
-        .onChange(of: appState.play.battle.activeBattle?.id) { _, newValue in
+        .onChange(of: battle.activeBattle?.id) { _, newValue in
             if newValue != nil {
                 localSelectedTab = .play
                 appState.selectedTab = .play
@@ -141,7 +144,7 @@ struct ContentView: View {
         Binding(
             get: { localSelectedTab },
             set: { newTab in
-                guard appState.play.battle.activeBattle == nil || newTab == .play else { return }
+                guard battle.lifecyclePhase != .active || newTab == .play else { return }
                 localSelectedTab = newTab
             }
         )

@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -277,7 +278,7 @@ struct LabyrinthNodeInspector: View {
     var body: some View {
         StageSelectActiveCard(
             presentation: presentation,
-            isPrimaryActionDisabled: battle.activeBattle != nil,
+            isPrimaryActionDisabled: battle.lifecyclePhase == .active,
             onArtworkTap: {
                 if let enemyDetail {
                     battle.presentCombatantDetail(enemyDetail)

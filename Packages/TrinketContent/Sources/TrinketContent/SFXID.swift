@@ -1,4 +1,7 @@
 /// Stable SFX catalog IDs curated in `SoundManifest/sfx.tsv`.
+///
+/// The catalog belongs with content metadata so simulation and feature modules
+/// can refer to sound identities without importing presentation support.
 public enum SFXID {
     public static let uiDeny = "ui_deny"
     public static let uiConfirm = "ui_confirm"

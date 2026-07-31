@@ -9,12 +9,12 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryRewardContent: View {
-    @Environment(PlaySession.self) private var play
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Bindable var session: MysteryEncounterSession
     let result: MysteryEffectApplyResult
+    let onFinish: () -> Bool
 
     @State private var isCompleting = false
     @State private var completedExperienceBars = 0
@@ -111,7 +111,7 @@ struct MysteryRewardContent: View {
 
     private func completeLootAll() {
         guard revealSequence.isSequenceComplete, !isCompleting else { return }
-        isCompleting = play.finishActiveMysteryEncounter()
+        isCompleting = onFinish()
     }
 
     private func experienceBarCompleted() {

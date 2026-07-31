@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import Observation
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -26,7 +27,7 @@ enum BattleCardPlayResolution: Equatable, Sendable {
 /// never exposed to app or view callers.
 @MainActor
 @Observable
-public final class BattleSession {
+public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
@@ -39,15 +40,8 @@ public final class BattleSession {
     @ObservationIgnored
     var onTurnAutoEnded: ((Int?) -> Void)?
 
-    public var activeBattle: ActiveBattleConfiguration? {
-        didSet {
-            if let activeBattle {
-                resetRun(from: activeBattle)
-            } else {
-                clearRunState()
-            }
-        }
-    }
+    public private(set) var activeBattle: ActiveBattleConfiguration?
+    public internal(set) var lifecyclePhase: BattleLifecyclePhase = .idle
 
     @ObservationIgnored
     let simulation = BattleSimulationStore()
@@ -191,10 +185,9 @@ public final class BattleSession {
     #endif
 
     public func endBattle() {
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
         activeBattle = nil
-        clearAllPresentation()
+        clearRunState()
+        lifecyclePhase = .idle
     }
 
     /// Schedules a delayed end turn when nothing in hand is playable.
@@ -227,6 +220,14 @@ public final class BattleSession {
 
     func clearBattleLog() {
         isShowingBattleLog = false
+    }
+
+    /// Installs a configuration through the lifecycle boundary. Callers must use
+    /// `activate` or `restart` so the transition is validated before this method.
+    func installActiveBattle(_ configuration: ActiveBattleConfiguration) {
+        activeBattle = configuration
+        lifecyclePhase = .active
+        resetRun(from: configuration)
     }
 
     func clearOutcomePresentation() {

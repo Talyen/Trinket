@@ -67,7 +67,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             }
             .scrollTargetLayout()
             .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
-            .modifier(OptionalShelfAnimation(animation: shelfAnimation, value: shelfContentIdentity))
+            .animation(shelfAnimation, value: shelfContentIdentity)
         }
         .contentMargins(
             .horizontal,
@@ -88,19 +88,6 @@ private struct OptionalAccessibilityIdentifier: ViewModifier {
     func body(content: Content) -> some View {
         if let identifier {
             content.accessibilityIdentifier(identifier)
-        } else {
-            content
-        }
-    }
-}
-
-private struct OptionalShelfAnimation: ViewModifier {
-    let animation: Animation?
-    let value: String
-
-    func body(content: Content) -> some View {
-        if let animation {
-            content.animation(animation, value: value)
         } else {
             content
         }

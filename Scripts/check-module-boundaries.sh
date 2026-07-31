@@ -26,6 +26,25 @@ check_no_package_dependency() {
   fi
 }
 
+check_no_production_target_dependency() {
+  local package="$1"
+  local dependency="$2"
+  local reason="$3"
+  local manifest="Packages/$package/Package.swift"
+
+  # A package-level dependency may still be needed by an isolated test target.
+  # Inspect only the shipping target so tests can use the concrete presentation
+  # implementation without reopening the production module edge.
+  if awk -v dependency="\"$dependency\"" '
+    /\.target\(/ { in_production_target = 1 }
+    /\.testTarget\(/ { in_production_target = 0 }
+    in_production_target && index($0, dependency) { found = 1 }
+    END { exit found ? 0 : 1 }
+  ' "$manifest"; then
+    violations+=("$manifest: $reason")
+  fi
+}
+
 # Packages must not import the app module.
 while IFS= read -r file; do
   [[ -n "$file" ]] && violations+=("$file: packages must not import Trinket app module")
@@ -83,6 +102,33 @@ check_no_import "Packages/TrinketBattleFeature/Sources" '^import TrinketFeatureA
   'TrinketBattleFeature must depend on pure FeatureSupport, not save-backed adapters'
 check_no_package_dependency TrinketBattleFeature TrinketFeatureAdapters \
   'TrinketBattleFeature must not depend on the save-backed FeatureAdapters target'
+
+# AppState owns orchestration, not BattleFeature presentation. The runtime
+# contract is the only battle dependency allowed at this layer.
+check_no_import "Packages/TrinketAppState/Sources" '^import TrinketBattleFeature$' \
+  'TrinketAppState must depend on TrinketBattleRuntime, not BattleFeature'
+check_no_production_target_dependency TrinketAppState TrinketBattleFeature \
+  'TrinketAppState production target must depend on TrinketBattleRuntime, not BattleFeature'
+check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureAdapters$' \
+  'TrinketAppState must depend on pure contracts, not save-backed FeatureAdapters'
+check_no_import "Packages/TrinketAppState/Sources" '^import TrinketFeatureSupport$' \
+  'TrinketAppState must not import presentation FeatureSupport'
+if awk '
+  /\.target\(/ { in_production_target = 1 }
+  /\.testTarget\(/ { in_production_target = 0 }
+  in_production_target && index($0, "name: \"TrinketFeatureAdapters\"") { found = 1 }
+  END { exit found ? 0 : 1 }
+' Packages/TrinketAppState/Package.swift; then
+  violations+=("Packages/TrinketAppState/Package.swift: production target must not depend on save-backed FeatureAdapters")
+fi
+
+# Runtime contracts must stay portable and presentation-free.
+for forbidden in SwiftUI UIKit AVFoundation TrinketBattleFeature TrinketAppState; do
+  check_no_import "Packages/TrinketBattleRuntime/Sources" "^import $forbidden$" \
+    "TrinketBattleRuntime must not import $forbidden"
+  check_no_package_dependency TrinketBattleRuntime "$forbidden" \
+    "TrinketBattleRuntime must not depend on $forbidden"
+done
 
 if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2

@@ -1,5 +1,6 @@
 import Foundation
 import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketTestSupport
@@ -20,7 +21,8 @@ enum AppTestSupport {
         try AppState(
             environment: makeEnvironment(arguments: arguments),
             playerSave: playerSave ?? SaveTestSupport.makeSaveStore(directoryURL: directoryURL),
-            userDefaults: userDefaults
+            userDefaults: userDefaults,
+            battleRuntime: BattleSession(presentationEnvironment: .silent)
         )
     }
 }

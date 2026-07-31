@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
@@ -14,12 +15,12 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
         session.partyCelebrateDelayOverride = 0
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        _ = session.activate(ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
-        )
+        ))
 
         #expect(session.canRetreat)
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -43,7 +44,7 @@ struct BattleSessionSimulationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = 0
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        _ = session.activate(ActiveBattleConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             hero: party.hero,
@@ -52,7 +53,7 @@ struct BattleSessionSimulationTests {
             stageRewardsAlreadyClaimed: true,
             hasProgressionRewards: true,
             musicStageID: stage.id
-        )
+        ))
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -183,12 +184,12 @@ struct BattleSessionSimulationTests {
         let enemyID = try #require(session.simulation.readModel?.enemy.id)
         #expect(session.simulation.readModel?.healthByCombatantID[enemyID] ?? 0 < 100)
 
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        _ = session.restart(ActiveBattleConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
-        )
+        ))
 
         #expect(session.feedback.activeItems.isEmpty)
         let resetReadModel = try #require(session.simulation.readModel)
@@ -334,15 +335,15 @@ struct BattleSessionSimulationTests {
             enemyModifiers: enemyModifiers
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        session.activeBattle = configuration
+        _ = session.activate(configuration)
 
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        _ = session.restart(ActiveBattleConfigurationTestSupport.make(
             rngSeed: 1,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant,
             enemyModifiers: enemyModifiers
-        )
+        ))
 
         #expect(
             session.simulation.readModel?.modifiersByCombatantID[enemy.combatant.id]?

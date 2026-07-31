@@ -3,10 +3,9 @@ import Foundation
 import Observation
 import os
 import SwiftUI
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 import UIKit
 
@@ -37,7 +36,9 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         shellSessionStore: PlayerShellSessionStore? = nil,
-        userDefaults: UserDefaults? = nil
+        userDefaults: UserDefaults? = nil,
+        battleRuntime: (any BattleRuntime)? = nil,
+        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -63,34 +64,36 @@ public final class AppState {
         if shellSession.mapScrollStageID != dependencies.mapScrollStageID {
             shellSession.mapScrollStageID = dependencies.mapScrollStageID
         }
-        let resolvedBattle = BattleSession(
-            presentationEnvironment: BattlePresentationEnvironment(
-                playSFX: { ids in
-                    dependencies.sfxPlayer.playAll(
-                        ids,
-                        volume: dependencies.options.effectsVolume
-                    )
-                },
-                warmSFX: { ids, concurrentPlayerCount in
-                    dependencies.sfxPlayer.warm(
-                        ids,
-                        concurrentPlayerCount: concurrentPlayerCount
-                    )
-                },
-                hapticsEnabled: {
-                    dependencies.options.hapticsEnabled
-                },
-                effectsVolume: {
-                    dependencies.options.effectsVolume
-                },
-                shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
-                    dependencies.options.shouldAutoSkipUltimateCinematic(
-                        actorID: actorID,
-                        actorsWhoPresentedThisBattle: presentedActors
-                    )
-                }
+        let resolvedBattle = battleRuntime
+            ?? makeBattleRuntime?(
+                BattleRuntimeDependencies(
+                    playSFX: { ids in
+                        dependencies.sfxPlayer.playAll(
+                            ids,
+                            volume: dependencies.options.effectsVolume
+                        )
+                    },
+                    warmSFX: { ids, concurrentPlayerCount in
+                        dependencies.sfxPlayer.warm(
+                            ids,
+                            concurrentPlayerCount: concurrentPlayerCount
+                        )
+                    },
+                    hapticsEnabled: {
+                        dependencies.options.hapticsEnabled
+                    },
+                    effectsVolume: {
+                        dependencies.options.effectsVolume
+                    },
+                    shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
+                        dependencies.options.shouldAutoSkipUltimateCinematic(
+                            actorID: actorID,
+                            actorsWhoPresentedThisBattle: presentedActors
+                        )
+                    }
+                )
             )
-        )
+            ?? BattleRuntimeStore()
         play = PlaySession(
             playerSave: dependencies.playerSave,
             shellSession: dependencies.shellSession,

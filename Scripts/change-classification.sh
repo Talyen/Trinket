@@ -257,6 +257,12 @@ trinket_classify_path() {
         trinket_add_smoke_target SmokeBattleTests
       fi
       ;;
+    Packages/TrinketBattleRuntime/*.swift|Packages/TrinketBattleRuntime/**/*.swift)
+      TRINKET_HAS_SWIFT=true
+      TRINKET_NEEDS_STYLE=true
+      trinket_add_package TrinketBattleRuntime
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
     Packages/TrinketBattleFeature/*.swift|Packages/TrinketBattleFeature/**/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true

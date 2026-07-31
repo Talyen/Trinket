@@ -5,6 +5,7 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -90,7 +91,7 @@ struct SpireClimbView: View {
                     StageSelectList(
                         rows: rows,
                         isPrimaryActionDisabled: { _ in
-                            battle.activeBattle != nil || !isPartyAttuned(to: spire)
+                            battle.lifecyclePhase == .active || !isPartyAttuned(to: spire)
                         },
                         onArtworkTap: showEnemyDetails,
                         onPrimaryAction: { floor in

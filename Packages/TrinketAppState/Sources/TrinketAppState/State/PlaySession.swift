@@ -1,8 +1,8 @@
 import Observation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Play-tab shell and mode registry: navigation, shared battle launch, and victory routing.
@@ -15,7 +15,7 @@ import TrinketPersistence
 public final class PlaySession {
     public let playerSave: PlayerSaveStore
     public let shellSession: PlayerShellSessionStore
-    public let battle: BattleSession
+    public let battle: any BattleRuntime
     public let options: OptionsStore
     public let sfxPlayer: SFXPlayer
 
@@ -44,7 +44,7 @@ public final class PlaySession {
     init(
         playerSave: PlayerSaveStore,
         shellSession: PlayerShellSessionStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
         pendingDestination: PlayLaunchDestination?
@@ -113,71 +113,6 @@ public final class PlaySession {
         )
     }
 
-    /// Routes transient encounter completion to the mode that owns its progress.
-    @discardableResult
-    public func finishActiveShopEncounter() -> Bool {
-        guard let origin = encounters.activeShopEncounter?.origin else { return false }
-        switch origin {
-        case .journey:
-            return journey.finishActiveShopEncounter()
-        case .labyrinth:
-            return labyrinth.finishActiveShopEncounter()
-        }
-    }
-
-    @discardableResult
-    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
-        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
-        switch origin {
-        case .journey:
-            return journey.resolveActiveMysteryChoice(choiceID: choiceID)
-        case .labyrinth:
-            return labyrinth.resolveActiveMysteryChoice(choiceID: choiceID)
-        }
-    }
-
-    @discardableResult
-    public func selectActiveMysteryItem(itemID: String) -> Bool {
-        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
-        switch origin {
-        case .journey:
-            return journey.selectActiveMysteryItem(itemID: itemID)
-        case .labyrinth:
-            return labyrinth.selectActiveMysteryItem(itemID: itemID)
-        }
-    }
-
-    @discardableResult
-    public func corruptActiveMysteryItem(itemID: String) -> Bool {
-        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
-        switch origin {
-        case .journey:
-            return journey.corruptActiveMysteryItem(itemID: itemID)
-        case .labyrinth:
-            return labyrinth.corruptActiveMysteryItem(itemID: itemID)
-        }
-    }
-
-    @discardableResult
-    public func finishActiveMysteryEncounter() -> Bool {
-        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
-        switch origin {
-        case .journey:
-            return journey.finishActiveMysteryEncounter()
-        case .labyrinth:
-            return labyrinth.finishActiveMysteryEncounter()
-        }
-    }
-
-    @discardableResult
-    public func finishActiveMysteryCorruptionReveal() -> Bool {
-        encounters.finishActiveMysteryCorruptionReveal()
-    }
-
-    public func cancelActiveMysteryCorruptSelection() {
-        encounters.cancelActiveMysteryCorruptSelection()
-    }
-
     func clearTransientState() {
         battle.endBattle()
         encounters.activeMysteryEncounter = nil
@@ -215,7 +150,7 @@ enum PlayModeGraph {
 
     static func assemble(
         playerSave: PlayerSaveStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
         noteMapScrollFocus: @escaping (String) -> Void

@@ -4,9 +4,9 @@ import TrinketContent
 import TrinketCore
 
 /// Battle-run DTO of pre-resolved party, enemy, and reward inputs.
-/// Mode owners / `PlayBattleLaunch` bake builds, XP, materials, and presentation
-/// fields before constructing this value. BattleFeature never reads live save slices
-/// or re-derives Persistence reward policy here.
+///
+/// Play owns building this snapshot. The battle presentation feature consumes it
+/// without reading live save slices or re-deriving persistence policy.
 public struct ActiveBattleConfiguration: Identifiable {
     public struct PartyMember: Equatable {
         public let combatant: Combatant
@@ -28,7 +28,7 @@ public struct ActiveBattleConfiguration: Identifiable {
     }
 
     public let id = UUID()
-    /// Opaque prepared-run key. Battle never interprets play-mode identity from this.
+    /// Opaque prepared-run key. Battle stores and matches keys but never interprets them.
     public let runKey: BattleRunKey?
     public let rngSeed: UInt64
     public let hero: PartyMember
@@ -38,24 +38,23 @@ public struct ActiveBattleConfiguration: Identifiable {
     public let highestHeroLevel: Int
     public let highestCompanionLevel: Int
     public let enemyModifiers: CombatModifierProfile
-    /// Value snapshot used by detail presentation; the live inventory remains owned by AppState.
+    /// Value snapshot used by detail presentation; live inventory remains app-owned.
     public let inventoryItems: [InventoryItem]
     public let stageReward: StageReward?
     public let rewardItems: [InventoryItem]
     public let pendingRewardItem: InventoryItem?
     public let experienceBonusPercent: Int
-    /// Homestead gold-find baked at launch so victory display needs no live homestead.
+    /// Homestead gold-find baked at launch for deterministic victory display.
     public let goldFindPercent: Int
-    /// Journey claimed-stage policy baked at launch so Battle never reads journey progress.
+    /// Journey claimed-stage policy baked at launch.
     public let stageRewardsAlreadyClaimed: Bool
     public let universalModifiers: [AffixModifier]
-    /// Defeat chrome action baked at launch (retreat vs restart).
+    /// Defeat chrome action baked at launch so UI never branches on mode.
     public let defeatPrimaryAction: BattleDefeatPrimaryAction
-    /// Whether victory grants progression rewards (`Loot All` vs `Battle Again`).
+    /// Whether victory grants progression rewards.
     public let hasProgressionRewards: Bool
-    /// Journey stage id for music routing only; nil for non-journey battles.
+    /// Journey stage id used only by app-level music routing.
     public let musicStageID: String?
-    /// XP awards baked at launch so victory chrome does not re-derive Persistence policy.
     public let heroExperienceAward: Int
     public let companionExperienceAward: Int
     public let materialRewards: [ResourceAmount]

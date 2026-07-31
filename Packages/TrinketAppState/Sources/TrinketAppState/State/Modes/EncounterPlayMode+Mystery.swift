@@ -1,8 +1,8 @@
 import Foundation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 struct MysteryEncounterFinishResult {
@@ -19,7 +19,7 @@ public extension EncounterPlayMode {
     ) -> StageMapMessage? {
         guard activeMysteryEncounter == nil else { return nil }
         guard activeShopEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        guard battle.lifecyclePhase != .active else { return nil }
 
         let pickContext = mysteryEventPickContext(origin: origin)
         let pinnedLabyrinthEventID = origin.labyrinthNodeID.flatMap {

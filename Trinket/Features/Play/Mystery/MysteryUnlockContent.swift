@@ -4,16 +4,17 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureAdapters
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryUnlockContent: View {
-    @Environment(PlaySession.self) private var play
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let unlockedID: String
     let onSelectDetail: (CombatantDetailContext) -> Void
+    let onFinish: () -> Bool
 
     @State private var unlockFeedbackTrigger = 0
     @State private var revealSequence = RewardRevealSequenceState()
@@ -89,7 +90,7 @@ struct MysteryUnlockContent: View {
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
             onPrimaryAction: {
-                _ = play.finishActiveMysteryEncounter()
+                _ = onFinish()
             },
             pinsPrimaryActionToBottom: false,
             primaryActionWidthFraction: 0.5

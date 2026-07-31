@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+import TrinketBattleRuntime
+import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 

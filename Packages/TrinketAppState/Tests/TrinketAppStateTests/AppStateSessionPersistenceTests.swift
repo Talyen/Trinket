@@ -1,5 +1,6 @@
 import Testing
 import TrinketBattleFeature
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 @testable import TrinketAppState

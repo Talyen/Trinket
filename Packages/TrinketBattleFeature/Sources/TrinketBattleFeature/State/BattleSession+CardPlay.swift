@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 import TrinketFeatureSupport
 
 extension BattleSession {

@@ -1,9 +1,8 @@
 import BattleEngine
 import Foundation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Shared battle configuration + activation used by mode owners and the Play shell.
@@ -14,7 +13,7 @@ import TrinketPersistence
 @MainActor
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
-    let battle: BattleSession
+    let battle: any BattleRuntime
 
     // MARK: Encounter resolution
 
@@ -107,12 +106,13 @@ struct PlayBattleLaunch {
     // MARK: Activate / prepare
 
     /// Shared activate after mode-specific gates. Resolves loot from the save homestead.
+    @discardableResult
     func activateCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
         universalModifiers: [AffixModifier] = [],
         labyrinth: PlayerLabyrinthState? = nil
-    ) {
+    ) -> Bool {
         let loot = Self.lootPackage(
             for: origin,
             enemy: encounter.combatant,
@@ -121,7 +121,7 @@ struct PlayBattleLaunch {
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
         let roster = playerSave.roster
-        activateBattle(
+        return activateBattle(
             origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -134,12 +134,13 @@ struct PlayBattleLaunch {
     }
 
     /// Shared prepare after mode-specific gates. Resolves loot from the save homestead.
+    @discardableResult
     func prepareCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
         universalModifiers: [AffixModifier] = [],
         labyrinth: PlayerLabyrinthState? = nil
-    ) {
+    ) -> Bool {
         let loot = Self.lootPackage(
             for: origin,
             enemy: encounter.combatant,
@@ -148,7 +149,7 @@ struct PlayBattleLaunch {
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         )
         let roster = playerSave.roster
-        battle.prepareBattleRun(makeBattleConfiguration(
+        return battle.prepareBattleRun(makeBattleConfiguration(
             origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -161,6 +162,7 @@ struct PlayBattleLaunch {
     }
 
     /// Installs a fresh battle configuration and syncs the tick loop.
+    @discardableResult
     func activateBattle(
         origin: PlayBattleOrigin? = nil,
         hero: Combatant,
@@ -171,7 +173,7 @@ struct PlayBattleLaunch {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         universalModifiers: [AffixModifier] = []
-    ) {
+    ) -> Bool {
         if let origin,
            battle.activatePreparedBattle(
                runKey: origin.runKey,
@@ -179,9 +181,9 @@ struct PlayBattleLaunch {
                companionID: companion.id,
                enemyID: enemy?.id
            ) {
-            return
+            return true
         }
-        battle.activeBattle = makeBattleConfiguration(
+        return battle.activate(makeBattleConfiguration(
             origin: origin,
             hero: hero,
             companion: companion,
@@ -191,7 +193,7 @@ struct PlayBattleLaunch {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             universalModifiers: universalModifiers
-        )
+        ))
     }
 
     func makeBattleConfiguration(
@@ -393,7 +395,7 @@ public extension PlaySession {
             ?? roster.activeCompanion
         let origin = activeBattle.runKey.flatMap(PlayBattleOrigin.init(runKey:))
 
-        battleLaunch.activateBattle(
+        let configuration = battleLaunch.makeBattleConfiguration(
             origin: origin,
             hero: hero,
             companion: companion,
@@ -404,5 +406,6 @@ public extension PlaySession {
             pendingRewardItem: activeBattle.pendingRewardItem,
             universalModifiers: activeBattle.universalModifiers
         )
+        _ = battle.restart(configuration)
     }
 }

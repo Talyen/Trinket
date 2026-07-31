@@ -2,6 +2,7 @@ import Testing
 import TrinketBattleFeature
 import TrinketContent
 import TrinketFeatureAdapters
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketTestSupport
@@ -146,8 +147,8 @@ struct AppStateTests {
         case "battle-victory":
             let activeBattle = try #require(state.play.battle.activeBattle)
             #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: "chapter-1-stage-1").runKey)
-            #expect(state.play.battle.spectacle.isShowingVictory)
-            #expect(state.play.battle.spectacle.victorySummary != nil)
+            #expect(state.play.uiBattle.spectacle.isShowingVictory)
+            #expect(state.play.uiBattle.spectacle.victorySummary != nil)
             #expect(state.selectedTab == .play)
         case "shop":
             let session = try #require(state.play.encounters.activeShopEncounter)

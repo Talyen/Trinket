@@ -24,7 +24,7 @@ struct AppStatePlayFlowTests {
         #expect(state.journey.startBattle(for: stage) == nil)
 
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
-        #expect(state.battle.hasActiveSimulation)
+        #expect(state.uiBattle.hasActiveSimulation)
     }
 
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
@@ -64,7 +64,7 @@ struct AppStatePlayFlowTests {
             companion: state.playerSave.roster.activeCompanion,
             enemy: enemy
         )
-        state.battle.activeBattle = configuration
+        _ = state.battle.activate(configuration)
         let journeyBefore = state.playerSave.journey
         let initialGold = state.playerSave.roster.gold
 
@@ -102,7 +102,7 @@ struct AppStatePlayFlowTests {
                 companion: state.playerSave.roster.activeCompanion,
                 enemy: enemy
             )
-            state.battle.activeBattle = configuration
+            _ = state.battle.activate(configuration)
             let goldBefore = state.playerSave.roster.gold
 
             let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
@@ -120,7 +120,7 @@ struct AppStatePlayFlowTests {
                 companion: state.playerSave.roster.activeCompanion,
                 enemy: enemy
             )
-            state.battle.activeBattle = configuration
+            _ = state.battle.activate(configuration)
 
             let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
@@ -246,10 +246,10 @@ struct AppStatePlayFlowTests {
         _ = state.journey.startBattle(for: stage)
         state.shellSession.selectedTab = .options
 
-        state.battle.presentBattleLog()
+        state.uiBattle.presentBattleLog()
 
         #expect(state.shellSession.selectedTab == .options)
-        #expect(state.battle.isShowingBattleLog)
+        #expect(state.uiBattle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }
 

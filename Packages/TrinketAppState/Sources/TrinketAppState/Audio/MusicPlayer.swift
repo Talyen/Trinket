@@ -2,7 +2,6 @@ import AVFoundation
 import Foundation
 import os
 import TrinketContent
-import TrinketFeatureSupport
 
 @MainActor
 final class MusicPlayer {

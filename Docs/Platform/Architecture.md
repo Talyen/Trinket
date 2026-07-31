@@ -19,7 +19,9 @@ Packages/
   BattleEngine/             Card combat rules, effect handlers, decks/hand
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
-  TrinketFeatureSupport/    Shared game UI, presentation models, IDs, artwork/frame support
+  TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
+  TrinketFeatureContracts/ Pure navigation/deep-link values shared across orchestration and UI
+  TrinketBattleRuntime/     SwiftUI-free battle lifecycle contract and launch DTOs
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
   TrinketTestSupport/       Shared combat/content fixtures (CombatantFixtures, battle parties)
@@ -51,7 +53,9 @@ Manifests and pipelines live outside the app folder:
 | Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
-| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; `ActiveBattleConfiguration` is a pure DTO of pre-resolved party/enemy/reward inputs (opaque `BattleRunKey`, defeat action, progression flag, music stage id, claimed-stage policy, gold-find percent, baked XP/material awards). BattleFeature must not branch on play-mode identity or assemble from live save slices. |
+| Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `MapScrollFocus`, and `StageMapMessage`; no save or view adapters |
+| Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `ActiveBattleConfiguration`, `BattleRunKey`, defeat action, and performance scenario contracts. AppState and Play modes depend on this boundary only. |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; it implements `BattleRuntime`. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
 | App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
@@ -108,15 +112,16 @@ Arrows mean “may depend on.” Every edge points downward; reverse edges are f
 ```text
 Trinket app
   ├── TrinketAppState
-  │     ├── TrinketBattleFeature
-  │     │     └── TrinketFeatureSupport
-  │     ├──────── TrinketFeatureSupport
-  │     └──────── TrinketFeatureAdapters
+  │     ├── TrinketBattleRuntime
+  │     └── TrinketFeatureContracts
   ├── TrinketBattleFeature
   ├── TrinketFeatureSupport
   └── TrinketFeatureAdapters
 
 TrinketBattleFeature ───→ TrinketFeatureSupport
+TrinketBattleFeature ───→ TrinketBattleRuntime
+
+TrinketBattleRuntime ───→ BattleEngine ───→ TrinketContent ──→ TrinketCore
 
 TrinketFeatureAdapters ──→ TrinketFeatureSupport
         │                   BattleEngine
@@ -128,6 +133,8 @@ TrinketFeatureAdapters ──→ TrinketFeatureSupport
 TrinketFeatureSupport ───→ TrinketContent ──→ TrinketCore
         └───────────────→ TrinketDesignSystem ──→ TrinketCore
 
+TrinketFeatureContracts ──→ (Foundation only)
+
 BattleEngine ───────────→ TrinketContent ──→ TrinketCore
 TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
 TrinketDesignSystem ───────────────────────→ TrinketCore
@@ -135,19 +142,29 @@ TrinketDesignSystem ────────────────────
 
 `BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
 `TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.
+`TrinketFeatureContracts` is the smaller, SwiftUI-free value layer for route and
+user-message contracts; it must not grow save-backed behavior. `SFXID` lives in
+`TrinketContent` with the generated sound catalog, so orchestration and battle
+resolution can name clips without importing presentation support.
 `TrinketFeatureAdapters` owns save-backed map/detail adapters and combat build resolution;
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
-`TrinketBattleFeature` cannot depend on `TrinketAppState`. No package may import the
-`Trinket` app module. `./Scripts/check-module-boundaries.sh` enforces these rules in
-both source imports and package manifests.
+`TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
+the SwiftUI-free `TrinketBattleRuntime` lifecycle contract, never the presentation
+feature. No package may import the `Trinket` app module. `./Scripts/check-module-boundaries.sh`
+enforces these rules in both source imports and package manifests.
 
-The app target is a composition root and view host. App views receive the narrowest
+The app target is a composition root and view host. `TrinketAppState` production code
+depends on `TrinketBattleRuntime` and `TrinketFeatureContracts`, never the concrete
+BattleFeature or save-backed adapters. The app composition root supplies
+`BattleRuntimeDependencies` as closure-only capabilities and separately injects the
+concrete `BattleSession` into the Battle UI subtree. App views receive the narrowest
 available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
 lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
-Shell battle activation routes through `PlaySession.battle` (injected into the
-environment from `appState.play.battle`). `PlaySession` remains in the environment for
+Shell battle activation routes through `PlaySession.battle` (a `BattleRuntime` injected
+by the composition root); the concrete `BattleSession` is injected separately into the
+Battle UI subtree. `PlaySession` remains in the environment for
 shell concerns (pending destination, map scroll, battle victory routing via
 `PlayBattleCompletion`). Play screens read save slices from `PlayerSaveStore` directly —
 not through `PlaySession` facades. Mode types own map/node/floor selection and

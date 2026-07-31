@@ -2,7 +2,6 @@ import Foundation
 import Observation
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 
 public enum ShopEncounterOpenResult {
     case opened(ShopEncounterSession)

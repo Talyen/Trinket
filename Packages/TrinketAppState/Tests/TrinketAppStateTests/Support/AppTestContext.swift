@@ -1,5 +1,6 @@
 import Foundation
 import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketFeatureSupport
 import TrinketPersistence
 import TrinketTestSupport
@@ -57,6 +58,7 @@ final class AppTestContext {
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
+        let battle = BattleSession(presentationEnvironment: .silent)
         let state = try AppState(
             environment: parsed,
             playerSave: playerSave ?? PlayerSaveStore(
@@ -66,15 +68,17 @@ final class AppTestContext {
                 persistSaveImmediately: parsed.persistSaveImmediately
             ),
             shellSessionStore: makeShellSessionStore(environment: parsed),
-            userDefaults: userDefaults
+            userDefaults: userDefaults,
+            battleRuntime: battle
         )
         // Unit tests expect a full hand before the next statement; skip paced deal.
-        state.play.battle.openingHandDrawStagger = 0
+        battle.openingHandDrawStagger = 0
         return state
     }
 
     @MainActor
     func makeAppState(environment: AppEnvironment) throws -> AppState {
+        let battle = BattleSession(presentationEnvironment: .silent)
         let state = try AppState(
             environment: environment,
             playerSave: PlayerSaveStore(
@@ -84,9 +88,10 @@ final class AppTestContext {
                 persistSaveImmediately: environment.persistSaveImmediately
             ),
             shellSessionStore: makeShellSessionStore(environment: environment),
-            userDefaults: userDefaults
+            userDefaults: userDefaults,
+            battleRuntime: battle
         )
-        state.play.battle.openingHandDrawStagger = 0
+        battle.openingHandDrawStagger = 0
         return state
     }
 
@@ -106,5 +111,14 @@ final class AppTestContext {
     @MainActor
     func makePlaySession(environment: AppEnvironment) throws -> PlaySession {
         try makeAppState(environment: environment).play
+    }
+}
+
+extension PlaySession {
+    var uiBattle: BattleSession {
+        guard let battle = battle as? BattleSession else {
+            fatalError("AppState tests require the BattleFeature runtime")
+        }
+        return battle
     }
 }

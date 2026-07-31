@@ -1,7 +1,6 @@
 import Foundation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
-import TrinketFeatureSupport
 
 enum MusicContextKind: Hashable {
     case menu

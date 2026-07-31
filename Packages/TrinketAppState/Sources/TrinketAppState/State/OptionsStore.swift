@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import TrinketFeatureSupport
 import TrinketPersistence
 
 /// How Ultimate cinematics are shown before presentation.
@@ -125,7 +124,7 @@ public final class OptionsStore {
     }
 
     /// Whether a new Ultimate from this actor should skip the full-screen cinematic.
-    func shouldAutoSkipUltimateCinematic(
+    public func shouldAutoSkipUltimateCinematic(
         actorID: String,
         actorsWhoPresentedThisBattle: Set<String>
     ) -> Bool {

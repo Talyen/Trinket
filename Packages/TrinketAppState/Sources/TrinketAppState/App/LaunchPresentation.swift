@@ -1,6 +1,5 @@
 import TrinketContent
-import TrinketFeatureAdapters
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 public enum LaunchPresentation: Equatable {

@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 import TrinketContent
-import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Thin Labyrinth non-combat node encounter (shrine rest or crafting altar).

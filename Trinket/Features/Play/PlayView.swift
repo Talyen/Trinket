@@ -5,11 +5,13 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 
 struct PlayView: View {
     @Environment(PlaySession.self) private var play
+    @Environment(BattleSession.self) private var battle
     @Environment(LabyrinthPlayMode.self) private var labyrinth
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
@@ -32,10 +34,10 @@ struct PlayView: View {
             guard newTab == .play, previousTab != .play else { return }
             // A normal Play-tab visit is a fresh choice. Pending destinations
             // are consumed only for battle/deep-link restoration below.
-            guard play.battle.activeBattle == nil else { return }
+            guard battle.lifecyclePhase != .active else { return }
             restorePlayDestinationIfNeeded(resetForNormalEntry: true)
         }
-        .onChange(of: play.battle.activeBattle?.id) { _, newID in
+        .onChange(of: battle.activeBattle?.id) { _, newID in
             if newID == nil {
                 restorePlayDestinationIfNeeded()
             }
@@ -46,7 +48,7 @@ struct PlayView: View {
     /// Prefer pending post-battle / launch destinations. Otherwise leave the
     /// explicit path empty so the mode chooser is the Play root.
     private func restorePlayDestinationIfNeeded(resetForNormalEntry: Bool = false) {
-        guard play.battle.activeBattle == nil else { return }
+        guard battle.lifecyclePhase != .active else { return }
 
         if let destination = play.consumePendingDestination() {
             apply(destination)
@@ -121,7 +123,7 @@ private struct PlayBrowsingStack: View {
     }
 
     private func openMode(_ destination: PlayLaunchDestination) {
-        guard battle.activeBattle == nil else { return }
+        guard battle.lifecyclePhase != .active else { return }
 
         if destination == .campaign {
             // Front-load Stage Select battle prep on the mode-card press so the
@@ -195,16 +197,17 @@ private struct PlayBrowsingStack: View {
 /// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
 private struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
+    @Environment(BattleSession.self) private var battle
 
     var body: some View {
-        let configuration = play.battle.activeBattle
+        let configuration = battle.activeBattle
         // The stack itself is stable; activation inserts only prepared battle
         // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
                 BattleView(
                     configuration: configuration,
-                    battleSession: play.battle,
+                    battleSession: battle,
                     completeBattle: { [weak play] configuration, earnedGold, rewards in
                         play?.completeActiveBattle(
                             configuration,
@@ -234,11 +237,10 @@ private struct PlayBattleOverlay: View {
 
 /// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.
 private struct PlaySessionPresentationModifier: ViewModifier {
-    @Environment(PlaySession.self) private var play
+    @Environment(BattleSession.self) private var battle
     @Binding var stageMessage: StageMapMessage?
 
     func body(content: Content) -> some View {
-        @Bindable var battle = play.battle
         content
             .modifier(PlayBattleOverlaySheetsModifier(battle: battle))
             .modifier(PlayEncounterCoversModifier())
@@ -289,6 +291,7 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 
 private struct PlayEncounterCoversModifier: ViewModifier {
     @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(JourneyPlayMode.self) private var journey
     @Environment(LabyrinthPlayMode.self) private var labyrinth
 
     func body(content: Content) -> some View {
@@ -299,8 +302,28 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     dismissWithoutCompleting: { encounters.dismissActiveMysteryEncounterWithoutCompleting() }
                 )
             ) { session in
-                MysteryEncounterView(session: session)
-                    .interactiveDismissDisabled()
+                MysteryEncounterView(
+                    session: session,
+                    onResolveChoice: { choiceID in
+                        resolveMysteryChoice(session: session, choiceID: choiceID)
+                    },
+                    onSelectItem: { itemID in
+                        selectMysteryItem(session: session, itemID: itemID)
+                    },
+                    onCorruptItem: { itemID in
+                        corruptMysteryItem(session: session, itemID: itemID)
+                    },
+                    onCancelCorruptSelection: {
+                        encounters.cancelActiveMysteryCorruptSelection()
+                    },
+                    onFinish: {
+                        finishMysteryEncounter(session: session)
+                    },
+                    onFinishCorruptionReveal: {
+                        encounters.finishActiveMysteryCorruptionReveal()
+                    }
+                )
+                .interactiveDismissDisabled()
             }
             .fullScreenCover(
                 item: dismissibleSessionBinding(
@@ -308,8 +331,13 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     dismissWithoutCompleting: { encounters.dismissActiveShopEncounterWithoutCompleting() }
                 )
             ) { session in
-                ShopEncounterView(session: session)
-                    .interactiveDismissDisabled()
+                ShopEncounterView(
+                    session: session,
+                    onLeave: {
+                        _ = finishShopEncounter(session: session)
+                    }
+                )
+                .interactiveDismissDisabled()
             }
             .sheet(
                 item: dismissibleSessionBinding(
@@ -324,6 +352,65 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     LabyrinthCraftView(session: session)
                 }
             }
+    }
+
+    @discardableResult
+    private func resolveMysteryChoice(
+        session: MysteryEncounterSession,
+        choiceID: String?
+    ) -> Bool {
+        switch session.origin {
+        case .journey:
+            journey.resolveActiveMysteryChoice(choiceID: choiceID)
+        case .labyrinth:
+            labyrinth.resolveActiveMysteryChoice(choiceID: choiceID)
+        }
+    }
+
+    @discardableResult
+    private func selectMysteryItem(
+        session: MysteryEncounterSession,
+        itemID: String
+    ) -> Bool {
+        switch session.origin {
+        case .journey:
+            journey.selectActiveMysteryItem(itemID: itemID)
+        case .labyrinth:
+            labyrinth.selectActiveMysteryItem(itemID: itemID)
+        }
+    }
+
+    @discardableResult
+    private func corruptMysteryItem(
+        session: MysteryEncounterSession,
+        itemID: String
+    ) -> Bool {
+        switch session.origin {
+        case .journey:
+            journey.corruptActiveMysteryItem(itemID: itemID)
+        case .labyrinth:
+            labyrinth.corruptActiveMysteryItem(itemID: itemID)
+        }
+    }
+
+    @discardableResult
+    private func finishMysteryEncounter(session: MysteryEncounterSession) -> Bool {
+        switch session.origin {
+        case .journey:
+            journey.finishActiveMysteryEncounter()
+        case .labyrinth:
+            labyrinth.finishActiveMysteryEncounter()
+        }
+    }
+
+    @discardableResult
+    private func finishShopEncounter(session: ShopEncounterSession) -> Bool {
+        switch session.origin {
+        case .journey:
+            journey.finishActiveShopEncounter()
+        case .labyrinth:
+            labyrinth.finishActiveShopEncounter()
+        }
     }
 
     /// Sheet/cover dismiss sets `nil`; route that through the incomplete-dismiss path

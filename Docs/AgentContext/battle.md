@@ -7,7 +7,8 @@ Use for card rules, effects, decks/hands, turn flow, and battle presentation.
 | Domain primitives | `Packages/TrinketCore` |
 | Authored combatants, abilities, stages | `Packages/TrinketContent` and `ContentManifest/` |
 | Rules, effect handlers, deck/hand | `Packages/BattleEngine` |
-| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature`; its DTO and launch ownership contract is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
+| Battle lifecycle contract | `Packages/TrinketBattleRuntime` (`BattleRuntime`, launch DTOs) |
+| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleSession` implements the runtime contract); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
 | Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleConfiguration`, `PlayBattleCompletion`, mode owners) |
 
 For rules, start with `BattleState`, the matching `EffectHandlers/` type, and the

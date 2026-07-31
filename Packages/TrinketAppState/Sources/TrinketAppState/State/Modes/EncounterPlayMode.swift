@@ -1,9 +1,8 @@
 import Foundation
 import Observation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
@@ -11,7 +10,7 @@ import TrinketPersistence
 @Observable
 public final class EncounterPlayMode {
     let playerSave: PlayerSaveStore
-    let battle: BattleSession
+    let battle: any BattleRuntime
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
 
@@ -20,7 +19,7 @@ public final class EncounterPlayMode {
 
     init(
         playerSave: PlayerSaveStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer
     ) {
@@ -36,7 +35,7 @@ public final class EncounterPlayMode {
     ) -> ShopEncounterOpenResult {
         guard activeShopEncounter == nil,
               activeMysteryEncounter == nil,
-              battle.activeBattle == nil
+              battle.lifecyclePhase != .active
         else { return .unavailable }
 
         switch ShopEncounterSession.open(

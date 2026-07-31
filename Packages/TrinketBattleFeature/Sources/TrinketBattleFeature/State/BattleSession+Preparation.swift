@@ -1,4 +1,5 @@
 import Foundation
+import TrinketBattleRuntime
 import TrinketFeatureSupport
 
 public extension BattleSession {
@@ -7,16 +8,19 @@ public extension BattleSession {
         let simulation: BattleSimulationStore.PreparedRun
     }
 
-    func prepareBattleRun(_ configuration: ActiveBattleConfiguration) {
+    @discardableResult
+    func prepareBattleRun(_ configuration: ActiveBattleConfiguration) -> Bool {
         guard activeBattle == nil,
-              let runKey = configuration.runKey else { return }
+              let runKey = configuration.runKey else { return false }
         if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
-            return
+            return true
         }
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
             simulation: simulation.makePreparedRun(from: configuration)
         )
+        lifecyclePhase = .prepared
+        return true
     }
 
     /// Opening-hand ability art names for a prepared run (cast faces on first play).
@@ -40,7 +44,23 @@ public extension BattleSession {
         else { return false }
         preparedBattleRunsByKey.removeValue(forKey: runKey)
         pendingPreparedRun = preparedBattleRun
-        activeBattle = preparedBattleRun.configuration
+        installActiveBattle(preparedBattleRun.configuration)
+        return true
+    }
+
+    @discardableResult
+    func activate(_ configuration: ActiveBattleConfiguration) -> Bool {
+        guard activeBattle == nil else { return false }
+        pendingPreparedRun = nil
+        installActiveBattle(configuration)
+        return true
+    }
+
+    @discardableResult
+    func restart(_ configuration: ActiveBattleConfiguration) -> Bool {
+        guard activeBattle != nil else { return false }
+        pendingPreparedRun = nil
+        installActiveBattle(configuration)
         return true
     }
 

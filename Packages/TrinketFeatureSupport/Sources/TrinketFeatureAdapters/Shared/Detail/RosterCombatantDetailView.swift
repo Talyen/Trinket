@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence
 

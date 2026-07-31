@@ -1,5 +1,6 @@
 import BattleEngine
 import Testing
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 @testable import TrinketBattleFeature

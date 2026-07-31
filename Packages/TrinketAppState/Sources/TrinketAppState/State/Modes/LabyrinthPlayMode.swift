@@ -1,10 +1,9 @@
 import Foundation
 import Observation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureAdapters
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Labyrinth map flow: enter, node routing, rest/craft, and node completion writes.
@@ -12,7 +11,7 @@ import TrinketPersistence
 @Observable
 public final class LabyrinthPlayMode {
     private let playerSave: PlayerSaveStore
-    private let battle: BattleSession
+    private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
 
@@ -20,7 +19,7 @@ public final class LabyrinthPlayMode {
 
     init(
         playerSave: PlayerSaveStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
         encounters: EncounterPlayMode
     ) {
@@ -31,7 +30,7 @@ public final class LabyrinthPlayMode {
     }
 
     private var canBeginTransientEncounter: Bool {
-        battle.activeBattle == nil
+        battle.lifecyclePhase != .active
             && encounters.activeShopEncounter == nil
             && encounters.activeMysteryEncounter == nil
             && activeNodeSession == nil
@@ -52,7 +51,7 @@ public final class LabyrinthPlayMode {
     /// Completes a Labyrinth shop only after persistence succeeds so a failed leave
     /// keeps the encounter available for another attempt.
     @discardableResult
-    func finishActiveShopEncounter() -> Bool {
+    public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = encounters.activeShopEncounter,
               case let .labyrinth(nodeID) = shopSession.origin
         else { return false }
@@ -79,7 +78,7 @@ public final class LabyrinthPlayMode {
     }
 
     @discardableResult
-    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         encounters.resolveActiveMysteryChoice(
             choiceID: choiceID,
             completeProgress: Self.completeMysteryProgress
@@ -87,7 +86,7 @@ public final class LabyrinthPlayMode {
     }
 
     @discardableResult
-    func selectActiveMysteryItem(itemID: String) -> Bool {
+    public func selectActiveMysteryItem(itemID: String) -> Bool {
         encounters.selectActiveMysteryItem(
             itemID: itemID,
             completeProgress: Self.completeMysteryProgress
@@ -95,7 +94,7 @@ public final class LabyrinthPlayMode {
     }
 
     @discardableResult
-    func corruptActiveMysteryItem(itemID: String) -> Bool {
+    public func corruptActiveMysteryItem(itemID: String) -> Bool {
         encounters.corruptActiveMysteryItem(
             itemID: itemID,
             completeProgress: Self.completeMysteryProgress
@@ -103,7 +102,7 @@ public final class LabyrinthPlayMode {
     }
 
     @discardableResult
-    func finishActiveMysteryEncounter() -> Bool {
+    public func finishActiveMysteryEncounter() -> Bool {
         encounters.finishActiveMysteryEncounter(
             completeProgress: Self.completeMysteryProgress
         ).didFinish
@@ -297,7 +296,7 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     func startBattle(nodeID: String) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
+        guard battle.lifecyclePhase != .active else { return nil }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID), node.type.isCombat else {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
@@ -317,7 +316,7 @@ public final class LabyrinthPlayMode {
     }
 
     public func prepareReachableBattles() {
-        guard battle.activeBattle == nil else { return }
+        guard battle.lifecyclePhase != .active else { return }
         for nodeID in playerSave.labyrinth.reachableNodeIDs() {
             prepareBattle(nodeID: nodeID)
         }

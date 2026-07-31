@@ -94,7 +94,7 @@ struct AppStateLabyrinthTests {
         #expect(state.encounters.activeShopEncounter?.origin == .journey(stage: stage))
         #expect(!state.labyrinth.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter != nil)
-        #expect(state.finishActiveShopEncounter())
+        #expect(state.journey.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter == nil)
     }
 

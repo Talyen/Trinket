@@ -1,6 +1,5 @@
 import Foundation
-import TrinketBattleFeature
-import TrinketFeatureSupport
+import TrinketBattleRuntime
 
 public struct AppEnvironment: Sendable {
     public static let shared = load()

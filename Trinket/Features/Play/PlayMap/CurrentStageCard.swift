@@ -185,7 +185,7 @@ struct StageSelectActiveCard<
                 .contentShape(Rectangle())
         }
         .trinketQuietTapButtonStyle()
-        .disabled(battle.activeBattle != nil)
+        .disabled(battle.lifecyclePhase == .active)
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
     }
 }

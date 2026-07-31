@@ -31,12 +31,12 @@ struct AppStateMysteryRecruitTests {
         // Opening / resolving a mystery does not advance journey progress.
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
 
-        #expect(state.finishActiveMysteryEncounter())
+        #expect(state.journey.finishActiveMysteryEncounter())
 
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-3")
-        #expect(!state.finishActiveMysteryEncounter())
+        #expect(!state.journey.finishActiveMysteryEncounter())
     }
 
     @Test func completedRosterTurnsRecruitStageIntoMystery() throws {

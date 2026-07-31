@@ -1,5 +1,6 @@
 import Testing
 import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketFeatureSupport
 @testable import TrinketAppState

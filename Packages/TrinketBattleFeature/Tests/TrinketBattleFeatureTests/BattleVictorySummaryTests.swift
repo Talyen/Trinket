@@ -1,4 +1,5 @@
 import Testing
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
@@ -45,7 +46,7 @@ struct BattleVictorySummaryTests {
             ]
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        session.activeBattle = configuration
+        _ = session.activate(configuration)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -89,7 +90,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 13
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
-        scaledSession.activeBattle = scaledConfiguration
+        _ = scaledSession.activate(scaledConfiguration)
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
         let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration))
         #expect(scaledSummary.experience == 0)
@@ -137,7 +138,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 42
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        session.activeBattle = configuration
+        _ = session.activate(configuration)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration))
@@ -169,7 +170,7 @@ struct BattleVictorySummaryTests {
             goldFindPercent: 10
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        session.activeBattle = configuration
+        _ = session.activate(configuration)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration))

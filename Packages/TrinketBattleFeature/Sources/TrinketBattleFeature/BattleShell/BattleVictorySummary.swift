@@ -1,4 +1,5 @@
 import Foundation
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport

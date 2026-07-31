@@ -1,8 +1,7 @@
 import Foundation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Shared battle victory persist + dismiss used by the Play shell.
@@ -12,7 +11,7 @@ import TrinketPersistence
 @MainActor
 struct PlayBattleCompletion {
     let playerSave: PlayerSaveStore
-    let battle: BattleSession
+    let battle: any BattleRuntime
     let journey: JourneyPlayMode
     let labyrinth: LabyrinthPlayMode
     let spires: SpiresPlayMode
@@ -25,7 +24,7 @@ struct PlayBattleCompletion {
         materialRewards: [ResourceAmount]? = nil,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void
     ) -> Bool {
-        guard battle.activeBattle != nil else { return false }
+        guard battle.lifecyclePhase == .active else { return false }
 
         let hero = configuration.hero.combatant
         let companion = configuration.companion.combatant

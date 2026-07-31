@@ -2,6 +2,7 @@ import os
 import SwiftUI
 import TrinketAppState
 import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketFeatureSupport
 import TrinketPersistence
@@ -14,11 +15,22 @@ private let trinketAppLogger = Logger(
 @main
 struct TrinketApp: App {
     @State private var appState: AppState?
+    @State private var battleSession: BattleSession?
     @State private var bootstrapFailureMessage: String?
 
     init() {
+        var resolvedBattleSession: BattleSession?
+        let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
+            let session = Self.makeBattleSession(dependencies: dependencies)
+            resolvedBattleSession = session
+            return session
+        }
+
         do {
-            _appState = try State(initialValue: AppState(environment: .shared))
+            _appState = try State(initialValue: AppState(
+                environment: .shared,
+                makeBattleRuntime: makeBattleRuntime
+            ))
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
@@ -30,7 +42,8 @@ struct TrinketApp: App {
                 _appState = try State(initialValue: AppState(
                     environment: .shared,
                     playerSave: fallbackSave,
-                    shellSessionStore: fallbackShell
+                    shellSessionStore: fallbackShell,
+                    makeBattleRuntime: makeBattleRuntime
                 ))
             } catch {
                 trinketAppLogger.fault(
@@ -42,13 +55,15 @@ struct TrinketApp: App {
                 )
             }
         }
+        _battleSession = State(initialValue: resolvedBattleSession)
     }
 
     var body: some Scene {
         WindowGroup {
-            if let appState {
+            if let appState, let battleSession {
                 PreparedAppRoot(
                     appState: appState,
+                    battleSession: battleSession,
                     priorityImageNames: priorityImageNames(for: appState)
                 )
             } else {
@@ -74,6 +89,20 @@ struct TrinketApp: App {
         } ?? []
         return activeParty + enemyNames
     }
+
+    private static func makeBattleSession(
+        dependencies: BattleRuntimeDependencies
+    ) -> BattleSession {
+        BattleSession(
+            presentationEnvironment: BattlePresentationEnvironment(
+                playSFX: dependencies.playSFX,
+                warmSFX: dependencies.warmSFX,
+                hapticsEnabled: dependencies.hapticsEnabled,
+                effectsVolume: dependencies.effectsVolume,
+                shouldAutoSkipUltimateCinematic: dependencies.shouldAutoSkipUltimateCinematic
+            )
+        )
+    }
 }
 
 private struct PreparedAppRoot: View {
@@ -87,12 +116,14 @@ private struct PreparedAppRoot: View {
     @State private var areCastEffectsPrepared = false
 
     let appState: AppState
+    let battleSession: BattleSession
     let priorityImageNames: [String]
 
     var body: some View {
         Group {
             if isPreparationComplete {
                 ContentView()
+                    .environment(battleSession)
             } else {
                 ZStack {
                     LaunchWarmupView()
@@ -110,7 +141,6 @@ private struct PreparedAppRoot: View {
         .environment(appState.play.labyrinth)
         .environment(appState.play.spires)
         .environment(appState.play.encounters)
-        .environment(appState.play.battle)
         .environment(appState.options)
         .environment(appState.playerSave)
         .environment(\.playSFX) { id, volume in

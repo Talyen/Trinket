@@ -1,5 +1,3 @@
-import TrinketFeatureSupport
-
 public enum AppTab: String, CaseIterable, Sendable {
     case play
     case collection

@@ -48,20 +48,12 @@ public enum AccessibilityID {
             "Stage \(chapter)-\(stage) Row"
         }
 
-        public static func stageNode(chapter: Int, stage: Int) -> String {
-            "Stage \(chapter)-\(stage) Node"
-        }
-
         public static func stageAction(chapter: Int, stage: Int) -> String {
             "Stage \(chapter)-\(stage) Action"
         }
 
         public static func enemyArt(chapter: Int, stage: Int) -> String {
             "Stage \(chapter)-\(stage) Enemy Art"
-        }
-
-        public static func chapterLocked(number: Int) -> String {
-            "Chapter \(number) Locked"
         }
 
         public static func spireRow(_ spireID: String) -> String {

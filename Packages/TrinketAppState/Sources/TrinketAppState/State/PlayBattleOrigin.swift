@@ -1,7 +1,6 @@
 import Foundation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
-import TrinketFeatureSupport
 
 /// Play-mode origin for an active or prepared battle. Owned by AppState —
 /// BattleFeature only sees the opaque `BattleRunKey` and presentation fields.

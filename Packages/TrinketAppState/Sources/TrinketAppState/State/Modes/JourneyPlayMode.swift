@@ -1,10 +1,9 @@
 import Foundation
 import Observation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureAdapters
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Journey/campaign stage flow: map actions, prepare/start battle, and journey-unique victory writes.
@@ -12,14 +11,14 @@ import TrinketPersistence
 @Observable
 public final class JourneyPlayMode {
     private let playerSave: PlayerSaveStore
-    private let battle: BattleSession
+    private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let noteMapScrollFocus: (String) -> Void
     private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
         noteMapScrollFocus: @escaping (String) -> Void,
         encounters: EncounterPlayMode
@@ -53,7 +52,7 @@ public final class JourneyPlayMode {
         ) else {
             return nil
         }
-        let scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
+        let scrollTarget = resultingJourney.mapScrollFocusID()
         noteMapScrollFocus(scrollTarget)
         return scrollTarget
     }
@@ -77,7 +76,7 @@ public final class JourneyPlayMode {
         ) else {
             return false
         }
-        noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        noteMapScrollFocus(resultingJourney.mapScrollFocusID())
         return true
     }
 
@@ -87,7 +86,7 @@ public final class JourneyPlayMode {
 
     @discardableResult
     public func startBattle(for stage: Stage) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
+        guard battle.lifecyclePhase != .active else { return nil }
 
         guard let encounter = resolvedEncounter(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
@@ -112,7 +111,7 @@ public final class JourneyPlayMode {
     }
 
     public func prepareBattle(for stage: Stage) {
-        guard battle.activeBattle == nil,
+        guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
         battleLaunch.prepareCombat(
@@ -136,7 +135,7 @@ public final class JourneyPlayMode {
     /// Completes a journey shop only after persistence succeeds so a failed leave
     /// keeps the encounter available for another attempt.
     @discardableResult
-    func finishActiveShopEncounter() -> Bool {
+    public func finishActiveShopEncounter() -> Bool {
         guard let shopSession = encounters.activeShopEncounter,
               case .journey = shopSession.origin
         else { return false }
@@ -162,14 +161,14 @@ public final class JourneyPlayMode {
             return false
         }
         if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+            noteMapScrollFocus(resultingJourney.mapScrollFocusID())
         }
         encounters.clearActiveShopEncounter()
         return true
     }
 
     @discardableResult
-    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let outcome = encounters.resolveActiveMysteryChoice(
             choiceID: choiceID,
             completeProgress: Self.completeMysteryProgress
@@ -179,7 +178,7 @@ public final class JourneyPlayMode {
     }
 
     @discardableResult
-    func selectActiveMysteryItem(itemID: String) -> Bool {
+    public func selectActiveMysteryItem(itemID: String) -> Bool {
         guard let outcome = encounters.selectActiveMysteryItem(
             itemID: itemID,
             completeProgress: Self.completeMysteryProgress
@@ -189,7 +188,7 @@ public final class JourneyPlayMode {
     }
 
     @discardableResult
-    func corruptActiveMysteryItem(itemID: String) -> Bool {
+    public func corruptActiveMysteryItem(itemID: String) -> Bool {
         encounters.corruptActiveMysteryItem(
             itemID: itemID,
             completeProgress: Self.completeMysteryProgress
@@ -197,12 +196,12 @@ public final class JourneyPlayMode {
     }
 
     @discardableResult
-    func finishActiveMysteryEncounter() -> Bool {
+    public func finishActiveMysteryEncounter() -> Bool {
         let result = encounters.finishActiveMysteryEncounter(
             completeProgress: Self.completeMysteryProgress
         )
         if let journey = result.journey {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+            noteMapScrollFocus(journey.mapScrollFocusID())
         }
         return result.didFinish
     }
@@ -214,7 +213,7 @@ public final class JourneyPlayMode {
         default: nil
         }
         if let journey {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+            noteMapScrollFocus(journey.mapScrollFocusID())
         }
     }
 

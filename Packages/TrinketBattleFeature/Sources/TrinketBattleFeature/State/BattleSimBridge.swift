@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketBattleRuntime
 import TrinketFeatureSupport
 
 /// Pure simulation operations for an active battle. Presentation (feedback, overlays,

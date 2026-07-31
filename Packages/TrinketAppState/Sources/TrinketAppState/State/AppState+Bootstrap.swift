@@ -1,9 +1,8 @@
 import Foundation
 import os
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
-import TrinketFeatureAdapters
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 extension AppState {

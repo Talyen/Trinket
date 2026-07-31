@@ -17,14 +17,16 @@ Application composition and player-flow orchestration.
 Music uses `AVAudioPlayer`; SFX use a prestarted `AVAudioEngine` with decoded PCM
 buffers. Both use an ambient, mix-with-others audio session. Battle SFX mapping stays
 in `TrinketBattleFeature` and reaches playback through
-`BattlePresentationEnvironment`.
+`BattlePresentationEnvironment`. The app composition root supplies that environment
+through the closure-only `TrinketBattleRuntime.BattleRuntimeDependencies` contract.
 
 Feature views should receive the narrowest owner: a mode coordinator, `PlaySession`
 only for shell concerns, a specific encounter session, `BattleSession`, or explicit
 values/actions — not the entire `AppState` or full `PlaySession` when a screen drives
 one mode. Persistence owns the semantics of save mutations; AppState decides when to
-invoke those actions. This package may compose `TrinketBattleFeature`; the reverse
-dependency is forbidden.
+invoke those actions. Production AppState depends on the SwiftUI-free battle runtime
+and feature contracts only. The app target wires the concrete `TrinketBattleFeature`
+implementation; the reverse dependency is forbidden.
 
 ## Testing
 

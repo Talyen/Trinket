@@ -1,10 +1,9 @@
 import Foundation
 import Observation
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
-import TrinketFeatureAdapters
-import TrinketFeatureSupport
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Spire climb flow: prepare/start floor battles and floor completion writes.
@@ -12,12 +11,12 @@ import TrinketPersistence
 @Observable
 public final class SpiresPlayMode {
     private let playerSave: PlayerSaveStore
-    private let battle: BattleSession
+    private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
 
     init(
         playerSave: PlayerSaveStore,
-        battle: BattleSession,
+        battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch
     ) {
         self.playerSave = playerSave
@@ -31,7 +30,7 @@ public final class SpiresPlayMode {
 
     @discardableResult
     public func startBattle(for floor: SpireFloor) -> StageMapMessage? {
-        guard battle.activeBattle == nil else { return nil }
+        guard battle.lifecyclePhase != .active else { return nil }
 
         guard let spire = GameContent.spire(id: floor.spireID) else {
             return StageMapMessage(title: "Spire Missing", message: "This Spire is not ready yet.")
@@ -76,7 +75,7 @@ public final class SpiresPlayMode {
     public func prepareBattle(for floor: SpireFloor) {
         let spires = playerSave.spires
         let roster = playerSave.roster
-        guard battle.activeBattle == nil,
+        guard battle.lifecyclePhase != .active,
               let spire = GameContent.spire(id: floor.spireID),
               spires.isFloorStartable(floor.floor, spireID: floor.spireID.rawValue),
               SpireAttunement.evaluate(

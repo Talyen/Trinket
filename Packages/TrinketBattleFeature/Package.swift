@@ -15,6 +15,7 @@ let package = Package(
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
         .package(path: "../BattleEngine"),
+        .package(path: "../TrinketBattleRuntime"),
         .package(path: "../TrinketDesignSystem"),
         .package(path: "../TrinketFeatureSupport"),
         .package(path: "../TrinketTestSupport"),
@@ -26,8 +27,10 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "BattleEngine",
+                "TrinketBattleRuntime",
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
             ]
         ),
         .testTarget(
@@ -37,8 +40,10 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "BattleEngine",
+                "TrinketBattleRuntime",
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
             ]
         ),

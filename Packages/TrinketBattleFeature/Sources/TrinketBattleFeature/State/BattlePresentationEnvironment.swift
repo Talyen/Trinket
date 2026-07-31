@@ -1,5 +1,4 @@
 import Foundation
-import TrinketFeatureSupport
 
 /// App-provided presentation behavior required by Battle without exposing app-owned stores.
 @MainActor

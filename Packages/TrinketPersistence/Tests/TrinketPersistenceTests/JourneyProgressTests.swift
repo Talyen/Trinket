@@ -89,6 +89,23 @@ final class JourneyProgressTests {
         try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
     }
 
+    @Test func mapScrollFocusFollowsProgressionWithoutPresentationAdapters() throws {
+        var progress = JourneyProgressState.initial
+        let activeStage = chapter.stages[2]
+        progress.activeStageID = activeStage.id
+        try #expect(progress.mapScrollFocusID() == activeStage.id)
+
+        progress.activeStageID = nil
+        let lastStage = try #require(chapter.stages.last)
+        progress.completedStageIDs.insert(lastStage.id)
+        try #expect(progress.mapScrollFocusID() == lastStage.id)
+
+        let lastChapter = try #require(GameContent.chapters.last)
+        progress.activeChapterID = lastChapter.id
+        progress.completedStageIDs.removeAll()
+        try #expect(progress.mapScrollFocusID() == "chapter-gate-placeholder-\(lastChapter.number + 1)")
+    }
+
     @Test func completeChapterMarksOnlyThatChapterDone() throws {
         var progress = JourneyProgressState.initial
         progress.completeChapter("chapter-1")

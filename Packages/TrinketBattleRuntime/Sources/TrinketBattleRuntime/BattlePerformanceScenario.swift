@@ -1,5 +1,3 @@
-import TrinketFeatureSupport
-
 public enum BattlePerformanceScenario: String, CaseIterable, Sendable {
     case handDragCancel = "hand-drag-cancel"
     case realCardPlay = "real-card-play"

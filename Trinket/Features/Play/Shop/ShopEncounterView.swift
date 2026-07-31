@@ -9,11 +9,11 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct ShopEncounterView: View {
-    @Environment(PlaySession.self) private var play
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: ShopEncounterSession
+    let onLeave: () -> Void
 
     @State private var selectedOffer: ShopOffer?
     @State private var artAppeared = false
@@ -65,7 +65,7 @@ struct ShopEncounterView: View {
                         .offset(y: offersAppeared ? 0 : 10)
 
                     Button {
-                        play.finishActiveShopEncounter()
+                        onLeave()
                     } label: {
                         Text("Leave Shop")
                             .frame(maxWidth: .infinity)
