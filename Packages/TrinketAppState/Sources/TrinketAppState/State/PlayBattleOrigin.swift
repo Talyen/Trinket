@@ -1,6 +1,8 @@
 import Foundation
 import TrinketBattleRuntime
 import TrinketContent
+import TrinketCore
+import TrinketFeatureContracts
 
 /// Play-mode origin for an active or prepared battle. Owned by AppState —
 /// BattleFeature only sees the opaque `BattleRunKey` and presentation fields.
@@ -35,19 +37,15 @@ public enum PlayBattleOrigin: Hashable, Sendable {
         }
         return nil
     }
+}
 
-    public init?(runKey: BattleRunKey) {
-        let parts = runKey.rawValue.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
-        switch parts.first {
-        case "journey" where parts.count == 2:
-            self = .journey(stageID: parts[1])
-        case "spire" where parts.count == 3:
-            guard let floor = Int(parts[2]) else { return nil }
-            self = .spire(spireID: SpireID(rawValue: parts[1]), floor: floor)
-        case "labyrinth" where parts.count == 2:
-            self = .labyrinth(nodeID: parts[1])
-        default:
-            return nil
-        }
-    }
+/// App-owned completion capability for one active battle route.
+///
+/// BattleFeature only receives the opaque run key. Play registers the matching
+/// typed origin and mode-owned persistence closure before preparing or starting
+/// the run, so completion never has to decode a string or guess its owner.
+@MainActor
+struct PlayBattleRoute {
+    let origin: PlayBattleOrigin
+    let complete: @MainActor (BattleRunConfiguration, PlayBattlePresentationContext?, Int, [ResourceAmount]?) -> Bool
 }

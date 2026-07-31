@@ -1,4 +1,4 @@
-/// Defeat chrome primary action, baked at launch so Battle UI never branches on mode.
+/// Presentation action for the primary defeat button.
 public enum BattleDefeatPrimaryAction: Equatable, Sendable {
     case retreat
     case restart

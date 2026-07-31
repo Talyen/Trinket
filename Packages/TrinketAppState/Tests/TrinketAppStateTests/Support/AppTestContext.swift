@@ -11,6 +11,7 @@ final class AppTestContext {
     let suiteName: String
     let userDefaults: UserDefaults
     let shellSessionURL: URL
+    private(set) var lastBattle: BattleSession?
 
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
@@ -69,8 +70,12 @@ final class AppTestContext {
             ),
             shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults,
-            battleRuntime: battle
+            battleComposition: BattleRuntimeComposition(
+                runtime: battle,
+                onLaunchBattleVictory: { battle.presentLaunchVictory() }
+            )
         )
+        lastBattle = battle
         // Unit tests expect a full hand before the next statement; skip paced deal.
         battle.openingHandDrawStagger = 0
         return state
@@ -89,8 +94,12 @@ final class AppTestContext {
             ),
             shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults,
-            battleRuntime: battle
+            battleComposition: BattleRuntimeComposition(
+                runtime: battle,
+                onLaunchBattleVictory: { battle.presentLaunchVictory() }
+            )
         )
+        lastBattle = battle
         battle.openingHandDrawStagger = 0
         return state
     }

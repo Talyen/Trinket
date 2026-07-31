@@ -22,9 +22,10 @@ public struct BattleView: View {
     @State private var feedbackBridgeOwnerID = UUID()
     @Namespace private var cinematicNamespace
 
-    private let configuration: ActiveBattleConfiguration
+    private let configuration: BattleRunConfiguration
+    private let presentationContext: BattlePresentationContext
     private let battleSession: BattleSession
-    private let completeBattle: (ActiveBattleConfiguration, Int, [ResourceAmount]?) -> Bool
+    private let completeBattle: (BattleRunConfiguration, Int, [ResourceAmount]?) -> Bool
     private let restartBattle: () -> Void
     private let retreat: () -> Void
     #if DEBUG
@@ -32,14 +33,16 @@ public struct BattleView: View {
     #endif
 
     public init(
-        configuration: ActiveBattleConfiguration,
+        configuration: BattleRunConfiguration,
+        presentationContext: BattlePresentationContext,
         battleSession: BattleSession,
-        completeBattle: @escaping (ActiveBattleConfiguration, Int, [ResourceAmount]?) -> Bool,
+        completeBattle: @escaping (BattleRunConfiguration, Int, [ResourceAmount]?) -> Bool,
         restartBattle: @escaping () -> Void,
         retreat: @escaping () -> Void,
         performanceScenario: BattlePerformanceScenario? = nil
     ) {
         self.configuration = configuration
+        self.presentationContext = presentationContext
         self.battleSession = battleSession
         self.completeBattle = completeBattle
         self.restartBattle = restartBattle
@@ -80,10 +83,16 @@ public struct BattleView: View {
                 )
             }
             .onAppear {
+                let launchVictoryWasPresented = battleSession.spectacle.isShowingVictory
+                battleSession.installPresentationContext(presentationContext)
+                if launchVictoryWasPresented {
+                    battleSession.presentLaunchVictory()
+                }
                 prewarmBattlePresentationEffects()
                 installChipBridge()
             }
             .onChange(of: configuration.id) { _, _ in
+                battleSession.installPresentationContext(presentationContext)
                 battleSession.clearOutcomePresentation()
                 castPresentation.reset()
                 CombatFeedbackRasterPool.shared.removeAll()
@@ -145,7 +154,7 @@ public struct BattleView: View {
                 )
                 .transition(.opacity)
             } else if battleSession.spectacle.isShowingDefeat {
-                switch configuration.defeatPrimaryAction {
+                switch presentationContext.defeatPrimaryAction {
                 case .retreat:
                     DefeatView(
                         enemyName: configuration.enemy?.name ?? "Enemy",
@@ -361,7 +370,7 @@ public struct BattleView: View {
                 combatant: combatant,
                 progression: partyMember?.progression ?? .initial,
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
-                inventoryItems: configuration.inventoryItems,
+                inventoryItems: presentationContext.inventoryItems,
                 health: combatantReadModel.health,
                 activeEffectSummaries: combatantReadModel.activeEffectSummaries
             )
@@ -461,7 +470,7 @@ private extension BattleView {
     }
 
     var hasStageProgression: Bool {
-        configuration.hasProgressionRewards
+        presentationContext.hasProgressionRewards
     }
 
     func installChipBridge() {

@@ -7,9 +7,10 @@ import TrinketPersistence
 @testable import TrinketAppState
 
 @MainActor
-enum ActiveBattleConfigurationTestSupport {
+enum BattleRunConfigurationTestSupport {
     static func make(
         origin: PlayBattleOrigin? = nil,
+        runKey: BattleRunKey? = nil,
         rngSeed: UInt64 = 0,
         hero: Combatant,
         companion: Combatant,
@@ -23,9 +24,9 @@ enum ActiveBattleConfigurationTestSupport {
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = []
-    ) throws -> ActiveBattleConfiguration {
+    ) throws -> BattleRunConfiguration {
         PlayBattleLaunch.assembleConfiguration(
-            runKey: origin?.runKey,
+            runKey: runKey ?? origin?.runKey,
             rngSeed: rngSeed,
             hero: hero,
             companion: companion,
@@ -40,7 +41,7 @@ enum ActiveBattleConfigurationTestSupport {
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
             defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: origin != nil,
+            hasProgressionRewards: runKey != nil || origin != nil,
             musicStageID: origin?.musicStageID
         )
     }

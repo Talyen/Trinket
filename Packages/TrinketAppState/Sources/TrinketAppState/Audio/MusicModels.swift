@@ -45,7 +45,8 @@ enum MusicRoute: Equatable {
 
     static func resolve(
         selectedTab: AppTab,
-        activeBattle: ActiveBattleConfiguration?,
+        activeBattle: BattleRunConfiguration?,
+        battleStageID: String? = nil,
         sceneIsActive: Bool,
         musicVolume: Double
     ) -> Self {
@@ -58,7 +59,7 @@ enum MusicRoute: Equatable {
         }
 
         if let activeBattle, let enemyID = activeBattle.enemy?.id {
-            return encounter(stageID: activeBattle.musicStageID, enemyID: enemyID)
+            return encounter(stageID: battleStageID, enemyID: enemyID)
         }
 
         return menuTrack()

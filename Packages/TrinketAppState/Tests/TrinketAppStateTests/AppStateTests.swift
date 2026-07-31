@@ -26,6 +26,13 @@ struct AppStateTests {
         #expect(state.playerSave.inventory == .freshStart)
     }
 
+    @Test func playSessionUsesTheCompositionRuntimeInstance() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let battle = try #require(context.lastBattle)
+
+        #expect(state.play.battle === battle)
+    }
+
     @Test func launchTabOverridesDefaultTabAndSurvivesForeground() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"])

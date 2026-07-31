@@ -94,8 +94,9 @@ struct BattleSessionAppIntegrationTests {
         )
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
+        let originalPresentation = try #require(appState.battlePresentation(for: original.runKey))
         let effects = appState.playerSave.labyrinth.effects(for: combatNodeID)
-        #expect(original.universalModifiers.count == 1)
+        #expect(originalPresentation.universalModifiers.count == 1)
         for (keyword, amount) in effects.damageDealtBonus {
             #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == amount)
             #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == amount)
@@ -105,10 +106,50 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
+        let restartedPresentation = try #require(appState.battlePresentation(for: restarted.runKey))
         #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
-        #expect(restarted.universalModifiers == original.universalModifiers)
-        #expect(restarted.pendingRewardItem == original.pendingRewardItem)
-        #expect(restarted.rewardItems == original.rewardItems)
+        #expect(restartedPresentation.universalModifiers == originalPresentation.universalModifiers)
+        #expect(restartedPresentation.pendingRewardItem == originalPresentation.pendingRewardItem)
+        #expect(restartedPresentation.rewardItems == originalPresentation.rewardItems)
         #expect(restarted.id != original.id)
+    }
+
+    @Test func clearingTransientStateRemovesTheWholeBattleRunRecord() throws {
+        let appState = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = appState.journey.startBattle(for: stage)
+        let runKey = try #require(appState.battle.activeBattle?.runKey)
+
+        #expect(appState.route(for: runKey) != nil)
+        #expect(appState.battlePresentation(for: runKey) != nil)
+
+        appState.clearTransientState()
+
+        #expect(appState.route(for: runKey) == nil)
+        #expect(appState.battlePresentation(for: runKey) == nil)
+        #expect(appState.battle.activeBattle == nil)
+    }
+
+    @Test func activatingPreparedBattleDropsRoutesForDiscardedPreparedRuns() throws {
+        let appState = try context.makePlaySession()
+        let combatStages = GameContent.chapters
+            .flatMap(\.stages)
+            .filter(\.encounter.isCombat)
+        let firstStage = try #require(combatStages.first)
+        let secondStage = try #require(combatStages.dropFirst().first)
+
+        appState.journey.prepareBattle(for: firstStage)
+        let firstRunKey = PlayBattleOrigin.journey(stageID: firstStage.id).runKey
+        appState.journey.prepareBattle(for: secondStage)
+        let secondRunKey = PlayBattleOrigin.journey(stageID: secondStage.id).runKey
+
+        #expect(appState.battlePresentation(for: firstRunKey) != nil)
+        #expect(appState.battlePresentation(for: secondRunKey) != nil)
+
+        _ = appState.journey.startBattle(for: secondStage)
+
+        #expect(appState.battle.activeBattle?.runKey == secondRunKey)
+        #expect(appState.battlePresentation(for: firstRunKey) == nil)
+        #expect(appState.battlePresentation(for: secondRunKey) != nil)
     }
 }

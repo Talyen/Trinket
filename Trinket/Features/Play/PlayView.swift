@@ -1,7 +1,7 @@
-import BattleEngine
 import SwiftUI
 import TrinketAppState
 import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureAdapters
@@ -13,6 +13,8 @@ struct PlayView: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
     @Environment(LabyrinthPlayMode.self) private var labyrinth
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
 
@@ -42,7 +44,22 @@ struct PlayView: View {
                 restorePlayDestinationIfNeeded()
             }
         }
+        .task(id: battlePresentationTaskKey) {
+            await battle.preparePreparedBattlePresentation(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+        }
         .modifier(PlaySessionPresentationModifier(stageMessage: $stageMessage))
+    }
+
+    private var battlePresentationTaskKey: BattlePresentationTaskKey {
+        BattlePresentationTaskKey(
+            activeBattleID: battle.activeBattle?.id,
+            preparedRevision: battle.preparedBattlePresentationRevision,
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
     }
 
     /// Prefer pending post-battle / launch destinations. Otherwise leave the
@@ -86,8 +103,6 @@ private struct PlayBrowsingStack: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
     @Binding var navigationPath: [PlayLaunchDestination]
     @Binding var stageMessage: StageMapMessage?
 
@@ -126,34 +141,18 @@ private struct PlayBrowsingStack: View {
         guard battle.lifecyclePhase != .active else { return }
 
         if destination == .campaign {
-            // Front-load Stage Select battle prep on the mode-card press so the
-            // NavigationStack push frame is mostly compositor work.
-            prepareCampaignBattleResources()
+            // Front-load Stage Select battle configuration on the mode-card press
+            // so the NavigationStack push frame is mostly compositor work.
+            prepareCampaignBattleRun()
         }
         navigationPath.append(destination)
     }
 
-    private func prepareCampaignBattleResources() {
+    private func prepareCampaignBattleRun() {
         if let stageID = playerSave.journey.activeStageID,
            let stage = GameContent.stage(id: stageID),
            stage.encounter.isCombat {
             journey.prepareBattle(for: stage)
-        }
-        Task { @MainActor in
-            await BattlePresentationWarmup.prepareAndWait(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-            battle.prepareBattlePresentation(
-                heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
-                companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
-            )
-            if let stageID = playerSave.journey.activeStageID {
-                let names = battle.preparedAbilityArtworkNames(
-                    for: PlayBattleOrigin.journey(stageID: stageID).runKey
-                )
-                await PreparedArtworkCache.shared.prepareAndPin(names: names)
-            }
         }
     }
 
@@ -194,6 +193,13 @@ private struct PlayBrowsingStack: View {
     }
 }
 
+private struct BattlePresentationTaskKey: Equatable {
+    let activeBattleID: UUID?
+    let preparedRevision: Int
+    let dynamicTypeSize: DynamicTypeSize
+    let displayScale: CGFloat
+}
+
 /// Tracks only `activeBattle` so sheet/log writes do not rebuild Battle chrome identity.
 private struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
@@ -205,8 +211,10 @@ private struct PlayBattleOverlay: View {
         // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
+                let presentationContext = battlePresentationContext(for: configuration)
                 BattleView(
                     configuration: configuration,
+                    presentationContext: presentationContext,
                     battleSession: battle,
                     completeBattle: { [weak play] configuration, earnedGold, rewards in
                         play?.completeActiveBattle(
@@ -232,6 +240,27 @@ private struct PlayBattleOverlay: View {
         .animation(TrinketMotion.Screen.crossfade, value: configuration?.id)
         .allowsHitTesting(configuration != nil)
         .accessibilityHidden(configuration == nil)
+    }
+
+    private func battlePresentationContext(
+        for configuration: BattleRunConfiguration
+    ) -> BattlePresentationContext {
+        let playContext = play.battlePresentation(for: configuration.runKey)
+        return BattlePresentationContext(
+            inventoryItems: playContext?.inventoryItems ?? play.playerSave.inventory.items,
+            stageReward: playContext?.stageReward,
+            rewardItems: playContext?.rewardItems ?? [],
+            pendingRewardItem: playContext?.pendingRewardItem,
+            experienceBonusPercent: playContext?.experienceBonusPercent ?? 0,
+            goldFindPercent: playContext?.goldFindPercent ?? 0,
+            stageRewardsAlreadyClaimed: playContext?.stageRewardsAlreadyClaimed ?? false,
+            defeatPrimaryAction: playContext?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: playContext?.hasProgressionRewards ?? false,
+            musicStageID: playContext?.musicStageID,
+            heroExperienceAward: playContext?.heroExperienceAward ?? 0,
+            companionExperienceAward: playContext?.companionExperienceAward ?? 0,
+            materialRewards: playContext?.materialRewards ?? []
+        )
     }
 }
 

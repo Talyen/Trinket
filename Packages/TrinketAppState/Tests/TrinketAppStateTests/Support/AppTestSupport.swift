@@ -18,11 +18,15 @@ enum AppTestSupport {
         directoryURL: URL,
         userDefaults: UserDefaults? = nil
     ) throws -> AppState {
-        try AppState(
+        let battle = BattleSession(presentationEnvironment: .silent)
+        return try AppState(
             environment: makeEnvironment(arguments: arguments),
             playerSave: playerSave ?? SaveTestSupport.makeSaveStore(directoryURL: directoryURL),
             userDefaults: userDefaults,
-            battleRuntime: BattleSession(presentationEnvironment: .silent)
+            battleComposition: BattleRuntimeComposition(
+                runtime: battle,
+                onLaunchBattleVictory: { battle.presentLaunchVictory() }
+            )
         )
     }
 }

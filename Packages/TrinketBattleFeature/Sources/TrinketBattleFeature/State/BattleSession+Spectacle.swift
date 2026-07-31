@@ -92,7 +92,7 @@ extension BattleSession {
     private func presentDeferredOutcomeIfNeeded(at date: Date) {
         switch outcome {
         case .victory:
-            if activeBattle?.stageRewardsAlreadyClaimed == true {
+            if presentationContext?.stageRewardsAlreadyClaimed == true {
                 publishPartyCelebrateReactions(at: date)
                 onTurnAutoEnded?(simulation.earnedGold ?? 0)
                 return
@@ -126,10 +126,12 @@ extension BattleSession {
     func handleOutcomeIfNeeded(
         at date: Date
     ) -> Int? {
-        guard let configuration = activeBattle else { return nil }
+        guard let configuration = activeBattle,
+              let context = presentationContext
+        else { return nil }
         switch outcome {
         case .victory:
-            if configuration.stageRewardsAlreadyClaimed {
+            if context.stageRewardsAlreadyClaimed {
                 // Keep the Ultimate on screen; collapse fires claimed-stage auto-complete.
                 if spectacle.activeCinematic != nil {
                     return nil
@@ -137,7 +139,7 @@ extension BattleSession {
                 publishPartyCelebrateReactions(at: date)
                 return simulation.earnedGold ?? 0
             }
-            guard let summary = makeVictorySummary(for: configuration) else { return nil }
+            guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return nil }
             spectacle.victorySummary = summary
             // Defer outcome chrome until Ultimate collapse so the killing blow finishes.
             if spectacle.activeCinematic == nil {
@@ -216,11 +218,12 @@ extension BattleSession {
     func presentVictoryChromeForPersistRetry() {
         guard outcome == .victory,
               let configuration = activeBattle,
+              let context = presentationContext,
               simulation.hasState,
               !spectacle.isShowingVictory
         else { return }
         if spectacle.victorySummary == nil {
-            spectacle.victorySummary = makeVictorySummary(for: configuration)
+            spectacle.victorySummary = makeVictorySummary(for: configuration, presentation: context)
         }
         spectacle.isShowingVictory = true
     }
@@ -228,6 +231,7 @@ extension BattleSession {
     #if DEBUG
     func debugSkipCombat() {
         guard let configuration = activeBattle,
+              let context = presentationContext,
               simulation.hasState,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat
@@ -238,7 +242,7 @@ extension BattleSession {
         spectacle.pendingOutcomePresentationTask?.cancel()
         spectacle.pendingOutcomePresentationTask = nil
         clearSpectacle()
-        spectacle.victorySummary = makeVictorySummary(for: configuration)
+        spectacle.victorySummary = makeVictorySummary(for: configuration, presentation: context)
         spectacle.isShowingVictory = true
         presentationEnvironment.playSFX([SFXID.victory])
     }
@@ -443,7 +447,7 @@ extension BattleSession {
         pendingAutoEndTask = nil
     }
 
-    func resetRun(from configuration: ActiveBattleConfiguration) {
+    func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
         if let pendingPreparedRun,
@@ -487,5 +491,6 @@ extension BattleSession {
         overlayAbilityDetail = nil
         isShowingBattleLog = false
         spectacle.presentationHoldCount = 0
+        presentationContext = nil
     }
 }

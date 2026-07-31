@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import Observation
 import TrinketBattleRuntime
@@ -13,19 +14,66 @@ public final class SpiresPlayMode {
     private let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
+    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch
+        battleLaunch: PlayBattleLaunch,
+        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
+        self.registerBattleRoute = registerBattleRoute
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
-        PlayBattleLaunch.resolvedSpireEncounter(for: floor)
+        Self.resolvedEncounter(for: floor)
+    }
+
+    static func resolvedEncounter(
+        for floor: SpireFloor
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
+        let level = SpireCompletion.enemyLevel(for: floor)
+        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
+    }
+
+    private func battleLoot(for floor: SpireFloor) -> BattleLootPackage? {
+        Self.resolveBattleLoot(
+            for: floor,
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+        )
+    }
+
+    static func resolveBattleLoot(
+        for floor: SpireFloor,
+        astralChanceBonusPercent: Int = 0
+    ) -> BattleLootPackage? {
+        SpireCompletion.resolveLoot(
+            for: floor,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )
+    }
+
+    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
+        guard case let .spire(spireID, floorNumber) = origin,
+              let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber)
+        else {
+            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
+        }
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+            guard let self else { return false }
+            return completeFloor(
+                floor,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: presentation?.pendingRewardItem
+            )
+        }
     }
 
     @discardableResult
@@ -65,9 +113,13 @@ public final class SpiresPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
+        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
-            origin: .spire(spireID: floor.spireID, floor: floor.floor),
-            encounter: encounter
+            origin: origin,
+            encounter: encounter,
+            loot: battleLoot(for: floor),
+            defeatPrimaryAction: .restart
         )
         return nil
     }
@@ -86,9 +138,13 @@ public final class SpiresPlayMode {
               let encounter = resolvedEncounter(for: floor)
         else { return }
 
+        let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
-            origin: .spire(spireID: floor.spireID, floor: floor.floor),
-            encounter: encounter
+            origin: origin,
+            encounter: encounter,
+            loot: battleLoot(for: floor),
+            defeatPrimaryAction: .restart
         )
     }
 

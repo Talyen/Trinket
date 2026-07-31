@@ -8,8 +8,8 @@ Use for card rules, effects, decks/hands, turn flow, and battle presentation.
 | Authored combatants, abilities, stages | `Packages/TrinketContent` and `ContentManifest/` |
 | Rules, effect handlers, deck/hand | `Packages/BattleEngine` |
 | Battle lifecycle contract | `Packages/TrinketBattleRuntime` (`BattleRuntime`, launch DTOs) |
-| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleSession` implements the runtime contract); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
-| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleConfiguration`, `PlayBattleCompletion`, mode owners) |
+| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleSession` implements the lifecycle-only runtime contract); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
+| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleLaunch`, `PlayBattlePresentationContext`, `PlayBattleCompletion`, mode owners) |
 
 For rules, start with `BattleState`, the matching `EffectHandlers/` type, and the
 closest test in `Packages/BattleEngine/Tests/`. `BattleState` is a facade: add shared
@@ -24,6 +24,10 @@ cinematics and outcome timing. Views observe the narrow lane they render. App-le
 options and audio enter through `BattlePresentationEnvironment`; Battle never imports
 `TrinketAppState`. Victory chrome uses launch-baked awards — do not re-derive
 `StageCompletion` policy inside BattleFeature outcome math.
+
+Global cinematic warmup and launch-preview victory presentation are app-composition
+responsibilities. Keep them on the concrete `BattleSession` at the app root (or behind
+an app-owned callback); do not add presentation-only methods to `BattleRuntime`.
 
 For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Use `BattleStateTestFactory.makeBattle(..., rngSeed: 0)` and `EffectHandlers.all`. Do not assert full log prose.
 

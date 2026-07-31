@@ -2,7 +2,6 @@ import Foundation
 import MetricKit
 import os
 import TrinketAppState
-import TrinketBattleFeature
 import TrinketFeatureSupport
 
 struct MetricKitDiagnosticSummary: Sendable {

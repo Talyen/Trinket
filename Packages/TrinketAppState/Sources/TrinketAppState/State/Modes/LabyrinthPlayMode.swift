@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import Observation
 import TrinketBattleRuntime
@@ -14,6 +15,7 @@ public final class LabyrinthPlayMode {
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
+    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     public var activeNodeSession: LabyrinthNodeSession?
 
@@ -21,12 +23,14 @@ public final class LabyrinthPlayMode {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
-        encounters: EncounterPlayMode
+        encounters: EncounterPlayMode,
+        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.encounters = encounters
+        self.registerBattleRoute = registerBattleRoute
     }
 
     private var canBeginTransientEncounter: Bool {
@@ -291,7 +295,7 @@ public final class LabyrinthPlayMode {
     }
 
     public func resolvedEncounter(for node: LabyrinthNode) -> (combatant: Combatant, level: Int)? {
-        PlayBattleLaunch.resolvedLabyrinthEncounter(for: node)
+        Self.resolvedEncounter(for: node)
     }
 
     @discardableResult
@@ -306,11 +310,14 @@ public final class LabyrinthPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This path is not ready yet.")
         }
 
+        let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
-            origin: .labyrinth(nodeID: nodeID),
+            origin: origin,
             encounter: encounter,
-            universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
-            labyrinth: labyrinth
+            loot: battleLoot(for: node, labyrinth: labyrinth),
+            defeatPrimaryAction: .retreat,
+            universalModifiers: Self.combatModifiers(from: effects)
         )
         return nil
     }
@@ -328,11 +335,14 @@ public final class LabyrinthPlayMode {
         let effects = labyrinth.effects(for: nodeID)
         guard let encounter = resolvedEncounter(for: node) else { return }
 
+        let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
-            origin: .labyrinth(nodeID: nodeID),
+            origin: origin,
             encounter: encounter,
-            universalModifiers: PlayBattleLaunch.labyrinthCombatModifiers(from: effects),
-            labyrinth: labyrinth
+            loot: battleLoot(for: node, labyrinth: labyrinth),
+            defeatPrimaryAction: .retreat,
+            universalModifiers: Self.combatModifiers(from: effects)
         )
     }
 
@@ -377,6 +387,69 @@ public final class LabyrinthPlayMode {
                 "Failed to persist Labyrinth node: \(error.localizedDescription, privacy: .public)"
             )
             return false
+        }
+    }
+}
+
+extension LabyrinthPlayMode {
+    static func resolvedEncounter(
+        for node: LabyrinthNode
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let enemyID = node.enemyID,
+              let catalogEnemy = GameContent.enemy(matching: enemyID)
+        else { return nil }
+        let level = LabyrinthCompletion.enemyLevel(for: node)
+        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
+    }
+
+    private static func combatModifiers(
+        from effects: LabyrinthModifierEffects
+    ) -> [AffixModifier] {
+        effects.damageDealtBonus
+            .sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { .damageDealt($0.key, $0.value) }
+    }
+
+    private func battleLoot(
+        for node: LabyrinthNode,
+        labyrinth: PlayerLabyrinthState
+    ) -> BattleLootPackage? {
+        Self.resolveBattleLoot(
+            for: node,
+            effects: labyrinth.effects(for: node.id),
+            worldSeed: labyrinth.worldSeed,
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+        )
+    }
+
+    static func resolveBattleLoot(
+        for node: LabyrinthNode,
+        effects: LabyrinthModifierEffects,
+        worldSeed: UInt64,
+        astralChanceBonusPercent: Int = 0
+    ) -> BattleLootPackage? {
+        LabyrinthCompletion.resolveCombatLoot(
+            for: node,
+            effects: effects,
+            worldSeed: worldSeed,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )
+    }
+
+    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
+        guard case let .labyrinth(nodeID) = origin else {
+            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
+        }
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+            guard let self else { return false }
+            return completeNode(
+                nodeID: nodeID,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: presentation?.pendingRewardItem
+            )
         }
     }
 }

@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import Observation
 import TrinketBattleRuntime
@@ -15,19 +16,22 @@ public final class JourneyPlayMode {
     private let battleLaunch: PlayBattleLaunch
     private let noteMapScrollFocus: (String) -> Void
     private let encounters: EncounterPlayMode
+    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
         noteMapScrollFocus: @escaping (String) -> Void,
-        encounters: EncounterPlayMode
+        encounters: EncounterPlayMode,
+        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.noteMapScrollFocus = noteMapScrollFocus
         self.encounters = encounters
+        self.registerBattleRoute = registerBattleRoute
     }
 
     public var playChapter: Chapter {
@@ -81,7 +85,7 @@ public final class JourneyPlayMode {
     }
 
     public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
-        PlayBattleLaunch.resolvedEncounter(for: stage)
+        Self.resolvedEncounter(for: stage)
     }
 
     @discardableResult
@@ -92,20 +96,18 @@ public final class JourneyPlayMode {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        let roster = playerSave.roster
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        if battle.activatePreparedBattle(
-            runKey: origin.runKey,
-            heroID: roster.activeHero.id,
-            companionID: roster.activeCompanion.id,
-            enemyID: encounter.combatant.id
-        ) {
-            return nil
-        }
-
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
             origin: origin,
-            encounter: encounter
+            encounter: encounter,
+            loot: battleLoot(for: stage, encounter: encounter),
+            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
+                for: stage,
+                journey: playerSave.journey
+            ),
+            defeatPrimaryAction: .restart,
+            musicStageID: stage.id
         )
         return nil
     }
@@ -114,9 +116,18 @@ public final class JourneyPlayMode {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
+        let origin = PlayBattleOrigin.journey(stageID: stage.id)
+        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
-            origin: .journey(stageID: stage.id),
-            encounter: encounter
+            origin: origin,
+            encounter: encounter,
+            loot: battleLoot(for: stage, encounter: encounter),
+            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
+                for: stage,
+                journey: playerSave.journey
+            ),
+            defeatPrimaryAction: .restart,
+            musicStageID: stage.id
         )
     }
 
@@ -331,5 +342,70 @@ public final class JourneyPlayMode {
             return nil
         }
         return resultingJourney
+    }
+}
+
+extension JourneyPlayMode {
+    static func resolvedEncounter(
+        for stage: Stage
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let enemyID = stage.resolvedBattleEnemyID,
+              let catalogEnemy = GameContent.enemy(matching: enemyID),
+              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
+        else { return nil }
+
+        let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        return (CombatantLevelScaler.scale(enemy: catalogEnemy, level: level), level)
+    }
+
+    private func battleLoot(
+        for stage: Stage,
+        encounter: (combatant: Combatant, level: Int)
+    ) -> BattleLootPackage? {
+        Self.resolveBattleLoot(
+            stage: stage,
+            encounterLevel: encounter.level,
+            enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
+        )
+    }
+
+    static func resolveBattleLoot(
+        stage: Stage,
+        encounterLevel: Int,
+        enemyIsBoss: Bool,
+        astralChanceBonusPercent: Int = 0
+    ) -> BattleLootPackage? {
+        guard stage.encounter.isCombat else { return nil }
+        return BattleLoot.resolveJourney(
+            stage: stage,
+            encounterLevel: encounterLevel,
+            enemyIsBoss: enemyIsBoss,
+            astralChanceBonusPercent: astralChanceBonusPercent
+        )
+    }
+
+    static func stageRewardsAlreadyClaimed(
+        for stage: Stage,
+        journey: JourneyProgressState
+    ) -> Bool {
+        journey.hasClaimedRewards(for: stage)
+    }
+
+    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
+        guard case let .journey(stageID) = origin else {
+            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
+        }
+        return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
+            guard let self, let stage = GameContent.stage(id: stageID) else { return false }
+            return applyBattleVictory(
+                stage: stage,
+                hero: configuration.hero.combatant,
+                companion: configuration.companion.combatant,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: presentation?.pendingRewardItem
+            )
+        }
     }
 }

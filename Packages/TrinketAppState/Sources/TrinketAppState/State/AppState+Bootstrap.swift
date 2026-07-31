@@ -1,16 +1,14 @@
 import Foundation
 import os
-import TrinketBattleRuntime
 import TrinketContent
 import TrinketFeatureContracts
 import TrinketPersistence
 
 extension AppState {
-    /// Completes fixed battle-resource setup while the launch preparation screen is
-    /// visible. Navigation and the first combat action therefore never inherit it.
+    /// Completes fixed audio setup while the launch preparation screen is visible.
+    /// Presentation-feature warmup stays at the app composition root.
     public func prepareLaunchPerformanceResources() {
         sfxPlayer.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
-        play.battle.prepareAllBattleCinematics()
     }
 
     struct BootstrapDependencies {
@@ -82,7 +80,10 @@ extension AppState {
         )
     }
 
-    func finishBootstrap(environment: AppEnvironment) {
+    func finishBootstrap(
+        environment: AppEnvironment,
+        onLaunchBattleVictory: @escaping () -> Void
+    ) {
         play.seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         if let mapScrollTarget = environment.mapScrollTarget {
             play.noteMapScrollFocus(mapScrollTarget)
@@ -91,7 +92,7 @@ extension AppState {
         case .battle:
             play.startLaunchBattle()
         case .battleVictory:
-            play.startLaunchBattleVictory()
+            play.startLaunchBattleVictory(onPresentVictory: onLaunchBattleVictory)
         case .shop:
             play.startLaunchShop()
         case .mystery:
@@ -141,10 +142,10 @@ private extension PlaySession {
     }
 
     /// Presents stage 1-1 victory chrome without running the live tick loop (UI tests).
-    func startLaunchBattleVictory() {
+    func startLaunchBattleVictory(onPresentVictory: () -> Void) {
         guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
         _ = journey.startBattle(for: stage)
-        battle.presentLaunchVictory()
+        onPresentVictory()
     }
 
     func startLaunchShop() {

@@ -22,7 +22,7 @@ struct BattleVictorySummaryTests {
         let companionProgression = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
             .rewardInstance(for: "chapter-1-stage-1")
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
@@ -47,10 +47,12 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
+        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
+        session.installPresentationContext(context)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let summary = try #require(session.makeVictorySummary(for: configuration))
+        let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
         #expect(summary.stageGold == 12)
         #expect(summary.battleGold >= 0)
         #expect(summary.totalGold == summary.stageGold + summary.battleGold)
@@ -77,7 +79,7 @@ struct BattleVictorySummaryTests {
             abilities: []
         )
 
-        let scaledConfiguration = ActiveBattleConfigurationTestSupport.make(
+        let scaledConfiguration = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -91,8 +93,10 @@ struct BattleVictorySummaryTests {
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
         _ = scaledSession.activate(scaledConfiguration)
+        let scaledContext = BattleRunConfigurationTestSupport.presentation(for: scaledConfiguration)
+        scaledSession.installPresentationContext(scaledContext)
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
-        let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration))
+        let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration, presentation: scaledContext))
         #expect(scaledSummary.experience == 0)
         #expect(scaledSummary.companionExperience == 13)
         #expect(scaledSummary.hasExperienceAwards == true)
@@ -120,7 +124,7 @@ struct BattleVictorySummaryTests {
             displayName: "Audit Find",
             affixes: []
         )
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("labyrinth|audit-node"),
             rngSeed: 0,
             hero: hero,
@@ -139,13 +143,15 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
+        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
+        session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let summary = try #require(session.makeVictorySummary(for: configuration))
+        let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
         #expect(summary.experience == 42)
         #expect(summary.companionExperience == 42)
         #expect(summary.rewardItems == [pendingItem])
-        #expect(configuration.experienceBonusPercent == 20)
+        #expect(context.experienceBonusPercent == 20)
     }
 
     @Test func makeVictorySummaryKeepsRawBattleGoldSeparateFromHomesteadDisplaySplit() throws {
@@ -161,7 +167,7 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -171,18 +177,20 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.activate(configuration)
+        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
+        session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let summary = try #require(session.makeVictorySummary(for: configuration))
+        let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
         let earnedGold = try #require(session.simulation.readModel?.earnedGold)
 
         let expectedTotal = HomesteadEffects(
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: configuration.goldFindPercent
+            goldFindPercent: context.goldFindPercent
         ).adjustedGold(100 + earnedGold)
-        #expect(configuration.goldFindPercent > 0)
+        #expect(context.goldFindPercent > 0)
         #expect(summary.rawBattleEarnedGold == earnedGold)
         #expect(summary.totalGold == expectedTotal)
         // Display `battleGold` absorbs the homestead remainder; re-feeding it into
@@ -193,7 +201,7 @@ struct BattleVictorySummaryTests {
                 heroModifiers: [],
                 companionModifiers: [],
                 astralChanceBonusPercent: 0,
-                goldFindPercent: configuration.goldFindPercent
+                goldFindPercent: context.goldFindPercent
             ).adjustedGold(100 + summary.battleGold) > expectedTotal
         )
     }

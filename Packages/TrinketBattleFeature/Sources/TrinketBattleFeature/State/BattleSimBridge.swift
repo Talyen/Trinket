@@ -49,7 +49,7 @@ enum BattleSimBridge {
         state = battleState
     }
 
-    static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
+    static func makeBattleState(from configuration: BattleRunConfiguration) -> BattleState {
         BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,

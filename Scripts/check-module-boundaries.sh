@@ -122,6 +122,27 @@ if awk '
   violations+=("Packages/TrinketAppState/Package.swift: production target must not depend on save-backed FeatureAdapters")
 fi
 
+# The app target is the composition root, but product screens should not reach
+# into BattleFeature just to use shared support or unrelated state. Keep the
+# concrete BattleFeature imports explicit and reviewable at the battle seams.
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  case "$file" in
+    Trinket/App/ContentView.swift|\
+    Trinket/App/DebugFPSOverlay.swift|\
+    Trinket/App/TrinketApp.swift|\
+    Trinket/Features/Play/PlayView.swift|\
+    Trinket/Features/Play/PlayMap/ChapterStageSelectView.swift|\
+    Trinket/Features/Play/PlayMap/CurrentStageCard.swift|\
+    Trinket/Features/Play/Modes/LabyrinthMapClusterViews.swift|\
+    Trinket/Features/Play/Modes/SpireClimbView.swift)
+      ;;
+    *)
+      violations+=("$file: app product screens must use BattleRuntime/FeatureSupport instead of importing BattleFeature")
+      ;;
+  esac
+done < <(rg -l '^import TrinketBattleFeature$' Trinket -g '*.swift' 2>/dev/null || true)
+
 # Runtime contracts must stay portable and presentation-free.
 for forbidden in SwiftUI UIKit AVFoundation TrinketBattleFeature TrinketAppState; do
   check_no_import "Packages/TrinketBattleRuntime/Sources" "^import $forbidden$" \

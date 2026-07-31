@@ -19,18 +19,21 @@ struct TrinketApp: App {
     @State private var bootstrapFailureMessage: String?
 
     init() {
-        var resolvedBattleSession: BattleSession?
-        let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
+        let makeBattleComposition: (BattleRuntimeDependencies) -> BattleRuntimeComposition = { dependencies in
             let session = Self.makeBattleSession(dependencies: dependencies)
-            resolvedBattleSession = session
-            return session
+            return BattleRuntimeComposition(
+                runtime: session,
+                onLaunchBattleVictory: { session.presentLaunchVictory() }
+            )
         }
 
         do {
-            _appState = try State(initialValue: AppState(
+            let state = try AppState(
                 environment: .shared,
-                makeBattleRuntime: makeBattleRuntime
-            ))
+                makeBattleComposition: makeBattleComposition
+            )
+            _appState = State(initialValue: state)
+            _battleSession = State(initialValue: state.play.battle as? BattleSession)
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
@@ -39,12 +42,14 @@ struct TrinketApp: App {
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
                 let fallbackShell = try PlayerShellSessionStore(inMemoryOnly: true)
-                _appState = try State(initialValue: AppState(
+                let state = try AppState(
                     environment: .shared,
                     playerSave: fallbackSave,
                     shellSessionStore: fallbackShell,
-                    makeBattleRuntime: makeBattleRuntime
-                ))
+                    makeBattleComposition: makeBattleComposition
+                )
+                _appState = State(initialValue: state)
+                _battleSession = State(initialValue: state.play.battle as? BattleSession)
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)"
@@ -55,7 +60,6 @@ struct TrinketApp: App {
                 )
             }
         }
-        _battleSession = State(initialValue: resolvedBattleSession)
     }
 
     var body: some Scene {
@@ -153,6 +157,7 @@ private struct PreparedAppRoot: View {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
             appState.prepareLaunchPerformanceResources()
+            battleSession.prepareAllBattleCinematics()
             // Align the minimum hold with first paint (same yield as the
             // progress fill) so a warm cache cannot dismiss before the bar runs.
             await Task.yield()

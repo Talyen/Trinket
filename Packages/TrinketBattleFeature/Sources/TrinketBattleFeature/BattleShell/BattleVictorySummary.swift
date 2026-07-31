@@ -34,14 +34,15 @@ public struct BattleVictorySummary: Equatable {
     /// Assembles victory chrome from launch-baked awards plus mid-battle earned gold.
     /// Does not re-derive XP / material Persistence policy.
     public static func make(
-        configuration: ActiveBattleConfiguration,
+        configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext,
         earnedGold: Int,
         heroName: String,
         companionName: String
     ) -> Self {
-        let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
-        let heroXP = configuration.heroExperienceAward
-        let companionXP = configuration.companionExperienceAward
+        let stageReward = presentation.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
+        let heroXP = presentation.heroExperienceAward
+        let companionXP = presentation.companionExperienceAward
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
         let rawBattleEarnedGold = earnedGold
@@ -49,7 +50,7 @@ public struct BattleVictorySummary: Equatable {
             heroModifiers: [],
             companionModifiers: [],
             astralChanceBonusPercent: 0,
-            goldFindPercent: configuration.goldFindPercent
+            goldFindPercent: presentation.goldFindPercent
         ).adjustedGold(stageReward.gold + rawBattleEarnedGold)
         let stageGold = min(stageReward.gold, totalGold)
         let battleGold = max(0, totalGold - stageGold)
@@ -64,8 +65,8 @@ public struct BattleVictorySummary: Equatable {
             companionName: companionName,
             heroArtworkName: configuration.hero.combatant.artReference?.thumbnailImageName,
             companionArtworkName: configuration.companion.combatant.artReference?.thumbnailImageName,
-            rewardItems: configuration.rewardItems,
-            materialRewards: configuration.materialRewards,
+            rewardItems: presentation.rewardItems,
+            materialRewards: presentation.materialRewards,
             heroProgressionBefore: configuration.hero.progression,
             heroProgressionAfter: heroAfter,
             companionProgressionBefore: configuration.companion.progression,

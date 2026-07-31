@@ -24,7 +24,7 @@ struct AppStateSpiresTests {
         #expect(message == nil)
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)
         #expect(state.battle.activeBattle?.enemy != nil)
-        #expect(state.battle.activeBattle?.pendingRewardItem != nil)
+        #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
     }
 
     @Test func startSpireBattleRequiresAttunement() throws {
@@ -88,6 +88,6 @@ struct AppStateSpiresTests {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         #expect(state.spires.startBattle(for: floor) == nil)
-        #expect(state.battle.activeBattle?.pendingRewardItem != nil)
+        #expect(state.battlePresentation(for: state.battle.activeBattle?.runKey)?.pendingRewardItem != nil)
     }
 }

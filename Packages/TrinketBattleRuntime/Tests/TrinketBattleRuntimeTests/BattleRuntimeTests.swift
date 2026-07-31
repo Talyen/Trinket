@@ -76,8 +76,8 @@ struct BattleRuntimeTests {
         #expect(runtime.lifecyclePhase == .idle)
     }
 
-    private func makeConfiguration(runKey: BattleRunKey) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration(
+    private func makeConfiguration(runKey: BattleRunKey) -> BattleRunConfiguration {
+        BattleRunConfiguration(
             runKey: runKey,
             rngSeed: 42,
             hero: makeMember(id: "hero", role: .hero),
@@ -89,8 +89,6 @@ struct BattleRuntimeTests {
                 maxHealth: 10,
                 abilities: []
             ),
-            highestHeroLevel: 1,
-            highestCompanionLevel: 1,
             enemyModifiers: .zero
         )
     }
@@ -98,8 +96,8 @@ struct BattleRuntimeTests {
     private func makeMember(
         id: String,
         role: Combatant.Role
-    ) -> ActiveBattleConfiguration.PartyMember {
-        ActiveBattleConfiguration.PartyMember(
+    ) -> BattleRunConfiguration.PartyMember {
+        BattleRunConfiguration.PartyMember(
             combatant: Combatant(
                 id: id,
                 name: id,

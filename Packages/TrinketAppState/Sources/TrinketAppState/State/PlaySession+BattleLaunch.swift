@@ -3,123 +3,34 @@ import Foundation
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketPersistence
 
-/// Shared battle configuration + activation used by mode owners and the Play shell.
+/// Shared battle launch and activation used by mode owners and the Play shell.
 ///
-/// Encounter/loot resolve and party/reward bake live here. Battle receives a pure
-/// `ActiveBattleConfiguration` DTO — no live save slices or Persistence policy inside
-/// BattleFeature.
+/// Encounter/loot resolve and party/build bake live here. Battle receives a pure
+/// `BattleRunConfiguration`; Play keeps the separate presentation/reward context.
 @MainActor
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
-
-    // MARK: Encounter resolution
-
-    static func resolvedEncounter(
-        for stage: Stage
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = stage.resolvedBattleEnemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
-        else { return nil }
-
-        return scaledEnemy(
-            catalogEnemy,
-            level: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        )
-    }
-
-    static func resolvedSpireEncounter(
-        for floor: SpireFloor
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
-        return scaledEnemy(catalogEnemy, level: SpireCompletion.enemyLevel(for: floor))
-    }
-
-    static func resolvedLabyrinthEncounter(
-        for node: LabyrinthNode
-    ) -> (combatant: Combatant, level: Int)? {
-        guard let enemyID = node.enemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID)
-        else { return nil }
-        return scaledEnemy(
-            catalogEnemy,
-            level: LabyrinthCompletion.enemyLevel(for: node)
-        )
-    }
-
-    /// Seeded combat loot for battle chrome and grant paths. Pure formulas stay in Persistence.
-    static func lootPackage(
-        for origin: PlayBattleOrigin?,
-        enemy: Combatant? = nil,
-        encounterLevel: Int = 0,
-        labyrinth: PlayerLabyrinthState? = nil,
-        astralChanceBonusPercent: Int = 0
-    ) -> BattleLootPackage? {
-        let enemyIsBoss = enemy.flatMap { GameContent.enemy(matching: $0.id)?.isBoss } == true
-        switch origin {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID),
-                  stage.encounter.isCombat
-            else { return nil }
-            return BattleLoot.resolveJourney(
-                stage: stage,
-                encounterLevel: encounterLevel,
-                enemyIsBoss: enemyIsBoss,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case let .spire(spireID, floorNumber):
-            guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
-                return nil
-            }
-            return SpireCompletion.resolveLoot(
-                for: floor,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case let .labyrinth(nodeID):
-            guard let labyrinth,
-                  let node = labyrinth.node(id: nodeID),
-                  node.type.isCombat
-            else { return nil }
-            return LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: labyrinth.effects(for: nodeID),
-                worldSeed: labyrinth.worldSeed,
-                astralChanceBonusPercent: astralChanceBonusPercent
-            )
-        case .none:
-            return nil
-        }
-    }
-
-    /// Maps Labyrinth damage-dealt bonuses into battle-wide affix modifiers.
-    static func labyrinthCombatModifiers(
-        from effects: LabyrinthModifierEffects
-    ) -> [AffixModifier] {
-        effects.damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
-    }
+    let registerPresentation: @MainActor @Sendable (BattleRunKey, PlayBattlePresentationContext) -> Void
+    let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
+    let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
 
     // MARK: Activate / prepare
 
-    /// Shared activate after mode-specific gates. Resolves loot from the save homestead.
+    /// Shared activate after mode-specific gates. Modes resolve loot and policy.
     @discardableResult
     func activateCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
-        universalModifiers: [AffixModifier] = [],
-        labyrinth: PlayerLabyrinthState? = nil
+        loot: BattleLootPackage? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
+        musicStageID: String? = nil,
+        universalModifiers: [AffixModifier] = []
     ) -> Bool {
-        let loot = Self.lootPackage(
-            for: origin,
-            enemy: encounter.combatant,
-            encounterLevel: encounter.level,
-            labyrinth: labyrinth,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
-        )
         let roster = playerSave.roster
         return activateBattle(
             origin: origin,
@@ -129,27 +40,26 @@ struct PlayBattleLaunch {
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            defeatPrimaryAction: defeatPrimaryAction ?? origin.defeatPrimaryAction,
+            musicStageID: musicStageID ?? origin.musicStageID,
             universalModifiers: universalModifiers
         )
     }
 
-    /// Shared prepare after mode-specific gates. Resolves loot from the save homestead.
+    /// Shared prepare after mode-specific gates. Modes resolve loot and policy.
     @discardableResult
     func prepareCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
-        universalModifiers: [AffixModifier] = [],
-        labyrinth: PlayerLabyrinthState? = nil
+        loot: BattleLootPackage? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
+        musicStageID: String? = nil,
+        universalModifiers: [AffixModifier] = []
     ) -> Bool {
-        let loot = Self.lootPackage(
-            for: origin,
-            enemy: encounter.combatant,
-            encounterLevel: encounter.level,
-            labyrinth: labyrinth,
-            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
-        )
         let roster = playerSave.roster
-        return battle.prepareBattleRun(makeBattleConfiguration(
+        let launch = makeBattleLaunch(
             origin: origin,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
@@ -157,8 +67,19 @@ struct PlayBattleLaunch {
             enemyEncounterLevel: encounter.level,
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            defeatPrimaryAction: defeatPrimaryAction ?? origin.defeatPrimaryAction,
+            musicStageID: musicStageID ?? origin.musicStageID,
             universalModifiers: universalModifiers
-        ))
+        )
+        if let runKey = launch.configuration.runKey {
+            registerPresentation(runKey, launch.presentation)
+        }
+        let prepared = battle.prepareBattleRun(launch.configuration)
+        if !prepared, let runKey = launch.configuration.runKey {
+            removeRun(runKey)
+        }
+        return prepared
     }
 
     /// Installs a fresh battle configuration and syncs the tick loop.
@@ -172,6 +93,10 @@ struct PlayBattleLaunch {
         stageReward: StageReward?,
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
+        hasProgressionRewards: Bool? = nil,
+        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
         if let origin,
@@ -181,9 +106,10 @@ struct PlayBattleLaunch {
                companionID: companion.id,
                enemyID: enemy?.id
            ) {
+            removePreparedRunsExcept(origin.runKey)
             return true
         }
-        return battle.activate(makeBattleConfiguration(
+        let launch = makeBattleLaunch(
             origin: origin,
             hero: hero,
             companion: companion,
@@ -192,8 +118,20 @@ struct PlayBattleLaunch {
             stageReward: stageReward,
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            defeatPrimaryAction: defeatPrimaryAction,
+            hasProgressionRewards: hasProgressionRewards,
+            musicStageID: musicStageID,
             universalModifiers: universalModifiers
-        ))
+        )
+        if let runKey = launch.configuration.runKey {
+            registerPresentation(runKey, launch.presentation)
+        }
+        let activated = battle.activate(launch.configuration)
+        if !activated, let runKey = launch.configuration.runKey {
+            removeRun(runKey)
+        }
+        return activated
     }
 
     func makeBattleConfiguration(
@@ -205,12 +143,48 @@ struct PlayBattleLaunch {
         stageReward: StageReward?,
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
+        hasProgressionRewards: Bool? = nil,
+        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
-    ) -> ActiveBattleConfiguration {
+    ) -> BattleRunConfiguration {
+        makeBattleLaunch(
+            origin: origin,
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward,
+            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: pendingRewardItem,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            defeatPrimaryAction: defeatPrimaryAction,
+            hasProgressionRewards: hasProgressionRewards,
+            musicStageID: musicStageID,
+            universalModifiers: universalModifiers
+        ).configuration
+    }
+
+    private func makeBattleLaunch(
+        origin: PlayBattleOrigin?,
+        hero: Combatant,
+        companion: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        stageReward: StageReward?,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
+        hasProgressionRewards: Bool? = nil,
+        musicStageID: String? = nil,
+        universalModifiers: [AffixModifier] = []
+    ) -> (configuration: BattleRunConfiguration, presentation: PlayBattlePresentationContext) {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
-        return Self.assembleConfiguration(
+        return Self.assembleLaunch(
             runKey: origin?.runKey,
             rngSeed: rngSeed,
             hero: hero,
@@ -223,19 +197,15 @@ struct PlayBattleLaunch {
             stageReward: stageReward,
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                origin: origin,
-                journey: playerSave.journey
-            ),
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
-            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: origin != nil,
-            musicStageID: origin?.musicStageID
+            defeatPrimaryAction: defeatPrimaryAction ?? origin?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: hasProgressionRewards ?? (origin != nil),
+            musicStageID: musicStageID ?? origin?.musicStageID
         )
     }
 
-    /// Bakes party builds, enemy trait modifiers, XP/materials, and presentation fields
-    /// into a pure BattleFeature DTO.
+    /// Bakes party builds, enemy trait modifiers, and Play-owned presentation data.
     static func assembleConfiguration(
         runKey: BattleRunKey? = nil,
         rngSeed: UInt64,
@@ -254,7 +224,47 @@ struct PlayBattleLaunch {
         defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil
-    ) -> ActiveBattleConfiguration {
+    ) -> BattleRunConfiguration {
+        assembleLaunch(
+            runKey: runKey,
+            rngSeed: rngSeed,
+            hero: hero,
+            companion: companion,
+            rosterState: rosterState,
+            inventoryState: inventoryState,
+            homesteadState: homesteadState,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward,
+            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: pendingRewardItem,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            universalModifiers: universalModifiers,
+            defeatPrimaryAction: defeatPrimaryAction,
+            hasProgressionRewards: hasProgressionRewards,
+            musicStageID: musicStageID
+        ).configuration
+    }
+
+    static func assembleLaunch(
+        runKey: BattleRunKey? = nil,
+        rngSeed: UInt64,
+        hero: Combatant,
+        companion: Combatant,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState = .freshStart,
+        enemy: Combatant? = nil,
+        enemyEncounterLevel: Int? = nil,
+        stageReward: StageReward? = nil,
+        experienceBonusPercent: Int = 0,
+        pendingRewardItem: InventoryItem? = nil,
+        stageRewardsAlreadyClaimed: Bool = false,
+        universalModifiers: [AffixModifier] = [],
+        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
+        hasProgressionRewards: Bool = false,
+        musicStageID: String? = nil
+    ) -> (configuration: BattleRunConfiguration, presentation: PlayBattlePresentationContext) {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(universalModifiers)
@@ -273,16 +283,16 @@ struct PlayBattleLaunch {
         )
         let resolvedStageReward = stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let enemyLevel = enemyEncounterLevel ?? heroMember.progression.level
-        return ActiveBattleConfiguration(
+        let configuration = BattleRunConfiguration(
             runKey: runKey,
             rngSeed: rngSeed,
             hero: heroMember,
             companion: companionMember,
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
-            highestHeroLevel: rosterState.highestHeroLevel,
-            highestCompanionLevel: rosterState.highestCompanionLevel,
-            enemyModifiers: enemyModifiers,
+            enemyModifiers: enemyModifiers
+        )
+        let presentation = PlayBattlePresentationContext(
             inventoryItems: inventoryState.items,
             stageReward: stageReward,
             rewardItems: resolvedRewardItems(
@@ -311,17 +321,7 @@ struct PlayBattleLaunch {
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward)
         )
-    }
-
-    /// Journey claimed-stage policy for battle chrome / auto-complete. Baked at launch.
-    static func stageRewardsAlreadyClaimed(
-        origin: PlayBattleOrigin?,
-        journey: JourneyProgressState
-    ) -> Bool {
-        guard case let .journey(stageID) = origin,
-              let stage = GameContent.stage(id: stageID)
-        else { return false }
-        return journey.hasClaimedRewards(for: stage)
+        return (configuration, presentation)
     }
 
     private static func partyMember(
@@ -329,7 +329,7 @@ struct PlayBattleLaunch {
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         additionalModifiers: [AffixModifier] = []
-    ) -> ActiveBattleConfiguration.PartyMember {
+    ) -> BattleRunConfiguration.PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
         let build = CombatBuildResolver.build(
@@ -341,7 +341,7 @@ struct PlayBattleLaunch {
             inventory: inventoryState.items,
             additionalModifiers: additionalModifiers
         )
-        return ActiveBattleConfiguration.PartyMember(
+        return BattleRunConfiguration.PartyMember(
             combatant: build.combatant,
             progression: progression,
             equipmentLoadout: equipmentLoadout,
@@ -375,13 +375,6 @@ struct PlayBattleLaunch {
         guard let stageReward else { return [] }
         return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
     }
-
-    private static func scaledEnemy(
-        _ enemy: Enemy,
-        level: Int
-    ) -> (combatant: Combatant, level: Int) {
-        (CombatantLevelScaler.scale(enemy: enemy, level: level), level)
-    }
 }
 
 public extension PlaySession {
@@ -393,7 +386,13 @@ public extension PlaySession {
             ?? roster.activeHero
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
-        let origin = activeBattle.runKey.flatMap(PlayBattleOrigin.init(runKey:))
+        let route = route(for: activeBattle.runKey)
+        guard activeBattle.runKey == nil || route != nil else {
+            appStateLogger.error("Missing route for active battle restart")
+            return
+        }
+        let origin = route?.origin
+        let presentation = battlePresentation(for: activeBattle.runKey)
 
         let configuration = battleLaunch.makeBattleConfiguration(
             origin: origin,
@@ -401,10 +400,14 @@ public extension PlaySession {
             companion: companion,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            experienceBonusPercent: activeBattle.experienceBonusPercent,
-            pendingRewardItem: activeBattle.pendingRewardItem,
-            universalModifiers: activeBattle.universalModifiers
+            stageReward: presentation?.stageReward,
+            experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
+            pendingRewardItem: presentation?.pendingRewardItem,
+            stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
+            defeatPrimaryAction: presentation?.defeatPrimaryAction,
+            hasProgressionRewards: presentation?.hasProgressionRewards,
+            musicStageID: presentation?.musicStageID,
+            universalModifiers: presentation?.universalModifiers ?? []
         )
         _ = battle.restart(configuration)
     }

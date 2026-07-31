@@ -14,8 +14,6 @@ struct SpireClimbView: View {
     @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
 
     @State private var floorMessage: StageMapMessage?
 
@@ -53,7 +51,6 @@ struct SpireClimbView: View {
         }
         .onAppear {
             prepareActiveFloorBattle()
-            warmActiveFloorPresentation()
         }
         .onChange(of: activeFloorNumber) { _, _ in
             prepareActiveFloorBattle()
@@ -169,27 +166,6 @@ struct SpireClimbView: View {
             floor: activeFloorNumber
         ) else { return }
         spires.prepareBattle(for: floor)
-    }
-
-    private func warmActiveFloorPresentation() {
-        Task { @MainActor in
-            await Task.yield()
-            await BattlePresentationWarmup.prepareAndWait(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-            battle.prepareBattlePresentation(
-                heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
-                companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
-            )
-            let names = battle.preparedAbilityArtworkNames(
-                for: PlayBattleOrigin.spire(
-                    spireID: spireID,
-                    floor: activeFloorNumber
-                ).runKey
-            )
-            await PreparedArtworkCache.shared.prepareAndPin(names: names)
-        }
     }
 }
 

@@ -25,6 +25,8 @@ public final class PlaySession {
     public let encounters: EncounterPlayMode
 
     private let mapScrollFocusSink: MapScrollFocusSink
+    private let battleRouteSink: BattleRouteSink
+    private var battleRuns: [BattleRunKey: PlayBattleRunRecord] = [:]
     let battleLaunch: PlayBattleLaunch
     let battleCompletion: PlayBattleCompletion
 
@@ -58,12 +60,15 @@ public final class PlaySession {
 
         let focusSink = MapScrollFocusSink()
         mapScrollFocusSink = focusSink
+        let routeSink = BattleRouteSink()
+        battleRouteSink = routeSink
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            noteMapScrollFocus: { targetID in focusSink.note(targetID) }
+            noteMapScrollFocus: { targetID in focusSink.note(targetID) },
+            battleRunSink: routeSink
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -72,6 +77,7 @@ public final class PlaySession {
         encounters = graph.encounters
         battleCompletion = graph.battleCompletion
         focusSink.owner = self
+        routeSink.owner = self
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -84,10 +90,17 @@ public final class PlaySession {
     }
 
     public func endBattleReturningToOrigin() {
-        let origin = battle.activeBattle?.runKey.flatMap(PlayBattleOrigin.init(runKey:))
+        let runKey = battle.activeBattle?.runKey
+        let origin = route(for: runKey)?.origin
+        if runKey != nil, origin == nil {
+            appStateLogger.error("Missing route for active battle dismissal")
+        }
         queueReturnToBattleOrigin(from: origin)
         shellSession.selectedTab = .play
         battle.endBattle()
+        if let runKey {
+            battleRuns.removeValue(forKey: runKey)
+        }
     }
 
     public func noteMapScrollFocus(_ targetID: String) {
@@ -99,22 +112,29 @@ public final class PlaySession {
     /// Persists victory rewards and ends the battle only when persistence succeeds.
     @discardableResult
     public func completeActiveBattle(
-        _ configuration: ActiveBattleConfiguration,
+        _ configuration: BattleRunConfiguration,
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil
     ) -> Bool {
-        battleCompletion.completeActiveBattle(
+        let persisted = battleCompletion.completeActiveBattle(
             configuration,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
+            route: route(for: configuration.runKey),
+            presentation: battlePresentation(for: configuration.runKey),
             queueReturnToOrigin: { [weak self] origin in
                 self?.queueReturnToBattleOrigin(from: origin)
             }
         )
+        if persisted, let runKey = configuration.runKey {
+            battleRuns.removeValue(forKey: runKey)
+        }
+        return persisted
     }
 
     func clearTransientState() {
         battle.endBattle()
+        battleRuns.removeAll(keepingCapacity: true)
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
@@ -133,6 +153,36 @@ public final class PlaySession {
             return false
         }
         return journey.isActive(stage)
+    }
+
+    func registerBattleRoute(_ route: PlayBattleRoute) {
+        let runKey = route.origin.runKey
+        battleRuns[runKey, default: PlayBattleRunRecord()].route = route
+    }
+
+    func registerBattlePresentation(
+        _ runKey: BattleRunKey,
+        presentation: PlayBattlePresentationContext
+    ) {
+        battleRuns[runKey, default: PlayBattleRunRecord()].presentation = presentation
+    }
+
+    func removeBattleRun(_ runKey: BattleRunKey) {
+        battleRuns.removeValue(forKey: runKey)
+    }
+
+    func removeBattleRuns(except runKey: BattleRunKey) {
+        battleRuns = battleRuns.filter { $0.key == runKey }
+    }
+
+    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
+        guard let runKey else { return nil }
+        return battleRuns[runKey]?.route
+    }
+
+    public func battlePresentation(for runKey: BattleRunKey?) -> PlayBattlePresentationContext? {
+        guard let runKey else { return nil }
+        return battleRuns[runKey]?.presentation
     }
 }
 
@@ -153,9 +203,22 @@ enum PlayModeGraph {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        noteMapScrollFocus: @escaping (String) -> Void
+        noteMapScrollFocus: @escaping (String) -> Void,
+        battleRunSink: BattleRouteSink
     ) -> Assembled {
-        let battleLaunch = PlayBattleLaunch(playerSave: playerSave, battle: battle)
+        let battleLaunch = PlayBattleLaunch(
+            playerSave: playerSave,
+            battle: battle,
+            registerPresentation: { runKey, presentation in
+                battleRunSink.registerPresentation(runKey, presentation: presentation)
+            },
+            removeRun: { runKey in
+                battleRunSink.remove(runKey: runKey)
+            },
+            removePreparedRunsExcept: { runKey in
+                battleRunSink.removePreparedRunsExcept(runKey: runKey)
+            }
+        )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,
             battle: battle,
@@ -167,25 +230,25 @@ enum PlayModeGraph {
             battle: battle,
             battleLaunch: battleLaunch,
             noteMapScrollFocus: noteMapScrollFocus,
-            encounters: encounters
+            encounters: encounters,
+            registerBattleRoute: { route in battleRunSink.register(route) }
         )
         let labyrinth = LabyrinthPlayMode(
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            encounters: encounters
+            encounters: encounters,
+            registerBattleRoute: { route in battleRunSink.register(route) }
         )
         let spires = SpiresPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch
+            battleLaunch: battleLaunch,
+            registerBattleRoute: { route in battleRunSink.register(route) }
         )
         let battleCompletion = PlayBattleCompletion(
             playerSave: playerSave,
-            battle: battle,
-            journey: journey,
-            labyrinth: labyrinth,
-            spires: spires
+            battle: battle
         )
 
         return Assembled(
@@ -206,4 +269,35 @@ private final class MapScrollFocusSink {
     func note(_ targetID: String) {
         owner?.noteMapScrollFocus(targetID)
     }
+}
+
+@MainActor
+final class BattleRouteSink {
+    weak var owner: PlaySession?
+
+    func register(_ route: PlayBattleRoute) {
+        owner?.registerBattleRoute(route)
+    }
+
+    func registerPresentation(
+        _ runKey: BattleRunKey,
+        presentation: PlayBattlePresentationContext
+    ) {
+        owner?.registerBattlePresentation(runKey, presentation: presentation)
+    }
+
+    func remove(runKey: BattleRunKey) {
+        owner?.removeBattleRun(runKey)
+    }
+
+    func removePreparedRunsExcept(runKey: BattleRunKey) {
+        owner?.removeBattleRuns(except: runKey)
+    }
+}
+
+private struct PlayBattleRunRecord {
+    var route: PlayBattleRoute?
+    var presentation: PlayBattlePresentationContext?
+
+    init() {}
 }

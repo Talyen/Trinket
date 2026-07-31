@@ -40,7 +40,8 @@ public final class BattleSession: BattleRuntime {
     @ObservationIgnored
     var onTurnAutoEnded: ((Int?) -> Void)?
 
-    public private(set) var activeBattle: ActiveBattleConfiguration?
+    public private(set) var activeBattle: BattleRunConfiguration?
+    public internal(set) var presentationContext: BattlePresentationContext?
     public internal(set) var lifecyclePhase: BattleLifecyclePhase = .idle
 
     @ObservationIgnored
@@ -55,6 +56,9 @@ public final class BattleSession: BattleRuntime {
     public private(set) var isSuspendedForScenePhase = false
     @ObservationIgnored
     var preparedBattleRunsByKey: [BattleRunKey: PreparedBattleRun] = [:]
+    /// Changes whenever a prepared run is replaced so the Play shell can restart
+    /// presentation warmup without observing the private prepared-run dictionary.
+    public internal(set) var preparedBattlePresentationRevision = 0
     @ObservationIgnored
     var pendingPreparedRun: PreparedBattleRun?
 
@@ -149,10 +153,14 @@ public final class BattleSession: BattleRuntime {
         hand.contains { isCardPlayable($0) }
     }
 
-    func makeVictorySummary(for configuration: ActiveBattleConfiguration) -> BattleVictorySummary? {
+    func makeVictorySummary(
+        for configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext
+    ) -> BattleVictorySummary? {
         guard let input = simulation.victoryInput else { return nil }
         return BattleVictorySummary.make(
             configuration: configuration,
+            presentation: presentation,
             earnedGold: input.earnedGold,
             heroName: input.heroName,
             companionName: input.companionName
@@ -162,7 +170,8 @@ public final class BattleSession: BattleRuntime {
     /// Used by launch previews that need victory chrome without running combat.
     public func presentLaunchVictory() {
         guard let configuration = activeBattle,
-              let summary = makeVictorySummary(for: configuration)
+              let context = presentationContext,
+              let summary = makeVictorySummary(for: configuration, presentation: context)
         else { return }
         spectacle.victorySummary = summary
         spectacle.isShowingVictory = true
@@ -224,10 +233,15 @@ public final class BattleSession: BattleRuntime {
 
     /// Installs a configuration through the lifecycle boundary. Callers must use
     /// `activate` or `restart` so the transition is validated before this method.
-    func installActiveBattle(_ configuration: ActiveBattleConfiguration) {
+    func installActiveBattle(_ configuration: BattleRunConfiguration) {
         activeBattle = configuration
+        presentationContext = .empty
         lifecyclePhase = .active
         resetRun(from: configuration)
+    }
+
+    public func installPresentationContext(_ context: BattlePresentationContext) {
+        presentationContext = context
     }
 
     func clearOutcomePresentation() {

@@ -47,12 +47,16 @@ enum BattleSessionTestSupport {
             presentationEnvironment: presentationEnvironment
         )
         session.partyCelebrateDelayOverride = 0
-        _ = session.activate(ActiveBattleConfigurationTestSupport.make(
+        let configuration = BattleRunConfigurationTestSupport.make(
             rngSeed: rngSeed,
             hero: resolvedHero,
             companion: resolvedCompanion,
             enemy: resolvedEnemy
-        ))
+        )
+        _ = session.activate(configuration)
+        session.installPresentationContext(
+            BattleRunConfigurationTestSupport.presentation(for: configuration)
+        )
         return session
     }
 

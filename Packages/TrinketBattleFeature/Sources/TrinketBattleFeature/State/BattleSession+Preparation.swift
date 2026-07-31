@@ -1,15 +1,16 @@
 import Foundation
+import SwiftUI
 import TrinketBattleRuntime
 import TrinketFeatureSupport
 
 public extension BattleSession {
     internal struct PreparedBattleRun {
-        let configuration: ActiveBattleConfiguration
+        let configuration: BattleRunConfiguration
         let simulation: BattleSimulationStore.PreparedRun
     }
 
     @discardableResult
-    func prepareBattleRun(_ configuration: ActiveBattleConfiguration) -> Bool {
+    func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil,
               let runKey = configuration.runKey else { return false }
         if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
@@ -19,13 +20,52 @@ public extension BattleSession {
             configuration: configuration,
             simulation: simulation.makePreparedRun(from: configuration)
         )
+        preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
         return true
     }
 
+    /// Warms all currently prepared runs without exposing BattleFeature's caches
+    /// or presentation primitives to the app's mode screens.
+    func preparePreparedBattlePresentation(
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) async {
+        guard lifecyclePhase == .prepared,
+              !preparedBattleRunsByKey.isEmpty
+        else { return }
+
+        // Let the navigation transition commit before doing the first expensive
+        // raster work. The task owner in PlayView cancels this work when the
+        // prepared-run revision changes.
+        await Task.yield()
+        guard !Task.isCancelled else { return }
+
+        let preparedRuns = Array(preparedBattleRunsByKey.values)
+        await BattlePresentationWarmup.prepareAndWait(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
+        guard !Task.isCancelled else { return }
+
+        for run in preparedRuns {
+            prepareBattlePresentation(
+                heroUltimateID: run.configuration.hero.combatant.abilityLoadout.ultimate?.id,
+                companionUltimateID: run.configuration.companion.combatant.abilityLoadout.ultimate?.id
+            )
+        }
+
+        let artworkNames = preparedRuns.flatMap { run -> [String] in
+            guard let runKey = run.configuration.runKey else { return [] }
+            return preparedAbilityArtworkNames(for: runKey)
+        }
+        guard !Task.isCancelled else { return }
+        await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
+    }
+
     /// Opening-hand ability art names for a prepared run (cast faces on first play).
     /// Peeks a copy so the prepared run keeps an empty hand for the paced deal.
-    func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
+    internal func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
         guard let run = preparedBattleRunsByKey[runKey] else { return [] }
         return simulation.openingHandArtworkNames(for: run.simulation)
     }
@@ -49,7 +89,7 @@ public extension BattleSession {
     }
 
     @discardableResult
-    func activate(_ configuration: ActiveBattleConfiguration) -> Bool {
+    func activate(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil else { return false }
         pendingPreparedRun = nil
         installActiveBattle(configuration)
@@ -57,7 +97,7 @@ public extension BattleSession {
     }
 
     @discardableResult
-    func restart(_ configuration: ActiveBattleConfiguration) -> Bool {
+    func restart(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle != nil else { return false }
         pendingPreparedRun = nil
         installActiveBattle(configuration)

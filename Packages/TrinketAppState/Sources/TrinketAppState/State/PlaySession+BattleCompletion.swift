@@ -1,100 +1,47 @@
 import Foundation
 import TrinketBattleRuntime
-import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-/// Shared battle victory persist + dismiss used by the Play shell.
+/// Shared battle victory sequencing used by the Play shell.
 ///
-/// Mode owners supply only mode-unique save writes (and journey map-scroll focus).
-/// Origin resolution and the post-persist dismiss sequence live here.
+/// Mode owners provide a typed completion capability at launch. This type only
+/// validates the route, invokes that capability, and coordinates dismissal.
 @MainActor
 struct PlayBattleCompletion {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
-    let journey: JourneyPlayMode
-    let labyrinth: LabyrinthPlayMode
-    let spires: SpiresPlayMode
 
     /// Persists victory rewards and ends the battle only when persistence succeeds.
     @discardableResult
     func completeActiveBattle(
-        _ configuration: ActiveBattleConfiguration,
+        _ configuration: BattleRunConfiguration,
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil,
+        route: PlayBattleRoute?,
+        presentation: PlayBattlePresentationContext?,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void
     ) -> Bool {
         guard battle.lifecyclePhase == .active else { return false }
 
-        let hero = configuration.hero.combatant
-        let companion = configuration.companion.combatant
-        let origin = configuration.runKey.flatMap(PlayBattleOrigin.init(runKey:))
-        let persisted = persistVictory(
-            for: configuration,
-            origin: origin,
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: battleEarnedGold,
-            materialRewards: materialRewards
-        )
+        guard (configuration.runKey == nil && route == nil)
+            || route?.origin.runKey == configuration.runKey
+        else {
+            appStateLogger.error("Missing route for active battle completion")
+            return false
+        }
+
+        let origin = route?.origin
+        let persisted = if let route {
+            route.complete(configuration, presentation, battleEarnedGold, materialRewards)
+        } else {
+            battleEarnedGold > 0 ? grantBattleEarnedGold(battleEarnedGold) : true
+        }
         if persisted {
             queueReturnToOrigin(origin)
             battle.endBattle()
         }
         return persisted
-    }
-
-    private func persistVictory(
-        for configuration: ActiveBattleConfiguration,
-        origin: PlayBattleOrigin?,
-        hero: Combatant,
-        companion: Combatant,
-        battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]?
-    ) -> Bool {
-        switch origin {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID) else {
-                appStateLogger.error(
-                    "Missing stage for battle origin: \(stageID, privacy: .public)"
-                )
-                return false
-            }
-            return journey.applyBattleVictory(
-                stage: stage,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards,
-                rewardItem: configuration.pendingRewardItem
-            )
-        case let .spire(spireID, floorNumber):
-            guard let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber) else {
-                appStateLogger.error(
-                    "Missing spire floor for battle origin: \(spireID.rawValue, privacy: .public)/\(floorNumber)"
-                )
-                return false
-            }
-            return spires.completeFloor(
-                floor,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards,
-                rewardItem: configuration.pendingRewardItem
-            )
-        case let .labyrinth(nodeID):
-            return labyrinth.completeNode(
-                nodeID: nodeID,
-                hero: hero,
-                companion: companion,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards,
-                rewardItem: configuration.pendingRewardItem
-            )
-        case .none:
-            return battleEarnedGold > 0 ? grantBattleEarnedGold(battleEarnedGold) : true
-        }
     }
 
     @discardableResult

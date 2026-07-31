@@ -37,8 +37,8 @@ public final class AppState {
         playerSave: PlayerSaveStore? = nil,
         shellSessionStore: PlayerShellSessionStore? = nil,
         userDefaults: UserDefaults? = nil,
-        battleRuntime: (any BattleRuntime)? = nil,
-        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil
+        battleComposition: BattleRuntimeComposition? = nil,
+        makeBattleComposition: ((BattleRuntimeDependencies) -> BattleRuntimeComposition)? = nil
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -64,45 +64,61 @@ public final class AppState {
         if shellSession.mapScrollStageID != dependencies.mapScrollStageID {
             shellSession.mapScrollStageID = dependencies.mapScrollStageID
         }
-        let resolvedBattle = battleRuntime
-            ?? makeBattleRuntime?(
-                BattleRuntimeDependencies(
-                    playSFX: { ids in
-                        dependencies.sfxPlayer.playAll(
-                            ids,
-                            volume: dependencies.options.effectsVolume
-                        )
-                    },
-                    warmSFX: { ids, concurrentPlayerCount in
-                        dependencies.sfxPlayer.warm(
-                            ids,
-                            concurrentPlayerCount: concurrentPlayerCount
-                        )
-                    },
-                    hapticsEnabled: {
-                        dependencies.options.hapticsEnabled
-                    },
-                    effectsVolume: {
-                        dependencies.options.effectsVolume
-                    },
-                    shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
-                        dependencies.options.shouldAutoSkipUltimateCinematic(
-                            actorID: actorID,
-                            actorsWhoPresentedThisBattle: presentedActors
-                        )
-                    }
-                )
-            )
-            ?? BattleRuntimeStore()
+        let resolvedBattle = Self.resolveBattleComposition(
+            explicit: battleComposition,
+            factory: makeBattleComposition,
+            dependencies: dependencies
+        )
         play = PlaySession(
             playerSave: dependencies.playerSave,
             shellSession: dependencies.shellSession,
-            battle: resolvedBattle,
+            battle: resolvedBattle.runtime,
             options: dependencies.options,
             sfxPlayer: dependencies.sfxPlayer,
             pendingDestination: dependencies.pendingPlayDestination
         )
-        finishBootstrap(environment: environment)
+        finishBootstrap(
+            environment: environment,
+            onLaunchBattleVictory: resolvedBattle.onLaunchBattleVictory
+        )
+    }
+
+    private static func resolveBattleComposition(
+        explicit: BattleRuntimeComposition?,
+        factory: ((BattleRuntimeDependencies) -> BattleRuntimeComposition)?,
+        dependencies: BootstrapDependencies
+    ) -> BattleRuntimeComposition {
+        explicit
+            ?? factory?(BattleRuntimeDependencies(
+                playSFX: { ids in
+                    dependencies.sfxPlayer.playAll(
+                        ids,
+                        volume: dependencies.options.effectsVolume
+                    )
+                },
+                warmSFX: { ids, concurrentPlayerCount in
+                    dependencies.sfxPlayer.warm(
+                        ids,
+                        concurrentPlayerCount: concurrentPlayerCount
+                    )
+                },
+                hapticsEnabled: {
+                    dependencies.options.hapticsEnabled
+                },
+                effectsVolume: {
+                    dependencies.options.effectsVolume
+                },
+                shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
+                    dependencies.options.shouldAutoSkipUltimateCinematic(
+                        actorID: actorID,
+                        actorsWhoPresentedThisBattle: presentedActors
+                    )
+                }
+            ))
+            ?? BattleRuntimeComposition(
+                runtime: BattleRuntimeStore(),
+                onLaunchBattleVictory: {}
+            )
     }
 
     public func consumePendingCollectionPresentation() -> LaunchPresentation? {
@@ -209,6 +225,7 @@ public final class AppState {
             route: MusicRoute.resolve(
                 selectedTab: selectedTab,
                 activeBattle: play.battle.activeBattle,
+                battleStageID: play.battlePresentation(for: play.battle.activeBattle?.runKey)?.musicStageID,
                 sceneIsActive: scenePhase == .active,
                 musicVolume: volume
             ),

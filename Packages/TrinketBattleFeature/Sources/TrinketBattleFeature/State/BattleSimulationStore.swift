@@ -128,7 +128,7 @@ final class BattleSimulationStore {
         )
     }
 
-    func makePreparedRun(from configuration: ActiveBattleConfiguration) -> PreparedRun {
+    func makePreparedRun(from configuration: BattleRunConfiguration) -> PreparedRun {
         PreparedRun(
             state: BattleSimBridge.makeBattleState(from: configuration),
             configurationID: configuration.id
@@ -140,7 +140,7 @@ final class BattleSimulationStore {
         configurationID = preparedRun.configurationID
     }
 
-    func reset(from configuration: ActiveBattleConfiguration) {
+    func reset(from configuration: BattleRunConfiguration) {
         state = BattleSimBridge.makeBattleState(from: configuration)
         configurationID = configuration.id
     }

@@ -49,8 +49,6 @@ struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
@@ -103,26 +101,6 @@ struct ChapterStageSelectView: View {
         }
         .onAppear {
             prepareActiveBattleRun()
-            // Deep-link / restore paths skip the mode-card press prep. Finish
-            // presentation warmup after the first committed frame, then await
-            // atlas / dissolve so the Stage Select CTA is not the first bake.
-            Task { @MainActor in
-                await Task.yield()
-                await BattlePresentationWarmup.prepareAndWait(
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: displayScale
-                )
-                battle.prepareBattlePresentation(
-                    heroUltimateID: playerSave.roster.activeHero.abilityLoadout.ultimate?.id,
-                    companionUltimateID: playerSave.roster.activeCompanion.abilityLoadout.ultimate?.id
-                )
-                if let stageID = playerSave.journey.activeStageID {
-                    let names = battle.preparedAbilityArtworkNames(
-                        for: PlayBattleOrigin.journey(stageID: stageID).runKey
-                    )
-                    await PreparedArtworkCache.shared.prepareAndPin(names: names)
-                }
-            }
         }
         .onChange(of: playerSave.journey) { _, _ in
             prepareActiveBattleRun()
