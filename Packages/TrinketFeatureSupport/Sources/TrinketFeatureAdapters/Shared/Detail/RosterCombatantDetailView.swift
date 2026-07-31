@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Editable roster combatant detail wired from the player save.
@@ -53,9 +54,13 @@ public struct RosterCombatantDetailView: View {
                         appState.roster = updated
                     }
                 ),
-                inventoryState: Binding(
-                    get: { appState.inventory },
-                    set: { appState.inventory = $0 }
+                inventoryItems: Binding(
+                    get: { appState.inventory.items },
+                    set: { newItems in
+                        var updated = appState.inventory
+                        updated.items = newItems
+                        appState.inventory = updated
+                    }
                 ),
                 allowsEditing: appState.roster.isUnlocked(combatant),
                 hapticsEnabled: hapticsEnabled,

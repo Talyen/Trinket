@@ -6,7 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryCorruptionRevealContent: View {
-    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(PlaySession.self) private var play
     @Bindable var session: MysteryEncounterSession
     let result: ItemCorruptionResult
 
@@ -52,7 +52,7 @@ struct MysteryCorruptionRevealContent: View {
                 mysteryPersistFailureBanner(session.persistFailureMessage)
 
                 Button("Continue") {
-                    _ = encounters.finishActiveMysteryCorruptionReveal()
+                    _ = play.finishActiveMysteryCorruptionReveal()
                 }
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton(

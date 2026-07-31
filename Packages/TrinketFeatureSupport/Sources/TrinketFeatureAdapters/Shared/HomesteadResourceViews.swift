@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct HomesteadResourceWallet: View {
@@ -25,28 +26,5 @@ public struct HomesteadResourceWallet: View {
             }
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
-    }
-}
-
-public struct HomesteadResourceArtwork: View {
-    let resource: HomesteadResource
-
-    public init(resource: HomesteadResource) {
-        self.resource = resource
-    }
-
-    public var body: some View {
-        if let art = ArtCatalog.resourceArtByID[resource.rawValue] {
-            Image.preparedAsset(named: art.imageName)
-                .resizable()
-                .scaledToFit()
-                .decorativePreparedArtwork()
-
-        } else {
-            Image(systemName: resource.symbolName)
-                .trinketTypography(.button)
-                .foregroundStyle(resource.tint)
-                .symbolRenderingMode(.hierarchical)
-        }
     }
 }

@@ -3,6 +3,7 @@ import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 

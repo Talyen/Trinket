@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketPersistence
 
 public struct ItemDetailView: View {
     @Environment(\.dismiss) private var dismiss
@@ -21,7 +20,8 @@ public struct ItemDetailView: View {
     var salvageYields: [ResourceAmount]?
     var salvageReceivableYields: [ResourceAmount]?
     var equippedByName: String?
-    var onSalvage: (() -> ItemSalvageResult?)?
+    /// Persistence maps its result to this small presentation contract.
+    var onSalvage: (() -> Bool?)?
     var onSalvageFinished: ((Bool) -> Void)?
 
     @State private var isSalvageConfirmationPresented = false
@@ -41,7 +41,7 @@ public struct ItemDetailView: View {
         salvageYields: [ResourceAmount]? = nil,
         salvageReceivableYields: [ResourceAmount]? = nil,
         equippedByName: String? = nil,
-        onSalvage: (() -> ItemSalvageResult?)? = nil,
+        onSalvage: (() -> Bool?)? = nil,
         onSalvageFinished: ((Bool) -> Void)? = nil
     ) {
         self.item = item
@@ -193,10 +193,10 @@ public struct ItemDetailView: View {
     private func confirmSalvage() {
         guard let onSalvage else { return }
         switch onSalvage() {
-        case .success:
+        case true:
             onSalvageFinished?(true)
             dismiss()
-        case .itemNotFound:
+        case false:
             onSalvageFinished?(false)
             dismiss()
         case nil:

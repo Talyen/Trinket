@@ -3,6 +3,7 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 
 /// Shared active encounter card used by linear Stage Select surfaces.
@@ -91,11 +92,25 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
-            titleBlock
-                .frame(maxWidth: .infinity, alignment: .leading)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                titleBlock
+                    .fixedSize(horizontal: true, vertical: false)
 
-            actionControls
+                Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
+
+                actionControls
+            }
+
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                titleBlock
+
+                HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    Spacer(minLength: 0)
+
+                    actionControls
+                }
+            }
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
@@ -110,20 +125,17 @@ struct StageSelectActiveCard<
                 .trinketTypography(.eyebrow)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.75)
 
             Text(presentation.title)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
+                .lineLimit(2)
 
             ForEach(Array(presentation.activeDetailLines.enumerated()), id: \.offset) { _, line in
                 Text(line)
                     .trinketTypography(.footnote)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

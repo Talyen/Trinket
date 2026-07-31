@@ -22,7 +22,8 @@ enum BattleCardPlayResolution: Equatable, Sendable {
 }
 
 /// Presentation controller for an active battle: overlays, outcome screens, feedback,
-/// spectacle, and timing. Simulation mutations go through `BattleSimBridge`.
+/// spectacle, and timing. The mutable engine value is owned by `simulation` and is
+/// never exposed to app or view callers.
 @MainActor
 @Observable
 public final class BattleSession {
@@ -48,11 +49,8 @@ public final class BattleSession {
         }
     }
 
-    /// Authoritative simulation value. UI observes `presentation` instead, avoiding
-    /// app-wide invalidation when log/event internals change. Mutations go through
-    /// `BattleSimBridge` helpers so presentation timing stays off the engine surface.
     @ObservationIgnored
-    public var state: BattleState?
+    let simulation = BattleSimulationStore()
     let presentation = BattlePresentationState()
 
     @ObservationIgnored
@@ -115,7 +113,7 @@ public final class BattleSession {
     }
 
     var outcome: BattleSimulationOutcome? {
-        BattleSimBridge.outcome(for: state)
+        simulation.outcome
     }
 
     var hand: [BattleCard] {
@@ -123,11 +121,16 @@ public final class BattleSession {
     }
 
     var canEndTurn: Bool {
-        guard let state else { return false }
-        return state.phase == .playerTurn && !state.isBattleOver
+        simulation.phase == .playerTurn && !simulation.isBattleOver
+            && simulation.hasState
             && !isDealingOpeningHand
             && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
+    }
+
+    /// True when a battle configuration has installed an authoritative simulation.
+    public var hasActiveSimulation: Bool {
+        simulation.hasState
     }
 
     /// Retreat is closed once the fight is decided, including the spectacle hold
@@ -151,6 +154,41 @@ public final class BattleSession {
     var hasPlayableCard: Bool {
         hand.contains { isCardPlayable($0) }
     }
+
+    func makeVictorySummary(for configuration: ActiveBattleConfiguration) -> BattleVictorySummary? {
+        guard let input = simulation.victoryInput else { return nil }
+        return BattleVictorySummary.make(
+            configuration: configuration,
+            earnedGold: input.earnedGold,
+            heroName: input.heroName,
+            companionName: input.companionName
+        )
+    }
+
+    /// Used by launch previews that need victory chrome without running combat.
+    public func presentLaunchVictory() {
+        guard let configuration = activeBattle,
+              let summary = makeVictorySummary(for: configuration)
+        else { return }
+        spectacle.victorySummary = summary
+        spectacle.isShowingVictory = true
+    }
+
+    func combatantReadModel(for combatant: Combatant) -> BattleSimulationStore.CombatantReadModel? {
+        simulation.combatantReadModel(for: combatant)
+    }
+
+    #if DEBUG
+    func performEngineCardForPerformance(cardID: Int) -> Bool {
+        do {
+            _ = try simulation.playCard(cardID: cardID)
+            installSimulationPresentation()
+            return true
+        } catch {
+            return false
+        }
+    }
+    #endif
 
     public func endBattle() {
         cancelPendingAutoEnd()
@@ -181,6 +219,12 @@ public final class BattleSession {
         isShowingBattleLog = true
     }
 
+    /// Log projection for the app shell's sheet. The mutable simulation remains
+    /// inside BattleFeature while callers receive immutable log DTOs.
+    public var logEntries: [LogEntry] {
+        simulation.logEntries
+    }
+
     func clearBattleLog() {
         isShowingBattleLog = false
     }
@@ -205,7 +249,7 @@ public final class BattleSession {
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
         guard releaseBattleLog else { return }
-        BattleSimBridge.releaseLogProjection(state: &state)
+        simulation.releaseLogProjection()
     }
 
     /// Eagerly prepares battle audio before activation. Repeated calls are cheap
@@ -225,11 +269,11 @@ public final class BattleSession {
     }
 
     func syncLogForDisplay() {
-        BattleSimBridge.syncLog(state: &state)
+        simulation.syncLog()
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        BattleSimBridge.isCardPlayable(card, in: state)
+        simulation.isCardPlayable(card)
     }
 
     /// Ends the player turn (enemy acts, effects tick, draw). Returns earned gold
@@ -242,7 +286,7 @@ public final class BattleSession {
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
-        guard canEndTurn, state != nil else {
+        guard canEndTurn, simulation.hasState else {
             feedback.noteItemsChanged()
             return nil
         }
@@ -256,11 +300,11 @@ public final class BattleSession {
                 transitionInterval
             )
         }
-        let events = BattleSimBridge.endTurn(state: &state)
-        if let battleState = state {
-            installBattleState(battleState)
+        let events = simulation.endTurn()
+        if simulation.hasState {
+            installSimulationPresentation()
             // Draw SFX only when the round completed and cards were dealt for the next turn.
-            if battleState.phase == .playerTurn {
+            if simulation.phase == .playerTurn {
                 presentationEnvironment.playSFX([SFXID.abilityDraw])
             }
         }

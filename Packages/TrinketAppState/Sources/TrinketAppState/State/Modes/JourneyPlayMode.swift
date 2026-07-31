@@ -3,6 +3,7 @@ import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -121,22 +122,148 @@ public final class JourneyPlayMode {
     }
 
     @discardableResult
+    func beginMysteryEncounter(
+        for stage: Stage,
+        forcedEventID: String? = nil
+    ) -> StageMapMessage? {
+        encounters.beginMysteryEncounter(
+            origin: .journey(stage: stage),
+            forcedEventID: forcedEventID,
+            completeProgress: Self.completeMysteryProgress
+        )
+    }
+
+    /// Completes a journey shop only after persistence succeeds so a failed leave
+    /// keeps the encounter available for another attempt.
+    @discardableResult
+    func finishActiveShopEncounter() -> Bool {
+        guard let shopSession = encounters.activeShopEncounter,
+              case .journey = shopSession.origin
+        else { return false }
+
+        shopSession.clearLeaveFailure()
+        var resultingJourney: JourneyProgressState?
+        do {
+            try playerSave.performBatchMutation { save in
+                resultingJourney = StageCompletion.completeEncounter(
+                    stage: shopSession.stage,
+                    labyrinthNodeID: nil,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    in: GameContent.chapters,
+                    save: &save
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to leave journey shop: \(error.localizedDescription, privacy: .public)"
+            )
+            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            return false
+        }
+        if let resultingJourney {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+        }
+        encounters.clearActiveShopEncounter()
+        return true
+    }
+
+    @discardableResult
+    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+        guard let outcome = encounters.resolveActiveMysteryChoice(
+            choiceID: choiceID,
+            completeProgress: Self.completeMysteryProgress
+        ) else { return false }
+        noteMysteryMapFocus(for: outcome)
+        return true
+    }
+
+    @discardableResult
+    func selectActiveMysteryItem(itemID: String) -> Bool {
+        guard let outcome = encounters.selectActiveMysteryItem(
+            itemID: itemID,
+            completeProgress: Self.completeMysteryProgress
+        ) else { return false }
+        noteMysteryMapFocus(for: outcome)
+        return true
+    }
+
+    @discardableResult
+    func corruptActiveMysteryItem(itemID: String) -> Bool {
+        encounters.corruptActiveMysteryItem(
+            itemID: itemID,
+            completeProgress: Self.completeMysteryProgress
+        )
+    }
+
+    @discardableResult
+    func finishActiveMysteryEncounter() -> Bool {
+        let result = encounters.finishActiveMysteryEncounter(
+            completeProgress: Self.completeMysteryProgress
+        )
+        if let journey = result.journey {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+        }
+        return result.didFinish
+    }
+
+    private func noteMysteryMapFocus(for outcome: MysteryChoiceOutcome) {
+        let journey: JourneyProgressState? = switch outcome {
+        case let .dismiss(resultingJourney): resultingJourney
+        case let .reward(_, resultingJourney): resultingJourney
+        default: nil
+        }
+        if let journey {
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
+        }
+    }
+
+    private static func completeMysteryProgress(
+        _ session: MysteryEncounterSession,
+        save: inout PlayerSave
+    ) -> JourneyProgressState? {
+        guard case .journey = session.origin else { return nil }
+        return StageCompletion.completeEncounter(
+            stage: session.stage,
+            labyrinthNodeID: nil,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            in: GameContent.chapters,
+            save: &save
+        )
+    }
+
+    @discardableResult
     public func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
         let resolvedStage = resolvedCampaignStage(stage)
-        return switch resolvedStage.encounter {
+        switch resolvedStage.encounter {
         case .battle, .randomBattle:
-            startBattle(for: resolvedStage)
+            return startBattle(for: resolvedStage)
         case .mysteryEvent:
-            encounters.beginMysteryEncounter(for: resolvedStage)
+            return beginMysteryEncounter(for: resolvedStage)
         case .recruit:
-            encounters.beginMysteryEncounter(
+            return beginMysteryEncounter(
                 for: resolvedStage,
                 forcedEventID: resolvedStage.encounter.recruitEventID
             )
         case .shop:
-            encounters.beginShopEncounter(for: resolvedStage)
+            switch encounters.beginShopEncounter(origin: .journey(stage: resolvedStage)) {
+            case .autoCompleted:
+                appStateLogger.error(
+                    "Shop stage \(resolvedStage.id, privacy: .public) produced no offers; completing stage."
+                )
+                if let failure = completeStageOrPersistFailure(resolvedStage) {
+                    return failure
+                }
+                return StageMapMessage(
+                    title: "Shop Closed",
+                    message: "The merchant has nothing left to sell. You continue on."
+                )
+            case .opened, .unavailable:
+                return nil
+            }
         case .event, .rest:
-            completeStageOrPersistFailure(resolvedStage)
+            return completeStageOrPersistFailure(resolvedStage)
         }
     }
 

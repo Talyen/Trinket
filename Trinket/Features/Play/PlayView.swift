@@ -4,6 +4,7 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -186,7 +187,7 @@ private struct PlayBrowsingStack: View {
 
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryState: playerSave.inventory
+            inventoryItems: playerSave.inventory.items
         )
     }
 }
@@ -280,7 +281,7 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
                 .trinketDetailSheet(dragIndicator: .hidden)
             })
             .sheet(isPresented: $battle.isShowingBattleLog) {
-                BattleLogSheet(entries: battle.state?.log ?? [])
+                BattleLogSheet(entries: battle.logEntries)
                     .presentationDetents([.medium])
             }
     }

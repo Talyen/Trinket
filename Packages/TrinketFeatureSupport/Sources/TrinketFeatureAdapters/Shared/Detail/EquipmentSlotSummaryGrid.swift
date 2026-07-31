@@ -2,12 +2,12 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketPersistence
+import TrinketFeatureSupport
 
 struct EquipmentSlotSummaryGrid: View {
     let role: Combatant.Role
     let equipmentLoadout: EquipmentLoadout
-    let inventoryState: PlayerInventoryState
+    let inventoryItems: [InventoryItem]
     let onSelect: ((ItemSlot) -> Void)?
     /// Called when viewing (not editing) and the user taps a filled item slot.
     var onViewItem: ((InventoryItem) -> Void)?
@@ -43,6 +43,6 @@ struct EquipmentSlotSummaryGrid: View {
     }
 
     private func equippedItem(for slot: ItemSlot) -> InventoryItem? {
-        inventoryState.item(matching: equipmentLoadout.itemID(for: slot))
+        inventoryItems.first { $0.id == equipmentLoadout.itemID(for: slot) }
     }
 }

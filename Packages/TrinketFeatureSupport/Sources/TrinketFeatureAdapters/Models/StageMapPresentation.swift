@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureSupport
 import TrinketPersistence
 
 public enum StageMapID {
@@ -88,17 +89,6 @@ public struct ChapterStageRowPresentation: Identifiable, Equatable {
                 isBoss: stage.isBossEncounter
             )
         }
-    }
-}
-
-public struct StageMapMessage: Identifiable {
-    public let id = UUID()
-    public let title: String
-    public let message: String
-
-    public init(title: String, message: String) {
-        self.title = title
-        self.message = message
     }
 }
 

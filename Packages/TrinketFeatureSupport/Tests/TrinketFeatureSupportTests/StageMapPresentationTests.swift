@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketPersistence
+@testable import TrinketFeatureAdapters
 @testable import TrinketFeatureSupport
 
 struct StageMapPresentationTests {

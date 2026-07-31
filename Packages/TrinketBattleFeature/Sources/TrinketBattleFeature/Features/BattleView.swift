@@ -5,7 +5,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
-import TrinketPersistence
 
 public struct BattleView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -264,9 +263,9 @@ public struct BattleView: View {
     ) -> BattlefieldFeedbackOverlay {
         BattlefieldFeedbackOverlay(
             layout: layout,
-            enemyID: battleSession.state?.enemy.id,
-            heroID: battleSession.state?.hero.id,
-            companionID: battleSession.state?.companion.id
+            enemyID: battleSession.presentation.enemy?.combatant.id,
+            heroID: battleSession.presentation.hero?.combatant.id,
+            companionID: battleSession.presentation.companion?.combatant.id
         )
     }
 
@@ -352,16 +351,17 @@ public struct BattleView: View {
 
     private func showDetails(for combatant: Combatant) {
         guard !interactionState.suppressCombatantTaps,
-              let battleState = battleSession.state else { return }
+              let combatantReadModel = battleSession.combatantReadModel(for: combatant)
+        else { return }
         let partyMember = configuration.partyMember(for: combatant.id)
         battleSession.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: combatant,
                 progression: partyMember?.progression ?? .initial,
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
-                inventoryState: configuration.inventoryState,
-                health: battleState.health(of: combatant),
-                activeEffectSummaries: battleState.effectSummaries(of: combatant)
+                inventoryItems: configuration.inventoryItems,
+                health: combatantReadModel.health,
+                activeEffectSummaries: combatantReadModel.activeEffectSummaries
             )
         )
     }

@@ -8,13 +8,11 @@ views use `PlaySession.battle` (`appState.play.battle`).
 `PlaySession` is the Play shell and mode registry: pending destination, map scroll,
 and public entry points that forward to shared lifecycle helpers. Assemble modes via
 `PlayModeGraph` (fully wired at init — no deferred `bind` steps). Shared battle
-lifecycle glue lives on `PlayBattleLaunch` (encounter/loot resolution, party/reward
-bake via `assembleConfiguration`, configure, activate) and `PlayBattleCompletion`
-(origin resolve → mode write → dismiss). `PlayBattleOrigin` is the mode passport;
-encode it to opaque `BattleRunKey` for Battle. Do not grow `PlaySession` with
-mode-specific prepare/start/complete bodies. Do not put mode-branching encounter or
-loot resolution — or live roster/inventory/homestead assembly — on
-`ActiveBattleConfiguration`; that type is a pure pre-resolved DTO.
+lifecycle glue belongs on `PlayBattleLaunch` and `PlayBattleCompletion`; follow the
+canonical launch/DTO ownership contract in
+[`Docs/AgentContext/battle.md`](../../Docs/AgentContext/battle.md). Do not grow
+`PlaySession` with mode-specific prepare/start/complete bodies or move live
+roster/inventory/homestead assembly into the Battle DTO.
 
 Mode owners (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`) own navigation/session state and mode-unique save writes — not

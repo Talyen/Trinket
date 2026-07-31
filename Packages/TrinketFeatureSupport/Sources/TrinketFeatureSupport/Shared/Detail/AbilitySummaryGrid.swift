@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-struct AbilitySummaryGrid: View {
+public struct AbilitySummaryGrid: View {
     let combatant: Combatant
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
@@ -14,7 +14,23 @@ struct AbilitySummaryGrid: View {
     /// Called when viewing (not editing) and the user taps a filled ability slot.
     var onViewAbility: ((Ability) -> Void)?
 
-    var body: some View {
+    public init(
+        combatant: Combatant,
+        progression: CombatantProgression,
+        loadout: Binding<AbilityLoadout>,
+        allowsEditing: Bool,
+        onSelectTier: ((AbilityTier) -> Void)? = nil,
+        onViewAbility: ((Ability) -> Void)? = nil
+    ) {
+        self.combatant = combatant
+        self.progression = progression
+        _loadout = loadout
+        self.allowsEditing = allowsEditing
+        self.onSelectTier = onSelectTier
+        self.onViewAbility = onViewAbility
+    }
+
+    public var body: some View {
         SlotSummaryGrid(
             slots: AbilityTier.allCases,
             isLocked: isLocked,

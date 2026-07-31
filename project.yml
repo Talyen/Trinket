@@ -63,6 +63,8 @@ targets:
       - package: TrinketPersistence
       - package: TrinketDesignSystem
       - package: TrinketFeatureSupport
+      - package: TrinketFeatureSupport
+        product: TrinketFeatureAdapters
       - package: TrinketBattleFeature
       - package: TrinketAppState
     settings:

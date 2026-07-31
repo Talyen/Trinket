@@ -87,40 +87,6 @@ enum CombatFeedbackChipComposer {
         )
     }
 
-    /// Compatibility wrapper used by tests that still pass label + single style.
-    static func compose(
-        label: CombatFeedbackChipLabel,
-        style: Keyword.VisualStyle,
-        feedbackClass: CombatFeedbackClass,
-        dynamicTypeSize: DynamicTypeSize,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        atlas: CombatFeedbackGlyphAtlas = .shared
-    ) -> ComposedRaster? {
-        let presentation = CombatFeedbackChipPresentation(
-            leadingSymbolName: nil,
-            leadingTint: nil,
-            trailingSymbolName: style.symbolName,
-            trailingTint: style,
-            text: {
-                switch label {
-                case .amount, .percent:
-                    label.displayString
-                case let .word(word):
-                    word.composeText
-                }
-            }()
-        )
-        return compose(
-            presentation: presentation,
-            feedbackClass: feedbackClass,
-            dynamicTypeSize: dynamicTypeSize,
-            layoutDirection: layoutDirection,
-            displayScale: displayScale,
-            atlas: atlas
-        )
-    }
-
     private static func blit(
         leading: (CombatFeedbackGlyphAtlas.Glyph, UIColor)?,
         trailing: (CombatFeedbackGlyphAtlas.Glyph, UIColor),

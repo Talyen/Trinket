@@ -76,7 +76,7 @@ struct MysteryItemChoiceContent: View {
 }
 
 struct MysteryCorruptItemChoiceContent: View {
-    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(PlaySession.self) private var play
     @Bindable var session: MysteryEncounterSession
 
     var body: some View {
@@ -89,11 +89,11 @@ struct MysteryCorruptItemChoiceContent: View {
             isDisabled: session.isResolvingChoice,
             itemAccessibilityID: AccessibilityID.Mystery.corruptItemCard(itemID:),
             onSelectItem: { itemID in
-                _ = encounters.corruptActiveMysteryItem(itemID: itemID)
+                _ = play.corruptActiveMysteryItem(itemID: itemID)
             },
             footer: {
                 Button("Back") {
-                    encounters.cancelActiveMysteryCorruptSelection()
+                    play.cancelActiveMysteryCorruptSelection()
                 }
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton(

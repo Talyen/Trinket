@@ -24,7 +24,7 @@ struct AppStatePlayFlowTests {
         #expect(state.journey.startBattle(for: stage) == nil)
 
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
-        #expect(state.battle.state != nil)
+        #expect(state.battle.hasActiveSimulation)
     }
 
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {

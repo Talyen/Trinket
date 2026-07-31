@@ -24,6 +24,11 @@ public enum MysteryChoiceOutcome: Equatable {
     case failed
 }
 
+typealias MysteryProgressCompletion = (
+    MysteryEncounterSession,
+    inout PlayerSave
+) -> JourneyProgressState?
+
 @MainActor
 @Observable
 public final class MysteryEncounterSession: Identifiable {
@@ -33,8 +38,12 @@ public final class MysteryEncounterSession: Identifiable {
     }
 
     public let stage: Stage
+    public let origin: PlayEncounterOrigin
     /// When set, completion clears a Labyrinth node instead of a journey stage.
-    public let labyrinthNodeID: String?
+    public var labyrinthNodeID: String? {
+        origin.labyrinthNodeID
+    }
+
     public let event: MysteryEvent
     public let combatant: Combatant?
     public private(set) var phase: MysteryEncounterPhase = .reading
@@ -77,41 +86,43 @@ public final class MysteryEncounterSession: Identifiable {
     }
 
     public init(
-        stage: Stage,
+        origin: PlayEncounterOrigin,
         event: MysteryEvent,
-        combatant: Combatant?,
-        labyrinthNodeID: String? = nil
+        combatant: Combatant?
     ) {
-        self.stage = stage
-        self.event = event
-        self.combatant = combatant
-        self.labyrinthNodeID = labyrinthNodeID
-    }
-
-    /// Assembles a mystery/recruit session for a journey stage or Labyrinth node.
-    static func open(
-        stage: Stage? = nil,
-        labyrinthNodeID: String? = nil,
-        forcedEventID: String?,
-        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
-        pinnedLabyrinthEventID: String? = nil
-    ) -> (session: MysteryEncounterSession, resolvedEventID: String)? {
-        let event: MysteryEvent
-        let sessionStage: Stage
-        if let labyrinthNodeID {
-            event = GameContent.resolveLabyrinthMysteryEvent(
-                nodeID: labyrinthNodeID,
-                forcedEventID: forcedEventID,
-                pinnedEventID: pinnedLabyrinthEventID,
-                context: pickContext
-            )
-            sessionStage = GameContent.syntheticLabyrinthStage(
-                nodeID: labyrinthNodeID,
+        self.origin = origin
+        switch origin {
+        case let .journey(stage):
+            self.stage = stage
+        case let .labyrinth(nodeID):
+            stage = GameContent.syntheticLabyrinthStage(
+                nodeID: nodeID,
                 encounter: event.isRecruit
                     ? .recruit(eventID: event.id)
                     : .mysteryEvent(eventID: event.id)
             )
-        } else if let stage {
+        }
+        self.event = event
+        self.combatant = combatant
+    }
+
+    /// Assembles a mystery/recruit session for a journey stage or Labyrinth node.
+    static func open(
+        origin: PlayEncounterOrigin,
+        forcedEventID: String?,
+        pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
+        pinnedLabyrinthEventID: String? = nil
+    ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
+        let event: MysteryEvent
+        switch origin {
+        case let .labyrinth(nodeID):
+            event = GameContent.resolveLabyrinthMysteryEvent(
+                nodeID: nodeID,
+                forcedEventID: forcedEventID,
+                pinnedEventID: pinnedLabyrinthEventID,
+                context: pickContext
+            )
+        case let .journey(stage):
             let authoredEvent = forcedEventID.flatMap {
                 GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
             }
@@ -122,16 +133,12 @@ public final class MysteryEncounterSession: Identifiable {
                 context: pickContext,
                 using: &pickRNG
             )
-            sessionStage = stage
-        } else {
-            return nil
         }
 
         let session = MysteryEncounterSession(
-            stage: sessionStage,
+            origin: origin,
             event: event,
-            combatant: GameContent.combatant(forMysteryEvent: event),
-            labyrinthNodeID: labyrinthNodeID
+            combatant: GameContent.combatant(forMysteryEvent: event)
         )
         return (session, event.id)
     }
@@ -197,19 +204,6 @@ extension MysteryEncounterSession {
         persistFailureMessage = nil
     }
 
-    /// Completes the active mystery's stage or Labyrinth node inside an open save mutation.
-    @discardableResult
-    func completeProgress(save: inout PlayerSave) -> JourneyProgressState? {
-        StageCompletion.completeEncounter(
-            stage: stage,
-            labyrinthNodeID: labyrinthNodeID,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            in: GameContent.chapters,
-            save: &save
-        )
-    }
-
     private func noteMysteryCadence(save: inout PlayerSave) {
         if isCorruptionAltar {
             ItemCorruptionApplier.recordCorruptionAltarEncounter(save: &save)
@@ -222,7 +216,8 @@ extension MysteryEncounterSession {
     func resolveChoice(
         choiceID: String?,
         save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+        completeProgress: MysteryProgressCompletion
     ) -> MysteryChoiceOutcome {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
@@ -244,7 +239,7 @@ extension MysteryEncounterSession {
 
         if choice.effects.contains(.leave) {
             noteMysteryCadence(save: &save)
-            let journey = completeProgress(save: &save)
+            let journey = completeProgress(self, &save)
             return .dismiss(journey: journey)
         }
 
@@ -257,8 +252,8 @@ extension MysteryEncounterSession {
         )
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
-            if labyrinthNodeID != nil {
-                _ = completeProgress(save: &save)
+            if case .labyrinth = origin {
+                _ = completeProgress(self, &save)
             }
             noteMysteryCadence(save: &save)
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
@@ -269,7 +264,7 @@ extension MysteryEncounterSession {
         }
 
         noteMysteryCadence(save: &save)
-        let journey = completeProgress(save: &save)
+        let journey = completeProgress(self, &save)
         if !applyResult.isEmpty {
             return .reward(applyResult, journey: journey)
         }
@@ -277,7 +272,11 @@ extension MysteryEncounterSession {
     }
 
     /// Grants the chosen mystery item and completes progress in one mutation.
-    func selectItem(itemID: String, save: inout PlayerSave) -> MysteryChoiceOutcome {
+    func selectItem(
+        itemID: String,
+        save: inout PlayerSave,
+        completeProgress: MysteryProgressCompletion
+    ) -> MysteryChoiceOutcome {
         guard showsItemChoice else { return .failed }
         guard !isResolvingChoice else { return .failed }
         guard let item = itemCandidates.first(where: { $0.id == itemID }) else {
@@ -287,7 +286,7 @@ extension MysteryEncounterSession {
         markChoiceStarted()
         MysteryEffectApplier.grantChosenItem(item, save: &save)
         noteMysteryCadence(save: &save)
-        let journey = completeProgress(save: &save)
+        let journey = completeProgress(self, &save)
         return .reward(MysteryEffectApplyResult(grantedItems: [item]), journey: journey)
     }
 
@@ -295,7 +294,8 @@ extension MysteryEncounterSession {
     func corruptSelectedItem(
         itemID: String,
         save: inout PlayerSave,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+        completeProgress: MysteryProgressCompletion
     ) -> MysteryChoiceOutcome {
         guard phase == .selectingCorruptItem else { return .failed }
         guard !isResolvingChoice else { return .failed }
@@ -312,7 +312,7 @@ extension MysteryEncounterSession {
             return .failed
         }
         noteMysteryCadence(save: &save)
-        _ = completeProgress(save: &save)
+        _ = completeProgress(self, &save)
         return .corruptionReveal(result)
     }
 

@@ -2,6 +2,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+@testable import TrinketFeatureAdapters
 @testable import TrinketFeatureSupport
 
 struct HomesteadPresentationTests {

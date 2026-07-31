@@ -281,7 +281,7 @@ struct PlayBattleLaunch {
             highestHeroLevel: rosterState.highestHeroLevel,
             highestCompanionLevel: rosterState.highestCompanionLevel,
             enemyModifiers: enemyModifiers,
-            inventoryState: inventoryState,
+            inventoryItems: inventoryState.items,
             stageReward: stageReward,
             rewardItems: resolvedRewardItems(
                 stageReward: stageReward,

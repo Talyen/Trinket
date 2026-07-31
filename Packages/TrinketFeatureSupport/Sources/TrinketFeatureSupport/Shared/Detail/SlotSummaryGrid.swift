@@ -2,7 +2,7 @@ import SwiftUI
 import TrinketDesignSystem
 
 @MainActor
-struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
+public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     let slots: [Slot]
     let isLocked: (Slot) -> Bool
     let hasItem: (Slot) -> Bool
@@ -12,7 +12,7 @@ struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     let combinesAccessibilityChildren: Bool
     @ViewBuilder let card: (Slot) -> CardView
 
-    init(
+    public init(
         slots: [Slot],
         isLocked: @escaping (Slot) -> Bool,
         hasItem: @escaping (Slot) -> Bool,
@@ -32,7 +32,7 @@ struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         self.card = card
     }
 
-    var body: some View {
+    public var body: some View {
         HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(slots) { slot in
                 let locked = isLocked(slot)

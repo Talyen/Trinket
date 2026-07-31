@@ -30,19 +30,12 @@ struct BattlePerformanceScenarioDriver {
     }
 
     private func runEngineHand() -> String? {
-        guard let card = playableCard(), let configurationID = battleSession.activeBattle?.id else {
+        guard let card = playableCard() else {
             return "no-playable-card"
         }
-        do {
-            _ = try battleSession.state?.playCard(cardID: card.id, rebuildLog: false)
-            guard let state = battleSession.state else { return "missing-state" }
-            battleSession.presentation.install(
-                BattlePresentationSnapshot(configurationID: configurationID, state: state)
-            )
-            return nil
-        } catch {
-            return "engine-rejected"
-        }
+        return battleSession.performEngineCardForPerformance(cardID: card.id)
+            ? nil
+            : "engine-rejected"
     }
 
     private func runEngineFeedback() -> String? {
@@ -91,8 +84,8 @@ struct BattlePerformanceScenarioDriver {
     }
 
     static func feedbackEvents(in session: BattleSession) -> [ActionEvent] {
-        guard let state = session.state else { return [] }
-        let targets = [state.enemy, state.hero, state.companion]
+        guard let readModel = session.simulation.readModel else { return [] }
+        let targets = [readModel.enemy, readModel.hero, readModel.companion]
         let keywords: [Keyword] = [.physical, .burn, .freeze, .holy, .poison, .block]
         return (0 ..< 9).map { index in
             let target = targets[index % targets.count]
@@ -100,8 +93,8 @@ struct BattlePerformanceScenarioDriver {
                 id: 90000 + index,
                 kind: index.isMultiple(of: 3) ? .effect : .abilityDamage,
                 effectKind: index.isMultiple(of: 3) ? .shieldApplied : nil,
-                actorID: state.hero.id,
-                actorName: state.hero.name,
+                actorID: readModel.hero.id,
+                actorName: readModel.hero.name,
                 abilityID: "performance-feedback",
                 abilityName: "Performance Feedback",
                 targetID: target.id,

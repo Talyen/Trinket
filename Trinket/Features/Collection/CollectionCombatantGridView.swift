@@ -3,6 +3,7 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 

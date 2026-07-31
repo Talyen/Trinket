@@ -87,16 +87,6 @@ final class CombatFeedbackRasterUIView: UIView {
     private var reusableLayers: [CALayer] = []
     var cardHeight: CGFloat = 0
 
-    /// True while any chip is mounted (used by the bridge flush filter).
-    var isPresenting: Bool {
-        !layersByID.isEmpty
-    }
-
-    /// First presented canvas item, if any (compat for single-chip diagnostics).
-    var canvasItem: CombatFeedbackCanvasItem? {
-        layersByID.values.first?.canvasItem
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false

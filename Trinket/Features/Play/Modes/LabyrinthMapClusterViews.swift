@@ -3,6 +3,7 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketContent
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -314,7 +315,7 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryState: playerSave.inventory
+            inventoryItems: playerSave.inventory.items
         )
     }
 

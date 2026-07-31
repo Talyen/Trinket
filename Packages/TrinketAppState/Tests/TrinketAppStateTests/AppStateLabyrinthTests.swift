@@ -65,12 +65,12 @@ struct AppStateLabyrinthTests {
             let session = try #require(state.encounters.activeShopEncounter)
             #expect(session.labyrinthNodeID == nodeID)
             #expect(!session.offers.isEmpty)
-            state.encounters.finishActiveShopEncounter()
+            state.labyrinth.finishActiveShopEncounter()
             #expect(state.encounters.activeShopEncounter == nil)
         case .mystery:
             let session = try #require(state.encounters.activeMysteryEncounter)
             #expect(session.labyrinthNodeID == nodeID)
-            state.encounters.finishActiveMysteryEncounter()
+            state.labyrinth.finishActiveMysteryEncounter()
             #expect(state.encounters.activeMysteryEncounter == nil)
         case .rest:
             let session = try #require(state.labyrinth.activeNodeSession)
@@ -84,6 +84,18 @@ struct AppStateLabyrinthTests {
         }
 
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == true)
+    }
+
+    @Test func modeOwnerRejectsForeignJourneyShopOrigin() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        #expect(state.encounters.activeShopEncounter?.origin == .journey(stage: stage))
+        #expect(!state.labyrinth.finishActiveShopEncounter())
+        #expect(state.encounters.activeShopEncounter != nil)
+        #expect(state.finishActiveShopEncounter())
+        #expect(state.encounters.activeShopEncounter == nil)
     }
 
     @Test func recruitNodeUsesConcealedRecruitEvent() throws {
@@ -153,12 +165,12 @@ struct AppStateLabyrinthTests {
             #expect(state.encounters.activeShopEncounter != nil)
 
             playerSave.forcesNextSaveFailure = true
-            #expect(!state.encounters.finishActiveShopEncounter())
+            #expect(!state.labyrinth.finishActiveShopEncounter())
             #expect(state.encounters.activeShopEncounter != nil)
             #expect(state.encounters.activeShopEncounter?.leaveFailureMessage != nil)
             #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
-            #expect(state.encounters.finishActiveShopEncounter())
+            #expect(state.labyrinth.finishActiveShopEncounter())
             #expect(state.encounters.activeShopEncounter == nil)
             #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == true)
         case "rest":
@@ -208,7 +220,7 @@ struct AppStateLabyrinthTests {
         let event = session.event
         guard let unlockID = event.unlockCombatantID else {
             // Non-recruit mystery: resolve still completes in-transaction; skip double-grant probe.
-            #expect(state.encounters.resolveActiveMysteryChoice())
+            #expect(state.labyrinth.resolveActiveMysteryChoice())
             #expect(state.playerSave.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
             return
         }

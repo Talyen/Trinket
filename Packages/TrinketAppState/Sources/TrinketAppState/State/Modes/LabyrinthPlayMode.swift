@@ -3,6 +3,7 @@ import Observation
 import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -34,6 +35,92 @@ public final class LabyrinthPlayMode {
             && encounters.activeShopEncounter == nil
             && encounters.activeMysteryEncounter == nil
             && activeNodeSession == nil
+    }
+
+    @discardableResult
+    func beginMysteryEncounter(
+        nodeID: String,
+        forcedEventID: String? = nil
+    ) -> StageMapMessage? {
+        encounters.beginMysteryEncounter(
+            origin: .labyrinth(nodeID: nodeID),
+            forcedEventID: forcedEventID,
+            completeProgress: Self.completeMysteryProgress
+        )
+    }
+
+    /// Completes a Labyrinth shop only after persistence succeeds so a failed leave
+    /// keeps the encounter available for another attempt.
+    @discardableResult
+    func finishActiveShopEncounter() -> Bool {
+        guard let shopSession = encounters.activeShopEncounter,
+              case let .labyrinth(nodeID) = shopSession.origin
+        else { return false }
+
+        shopSession.clearLeaveFailure()
+        do {
+            try playerSave.performBatchMutation { save in
+                LabyrinthCompletion.complete(
+                    nodeID: nodeID,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    save: &save
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to leave Labyrinth shop: \(error.localizedDescription, privacy: .public)"
+            )
+            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            return false
+        }
+        encounters.clearActiveShopEncounter()
+        return true
+    }
+
+    @discardableResult
+    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+        encounters.resolveActiveMysteryChoice(
+            choiceID: choiceID,
+            completeProgress: Self.completeMysteryProgress
+        ) != nil
+    }
+
+    @discardableResult
+    func selectActiveMysteryItem(itemID: String) -> Bool {
+        encounters.selectActiveMysteryItem(
+            itemID: itemID,
+            completeProgress: Self.completeMysteryProgress
+        ) != nil
+    }
+
+    @discardableResult
+    func corruptActiveMysteryItem(itemID: String) -> Bool {
+        encounters.corruptActiveMysteryItem(
+            itemID: itemID,
+            completeProgress: Self.completeMysteryProgress
+        )
+    }
+
+    @discardableResult
+    func finishActiveMysteryEncounter() -> Bool {
+        encounters.finishActiveMysteryEncounter(
+            completeProgress: Self.completeMysteryProgress
+        ).didFinish
+    }
+
+    private static func completeMysteryProgress(
+        _ session: MysteryEncounterSession,
+        save: inout PlayerSave
+    ) -> JourneyProgressState? {
+        guard case let .labyrinth(nodeID) = session.origin else { return nil }
+        LabyrinthCompletion.complete(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+        return nil
     }
 
     @discardableResult
@@ -70,9 +157,14 @@ public final class LabyrinthPlayMode {
         case .battle, .boss:
             return startBattle(nodeID: nodeID)
         case .shop:
-            return encounters.beginShopEncounter(labyrinthNodeID: nodeID)
+            switch encounters.beginShopEncounter(origin: .labyrinth(nodeID: nodeID)) {
+            case .autoCompleted:
+                return completeNodeOrPersistFailure(nodeID: nodeID)
+            case .opened, .unavailable:
+                return nil
+            }
         case .mystery, .event:
-            return encounters.beginMysteryEncounter(labyrinthNodeID: nodeID)
+            return beginMysteryEncounter(nodeID: nodeID)
         case .recruit:
             let resolution = GameContent.resolveRecruitEncounter(
                 configuredEventID: node.recruitEventID,
@@ -80,8 +172,8 @@ public final class LabyrinthPlayMode {
                 unlockedHeroIDs: roster.unlockedHeroIDs,
                 unlockedCompanionIDs: roster.unlockedCompanionIDs
             )
-            return encounters.beginMysteryEncounter(
-                labyrinthNodeID: nodeID,
+            return beginMysteryEncounter(
+                nodeID: nodeID,
                 forcedEventID: resolution.event.id
             )
         case .rest:

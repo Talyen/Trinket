@@ -4,10 +4,12 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryEncounterView: View {
+    @Environment(PlaySession.self) private var play
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
@@ -37,7 +39,7 @@ struct MysteryEncounterView: View {
                 MysteryItemChoiceContent(
                     session: session,
                     onSelectItem: { itemID in
-                        _ = encounters.selectActiveMysteryItem(itemID: itemID)
+                        _ = play.selectActiveMysteryItem(itemID: itemID)
                     }
                 )
             } else {
@@ -121,7 +123,7 @@ struct MysteryEncounterView: View {
 
             Button {
                 guard let selectedChoiceID else { return }
-                _ = encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
+                _ = play.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
             } label: {
                 Text("Confirm")
                     .frame(maxWidth: .infinity)

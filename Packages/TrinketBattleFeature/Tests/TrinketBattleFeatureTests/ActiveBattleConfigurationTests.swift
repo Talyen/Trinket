@@ -1,123 +1,107 @@
 import BattleEngine
 import Testing
 import TrinketContent
-import TrinketFeatureSupport
-import TrinketPersistence
+import TrinketCore
 @testable import TrinketBattleFeature
 
 @MainActor
 struct ActiveBattleConfigurationTests {
-    @Test func initStoresBakedPresentationFields() throws {
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        let battleEnemyID = try #require(stage.encounter.battleEnemyID)
-        let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
-        let loot = try #require(BattleLoot.resolveJourney(
-            stage: stage,
-            encounterLevel: 1,
-            enemyIsBoss: false
-        ))
-        let runKey = BattleRunKey("journey|\(stage.id)")
-
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            runKey: runKey,
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            enemy: enemy,
-            stageReward: loot.asStageReward,
-            pendingRewardItem: loot.item,
-            stageRewardsAlreadyClaimed: true,
-            defeatPrimaryAction: .retreat,
-            hasProgressionRewards: true,
-            musicStageID: stage.id
-        )
-
-        #expect(configuration.runKey == runKey)
-        #expect(configuration.musicStageID == stage.id)
-        #expect(configuration.hasProgressionRewards)
-        #expect(configuration.defeatPrimaryAction == .retreat)
-        #expect(configuration.stageRewardsAlreadyClaimed)
-        #expect(configuration.stageReward == loot.asStageReward)
-        #expect(configuration.rewardItems == [loot.item])
-        #expect(configuration.pendingRewardItem == loot.item)
-        #expect(configuration.heroExperienceAward >= 0)
-        #expect(configuration.companionExperienceAward >= 0)
-    }
-
-    @Test func rewardItemsPreferPendingItem() throws {
+    @Test func storesLaunchBakedDTOValues() throws {
         let hero = try #require(GameContent.heroes.first)
         let companion = try #require(GameContent.companions.first)
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let pending = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        let runKey = BattleRunKey("journey|test-stage")
+        let rewardItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+            .rewardInstance(for: "audit-stage")
+        let heroProgression = CombatantProgression(level: 4, currentXP: 12, requiredXP: 275)
+        let companionProgression = CombatantProgression(level: 2, currentXP: 3, requiredXP: 155)
+        let heroModifiers = CombatModifierProfile(maximumHealthBonus: 5)
+        let companionModifiers = CombatModifierProfile(damageDealtBonus: [.physical: 2])
+        let stageReward = StageReward(
+            gold: 18,
+            itemTemplateIDs: [],
+            materialRewards: [ResourceAmount(.wood, 4)]
+        )
+        let runKey = BattleRunKey("journey|audit-stage")
 
-        let noItem = try ActiveBattleConfigurationTestSupport.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             runKey: runKey,
-            rngSeed: 1,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            stageReward: StageReward(gold: 10, itemTemplateIDs: []),
-            hasProgressionRewards: true
-        )
-        #expect(noItem.rewardItems.isEmpty)
-
-        let withPending = try ActiveBattleConfigurationTestSupport.make(
-            runKey: runKey,
-            rngSeed: 1,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            stageReward: StageReward(gold: 10, itemTemplateIDs: []),
-            pendingRewardItem: pending,
-            hasProgressionRewards: true
-        )
-        #expect(withPending.rewardItems.map(\.id) == [pending.id])
-    }
-
-    @Test func initStoresDefeatPrimaryAction() throws {
-        let hero = try #require(GameContent.heroes.first)
-        let companion = try #require(GameContent.companions.first)
-
-        let restart = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: hero,
-            companion: companion,
-            defeatPrimaryAction: .restart
-        )
-        #expect(restart.defeatPrimaryAction == .restart)
-
-        let retreat = try ActiveBattleConfigurationTestSupport.make(
-            runKey: BattleRunKey("labyrinth|node-1"),
-            rngSeed: 0,
-            hero: hero,
-            companion: companion,
-            defeatPrimaryAction: .retreat,
-            hasProgressionRewards: true
-        )
-        #expect(retreat.defeatPrimaryAction == .retreat)
-    }
-
-    @Test func initPreservesPendingSpireRewardItem() throws {
-        let hero = try #require(GameContent.heroes.first)
-        let companion = try #require(GameContent.companions.first)
-        let enemy = try #require(GameContent.enemies.first?.combatant)
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let pendingItem = try #require(SpireCompletion.resolveLoot(for: floor).item)
-
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
-            runKey: BattleRunKey("spire|ironVein|1"),
             rngSeed: 42,
             hero: hero,
             companion: companion,
             enemy: enemy,
-            pendingRewardItem: pendingItem,
-            hasProgressionRewards: true
+            enemyEncounterLevel: 6,
+            heroProgression: heroProgression,
+            companionProgression: companionProgression,
+            heroEquipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.weapon: "shortsword-basic"]),
+            companionEquipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.armor: "leather_armor-basic"]),
+            heroModifiers: heroModifiers,
+            companionModifiers: companionModifiers,
+            highestHeroLevel: 9,
+            highestCompanionLevel: 7,
+            enemyModifiers: CombatModifierProfile(maximumHealthBonus: 3),
+            inventoryItems: [rewardItem],
+            stageReward: stageReward,
+            rewardItems: [rewardItem],
+            pendingRewardItem: rewardItem,
+            experienceBonusPercent: 20,
+            goldFindPercent: 15,
+            stageRewardsAlreadyClaimed: true,
+            universalModifiers: [.strength(1)],
+            defeatPrimaryAction: .retreat,
+            hasProgressionRewards: true,
+            musicStageID: "audit-stage",
+            heroExperienceAward: 31,
+            companionExperienceAward: 17,
+            materialRewards: [ResourceAmount(.stone, 2)]
         )
 
-        #expect(configuration.pendingRewardItem == pendingItem)
-        #expect(configuration.rewardItems == [pendingItem])
+        #expect(configuration.runKey == runKey)
+        #expect(configuration.rngSeed == 42)
+        #expect(configuration.hero.combatant == hero)
+        #expect(configuration.hero.progression == heroProgression)
+        #expect(configuration.hero.equipmentLoadout.itemID(for: .weapon) == "shortsword-basic")
+        #expect(configuration.hero.modifiers == heroModifiers)
+        #expect(configuration.companion.progression == companionProgression)
+        #expect(configuration.companion.modifiers == companionModifiers)
+        #expect(configuration.enemy == enemy)
+        #expect(configuration.enemyEncounterLevel == 6)
+        #expect(configuration.highestHeroLevel == 9)
+        #expect(configuration.highestCompanionLevel == 7)
+        #expect(configuration.enemyModifiers.maximumHealthBonus == 3)
+        expectBakedOutcomeFields(configuration, rewardItem: rewardItem, stageReward: stageReward)
+    }
+
+    private func expectBakedOutcomeFields(
+        _ configuration: ActiveBattleConfiguration,
+        rewardItem: InventoryItem,
+        stageReward: StageReward
+    ) {
+        #expect(configuration.inventoryItems == [rewardItem])
+        #expect(configuration.stageReward == stageReward)
+        #expect(configuration.rewardItems == [rewardItem])
+        #expect(configuration.pendingRewardItem == rewardItem)
+        #expect(configuration.experienceBonusPercent == 20)
+        #expect(configuration.goldFindPercent == 15)
+        #expect(configuration.stageRewardsAlreadyClaimed)
+        #expect(configuration.universalModifiers == [.strength(1)])
+        #expect(configuration.defeatPrimaryAction == .retreat)
+        #expect(configuration.hasProgressionRewards)
+        #expect(configuration.musicStageID == "audit-stage")
+        #expect(configuration.heroExperienceAward == 31)
+        #expect(configuration.companionExperienceAward == 17)
+        #expect(configuration.materialRewards == [ResourceAmount(.stone, 2)])
+    }
+
+    @Test func partyMemberLookupUsesBakedCombatantIDs() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let configuration = ActiveBattleConfigurationTestSupport.make(
+            hero: hero,
+            companion: companion
+        )
+
+        #expect(configuration.partyMember(for: hero.id)?.combatant == hero)
+        #expect(configuration.partyMember(for: companion.id)?.combatant == companion)
+        #expect(configuration.partyMember(for: "unknown") == nil)
     }
 }

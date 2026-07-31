@@ -3,11 +3,12 @@ import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryUnlockContent: View {
-    @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(PlaySession.self) private var play
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
@@ -88,7 +89,7 @@ struct MysteryUnlockContent: View {
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
             onPrimaryAction: {
-                _ = encounters.finishActiveMysteryEncounter()
+                _ = play.finishActiveMysteryEncounter()
             },
             pinsPrimaryActionToBottom: false,
             primaryActionWidthFraction: 0.5

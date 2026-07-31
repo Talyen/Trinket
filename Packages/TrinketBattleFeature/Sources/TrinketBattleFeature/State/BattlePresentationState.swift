@@ -22,7 +22,7 @@ struct BattlePresentationSnapshot: Equatable {
     let enemy: BattleCombatantPresentation
     let hand: [BattleCard]
     /// Card IDs that may be cast with the current mana / phase. Stored on the
-    /// projection so the hand lane does not observe live `BattleSession.state`.
+    /// projection so the hand lane does not observe the live simulation store.
     let playableCardIDs: Set<Int>
     let isBattleOver: Bool
 
@@ -55,7 +55,7 @@ struct BattlePresentationSnapshot: Equatable {
 
 /// UI-facing projections are deliberately separate from the authoritative battle
 /// value. SwiftUI observes only these small lanes instead of every simulation/log
-/// mutation invalidating readers of the complete `BattleState`.
+/// mutation invalidating readers of the complete engine value.
 @MainActor
 @Observable
 final class BattlePresentationState {

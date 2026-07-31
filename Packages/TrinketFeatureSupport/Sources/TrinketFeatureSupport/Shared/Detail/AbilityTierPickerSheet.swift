@@ -3,13 +3,25 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-struct AbilityTierPickerSheet: View {
+public struct AbilityTierPickerSheet: View {
     let combatant: Combatant
     let tier: AbilityTier
     let selectedAbilityID: String?
     let onSelectAbility: (Ability) -> Void
 
     @State private var selectedAbility: Ability?
+
+    public init(
+        combatant: Combatant,
+        tier: AbilityTier,
+        selectedAbilityID: String?,
+        onSelectAbility: @escaping (Ability) -> Void
+    ) {
+        self.combatant = combatant
+        self.tier = tier
+        self.selectedAbilityID = selectedAbilityID
+        self.onSelectAbility = onSelectAbility
+    }
 
     private var abilities: [Ability] {
         let tierAbilities = combatant.abilityChoices.abilities(for: tier)
@@ -23,7 +35,7 @@ struct AbilityTierPickerSheet: View {
         return [selected] + tierAbilities.filter { $0.id != selectedAbilityID }
     }
 
-    var body: some View {
+    public var body: some View {
         OptionPickerGrid(
             items: abilities,
             isSelected: { ability in

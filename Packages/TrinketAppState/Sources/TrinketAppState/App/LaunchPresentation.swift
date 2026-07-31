@@ -1,4 +1,5 @@
 import TrinketContent
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 

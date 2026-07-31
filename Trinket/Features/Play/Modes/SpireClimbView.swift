@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -156,7 +157,7 @@ struct SpireClimbView: View {
         battle.presentCombatantDetail(
             CombatantCardDetail(
                 combatant: encounter.combatant,
-                inventoryState: playerSave.inventory
+                inventoryItems: playerSave.inventory.items
             )
         )
     }

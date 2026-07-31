@@ -33,11 +33,16 @@ struct EmptyAbilitySlotCard: View {
     }
 }
 
-struct EmptyItemSlotCard: View {
+public struct EmptyItemSlotCard: View {
     let slot: ItemSlot
     var reservesLabelSpace: Bool = true
 
-    var body: some View {
+    public init(slot: ItemSlot, reservesLabelSpace: Bool = true) {
+        self.slot = slot
+        self.reservesLabelSpace = reservesLabelSpace
+    }
+
+    public var body: some View {
         ProductCardShell(
             showsLabel: true,
             reservesLabelSpace: reservesLabelSpace,

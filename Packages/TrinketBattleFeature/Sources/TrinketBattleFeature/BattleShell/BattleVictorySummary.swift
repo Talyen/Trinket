@@ -1,9 +1,7 @@
-import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketPersistence
 
 public struct BattleVictorySummary: Equatable {
     public let stageGold: Int
@@ -36,14 +34,16 @@ public struct BattleVictorySummary: Equatable {
     /// Does not re-derive XP / material Persistence policy.
     public static func make(
         configuration: ActiveBattleConfiguration,
-        state: BattleState
+        earnedGold: Int,
+        heroName: String,
+        companionName: String
     ) -> Self {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let heroXP = configuration.heroExperienceAward
         let companionXP = configuration.companionExperienceAward
         let heroAfter = configuration.hero.progression.addingExperience(heroXP)
         let companionAfter = configuration.companion.progression.addingExperience(companionXP)
-        let rawBattleEarnedGold = state.earnedGold
+        let rawBattleEarnedGold = earnedGold
         let totalGold = HomesteadEffects(
             heroModifiers: [],
             companionModifiers: [],
@@ -59,8 +59,8 @@ public struct BattleVictorySummary: Equatable {
             rawBattleEarnedGold: rawBattleEarnedGold,
             experience: heroXP,
             companionExperience: companionXP,
-            heroName: state.hero.name,
-            companionName: state.companion.name,
+            heroName: heroName,
+            companionName: companionName,
             heroArtworkName: configuration.hero.combatant.artReference?.thumbnailImageName,
             companionArtworkName: configuration.companion.combatant.artReference?.thumbnailImageName,
             rewardItems: configuration.rewardItems,

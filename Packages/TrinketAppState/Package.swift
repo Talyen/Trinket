@@ -34,6 +34,7 @@ let package = Package(
                 "TrinketPersistence",
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureAdapters", package: "TrinketFeatureSupport"),
                 "TrinketBattleFeature",
             ]
         ),
@@ -46,6 +47,7 @@ let package = Package(
                 "BattleEngine",
                 "TrinketPersistence",
                 "TrinketFeatureSupport",
+                .product(name: "TrinketFeatureAdapters", package: "TrinketFeatureSupport"),
                 "TrinketBattleFeature",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
             ]

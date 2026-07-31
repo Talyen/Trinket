@@ -2,14 +2,13 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
-import TrinketPersistence
 import TrinketTestSupport
 @testable import BattleEngine
 @testable import TrinketBattleFeature
 
 @MainActor
 struct BattleVictorySummaryTests {
-    @Test func makeVictorySummaryIncludesStageBattleRewardsAndLevelScaledXP() throws {
+    @Test func makeVictorySummaryUsesBakedAwardsAndStageBattleRewards() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
@@ -18,58 +17,56 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        var rosterState = PlayerRosterState.freshStart
-        rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
-        rosterState.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        let heroProgression = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
+        let companionProgression = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
             .rewardInstance(for: "chapter-1-stage-1")
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            roster: rosterState,
+            heroProgression: heroProgression,
+            companionProgression: companionProgression,
             stageReward: StageReward(gold: 12, itemTemplateIDs: [], materialRewards: [
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
             ]),
-            pendingRewardItem: lootItem,
+            rewardItems: [lootItem],
             hasProgressionRewards: true,
-            musicStageID: "chapter-1-stage-1"
+            musicStageID: "chapter-1-stage-1",
+            heroExperienceAward: 17,
+            companionExperienceAward: 9,
+            materialRewards: [
+                ResourceAmount(.wood, 8),
+                ResourceAmount(.stone, 3),
+            ]
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let state = try #require(session.state)
-        let summary = try BattleVictorySummary.make(
-            configuration: configuration,
-            state: state
-        )
-        let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
-        let expectedCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
-
+        let summary = try #require(session.makeVictorySummary(for: configuration))
         #expect(summary.stageGold == 12)
         #expect(summary.battleGold >= 0)
         #expect(summary.totalGold == summary.stageGold + summary.battleGold)
-        #expect(summary.experience == expectedHeroXP)
+        #expect(summary.experience == 17)
+        #expect(summary.companionExperience == 9)
         #expect(summary.heroName == hero.name)
         #expect(summary.companionName == companion.name)
         #expect(summary.heroArtworkName == hero.artReference?.thumbnailImageName)
         #expect(summary.companionArtworkName == companion.artReference?.thumbnailImageName)
-        #expect(summary.rewardItems.map(\.displayName) == ["Shortsword"])
-        #expect(summary.rewardItems.first?.id == "chapter-1-stage-1-shortsword-basic")
-        #expect(summary.rewardItems.first?.affixes.isEmpty == false)
+        #expect(summary.rewardItems == [lootItem])
         #expect(summary.materialRewards.count == 2)
         #expect(summary.heroProgressionBefore.level == 2)
-        #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
-        #expect(summary.companionProgressionAfter.currentXP == expectedCompanionXP)
+        #expect(summary.heroProgressionAfter.currentXP == 27)
+        #expect(summary.companionProgressionAfter.currentXP == 9)
     }
 
-    @Test func makeVictorySummaryScalesExperienceByCombatantLevel() throws {
+    @Test func makeVictorySummaryUsesEachBakedPartyAward() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
@@ -79,35 +76,30 @@ struct BattleVictorySummaryTests {
             abilities: []
         )
 
-        var scaledRoster = PlayerRosterState.freshStart
-        scaledRoster.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
-        scaledRoster.progressions[companion.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
-        let scaledConfiguration = try ActiveBattleConfigurationTestSupport.make(
+        let scaledConfiguration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 1,
-            roster: scaledRoster,
-            stageReward: StageReward(gold: 0, itemTemplateIDs: [])
+            heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: 100),
+            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            stageReward: StageReward(gold: 0, itemTemplateIDs: []),
+            heroExperienceAward: 0,
+            companionExperienceAward: 13
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
         scaledSession.activeBattle = scaledConfiguration
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
-        let scaledState = try #require(scaledSession.state)
-        let scaledSummary = try BattleVictorySummary.make(
-            configuration: scaledConfiguration,
-            state: scaledState
-        )
-        let expectedScaledCompanionXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
+        let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration))
         #expect(scaledSummary.experience == 0)
-        #expect(scaledSummary.companionExperience == expectedScaledCompanionXP)
+        #expect(scaledSummary.companionExperience == 13)
         #expect(scaledSummary.hasExperienceAwards == true)
         #expect(scaledSummary.rewardItems.isEmpty)
-        #expect(scaledSummary.companionProgressionAfter.currentXP == expectedScaledCompanionXP)
+        #expect(scaledSummary.companionProgressionAfter.currentXP == 13)
     }
 
-    @Test func makeVictorySummaryAppliesLabyrinthExperienceBonusPercent() throws {
+    @Test func makeVictorySummaryDoesNotRecomputeExperienceBonus() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
@@ -116,9 +108,8 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        var rosterState = PlayerRosterState.freshStart
-        rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
-        rosterState.progressions[companion.id] = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
+        let heroProgression = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
+        let companionProgression = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let pendingItem = InventoryItem(
             id: "labyrinth-audit-node",
@@ -128,36 +119,32 @@ struct BattleVictorySummaryTests {
             displayName: "Audit Find",
             affixes: []
         )
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             runKey: BattleRunKey("labyrinth|audit-node"),
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            roster: rosterState,
+            heroProgression: heroProgression,
+            companionProgression: companionProgression,
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
+            rewardItems: [pendingItem],
             experienceBonusPercent: 20,
-            pendingRewardItem: pendingItem,
             defeatPrimaryAction: .retreat,
-            hasProgressionRewards: true
+            hasProgressionRewards: true,
+            heroExperienceAward: 42,
+            companionExperienceAward: 42
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let state = try #require(session.state)
-        let summary = BattleVictorySummary.make(
-            configuration: configuration,
-            state: state
-        )
-        let baseXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
-        let expectedXP = StageCompletion.adjustedExperienceAward(baseXP, xpPercent: 20)
-
-        #expect(summary.experience == expectedXP)
-        #expect(summary.companionExperience == expectedXP)
+        let summary = try #require(session.makeVictorySummary(for: configuration))
+        #expect(summary.experience == 42)
+        #expect(summary.companionExperience == 42)
         #expect(summary.rewardItems == [pendingItem])
-        #expect(expectedXP > baseXP)
+        #expect(configuration.experienceBonusPercent == 20)
     }
 
     @Test func makeVictorySummaryKeepsRawBattleGoldSeparateFromHomesteadDisplaySplit() throws {
@@ -173,42 +160,40 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
-        let configuration = try ActiveBattleConfigurationTestSupport.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
             enemy: enemy,
-            homestead: homestead,
-            stageReward: StageReward(gold: 100, itemTemplateIDs: [])
+            stageReward: StageReward(gold: 100, itemTemplateIDs: []),
+            goldFindPercent: 10
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         session.activeBattle = configuration
         BattleSessionTestSupport.driveUntilOutcome(session)
 
-        let state = try #require(session.state)
-        let summary = BattleVictorySummary.make(
-            configuration: configuration,
-            state: state
-        )
+        let summary = try #require(session.makeVictorySummary(for: configuration))
+        let earnedGold = try #require(session.simulation.readModel?.earnedGold)
 
-        let expectedTotal = StageCompletion.resolvedGoldReward(
-            stageGold: 100,
-            battleEarnedGold: state.earnedGold,
+        let expectedTotal = HomesteadEffects(
+            heroModifiers: [],
+            companionModifiers: [],
+            astralChanceBonusPercent: 0,
             goldFindPercent: configuration.goldFindPercent
-        )
+        ).adjustedGold(100 + earnedGold)
         #expect(configuration.goldFindPercent > 0)
-        #expect(summary.rawBattleEarnedGold == state.earnedGold)
+        #expect(summary.rawBattleEarnedGold == earnedGold)
         #expect(summary.totalGold == expectedTotal)
         // Display `battleGold` absorbs the homestead remainder; re-feeding it into
         // grant APIs would apply gold-find twice.
         #expect(summary.battleGold >= summary.rawBattleEarnedGold)
         #expect(
-            StageCompletion.resolvedGoldReward(
-                stageGold: 100,
-                battleEarnedGold: summary.battleGold,
+            HomesteadEffects(
+                heroModifiers: [],
+                companionModifiers: [],
+                astralChanceBonusPercent: 0,
                 goldFindPercent: configuration.goldFindPercent
-            ) > expectedTotal
+            ).adjustedGold(100 + summary.battleGold) > expectedTotal
         )
     }
 }

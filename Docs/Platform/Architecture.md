@@ -110,15 +110,23 @@ Trinket app
   ├── TrinketAppState
   │     ├── TrinketBattleFeature
   │     │     └── TrinketFeatureSupport
-  │     └──────── TrinketFeatureSupport
+  │     ├──────── TrinketFeatureSupport
+  │     └──────── TrinketFeatureAdapters
   ├── TrinketBattleFeature
-  └── TrinketFeatureSupport
+  ├── TrinketFeatureSupport
+  └── TrinketFeatureAdapters
 
-TrinketFeatureSupport ──→ BattleEngine
-        │                 TrinketPersistence
-        │                 TrinketContent
-        │                 TrinketDesignSystem
-        └───────────────→ TrinketCore
+TrinketBattleFeature ───→ TrinketFeatureSupport
+
+TrinketFeatureAdapters ──→ TrinketFeatureSupport
+        │                   BattleEngine
+        │                   TrinketPersistence
+        │                   TrinketContent
+        │                   TrinketDesignSystem
+        └─────────────────→ TrinketCore
+
+TrinketFeatureSupport ───→ TrinketContent ──→ TrinketCore
+        └───────────────→ TrinketDesignSystem ──→ TrinketCore
 
 BattleEngine ───────────→ TrinketContent ──→ TrinketCore
 TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
@@ -126,8 +134,10 @@ TrinketDesignSystem ────────────────────
 ```
 
 `BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
-`TrinketFeatureSupport` may use read-only combat build/resolution types for shared detail
-presentation, but it cannot depend on `TrinketBattleFeature` or `TrinketAppState`.
+`TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.
+`TrinketFeatureAdapters` owns save-backed map/detail adapters and combat build resolution;
+it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
+`TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. No package may import the
 `Trinket` app module. `./Scripts/check-module-boundaries.sh` enforces these rules in
 both source imports and package manifests.
@@ -142,10 +152,9 @@ shell concerns (pending destination, map scroll, battle victory routing via
 `PlayBattleCompletion`). Play screens read save slices from `PlayerSaveStore` directly —
 not through `PlaySession` facades. Mode types own map/node/floor selection and
 mode-unique completion writes; they must not re-absorb the shared victory
-persist→dismiss sequence. `PlayBattleOrigin` is AppState-owned; `PlayBattleLaunch`
-bakes party builds, XP/materials, and presentation fields into a pure
-`ActiveBattleConfiguration` DTO. Battle receives only opaque `BattleRunKey` plus those
-baked fields — never live roster/inventory/homestead or Persistence reward math.
+persist→dismiss sequence. The battle launch and DTO contract is defined in the
+Module ownership table above; package-specific routing is in
+`Docs/AgentContext/battle.md`.
 
 ## Persistence overview
 
@@ -184,8 +193,8 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use.
-- Battle simulation lives behind `BattleSimBridge`. `BattleSession` owns lifecycle and
-  commands; `BattlePresentationState`, `BattleFeedbackLane`, and
+- Battle simulation lives behind `BattleSimulationStore` and `BattleSimBridge`.
+  `BattleSession` owns lifecycle and commands; `BattlePresentationState`, `BattleFeedbackLane`, and
   `BattleSpectacleState` are distinct observable read lanes. A committed engine
   transition publishes one combat snapshot before its feedback/outcome work.
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.

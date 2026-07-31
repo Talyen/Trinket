@@ -69,7 +69,7 @@ struct AppStateShopEncounterTests {
         }
         let itemsBefore = state.playerSave.inventory.items.count
 
-        state.encounters.finishActiveShopEncounter()
+        state.journey.finishActiveShopEncounter()
 
         #expect(state.encounters.activeShopEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-2-stage-8"))
@@ -100,7 +100,9 @@ struct AppStateShopEncounterTests {
         #expect(state.journey.handleStagePrimaryAction(for: shopStage) == nil)
         #expect(state.encounters.activeShopEncounter != nil)
 
-        #expect(state.encounters.beginMysteryEncounter(for: mysteryStage) == nil)
+        #expect(
+            state.journey.beginMysteryEncounter(for: mysteryStage) == nil
+        )
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.encounters.activeShopEncounter != nil)
     }
@@ -114,11 +116,11 @@ struct AppStateShopEncounterTests {
         let session = try #require(state.encounters.activeShopEncounter)
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.encounters.finishActiveShopEncounter())
+        #expect(!state.journey.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter != nil)
         #expect(session.leaveFailureMessage != nil)
 
-        #expect(state.encounters.finishActiveShopEncounter())
+        #expect(state.journey.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter == nil)
     }
     #endif

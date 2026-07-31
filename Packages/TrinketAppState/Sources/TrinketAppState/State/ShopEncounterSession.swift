@@ -20,8 +20,12 @@ public final class ShopEncounterSession: Identifiable {
     }
 
     public let stage: Stage
+    public let origin: PlayEncounterOrigin
     /// When set, Leave completes a Labyrinth node instead of a journey stage.
-    public let labyrinthNodeID: String?
+    public var labyrinthNodeID: String? {
+        origin.labyrinthNodeID
+    }
+
     public let greeting: String
     public let offers: [ShopOffer]
     /// Unique per open so inventory instance ids never collide across dismiss/re-open.
@@ -33,35 +37,38 @@ public final class ShopEncounterSession: Identifiable {
     public private(set) var isPurchasing = false
 
     public init(
-        stage: Stage,
+        origin: PlayEncounterOrigin,
         offers: [ShopOffer],
         visitToken: String = UUID().uuidString,
-        greeting: String = "Welcome, traveler. Take a look at what I've got.",
-        labyrinthNodeID: String? = nil
+        greeting: String = "Welcome, traveler. Take a look at what I've got."
     ) {
-        self.stage = stage
+        self.origin = origin
+        switch origin {
+        case let .journey(stage):
+            self.stage = stage
+        case let .labyrinth(nodeID):
+            stage = GameContent.syntheticLabyrinthStage(nodeID: nodeID, encounter: .shop)
+        }
         self.offers = offers
         self.visitToken = visitToken
         self.greeting = greeting
-        self.labyrinthNodeID = labyrinthNodeID
     }
 
     /// Builds a shop session for a journey stage or Labyrinth shop node.
     static func open(
-        stage: Stage? = nil,
-        labyrinthNodeID: String? = nil,
+        origin: PlayEncounterOrigin,
         astralChanceBonusPercent: Int
     ) -> ShopEncounterOpenResult {
         let resolvedStage: Stage
-        if let labyrinthNodeID {
+        switch origin {
+        case let .labyrinth(nodeID):
             resolvedStage = GameContent.syntheticLabyrinthStage(
-                nodeID: labyrinthNodeID,
+                nodeID: nodeID,
                 encounter: .shop
             )
-        } else if let stage, case .shop = stage.encounter {
+        case let .journey(stage):
+            guard case .shop = stage.encounter else { return .unavailable }
             resolvedStage = stage
-        } else {
-            return .unavailable
         }
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
@@ -76,9 +83,8 @@ public final class ShopEncounterSession: Identifiable {
             return .autoCompleted
         }
         return .opened(ShopEncounterSession(
-            stage: resolvedStage,
-            offers: offers,
-            labyrinthNodeID: labyrinthNodeID
+            origin: origin,
+            offers: offers
         ))
     }
 

@@ -10,6 +10,10 @@ let package = Package(
             name: "TrinketFeatureSupport",
             targets: ["TrinketFeatureSupport"]
         ),
+        .library(
+            name: "TrinketFeatureAdapters",
+            targets: ["TrinketFeatureAdapters"]
+        ),
     ],
     dependencies: [
         .package(path: "../TrinketCore"),
@@ -24,15 +28,26 @@ let package = Package(
             dependencies: [
                 "TrinketCore",
                 "TrinketContent",
+                "TrinketDesignSystem",
+            ]
+        ),
+        .target(
+            name: "TrinketFeatureAdapters",
+            dependencies: [
+                "TrinketFeatureSupport",
+                "TrinketCore",
+                "TrinketContent",
                 "BattleEngine",
                 "TrinketPersistence",
                 "TrinketDesignSystem",
-            ]
+            ],
+            path: "Sources/TrinketFeatureAdapters"
         ),
         .testTarget(
             name: "TrinketFeatureSupportTests",
             dependencies: [
                 "TrinketFeatureSupport",
+                "TrinketFeatureAdapters",
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketPersistence",

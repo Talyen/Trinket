@@ -3,7 +3,7 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketPersistence
+import TrinketFeatureSupport
 
 public struct CombatantDetailPane: View {
     @Environment(\.playSFX) private var playSFX
@@ -12,7 +12,7 @@ public struct CombatantDetailPane: View {
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     @Binding var equipmentLoadout: EquipmentLoadout
-    @Binding var inventoryState: PlayerInventoryState
+    @Binding var inventoryItems: [InventoryItem]
     let allowsEditing: Bool
     let hapticsEnabled: Bool
     let effectsVolume: Double
@@ -42,7 +42,7 @@ public struct CombatantDetailPane: View {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState.items
+            inventory: inventoryItems
         )
     }
 
@@ -94,7 +94,7 @@ public struct CombatantDetailPane: View {
             ItemSlotPickerView(
                 slot: slot,
                 equipmentLoadout: equipmentLoadout,
-                inventoryState: inventoryState,
+                inventoryItems: inventoryItems,
                 onEquip: { equip($0, in: slot) }
             )
         }
@@ -159,7 +159,7 @@ public struct CombatantDetailPane: View {
             EquipmentSlotSummaryGrid(
                 role: combatant.role,
                 equipmentLoadout: equipmentLoadout,
-                inventoryState: inventoryState,
+                inventoryItems: inventoryItems,
                 onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
                 onViewItem: allowsEditing ? nil : { viewingItem = $0 }
             )
@@ -288,7 +288,7 @@ public extension CombatantDetailPane {
             progression: snapshot.progression,
             loadout: .constant(snapshot.combatant.abilityLoadout),
             equipmentLoadout: .constant(snapshot.equipmentLoadout),
-            inventoryState: .constant(snapshot.inventoryState),
+            inventoryItems: .constant(snapshot.inventoryItems),
             allowsEditing: false,
             hapticsEnabled: false,
             effectsVolume: 0,

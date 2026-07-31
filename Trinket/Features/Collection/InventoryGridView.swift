@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -143,7 +144,16 @@ extension ItemDetailView {
             salvageYields: yields,
             salvageReceivableYields: saveStore.homestead.receivableAmounts(from: yields),
             equippedByName: saveStore.equippedCombatantName(for: item.id),
-            onSalvage: { saveStore.salvageItem(id: item.id) },
+            onSalvage: {
+                switch saveStore.salvageItem(id: item.id) {
+                case .success:
+                    true
+                case .itemNotFound:
+                    false
+                case nil:
+                    nil
+                }
+            },
             onSalvageFinished: onFinished
         )
     }

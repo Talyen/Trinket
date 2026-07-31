@@ -47,7 +47,7 @@ enum BattleSessionTestSupport {
             presentationEnvironment: presentationEnvironment
         )
         session.partyCelebrateDelayOverride = 0
-        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
             rngSeed: rngSeed,
             hero: resolvedHero,
             companion: resolvedCompanion,

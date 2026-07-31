@@ -1,12 +1,10 @@
-import BattleEngine
 import Foundation
 import TrinketFeatureSupport
 
 public extension BattleSession {
     internal struct PreparedBattleRun {
         let configuration: ActiveBattleConfiguration
-        let state: BattleState
-        let presentation: BattlePresentationSnapshot
+        let simulation: BattleSimulationStore.PreparedRun
     }
 
     func prepareBattleRun(_ configuration: ActiveBattleConfiguration) {
@@ -15,14 +13,9 @@ public extension BattleSession {
         if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
             return
         }
-        let state = Self.makeBattleState(from: configuration)
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
-            state: state,
-            presentation: BattlePresentationSnapshot(
-                configurationID: configuration.id,
-                state: state
-            )
+            simulation: simulation.makePreparedRun(from: configuration)
         )
     }
 
@@ -30,9 +23,7 @@ public extension BattleSession {
     /// Peeks a copy so the prepared run keeps an empty hand for the paced deal.
     func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
         guard let run = preparedBattleRunsByKey[runKey] else { return [] }
-        var preview = run.state
-        preview.drawOpeningHand(rebuildLog: false)
-        return preview.hand.cards.compactMap { $0.ability.artReference?.imageName }
+        return simulation.openingHandArtworkNames(for: run.simulation)
     }
 
     func activatePreparedBattle(
@@ -53,11 +44,8 @@ public extension BattleSession {
         return true
     }
 
-    internal func installBattleState(_ newState: BattleState, configurationID: UUID? = nil) {
-        state = newState
-        guard let configurationID = configurationID ?? activeBattle?.id else { return }
-        presentation.install(
-            BattlePresentationSnapshot(configurationID: configurationID, state: newState)
-        )
+    internal func installSimulationPresentation() {
+        guard let snapshot = simulation.presentationSnapshot() else { return }
+        presentation.install(snapshot)
     }
 }

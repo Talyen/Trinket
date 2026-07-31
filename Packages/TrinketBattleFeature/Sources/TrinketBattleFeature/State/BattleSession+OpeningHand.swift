@@ -1,4 +1,3 @@
-import BattleEngine
 import Foundation
 import SwiftUI
 import TrinketDesignSystem
@@ -17,18 +16,15 @@ extension BattleSession {
     /// the engine so deal-insert transitions can run. Stagger `<= 0` fills the
     /// hand synchronously for unit tests.
     func beginOpeningHandDeal(for configurationID: UUID) {
-        guard var battleState = state,
-              battleState.hand.isEmpty,
+        guard simulation.hasState,
+              simulation.hand.isEmpty,
               let activeID = activeBattle?.id,
               activeID == configurationID
         else { return }
 
         if openingHandDrawStagger <= 0 {
-            battleState.drawOpeningHand(rebuildLog: false)
-            state = battleState
-            presentation.install(
-                BattlePresentationSnapshot(configurationID: configurationID, state: battleState)
-            )
+            _ = simulation.drawOpeningHand()
+            installSimulationPresentation()
             presentationEnvironment.playSFX([SFXID.abilityDraw])
             return
         }
@@ -52,19 +48,13 @@ extension BattleSession {
             while true {
                 guard !Task.isCancelled else { return }
                 guard activeBattle?.id == configurationID,
-                      var battleState = state
+                      simulation.hasState
                 else { return }
 
                 let drew = withAnimation(TrinketMotion.Battle.deal) {
-                    let didDraw = battleState.drawNextOpeningHandCard(rebuildLog: false)
+                    let didDraw = simulation.drawNextOpeningHandCard()
                     if didDraw {
-                        self.state = battleState
-                        self.presentation.install(
-                            BattlePresentationSnapshot(
-                                configurationID: configurationID,
-                                state: battleState
-                            )
-                        )
+                        self.installSimulationPresentation()
                     }
                     return didDraw
                 }
@@ -78,19 +68,12 @@ extension BattleSession {
 
             guard !Task.isCancelled else { return }
             guard activeBattle?.id == configurationID,
-                  var battleState = state
+                  simulation.hasState
             else { return }
 
-            battleState.finalizeOpeningHand()
-            state = battleState
-            presentation.install(
-                BattlePresentationSnapshot(configurationID: configurationID, state: battleState)
-            )
+            simulation.finalizeOpeningHand()
+            installSimulationPresentation()
             scheduleAutoEndIfNeeded()
         }
-    }
-
-    static func makeBattleState(from configuration: ActiveBattleConfiguration) -> BattleState {
-        BattleSimBridge.makeBattleState(from: configuration)
     }
 }

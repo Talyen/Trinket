@@ -2,6 +2,7 @@ import Foundation
 import os
 import TrinketBattleFeature
 import TrinketContent
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -144,24 +145,20 @@ private extension PlaySession {
     func startLaunchBattleVictory() {
         guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
         _ = journey.startBattle(for: stage)
-        guard let configuration = battle.activeBattle,
-              let battleState = battle.state
-        else { return }
-        battle.spectacle.victorySummary = BattleVictorySummary.make(
-            configuration: configuration,
-            state: battleState
-        )
-        battle.spectacle.isShowingVictory = true
+        battle.presentLaunchVictory()
     }
 
     func startLaunchShop() {
         guard let stage = GameContent.stage(id: AppState.launchShopStageID) else { return }
-        _ = encounters.beginShopEncounter(for: stage)
+        _ = encounters.beginShopEncounter(origin: .journey(stage: stage))
     }
 
     func startLaunchMystery(recruitEventID: String?) {
         guard let stage = GameContent.stage(id: AppState.launchMysteryStageID) else { return }
-        _ = encounters.beginMysteryEncounter(for: stage, forcedEventID: recruitEventID)
+        _ = journey.beginMysteryEncounter(
+            for: stage,
+            forcedEventID: recruitEventID
+        )
     }
 }
 

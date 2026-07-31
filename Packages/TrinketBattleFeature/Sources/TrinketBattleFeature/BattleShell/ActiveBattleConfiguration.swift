@@ -2,7 +2,6 @@ import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
-import TrinketPersistence
 
 /// Battle-run DTO of pre-resolved party, enemy, and reward inputs.
 /// Mode owners / `PlayBattleLaunch` bake builds, XP, materials, and presentation
@@ -39,7 +38,8 @@ public struct ActiveBattleConfiguration: Identifiable {
     public let highestHeroLevel: Int
     public let highestCompanionLevel: Int
     public let enemyModifiers: CombatModifierProfile
-    public let inventoryState: PlayerInventoryState
+    /// Value snapshot used by detail presentation; the live inventory remains owned by AppState.
+    public let inventoryItems: [InventoryItem]
     public let stageReward: StageReward?
     public let rewardItems: [InventoryItem]
     public let pendingRewardItem: InventoryItem?
@@ -70,7 +70,7 @@ public struct ActiveBattleConfiguration: Identifiable {
         highestHeroLevel: Int,
         highestCompanionLevel: Int,
         enemyModifiers: CombatModifierProfile,
-        inventoryState: PlayerInventoryState,
+        inventoryItems: [InventoryItem] = [],
         stageReward: StageReward? = nil,
         rewardItems: [InventoryItem] = [],
         pendingRewardItem: InventoryItem? = nil,
@@ -94,7 +94,7 @@ public struct ActiveBattleConfiguration: Identifiable {
         self.highestHeroLevel = highestHeroLevel
         self.highestCompanionLevel = highestCompanionLevel
         self.enemyModifiers = enemyModifiers
-        self.inventoryState = inventoryState
+        self.inventoryItems = inventoryItems
         self.stageReward = stageReward
         self.rewardItems = rewardItems
         self.pendingRewardItem = pendingRewardItem

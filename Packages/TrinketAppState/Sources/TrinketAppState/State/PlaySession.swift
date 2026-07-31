@@ -24,6 +24,7 @@ public final class PlaySession {
     public let spires: SpiresPlayMode
     public let encounters: EncounterPlayMode
 
+    private let mapScrollFocusSink: MapScrollFocusSink
     let battleLaunch: PlayBattleLaunch
     let battleCompletion: PlayBattleCompletion
 
@@ -55,16 +56,14 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        // Bridge focus before `self` is fully formed — modes call through the box.
-        let focusBridge = MapScrollFocusBox()
+        let focusSink = MapScrollFocusSink()
+        mapScrollFocusSink = focusSink
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            noteMapScrollFocus: { targetID in
-                focusBridge.note?(targetID)
-            }
+            noteMapScrollFocus: { targetID in focusSink.note(targetID) }
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -72,9 +71,7 @@ public final class PlaySession {
         spires = graph.spires
         encounters = graph.encounters
         battleCompletion = graph.battleCompletion
-        focusBridge.note = { [weak self] targetID in
-            self?.noteMapScrollFocus(targetID)
-        }
+        focusSink.owner = self
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -114,6 +111,71 @@ public final class PlaySession {
                 self?.queueReturnToBattleOrigin(from: origin)
             }
         )
+    }
+
+    /// Routes transient encounter completion to the mode that owns its progress.
+    @discardableResult
+    public func finishActiveShopEncounter() -> Bool {
+        guard let origin = encounters.activeShopEncounter?.origin else { return false }
+        switch origin {
+        case .journey:
+            return journey.finishActiveShopEncounter()
+        case .labyrinth:
+            return labyrinth.finishActiveShopEncounter()
+        }
+    }
+
+    @discardableResult
+    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
+        switch origin {
+        case .journey:
+            return journey.resolveActiveMysteryChoice(choiceID: choiceID)
+        case .labyrinth:
+            return labyrinth.resolveActiveMysteryChoice(choiceID: choiceID)
+        }
+    }
+
+    @discardableResult
+    public func selectActiveMysteryItem(itemID: String) -> Bool {
+        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
+        switch origin {
+        case .journey:
+            return journey.selectActiveMysteryItem(itemID: itemID)
+        case .labyrinth:
+            return labyrinth.selectActiveMysteryItem(itemID: itemID)
+        }
+    }
+
+    @discardableResult
+    public func corruptActiveMysteryItem(itemID: String) -> Bool {
+        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
+        switch origin {
+        case .journey:
+            return journey.corruptActiveMysteryItem(itemID: itemID)
+        case .labyrinth:
+            return labyrinth.corruptActiveMysteryItem(itemID: itemID)
+        }
+    }
+
+    @discardableResult
+    public func finishActiveMysteryEncounter() -> Bool {
+        guard let origin = encounters.activeMysteryEncounter?.origin else { return false }
+        switch origin {
+        case .journey:
+            return journey.finishActiveMysteryEncounter()
+        case .labyrinth:
+            return labyrinth.finishActiveMysteryEncounter()
+        }
+    }
+
+    @discardableResult
+    public func finishActiveMysteryCorruptionReveal() -> Bool {
+        encounters.finishActiveMysteryCorruptionReveal()
+    }
+
+    public func cancelActiveMysteryCorruptSelection() {
+        encounters.cancelActiveMysteryCorruptSelection()
     }
 
     func clearTransientState() {
@@ -159,25 +221,17 @@ enum PlayModeGraph {
         noteMapScrollFocus: @escaping (String) -> Void
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(playerSave: playerSave, battle: battle)
-        let focusBox = MapScrollFocusBox()
-        let deferredFocus: (String) -> Void = { targetID in
-            focusBox.note?(targetID)
-        }
-        let completionPorts = EncounterCompletionPorts()
-
         let encounters = EncounterPlayMode(
             playerSave: playerSave,
             battle: battle,
             options: options,
-            sfxPlayer: sfxPlayer,
-            noteMapScrollFocus: deferredFocus,
-            completionPorts: completionPorts
+            sfxPlayer: sfxPlayer
         )
         let journey = JourneyPlayMode(
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            noteMapScrollFocus: deferredFocus,
+            noteMapScrollFocus: noteMapScrollFocus,
             encounters: encounters
         )
         let labyrinth = LabyrinthPlayMode(
@@ -199,14 +253,6 @@ enum PlayModeGraph {
             spires: spires
         )
 
-        completionPorts.completeJourneyStage = { [weak journey] stage in
-            journey?.completeStageOrPersistFailure(stage)
-        }
-        completionPorts.completeLabyrinthNode = { [weak labyrinth] nodeID in
-            labyrinth?.completeNodeOrPersistFailure(nodeID: nodeID)
-        }
-        focusBox.note = noteMapScrollFocus
-
         return Assembled(
             battleLaunch: battleLaunch,
             journey: journey,
@@ -218,9 +264,11 @@ enum PlayModeGraph {
     }
 }
 
-// Concurrency-Safety: `@unchecked Sendable` — `note` is written once on the
-// MainActor after modes are constructed and invoked only from mode presentation
-// paths on the MainActor; never called from a concurrent executor.
-private final class MapScrollFocusBox: @unchecked Sendable {
-    var note: ((String) -> Void)?
+@MainActor
+private final class MapScrollFocusSink {
+    weak var owner: PlaySession?
+
+    func note(_ targetID: String) {
+        owner?.noteMapScrollFocus(targetID)
+    }
 }

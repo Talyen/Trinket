@@ -2,7 +2,6 @@ import BattleEngine
 import Foundation
 import Observation
 import TrinketFeatureSupport
-import TrinketPersistence
 
 /// Observable cinematic, callout, and outcome lane for the active battle.
 @MainActor

@@ -31,6 +31,7 @@ package_test_scheme() {
   case "$1" in
     BattleEngine) printf '%s\n' 'BattleEngine-Package' ;;
     TrinketContent) printf '%s\n' 'TrinketContent-Package' ;;
+    TrinketFeatureSupport) printf '%s\n' 'TrinketFeatureSupport-Package' ;;
     *) printf '%s\n' "$1" ;;
   esac
 }

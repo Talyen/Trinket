@@ -14,8 +14,6 @@ public final class EncounterPlayMode {
     let battle: BattleSession
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
-    let noteMapScrollFocus: (String) -> Void
-    private let completionPorts: EncounterCompletionPorts
 
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
@@ -24,66 +22,34 @@ public final class EncounterPlayMode {
         playerSave: PlayerSaveStore,
         battle: BattleSession,
         options: OptionsStore,
-        sfxPlayer: SFXPlayer,
-        noteMapScrollFocus: @escaping (String) -> Void,
-        completionPorts: EncounterCompletionPorts
+        sfxPlayer: SFXPlayer
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.options = options
         self.sfxPlayer = sfxPlayer
-        self.noteMapScrollFocus = noteMapScrollFocus
-        self.completionPorts = completionPorts
-    }
-
-    private var boundCompleteJourneyStage: (Stage) -> StageMapMessage? {
-        guard let completeJourneyStage = completionPorts.completeJourneyStage else {
-            preconditionFailure("EncounterPlayMode used before PlayModeGraph wired completion ports")
-        }
-        return completeJourneyStage
-    }
-
-    private var boundCompleteLabyrinthNode: (String) -> StageMapMessage? {
-        guard let completeLabyrinthNode = completionPorts.completeLabyrinthNode else {
-            preconditionFailure("EncounterPlayMode used before PlayModeGraph wired completion ports")
-        }
-        return completeLabyrinthNode
     }
 
     @discardableResult
     func beginShopEncounter(
-        for stage: Stage? = nil,
-        labyrinthNodeID: String? = nil
-    ) -> StageMapMessage? {
-        guard activeShopEncounter == nil else { return nil }
-        guard activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
+        origin: PlayEncounterOrigin
+    ) -> ShopEncounterOpenResult {
+        guard activeShopEncounter == nil,
+              activeMysteryEncounter == nil,
+              battle.activeBattle == nil
+        else { return .unavailable }
 
         switch ShopEncounterSession.open(
-            stage: stage,
-            labyrinthNodeID: labyrinthNodeID,
+            origin: origin,
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent
         ) {
         case let .opened(shopSession):
             activeShopEncounter = shopSession
-            return nil
+            return .opened(shopSession)
         case .autoCompleted:
-            if let labyrinthNodeID {
-                return boundCompleteLabyrinthNode(labyrinthNodeID)
-            }
-            guard let stage else { return nil }
-            appStateLogger.error(
-                "Shop stage \(stage.id, privacy: .public) produced no offers; completing stage."
-            )
-            if let failure = boundCompleteJourneyStage(stage) {
-                return failure
-            }
-            return StageMapMessage(
-                title: "Shop Closed",
-                message: "The merchant has nothing left to sell. You continue on."
-            )
+            return .autoCompleted
         case .unavailable:
-            return nil
+            return .unavailable
         }
     }
 
@@ -135,46 +101,11 @@ public final class EncounterPlayMode {
         }
     }
 
-    /// Completes the shop stage/node only after persistence succeeds so a failed leave
-    /// does not drop the session while progress stays uncleared.
-    @discardableResult
-    public func finishActiveShopEncounter() -> Bool {
-        guard let shopSession = activeShopEncounter else { return false }
-        shopSession.clearLeaveFailure()
-        var resultingJourney: JourneyProgressState?
-        do {
-            try playerSave.performBatchMutation { save in
-                resultingJourney = StageCompletion.completeEncounter(
-                    stage: shopSession.stage,
-                    labyrinthNodeID: shopSession.labyrinthNodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    in: GameContent.chapters,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to leave shop encounter: \(error.localizedDescription, privacy: .public)"
-            )
-            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
-            return false
-        }
-        if let resultingJourney {
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
-        }
+    func clearActiveShopEncounter() {
         activeShopEncounter = nil
-        return true
     }
 
     public func dismissActiveShopEncounterWithoutCompleting() {
         activeShopEncounter = nil
     }
-}
-
-/// MainActor box filled by `PlayModeGraph` before any encounter completion call.
-@MainActor
-final class EncounterCompletionPorts {
-    var completeJourneyStage: ((Stage) -> StageMapMessage?)?
-    var completeLabyrinthNode: ((String) -> StageMapMessage?)?
 }

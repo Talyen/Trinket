@@ -85,7 +85,9 @@ struct BattleScreen {
             }
             if ultimateCinematic.exists {
                 // Seeded launches auto-skip; if a cinematic still appears, wait for natural end.
-                _ = ultimateCinematic.waitForNonExistence(timeout: 14)
+                let remaining = deadline.timeIntervalSinceNow
+                guard remaining > 0 else { break }
+                _ = ultimateCinematic.waitForNonExistence(timeout: remaining)
                 continue
             }
             if card.exists {

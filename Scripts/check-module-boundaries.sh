@@ -68,10 +68,21 @@ for forbidden in TrinketBattleFeature TrinketAppState; do
     "TrinketFeatureSupport must not depend on $forbidden"
 done
 
+# Shared support is presentation-only. Persistence and battle resolution belong
+# in the feature adapter target so reusable UI cannot reach stores or rules.
+for forbidden in BattleEngine TrinketPersistence; do
+  check_no_import "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport" "^import $forbidden$" \
+    "TrinketFeatureSupport must not import $forbidden"
+done
+
 check_no_import "Packages/TrinketBattleFeature/Sources" '^import TrinketAppState$' \
   'TrinketBattleFeature must not import TrinketAppState'
 check_no_package_dependency TrinketBattleFeature TrinketAppState \
   'TrinketBattleFeature must not depend on TrinketAppState'
+check_no_import "Packages/TrinketBattleFeature/Sources" '^import TrinketFeatureAdapters$' \
+  'TrinketBattleFeature must depend on pure FeatureSupport, not save-backed adapters'
+check_no_package_dependency TrinketBattleFeature TrinketFeatureAdapters \
+  'TrinketBattleFeature must not depend on the save-backed FeatureAdapters target'
 
 if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2
