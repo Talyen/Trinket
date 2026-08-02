@@ -75,6 +75,12 @@ struct BattleHandMotionConfiguration: Equatable {
     var cardLiftDamping: Double = 1.0
     var cardReturnResponse: Double = 0.38
     var cardReturnDamping: Double = 0.82
+    /// How far a tap-play card pops up as a fraction of card height before dissolving.
+    var tapLiftHeight: CGFloat = 0.16
+    var tapLiftResponse: Double = 0.30
+    var tapLiftDamping: Double = 0.68
+    /// Pause after the pop before the tap-play dissolve begins (so the lift reads).
+    var tapLiftPlayDelay: TimeInterval = 0.18
     var handReflowResponse: Double = 0.34
     var handReflowDamping: Double = 0.92
     var dealResponse: Double = 0.3
@@ -104,6 +110,10 @@ struct BattleHandMotionConfiguration: Equatable {
 
     var cardReturn: Animation {
         .spring(response: cardReturnResponse, dampingFraction: cardReturnDamping)
+    }
+
+    var tapLift: Animation {
+        .spring(response: tapLiftResponse, dampingFraction: tapLiftDamping)
     }
 
     var handReflow: Animation {
@@ -170,6 +180,7 @@ struct BattleHandMotionConfiguration: Equatable {
         cardPress: \(fmt(cardPressResponse)) / \(fmt(cardPressDamping))
         cardLift: \(fmt(cardLiftResponse)) / \(fmt(cardLiftDamping))
         cardReturn: \(fmt(cardReturnResponse)) / \(fmt(cardReturnDamping))
+        tapLift: \(fmt(tapLiftResponse)) / \(fmt(tapLiftDamping)) height \(fmt(tapLiftHeight)) delay \(fmt(tapLiftPlayDelay))
         handReflow: \(fmt(handReflowResponse)) / \(fmt(handReflowDamping))
         deal: \(fmt(dealResponse)) / \(fmt(dealDamping))
 

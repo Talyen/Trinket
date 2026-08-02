@@ -15,6 +15,14 @@ Every finding must state:
 
 A candidate signal is not a finding. **Zero findings is a successful audit result.** Never invent a fix or a structural proposal to satisfy a quota.
 
+### Evidence cone and bounded breadth
+
+Start with the selected audit's routine inventory, then follow confirmed evidence far enough to understand and remove the cause. The evidence cone may include callers, implementations, sibling instances, tests, authored configuration, generated-input manifests, and documentation tied to the same behavior or invariant. A selected audit does not become a general repository review merely because its evidence crosses files or packages.
+
+Once one instance is confirmed, inventory materially similar instances in the same semantic owner or under the same invariant. Fix the whole confirmed cluster when consistency is necessary, the change follows existing architecture, and verification remains bounded. Otherwise phase the confirmed remainder or propose the part that crosses the approval boundary below. Do not stop at the first hit when doing so would leave the same defect or obsolete path immediately adjacent.
+
+Cross-audit routing prevents duplicate findings; it does not suppress root-cause work. Do not run an uncited sibling audit's full inventory, but a remedy may include an adjacent concern owned by another audit when it is necessary to complete the same confirmed fix. Attribute that portion to its canonical owner in the plan and handoff.
+
 ### Severity scale
 
 Audits share one scale and map their domain examples onto it:
@@ -34,8 +42,8 @@ Unless the cited audit explicitly owns the behavior, do not change player-facing
 
 Prefer the smallest remedy that removes the confirmed cause. Related hits may justify one cohesive change, but shared ownership alone does not justify a new seam or framework.
 
-- **Ship in-pass:** confirmed local fixes that fully address the finding and do not paper over a larger root cause.
-- **Propose and stop:** significant refactors, package moves, new seams, or architecture changes. Do not implement those in the same unsupervised pass; present the proposal, record it in [Proposals.md](Proposals.md), and wait for approval.
+- **Ship in-pass:** confirmed bounded fixes that fully address the finding and do not paper over a larger root cause. They may span files or packages when they restore an owner already prescribed by Architecture, remove one cohesive cluster, migrate every affected caller, and have bounded verification.
+- **Propose and stop:** a new architectural boundary or package, a player-facing product-policy decision, a live wire-format or compatibility migration, or a high-risk rewrite that is difficult to reverse or verify as one bounded change. Present the proposal, record it in [Proposals.md](Proposals.md), and wait for approval. Size alone does not force a proposal when the remedy follows an existing owner and can be phased safely.
 - **Proposal bar** (all must hold, else do not propose):
   1. Confirmed evidence (a signal alone is not enough)
   2. Clear maintenance or correctness win (not taste)
@@ -45,7 +53,7 @@ Prefer the smallest remedy that removes the confirmed cause. Related hits may ju
 
 ### Pass shape
 
-Inventory confirmed findings and, before unsupervised multi-finding fixes, write an implementation plan covering them. If overall scope is large, break the plan into distinct phases. Do not dump or read a directory wholesale or run unrelated full-repo sweeps.
+Inventory confirmed findings and, before unsupervised multi-finding fixes, write an implementation plan covering them. Include the evidence cone, confirmed cluster, canonical owner, migration/removal boundary, and matching verification. If overall scope is large, break the plan into distinct phases. Do not dump or read a directory wholesale or run unrelated full-repo sweeps.
 
 Record outcomes in the handoff/commit/PR, never in an audit guide. Do not append run logs, Done tables, or dated status to these guides.
 
@@ -57,7 +65,7 @@ Agents choose their own probes and process. Audits state invariants, evidence ba
 
 ### Run scope and cadence
 
-Routine passes (every few days) default their candidate inventory to code changed since the baseline commit in [Proposals.md](Proposals.md); run whole-codebase passes on request or at a longer interval, then advance the baseline. Recent-change scope fits the defect classes agent sessions re-seed fastest: slop ceremony, dead code, dual paths, duplicate surfaces, ownership drift, typing escapes, effect-seam leaks, concurrency escapes, persistence regressions, test-portfolio growth, and opportunistic bugs.
+Routine passes (every few days) use a two-ring inventory. Ring 1 is code changed since the baseline commit in [Proposals.md](Proposals.md) plus its directly affected semantic owners. Ring 2 is the evidence cone of any confirmed Ring 1 candidate: relevant callers, implementations, sibling instances, tests, authored configuration, manifests, and documentation. Ring 2 is triggered by evidence, not scanned speculatively. Run whole-codebase passes on request or at a longer interval, then advance the baseline. This scope fits the defect classes agent sessions re-seed fastest while allowing a pass to remove a confirmed cause completely.
 
 `AuthoredMassGrowthAudit`, `ChangeLocalityContextEfficiencyAudit`, and `DocumentationStalenessAudit` are retrospective inventories — prefer whole-repo passes at a longer cadence (weekly or on request) over including them in every routine rotation.
 
@@ -81,6 +89,7 @@ Each audit should include only:
 - **Hard stops** — scope boundaries and deferrals
 - **Domain rules / allowlists / ownership** — repo invariants
 - **Evidence bar / severity** — what counts as a confirmed finding and how to prioritize it
+- **Discovery expansion / remediation envelope** — only when the domain needs rules beyond the shared evidence-cone and bounded-fix policy
 - **Success / verifiability** — measurable direction when applicable
 
 Optional **Example signals** may list non-exhaustive defect *classes* (not search recipes, named-file checklists, or required tool sequences). Do not require Probe hints, numbered confirm-before-fixing workflows, or “run script X first” as audit steps. Shared planning and remedy-sizing policy lives here; do not restate it in every Intent.
@@ -122,6 +131,8 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 | Misplaced logic in AppState / hubs / mega-views | `StateGravityOwnershipAudit.md` |
 | Change locality / agent context, guidance-surface, and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
+
+Ownership determines where a finding is reported and deduplicated. It does not require leaving necessary callers, tests, configuration, docs, or adjacent symptoms unchanged when they belong to the same root-cause remedy.
 
 ### Confusable pairs
 

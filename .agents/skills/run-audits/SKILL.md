@@ -27,7 +27,7 @@ Keep the root agent responsible for shared prereads, repository orientation, and
 - Avoid whole-repository source dumps, duplicated probes, speculative test runs, and unrelated full suites.
 - Treat signals as candidates until the selected audit’s evidence bar confirms impact and ownership.
 - Deduplicate overlapping candidates under the owner table in `Docs/Audits/README.md`; one problem produces one finding and one remedy.
-- Separate local fixes from proposals using the README right-size policy. Do not implement a significant refactor, package move, new seam, or architecture change without approval.
+- Separate bounded fixes from proposals using the README right-size policy. Follow a confirmed evidence cone across files or packages when required to remove the cause; stop for approval only at the README's architecture, product-policy, live-migration, or high-risk rewrite boundary.
 
 For multiple findings, publish a concise implementation plan before edits. Assign disjoint file or symbol ownership and identify the cheapest matching verification for each slice.
 

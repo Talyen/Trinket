@@ -11,6 +11,7 @@ public final class RewardRevealSequenceState {
     public private(set) var areItemsVisible = false
     public private(set) var visibleChromeStepCount = 0
     public private(set) var isSequenceComplete = false
+    private var completedExperienceBarCount = 0
     private var hasStarted = false
     private var revealTask: Task<Void, Never>?
 
@@ -48,6 +49,16 @@ public final class RewardRevealSequenceState {
             }
             revealTask = nil
         }
+    }
+
+    public func experienceBarCompleted(
+        requiredCount: Int,
+        itemCount: Int,
+        walletCount: Int
+    ) {
+        completedExperienceBarCount += 1
+        guard completedExperienceBarCount >= requiredCount else { return }
+        start(itemCount: itemCount, walletCount: walletCount)
     }
 
     /// Staggered chrome reveal (eyebrow → title → subtitle → art) for unlock shells.

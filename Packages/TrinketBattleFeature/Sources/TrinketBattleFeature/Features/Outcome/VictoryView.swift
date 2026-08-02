@@ -11,7 +11,6 @@ struct VictoryView: View {
     let onPrimaryAction: () -> Bool
 
     @State private var isCompleting = false
-    @State private var completedExperienceBars = 0
     @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
 
@@ -58,7 +57,10 @@ struct VictoryView: View {
         }
         .onAppear {
             if !summary.hasExperienceAwards {
-                startRewardSequence()
+                revealSequence.start(
+                    itemCount: summary.rewardItems.count,
+                    walletCount: walletRewardCount
+                )
             }
         }
         .onDisappear {
@@ -71,6 +73,13 @@ struct VictoryView: View {
     @ViewBuilder
     private var experiencePanel: some View {
         if summary.hasExperienceAwards {
+            let onExperienceBarCompleted = {
+                revealSequence.experienceBarCompleted(
+                    requiredCount: 2,
+                    itemCount: summary.rewardItems.count,
+                    walletCount: walletRewardCount
+                )
+            }
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
                 ExperienceBar(
                     combatantName: summary.heroName,
@@ -80,7 +89,7 @@ struct VictoryView: View {
                     fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.experience,
                     snapToFinal: false,
-                    onAnimationCompleted: experienceBarCompleted
+                    onAnimationCompleted: onExperienceBarCompleted
                 )
                 .accessibilityIdentifier("\(summary.heroName) experience bar")
 
@@ -92,7 +101,7 @@ struct VictoryView: View {
                     fillColor: TrinketDesign.Colors.accentEmphasized,
                     experienceAward: summary.companionExperience,
                     snapToFinal: false,
-                    onAnimationCompleted: experienceBarCompleted
+                    onAnimationCompleted: onExperienceBarCompleted
                 )
                 .accessibilityIdentifier("\(summary.companionName) experience bar")
             }
@@ -113,20 +122,6 @@ struct VictoryView: View {
     private func completeVictory() {
         guard revealSequence.isSequenceComplete, !isCompleting else { return }
         isCompleting = onPrimaryAction()
-    }
-
-    private func experienceBarCompleted() {
-        completedExperienceBars += 1
-        if completedExperienceBars == 2 {
-            startRewardSequence()
-        }
-    }
-
-    private func startRewardSequence() {
-        revealSequence.start(
-            itemCount: summary.rewardItems.count,
-            walletCount: walletRewardCount
-        )
     }
 
     private var walletRewardCount: Int {

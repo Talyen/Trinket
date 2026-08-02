@@ -4,7 +4,7 @@
 
 ## Intent
 
-Fix confirmed concurrency violations. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic or demonstrated lifetime/data-race issue. Significant isolation changes are proposals per [README.md](README.md).
+Fix confirmed concurrency violations and source-proven lifetime/isolation hazards. Do not add actors, async APIs, cancellation machinery, or concurrency tests without a compiler diagnostic, runtime reproduction, or a concrete source proof under the evidence bar below. Bounded isolation/cancellation corrections may follow the affected call chain; public lifetime or ownership changes follow [README.md](README.md).
 
 ## Hard stops
 
@@ -28,8 +28,14 @@ Shared scale: [README.md](README.md). Because `SWIFT_STRICT_CONCURRENCY=complete
 
 **Safe patterns:** `@MainActor` + `@Observable` for UI-facing state; `Mutex` (Synchronization) for shared mutable storage; SwiftUI `.task` cancels when the view goes away. Do **not** reflexively add `[weak self]` on `@MainActor` / `@Observable` types unless a retain cycle is proven — prefer cancellation checks and structured children.
 
-Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Presence of continuations / `AsyncStream` / `TaskGroup` is not itself a defect — confirm lifetime, cancellation, and executor assumptions.
+Expect `SWIFT_STRICT_CONCURRENCY: complete` in `project.yml` / packages. Compiler cleanliness is necessary but not sufficient for lifetime behavior the type system cannot prove. Presence of continuations / `AsyncStream` / `TaskGroup` is not itself a defect — confirm lifetime, cancellation, executor, and termination assumptions.
 
 ## Evidence bar
 
-Compiler diagnostic under strict concurrency, or a demonstrated lifetime/data-race issue. No fix without one of those.
+One of:
+
+- Compiler diagnostic under strict concurrency
+- Runtime reproduction or test showing a race, leak, deadlock, invalid ordering, or cancellation/lifetime failure
+- Concrete source proof: unsynchronized shared mutation; unstructured work escaping its owner without cancellation; blocking work on an actor/main executor; continuation that can resume zero or multiple times; stream without owned termination; isolation-erasing capture; or detached work whose executor/lifetime contradicts the caller contract
+
+Fix the confirmed dependency/cancellation cone, not only the first diagnostic. Do not infer a hazard from syntax alone.

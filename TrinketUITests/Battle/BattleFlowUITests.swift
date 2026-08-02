@@ -2,6 +2,30 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
+    func testSuccessfulCardTapRemovesOneCard() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+
+        if battle.waitForMidBattleOrVictory() {
+            throw XCTSkip("Stage 1-1 already resolved; covered by the victory test")
+        }
+
+        let cards = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+        )
+        let countBefore = cards.count
+        let card = cards.firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
+        card.tap()
+
+        let deadline = Date().addingTimeInterval(3)
+        while cards.count == countBefore, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        XCTAssertEqual(cards.count, countBefore - 1, "A successful tap must remove one card")
+    }
+
     func testSuccessfulCardReleaseRemovesOneCard() throws {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()

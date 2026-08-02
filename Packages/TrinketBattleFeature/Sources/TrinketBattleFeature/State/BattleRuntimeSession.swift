@@ -1,6 +1,8 @@
 import BattleEngine
 import Foundation
 import TrinketBattleRuntime
+import TrinketContent
+import TrinketCore
 
 /// Concrete, presentation-free owner for one battle lifecycle.
 ///
@@ -27,7 +29,7 @@ public final class BattleRuntimeSession: BattleRuntime {
     /// root. It is internal so the lifecycle contract remains closure-free.
     var onChange: (@MainActor (Change) -> Void)?
 
-    let simulation = BattleSimulationStore()
+    private let simulation = BattleSimulationStore()
 
     public private(set) var activeBattle: BattleRunConfiguration?
     public private(set) var lifecyclePhase: BattleLifecyclePhase = .idle
@@ -38,6 +40,114 @@ public final class BattleRuntimeSession: BattleRuntime {
 
     var preparedBattleRuns: [PreparedBattleRun] {
         Array(preparedBattleRunsByKey.values)
+    }
+
+    var outcome: BattleSimulationOutcome? {
+        simulation.outcome
+    }
+
+    var phase: BattlePhase? {
+        simulation.phase
+    }
+
+    var hasActiveSimulation: Bool {
+        simulation.hasState
+    }
+
+    var isBattleOver: Bool {
+        simulation.isBattleOver
+    }
+
+    var earnedGold: Int? {
+        simulation.earnedGold
+    }
+
+    var heroID: String? {
+        simulation.heroID
+    }
+
+    var companionID: String? {
+        simulation.companionID
+    }
+
+    var enemyID: String? {
+        simulation.enemyID
+    }
+
+    var hand: [BattleCard] {
+        simulation.hand
+    }
+
+    var isHeroAlive: Bool {
+        simulation.isHeroAlive
+    }
+
+    var isCompanionAlive: Bool {
+        simulation.isCompanionAlive
+    }
+
+    var logEntries: [LogEntry] {
+        simulation.logEntries
+    }
+
+    var victoryInput: BattleSimulationStore.VictoryInput? {
+        simulation.victoryInput
+    }
+
+    var readModel: BattleSimulationStore.ReadModel? {
+        simulation.readModel
+    }
+
+    func presentationSnapshot() -> BattlePresentationSnapshot? {
+        simulation.presentationSnapshot()
+    }
+
+    func openingHandArtworkNames(for preparedRun: BattleSimulationStore.PreparedRun) -> [String] {
+        simulation.openingHandArtworkNames(for: preparedRun)
+    }
+
+    @discardableResult
+    func drawOpeningHand() -> Bool {
+        simulation.drawOpeningHand()
+    }
+
+    @discardableResult
+    func drawNextOpeningHandCard() -> Bool {
+        simulation.drawNextOpeningHandCard()
+    }
+
+    func finalizeOpeningHand() {
+        simulation.finalizeOpeningHand()
+    }
+
+    func isCardPlayable(_ card: BattleCard) -> Bool {
+        simulation.isCardPlayable(card)
+    }
+
+    @discardableResult
+    func playCard(cardID: Int) throws -> [ActionEvent] {
+        try simulation.playCard(cardID: cardID)
+    }
+
+    @discardableResult
+    func endTurn() -> [ActionEvent] {
+        simulation.endTurn()
+    }
+
+    func syncLog() {
+        simulation.syncLog()
+    }
+
+    func releaseLogProjection() {
+        simulation.releaseLogProjection()
+    }
+
+    func combatantReadModel(for combatant: Combatant) -> BattleSimulationStore.CombatantReadModel? {
+        simulation.combatantReadModel(for: combatant)
+    }
+
+    func shouldTelegraphEnemyAttack() -> Bool {
+        simulation.shouldTelegraphEnemyAttack()
     }
 
     public init() {}

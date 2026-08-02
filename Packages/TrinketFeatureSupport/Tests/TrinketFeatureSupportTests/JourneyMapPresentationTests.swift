@@ -9,7 +9,7 @@ struct JourneyMapPresentationTests {
         GameContent.chapters[0]
     }
 
-    @Test func activeJourneyScrollsToAndIncludesActiveStage() {
+    @Test func activeJourneyRowsIncludeActiveStage() {
         var progress = JourneyProgressState.initial
         let activeStage = chapter.stages[2]
         progress.activeStageID = activeStage.id
@@ -19,13 +19,7 @@ struct JourneyMapPresentationTests {
             chapter: chapter,
             progress: progress
         )
-        let scrollTargetID = JourneyMapPresentation.scrollFocusID(
-            for: progress,
-            chapter: chapter,
-            chapters: GameContent.chapters
-        )
 
-        #expect(scrollTargetID == activeStage.id)
         let stageIDs = rows.compactMap { row -> String? in
             guard case let .stage(stage, _) = row else { return nil }
             return stage.id
@@ -77,19 +71,6 @@ struct JourneyMapPresentationTests {
             return
         }
         #expect(gateChapter.number == 2)
-    }
-
-    @Test func scrollTargetMovesToNextChapterWhenChapterCompletes() {
-        var progress = JourneyProgressState.initial
-        for stage in chapter.stages {
-            progress.complete(stage, in: GameContent.chapters)
-        }
-
-        #expect(progress.activeChapterID == "chapter-2")
-        #expect(progress.activeStageID == "chapter-2-stage-1")
-        #expect(
-            JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-2-stage-1"
-        )
     }
 
     @Test func gateChapterUsesPlaceholderWhenNextChapterMissing() throws {

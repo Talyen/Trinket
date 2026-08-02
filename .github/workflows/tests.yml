@@ -3,13 +3,15 @@ name: Build and test
 # Shared build-once test fan-out used by pr.yml and ci.yml.
 # Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
 # build-<nonsource>- for same toolchain/assets incremental source rebuilds.
-# Within-run fan-out uses a run-scoped artifact of pruned .DerivedData.
+# Within-run fan-out uses a run-scoped artifact of pruned .DerivedData. The
+# exhaustive UI suite is sharded by feature so post-push validation does not
+# serialize every journey on one CI simulator.
 
 on:
   workflow_call:
     inputs:
       include-exhaustive:
-        description: Also run the exhaustive UI suite
+        description: Also run the sharded exhaustive UI suite
         required: false
         type: boolean
         default: false
@@ -133,19 +135,29 @@ jobs:
           command: ./Scripts/test.sh smoke-full --no-build
 
   exhaustive-ui:
-    name: Exhaustive UI tests
+    name: Exhaustive UI (${{ matrix.name }})
     needs: [changes, build]
     if: >-
       inputs.include-exhaustive &&
       (github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Battle
+            target: BattleFlowUITests
+          - name: Collection
+            target: TabNavigationUITests
+          - name: Play
+            target: PlayMapUITests PlayModeNavigationUITests MysteryRecruitUITests ShopFlowUITests
     runs-on: macos-26
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
           build-artifact: ${{ needs.build.outputs.build-artifact }}
-          artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui
+          artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh ui --no-build
+          command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}

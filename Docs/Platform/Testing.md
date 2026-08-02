@@ -82,7 +82,7 @@ Verify with the AGENTS Task→Command Router (toolchain permitting), using
 - **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
 - **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh TrinketAppState`
 - **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
-- **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, bare smoke, `smoke-full`, and exhaustive UI remain pre-push/CI work.
+- **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, full smoke, and exhaustive UI remain CI or explicit full-local confidence work.
 
 Compile-only and other path-scoped tiers: `Docs/AgentContext/ci-and-project-generation.md`.
 
@@ -102,7 +102,13 @@ Smoke = short shell canaries (`smoke-full` ≈ five lean methods). Exhaustive Fu
 
 ## UI tests (summary)
 
-Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`) and is a pre-push gate, not a generic feature check. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>` (or `verify-changed --isolate`) for the affected feature. Full smoke (`smoke-full`) is CI/PR only. Exhaustive journeys → `test.sh ui` / `test-deploy.sh` only.
+Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`)
+as an optional local confidence check, not a generic feature check or required
+pre-push hook. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`
+(or `verify-changed --isolate`) for the affected feature. Full smoke
+(`smoke-full`) and exhaustive journeys are CI-owned; use `test.sh ui <Class>`
+locally only when debugging a specific journey, or `test-deploy.sh` for an
+explicit full local confidence run.
 
 Battle frame pacing is not part of smoke. Run the exclusive single-report matrix with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 

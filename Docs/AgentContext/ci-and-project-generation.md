@@ -83,8 +83,8 @@ This card adds the CI/project-generation exceptions:
   only the path-scoped plan from `verify-changed.sh` (style always when Swift changes;
   package tests when packages are touched; focused smoke when a SmokeClass resolves;
   compile-only `build.sh` when feature/shared/model Swift has no unit or smoke owner).
-  Bare `smoke` is the pre-push Homestead canary; full unit, `smoke-full`, and exhaustive
-  UI suites remain pre-push or CI checks.
+  Bare `smoke` is optional local Homestead confidence. Full unit, `smoke-full`, and
+  exhaustive UI are CI or explicit full-local flows, not pre-push hook requirements.
 - Use `--no-build` only after a matching successful build in the **same** DerivedData
   tenant; the wrappers reject stale inputs. Without Xcode 26/simulator, run the applicable
   generation, generated-output, boundary, style, and CI-gate checks and report skipped

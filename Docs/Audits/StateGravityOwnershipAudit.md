@@ -4,7 +4,7 @@
 
 ## Intent
 
-Restore ownership-drift clusters to existing owners. Move, do not mirror: delete old forwarding APIs, parallel paths, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Significant moves remain proposals per [README.md](README.md).
+Restore ownership-drift clusters to existing owners. Include callers, mirrored/derived state, persistence or presentation adapters, and tests necessary to complete the move. Move, do not mirror: delete old forwarding APIs, parallel paths, duplicate state, and duplicate tests. New sessions/managers must express a real lifetime boundary and replace more surface than they add. Moves into owners already prescribed by Architecture may ship as bounded phases; new ownership boundaries follow [README.md](README.md).
 
 ## What “state gravity” means here
 
@@ -18,6 +18,8 @@ Agentic coding often drops the next method on the nearest large type. Gravity we
 | `BattleState` / `PlayerSaveStore` type bodies growing feature-specific APIs | Violates Architecture hub containment |
 | Mega-view `body` that orchestrates rewards, catalog lookups, and mutations | View owns too many jobs; extract session/store or shared UI |
 | New `*Manager` / parallel hub beside `AppState` for one flow | Invented gravity well instead of an extension on the real owner |
+| Mirrored mutable state or duplicated derived state across view/session/store | Competing owners can diverge and make lifecycle or mutation order ambiguous |
+| Callers validate or sequence an invariant that belongs to an engine/store | Ownership is distributed across entry points instead of enforced once |
 
 **Not this audit:** import-gate failures alone → repair directly through `check-module-boundaries.sh`; correct owner with leftover twin / shim → DualPathRetention; verbose ceremony with correct ownership → InelegantSlop. Full routing: [README.md](README.md) confusable pairs.
 
@@ -35,6 +37,8 @@ All of:
 - **Wrong owner** per [Architecture.md](../Platform/Architecture.md)
 - **Real cost:** review or test cost from mixed jobs sharing one type or lifetime
 - **Existing home:** engine handler, store slice, Battle presentation lane, `TrinketFeatureSupport`, or feature session — not a greenfield layer
+
+When these hold, the remediation envelope includes migrating affected callers and tests, deleting mirrored state/forwarders, and updating configuration or documentation that names the old owner. Do not stop after moving only the core method.
 
 ## Domain rules
 
@@ -61,5 +65,6 @@ module.
 
 Prefer restoring rules to engines/stores, keeping tab/session wiring on thin
 `AppState` / `*Session` types, and extracting reusable presentation into
-`TrinketFeatureSupport`. Propose hub splits when local moves would leave the same
-gravity well intact.
+`TrinketFeatureSupport`. Phase a hub split through existing Architecture owners when
+it is bounded and removes the old path; propose only when the remedy needs a new
+owner, lifetime boundary, package direction, or product decision.

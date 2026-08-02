@@ -1,16 +1,16 @@
 # Documentation Staleness Audit
 
-**Goal:** Fix misleading docs — stale paths, broken links, wrong versions, outdated claims.
+**Goal:** Fix documentation that can mislead execution or maintenance — stale paths, broken links, wrong versions, outdated claims, incomplete required workflows, and drifting duplicated policy.
 
 ## Intent
 
-Find P1/P2 contradictions between docs and their sources of truth. A pass with no contradiction is valid. Planning and phasing: [README.md](README.md).
+Find P1/P2 contradictions, omissions, and drift between docs and their sources of truth. Once one fact or workflow is confirmed stale, inspect and update every material authored reference to that same fact within the evidence cone. A pass with no consequential mismatch is valid. Planning and phasing: [README.md](README.md).
 
 ## Hard stops
 
 - Do not hand-edit `CHANGELOG.md` (owned by `./Scripts/release.sh`).
 - Do not treat dated “Last execution” / Done tables inside audits as source of truth — **delete** those tracker sections when found.
-- Do not rewrite design prose for style-only preferences or turn this into a repo-wide docs rewrite.
+- Do not rewrite design prose for style-only preferences or turn this into an unbounded prose cleanup. Cohesive terminology or workflow corrections may span documents when inconsistency would otherwise remain.
 
 ## Severity
 
@@ -19,12 +19,12 @@ Shared scale: [README.md](README.md).
 | Sev | Criteria |
 |-----|----------|
 | P1 | Wrong API/path, broken link, stale architecture assumption, wrong version constraint |
-| P2 | Wrong count, “in progress” for finished work, inconsistent terminology |
+| P2 | Wrong count, “in progress” for finished work, inconsistent operational terminology, omitted required setup/release/verification step, example that no longer compiles or runs |
 | P3 | Typo, formatting, missing code-fence language |
 
 ## Domain rules
 
-**Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md).
+**Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; checked-in scripts and CI configuration for executable workflows; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md). A missing instruction is a finding only when the executable source of truth proves it is required for the documented workflow.
 
 **Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. Recheck edited links and factual claims against their listed source of truth. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
 
@@ -32,4 +32,4 @@ Shared scale: [README.md](README.md).
 
 ## Evidence bar
 
-A P1/P2 finding is a confirmed mismatch between a doc claim and a named source of truth (path, API, version, architecture assumption, or broken relative link/anchor). P3 issues are optional cleanup only when already touching that file.
+A P1/P2 finding is a confirmed mismatch, consequential omission, non-working example, or duplicated-policy drift between documentation and a named source of truth (path, API, version, architecture assumption, executable workflow, or broken relative link/anchor). P3 issues are optional cleanup only when already touching that file.

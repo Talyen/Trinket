@@ -22,20 +22,32 @@ struct BattleAbilityCardView: View {
 
     @State private var dragTranslation: CGSize = .zero
     @State private var predictedEndTranslation: CGSize = .zero
-    @State private var isDragging = false
     @State private var isPlayArmed = false
     @State private var didExceedTapSlop = false
-    @State private var interactionResolution: InteractionResolution = .undecided
+    @State private var interactionResolution: InteractionResolution = .idle
+    @State private var inspectionTask: Task<Void, Never>?
     @State private var didAnnounceWindUp = false
     @State private var playArmFeedbackToken = 0
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
+    @State private var isTapLifting = false
+    @State private var tapLiftTask: Task<Void, Never>?
 
     private enum InteractionResolution {
-        case undecided
+        case idle
+        case pressing
         case dragging
         case inspecting
+    }
+
+    private var isDragging: Bool {
+        switch interactionResolution {
+        case .pressing, .dragging:
+            true
+        case .idle, .inspecting:
+            false
+        }
     }
 
     private var playDragThreshold: CGFloat {
@@ -67,6 +79,7 @@ struct BattleAbilityCardView: View {
                 perspective: configuration.perspective
             )
             .offset(activeOffset)
+            .offset(tapLiftOffset)
             .shadow(
                 color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
                 radius: configuration.cardHeldShadowRadius,
@@ -77,7 +90,6 @@ struct BattleAbilityCardView: View {
                     .onChanged(updateDrag)
                     .onEnded(endDrag)
             )
-            .simultaneousGesture(inspectGesture)
             .trinketSensoryFeedback(
                 .selection,
                 trigger: playArmFeedbackToken,
@@ -94,28 +106,13 @@ struct BattleAbilityCardView: View {
                 enabled: hapticsEnabled
             )
             .onDisappear {
+                cancelInspection()
+                cancelTapLift()
                 onInteractionChanged(false)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
             .accessibilityLabel(card.ability.name)
-    }
-
-    private var inspectGesture: some Gesture {
-        LongPressGesture(
-            minimumDuration: configuration.detailLongPressDuration,
-            maximumDistance: configuration.dragMinimumDistance
-        )
-        .onChanged { didRecognizeLongPress in
-            if didRecognizeLongPress {
-                beginInspection()
-            }
-        }
-        .onEnded { didRecognizeLongPress in
-            if didRecognizeLongPress {
-                beginInspection()
-            }
-        }
     }
 
     private var activeOffset: CGSize {
@@ -124,6 +121,13 @@ struct BattleAbilityCardView: View {
             width: resting.width + (isDragging ? dragTranslation.width : 0),
             height: resting.height + (isDragging ? dragTranslation.height : 0)
         )
+    }
+
+    /// Pop-up applied briefly when a tap starts a play, before the dissolve
+    /// takes over. Matches the overlay handoff order (applied after rotation/3D).
+    private var tapLiftOffset: CGSize {
+        guard isTapLifting else { return .zero }
+        return CGSize(width: 0, height: -height * configuration.tapLiftHeight)
     }
 
     private var restingTranslation: CGSize {
@@ -164,12 +168,15 @@ struct BattleAbilityCardView: View {
     }
 
     private func updateDrag(_ value: DragGesture.Value) {
-        if !isDragging {
-            interactionResolution = .undecided
+        guard interactionResolution != .inspecting else { return }
+
+        if interactionResolution == .idle {
             withAnimation(configuration.cardPress) {
-                isDragging = true
+                // The state transition drives the held-card scale and shadow.
+                interactionResolution = .pressing
             }
             onInteractionChanged(true)
+            scheduleInspection()
         }
         if !didExceedTapSlop,
            BattleHandLayout.exceedsTapSlop(
@@ -177,6 +184,7 @@ struct BattleAbilityCardView: View {
                minimumDistance: configuration.dragMinimumDistance
            ) {
             didExceedTapSlop = true
+            cancelInspection()
             interactionResolution = .dragging
             if !didAnnounceWindUp {
                 didAnnounceWindUp = true
@@ -225,7 +233,13 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
-        guard interactionResolution != .inspecting else { return }
+        guard interactionResolution != .inspecting else {
+            cancelInspection()
+            interactionResolution = .idle
+            onInteractionChanged(false)
+            return
+        }
+        cancelInspection()
 
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
@@ -233,7 +247,11 @@ struct BattleAbilityCardView: View {
             minimumDistance: configuration.dragMinimumDistance
         )
         if isTap {
-            returnDrag()
+            if isPlayable {
+                beginTapPlay()
+            } else {
+                returnDrag()
+            }
             return
         }
 
@@ -251,7 +269,7 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginInspection() {
-        guard interactionResolution == .undecided,
+        guard interactionResolution == .pressing,
               BattleHandLayout.shouldOpenAbilityDetail(
                   didRecognizeLongPress: true,
                   translation: dragTranslation,
@@ -260,6 +278,7 @@ struct BattleAbilityCardView: View {
               )
         else { return }
 
+        cancelInspection()
         interactionResolution = .inspecting
         inspectFeedbackToken &+= 1
         resetVisualState()
@@ -267,8 +286,25 @@ struct BattleAbilityCardView: View {
         onInspect()
     }
 
+    private func scheduleInspection() {
+        cancelInspection()
+        let duration = configuration.detailLongPressDuration
+        inspectionTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled else { return }
+            beginInspection()
+        }
+    }
+
+    private func cancelInspection() {
+        inspectionTask?.cancel()
+        inspectionTask = nil
+    }
+
     private func returnDrag() {
+        cancelInspection()
         resetVisualState()
+        interactionResolution = .idle
         onInteractionChanged(false)
     }
 
@@ -277,13 +313,16 @@ struct BattleAbilityCardView: View {
             didAnnounceWindUp = false
             onAttackCancel?()
         }
-        withAnimation(configuration.cardReturn) {
-            dragTranslation = .zero
-            predictedEndTranslation = .zero
-            isPlayArmed = false
-            isDragging = false
-            didExceedTapSlop = false
-        }
+withAnimation(configuration.cardReturn) {
+                dragTranslation = .zero
+                predictedEndTranslation = .zero
+                isPlayArmed = false
+                didExceedTapSlop = false
+            }
+            withAnimation(configuration.cardReturn) {
+                isTapLifting = false
+            }
+            cancelTapLift()
     }
 
     private func beginPlay() {
@@ -303,6 +342,46 @@ struct BattleAbilityCardView: View {
             perspective: configuration.perspective,
             keywords: card.ability.keywords
         )
+        publishPlay(request)
+    }
+
+    private func beginTapPlay() {
+        cancelInspection()
+        withAnimation(configuration.tapLift) {
+            isTapLifting = true
+        }
+        cancelTapLift()
+        tapLiftTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(configuration.tapLiftPlayDelay))
+            guard !Task.isCancelled else { return }
+            publishTapPlay()
+        }
+    }
+
+    private func publishTapPlay() {
+        let request = CardActivationRequest(
+            artworkName: card.ability.artReference?.imageName,
+            center: CGPoint(
+                x: restingCenter.x + tapLiftOffset.width,
+                y: restingCenter.y + tapLiftOffset.height
+            ),
+            size: CGSize(width: width, height: height),
+            rotation: restingRotation * .pi / 180,
+            verticalTilt: 0,
+            scale: 1,
+            perspective: configuration.perspective,
+            keywords: card.ability.keywords
+        )
+        publishPlay(request)
+    }
+
+    private func cancelTapLift() {
+        tapLiftTask?.cancel()
+        tapLiftTask = nil
+    }
+
+    private func publishPlay(_ request: CardActivationRequest) {
+        cancelInspection()
         let hadWindUp = didAnnounceWindUp
         didAnnounceWindUp = false
         // End parent-held state before publishing the hand mutation. Otherwise

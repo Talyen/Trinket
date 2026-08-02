@@ -19,9 +19,11 @@ Packages/
   BattleEngine/             Card combat rules, effect handlers, decks/hand
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
-  TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
-  TrinketBattleContracts/   SwiftUI-free battle presentation/reward DTOs
-  TrinketFeatureContracts/ Pure navigation/deep-link values shared across orchestration and UI
+  TrinketFeatureSupport/    Package hosting shared UI and contract/adapter products
+    Sources/TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
+    Sources/TrinketFeatureContracts/ Pure navigation/deep-link values shared across orchestration and UI
+    Sources/TrinketBattleContracts/  SwiftUI-free battle presentation/reward DTOs
+    Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters and combat build resolution
   TrinketBattleRuntime/     SwiftUI-free battle lifecycle contract and launch DTOs
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
   TrinketAppState/          App/Play orchestration, encounter sessions, options, and audio
@@ -107,9 +109,12 @@ After editing art, music, SFX, or cinematic manifests:
 
 ## Dependency rules
 
-### Package graph
+### Package and target graph
 
 Arrows mean “may depend on.” Every edge points downward; reverse edges are forbidden.
+`TrinketFeatureSupport`, `TrinketFeatureContracts`, `TrinketBattleContracts`, and
+`TrinketFeatureAdapters` below are products/targets hosted by the single
+`Packages/TrinketFeatureSupport` package.
 
 ```text
 Trinket app
@@ -180,8 +185,9 @@ Shell battle activation routes through `PlaySession.battle`; runtime change call
 keep the separately retained `BattleSession` presentation coordinator synchronized.
 `PlaySession` remains in the environment for
 shell concerns (pending destination, map scroll, battle victory routing via
-`PlayBattleCompletion`). Active battle route and presentation metadata share one
-`PlayBattleRunRecord` registry keyed by `BattleRunKey`, so cleanup is atomic. Play
+`PlayBattleCompletion`). Active battle route and presentation metadata are stored
+directly as `PlayBattleRunRegistration` values in `PlaySession`'s `BattleRunKey`
+registry, so cleanup is atomic. Play
 screens read save slices from `PlayerSaveStore` directly —
 not through `PlaySession` facades. Mode types own map/node/floor selection and
 mode-unique completion writes; they must not re-absorb the shared victory
@@ -216,7 +222,7 @@ Keep `AppState` as composition/wiring — new Play feature methods belong on mod
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
-| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/build bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode; atomic `PlayBattleRunRecord` registry | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `BattleRunConfiguration` / Battle UI; a parallel `AppState.battle` handle |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/build bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode; atomic `PlayBattleRunRegistration` values in the `BattleRunKey` registry | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `BattleRunConfiguration` / Battle UI; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.

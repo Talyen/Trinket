@@ -31,7 +31,7 @@ Identify repeated high-friction clusters and simplify them through existing sour
 
 A finding requires all of:
 
-- **Recurrence:** at least three comparable instances, or two with demonstrated drift or an avoidable failure. Acceptable recurrence evidence: version-control co-change history, duplicated policy/command text visible in current sources, or friction recorded in prior run handoffs or `Proposals.md`
+- **Recurrence or magnitude:** at least three comparable instances; two with demonstrated drift or an avoidable failure; or one measured extreme hotspot that repeatedly forces unrelated owners, prereads, verification tiers, or high-volume diagnostics for a narrow change. Acceptable evidence: version-control co-change history, duplicated policy/command text visible in current sources, routed verification/context output, or friction recorded in prior run handoffs or `Proposals.md`
 - **Causality:** co-change and size alone are not evidence — name the shared policy, duplicated command, or missing source of truth that forces the repeated cost
 - **Excess surface:** separate necessary behavior, tests, generated output, and verification from the avoidable portion
 - **Existing home:** an executable source of truth, semantic owner, or current routing mechanism that should absorb the remedy
@@ -39,7 +39,7 @@ A finding requires all of:
 
 ## Domain rules
 
-Executable scripts and checked-in configuration own tool behavior; Platform documents own architecture and testing policy; `AGENTS.md` owns repository-wide guardrails; context cards, nested guides, skills, and audits contain only routed exceptions or distinct scope — not restated root policy. Prefer links over copied policy, but keep the minimum local instruction needed to make a routed card actionable. Guidance-surface findings succeed when duplicated policy collapses to one owner and required preread shrinks.
+Executable scripts and checked-in configuration own tool behavior; Platform documents own architecture and testing policy; `AGENTS.md` owns repository-wide guardrails; context cards, nested guides, skills, and audits contain only routed exceptions or distinct scope — not restated root policy. Prefer links over copied policy, but keep the minimum local instruction needed to make a routed card actionable. Guidance-surface findings succeed when duplicated policy collapses to one owner and required preread shrinks. When one source-of-truth problem is confirmed, update the complete authored cluster—scripts, configuration, routing, docs, and diagnostics contracts—needed to remove the duplication without weakening a gate.
 
 Count authored inputs separately from generated outputs and assets. Verification may narrow only when dependency and behavior evidence proves the removed tier or preread is unrelated. Route the finding to a neighboring audit when locality cost is secondary to that audit's concern.
 

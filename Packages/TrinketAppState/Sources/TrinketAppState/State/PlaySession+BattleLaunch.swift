@@ -139,38 +139,6 @@ struct PlayBattleLaunch {
         return activated
     }
 
-    func makeBattleConfiguration(
-        origin: PlayBattleOrigin?,
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
-        hasProgressionRewards: Bool? = nil,
-        musicStageID: String? = nil,
-        universalModifiers: [AffixModifier] = []
-    ) -> BattleRunConfiguration {
-        makeBattleLaunch(
-            origin: origin,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID,
-            universalModifiers: universalModifiers
-        ).configuration
-    }
-
     func makeBattleLaunch(
         origin: PlayBattleOrigin?,
         hero: Combatant,
@@ -247,32 +215,20 @@ struct PlayBattleLaunch {
             )
         )
     }
-}
 
-public extension PlaySession {
-    func restartActiveBattle() {
-        guard let activeBattle = battle.activeBattle else { return }
-
+    func restartActiveBattle(
+        _ activeBattle: BattleRunConfiguration,
+        route: PlayBattleRoute?,
+        presentation: BattlePresentationContext?,
+        universalModifiers: [AffixModifier]
+    ) {
         let roster = playerSave.roster
         let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
             ?? roster.activeHero
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
-        let route = route(for: activeBattle.runKey)
-        guard activeBattle.runKey == nil || route != nil else {
-            appStateLogger.error("Missing route for active battle restart")
-            return
-        }
-        let origin = route?.origin
-        let presentation = battlePresentation(for: activeBattle.runKey)
-        guard activeBattle.runKey == nil || presentation != nil else {
-            appStateLogger.error("Missing presentation metadata for active battle restart")
-            return
-        }
-        let universalModifiers = battleUniversalModifiers(for: activeBattle.runKey)
-
-        let launch = battleLaunch.makeBattleLaunch(
-            origin: origin,
+        let launch = makeBattleLaunch(
+            origin: route?.origin,
             hero: hero,
             companion: companion,
             enemy: activeBattle.enemy,
@@ -288,7 +244,7 @@ public extension PlaySession {
         )
         guard battle.restart(launch.configuration) else { return }
         if let route {
-            registerBattleRun(
+            registerRun(
                 PlayBattleRunRegistration(
                     route: route,
                     presentation: launch.presentation,
@@ -296,5 +252,29 @@ public extension PlaySession {
                 )
             )
         }
+    }
+}
+
+public extension PlaySession {
+    func restartActiveBattle() {
+        guard let activeBattle = battle.activeBattle else { return }
+
+        let route = route(for: activeBattle.runKey)
+        guard activeBattle.runKey == nil || route != nil else {
+            appStateLogger.error("Missing route for active battle restart")
+            return
+        }
+        let presentation = battlePresentation(for: activeBattle.runKey)
+        guard activeBattle.runKey == nil || presentation != nil else {
+            appStateLogger.error("Missing presentation metadata for active battle restart")
+            return
+        }
+        let universalModifiers = battleUniversalModifiers(for: activeBattle.runKey)
+        battleLaunch.restartActiveBattle(
+            activeBattle,
+            route: route,
+            presentation: presentation,
+            universalModifiers: universalModifiers
+        )
     }
 }

@@ -9,43 +9,6 @@ import TrinketPersistence
 
 @MainActor
 struct PlayBattleLaunchTests {
-    @Test func modeOwnersResolveLootWithPersistenceFormulas() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        let journeyLoot = try #require(JourneyPlayMode.resolveBattleLoot(
-            stage: stage,
-            encounterLevel: 1,
-            enemyIsBoss: false
-        ))
-        #expect(
-            journeyLoot == BattleLoot.resolveJourney(
-                stage: stage,
-                encounterLevel: 1,
-                enemyIsBoss: false
-            )
-        )
-
-        let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let spireLoot = try #require(SpiresPlayMode.resolveBattleLoot(for: floor))
-        #expect(spireLoot == SpireCompletion.resolveLoot(for: floor))
-
-        var labyrinth = PlayerLabyrinthState.freshStart
-        labyrinth.ensureMap()
-        let maybeCombatNode = labyrinth.nodes.values.first(where: \.type.isCombat)
-        let combatNode = try #require(maybeCombatNode)
-        let labyrinthLoot = LabyrinthPlayMode.resolveBattleLoot(
-            for: combatNode,
-            effects: labyrinth.effects(for: combatNode.id),
-            worldSeed: labyrinth.worldSeed
-        )
-        #expect(
-            labyrinthLoot == LabyrinthCompletion.resolveCombatLoot(
-                for: combatNode,
-                effects: labyrinth.effects(for: combatNode.id),
-                worldSeed: labyrinth.worldSeed
-            )
-        )
-    }
-
     @Test func resolvedJourneyEncounterScalesEnemy() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
@@ -82,31 +45,19 @@ struct PlayBattleLaunchTests {
         #expect(again.combatant.id == encounter.combatant.id)
     }
 
-    @Test func stageRewardsAlreadyClaimedResolvesInJourneyOwner() throws {
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        var journey = JourneyProgressState.initial
-        #expect(
-            !(JourneyPlayMode.stageRewardsAlreadyClaimed(for: stage, journey: journey))
-        )
-        journey.markRewardsClaimed(for: stage)
-        #expect(
-            JourneyPlayMode.stageRewardsAlreadyClaimed(for: stage, journey: journey)
-        )
-    }
-
     @Test func assembleResolvesEnemyTraitModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
 
-        let configuration = PlayBattleLaunch.assembleConfiguration(
+        let configuration = PlayBattleLaunch.assembleLaunch(
             rngSeed: 0,
             hero: knight,
             companion: wolf,
             rosterState: .initial,
             inventoryState: .initial,
             enemy: skeleton.combatant
-        )
+        ).configuration
 
         #expect(configuration.enemyModifiers.damageTakenVulnerability(for: .holy) > 0)
         #expect(configuration.enemyModifiers.damageTakenReduction(for: .bleed) > 0)
@@ -176,7 +127,7 @@ struct PlayBattleLaunchTests {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
 
-        let configuration = PlayBattleLaunch.assembleConfiguration(
+        let configuration = PlayBattleLaunch.assembleLaunch(
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             hero: knight,
@@ -187,7 +138,7 @@ struct PlayBattleLaunchTests {
             enemyEncounterLevel: expectedLevel,
             hasProgressionRewards: true,
             musicStageID: stage.id
-        )
+        ).configuration
 
         let enemy = try #require(configuration.enemy)
         #expect(enemy.maxHealth == scaledEnemy.maxHealth)

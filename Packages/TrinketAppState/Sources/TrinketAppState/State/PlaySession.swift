@@ -27,7 +27,7 @@ public final class PlaySession {
 
     private let mapScrollFocusSink: MapScrollFocusSink
     private let battleRouteSink: BattleRouteSink
-    private var battleRuns: [BattleRunKey: PlayBattleRunRecord] = [:]
+    private var battleRuns: [BattleRunKey: PlayBattleRunRegistration] = [:]
     let battleLaunch: PlayBattleLaunch
     let battleCompletion: PlayBattleCompletion
 
@@ -157,11 +157,7 @@ public final class PlaySession {
     }
 
     func registerBattleRun(_ registration: PlayBattleRunRegistration) {
-        battleRuns[registration.route.origin.runKey] = PlayBattleRunRecord(
-            route: registration.route,
-            presentation: registration.presentation,
-            universalModifiers: registration.universalModifiers
-        )
+        battleRuns[registration.route.origin.runKey] = registration
     }
 
     func removeBattleRun(_ runKey: BattleRunKey) {
@@ -285,10 +281,4 @@ final class BattleRouteSink {
     func removePreparedRunsExcept(runKey: BattleRunKey) {
         owner?.removeBattleRuns(except: runKey)
     }
-}
-
-private struct PlayBattleRunRecord {
-    let route: PlayBattleRoute
-    let presentation: BattlePresentationContext
-    let universalModifiers: [AffixModifier]
 }

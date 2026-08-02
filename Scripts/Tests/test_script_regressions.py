@@ -96,6 +96,31 @@ class ScriptRegressionTests(unittest.TestCase):
             self.assertIn(plan, text)
         self.assertNotIn("Package.resolved", text)
 
+    def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+        self.assertEqual(
+            plan,
+            [
+                "./Scripts/generate.sh",
+                "./Scripts/assert-generated-output.sh --idempotent",
+                "./Scripts/test.sh style",
+                "./Scripts/test-package.sh TrinketContent",
+            ],
+        )
+
     def test_prune_gates_bulk_wipe(self) -> None:
         text = (ROOT / "Scripts" / "prune-derived-data-cache.sh").read_text(encoding="utf-8")
         self.assertIn('CI_MODE=true', text)

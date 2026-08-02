@@ -1,12 +1,12 @@
 # Authored Mass & Growth Hotspot Audit
 
-**Goal:** Reduce expensive authored maintenance surface by confirming live mass/growth hotspots — not per-change deltas and not unused symbols alone.
+**Goal:** Reduce expensive authored maintenance surface by confirming live mass/growth hotspots across source, tests, scripts, configuration, and guidance — not per-change deltas and not unused symbols alone.
 
 `./Scripts/change-budget.sh` warns on the current diff. This audit inventories retrospective mass. DeadCode removes unused symbols; InelegantSlop removes ceremony; neither ranks live file or package hotspots.
 
 ## Intent
 
-Confirm authored production or test hotspots whose size or mixed jobs cost more to read, edit, or verify than the behavior warrants, then shrink them through an existing owner. Growth means accumulated live surface relative to peers / shipping behavior — not `git log` LOC rates and not per-diff `change-budget.sh` deltas. Historical churn may be a candidate signal only; it is not required evidence. A successful fix reports a net reduction in authored LOC, declarations, or files. Moving mass without removing the old path is not success. A clean pass is valid. Planning and phasing: [README.md](README.md).
+Confirm authored hotspots whose size or mixed jobs cost more to read, edit, or verify than the behavior warrants, then reduce that cost through an existing owner. Growth means accumulated live surface relative to peers / shipping behavior — not `git log` LOC rates and not per-diff `change-budget.sh` deltas. Historical churn may be a candidate signal only; it is not required evidence. A successful fix reports a net reduction in authored LOC/declarations/files or a measured reduction in mixed-job prereads, change fan-out, or verification cost. A split may be LOC-neutral when it establishes ownership already required by Architecture and materially reduces unrelated context; moving mass without either removal or a measured locality win is not success. A clean pass is valid. Planning and phasing: [README.md](README.md).
 
 ## What counts as a mass or growth hotspot
 
@@ -16,6 +16,7 @@ Confirm authored production or test hotspots whose size or mixed jobs cost more 
 | Folder-level mass dominated by parallel scaffolding or accumulated helpers that do not express distinct shipping behaviors | Surface grew without matching distinct product jobs — still requires the full evidence bar |
 | Fat mapping / sanitizer / session / lab files that force unrelated code prereads because of mixed jobs | One change requires reading load-bearing neighbors it does not own |
 | Over-expanded test matrices or support harnesses dwarfing unique assertions | Maintenance cost sits in harness mass, not semantic coverage — prefer UnitTest when the hit is primarily portfolio ownership |
+| Large scripts, configuration, or guidance surfaces mixing unrelated workflows | Routine changes and verification require reading or editing policy that does not belong to the behavior |
 
 **Not this audit:** single-path ceremony with correct ownership → InelegantSlop; unused symbols → DeadCode; per-change advisory growth → `change-budget.sh` only. Full routing: [README.md](README.md) confusable pairs.
 
@@ -31,13 +32,13 @@ Confirm authored production or test hotspots whose size or mixed jobs cost more 
 
 All of:
 
-- **Hotspot:** an authored production or test surface that is large relative to peers in its owner, or that routinely forces unrelated code prereads because of mixed jobs in one file
+- **Hotspot:** an authored source, test, script, configuration, or guidance surface that is large relative to comparable peers in its owner, or that routinely forces unrelated prereads because of mixed jobs in one file
 - **Avoidable cause:** mixed jobs, parallel scaffolding, over-expanded matrices/fixtures, or accumulated helpers without a second need — not inherent domain density
 - **Existing home:** engine handler, store slice, DesignSystem / FeatureSupport shell, or existing test owner that can absorb the split or collapse
-- **Measurable direction:** net authored LOC, declarations, or files decreases while behavior and required coverage stay intact
+- **Measurable direction:** authored LOC/declarations/files decrease, or a justified owner-preserving split materially reduces unrelated prereads, change fan-out, or verification cost while behavior and required coverage stay intact
 
 ## Domain rules
 
-Inventory authored Swift under app and packages; count production and test separately. Use a reproducible proxy — the largest authored files per package by LOC, production and test ranked separately — so successive runs rank the same hotspots and the handoff can compare against the prior run’s inventory. Skip generated output, build artifacts, and ContentManifest / catalog volume. Allowlist justified density (battle rule pipelines, save graph mapping when co-location is the invariant, intentional spectacle labs). Prefer collapse/delete → move jobs to the existing owner → split a hub only when [Architecture.md](../Platform/Architecture.md) hub containment already expects handlers/engines/`+` files and the local move removes mixed jobs.
+Inventory authored Swift under app and packages, then authored scripts, configuration, documentation tooling, and test support in their own categories; do not compare unlike artifacts by raw LOC. Use reproducible proxies — largest authored files per owner plus repeated preread/change/verification fan-out where available — so successive runs rank the same hotspots and the handoff can compare against the prior run’s inventory. Skip generated output, build artifacts, and ContentManifest / catalog volume. Allowlist justified density (battle rule pipelines, save graph mapping when co-location is the invariant, intentional spectacle labs). Prefer collapse/delete → move jobs to the existing owner → split a hub when [Architecture.md](../Platform/Architecture.md) already expects handlers/engines/`+` files and the move removes mixed jobs or materially narrows required context.
 
-Successful fixes leave a smaller hotspot or delete the avoidable portion; proposals for significant hub splits follow the README right-size policy.
+Successful fixes leave a smaller hotspot, delete the avoidable portion, or produce a measured owner-preserving locality improvement; approval-sensitive hub splits follow the README right-size policy.

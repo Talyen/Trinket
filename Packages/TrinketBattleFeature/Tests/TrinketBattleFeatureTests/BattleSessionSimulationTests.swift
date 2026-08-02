@@ -29,8 +29,8 @@ struct BattleSessionSimulationTests {
         #expect(session.spectacle.victorySummary != nil)
         #expect(!session.spectacle.isShowingVictory)
         #expect(!session.canRetreat)
-        let heroID = try #require(session.runtime.simulation.readModel?.hero.id)
-        let companionID = try #require(session.runtime.simulation.readModel?.companion.id)
+        let heroID = try #require(session.runtime.readModel?.hero.id)
+        let companionID = try #require(session.runtime.readModel?.companion.id)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
         #expect(session.feedback.hitReactionsByTargetID[companionID]?.kind == .celebrate)
         let presentationTask = try #require(session.spectacle.pendingOutcomePresentationTask)
@@ -59,11 +59,11 @@ struct BattleSessionSimulationTests {
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
-        #expect(earnedGold == session.runtime.simulation.readModel?.earnedGold ?? 0)
+        #expect(earnedGold == session.runtime.readModel?.earnedGold ?? 0)
         #expect(!(session.spectacle.isShowingVictory))
         #expect(session.spectacle.victorySummary == nil)
-        let heroID = try #require(session.runtime.simulation.readModel?.hero.id)
-        let companionID = try #require(session.runtime.simulation.readModel?.companion.id)
+        let heroID = try #require(session.runtime.readModel?.hero.id)
+        let companionID = try #require(session.runtime.readModel?.companion.id)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
         #expect(session.feedback.hitReactionsByTargetID[companionID]?.kind == .celebrate)
 
@@ -111,7 +111,7 @@ struct BattleSessionSimulationTests {
 
         #expect(!(session.feedback.activeItems.isEmpty))
         let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
-        let milestoneIDs = Set((session.runtime.simulation.readModel?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        let milestoneIDs = Set((session.runtime.readModel?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
     }
 
@@ -138,7 +138,7 @@ struct BattleSessionSimulationTests {
 
         _ = session.playCard(cardID: card.id)
 
-        let readModel = try #require(session.runtime.simulation.readModel)
+        let readModel = try #require(session.runtime.readModel)
         #expect(session.presentation.configurationID == configurationID)
         #expect(session.presentation.hand == readModel.hand)
         #expect(session.presentation.enemy?.health == readModel.healthByCombatantID[readModel.enemy.id])
@@ -161,13 +161,13 @@ struct BattleSessionSimulationTests {
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
 
-        while !(session.runtime.simulation.readModel?.isBattleOver ?? true) {
+        while !(session.runtime.readModel?.isBattleOver ?? true) {
             _ = session.endTurn()
         }
 
-        #expect(session.runtime.simulation.readModel?.isPartyDefeated == true)
+        #expect(session.runtime.readModel?.isPartyDefeated == true)
         let recordedIDs = Set(session.feedback.eventRecordedAt.keys)
-        let milestoneIDs = Set((session.runtime.simulation.readModel?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
+        let milestoneIDs = Set((session.runtime.readModel?.events ?? []).filter { $0.kind == .milestone }.map(\.id))
         #expect(recordedIDs.isDisjoint(with: milestoneIDs))
         #expect(session.spectacle.deferredFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
@@ -183,8 +183,8 @@ struct BattleSessionSimulationTests {
 
         _ = session.playCard(cardID: card.id)
         #expect(!(session.feedback.activeItems.isEmpty))
-        let enemyID = try #require(session.runtime.simulation.readModel?.enemy.id)
-        #expect(session.runtime.simulation.readModel?.healthByCombatantID[enemyID] ?? 0 < 100)
+        let enemyID = try #require(session.runtime.readModel?.enemy.id)
+        #expect(session.runtime.readModel?.healthByCombatantID[enemyID] ?? 0 < 100)
 
         _ = session.runtime.restart(BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
@@ -194,7 +194,7 @@ struct BattleSessionSimulationTests {
         ))
 
         #expect(session.feedback.activeItems.isEmpty)
-        let resetReadModel = try #require(session.runtime.simulation.readModel)
+        let resetReadModel = try #require(session.runtime.readModel)
         #expect(resetReadModel.healthByCombatantID[resetReadModel.enemy.id] == 100)
         #expect(resetReadModel.healthByCombatantID[resetReadModel.hero.id] == party.hero.maxHealth)
     }
@@ -348,7 +348,7 @@ struct BattleSessionSimulationTests {
         ))
 
         #expect(
-            session.runtime.simulation.readModel?.modifiersByCombatantID[enemy.combatant.id]?
+            session.runtime.readModel?.modifiersByCombatantID[enemy.combatant.id]?
                 .damageTakenVulnerability(for: .holy) ?? 0 > 0
         )
     }
@@ -356,11 +356,11 @@ struct BattleSessionSimulationTests {
     @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
         #expect(session.hasPlayableCard)
-        let tickWhilePlayable = try #require(session.runtime.simulation.readModel?.turnCount)
+        let tickWhilePlayable = try #require(session.runtime.readModel?.turnCount)
 
         session.considerAutoEndTurn()
         try await Task.sleep(for: .milliseconds(30))
-        #expect(session.runtime.simulation.readModel?.turnCount == tickWhilePlayable)
+        #expect(session.runtime.readModel?.turnCount == tickWhilePlayable)
         #expect(session.canEndTurn)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
@@ -374,11 +374,11 @@ struct BattleSessionSimulationTests {
 
         #expect(session.canEndTurn)
         #expect(!session.hasPlayableCard)
-        let tickBefore = try #require(session.runtime.simulation.readModel?.turnCount)
+        let tickBefore = try #require(session.runtime.readModel?.turnCount)
 
         try await waitForAutoEndTurn(session, after: tickBefore)
 
-        #expect(session.runtime.simulation.readModel?.turnCount == tickBefore + 1)
+        #expect(session.runtime.readModel?.turnCount == tickBefore + 1)
     }
 
     @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
@@ -386,12 +386,12 @@ struct BattleSessionSimulationTests {
         let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
         _ = session.playCard(cardID: card.id)
         session.syncLogForDisplay()
-        #expect(!(session.runtime.simulation.readModel?.log.isEmpty ?? true))
+        #expect(!(session.runtime.readModel?.log.isEmpty ?? true))
 
         session.runtime.trimMemoryFootprint(releaseBattleLog: true)
 
-        #expect(session.runtime.simulation.readModel?.log.isEmpty ?? false)
-        #expect(!(session.runtime.simulation.readModel?.events.isEmpty ?? true))
+        #expect(session.runtime.readModel?.log.isEmpty ?? false)
+        #expect(!(session.runtime.readModel?.events.isEmpty ?? true))
     }
 
     private func feedbackEvent(
@@ -418,7 +418,7 @@ struct BattleSessionSimulationTests {
 @MainActor
 private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async throws {
     for _ in 0 ..< 40 {
-        if session.runtime.simulation.readModel?.turnCount == tickBefore + 1 {
+        if session.runtime.readModel?.turnCount == tickBefore + 1 {
             return
         }
         try await Task.sleep(for: .milliseconds(5))

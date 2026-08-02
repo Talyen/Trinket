@@ -192,9 +192,17 @@ trinket_classify_path() {
         trinket_add_generated_warning "Processed app output detected; edit the manifest/raw asset source and run the appropriate generation command."
       fi
       ;;
-    ContentManifest/*|Packages/TrinketContent/Sources/TrinketContent/Content/*)
+    ContentManifest/*)
       TRINKET_HAS_CONTENT=true
       TRINKET_NEEDS_CONTENT_GENERATION=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
+    Packages/TrinketContent/Sources/TrinketContent/Content/*.swift)
+      TRINKET_HAS_CONTENT=true
+      TRINKET_NEEDS_CONTENT_GENERATION=true
+      TRINKET_HAS_SWIFT=true
+      TRINKET_NEEDS_STYLE=true
+      trinket_add_package TrinketContent
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     ArtManifest/*|MusicManifest/*|SoundManifest/*|CinematicManifest/*|Raw\ Assets/*)

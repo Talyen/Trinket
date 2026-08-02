@@ -56,11 +56,11 @@ extension BattleSession {
     func combatantID(for participant: BattleParticipant) -> String? {
         switch participant {
         case .hero:
-            presentation.hero?.combatant.id ?? runtime.simulation.heroID
+            presentation.hero?.combatant.id ?? runtime.heroID
         case .companion:
-            presentation.companion?.combatant.id ?? runtime.simulation.companionID
+            presentation.companion?.combatant.id ?? runtime.companionID
         case .enemy:
-            presentation.enemy?.combatant.id ?? runtime.simulation.enemyID
+            presentation.enemy?.combatant.id ?? runtime.enemyID
         }
     }
 
@@ -94,7 +94,7 @@ extension BattleSession {
         case .victory:
             if presentationContext?.stageRewardsAlreadyClaimed == true {
                 publishPartyCelebrateReactions(at: date)
-                onTurnAutoEnded?(runtime.simulation.earnedGold ?? 0)
+                onTurnAutoEnded?(runtime.earnedGold ?? 0)
                 return
             }
             if spectacle.victorySummary != nil, !spectacle.isShowingVictory {
@@ -109,7 +109,7 @@ extension BattleSession {
         case .none:
             break
         }
-        scheduleAutoEndIfNeeded()
+        commandCoordinator.scheduleAutoEndIfNeeded()
     }
 
     func beginCinematicCollapse(expectedID: Int? = nil) {
@@ -137,7 +137,7 @@ extension BattleSession {
                     return nil
                 }
                 publishPartyCelebrateReactions(at: date)
-                return runtime.simulation.earnedGold ?? 0
+                return runtime.earnedGold ?? 0
             }
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return nil }
             spectacle.victorySummary = summary
@@ -188,20 +188,20 @@ extension BattleSession {
     }
 
     private func publishPartyCelebrateReactionsNow(at date: Date) {
-        guard let heroID = runtime.simulation.heroID,
-              let companionID = runtime.simulation.companionID
+        guard let heroID = runtime.heroID,
+              let companionID = runtime.companionID
         else { return }
         // Negative synthetic IDs stay clear of engine event / feedback item IDs.
         let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
         var didPublish = false
-        if runtime.simulation.isHeroAlive {
+        if runtime.isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
                 id: baseID,
                 kind: .celebrate
             )
             didPublish = true
         }
-        if runtime.simulation.isCompanionAlive {
+        if runtime.isCompanionAlive {
             feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
                 id: baseID &- 1,
                 kind: .celebrate
@@ -219,7 +219,7 @@ extension BattleSession {
         guard outcome == .victory,
               let configuration = activeBattle,
               let context = presentationContext,
-              runtime.simulation.hasState,
+              runtime.hasActiveSimulation,
               !spectacle.isShowingVictory
         else { return }
         if spectacle.victorySummary == nil {
@@ -232,13 +232,13 @@ extension BattleSession {
     func debugSkipCombat() {
         guard let configuration = activeBattle,
               let context = presentationContext,
-              runtime.simulation.hasState,
+              runtime.hasActiveSimulation,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat
         else { return }
 
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
+        commandCoordinator.cancelPendingAutoEnd()
+        commandCoordinator.cancelOpeningHandDeal()
         spectacle.pendingOutcomePresentationTask?.cancel()
         spectacle.pendingOutcomePresentationTask = nil
         clearSpectacle()
@@ -290,8 +290,8 @@ extension BattleSession {
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
-        guard let heroID = runtime.simulation.heroID,
-              let companionID = runtime.simulation.companionID
+        guard let heroID = runtime.heroID,
+              let companionID = runtime.companionID
         else {
             feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
             return
@@ -410,46 +410,9 @@ extension BattleSession {
         spectacle.softHoldUntil = nil
     }
 
-    func scheduleAutoEndIfNeeded() {
-        cancelPendingAutoEnd()
-        guard !isSuspendedForScenePhase,
-              canEndTurn, !hasPlayableCard else { return }
-
-        let settleDelay = autoEndTurnDelay
-        pendingAutoEndTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(settleDelay))
-            guard let self, !Task.isCancelled else { return }
-            guard !isSuspendedForScenePhase, canEndTurn, !hasPlayableCard else { return }
-
-            if shouldTelegraphEnemyAttack(), let enemyID = runtime.simulation.enemyID {
-                publishFullAttack(for: enemyID)
-                let impactDelay = enemyAttackImpactDelayOverride
-                    ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
-                if impactDelay > 0 {
-                    try? await Task.sleep(for: .seconds(impactDelay))
-                    guard !Task.isCancelled else { return }
-                    guard !isSuspendedForScenePhase, canEndTurn, !hasPlayableCard else { return }
-                }
-            }
-
-            let earnedGold = endTurn()
-            onTurnAutoEnded?(earnedGold)
-        }
-    }
-
-    /// True when the upcoming `endTurn` will have the enemy perform an ability.
-    func shouldTelegraphEnemyAttack() -> Bool {
-        runtime.simulation.shouldTelegraphEnemyAttack()
-    }
-
-    func cancelPendingAutoEnd() {
-        pendingAutoEndTask?.cancel()
-        pendingAutoEndTask = nil
-    }
-
     func resetRun(from configuration: BattleRunConfiguration) {
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
+        commandCoordinator.cancelPendingAutoEnd()
+        commandCoordinator.cancelOpeningHandDeal()
         installSimulationPresentation()
         feedback.clear()
         clearSpectacle(releaseCinematicPlayers: false)
@@ -463,13 +426,13 @@ extension BattleSession {
         if isShowingBattleLog {
             isShowingBattleLog = false
         }
-        beginOpeningHandDeal(for: configuration.id)
+        commandCoordinator.beginOpeningHandDeal(for: configuration.id)
     }
 
     func clearRunState() {
-        cancelPendingAutoEnd()
-        cancelOpeningHandDeal()
-        onTurnAutoEnded = nil
+        commandCoordinator.cancelPendingAutoEnd()
+        commandCoordinator.cancelOpeningHandDeal()
+        commandCoordinator.onTurnAutoEnded = nil
         presentation.clear()
         feedback.clear()
         clearSpectacle()

@@ -16,3 +16,4 @@ jobs:
     uses: ./.github/workflows/tests.yml
     with:
       artifact-prefix: pr-
+      include-exhaustive: true

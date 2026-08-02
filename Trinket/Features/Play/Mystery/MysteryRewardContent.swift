@@ -16,7 +16,6 @@ struct MysteryRewardContent: View {
     let onFinish: () -> Bool
 
     @State private var isCompleting = false
-    @State private var completedExperienceBars = 0
     @State private var revealSequence = RewardRevealSequenceState()
     @State private var selectedRewardItem: InventoryItem?
 
@@ -63,7 +62,10 @@ struct MysteryRewardContent: View {
         }
         .onAppear {
             if result.grantedExperience == 0 {
-                startRewardSequence()
+                revealSequence.start(
+                    itemCount: result.grantedItems.count,
+                    walletCount: walletRewardCount
+                )
             }
         }
         .onDisappear {
@@ -80,6 +82,13 @@ struct MysteryRewardContent: View {
                let heroProgressionAfter = result.heroProgressionAfter,
                let companionProgressionBefore = result.companionProgressionBefore,
                let companionProgressionAfter = result.companionProgressionAfter {
+                let onExperienceBarCompleted = {
+                    revealSequence.experienceBarCompleted(
+                        requiredCount: 2,
+                        itemCount: result.grantedItems.count,
+                        walletCount: walletRewardCount
+                    )
+                }
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                     ExperienceBar(
                         combatantName: hero.name,
@@ -89,7 +98,7 @@ struct MysteryRewardContent: View {
                         fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.grantedExperience,
                         snapToFinal: false,
-                        onAnimationCompleted: experienceBarCompleted
+                        onAnimationCompleted: onExperienceBarCompleted
                     )
 
                     ExperienceBar(
@@ -100,7 +109,7 @@ struct MysteryRewardContent: View {
                         fillColor: TrinketDesign.Colors.accentEmphasized,
                         experienceAward: result.grantedExperience,
                         snapToFinal: false,
-                        onAnimationCompleted: experienceBarCompleted
+                        onAnimationCompleted: onExperienceBarCompleted
                     )
                 }
                 .trinketSurface(.secondary)
@@ -111,20 +120,6 @@ struct MysteryRewardContent: View {
     private func completeLootAll() {
         guard revealSequence.isSequenceComplete, !isCompleting else { return }
         isCompleting = onFinish()
-    }
-
-    private func experienceBarCompleted() {
-        completedExperienceBars += 1
-        if completedExperienceBars >= 1 {
-            startRewardSequence()
-        }
-    }
-
-    private func startRewardSequence() {
-        revealSequence.start(
-            itemCount: result.grantedItems.count,
-            walletCount: walletRewardCount
-        )
     }
 
     private var walletRewardCount: Int {

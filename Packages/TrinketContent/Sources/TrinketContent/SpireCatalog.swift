@@ -23,8 +23,8 @@ enum SpireCatalog {
             keyword: .poison
         ),
         SpireDefinition(
-            id: .scarGallery,
-            title: "Scar Gallery",
+            id: .sanguineCourt,
+            title: "Sanguine Court",
             epithet: "Every cut remembers",
             keyword: .bleed
         ),
@@ -41,8 +41,8 @@ enum SpireCatalog {
             keyword: .freeze
         ),
         SpireDefinition(
-            id: .stormAnvil,
-            title: "Storm Anvil",
+            id: .resonanceHall,
+            title: "Resonance Hall",
             epithet: "One blow that stops the world",
             keyword: .stun
         ),

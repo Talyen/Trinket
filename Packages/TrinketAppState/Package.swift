@@ -17,7 +17,6 @@ let package = Package(
         .package(path: "../BattleEngine"),
         .package(path: "../TrinketBattleRuntime"),
         .package(path: "../TrinketPersistence"),
-        .package(path: "../TrinketDesignSystem"),
         .package(path: "../TrinketFeatureSupport"),
         .package(path: "../TrinketBattleFeature"),
         .package(path: "../TrinketTestSupport"),
@@ -31,7 +30,6 @@ let package = Package(
                 "BattleEngine",
                 "TrinketBattleRuntime",
                 "TrinketPersistence",
-                "TrinketDesignSystem",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketBattleContracts", package: "TrinketFeatureSupport"),
             ]

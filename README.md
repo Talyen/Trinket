@@ -56,8 +56,10 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
 ./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
-./Scripts/ci-locally.sh            # pre-push: gate + unit + quick smoke
-./Scripts/test-deploy.sh           # pre-merge: generate, style, unit, full UI
+./Scripts/verify-changed.sh --isolate --paths <changed-files>
+                                   # fast local path-scoped verification
+./Scripts/ci-locally.sh            # optional full local confidence: gate + unit + quick smoke
+./Scripts/test-deploy.sh           # explicit release/pre-merge confidence: unit + full UI
 ./Scripts/run-simulator.sh
 ./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)
 ./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)

@@ -1,10 +1,10 @@
 # Inelegant Slop Audit
 
-**Goal:** Find and simplify hotspots of over-engineered, verbose, or un-pragmatic code — especially agent-produced “slop” — without a whole-repo rewrite.
+**Goal:** Find and simplify confirmed hotspots and repeated module-level patterns of over-engineered, verbose, or un-pragmatic code — especially agent-produced “slop” — without an unbounded rewrite.
 
 ## Intent
 
-Surface confirmed hotspots so authored LOC, declarations, indirection, or nesting decreases. Moving ceremony among files is not success. Prefer deleting/inlining; significant structural work remains a proposal per [README.md](README.md). A clean pass is valid.
+Surface confirmed hotspots so authored LOC, declarations, indirection, or nesting decreases. Once a pattern is confirmed, inventory materially similar instances in the same module or owner and simplify the cohesive cluster when verification remains bounded. Moving ceremony among files is not success. Prefer deleting/inlining; bounded multi-file simplification within the existing owner may ship, while approval-sensitive structural work follows [README.md](README.md). A clean pass is valid.
 
 ## What “slop” means here
 
@@ -34,8 +34,8 @@ Elegant code here is usually: small value types, thin stores, handlers/engines f
 
 ## Evidence bar
 
-Real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs), no second need in use, and a shorter local form that preserves behavior. Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
+Real reading/editing cost (extra types, deep nesting, duplicated logic, or mixed jobs), no second need in use, and a shorter form within the existing owner that preserves behavior. Evidence may confirm one hotspot or a repeated pattern cluster; each included instance must share the same cause. Skip load-bearing complexity (generated catalogs, damage pipeline, save wire format, intentional `@MainActor` lifetime).
 
 ## Domain rules
 
-Prefer delete unused ceremony → inline single-use wrappers → collapse duplicates in the same module → extract only when a name removes nesting and has ≥2 call sites or clear domain meaning. Move shared chrome into `TrinketDesignSystem` / rules into the existing owner — never a new layer for one call site. Platform API bans remain enforced by existing gates (`check-platform-api-bans.sh`).
+Prefer delete unused ceremony → inline single-use wrappers → collapse the confirmed duplicate/configuration/branch cluster in the same owner → extract only when a name removes nesting and has ≥2 call sites or clear domain meaning. Remove obsolete supporting tests and configuration with the replaced ceremony. Move shared chrome into `TrinketDesignSystem` / rules into the existing owner — never a new layer for one call site. Platform API bans remain enforced by existing gates (`check-platform-api-bans.sh`).

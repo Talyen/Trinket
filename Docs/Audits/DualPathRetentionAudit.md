@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm two reachable paths for one behavior (or a reachable shim that only forwards to the surviving owner) and remove one path. A successful fix reports authored LOC, declarations, or exported API removed by deleting the superseded path — not by wrapping it again. A clean pass is valid. Planning and phasing: [README.md](README.md).
+Confirm two reachable paths for one behavior (or a reachable shim that only forwards to the surviving owner) and remove one path plus its retained compatibility envelope. Equivalent behavior may use different API shapes; an obvious forwarding wrapper is not required. A successful fix reports authored LOC, declarations, configuration, tests, documentation, or exported API removed by deleting the superseded path — not by wrapping it again. A clean pass is valid. Planning and phasing: [README.md](README.md).
 
 ## What counts as dual-path retention
 
@@ -16,6 +16,7 @@ Confirm two reachable paths for one behavior (or a reachable shim that only forw
 | Parallel implementations of the same rule or presentation after a refactor | “Keep both for safety” without a remaining distinct consumer |
 | Deprecated entry that only exists to call the new entry | Reachable twin with no unique behavior |
 | Permanent feature-flag or build-time switch that still ships both implementations of one behavior | Loser path has no remaining distinct consumer |
+| Parallel behavior expressed through different APIs, configuration keys, or entry points | Shape differences conceal one duplicated shipping outcome and let callers drift |
 
 **Not this audit:** zero live consumers → DeadCode; single surviving name that is pure ceremony (no second reachable path) → InelegantSlop; wrong owner, with or without a twin → StateGravity (move, then delete the old path); intentional seams (RNG injection, persistence coalescing, Options vs PlayerSave, catalog/codegen). Full routing: [README.md](README.md) confusable pairs.
 
@@ -33,7 +34,7 @@ Either:
 - **Two reachable paths** for one behavior (both compile-time referenced from product or tests), with one path able to absorb callers; or
 - **Reachable no-op shim:** the shim / deprecated entry still has live references (product, tests, or exported API) but adds no unique behavior beyond forwarding to the surviving owner; callers can be retargeted and the shim deleted
 
-Plus a delete-one-path remedy that preserves behavior. Speculative “might need later” is not evidence.
+Plus a delete-one-path remedy that preserves behavior and removes or migrates the associated callers, flags, tests, configuration, and documentation. Speculative “might need later” is not evidence.
 
 For migration / legacy-bridge tells, also confirm the consumer window is closed: inventory shows no remaining save / shell-session / schema consumer of the old shape, or Architecture / persistence docs mark the bridge obsolete. Speculative “enough time has passed” is not evidence.
 
@@ -41,6 +42,6 @@ DeadCode owns symbols with **zero** live consumers. This audit owns reachable tw
 
 ## Domain rules
 
-Prefer delete the superseded path → retarget callers to the surviving owner → remove forwarding wrappers and rename-only typealiases → demote or delete leftover public API. Do not leave a pass-through “for compatibility” after callers move. Correct owner with leftover twin / shim → this audit; wrong owner with leftover twin → StateGravity. Significant package moves or new seams remain proposals per [README.md](README.md).
+Prefer delete the superseded path → retarget callers to the surviving owner → remove flags, configuration, tests, docs, forwarding wrappers, and rename-only typealiases → demote or delete leftover public API. Do not leave a pass-through “for compatibility” after callers move. Correct owner with leftover twin / shim → this audit; wrong owner with leftover twin → StateGravity. Package moves into an owner already required by Architecture may ship as a bounded phase; new boundaries and live compatibility migrations remain proposals per [README.md](README.md).
 
 Successful fixes leave a single owner for the behavior and a net surface reduction.

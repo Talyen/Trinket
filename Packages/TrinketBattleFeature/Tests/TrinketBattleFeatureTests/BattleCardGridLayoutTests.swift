@@ -259,9 +259,9 @@ struct BattleHandLayoutTests {
         #expect(resisted.height > defaultResisted.height)
     }
 
-    @Test func tapGestureReturnsCardWithoutOpeningAbilityDetail() {
-        // A press that never leaves slop is now an inert release; detail is
-        // reserved for the stationary long-press gesture.
+    @Test func tapGestureClassifiesStationaryRelease() {
+        // A release that never leaves slop is a tap; the card view routes that
+        // result to play while reserving detail for a stationary long press.
         #expect(BattleHandLayout.isTapGesture(
             translation: CGSize(width: 4, height: -3),
             didExceedTapSlop: false

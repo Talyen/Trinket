@@ -48,9 +48,6 @@ public final class BattleSession {
     public var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     public var isShowingBattleLog = false
-    /// Fired when a delayed auto-end resolves; carries earned gold for already-claimed stages.
-    @ObservationIgnored
-    var onTurnAutoEnded: ((Int?) -> Void)?
 
     public private(set) var activeBattle: BattleRunConfiguration?
     public internal(set) var presentationContext: BattlePresentationContext?
@@ -59,7 +56,27 @@ public final class BattleSession {
     let presentation = BattlePresentationState()
 
     @ObservationIgnored
-    var pendingAutoEndTask: Task<Void, Never>?
+    private let initialAutoEndTurnDelay: TimeInterval
+    @ObservationIgnored
+    private let initialOpeningHandDrawStagger: TimeInterval
+    @ObservationIgnored
+    private let initialEnemyAttackImpactDelayOverride: TimeInterval?
+
+    @ObservationIgnored
+    lazy var commandCoordinator = BattleCommandCoordinator(
+        session: self,
+        runtime: runtime,
+        autoEndTurnDelay: initialAutoEndTurnDelay,
+        openingHandDrawStagger: initialOpeningHandDrawStagger,
+        enemyAttackImpactDelayOverride: initialEnemyAttackImpactDelayOverride
+    )
+
+    @ObservationIgnored
+    var onTurnAutoEnded: ((Int?) -> Void)? {
+        get { commandCoordinator.onTurnAutoEnded }
+        set { commandCoordinator.onTurnAutoEnded = newValue }
+    }
+
     /// When true, delayed auto-end (and its enemy telegraph) must not advance combat.
     /// Owned by AppState scene-phase reconciliation; independent of battle lifecycle.
     @ObservationIgnored
@@ -79,24 +96,12 @@ public final class BattleSession {
     /// Beat after the last playable card so feedback can show before the turn advances.
     public static let autoEndTurnDelay: TimeInterval = 0.4
 
-    /// Injectable for deterministic tests; production uses the presentation delay above.
-    @ObservationIgnored
-    var autoEndTurnDelay: TimeInterval
-
     /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
     /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
-    @ObservationIgnored
-    public var openingHandDrawStagger: TimeInterval
-
-    /// True while the opening hand is still being drawn into presentation.
-    var isDealingOpeningHand = false
-
-    @ObservationIgnored
-    var pendingOpeningHandDealTask: Task<Void, Never>?
-
-    /// Test seam for attack telegraph impact timing. Production uses the attack recipe.
-    @ObservationIgnored
-    var enemyAttackImpactDelayOverride: TimeInterval?
+    public var openingHandDrawStagger: TimeInterval {
+        get { commandCoordinator.openingHandDrawStagger }
+        set { commandCoordinator.openingHandDrawStagger = newValue }
+    }
 
     public init(
         runtime: BattleRuntimeSession = BattleRuntimeSession(),
@@ -107,9 +112,9 @@ public final class BattleSession {
         presentationEnvironment: BattlePresentationEnvironment = .silent
     ) {
         self.runtime = runtime
-        self.autoEndTurnDelay = autoEndTurnDelay
-        self.openingHandDrawStagger = openingHandDrawStagger
-        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
+        initialAutoEndTurnDelay = autoEndTurnDelay
+        initialOpeningHandDrawStagger = openingHandDrawStagger
+        initialEnemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = presentationEnvironment.autoBattleEnabled()
@@ -137,9 +142,9 @@ public final class BattleSession {
         case let .suspensionChanged(suspended):
             isSuspendedForScenePhase = suspended
             if suspended {
-                cancelPendingAutoEnd()
+                commandCoordinator.cancelPendingAutoEnd()
             } else {
-                scheduleAutoEndIfNeeded()
+                commandCoordinator.scheduleAutoEndIfNeeded()
             }
         case .memoryTrimmed:
             trimPresentationMemory()
@@ -147,7 +152,7 @@ public final class BattleSession {
     }
 
     var outcome: BattleSimulationOutcome? {
-        runtime.simulation.outcome
+        runtime.outcome
     }
 
     var hand: [BattleCard] {
@@ -155,16 +160,16 @@ public final class BattleSession {
     }
 
     var canEndTurn: Bool {
-        runtime.simulation.phase == .playerTurn && !runtime.simulation.isBattleOver
-            && runtime.simulation.hasState
-            && !isDealingOpeningHand
+        runtime.phase == .playerTurn && !runtime.isBattleOver
+            && runtime.hasActiveSimulation
+            && !commandCoordinator.isDealingOpeningHand
             && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }
 
     /// True when a battle configuration has installed an authoritative simulation.
     public var hasActiveSimulation: Bool {
-        runtime.simulation.hasState
+        runtime.hasActiveSimulation
     }
 
     /// Retreat is closed once the fight is decided, including the spectacle hold
@@ -193,7 +198,7 @@ public final class BattleSession {
         for configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext
     ) -> BattleVictorySummary? {
-        guard let input = runtime.simulation.victoryInput else { return nil }
+        guard let input = runtime.victoryInput else { return nil }
         return BattleVictorySummary.make(
             configuration: configuration,
             presentation: presentation,
@@ -214,13 +219,13 @@ public final class BattleSession {
     }
 
     func combatantReadModel(for combatant: Combatant) -> BattleSimulationStore.CombatantReadModel? {
-        runtime.simulation.combatantReadModel(for: combatant)
+        runtime.combatantReadModel(for: combatant)
     }
 
     #if DEBUG
     func performEngineCardForPerformance(cardID: Int) -> Bool {
         do {
-            _ = try runtime.simulation.playCard(cardID: cardID)
+            _ = try runtime.playCard(cardID: cardID)
             installSimulationPresentation()
             return true
         } catch {
@@ -231,7 +236,7 @@ public final class BattleSession {
 
     /// Schedules a delayed end turn when nothing in hand is playable.
     func considerAutoEndTurn() {
-        scheduleAutoEndIfNeeded()
+        commandCoordinator.considerAutoEndTurn()
     }
 
     public func presentBattleLog() {
@@ -242,7 +247,7 @@ public final class BattleSession {
     /// Log projection for the app shell's sheet. The mutable simulation remains
     /// inside BattleFeature while callers receive immutable log DTOs.
     public var logEntries: [LogEntry] {
-        runtime.simulation.logEntries
+        runtime.logEntries
     }
 
     func clearBattleLog() {
@@ -299,50 +304,10 @@ public final class BattleSession {
     }
 
     func syncLogForDisplay() {
-        runtime.simulation.syncLog()
+        runtime.syncLog()
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        runtime.simulation.isCardPlayable(card)
-    }
-
-    /// Ends the player turn (enemy acts, effects tick, draw). Returns earned gold
-    /// when an already-claimed stage victory should auto-complete.
-    @discardableResult
-    func endTurn(
-        at date: Date = .now
-    ) -> Int? {
-        cancelPendingAutoEnd()
-        feedback.pruneExpired(at: date, notifyPresentation: false)
-        pruneExpiredSkillCallout(at: date)
-        pruneSoftHold(at: date)
-        guard canEndTurn, runtime.simulation.hasState else {
-            feedback.noteItemsChanged()
-            return nil
-        }
-
-        let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
-            BattleFramePacingSignposts.Name.turnTransition
-        )
-        defer {
-            BattleFramePacingSignposts.signposter.endInterval(
-                BattleFramePacingSignposts.Name.turnTransition,
-                transitionInterval
-            )
-        }
-        let events = runtime.simulation.endTurn()
-        if runtime.simulation.hasState {
-            installSimulationPresentation()
-            // Draw SFX only when the round completed and cards were dealt for the next turn.
-            if runtime.simulation.phase == .playerTurn {
-                presentationEnvironment.playSFX([SFXID.abilityDraw])
-            }
-        }
-        presentResolvedEvents(events, at: date)
-        let earnedGold = handleOutcomeIfNeeded(at: date)
-        if earnedGold == nil {
-            scheduleAutoEndIfNeeded()
-        }
-        return earnedGold
+        runtime.isCardPlayable(card)
     }
 }

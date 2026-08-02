@@ -210,7 +210,7 @@ background	gameModeSpires	bg_game_mode_spires	Raw Assets/Game Modes/Spires.jpeg	
 background	spire-ironVein	bg_spire_iron_vein	Raw Assets/Game Modes/Spires/Physical Spire.jpeg	0.50	0.50
 background	spire-cinderSpire	bg_spire_cinder_spire	Raw Assets/Game Modes/Spires/Fire Spire.jpeg	0.50	0.50
 background	spire-serpentHollow	bg_spire_serpent_hollow	Raw Assets/Game Modes/Spires/Poison Spire.jpeg	0.50	0.50
-background	spire-scarGallery	bg_spire_scar_gallery	Raw Assets/Game Modes/Spires/Bleed Spire.jpeg	0.50	0.50
+background	spire-sanguineCourt	bg_spire_scar_gallery	Raw Assets/Game Modes/Spires/Bleed Spire.jpeg	0.50	0.50
 background	spire-aureateChoir	bg_spire_aureate_choir	Raw Assets/Game Modes/Spires/Holy Spire.jpeg	0.50	0.50
 background	spire-rimeVault	bg_spire_rime_vault	Raw Assets/Game Modes/Spires/Freeze Spire.jpeg	0.50	0.50
-background	spire-stormAnvil	bg_spire_storm_anvil	Raw Assets/Game Modes/Spires/Stun Spire.jpeg	0.50	0.50
+background	spire-resonanceHall	bg_spire_storm_anvil	Raw Assets/Game Modes/Spires/Stun Spire.jpeg	0.50	0.50

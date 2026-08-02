@@ -751,7 +751,7 @@ public enum ArtCatalog {
             imageName: "bg_spire_serpent_hollow",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
-        "spire-scarGallery": BackgroundArtReference(
+        "spire-sanguineCourt": BackgroundArtReference(
             imageName: "bg_spire_scar_gallery",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
@@ -763,7 +763,7 @@ public enum ArtCatalog {
             imageName: "bg_spire_rime_vault",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
-        "spire-stormAnvil": BackgroundArtReference(
+        "spire-resonanceHall": BackgroundArtReference(
             imageName: "bg_spire_storm_anvil",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),

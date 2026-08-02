@@ -1,12 +1,12 @@
 # UI Test Reliability & Signal Audit
 
-**Goal:** Improve confirmed UI-test reliability, signal, and tier fit without weakening product coverage.
+**Goal:** Improve confirmed UI-test reliability, signal, tier fit, and application testability without weakening product coverage.
 
 Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Intent
 
-Confirm P0–P2 reliability, signal, and tier-fit issues. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it. Planning and phasing: [README.md](README.md).
+Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players. Planning and phasing: [README.md](README.md).
 
 ## Hard stops
 
@@ -38,10 +38,12 @@ Shared scale: [README.md](README.md).
 
 ## Domain rules
 
-UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
+UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
 
-Successful fixes preserve unique journey coverage while improving reliability or tier fit: delete duplicate journeys/assertions; shorten excessive waits after stable entry; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; use stable accessibility queries over brittle indexes. Report the before/after direction in the handoff: suite runtime, journey count, or flaky-class removed.
+E2E owns an identifier change only when it is required to stabilize an existing owned journey; UIInteractionFeedback owns the broader shipping-control inventory and visible/native interaction behavior.
+
+Successful fixes preserve unique journey coverage while improving reliability, isolation, testability, or tier fit: delete duplicate journeys/assertions; shorten excessive waits after stable entry; move multi-step assertions from smoke → exhaustive without retaining the smoke copy; use stable accessibility queries over brittle indexes; consolidate an entire confirmed journey family across tiers; repair deterministic launch/reset or CI routing when it causes the same reliability problem. Report the before/after direction in the handoff: suite runtime, journey count, flaky class, state leakage, or unstable entry removed.
 
 ## Example signals
 
-Hardcoded sleeps, index-bound element queries, missing accessibility identifiers for interactive controls, excessive wait timeouts after deep-link launch, smoke suites repeating exhaustive journey assertions.
+Hardcoded sleeps, index-bound element queries, missing journey-owned accessibility identifiers, excessive wait timeouts after deep-link launch, smoke suites repeating exhaustive journey assertions, nondeterministic launch/reset state, cross-test leakage, duplicated navigation setup, and CI configuration that runs the wrong UI tier.

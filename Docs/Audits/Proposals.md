@@ -5,6 +5,7 @@ The only durable state audit runs keep between passes. Audit guides stay clean r
 Hygiene:
 
 - Entries are terse: one line of summary plus an evidence pointer (path/symbol), no run logs or diffs.
+- Every open proposal states the implementation boundary: the approval-sensitive reason it could not safely ship as a bounded in-pass fix.
 - Remove an open proposal once it is implemented or superseded; remove any entry whose evidence pointer no longer exists.
 - A rejected proposal or accepted non-finding may be reopened only with new evidence beyond the recorded reason.
 - Update the scope baseline only after a completed routine or full pass.
@@ -21,9 +22,9 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 Propose-and-stop items awaiting user approval per the README right-size policy.
 
-| Owning audit | Proposal | Evidence pointer | Proposed |
-|--------------|----------|------------------|----------|
-| _none_ | | | |
+| Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
+|--------------|----------|------------------|-------------------------|----------|
+| _none_ | | | | |
 
 ## Rejected proposals
 

@@ -8,7 +8,7 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 |------|------|------|
 | Quick smoke | `QuickSmoke.xctestplan` (`SmokeHomesteadTests`) | Local / agents (`test.sh smoke`) |
 | Full smoke | `Smoke/`, `Smoke.xctestplan` | CI / PR (`test.sh smoke-full`); local only when debugging |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Pre-merge (`test.sh ui` / `test-deploy.sh`) |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | PR/main CI (sharded); local only for targeted debugging |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Frame-pacing matrix (`performance.sh` / `test.sh performance`); not smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 

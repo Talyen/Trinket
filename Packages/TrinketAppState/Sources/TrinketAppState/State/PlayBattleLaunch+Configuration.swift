@@ -8,47 +8,6 @@ import TrinketFeatureContracts
 import TrinketPersistence
 
 extension PlayBattleLaunch {
-    /// Bakes party builds, enemy trait modifiers, and Play-owned presentation data.
-    static func assembleConfiguration(
-        runKey: BattleRunKey? = nil,
-        rngSeed: UInt64,
-        hero: Combatant,
-        companion: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState = .freshStart,
-        enemy: Combatant? = nil,
-        enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
-        hasProgressionRewards: Bool = false,
-        musicStageID: String? = nil
-    ) -> BattleRunConfiguration {
-        assembleLaunch(
-            runKey: runKey,
-            rngSeed: rngSeed,
-            hero: hero,
-            companion: companion,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
-            homesteadState: homesteadState,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID
-        ).configuration
-    }
-
     static func assembleLaunch(
         runKey: BattleRunKey? = nil,
         rngSeed: UInt64,

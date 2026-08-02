@@ -25,7 +25,7 @@ enum BattleRunConfigurationTestSupport {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = []
     ) throws -> BattleRunConfiguration {
-        PlayBattleLaunch.assembleConfiguration(
+        PlayBattleLaunch.assembleLaunch(
             runKey: runKey ?? origin?.runKey,
             rngSeed: rngSeed,
             hero: hero,
@@ -43,6 +43,6 @@ enum BattleRunConfigurationTestSupport {
             defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
             hasProgressionRewards: runKey != nil || origin != nil,
             musicStageID: origin?.musicStageID
-        )
+        ).configuration
     }
 }

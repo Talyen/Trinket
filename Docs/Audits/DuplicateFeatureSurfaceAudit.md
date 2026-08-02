@@ -4,7 +4,7 @@
 
 ## Intent
 
-Collapse confirmed copy-paste feature surfaces under their existing owners. Require three structural twins, or two with demonstrated drift/duplicate maintenance. A successful collapse removes the old paths and reduces net LOC/declarations; do not build a generic configuration surface for two callers. Planning and phasing: [README.md](README.md).
+Collapse confirmed copy-paste feature surfaces under their existing owners. Require three ordinary structural twins, or two substantial twins with demonstrated drift, duplicate maintenance, a shared bug, or enough repeated behavior that a dominant-owner extraction is plainly smaller. A successful collapse removes the old paths and reduces net LOC/declarations or material repeated maintenance; do not build a generic configuration framework for two callers. Planning and phasing: [README.md](README.md).
 
 ## What counts as a duplicate surface
 
@@ -15,7 +15,7 @@ Duplicate surfaces look like parallel product screens that differ mainly by labe
 | Parallel hub / encounter shells with the same section stack | Agents copied a shell instead of parameterizing mode/content |
 | Near-identical detail / summary / picker layouts across tabs | Same grid, chrome, and empty states with tiny diffs |
 | Repeated reward / outcome / artwork wrappers | Shell already exists (or should) in `TrinketFeatureSupport` or DesignSystem |
-| Same grid / card stack / sheet scaffolding in 3+ files | Layout ownership belongs in one helper, not N call sites |
+| Same grid / card stack / sheet scaffolding in 3+ files, or two substantial drifted surfaces | Layout ownership belongs in one helper or dominant owner, not repeated call sites |
 | Diverged twins that used to match | Copy-paste drift — bugs get fixed in one sibling only |
 
 **Not this audit:** single-file ceremony → InelegantSlop; raw Metrics/typography literals without a structural twin → AppleNativeUI. Full routing: [README.md](README.md) confusable pairs.
@@ -28,7 +28,7 @@ Duplicate surfaces look like parallel product screens that differ mainly by labe
 
 ## Evidence bar
 
-Structural twin (same section order / chrome / interaction pattern across ≥3 call sites, or two with demonstrated drift) plus maintenance cost (a change would need to land in multiple siblings, or already has drifted), with a safer shared shape in an existing owner.
+Structural twin (same section order / chrome / interaction pattern across ≥3 ordinary call sites, or two substantial call sites with demonstrated drift, repeated maintenance, or a shared defect) plus maintenance cost, with a safer shared shape in an existing or dominant owner.
 
 ## Domain rules
 
@@ -41,4 +41,4 @@ Ownership follows [Architecture.md](../Platform/Architecture.md):
 | Glass / surfaces / typography / Metrics | `TrinketDesignSystem` |
 | Mode-specific content bindings | Stay in the feature folder; pass data into the shared shell |
 
-Keep intentional product differences (mystery vs shop rules, labyrinth vs explore progression). Collapse only the **view scaffolding** and repeated presentation. Prefer deleting a strictly redundant twin, then parameterizing in place, before proposing larger shared shells.
+Keep intentional product differences (mystery vs shop rules, labyrinth vs explore progression). Collapse the confirmed presentation slice: view scaffolding plus repeated state mapping, identifiers, loading/empty/error states, and owned tests when those elements are part of the same twin. Prefer deleting a strictly redundant twin, then parameterizing in the dominant owner, before proposing larger shared shells.

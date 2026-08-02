@@ -41,28 +41,6 @@ public enum JourneyMapPresentation {
             return .stage(stage, state)
         } + [.chapterGate(gateChapter(after: chapter, in: chapters))]
     }
-
-    public static func scrollFocusID(
-        for progress: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> String {
-        let chapter = chapters.first { $0.id == progress.activeChapterID } ?? chapters[0]
-        return scrollFocusID(for: progress, chapter: chapter, chapters: chapters)
-    }
-
-    public static func scrollFocusID(
-        for progress: JourneyProgressState,
-        chapter: Chapter,
-        chapters: [Chapter]
-    ) -> String {
-        if let activeStageID = progress.activeStageID {
-            return activeStageID
-        }
-        if let lastStage = chapter.stages.last, progress.isCompleted(lastStage) {
-            return lastStage.id
-        }
-        return StageMapID.chapterGate(for: gateChapter(after: chapter, in: chapters))
-    }
 }
 
 enum ChapterJourneyRow: Identifiable {

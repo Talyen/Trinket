@@ -78,21 +78,21 @@ This section owns day-to-day task → script routing, gate composition, and tier
 | Gate | Runs |
 |------|------|
 | `ci-gate.sh` | generate → assert (vs HEAD) → boundaries → Swift Testing check → style → release-notes validate |
-| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **pre-push companion** |
-| `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **pre-merge** |
-| GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit** and **smoke-full** (DerivedData cache) on `macos-26` |
-| GitHub `ci.yml` (main) | Same shared `tests.yml` fan-out with exhaustive UI included |
+| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **optional full local confidence run** |
+| `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **explicit release/pre-merge confidence run** |
+| GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit**, **smoke-full**, and sharded **exhaustive UI** (DerivedData cache) on `macos-26` |
+| GitHub `ci.yml` (main) | Same shared `tests.yml` fan-out with sharded exhaustive UI included |
 
 | Tier | Command | When |
 |------|---------|------|
 | Unit | `test.sh unit` | Every logic change |
 | Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
 | Package unit | `test-package.sh <Package>` | Focused package logic; BattleEngine balance-tool tests require `--include-balance-sweep-tests` |
-| UI smoke canary | `test.sh smoke` | Local / agents — Homestead canary (`QuickSmoke.xctestplan`) |
+| UI smoke canary | `test.sh smoke` | Optional local confidence — Homestead canary (`QuickSmoke.xctestplan`) |
 | Targeted smoke | `test.sh smoke <Class>` | Iterate on one smoke class (`Smoke.xctestplan` + filter) |
 | Full smoke | `test.sh smoke-full` | CI / PR only — full `Smoke.xctestplan` |
 | Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
-| Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
+| Full UI | `test.sh ui` | CI / explicit full local confidence; CI shards by feature |
 | Integration | `test.sh all` | Nightly / manual |
 | Battle performance | `performance.sh` | Exclusive repeated full-fidelity matrix; nightly calibration |
 
@@ -131,7 +131,9 @@ via `./Scripts/ci-infra-rerun.sh`). Nightly uses the same classifier from
 `.github/workflows/nightly-infra-rerun.yml` for a single attempt-1 infra retry;
 real (non-infra) failures create or update a "Nightly failing on main" issue.
 Nightly skips its expensive jobs when HEAD already passed the last successful run.
-Task-scoped verification does not replace the pre-push or pre-merge gates.
+Task-scoped verification is the routine local source gate. Full local confidence
+runs remain available for release or high-risk changes, while PR/main CI owns the
+broad smoke and exhaustive UI coverage.
 
 Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
 `change-budget.sh` report against HEAD: authored production/test/docs-tool LOC,

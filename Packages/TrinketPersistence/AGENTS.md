@@ -4,4 +4,4 @@ Persistence behavior must conform to `Docs/AgentContext/persistence.md`. This pa
 
 Save-store harnesses (`SaveTestSupport`) live under PersistenceTests support — not in `TrinketTestSupport` — so TestSupport stays Persistence-free and the package graph stays acyclic.
 
-New store APIs must prove read/write survival across reload in `TrinketPersistenceTests`. Package-scoped verification must pass before handoff.
+New store APIs must prove read/write survival across reload in `TrinketPersistenceTests`.

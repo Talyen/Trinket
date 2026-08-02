@@ -1,10 +1,10 @@
 # Unsafe Escape Audit
 
-**Goal:** Remove confirmed unsafe typing escapes in non-test, non-generated source without replacing valid invariants with vague fallbacks.
+**Goal:** Remove confirmed unsafe typing escapes and representations that permit invalid domain state in non-test, non-generated source, without replacing valid invariants with vague fallbacks.
 
 ## Intent
 
-Remove unsafe escapes. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks. A clean pass is valid; significant typing seams remain proposals per [README.md](README.md).
+Remove unsafe escapes and confirmed invariant loss. Prefer one validation boundary or an impossible-state model over repeated call-site guards and fallbacks, and migrate the affected callers/decoders/tests as one bounded fix. A clean pass is valid; new public contracts or wire-format changes follow [README.md](README.md).
 
 ## Hard stops
 
@@ -24,11 +24,11 @@ Remove unsafe escapes. Prefer one validation boundary or an impossible-state mod
 ## Domain rules
 
 - `as!`, `try!`, and force unwraps need an input-appropriate validation or failure path; do not introduce a default unless it is semantically valid.
-- Treat linter/compiler diagnostics as primary evidence; other hits are review candidates.
+- Treat linter/compiler diagnostics as strong evidence, not the only source. Unchecked indexing, stringly typed domain identifiers, parallel optionals that admit impossible combinations, lossy casts, and erased errors are candidates when a concrete invalid state or wrong-boundary failure is shown.
 - Package inits may keep hard failures; orchestration should not crash on corrupt input.
 - Any `@EnvironmentObject` hit is a **must-fix**.
 - Prefer `any Protocol` for existentials; `Any` mainly at serialization boundaries. Validate decoded saves via sanitizer / `init(from:)` — not runtime casts.
 
 ## Evidence bar
 
-Unsafe escape on an orchestration path without a validated failure path, or a banned observation API. Prefer diagnostics over speculative sweeps.
+Unsafe escape on an orchestration path without a validated failure path; a banned observation API; or a concrete representation that admits an invalid domain state, unchecked access, lossy conversion, or erased failure that downstream code must recover from repeatedly. Prefer diagnostics and source-proven invariants over speculative syntax sweeps.

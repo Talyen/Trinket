@@ -20,10 +20,10 @@ public struct SpireID: RawRepresentable, Hashable, Codable, Sendable, Identifiab
     public static let ironVein = Self("ironVein")
     public static let cinderSpire = Self("cinderSpire")
     public static let serpentHollow = Self("serpentHollow")
-    public static let scarGallery = Self("scarGallery")
+    public static let sanguineCourt = Self("sanguineCourt")
     public static let aureateChoir = Self("aureateChoir")
     public static let rimeVault = Self("rimeVault")
-    public static let stormAnvil = Self("stormAnvil")
+    public static let resonanceHall = Self("resonanceHall")
 }
 
 public struct SpireDefinition: Identifiable, Hashable, Sendable {
