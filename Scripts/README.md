@@ -150,6 +150,10 @@ unchanged project inputs do not rewrite the project, and the app/test source roo
 Xcode synchronized folders so ordinary source-file additions and deletions do not require
 regeneration. CI reports timing regressions from per-run artifacts, but does not fail a
 passing suite solely because hosted-runner session overhead exceeds a wall-clock budget.
+`run-simulator.sh` (the `run` alias's build-to-launch path) builds quietly into a per-run
+log and uses `-parallelizeTargets` + `-disableAutomaticPackageResolution` to speed warm
+rebuilds; condensed `--verbose` output is available when `xcbeautify` (pinned via
+`ensure-ci-tools.sh`) is on `.tools`.
 Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run dirs are
 kept; one-off legacy run dirs under `.DerivedData/runs/` are pruned by
 `./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3;

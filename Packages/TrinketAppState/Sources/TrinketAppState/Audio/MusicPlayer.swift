@@ -50,6 +50,9 @@ final class MusicPlayer {
         guard !isDisabled, let currentPlayer, let currentRequest else { return }
         let resolvedVolume = Float(max(0, min(volume, 1)))
         currentPlayer.volume = targetVolume(for: currentRequest, appVolume: resolvedVolume)
+        // Stop any in-flight crossfade/fade-out ramp from overwriting the scrubbed
+        // gain on its next step.
+        cancelActiveFades()
     }
 
     func stop() {

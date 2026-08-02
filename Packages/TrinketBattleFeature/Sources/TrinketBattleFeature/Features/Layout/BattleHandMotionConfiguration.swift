@@ -180,7 +180,6 @@ struct BattleHandMotionConfiguration: Equatable {
         cardPress: \(fmt(cardPressResponse)) / \(fmt(cardPressDamping))
         cardLift: \(fmt(cardLiftResponse)) / \(fmt(cardLiftDamping))
         cardReturn: \(fmt(cardReturnResponse)) / \(fmt(cardReturnDamping))
-        tapLift: \(fmt(tapLiftResponse)) / \(fmt(tapLiftDamping)) height \(fmt(tapLiftHeight)) delay \(fmt(tapLiftPlayDelay))
         handReflow: \(fmt(handReflowResponse)) / \(fmt(handReflowDamping))
         deal: \(fmt(dealResponse)) / \(fmt(dealDamping))
 

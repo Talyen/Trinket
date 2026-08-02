@@ -291,10 +291,72 @@ install_ripgrep() {
   rm -rf "$tmpdir"
 }
 
+install_xcbeautify() {
+  # Local/darwin only: CI omits --verbose and uses structured failure reports,
+  # so a condensed formatter is only needed on mac for the run/build path.
+  [[ "$os" == "darwin" ]] || return 0
+
+  local bin="$TOOLS_DIR/xcbeautify"
+  local marker="$TOOLS_DIR/.xcbeautify.sha256"
+  if [[ -x "$bin" && -f "$marker" ]] \
+    && [[ "$(awk -F= '$1 == "archive" { print $2; exit }' "$marker")" == "$(checksum_for_xcbeautify)" ]] \
+    && [[ "$("$bin" --version 2>/dev/null || true)" == "$XCBEAUTIFY_VERSION" ]]; then
+    return 0
+  fi
+
+  local url extract archive checksum
+  checksum="$(checksum_for_xcbeautify)"
+  case "$arch" in
+    arm64 | aarch64)
+      archive="xcbeautify-${XCBEAUTIFY_VERSION}-arm64-apple-macosx.zip"
+      ;;
+    x86_64 | amd64)
+      archive="xcbeautify-${XCBEAUTIFY_VERSION}-x86_64-apple-macosx.zip"
+      ;;
+    *)
+      echo "Unsupported architecture for xcbeautify: $arch" >&2
+      return 1
+      ;;
+  esac
+
+  url="https://github.com/cpisciotta/xcbeautify/releases/download/${XCBEAUTIFY_VERSION}/${archive}"
+  echo "Installing xcbeautify ${XCBEAUTIFY_VERSION} from ${url}..."
+  extract="$(mktemp -d)"
+  download_unzip "$url" "$extract" "$checksum"
+
+  local candidate
+  candidate="$(find "$extract" -type f -name xcbeautify -print -quit || true)"
+  if [[ -z "$candidate" || ! -f "$candidate" ]]; then
+    echo "xcbeautify binary not found in release archive." >&2
+    rm -rf "$extract"
+    return 1
+  fi
+  install -m 755 "$candidate" "$bin.tmp"
+  mv -f "$bin.tmp" "$bin"
+  printf 'archive=%s\nbinary=%s\n' "$checksum" "$(sha256_file "$bin")" > "$marker"
+  rm -rf "$extract"
+
+  local actual
+  actual="$("$bin" --version)"
+  if [[ "$actual" != "$XCBEAUTIFY_VERSION" ]]; then
+    echo "xcbeautify version mismatch after install: expected $XCBEAUTIFY_VERSION, found $actual" >&2
+    return 1
+  fi
+}
+
+checksum_for_xcbeautify() {
+  case "$os-$arch" in
+    darwin-arm64 | darwin-aarch64) printf '%s' "$XCBEAUTIFY_DARWIN_ARM64_SHA256" ;;
+    darwin-x86_64 | darwin-amd64) printf '%s' "$XCBEAUTIFY_DARWIN_X86_64_SHA256" ;;
+    *) return 1 ;;
+  esac
+}
+
 install_swiftformat
 install_swiftlint
 install_xcodegen
 install_ripgrep
+install_xcbeautify
 
 export PATH="$TOOLS_DIR:$PATH"
-echo "CI tools ready: SwiftFormat $($TOOLS_DIR/swiftformat --version), SwiftLint $($TOOLS_DIR/swiftlint version), XcodeGen $($TOOLS_DIR/xcodegen --version 2>/dev/null | awk '{print $NF}' || echo unavailable), ripgrep $($TOOLS_DIR/rg --version | head -n 1)"
+echo "CI tools ready: SwiftFormat $($TOOLS_DIR/swiftformat --version), SwiftLint $($TOOLS_DIR/swiftlint version), XcodeGen $($TOOLS_DIR/xcodegen --version 2>/dev/null | awk '{print $NF}' || echo unavailable), ripgrep $($TOOLS_DIR/rg --version | head -n 1), xcbeautify $($TOOLS_DIR/xcbeautify --version 2>/dev/null || echo unavailable)"

@@ -3,7 +3,7 @@ import Testing
 
 struct BattleOutcomeResolverTests {
     private static let cases: [(Bool, Bool, BattleSimulationOutcome?)] = [
-        (true, true, .victory),
+        (true, true, .defeat),
         (true, false, .defeat),
         (false, true, .victory),
         (false, false, nil),

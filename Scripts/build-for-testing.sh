@@ -67,7 +67,9 @@ xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
   -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
-  -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+  -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+  -parallelizeTargets \
+  -disableAutomaticPackageResolution
 
 if [[ "$APP_ONLY" == "true" ]]; then
   echo "=== build-for-testing: skipping package schemes (--app-only) ==="
@@ -137,6 +139,8 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$package_build_jobs" -I{} bash -c '
     -destination "generic/platform=iOS Simulator" \
     -derivedDataPath "$package_dd" \
     -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+    -parallelizeTargets \
+    -disableAutomaticPackageResolution \
     || status=$?
 
   if [[ "$status" -eq 0 ]]; then

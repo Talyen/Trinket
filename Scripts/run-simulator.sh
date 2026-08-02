@@ -3,6 +3,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Make pinned .tools binaries (e.g. xcbeautify) discoverable for verbose output.
+if [[ -d "$PWD/.tools" ]]; then
+  export PATH="$PWD/.tools:$PATH"
+fi
+
 # Must match PRODUCT_BUNDLE_IDENTIFIER in project.yml.
 BUNDLE_ID="com.ryanmcintire.Trinket"
 
@@ -24,12 +29,17 @@ ensure_test_simulator
 
 # shellcheck source=xcode-runner.sh
 source ./Scripts/xcode-runner.sh
-xcode_runner_run --label "run-simulator" --verbose -- \
+# Quiet build into a per-run log (see xcode-runner.sh); failures still print a
+# terse summarized block. Parallelize the multi-package graph and skip SwiftPM
+# re-resolution so warm rebuilds are faster.
+xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
+  -parallelizeTargets \
+  -disableAutomaticPackageResolution \
   COMPILER_INDEX_STORE_ENABLE=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO

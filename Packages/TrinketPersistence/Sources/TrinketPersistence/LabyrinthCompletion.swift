@@ -30,7 +30,7 @@ public enum LabyrinthCompletion {
         }
         let percentage = max(0, effects.goldPercent)
         let bonus = baseGold > 0 && percentage > 0
-            ? (baseGold * percentage + 99) / 100
+            ? (baseGold * percentage) / 100
             : 0
         return max(0, baseGold + bonus)
     }

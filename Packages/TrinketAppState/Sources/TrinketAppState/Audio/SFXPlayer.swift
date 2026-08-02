@@ -94,6 +94,10 @@ public final class SFXPlayer {
             }
         }
         preparedVoicesArePlaying = false
+        // Release engine resources on background / memory pressure. The next play
+        // path restarts it via ensureEngineRunning.
+        engine.pause()
+        engineIsRunning = false
     }
 
     private func ensureReady(for ids: [String]) -> Bool {

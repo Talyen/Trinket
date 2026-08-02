@@ -6,9 +6,6 @@ public enum BattleSimulationOutcome: Equatable, Sendable {
         isPartyDefeated: Bool,
         isEnemyDefeated: Bool
     ) -> Self? {
-        if isEnemyDefeated, isPartyDefeated {
-            return .victory
-        }
         if isPartyDefeated {
             return .defeat
         }

@@ -3,6 +3,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Make pinned .tools binaries (e.g. xcbeautify) discoverable for verbose output.
+if [[ -d "$PWD/.tools" ]]; then
+  export PATH="$PWD/.tools:$PATH"
+fi
+
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
 trinket_run_env_init
@@ -23,6 +28,8 @@ xcode_runner_run --label "app-compile" -- \
   -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
+  -parallelizeTargets \
+  -disableAutomaticPackageResolution \
   COMPILER_INDEX_STORE_ENABLE=NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \

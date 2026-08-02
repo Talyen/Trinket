@@ -186,7 +186,7 @@ struct BattleAbilityCardView: View {
             didExceedTapSlop = true
             cancelInspection()
             interactionResolution = .dragging
-            if !didAnnounceWindUp {
+            if !didAnnounceWindUp, isPlayable {
                 didAnnounceWindUp = true
                 onAttackWindUp?()
             }
@@ -313,16 +313,14 @@ struct BattleAbilityCardView: View {
             didAnnounceWindUp = false
             onAttackCancel?()
         }
-withAnimation(configuration.cardReturn) {
-                dragTranslation = .zero
-                predictedEndTranslation = .zero
-                isPlayArmed = false
-                didExceedTapSlop = false
-            }
-            withAnimation(configuration.cardReturn) {
-                isTapLifting = false
-            }
-            cancelTapLift()
+        withAnimation(configuration.cardReturn) {
+            dragTranslation = .zero
+            predictedEndTranslation = .zero
+            isPlayArmed = false
+            didExceedTapSlop = false
+            isTapLifting = false
+        }
+        cancelTapLift()
     }
 
     private func beginPlay() {
@@ -346,7 +344,7 @@ withAnimation(configuration.cardReturn) {
     }
 
     private func beginTapPlay() {
-        cancelInspection()
+        guard tapLiftTask == nil else { return }
         withAnimation(configuration.tapLift) {
             isTapLifting = true
         }
@@ -389,6 +387,7 @@ withAnimation(configuration.cardReturn) {
         onInteractionChanged(false)
         let didPlay = onPlay(request)
         if didPlay {
+            cancelTapLift()
             return
         }
         didAnnounceWindUp = hadWindUp

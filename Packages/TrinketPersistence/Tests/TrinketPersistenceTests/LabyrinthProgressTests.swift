@@ -264,7 +264,7 @@ struct LabyrinthProgressTests {
         }
     }
 
-    @Test func gildedWhisperRoundsPositiveGoldBonusUp() {
+    @Test func gildedWhisperTruncatesPositiveGoldBonus() {
         let node = LabyrinthNode(
             id: "gilded-shop",
             type: .shop,
@@ -276,7 +276,7 @@ struct LabyrinthProgressTests {
             LabyrinthCatalog.modifiers(ids: node.modifierIDs),
             biomeBias: .gold
         )
-        #expect(LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects) == 4)
+        #expect(LabyrinthCompletion.nonCombatGoldStipend(for: node, effects: effects) == 3)
     }
 
     @Test func pendingCombatRewardItemMatchesCompletionGrantForBoss() throws {
