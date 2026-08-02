@@ -24,8 +24,6 @@ while [[ $# -gt 0 ]]; do
       ISOLATE=true
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
-      # Keep agent sims warm across isolate runs unless the caller overrides.
-      export TRINKET_CLEANUP_EXCESS_SIMULATORS="${TRINKET_CLEANUP_EXCESS_SIMULATORS:-0}"
       ;;
     --push-ready)
       # Commit completeness: force XcodeGen + assert vs HEAD (not --idempotent).
@@ -48,7 +46,9 @@ and multi-package targets are batched into single invocations.
 DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
-Isolate defaults TRINKET_CLEANUP_EXCESS_SIMULATORS=0 so agent sims stay warm.
+On EXIT, the top-level owner reclaims Preview sims and age-prunes bulky DerivedData;
+when isolate + the agent sim pool is empty it shuts down and erases Trinket Agent N
+device data (Trinket CI stays warm; held peer slots keep their Agents Booted).
 
 --push-ready switches generation asserts from --idempotent (task-scoped) to
 commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
@@ -143,6 +143,13 @@ if [[ ${#commands[@]} -eq 0 ]]; then
     echo "Compile note: app compile tier skipped (no xcodebuild). Style PASS is not compile-clean — report the skip; CI build-for-testing owns Swift 6 / macro errors."
   fi
   run_change_budget
+  # Docs/tooling-only plans still self-clean when --isolate (no slot acquire).
+  if [[ "$ISOLATE" == true && "$DRY_RUN" != true ]]; then
+    TRINKET_SIM_SLOT_SKIP_ACQUIRE=1 trinket_run_env_init
+    trinket_preview_sims_reclaim
+    trinket_simulator_cleanup_idle_pool
+    trinket_derived_data_age_prune
+  fi
   exit 0
 fi
 
@@ -171,7 +178,9 @@ if [[ "$ISOLATE" == true ]]; then
   export TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TMPDIR TMP TEMP
   export TRINKET_DIAGNOSTICS_SESSION_ID TRINKET_UI_ACTIVE_DIR TRINKET_SIM_ACTIVE_DIR
   export TRINKET_MAX_CONCURRENT_UI TRINKET_MAX_AGENT_SIMS
-  export TRINKET_CLEANUP_EXCESS_SIMULATORS
+  # Parent owns self-clean on EXIT (Preview reclaim, idle-pool, age-prune).
+  # Nested test children inherit the owner token and must not overwrite it.
+  trinket_run_env_install_self_clean
 fi
 
 # shellcheck source=Scripts/build-stamp.sh
@@ -189,8 +198,7 @@ SHARED_SIM_DESTINATION=""
 quiet_log=""
 if [[ "$QUIET" == true ]]; then
   quiet_log=$(mktemp -t trinket-verify.XXXXXX)
-  # run-env installs the simulator/UI slot release trap. Compose cleanup with
-  # it instead of replacing it, and keep release ownership in this parent.
+  # Compose with release (do not replace): quiet log cleanup + self-clean reclaim.
   trap 'rm -f "$quiet_log"; trinket_run_env_release_slots' EXIT INT TERM
 fi
 

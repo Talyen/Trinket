@@ -127,6 +127,35 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("--ci", text)
         self.assertIn("Skipping Intermediate/compilation-cache wipe", text)
 
+    def test_clean_dev_artifacts_is_emergency_wrapper(self) -> None:
+        text = (ROOT / "Scripts" / "clean-dev-artifacts.sh").read_text(encoding="utf-8")
+        self.assertIn("trinket_preview_sims_reclaim", text)
+        self.assertIn("trinket_simulator_cleanup_idle_pool", text)
+        self.assertIn("trinket_derived_data_age_prune", text)
+        self.assertIn("Emergency", text)
+
+    def test_run_env_self_cleans_on_release(self) -> None:
+        text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
+        self.assertIn("trinket_preview_sims_reclaim", text)
+        self.assertIn("trinket_simulator_cleanup_idle_pool", text)
+        self.assertIn("trinket_derived_data_age_prune", text)
+        self.assertIn("trinket_run_env_release_slots", text)
+        self.assertIn("trinket_run_env_claim_self_clean_owner", text)
+        self.assertIn("TRINKET_SELF_CLEAN_OWNER", text)
+        release = text.split("trinket_run_env_release_slots()", 1)[1].split(
+            "trinket_run_env_install_release_trap", 1
+        )[0]
+        self.assertIn("TRINKET_SELF_CLEAN_OWNER", release)
+        self.assertIn("trinket_preview_sims_reclaim", release)
+        self.assertIn("trinket_simulator_cleanup_idle_pool", release)
+        self.assertIn("trinket_derived_data_age_prune", release)
+        idle = text.split("trinket_simulator_cleanup_idle_pool()", 1)[1].split(
+            "trinket_simulator_cleanup_excess", 1
+        )[0]
+        self.assertIn(r"Trinket Agent \d+", idle)
+        self.assertIn("Trinket CI stays warm", idle)
+        self.assertNotIn('name == "Trinket CI"', idle)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -109,10 +109,13 @@ tree represents one task. Agents must run
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
-(default 3). Isolate defaults `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` so agent sims stay
-warm across runs; set it to `1` to shut down excess managed sims after a run. Shared
-`Trinket CI` and agent simulators held by another active run are never shut down.
-Package schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
+(default 3). On EXIT, the top-level self-clean owner (`trinket_run_env_release_slots`)
+reclaims Xcode Preview sims, age-prunes bulky `.DerivedData` artifacts (TestResults /
+PerformanceResults / Logs; keeps warm `runs/agent-N` Build products), and when isolate +
+the agent sim pool is empty shuts down and erases `Trinket Agent N` device data.
+`Trinket CI` stays warm. Held peer slots keep their Agents Booted. Nested children
+release leases only. Package schemes use per-package DerivedData under
+`$DERIVED_DATA_PATH/packages/<name>/`
 so package builds can run in parallel. Humans/CI may omit `--isolate` to keep
 the shared warm cache.
 
@@ -175,8 +178,11 @@ Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run
 kept; one-off legacy run dirs under `.DerivedData/runs/` are pruned by
 `./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3;
 Intermediate/compilation-cache wipe only when `CI=true` or `--ci`).
-That script never mutates simulator devices — simulator lifecycle stays in
-`ensure-simulator.sh`. Parallel source trees:
+That script never mutates simulator devices — Preview reclaim and idle-pool
+Agent shutdown/erase run from `Scripts/run-env.sh` top-level release traps on
+verify/test EXIT (`Trinket CI` is never erased). `./Scripts/clean-dev-artifacts.sh`
+is an emergency-only wrapper over those same helpers when verify/test cannot run.
+Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
 
 `performance.sh` is intentionally separate from smoke and integration gates. It takes an
@@ -231,6 +237,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; `--quiet` bounds output; agents always pass `--isolate` |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
+| `./Scripts/clean-dev-artifacts.sh [--dry-run]` | Emergency-only wrapper for run-env Preview/idle-pool/age-prune reclaim (prefer verify/test EXIT) |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
 
 ### Typical release flow

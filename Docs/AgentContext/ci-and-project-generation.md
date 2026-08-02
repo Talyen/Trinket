@@ -17,10 +17,11 @@ This card adds the CI/project-generation exceptions:
   shares one agent simulator slot (`Trinket Agent N`), DerivedData under
   `.DerivedData/runs/agent-N/`, `TMPDIR`, and a unique `TRINKET_RUN_ID` for
   diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3).
-  Isolate defaults `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` so agent sims stay Booted
-  across runs (override to `1` to shut down excess managed sims after release).
-  Shared `Trinket CI` and agent simulators held by another active run are never
-  shut down. Omit `--isolate` only for humans/CI that want the shared warm cache
+  On EXIT, the top-level self-clean owner reclaims Xcode Preview sims, age-prunes
+  bulky DerivedData artifacts, and when isolate + the agent sim pool is empty shuts
+  down and erases `Trinket Agent N` device data (`Trinket CI` stays warm; held peer
+  slots keep their Agents Booted). Nested children release leases only. Omit
+  `--isolate` only for humans/CI that want the shared warm cache
   (`.DerivedData` + `Trinket CI`).
 - After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` and passes
   `SKIP_GENERATE=1` into package/unit/smoke/build children. Idempotent assert
@@ -105,6 +106,12 @@ This card adds the CI/project-generation exceptions:
   rebuild-on-miss). Smoke/UI artifact-miss rebuilds use `build-for-testing.sh --app-only`.
 - Parallel source trees: `./Scripts/agent-worktree.sh create <slug>` then verify with
   `--isolate` inside the sibling checkout.
+- Verify/test EXIT self-cleans (top-level owner only): Preview sims, idle
+  `Trinket Agent N` device data when isolate + the `.active-sim` pool is empty
+  (`Trinket CI` stays warm), and age-pruned TestResults / PerformanceResults /
+  Logs (warm `runs/agent-N` Build products stay). Do not delete Simulator
+  runtimes. `./Scripts/clean-dev-artifacts.sh` is emergency-only when verify/test
+  cannot run.
 
 When a test or CI invocation fails, load
 [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read

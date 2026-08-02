@@ -4,9 +4,11 @@
 # Destructive Intermediate/Index/compilation-cache wipes run only when CI=true
 # or --ci is passed (GitHub Actions cache-save path). Local default runs keep
 # Build/Intermediates so incremental compiles stay warm; they still age-prune
-# one-off .DerivedData/runs/<id> tenants and reap dead UI/sim slots.
+# one-off .DerivedData/runs/<id> tenants, bulky TestResults/PerformanceResults/
+# Logs, and reap dead UI/sim slots.
 #
-# Never mutates simulator devices — that stays in ensure-simulator.sh.
+# Simulator device lifecycle (Preview reclaim, idle-pool shutdown/erase) lives in
+# run-env release traps — this script never mutates devices.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -27,8 +29,9 @@ while [[ $# -gt 0 ]]; do
       cat <<'USAGE'
 Usage: ./Scripts/prune-derived-data-cache.sh [--ci] [DERIVED_DATA_PATH]
 
-Without --ci (and when CI is unset): age-prune one-off isolated runs and reap
-dead UI/sim slots. Does not delete Build/Intermediates or compilation caches.
+Without --ci (and when CI is unset): age-prune one-off isolated runs, bulky
+TestResults/PerformanceResults/Logs, and reap dead UI/sim slots. Does not
+delete Build/Intermediates or compilation caches.
 
 With --ci or CI=true: also strip bulky rebuildable intermediates under the
 target DerivedData tree before saving a CI cache (keeps Build/Products).
@@ -115,19 +118,15 @@ else
   echo "=== Skipping Intermediate/compilation-cache wipe (pass --ci or set CI=true) ==="
 fi
 
-# Isolated agent tenants under .DerivedData/runs/<id>.
-# Keep warm reusable slots (.DerivedData/runs/agent-N); age-prune one-off run ids only.
-if [[ -d "$SHARED_ROOT/runs" ]]; then
-  echo "=== Pruning one-off isolated runs older than ${RUN_MAX_AGE_DAYS}d under $SHARED_ROOT/runs ==="
-  find "$SHARED_ROOT/runs" -mindepth 1 -maxdepth 1 -type d \
-    ! -name 'agent-*' \
-    -mtime "+${RUN_MAX_AGE_DAYS}" \
-    -exec rm -rf {} + 2>/dev/null || true
-fi
-
-# Dead UI / sim concurrency slots (pid no longer alive).
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
+TRINKET_SHARED_DERIVED_DATA="$SHARED_ROOT"
+TRINKET_RUN_MAX_AGE_DAYS="$RUN_MAX_AGE_DAYS"
+export TRINKET_SHARED_DERIVED_DATA TRINKET_RUN_MAX_AGE_DAYS
+echo "=== Age-pruning bulky DerivedData artifacts (max age ${RUN_MAX_AGE_DAYS}d) ==="
+trinket_derived_data_age_prune
+
+# Dead UI / sim concurrency slots (pid no longer alive).
 if [[ -d "$SHARED_ROOT/.active-ui" ]]; then
   echo "=== Reaping dead UI concurrency slots ==="
   TRINKET_UI_ACTIVE_DIR="$SHARED_ROOT/.active-ui"
@@ -139,7 +138,6 @@ if [[ -d "$SHARED_ROOT/.active-sim" ]]; then
   trinket_sim_slot_reap
 fi
 
-# Simulator lifecycle belongs to ensure-simulator.sh, which validates device
-# names and ownership before reset/delete. Cache pruning never mutates devices.
+# Simulator lifecycle belongs to run-env release traps (Preview + idle-pool).
 
 echo "=== DerivedData prune complete ==="
