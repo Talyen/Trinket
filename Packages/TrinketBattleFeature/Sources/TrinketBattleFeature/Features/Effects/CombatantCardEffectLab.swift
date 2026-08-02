@@ -33,9 +33,9 @@ private struct CombatantCardEffectLab: View {
 
     @State private var category = CombatantCardEffectCategory.stunned
     @State private var statusKind = CombatantStatusEffectKind.swirlingStars
-    @State private var deathKind = CombatantDeathEffectKind.verticalSplit
+    @State private var deathKind = CombatantDeathEffectKind.slice
     @State private var statusConfig = CombatantStatusEffectConfig.defaults(for: .swirlingStars)
-    @State private var deathConfig = CombatantDeathEffectConfig.defaults(for: .verticalSplit)
+    @State private var deathConfig = CombatantDeathEffectConfig.defaults(for: .slice)
 
     @State private var playsAutomatically = true
     @State private var duration: CGFloat = 1.6
@@ -56,6 +56,11 @@ private struct CombatantCardEffectLab: View {
 
     private var isDeathCategory: Bool {
         category == .death
+    }
+
+    /// Effects only run while auto-playing or scrubbing above rest.
+    private var showsEffect: Bool {
+        playsAutomatically || scrubProgress > 0
     }
 
     var body: some View {
@@ -87,21 +92,32 @@ private struct CombatantCardEffectLab: View {
             case .stunned:
                 statusKind = .swirlingStars
                 statusConfig = .defaults(for: .swirlingStars)
+                duration = CombatantCardEffectLabDuration.defaults(category: .stunned)
             case .frozen:
-                statusKind = .frostVeil
-                statusConfig = .defaults(for: .frostVeil)
+                statusKind = .iceCrystals
+                statusConfig = .defaults(for: .iceCrystals)
+                duration = CombatantCardEffectLabDuration.defaults(category: .frozen)
             case .death:
-                deathKind = .verticalSplit
-                deathConfig = .defaults(for: .verticalSplit)
+                deathKind = .slice
+                deathConfig = .defaults(for: .slice)
+                duration = CombatantCardEffectLabDuration.defaults(
+                    category: .death,
+                    deathKind: .slice
+                )
             }
             replay()
         }
         .onChange(of: statusKind) { _, kind in
             statusConfig = .defaults(for: kind)
+            duration = CombatantCardEffectLabDuration.defaults(category: category)
             replay()
         }
         .onChange(of: deathKind) { _, kind in
             deathConfig = .defaults(for: kind)
+            duration = CombatantCardEffectLabDuration.defaults(
+                category: category,
+                deathKind: kind
+            )
             replay()
         }
         .task(id: artworkWarmupKey) {
@@ -125,7 +141,7 @@ private struct CombatantCardEffectLab: View {
                     .multilineTextAlignment(.center)
             }
 
-            TimelineView(.animation) { timeline in
+            TimelineView(.animation(paused: !playsAutomatically)) { timeline in
                 let progress = progress(at: timeline.date)
                 battlefield(progress: progress)
             }
@@ -196,7 +212,7 @@ private struct CombatantCardEffectLab: View {
         } label: {
             Group {
                 if let combatant {
-                    if isFocused {
+                    if isFocused, showsEffect {
                         effectedPortrait(
                             combatant: combatant,
                             size: size,
@@ -212,15 +228,6 @@ private struct CombatantCardEffectLab: View {
             .overlay {
                 TrinketDesign.cardShape
                     .strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-            }
-            .overlay(alignment: .top) {
-                Text(slot.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(isFocused ? .primary : .secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .trinketGlassChip(.compact)
-                    .padding(6)
             }
         }
         .buttonStyle(.plain)
@@ -286,6 +293,14 @@ private struct CombatantCardEffectLab: View {
         let cycle = TimeInterval(duration)
         guard cycle > 0 else { return 0 }
         let unit = elapsed / cycle
+        // Frozen plays once then holds fully frosted — looping would thaw and re-freeze.
+        if category == .frozen {
+            return CGFloat(min(unit, 1))
+        }
+        // Stunned uses absolute time so fade-in / wobble happen once; orbit keeps moving.
+        if category == .stunned {
+            return CGFloat(unit)
+        }
         return CGFloat(unit.truncatingRemainder(dividingBy: 1))
     }
 

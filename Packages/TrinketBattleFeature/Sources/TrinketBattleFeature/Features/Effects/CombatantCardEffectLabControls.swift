@@ -93,9 +93,11 @@ struct CombatantCardEffectLabControls: View {
                 .onChange(of: playsAutomatically) { _, isPlaying in
                     if isPlaying {
                         playbackStart = Date()
+                    } else {
+                        scrubProgress = 0
                     }
                 }
-            parameterSlider("Duration", value: $duration, range: 0.5 ... 4, format: "%.2f s")
+            parameterSlider("Duration", value: $duration, range: 0.5 ... 6, format: "%.2f s")
             parameterSlider("Progress", value: $scrubProgress, range: 0 ... 1, format: "%.2f")
                 .disabled(playsAutomatically)
             Button("Replay") {
@@ -172,43 +174,17 @@ struct CombatantCardEffectLabControls: View {
     private var deathParametersSection: some View {
         Section("Death Parameters") {
             switch deathKind {
-            case .verticalSplit:
+            case .slice:
                 parameterSlider(
-                    "Split gap",
+                    "Slice gap",
                     value: $deathConfig.splitGap,
                     range: 0.05 ... 0.6,
                     format: "%.2f"
                 )
                 parameterSlider(
-                    "Split delay",
+                    "Slice delay",
                     value: $deathConfig.splitDelay,
                     range: 0 ... 0.5,
-                    format: "%.2f"
-                )
-            case .shatter:
-                Stepper(
-                    "Shards: \(deathConfig.particleCount)",
-                    value: $deathConfig.particleCount,
-                    in: 6 ... 36,
-                    step: 2
-                )
-                parameterSlider(
-                    "Shard travel",
-                    value: $deathConfig.shardTravel,
-                    range: 0.15 ... 1.2,
-                    format: "%.2f"
-                )
-                parameterSlider(
-                    "Gravity",
-                    value: $deathConfig.gravity,
-                    range: 0 ... 0.8,
-                    format: "%.2f"
-                )
-            case .peelAway:
-                parameterSlider(
-                    "Peel amount",
-                    value: $deathConfig.splitGap,
-                    range: 0.15 ... 0.7,
                     format: "%.2f"
                 )
             case .dissolveBaseline:
@@ -238,43 +214,9 @@ struct CombatantCardEffectLabControls: View {
                     range: 0 ... 8,
                     format: "%.1f°"
                 )
-            case .dizzyRings:
-                Stepper(
-                    "Rings: \(statusConfig.ringCount)",
-                    value: $statusConfig.ringCount,
-                    in: 1 ... 6
-                )
-                parameterSlider(
-                    "Wobble",
-                    value: $statusConfig.wobbleDegrees,
-                    range: 0 ... 8,
-                    format: "%.1f°"
-                )
-            case .sparkleDrift:
-                EmptyView()
-            case .frostVeil:
-                parameterSlider(
-                    "Frost opacity",
-                    value: $statusConfig.frostOpacity,
-                    range: 0.1 ... 1,
-                    format: "%.2f"
-                )
             case .iceCrystals:
                 parameterSlider(
-                    "Crawl density",
-                    value: $statusConfig.crackDensity,
-                    range: 0.1 ... 1,
-                    format: "%.2f"
-                )
-                parameterSlider(
-                    "Frost opacity",
-                    value: $statusConfig.frostOpacity,
-                    range: 0.1 ... 1,
-                    format: "%.2f"
-                )
-            case .rimeBloom:
-                parameterSlider(
-                    "Bloom density",
+                    "Frost density",
                     value: $statusConfig.crackDensity,
                     range: 0.1 ... 1,
                     format: "%.2f"
@@ -297,7 +239,10 @@ struct CombatantCardEffectLabControls: View {
                 } else {
                     statusConfig = .defaults(for: statusKind)
                 }
-                duration = isDeathCategory ? 1.4 : 1.6
+                duration = CombatantCardEffectLabDuration.defaults(
+                    category: category,
+                    deathKind: deathKind
+                )
                 replay()
             }
             if !isDeathCategory {
@@ -309,10 +254,9 @@ struct CombatantCardEffectLabControls: View {
                 }
             } else {
                 Button("Load Dramatic") {
-                    deathConfig.intensity = 1.45
+                    deathConfig.intensity = min(deathConfig.intensity + 0.35, 2)
                     deathConfig.particleCount = min(deathConfig.particleCount + 10, 80)
                     deathConfig.splitGap = min(deathConfig.splitGap + 0.1, 1)
-                    deathConfig.shardTravel = min(deathConfig.shardTravel + 0.15, 1.6)
                     replay()
                 }
             }
