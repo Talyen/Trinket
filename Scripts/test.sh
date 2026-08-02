@@ -21,6 +21,7 @@ MODE="unit"
 NO_BUILD=false
 QUIET=true
 VERBOSE=false
+APP_ONLY=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -57,6 +58,11 @@ while [[ $# -gt 0 ]]; do
       NO_BUILD=true
       shift
       ;;
+    --app-only|app-only)
+      # Path-scoped verify: TrinketTests only (packages are scheduled separately).
+      APP_ONLY=true
+      shift
+      ;;
     --quiet|quiet)
       QUIET=true
       shift
@@ -69,7 +75,7 @@ while [[ $# -gt 0 ]]; do
     *)
       if [[ "$1" == -* ]]; then
         echo "Unknown option: $1" >&2
-        echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]" >&2
+        echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [--app-only] [TestClass[/testMethod]|SwiftPath ...]" >&2
         exit 1
       fi
       TARGETS+=("$1")
@@ -79,17 +85,25 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ "$MODE" == "style" ]]; then
+  # Optional Swift file/dir args path-scope format/lint/ui-style. Platform bans and
+  # exclusivity stay full-tree (cheap rg). Bare style (CI/ci-gate) stays full-tree.
+  style_paths=()
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    echo "Target filters are not supported for style mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke | smoke-full | performance] [--no-build] [TestClass[/testMethod] ...]"
-    exit 1
+    style_paths=("${TARGETS[@]}")
+    echo "Running path-scoped style on ${#style_paths[@]} path(s)..."
   fi
 
   # Fail closed: every style subgate must succeed. Do not `exit 0` after a soft failure.
   style_status=0
-  ./Scripts/format.sh --lint || style_status=$?
-  ./Scripts/lint.sh || style_status=$?
-  ./Scripts/check-ui-style.sh || style_status=$?
+  if (( ${#style_paths[@]} > 0 )); then
+    ./Scripts/format.sh --lint -- "${style_paths[@]}" || style_status=$?
+    ./Scripts/lint.sh -- "${style_paths[@]}" || style_status=$?
+    ./Scripts/check-ui-style.sh "${style_paths[@]}" || style_status=$?
+  else
+    ./Scripts/format.sh --lint || style_status=$?
+    ./Scripts/lint.sh || style_status=$?
+    ./Scripts/check-ui-style.sh || style_status=$?
+  fi
   ./Scripts/check-platform-api-bans.sh || style_status=$?
   ./Scripts/check-exclusivity-footguns.sh || style_status=$?
   if [[ "$style_status" -ne 0 ]]; then
@@ -98,6 +112,11 @@ if [[ "$MODE" == "style" ]]; then
   fi
   echo "Style gate passed."
   exit 0
+fi
+
+if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
+  echo "--app-only is only supported with unit mode." >&2
+  exit 1
 fi
 
 mkdir -p "$RESULTS_DIR"
@@ -526,9 +545,11 @@ if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
   exit "$XCODEBUILD_EXIT_CODE"
 fi
 
-if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
+if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
   echo "Running package tests..."
   run_package_tests "$ACTION" || exit 1
+elif [[ "$MODE" == "unit" && "$APP_ONLY" == true ]]; then
+  echo "Skipping package tests (--app-only)."
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then

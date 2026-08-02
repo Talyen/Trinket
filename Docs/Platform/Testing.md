@@ -71,7 +71,8 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 
 1. Run path-scoped `./Scripts/verify-changed.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
-   shared-support package check; UI callers route to their lean smoke owner.
+   shared-support package check plus the Homestead smoke canary locally; PR
+   `smoke-full` covers the five-surface selector matrix.
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the verify-changed style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 

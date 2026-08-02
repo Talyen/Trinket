@@ -116,7 +116,7 @@ class ScriptRegressionTests(unittest.TestCase):
             [
                 "./Scripts/generate.sh",
                 "./Scripts/assert-generated-output.sh --idempotent",
-                "./Scripts/test.sh style",
+                "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
                 "./Scripts/test-package.sh TrinketContent",
             ],
         )

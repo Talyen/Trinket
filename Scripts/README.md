@@ -85,11 +85,12 @@ This section owns day-to-day task → script routing, gate composition, and tier
 
 | Tier | Command | When |
 |------|---------|------|
-| Unit | `test.sh unit` | Every logic change |
+| Unit | `test.sh unit` | Full local/CI confidence — TrinketTests **plus all package schemes** |
+| Unit (app-only) | `test.sh unit --app-only` | Path-scoped verify — TrinketTests only (packages scheduled separately) |
 | Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
 | Package unit | `test-package.sh <Package>` | Focused package logic; BattleEngine balance-tool tests require `--include-balance-sweep-tests` |
 | UI smoke canary | `test.sh smoke` | Optional local confidence — Homestead canary (`QuickSmoke.xctestplan`) |
-| Targeted smoke | `test.sh smoke <Class>` | Iterate on one smoke class (`Smoke.xctestplan` + filter) |
+| Targeted smoke | `test.sh smoke <Class…>` | One or more smoke classes in a **single** `xcodebuild` (`Smoke.xctestplan` + filters) |
 | Full smoke | `test.sh smoke-full` | CI / PR only — full `Smoke.xctestplan` |
 | Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
 | Full UI | `test.sh ui` | CI / explicit full local confidence; CI shards by feature |
@@ -108,14 +109,30 @@ tree represents one task. Agents must run
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
-(default 3); test wrappers leave one managed simulator booted and shut down
-excess managed agent simulators after the run. Shared `Trinket CI` and agent
-simulators held by another active run are preserved. Set
-`TRINKET_CLEANUP_EXCESS_SIMULATORS=0` to keep the warm-pool behavior. Package
-schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
+(default 3). Isolate defaults `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` so agent sims stay
+warm across runs; set it to `1` to shut down excess managed sims after a run. Shared
+`Trinket CI` and agent simulators held by another active run are never shut down.
+Package schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
 so package builds can run in parallel. Humans/CI may omit `--isolate` to keep
-the shared warm cache. After generation, verify-changed runs
-`assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
+the shared warm cache.
+
+Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
+- Style is path-scoped to changed Swift files (full-tree style remains in `ci-gate` / CI).
+- Style and touched-package tests may run in parallel; multi-package and multi-smoke
+  targets are batched into one invocation each.
+- Unit steps use `--app-only` (no 9-package fan-out); packages are scheduled only when
+  touched.
+- AccessibilityID renames route package tests + Homestead smoke canary locally;
+  `smoke-full` on PR covers the five-surface matrix.
+- BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) are package-only
+  locally; shipping battle UI still routes `SmokeBattleTests`.
+- After generate, verify stamps `.last-generate.stamp` and skips redundant regenerate in
+  children / fresh idempotent asserts. Stage walls append to
+  `$RESULTS_DIR/verify-timing.jsonl`.
+
+After generation, verify-changed runs
+`assert-generated-output.sh --idempotent` (regenerate must be a no-op, or skipped when
+the generate stamp is still fresh) — not the
 HEAD/commit check. Before commit, review and stage only the task's authored and
 generated files after this check passes. After commit, commit completeness is
 `./Scripts/agent-push-gate.sh` (also called from pre-push),

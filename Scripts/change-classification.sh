@@ -127,11 +127,26 @@ trinket_reset_classification() {
   TRINKET_SMOKE_TARGET_UNRESOLVED=false
 }
 
+trinket_is_battle_feature_debug_lab() {
+  local path="$1"
+  case "$path" in
+    *Lab*.swift|*Playground*.swift|*EffectVariants.swift)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 trinket_classify_smoke_target() {
   local path="$1"
 
   case "$path" in
     Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
+      if trinket_is_battle_feature_debug_lab "$path"; then
+        return 0
+      fi
       # Hand-drag safety is FullUI-only; agents still use the battle load canary.
       trinket_add_smoke_target SmokeBattleTests
       ;;
@@ -144,12 +159,8 @@ trinket_classify_smoke_target() {
       TRINKET_NEEDS_UNIT=true
       ;;
     Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift)
-      # ID renames can break any surface; run the lean smoke canaries that pin selectors.
-      trinket_add_smoke_target SmokePlayTests
+      # Local canary only; PR smoke-full covers the five-surface matrix.
       trinket_add_smoke_target SmokeHomesteadTests
-      trinket_add_smoke_target SmokeBattleTests
-      trinket_add_smoke_target SmokeCollectionTests
-      trinket_add_smoke_target SmokeShopTests
       ;;
     Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
       trinket_add_smoke_target SmokeShopTests
@@ -274,11 +285,16 @@ trinket_classify_path() {
     Packages/TrinketBattleFeature/*.swift|Packages/TrinketBattleFeature/**/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      TRINKET_NEEDS_SMOKE=true
-      TRINKET_HAS_FEATURE=true
       trinket_add_package TrinketBattleFeature
       TRINKET_AUTHORED_PATHS+=("$path")
-      trinket_classify_smoke_target "$path"
+      if trinket_is_battle_feature_debug_lab "$path"; then
+        # DEBUG labs: package tests only; CI owns smoke / app compile.
+        :
+      else
+        TRINKET_NEEDS_SMOKE=true
+        TRINKET_HAS_FEATURE=true
+        trinket_classify_smoke_target "$path"
+      fi
       ;;
     Packages/TrinketAppState/*.swift|Packages/TrinketAppState/**/*.swift)
       TRINKET_HAS_SWIFT=true
@@ -454,12 +470,26 @@ trinket_build_verification_plan() {
   # Always run style when Swift changed — format/lint failures do not need a simulator.
   # Package compile stays paired with touched packages (also no simulator required).
   if [[ "$TRINKET_NEEDS_STYLE" == true ]]; then
-    trinket_add_verification test style "./Scripts/test.sh style"
+    local style_swift=()
+    local authored
+    for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
+      if [[ "$authored" == *.swift ]]; then
+        style_swift+=("$authored")
+      fi
+    done
+    if (( ${#style_swift[@]} > 0 )); then
+      # Path-scoped style for verify; ci-gate / bare test.sh style stay full-tree.
+      local style_display="./Scripts/test.sh style ${style_swift[*]}"
+      local style_arg="style:${style_swift[*]}"
+      trinket_add_verification test "$style_arg" "$style_display"
+    else
+      trinket_add_verification test style "./Scripts/test.sh style"
+    fi
   fi
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
-    for package in "${TRINKET_PACKAGES[@]}"; do
-      trinket_add_verification package "$package" "./Scripts/test-package.sh $package"
-    done
+    # One invocation so packages share sim/destination setup (parallel DD tenants).
+    local package_list="${TRINKET_PACKAGES[*]}"
+    trinket_add_verification package "$package_list" "./Scripts/test-package.sh $package_list"
   fi
   # App compile gap-fill: presentation/feature paths can set NEEDS_SMOKE even when no
   # SmokeClass resolves. Avoid style-only plans that miss Swift 6 concurrency /
@@ -475,18 +505,25 @@ trinket_build_verification_plan() {
     fi
   fi
   if [[ "$TRINKET_NEEDS_UNIT" == true ]]; then
-    trinket_add_verification test unit "SKIP_GENERATE=1 ./Scripts/test.sh unit"
+    # Path-scoped unit is TrinketTests only; packages are scheduled above when touched.
+    trinket_add_verification test unit "SKIP_GENERATE=1 ./Scripts/test.sh unit --app-only"
   fi
   if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
     local smoke_target
+    local smoke_list=()
     if (( ${#TRINKET_SMOKE_TARGETS[@]} > 0 )); then
       for smoke_target in "${TRINKET_SMOKE_TARGETS[@]}"; do
         if [[ "$smoke_target" =~ ^[A-Za-z0-9_]+$ ]]; then
-          trinket_add_verification test "smoke:$smoke_target" "SKIP_GENERATE=1 ./Scripts/test.sh smoke $smoke_target"
+          smoke_list+=("$smoke_target")
         else
           TRINKET_SMOKE_TARGET_UNRESOLVED=true
         fi
       done
+    fi
+    if (( ${#smoke_list[@]} > 0 )); then
+      # One xcodebuild with multiple -only-testing filters (not N process starts).
+      local smoke_arg="smoke:${smoke_list[*]}"
+      trinket_add_verification test "$smoke_arg" "SKIP_GENERATE=1 ./Scripts/test.sh smoke ${smoke_list[*]}"
     fi
   fi
 }

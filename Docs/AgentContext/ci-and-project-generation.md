@@ -16,21 +16,27 @@ This card adds the CI/project-generation exceptions:
 - `verify-changed.sh --isolate` calls `Scripts/run-env.sh` once so the whole plan
   shares one agent simulator slot (`Trinket Agent N`), DerivedData under
   `.DerivedData/runs/agent-N/`, `TMPDIR`, and a unique `TRINKET_RUN_ID` for
-  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3); test
-  wrappers leave one managed simulator booted and shut down excess managed
-  agent simulators after the run. Shared `Trinket CI` and agent simulators held
-  by another active run are preserved. Set
-  `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` to keep the warm pool. Omit `--isolate`
-  only for humans/CI that want the shared warm cache (`.DerivedData` + `Trinket CI`).
-- `verify-changed.sh` runs required generation once, then an **idempotent**
-  generated-output check (`assert-generated-output.sh --idempotent`): regenerate
-  must not change tracked outputs further. That answers “does this working tree
-  match the manifests?” It does **not** require generated files to match HEAD —
-  use it before commit, then review and stage only the task's authored and generated
-  files. After commit, commit completeness is `./Scripts/agent-push-gate.sh`,
-  pre-push, `ci-gate.sh`, and CI (`assert-generated-output.sh` without
-  `--idempotent` after force generate). If the post-commit gate regenerates files,
-  review them, amend the commit, and rerun it.
+  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3).
+  Isolate defaults `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` so agent sims stay Booted
+  across runs (override to `1` to shut down excess managed sims after release).
+  Shared `Trinket CI` and agent simulators held by another active run are never
+  shut down. Omit `--isolate` only for humans/CI that want the shared warm cache
+  (`.DerivedData` + `Trinket CI`).
+- After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` and passes
+  `SKIP_GENERATE=1` into package/unit/smoke/build children. Idempotent assert
+  skips a second full generate when that stamp is still fresh vs generation
+  inputs (otherwise regenerate must be a no-op). That answers “does this working
+  tree match the manifests?” — it does **not** require generated files to match
+  HEAD. Review and stage only the task's authored and generated files before
+  commit; after commit, completeness is `./Scripts/agent-push-gate.sh`, pre-push,
+  `ci-gate.sh`, and CI. Stage wall times append to `$RESULTS_DIR/verify-timing.jsonl`.
+- Path-scoped plans: style on changed Swift files only (full-tree style stays in
+  `ci-gate` / CI); style ∥ packages; batched multi-package / multi-smoke; unit
+  uses `test.sh unit --app-only` (no all-package fan-out). AccessibilityID →
+  FeatureSupport package + Homestead canary (PR `smoke-full` owns five-surface
+  coverage). BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`)
+  → package only. When unit and smoke both run, verify warms with
+  `build-for-testing --app-only` then `--no-build` for those stages.
 - Without explicit `--paths`, `agent-push-gate.sh` classifies working-tree paths;
   when the tree is clean after a commit, it classifies local commits not present on
   a remote, falling back to the latest commit. This preserves conditional asset
@@ -63,8 +69,8 @@ This card adds the CI/project-generation exceptions:
   gate sets `TRINKET_REQUIRE_PINNED_TOOLS=1`. Art prepare invalidates on source
   content hash (not mtime); other asset prepare scripts still use mtime. Set
   `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.
-- `verify-changed.sh` then sets `SKIP_GENERATE=1` for app
-  wrapper tests so a single verification run does not regenerate the project repeatedly.
+- `verify-changed.sh` sets `SKIP_GENERATE=1` for package/unit/smoke/build children
+  so a single verification run does not regenerate the project repeatedly.
 - Completed task-scoped and push-gate runs print an advisory `change-budget.sh`
   report. It excludes generated output and never fails solely for size; warnings
   require a necessity explanation. Use `verify-changed.sh --quiet` for PASS/FAIL
@@ -111,12 +117,15 @@ ownership.
 UI style, platform API bans, or exclusivity footguns fail. Do not treat a non-zero
 subgate as success.
 
-Path-scoped `verify-changed.sh` always includes style when Swift sources change, and
-always includes `test-package.sh` for each touched package — those failures never need
-a simulator. Feature/Shared/Models paths with no resolved smoke owner also schedule
-compile-only `./Scripts/build.sh` when `xcodebuild` is present (generic simulator
-destination, no boot) so Swift 6 concurrency and Testing-macro errors are not
-style-only false greens. That tier does **not** expand QuickSmoke.
+Path-scoped `verify-changed.sh` always includes style when Swift sources change
+(path-scoped to changed Swift files; full-tree style remains in `ci-gate` / CI), and
+schedules `test-package.sh` for touched packages (batched when multiple) — those
+failures never need a simulator. Feature/Shared/Models paths with no resolved smoke
+owner also schedule compile-only `./Scripts/build.sh` when `xcodebuild` is present
+(generic simulator destination, no boot) so Swift 6 concurrency and Testing-macro
+errors are not style-only false greens. That tier does **not** expand QuickSmoke.
+Path-scoped unit uses `test.sh unit --app-only`; bare `test.sh unit` still runs all
+package schemes for full local/CI confidence.
 
 **Linux / portable SwiftLint:** SourceKit `custom_rules` are skipped, and some
 idiomatic findings may not match macOS CI. Style PASS on Linux is not a substitute

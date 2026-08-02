@@ -162,11 +162,48 @@ print_tracked_diff_vs_head() {
 
 if [[ "$MODE" == "idempotent" ]]; then
   assert_testplan_native_target_ids
+
+  # When verify-changed just stamped a fresh generate, skip the second full
+  # generate if inputs are unchanged — still prove test-plan IDs and report.
+  # shellcheck source=run-env.sh
+  source ./Scripts/run-env.sh
+  trinket_run_env_init
+  # shellcheck source=build-inputs.sh
+  source ./Scripts/build-inputs.sh
+  stamp="${RESULTS_DIR}/.last-generate.stamp"
+  skip_regenerate=false
+  if [[ -f "$stamp" ]]; then
+    content_changed="$(generation_paths_newer_than "$stamp" "${content_generation_inputs[@]}" || true)"
+    project_changed="$(generation_paths_newer_than "$stamp" project.yml || true)"
+    assets_changed=""
+    if [[ "$INCLUDE_ASSETS" == true ]]; then
+      assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}" || true)"
+    fi
+    if [[ -z "$content_changed" ]] && ! generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
+      if [[ -z "$project_changed" ]] && ! generation_inputs_are_dirty project.yml; then
+        if [[ "$INCLUDE_ASSETS" != true ]] || {
+          [[ -z "$assets_changed" ]] && ! generation_inputs_are_dirty "${asset_generation_inputs[@]}"
+        }; then
+          skip_regenerate=true
+        fi
+      fi
+    fi
+  fi
+
+  if [[ "$skip_regenerate" == true ]]; then
+    echo "Generated output stamp is fresh; skipping idempotent regenerate."
+    echo "Generated output is stable under regenerate (matches manifests)."
+    exit 0
+  fi
+
   before="$(snapshot_tracked)"
   run_generate
   after="$(snapshot_tracked)"
   if [[ "$before" == "$after" ]]; then
     echo "Generated output is stable under regenerate (matches manifests)."
+    # Align with verify/ci-gate so later wrappers skip generate.
+    mkdir -p "$RESULTS_DIR"
+    touch "$RESULTS_DIR/.last-generate.stamp"
     exit 0
   fi
   echo "ERROR: Regenerating still changed tracked generated output." >&2

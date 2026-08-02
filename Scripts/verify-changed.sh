@@ -24,6 +24,8 @@ while [[ $# -gt 0 ]]; do
       ISOLATE=true
       TRINKET_ISOLATE=1
       export TRINKET_ISOLATE
+      # Keep agent sims warm across isolate runs unless the caller overrides.
+      export TRINKET_CLEANUP_EXCESS_SIMULATORS="${TRINKET_CLEANUP_EXCESS_SIMULATORS:-0}"
       ;;
     --push-ready)
       # Commit completeness: force XcodeGen + assert vs HEAD (not --idempotent).
@@ -39,14 +41,14 @@ Usage: ./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-rea
 
 Classifies task-scoped changes when --paths is supplied, otherwise all working-tree
 changes. It runs any required generation once, then the smallest focused
-verification commands sequentially. It deliberately does not run pre-push or
-pre-merge gates. Paths are repository-relative; --paths consumes all remaining
-arguments.
+verification commands. Style and package checks may run in parallel; multi-smoke
+and multi-package targets are batched into single invocations.
 
 --isolate acquires a reusable agent simulator slot (Trinket Agent N) with
 DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
+Isolate defaults TRINKET_CLEANUP_EXCESS_SIMULATORS=0 so agent sims stay warm.
 
 --push-ready switches generation asserts from --idempotent (task-scoped) to
 commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
@@ -144,7 +146,7 @@ if [[ ${#commands[@]} -eq 0 ]]; then
   exit 0
 fi
 
-echo "Verification plan (${#commands[@]} sequential check(s)):"
+echo "Verification plan (${#commands[@]} check(s)):"
 printf '  %s\n' "${commands[@]}"
 if [[ "$smoke_target_unresolved" == true ]]; then
   echo "UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke."
@@ -169,7 +171,20 @@ if [[ "$ISOLATE" == true ]]; then
   export TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TMPDIR TMP TEMP
   export TRINKET_DIAGNOSTICS_SESSION_ID TRINKET_UI_ACTIVE_DIR TRINKET_SIM_ACTIVE_DIR
   export TRINKET_MAX_CONCURRENT_UI TRINKET_MAX_AGENT_SIMS
+  export TRINKET_CLEANUP_EXCESS_SIMULATORS
 fi
+
+# shellcheck source=Scripts/build-stamp.sh
+source Scripts/build-stamp.sh
+# Needed so touch_build_stamp records a fresh gitstatus sidecar for --no-build.
+# shellcheck source=Scripts/build-inputs.sh
+source Scripts/build-inputs.sh
+
+VERIFY_TIMING_LOG="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}/verify-timing.jsonl"
+mkdir -p "$(dirname "$VERIFY_TIMING_LOG")"
+VERIFY_WALL_START=$SECONDS
+APP_PRODUCTS_WARMED=false
+SHARED_SIM_DESTINATION=""
 
 quiet_log=""
 if [[ "$QUIET" == true ]]; then
@@ -178,6 +193,78 @@ if [[ "$QUIET" == true ]]; then
   # it instead of replacing it, and keep release ownership in this parent.
   trap 'rm -f "$quiet_log"; trinket_run_env_release_slots' EXIT INT TERM
 fi
+
+record_verify_stage() {
+  local display="$1"
+  local kind="$2"
+  local status="$3"
+  local wall="$4"
+  python3 - "$VERIFY_TIMING_LOG" "$display" "$kind" "$status" "$wall" <<'PY'
+import json, sys
+from datetime import datetime, timezone
+path, display, kind, status, wall = sys.argv[1:6]
+entry = {
+    "schema_version": 1,
+    "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "display": display,
+    "kind": kind,
+    "status": int(status),
+    "wall_seconds": float(wall),
+}
+with open(path, "a", encoding="utf-8") as handle:
+    handle.write(json.dumps(entry, separators=(",", ":")) + "\n")
+PY
+}
+
+stamp_generate_if_needed() {
+  local results="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
+  mkdir -p "$results"
+  touch "$results/.last-generate.stamp"
+}
+
+ensure_shared_simulator() {
+  if [[ -n "$SHARED_SIM_DESTINATION" ]]; then
+    return 0
+  fi
+  # shellcheck source=Scripts/ensure-simulator.sh
+  source Scripts/ensure-simulator.sh
+  ensure_test_simulator_logged
+  SHARED_SIM_DESTINATION="$SIMULATOR_DESTINATION"
+  export SIMULATOR_DESTINATION="$SHARED_SIM_DESTINATION"
+}
+
+warm_app_products_if_needed() {
+  # Multiple app consumers: one build-for-testing, then --no-build.
+  local app_consumers=0
+  local argument
+  for argument in "${arguments[@]}"; do
+    case "$argument" in
+      unit|smoke:*)
+        app_consumers=$((app_consumers + 1))
+        ;;
+    esac
+  done
+  if (( app_consumers < 2 )); then
+    return 0
+  fi
+  echo ""
+  echo "=== Warm app products (build-for-testing --app-only) ==="
+  SKIP_GENERATE=1 ./Scripts/build-for-testing.sh --app-only
+  # Path-scoped unit is --app-only; stamp unit so --no-build is accepted.
+  touch_build_stamp "${RESULTS_DIR:-$PWD/.DerivedData/TestResults}" unit
+  APP_PRODUCTS_WARMED=true
+}
+
+valid_package_name() {
+  case "$1" in
+    BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleRuntime|TrinketBattleFeature|TrinketAppState)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
 
 run_verification_command() {
   local kind="$1"
@@ -191,6 +278,7 @@ run_verification_command() {
         assets-force) ./Scripts/generate.sh --assets --force-xcodegen ;;
         *) echo "Unknown structured generate check: $argument" >&2; return 2 ;;
       esac
+      stamp_generate_if_needed
       ;;
     assert)
       case "$argument" in
@@ -200,27 +288,56 @@ run_verification_command() {
         idempotent-assets) ./Scripts/assert-generated-output.sh --idempotent --assets ;;
         *) echo "Unknown structured assert check: $argument" >&2; return 2 ;;
       esac
+      stamp_generate_if_needed
       ;;
     test)
       if [[ "$argument" == smoke:* ]]; then
-        local target="${argument#smoke:}"
-        [[ "$target" =~ ^[A-Za-z0-9_]+$ ]] || { echo "Invalid smoke target" >&2; return 2; }
-        SKIP_GENERATE=1 ./Scripts/test.sh smoke "$target"
+        local targets_string="${argument#smoke:}"
+        local -a smoke_targets=()
+        local target
+        # shellcheck disable=SC2206
+        smoke_targets=($targets_string)
+        for target in "${smoke_targets[@]}"; do
+          [[ "$target" =~ ^[A-Za-z0-9_]+$ ]] || { echo "Invalid smoke target: $target" >&2; return 2; }
+        done
+        ensure_shared_simulator
+        local smoke_args=(smoke)
+        if [[ "$APP_PRODUCTS_WARMED" == true ]]; then
+          smoke_args+=(--no-build)
+        fi
+        smoke_args+=("${smoke_targets[@]}")
+        SKIP_GENERATE=1 ./Scripts/test.sh "${smoke_args[@]}"
       elif [[ "$argument" == style ]]; then
         ./Scripts/test.sh style
+      elif [[ "$argument" == style:* ]]; then
+        local paths_string="${argument#style:}"
+        local -a style_paths=()
+        # shellcheck disable=SC2206
+        style_paths=($paths_string)
+        ./Scripts/test.sh style "${style_paths[@]}"
       elif [[ "$argument" == unit ]]; then
-        SKIP_GENERATE=1 ./Scripts/test.sh unit
+        ensure_shared_simulator
+        local unit_args=(unit --app-only)
+        if [[ "$APP_PRODUCTS_WARMED" == true ]]; then
+          unit_args+=(--no-build)
+        fi
+        SKIP_GENERATE=1 ./Scripts/test.sh "${unit_args[@]}"
       else
         echo "Unknown structured test check: $argument" >&2
         return 2
       fi
       ;;
     package)
-      case "$argument" in
-        BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleRuntime|TrinketBattleFeature|TrinketAppState)
-          ./Scripts/test-package.sh "$argument" ;;
-        *) echo "Unknown structured package check: $argument" >&2; return 2 ;;
-      esac
+      local -a packages=()
+      local package
+      # shellcheck disable=SC2206
+      packages=($argument)
+      (( ${#packages[@]} > 0 )) || { echo "Empty package list" >&2; return 2; }
+      for package in "${packages[@]}"; do
+        valid_package_name "$package" || { echo "Unknown structured package check: $package" >&2; return 2; }
+      done
+      ensure_shared_simulator
+      SKIP_GENERATE=1 ./Scripts/test-package.sh --destination "$SHARED_SIM_DESTINATION" "${packages[@]}"
       ;;
     build)
       [[ "$argument" == app ]] || { echo "Unknown structured build check: $argument" >&2; return 2; }
@@ -233,13 +350,16 @@ run_verification_command() {
   esac
 }
 
-for index in "${!commands[@]}"; do
-  command="${commands[$index]}"
-  kind="${kinds[$index]:-}"
-  argument="${arguments[$index]:-}"
+run_one_indexed_check() {
+  local index="$1"
+  local command="${commands[$index]}"
+  local kind="${kinds[$index]:-}"
+  local argument="${arguments[$index]:-}"
+  local stage_start=$SECONDS
+  local status=0
   if [[ -z "$kind" ]]; then
     echo "Missing structured verification metadata for: $command" >&2
-    exit 2
+    return 2
   fi
   if [[ "$QUIET" == true ]]; then
     if run_verification_command "$kind" "$argument" > "$quiet_log" 2>&1; then
@@ -248,13 +368,106 @@ for index in "${!commands[@]}"; do
       status=$?
       echo "FAIL: $command"
       tail -n "${TRINKET_VERIFY_FAILURE_LINES:-80}" "$quiet_log"
-      exit "$status"
+      record_verify_stage "$command" "$kind" "$status" "$((SECONDS - stage_start))"
+      return "$status"
     fi
   else
     echo ""
     echo "=== $command ==="
-    run_verification_command "$kind" "$argument"
+    run_verification_command "$kind" "$argument" || status=$?
+  fi
+  record_verify_stage "$command" "$kind" "$status" "$((SECONDS - stage_start))"
+  return "$status"
+}
+
+# Partition: generate/assert first (sequential), then style∥packages, then the rest.
+declare -a gen_assert_indices=()
+declare -a parallel_indices=()
+declare -a rest_indices=()
+for index in "${!commands[@]}"; do
+  case "${kinds[$index]}" in
+    generate|assert)
+      gen_assert_indices+=("$index")
+      ;;
+    test)
+      if [[ "${arguments[$index]}" == style || "${arguments[$index]}" == style:* ]]; then
+        parallel_indices+=("$index")
+      else
+        rest_indices+=("$index")
+      fi
+      ;;
+    package)
+      parallel_indices+=("$index")
+      ;;
+    *)
+      rest_indices+=("$index")
+      ;;
+  esac
+done
+
+for index in "${gen_assert_indices[@]+"${gen_assert_indices[@]}"}"; do
+  run_one_indexed_check "$index"
+done
+
+# Boot once before parallel package work so children share a destination.
+for index in "${parallel_indices[@]+"${parallel_indices[@]}"}"; do
+  if [[ "${kinds[$index]}" == package ]]; then
+    ensure_shared_simulator
+    break
   fi
 done
+
+if (( ${#parallel_indices[@]} > 1 )); then
+  echo ""
+  echo "=== Parallel: style and package checks ==="
+  declare -a parallel_pids=()
+  declare -a parallel_logs=()
+  declare -a parallel_labels=()
+  for index in "${parallel_indices[@]}"; do
+    log=$(mktemp -t trinket-verify-p.XXXXXX)
+    parallel_logs+=("$log")
+    parallel_labels+=("${commands[$index]}")
+    (
+      stage_start=$SECONDS
+      status=0
+      run_verification_command "${kinds[$index]}" "${arguments[$index]}" >"$log" 2>&1 || status=$?
+      record_verify_stage "${commands[$index]}" "${kinds[$index]}" "$status" "$((SECONDS - stage_start))"
+      exit "$status"
+    ) &
+    parallel_pids+=("$!")
+  done
+  parallel_status=0
+  for i in "${!parallel_pids[@]}"; do
+    if wait "${parallel_pids[$i]}"; then
+      if [[ "$QUIET" == true ]]; then
+        echo "PASS: ${parallel_labels[$i]}"
+      else
+        echo ""
+        echo "=== ${parallel_labels[$i]} (parallel) ==="
+        cat "${parallel_logs[$i]}"
+      fi
+    else
+      status=$?
+      parallel_status=$status
+      echo "FAIL: ${parallel_labels[$i]}"
+      tail -n "${TRINKET_VERIFY_FAILURE_LINES:-80}" "${parallel_logs[$i]}"
+    fi
+    rm -f "${parallel_logs[$i]}"
+  done
+  if [[ "$parallel_status" -ne 0 ]]; then
+    exit "$parallel_status"
+  fi
+elif (( ${#parallel_indices[@]} == 1 )); then
+  run_one_indexed_check "${parallel_indices[0]}"
+fi
+
+warm_app_products_if_needed
+
+for index in "${rest_indices[@]+"${rest_indices[@]}"}"; do
+  run_one_indexed_check "$index"
+done
+
+echo ""
+echo "Verify wall: $((SECONDS - VERIFY_WALL_START))s (stages → $VERIFY_TIMING_LOG)"
 
 run_change_budget

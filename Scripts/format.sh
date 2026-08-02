@@ -30,22 +30,37 @@ if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
 fi
 
 MODE="apply"
+PATHS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --lint)
       MODE="lint"
       shift
       ;;
-    *)
+    --)
+      shift
+      PATHS+=("$@")
+      break
+      ;;
+    -*)
       echo "Unknown option: $1"
-      echo "Usage: $0 [--lint]"
+      echo "Usage: $0 [--lint] [-- path...]"
       exit 1
+      ;;
+    *)
+      PATHS+=("$1")
+      shift
       ;;
   esac
 done
 
+FORMAT_TARGETS=("${SOURCE_DIRS[@]}")
+if (( ${#PATHS[@]} > 0 )); then
+  FORMAT_TARGETS=("${PATHS[@]}")
+fi
+
 if [[ "$MODE" == "lint" ]]; then
-  swiftformat "${SOURCE_DIRS[@]}" --lint
+  swiftformat "${FORMAT_TARGETS[@]}" --lint
 else
-  swiftformat "${SOURCE_DIRS[@]}"
+  swiftformat "${FORMAT_TARGETS[@]}"
 fi
