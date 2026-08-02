@@ -36,6 +36,14 @@ public final class BattleSession {
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
     let presentationEnvironment: BattlePresentationEnvironment
+    /// Persists locally through the app composition root while remaining a Battle-only control.
+    public var isAutoBattleEnabled: Bool {
+        didSet {
+            guard oldValue != isAutoBattleEnabled else { return }
+            presentationEnvironment.setAutoBattleEnabled(isAutoBattleEnabled)
+        }
+    }
+
     public var overlayCombatantDetail: CombatantCardDetail?
     public var overlayAbilityDetail: Ability?
     /// Presented from Play (not Options) so the log overlays the live battlefield.
@@ -104,6 +112,7 @@ public final class BattleSession {
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
         self.presentationEnvironment = presentationEnvironment
+        isAutoBattleEnabled = presentationEnvironment.autoBattleEnabled()
         runtime.onChange = { [weak self] change in
             self?.handleRuntimeChange(change)
         }

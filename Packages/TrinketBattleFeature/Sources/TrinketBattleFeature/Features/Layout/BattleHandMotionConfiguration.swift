@@ -28,6 +28,8 @@ struct BattleHandMotionConfiguration: Equatable {
     var playDragThreshold: CGFloat = BattleHandLayout.playDragThreshold
     var playArmReleaseRatio: CGFloat = BattleHandLayout.playArmReleaseRatio
     var dragMinimumDistance: CGFloat = BattleHandLayout.dragMinimumDistance
+    /// Hold duration required to inspect a card without moving it.
+    var detailLongPressDuration: TimeInterval = 0.5
     /// When already armed, horizontal drift is allowed up to this factor of upward distance.
     var armedHorizontalAllowance: CGFloat = 0.72
 
@@ -134,7 +136,7 @@ struct BattleHandMotionConfiguration: Equatable {
         // Play / arm
         playDragThreshold: \(fmt(playDragThreshold))
         playArmReleaseRatio: \(fmt(playArmReleaseRatio))
-        dragMinimumDistance: \(fmt(dragMinimumDistance))
+        dragMinimumDistance: \(fmt(dragMinimumDistance)), detailLongPressDuration: \(fmt(detailLongPressDuration))
         armedHorizontalAllowance: \(fmt(armedHorizontalAllowance))
 
         // Deny resist

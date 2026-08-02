@@ -87,7 +87,7 @@ This section owns day-to-day task → script routing, gate composition, and tier
 |------|---------|------|
 | Unit | `test.sh unit` | Every logic change |
 | Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
-| Package unit | `test-package.sh <Package>` | Focused package logic |
+| Package unit | `test-package.sh <Package>` | Focused package logic; BattleEngine balance-tool tests require `--include-balance-sweep-tests` |
 | UI smoke canary | `test.sh smoke` | Local / agents — Homestead canary (`QuickSmoke.xctestplan`) |
 | Targeted smoke | `test.sh smoke <Class>` | Iterate on one smoke class (`Smoke.xctestplan` + filter) |
 | Full smoke | `test.sh smoke-full` | CI / PR only — full `Smoke.xctestplan` |
@@ -108,9 +108,12 @@ tree represents one task. Agents must run
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
-(default 3); slot sims stay Booted between runs. Package schemes use per-package
-DerivedData under `$DERIVED_DATA_PATH/packages/<name>/` so package builds can run in
-parallel. Humans/CI may omit `--isolate` to keep
+(default 3); test wrappers leave one managed simulator booted and shut down
+excess managed agent simulators after the run. Shared `Trinket CI` and agent
+simulators held by another active run are preserved. Set
+`TRINKET_CLEANUP_EXCESS_SIMULATORS=0` to keep the warm-pool behavior. Package
+schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
+so package builds can run in parallel. Humans/CI may omit `--isolate` to keep
 the shared warm cache. After generation, verify-changed runs
 `assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
 HEAD/commit check. Before commit, review and stage only the task's authored and

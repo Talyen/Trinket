@@ -62,4 +62,12 @@ See `Tests/README.md` for test ownership and conventions.
 ./Scripts/test-package.sh BattleEngine
 ```
 
+The package command skips `BattleBalanceToolsTests` by default so balance sweeps
+do not run in unit or deployment verification. Run those tests only when
+explicitly evaluating the balance tools:
+
+```sh
+./Scripts/test-package.sh --include-balance-sweep-tests BattleEngine
+```
+
 Use `BattleStateTestFactory.makeBattle(...)` with a fixed seed for deterministic outcomes.

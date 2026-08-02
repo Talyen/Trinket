@@ -71,7 +71,8 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbar {
                 if !battleSession.spectacle.isShowingVictory, !battleSession.spectacle.isShowingDefeat {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
                     }
                 }
@@ -226,6 +227,8 @@ public struct BattleView: View {
                     presentation: battleSession.presentation,
                     hapticsEnabled: battleSession.hapticsEnabled,
                     battleSize: geometry.size,
+                    castPresentation: castPresentation,
+                    interactionState: interactionState,
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onAttackWindUp: beginPartyAttackWindUp(for:),
@@ -391,6 +394,8 @@ private struct BattleHandProjectionLane: View {
     let presentation: BattlePresentationState
     let hapticsEnabled: Bool
     let battleSize: CGSize
+    let castPresentation: BattleCastPresentationState
+    let interactionState: BattleInteractionState
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     let onAttackWindUp: (BattleCard) -> Void
@@ -405,7 +410,7 @@ private struct BattleHandProjectionLane: View {
         BattleHandView(
             cards: hand,
             isPlayable: { playableIDs.contains($0.id) },
-            onTap: { card in
+            onInspect: { card in
                 battleSession.presentAbilityDetail(card.ability)
             },
             onPlay: { card, request in
@@ -427,6 +432,15 @@ private struct BattleHandProjectionLane: View {
             trigger: cardPlayFeedbackToken,
             enabled: hapticsEnabled
         )
+        .overlay {
+            BattleAutoPlayLane(
+                battleSession: battleSession,
+                battleSize: battleSize,
+                castPresentation: castPresentation,
+                interactionState: interactionState,
+                onPlay: onPlay
+            )
+        }
         .onAppear(perform: onReady)
     }
 }

@@ -16,9 +16,12 @@ This card adds the CI/project-generation exceptions:
 - `verify-changed.sh --isolate` calls `Scripts/run-env.sh` once so the whole plan
   shares one agent simulator slot (`Trinket Agent N`), DerivedData under
   `.DerivedData/runs/agent-N/`, `TMPDIR`, and a unique `TRINKET_RUN_ID` for
-  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3); slot
-  sims stay Booted for reuse. Omit `--isolate` only for humans/CI that want the
-  shared warm cache (`.DerivedData` + `Trinket CI`).
+  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3); test
+  wrappers leave one managed simulator booted and shut down excess managed
+  agent simulators after the run. Shared `Trinket CI` and agent simulators held
+  by another active run are preserved. Set
+  `TRINKET_CLEANUP_EXCESS_SIMULATORS=0` to keep the warm pool. Omit `--isolate`
+  only for humans/CI that want the shared warm cache (`.DerivedData` + `Trinket CI`).
 - `verify-changed.sh` runs required generation once, then an **idempotent**
   generated-output check (`assert-generated-output.sh --idempotent`): regenerate
   must not change tracked outputs further. That answers “does this working tree

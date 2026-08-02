@@ -69,7 +69,7 @@ private struct HandMotionPlayground: View {
                     isPlayable: { card in
                         !(includeUnplayableCard && card.id == cards.first?.id)
                     },
-                    onTap: { _ in },
+                    onInspect: { _ in },
                     onPlay: { card, request in
                         handleSuccessfulPlay(card: card, request: request)
                     },

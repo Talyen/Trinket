@@ -15,6 +15,13 @@ public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
     }
 }
 
+public extension ItemBaseType {
+    /// Neutral base-item preview used before a generated reward's rarity is rolled.
+    var previewArtReference: ItemArtReference? {
+        ArtCatalog.itemArtByID["\(id)-basic"]
+    }
+}
+
 public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let title: String

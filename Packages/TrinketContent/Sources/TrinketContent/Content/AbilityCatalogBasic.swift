@@ -116,7 +116,7 @@ enum AbilityCatalogBasic {
 
     static let venomArrow = AbilityBuilder.directHit(
         id: "venom-arrow", name: "Venom Arrow", tier: .basic,
-        amount: 2, keyword: .poison
+        amount: 1, keyword: .poison
     )
 
     static let all: [Ability] = [

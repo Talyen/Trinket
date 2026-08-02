@@ -110,6 +110,7 @@ extension AppState {
         defaults.removeObject(forKey: OptionsStore.musicVolumeKey)
         defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
+        defaults.removeObject(forKey: OptionsStore.autoBattleEnabledKey)
         defaults.removeObject(forKey: OptionsStore.appearanceKey)
         defaults.removeObject(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
         defaults.removeObject(forKey: OptionsStore.ultimateCinematicSkipPolicyKey)

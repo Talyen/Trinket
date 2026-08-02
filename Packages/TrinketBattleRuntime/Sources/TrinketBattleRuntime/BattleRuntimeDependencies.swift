@@ -11,6 +11,8 @@ public struct BattleRuntimeDependencies {
     public let warmSFX: ([String], Int) -> Void
     public let hapticsEnabled: () -> Bool
     public let effectsVolume: () -> Double
+    public let autoBattleEnabled: () -> Bool
+    public let setAutoBattleEnabled: (Bool) -> Void
     public let shouldAutoSkipUltimateCinematic: (String, Set<String>) -> Bool
 
     public init(
@@ -18,12 +20,16 @@ public struct BattleRuntimeDependencies {
         warmSFX: @escaping ([String], Int) -> Void,
         hapticsEnabled: @escaping () -> Bool,
         effectsVolume: @escaping () -> Double,
+        autoBattleEnabled: @escaping () -> Bool = { false },
+        setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool
     ) {
         self.playSFX = playSFX
         self.warmSFX = warmSFX
         self.hapticsEnabled = hapticsEnabled
         self.effectsVolume = effectsVolume
+        self.autoBattleEnabled = autoBattleEnabled
+        self.setAutoBattleEnabled = setAutoBattleEnabled
         self.shouldAutoSkipUltimateCinematic = shouldAutoSkipUltimateCinematic
     }
 }

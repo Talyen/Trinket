@@ -225,6 +225,8 @@ else
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 fi
 
+trinket_run_env_install_test_simulator_cleanup
+
 mkdir -p "$RESULTS_DIR"
 ACTION="test"
 RUN_FINGERPRINT="$MODE"

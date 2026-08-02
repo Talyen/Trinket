@@ -102,4 +102,21 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
         play.assertCampaignLoaded(number: 1)
     }
+
+    func testAutoBattleToggleIsVisibleAndReversible() throws {
+        launchApp(arguments: TestLaunchArg.allForMidBattle())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+
+        if battle.waitForMidBattleOrVictory() {
+            throw XCTSkip("Stage 1-1 already resolved; Auto Battle requires active combat")
+        }
+
+        let toggle = battle.autoBattleToggle
+        XCTAssertTrue(toggle.waitForExistence(timeout: Self.defaultTimeout))
+        toggle.tap()
+        XCTAssertTrue(toggle.isSelected || (toggle.value as? String) == "1")
+        toggle.tap()
+        XCTAssertFalse(toggle.isSelected || (toggle.value as? String) == "1")
+    }
 }

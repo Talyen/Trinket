@@ -14,7 +14,7 @@ struct BattleAbilityCardView: View {
     var configuration: BattleHandMotionConfiguration = .init()
     let restingCenter: CGPoint
     let hapticsEnabled: Bool
-    let onTap: () -> Void
+    let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
     var onAttackWindUp: (() -> Void)?
@@ -25,10 +25,18 @@ struct BattleAbilityCardView: View {
     @State private var isDragging = false
     @State private var isPlayArmed = false
     @State private var didExceedTapSlop = false
+    @State private var interactionResolution: InteractionResolution = .undecided
     @State private var didAnnounceWindUp = false
     @State private var playArmFeedbackToken = 0
+    @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didAnnounceDeny = false
+
+    private enum InteractionResolution {
+        case undecided
+        case dragging
+        case inspecting
+    }
 
     private var playDragThreshold: CGFloat {
         configuration.playDragThreshold
@@ -69,9 +77,15 @@ struct BattleAbilityCardView: View {
                     .onChanged(updateDrag)
                     .onEnded(endDrag)
             )
+            .simultaneousGesture(inspectGesture)
             .trinketSensoryFeedback(
                 .selection,
                 trigger: playArmFeedbackToken,
+                enabled: hapticsEnabled
+            )
+            .trinketSensoryFeedback(
+                .selection,
+                trigger: inspectFeedbackToken,
                 enabled: hapticsEnabled
             )
             .trinketSensoryFeedback(
@@ -85,6 +99,23 @@ struct BattleAbilityCardView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
             .accessibilityLabel(card.ability.name)
+    }
+
+    private var inspectGesture: some Gesture {
+        LongPressGesture(
+            minimumDuration: configuration.detailLongPressDuration,
+            maximumDistance: configuration.dragMinimumDistance
+        )
+        .onChanged { didRecognizeLongPress in
+            if didRecognizeLongPress {
+                beginInspection()
+            }
+        }
+        .onEnded { didRecognizeLongPress in
+            if didRecognizeLongPress {
+                beginInspection()
+            }
+        }
     }
 
     private var activeOffset: CGSize {
@@ -134,6 +165,7 @@ struct BattleAbilityCardView: View {
 
     private func updateDrag(_ value: DragGesture.Value) {
         if !isDragging {
+            interactionResolution = .undecided
             withAnimation(configuration.cardPress) {
                 isDragging = true
             }
@@ -145,6 +177,7 @@ struct BattleAbilityCardView: View {
                minimumDistance: configuration.dragMinimumDistance
            ) {
             didExceedTapSlop = true
+            interactionResolution = .dragging
             if !didAnnounceWindUp {
                 didAnnounceWindUp = true
                 onAttackWindUp?()
@@ -192,13 +225,14 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
+        guard interactionResolution != .inspecting else { return }
+
         let isTap = BattleHandLayout.isTapGesture(
             translation: value.translation,
             didExceedTapSlop: didExceedTapSlop,
             minimumDistance: configuration.dragMinimumDistance
         )
         if isTap {
-            onTap()
             returnDrag()
             return
         }
@@ -216,7 +250,29 @@ struct BattleAbilityCardView: View {
         returnDrag()
     }
 
+    private func beginInspection() {
+        guard interactionResolution == .undecided,
+              BattleHandLayout.shouldOpenAbilityDetail(
+                  didRecognizeLongPress: true,
+                  translation: dragTranslation,
+                  didExceedTapSlop: didExceedTapSlop,
+                  minimumDistance: configuration.dragMinimumDistance
+              )
+        else { return }
+
+        interactionResolution = .inspecting
+        inspectFeedbackToken &+= 1
+        resetVisualState()
+        onInteractionChanged(false)
+        onInspect()
+    }
+
     private func returnDrag() {
+        resetVisualState()
+        onInteractionChanged(false)
+    }
+
+    private func resetVisualState() {
         if didAnnounceWindUp {
             didAnnounceWindUp = false
             onAttackCancel?()
@@ -228,7 +284,6 @@ struct BattleAbilityCardView: View {
             isDragging = false
             didExceedTapSlop = false
         }
-        onInteractionChanged(false)
     }
 
     private func beginPlay() {

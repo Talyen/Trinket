@@ -23,13 +23,140 @@ trinket_run_env_shared_root() {
   printf '%s/.DerivedData' "$(trinket_run_env_repo_root)"
 }
 
+trinket_simulator_is_managed_name() {
+  local name="$1"
+  [[ "$name" == "Trinket CI" || "$name" =~ ^Trinket\ Agent\ [0-9]+$ ]]
+}
+
+trinket_simulator_is_active_agent_name() {
+  local name="$1"
+  [[ "$name" =~ ^Trinket\ Agent\ ([0-9]+)$ ]] \
+    && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
+}
+
+# Shuts down excess managed test simulators while preserving one warm device.
+# Shared `Trinket CI` and agent slots held by another run are never shut down.
+trinket_simulator_cleanup_excess() {
+  [[ "${TRINKET_CLEANUP_EXCESS_SIMULATORS:-1}" == "1" ]] || return 0
+
+  local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
+  local lock_path="$shared_root/.simulator-cleanup.lock"
+  mkdir -p "$shared_root"
+
+  if [[ -e "$lock_path" ]]; then
+    local lock_pid=""
+    read -r lock_pid _ < "$lock_path" || true
+    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+      rm -f "$lock_path"
+    else
+      echo "Simulator cleanup already owned by pid ${lock_pid:-unknown}; leaving managed simulators running." >&2
+      return 0
+    fi
+  fi
+
+  if ! (set -o noclobber; printf '%s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" > "$lock_path") 2>/dev/null; then
+    echo "Simulator cleanup reservation is busy; leaving managed simulators running." >&2
+    return 0
+  fi
+
+  local managed_devices=""
+  if ! managed_devices="$(xcrun simctl list devices available -j 2>/dev/null | python3 -c '
+import json
+import re
+import sys
+
+payload = json.load(sys.stdin)
+records = []
+for runtime_identifier, devices in payload.get("devices", {}).items():
+    runtime_version = tuple(int(part) for part in re.findall(r"\d+", runtime_identifier))
+    for device in devices:
+        name = device.get("name", "")
+        if device.get("state") != "Booted":
+            continue
+        if name == "Trinket CI" or re.fullmatch(r"Trinket Agent \d+", name):
+            records.append((runtime_version, runtime_identifier, name, device.get("udid", "")))
+
+records.sort(key=lambda record: (record[0], record[2]), reverse=True)
+for _, runtime_identifier, name, udid in records:
+    if udid:
+        print(f"{udid}\t{name}\t{runtime_identifier}")
+')"; then
+    echo "Unable to list managed simulators; leaving them running." >&2
+    rm -f "$lock_path"
+    return 0
+  fi
+
+  local -a managed_udids=()
+  local -a managed_names=()
+  local -a managed_runtimes=()
+  local udid name runtime
+  while IFS=$'\t' read -r udid name runtime; do
+    [[ -n "$udid" ]] || continue
+    managed_udids+=("$udid")
+    managed_names+=("$name")
+    managed_runtimes+=("$runtime")
+  done <<< "$managed_devices"
+
+  local managed_count="${#managed_udids[@]}"
+  if (( managed_count <= 1 )); then
+    rm -f "$lock_path"
+    return 0
+  fi
+
+  local keep_index=-1
+  local index
+  for index in "${!managed_names[@]}"; do
+    if [[ "${managed_names[$index]}" == "Trinket CI" ]]; then
+      keep_index="$index"
+      break
+    fi
+  done
+  if (( keep_index < 0 )); then
+    for index in "${!managed_names[@]}"; do
+      if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
+        keep_index="$index"
+        break
+      fi
+    done
+  fi
+  if (( keep_index < 0 )); then
+    # The Python listing is newest-runtime-first, so this preserves the best
+    # available default when no shared or active agent simulator exists.
+    keep_index=0
+  fi
+
+  echo "Simulator cleanup: found $managed_count managed booted simulators; keeping ${managed_names[$keep_index]} (${managed_runtimes[$keep_index]})."
+  for index in "${!managed_udids[@]}"; do
+    name="${managed_names[$index]}"
+    if [[ "$name" == "Trinket CI" ]] \
+      || trinket_simulator_is_active_agent_name "$name" \
+      || (( index == keep_index )); then
+      continue
+    fi
+    echo "Simulator cleanup: shutting down $name (${managed_runtimes[$index]})."
+    xcrun simctl shutdown "${managed_udids[$index]}" 2>/dev/null || true
+  done
+
+  rm -f "$lock_path"
+}
+
 trinket_run_env_release_slots() {
   trinket_sim_slot_release
   trinket_ui_slot_release
+  local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  if [[ "${TRINKET_TEST_SIMULATOR_CLEANUP_OWNER:-}" == "$current_owner" ]]; then
+    trinket_simulator_cleanup_excess
+  fi
 }
 
 trinket_run_env_install_release_trap() {
   trap 'trinket_run_env_release_slots' EXIT INT TERM
+}
+
+trinket_run_env_install_test_simulator_cleanup() {
+  TRINKET_TEST_SIMULATOR_CLEANUP_OWNER="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  export TRINKET_TEST_SIMULATOR_CLEANUP_OWNER
+  trinket_run_env_install_release_trap
 }
 
 trinket_bind_agent_slot() {

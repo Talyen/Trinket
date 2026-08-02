@@ -18,7 +18,7 @@ slash	Slash	basic	Deal 2 Physical damage.
 sniff-out	Sniff Out	basic	Mark the enemy.
 stab	Stab	basic	Deal 2 Physical damage.
 stargaze	Stargaze	basic	Deal 1 Freeze damage and Restore 1 Mana.
-venom-arrow	Venom Arrow	basic	Deal 2 Poison damage.
+venom-arrow	Venom Arrow	basic	Deal 1 Poison damage.
 acid-potion	Acid Potion	skill	Deal 3 Poison damage.
 blood-offering	Blood Offering	skill	Lose 1 Health. Deal 4 Bleed damage.
 bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold.

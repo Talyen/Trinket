@@ -74,14 +74,14 @@ struct HomesteadCategoryView: View {
 }
 
 extension HomesteadNodeCategory {
-    /// Reserved background art IDs; blank surface until category art ships.
+    /// Background art IDs used by the category cards and category hero.
     var artID: String {
         switch self {
-        case .farming: "homesteadCategoryFarming"
-        case .crafting: "homesteadCategoryCrafting"
-        case .alchemy: "homesteadCategoryAlchemy"
-        case .training: "homesteadCategoryTraining"
-        case .arcana: "homesteadCategoryArcana"
+        case .farming: "wheatField"
+        case .crafting: "blacksmithForge"
+        case .alchemy: "alchemyLab"
+        case .training: "hunterLodge"
+        case .arcana: "moonlitSanctum"
         }
     }
 }

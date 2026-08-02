@@ -108,6 +108,12 @@ public final class AppState {
                 effectsVolume: {
                     dependencies.options.effectsVolume
                 },
+                autoBattleEnabled: {
+                    dependencies.options.autoBattleEnabled
+                },
+                setAutoBattleEnabled: { enabled in
+                    dependencies.options.autoBattleEnabled = enabled
+                },
                 shouldAutoSkipUltimateCinematic: { actorID, presentedActors in
                     dependencies.options.shouldAutoSkipUltimateCinematic(
                         actorID: actorID,

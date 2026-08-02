@@ -11,6 +11,31 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 REPO="$TMP_DIR/repo"
 mkdir -p "$REPO/Scripts"
 cp "$ROOT_DIR/Scripts/run-env.sh" "$REPO/Scripts/run-env.sh"
+
+FAKE_BIN="$TMP_DIR/bin"
+FAKE_SHUTDOWN_LOG="$TMP_DIR/shutdown.log"
+mkdir -p "$FAKE_BIN"
+cat > "$FAKE_BIN/xcrun" <<'FAKE_XCRUN'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "list" && "$3" == "devices" && "$4" == "available" ]]; then
+  cat <<'JSON'
+{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"Trinket Agent 1","udid":"agent-1","state":"Booted"}],"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Trinket Agent 2","udid":"agent-2","state":"Booted"},{"name":"Trinket Agent 3","udid":"agent-3","state":"Booted"},{"name":"iPhone 17 Pro","udid":"personal-device","state":"Booted"}]}}
+JSON
+  exit 0
+fi
+
+if [[ "$#" -ge 3 && "$1" == "simctl" && "$2" == "shutdown" ]]; then
+  printf '%s\n' "$3" >> "$FAKE_SHUTDOWN_LOG"
+  exit 0
+fi
+
+echo "unexpected xcrun invocation: $*" >&2
+exit 1
+FAKE_XCRUN
+chmod +x "$FAKE_BIN/xcrun"
+
 # Minimal generate.sh extract for lock timeout testing.
 cat > "$REPO/Scripts/generate-lock-harness.sh" <<'HARNESS'
 #!/usr/bin/env bash
@@ -215,6 +240,24 @@ bash -c '
   [[ ! -e "$TRINKET_UI_ACTIVE_DIR/dead.slot" ]]
   rm -f "$TRINKET_UI_ACTIVE_DIR/one.slot" "$TRINKET_UI_ACTIVE_DIR/two.slot"
 ' _ "$REPO"
+
+# --- cleanup leaves one newest managed simulator and ignores personal devices ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_SHUTDOWN_LOG="$3"
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="cleanup-test"
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  trinket_sim_slot_release
+  trinket_simulator_cleanup_excess
+  grep -Fx "agent-1" "$FAKE_SHUTDOWN_LOG"
+  grep -Fx "agent-2" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "personal-device" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "agent-3" "$FAKE_SHUTDOWN_LOG"
+' _ "$REPO" "$FAKE_BIN" "$FAKE_SHUTDOWN_LOG"
 
 # --- generate lock timeout ---
 bash -c '

@@ -135,6 +135,19 @@ enum BattleHandLayout {
         return !exceedsTapSlop(translation: translation, minimumDistance: minimumDistance)
     }
 
+    /// A stationary long press is reserved for opening card details. Once the
+    /// card leaves the slop band, the existing drag interaction owns the touch.
+    static func shouldOpenAbilityDetail(
+        didRecognizeLongPress: Bool,
+        translation: CGSize,
+        didExceedTapSlop: Bool,
+        minimumDistance: CGFloat = dragMinimumDistance
+    ) -> Bool {
+        didRecognizeLongPress
+            && !didExceedTapSlop
+            && !exceedsTapSlop(translation: translation, minimumDistance: minimumDistance)
+    }
+
     static func shouldPlay(
         translation: CGSize,
         predictedEndTranslation: CGSize,

@@ -71,6 +71,13 @@ struct ArtCatalogIntegrationTests {
             )
         }
 
+        for baseType in GameContent.itemBaseTypes {
+            _ = try #require(
+                baseType.previewArtReference,
+                "Missing base preview art for item base \(baseType.id)"
+            )
+        }
+
         let template = try #require(GameContent.sampleInventoryItems.first)
         let rewarded = template.rewardInstance(for: "chapter-1-stage-1")
         #expect(rewarded.id != rewarded.templateID)

@@ -21,6 +21,7 @@ struct OptionsStoreTests {
         #endif
         #expect(abs((store.effectsVolume) - 0.85) < 0.001)
         #expect(store.hapticsEnabled)
+        #expect(!store.autoBattleEnabled)
         #expect(store.ultimateCinematicShowPolicy == .oncePerBattle)
     }
 
@@ -28,6 +29,7 @@ struct OptionsStoreTests {
         context.userDefaults.set(0.4, forKey: "options.musicVolume")
         context.userDefaults.set(0.6, forKey: "options.effectsVolume")
         context.userDefaults.set(false, forKey: "options.hapticsEnabled")
+        context.userDefaults.set(true, forKey: OptionsStore.autoBattleEnabledKey)
         context.userDefaults.set(
             UltimateCinematicShowPolicy.always.rawValue,
             forKey: OptionsStore.ultimateCinematicShowPolicyKey
@@ -38,6 +40,7 @@ struct OptionsStoreTests {
         #expect(abs((store.musicVolume) - 0.4) < 0.001)
         #expect(abs((store.effectsVolume) - 0.6) < 0.001)
         #expect(!(store.hapticsEnabled))
+        #expect(store.autoBattleEnabled)
         #expect(store.ultimateCinematicShowPolicy == .always)
     }
 
@@ -46,11 +49,13 @@ struct OptionsStoreTests {
         store.musicVolume = 0.25
         store.effectsVolume = 0.5
         store.hapticsEnabled = false
+        store.autoBattleEnabled = true
         store.ultimateCinematicShowPolicy = .always
 
         #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - 0.25) < 0.001)
         #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - 0.5) < 0.001)
         #expect(!(context.userDefaults.bool(forKey: "options.hapticsEnabled")))
+        #expect(context.userDefaults.bool(forKey: OptionsStore.autoBattleEnabledKey))
         #expect(
             context.userDefaults.string(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
                 == UltimateCinematicShowPolicy.always.rawValue
@@ -60,6 +65,7 @@ struct OptionsStoreTests {
         #expect(abs((reloaded.musicVolume) - 0.25) < 0.001)
         #expect(abs((reloaded.effectsVolume) - 0.5) < 0.001)
         #expect(!reloaded.hapticsEnabled)
+        #expect(reloaded.autoBattleEnabled)
         #expect(reloaded.ultimateCinematicShowPolicy == .always)
     }
 }

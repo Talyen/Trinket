@@ -259,8 +259,9 @@ struct BattleHandLayoutTests {
         #expect(resisted.height > defaultResisted.height)
     }
 
-    @Test func tapGestureIgnoresDragReturnNearRestingPosition() {
-        // A press that never leaves slop opens ability detail.
+    @Test func tapGestureReturnsCardWithoutOpeningAbilityDetail() {
+        // A press that never leaves slop is now an inert release; detail is
+        // reserved for the stationary long-press gesture.
         #expect(BattleHandLayout.isTapGesture(
             translation: CGSize(width: 4, height: -3),
             didExceedTapSlop: false
@@ -275,6 +276,24 @@ struct BattleHandLayoutTests {
         ))
         #expect(!BattleHandLayout.exceedsTapSlop(
             translation: CGSize(width: 5, height: -5)
+        ))
+    }
+
+    @Test func longPressDetailRequiresStationaryCard() {
+        #expect(BattleHandLayout.shouldOpenAbilityDetail(
+            didRecognizeLongPress: true,
+            translation: .zero,
+            didExceedTapSlop: false
+        ))
+        #expect(!BattleHandLayout.shouldOpenAbilityDetail(
+            didRecognizeLongPress: true,
+            translation: CGSize(width: 12, height: 0),
+            didExceedTapSlop: true
+        ))
+        #expect(!BattleHandLayout.shouldOpenAbilityDetail(
+            didRecognizeLongPress: false,
+            translation: .zero,
+            didExceedTapSlop: false
         ))
     }
 }

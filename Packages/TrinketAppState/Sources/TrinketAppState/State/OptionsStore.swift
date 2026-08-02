@@ -57,6 +57,7 @@ public final class OptionsStore {
     @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
+    @ObservationIgnored private var autoBattleEnabledStorage: AppStorage<Bool>
     @ObservationIgnored private var ultimateShowPolicyStorage: AppStorage<String>
 
     public var musicVolume: Double {
@@ -69,6 +70,11 @@ public final class OptionsStore {
 
     public var hapticsEnabled: Bool {
         didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
+    }
+
+    /// Battle-only preference surfaced from the Battle toolbar, not Options.
+    public var autoBattleEnabled: Bool {
+        didSet { autoBattleEnabledStorage.wrappedValue = autoBattleEnabled }
     }
 
     public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
@@ -84,6 +90,7 @@ public final class OptionsStore {
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
+    static let autoBattleEnabledKey = "battle.autoBattleEnabled"
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
     /// Former "Skip Ultimate Animations" key. Cleared after one-shot migration to show framing.
     static let ultimateCinematicSkipPolicyKey = "options.ultimateCinematicSkipPolicy"
@@ -108,6 +115,11 @@ public final class OptionsStore {
             Self.hapticsEnabledKey,
             store: defaults
         )
+        autoBattleEnabledStorage = AppStorage(
+            wrappedValue: false,
+            Self.autoBattleEnabledKey,
+            store: defaults
+        )
 
         let resolvedPolicy = Self.resolveShowPolicy(from: defaults)
         ultimateShowPolicyStorage = AppStorage(
@@ -119,6 +131,7 @@ public final class OptionsStore {
         musicVolume = musicVolumeStorage.wrappedValue
         effectsVolume = effectsVolumeStorage.wrappedValue
         hapticsEnabled = hapticsEnabledStorage.wrappedValue
+        autoBattleEnabled = autoBattleEnabledStorage.wrappedValue
         ultimateCinematicShowPolicy = resolvedPolicy
         ultimateShowPolicyStorage.wrappedValue = resolvedPolicy.rawValue
     }

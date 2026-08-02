@@ -22,12 +22,12 @@ private struct HeldCardInteraction: Equatable {
 struct BattleHandView: View {
     let cards: [BattleCard]
     let isPlayable: (BattleCard) -> Bool
-    let onTap: (BattleCard) -> Void
+    let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let hapticsEnabled: Bool
     let battleFrame: CGRect
     var configuration: BattleHandMotionConfiguration = .init()
-    /// Fires when any hand card press/drag begins or ends (including tap-to-detail).
+    /// Fires when any hand card press/drag begins or ends (including long-press detail).
     var onCardInteractionChanged: ((Bool) -> Void)?
     /// Drag exceeded tap slop — start party attack wind-up for this card's owner.
     var onAttackWindUp: ((BattleCard) -> Void)?
@@ -85,7 +85,7 @@ struct BattleHandView: View {
                         configuration: configuration,
                         restingCenter: snapshot.restingCenter,
                         hapticsEnabled: hapticsEnabled,
-                        onTap: { onTap(card) },
+                        onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
                         onInteractionChanged: { isActive in
                             if isActive {
@@ -138,7 +138,7 @@ struct BattleHandView: View {
     init(
         cards: [BattleCard],
         isPlayable: @escaping (BattleCard) -> Bool,
-        onTap: @escaping (BattleCard) -> Void,
+        onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
@@ -149,7 +149,7 @@ struct BattleHandView: View {
         self.init(
             cards: cards,
             isPlayable: isPlayable,
-            onTap: onTap,
+            onInspect: onInspect,
             onPlay: onPlay,
             hapticsEnabled: hapticsEnabled,
             battleFrame: battleFrame,
@@ -163,7 +163,7 @@ struct BattleHandView: View {
     init(
         cards: [BattleCard],
         isPlayable: @escaping (BattleCard) -> Bool,
-        onTap: @escaping (BattleCard) -> Void,
+        onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
@@ -174,7 +174,7 @@ struct BattleHandView: View {
     ) {
         self.cards = cards
         self.isPlayable = isPlayable
-        self.onTap = onTap
+        self.onInspect = onInspect
         self.onPlay = onPlay
         self.hapticsEnabled = hapticsEnabled
         self.battleFrame = battleFrame

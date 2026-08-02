@@ -17,7 +17,7 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 | Build / traits / affixes | `CombatBuildResolverTests`, `*TraitBattleTests`, `AffixReactionBattleTests` | item triggers |
 | Catalog ability combos | `AbilityEffectIntegrationTests` | Bloodthorn, Prayer |
 | Outcome / log | `BattleOutcomeResolverTests`, `BattleLogReducerTests` | victory rules |
-| Balance simulator | `BattleSimulatorTests` | greedy autoplay, parallel parity, ability/affix contrasts |
+| Balance simulator | `BattleSimulatorTests` | one-off greedy autoplay, parallel parity, ability/affix contrasts |
 
 ## Integration through card turns
 
@@ -37,4 +37,11 @@ not fit a row below, add a row rather than stuffing it into an unrelated file.
 
 ```sh
 ./Scripts/test-package.sh BattleEngine
+```
+
+The balance-tool tests are excluded from the default package command. Run them
+explicitly for a one-off balance check:
+
+```sh
+./Scripts/test-package.sh --include-balance-sweep-tests BattleEngine
 ```

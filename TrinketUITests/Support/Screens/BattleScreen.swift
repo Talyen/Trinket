@@ -18,6 +18,10 @@ struct BattleScreen {
         app.buttons[AccessibilityID.Battle.actionsMenu]
     }
 
+    var autoBattleToggle: XCUIElement {
+        app.buttons[AccessibilityID.Battle.autoBattleToggle]
+    }
+
     var combatLogAction: XCUIElement {
         app.buttons[AccessibilityID.Battle.combatLog]
     }

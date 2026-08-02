@@ -53,11 +53,17 @@ struct LabyrinthMapView: View {
             }
         }
         .onAppear {
-            if !state.hasMap {
+            let enteredMap = !state.hasMap
+            if enteredMap {
                 _ = labyrinth.enter()
             }
             viewedFloor = max(1, state.currentFloorNumber)
-            labyrinth.prepareReachableBattles()
+            // Entering a fresh map mutates `playerSave.labyrinth`; the change
+            // observer below prepares reachable battles after that mutation.
+            // Avoid doing the same preparation again in this appearance pass.
+            if !enteredMap {
+                labyrinth.prepareReachableBattles()
+            }
         }
         .onChange(of: playerSave.labyrinth) { previous, current in
             labyrinth.prepareReachableBattles()

@@ -235,6 +235,7 @@ public enum AccessibilityID {
 
     public enum Battle {
         public static let actionsMenu = "Battle Actions"
+        public static let autoBattleToggle = "Auto Battle Toggle"
         public static let hand = "Battle Hand"
         public static let combatLog = "Combat Log"
         #if DEBUG
