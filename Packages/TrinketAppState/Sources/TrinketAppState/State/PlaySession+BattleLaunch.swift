@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
@@ -14,7 +15,7 @@ import TrinketPersistence
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
     let battle: any BattleRuntime
-    let registerPresentation: @MainActor @Sendable (BattleRunKey, PlayBattlePresentationContext) -> Void
+    let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
     let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
 
@@ -25,6 +26,7 @@ struct PlayBattleLaunch {
     func activateCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
+        route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
@@ -34,6 +36,7 @@ struct PlayBattleLaunch {
         let roster = playerSave.roster
         return activateBattle(
             origin: origin,
+            route: route,
             hero: roster.activeHero,
             companion: roster.activeCompanion,
             enemy: encounter.combatant,
@@ -52,6 +55,7 @@ struct PlayBattleLaunch {
     func prepareCombat(
         origin: PlayBattleOrigin,
         encounter: (combatant: Combatant, level: Int),
+        route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
@@ -72,11 +76,11 @@ struct PlayBattleLaunch {
             musicStageID: musicStageID ?? origin.musicStageID,
             universalModifiers: universalModifiers
         )
-        if let runKey = launch.configuration.runKey {
-            registerPresentation(runKey, launch.presentation)
-        }
+        guard isValidRoute(route, for: launch.configuration) else { return false }
         let prepared = battle.prepareBattleRun(launch.configuration)
-        if !prepared, let runKey = launch.configuration.runKey {
+        if prepared {
+            registerRunIfNeeded(launch, route: route)
+        } else if let runKey = launch.configuration.runKey {
             removeRun(runKey)
         }
         return prepared
@@ -86,6 +90,7 @@ struct PlayBattleLaunch {
     @discardableResult
     func activateBattle(
         origin: PlayBattleOrigin? = nil,
+        route: PlayBattleRoute? = nil,
         hero: Combatant,
         companion: Combatant,
         enemy: Combatant?,
@@ -99,6 +104,7 @@ struct PlayBattleLaunch {
         musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
+        guard isValidRoute(route, for: origin) else { return false }
         if let origin,
            battle.activatePreparedBattle(
                runKey: origin.runKey,
@@ -124,11 +130,10 @@ struct PlayBattleLaunch {
             musicStageID: musicStageID,
             universalModifiers: universalModifiers
         )
-        if let runKey = launch.configuration.runKey {
-            registerPresentation(runKey, launch.presentation)
-        }
         let activated = battle.activate(launch.configuration)
-        if !activated, let runKey = launch.configuration.runKey {
+        if activated {
+            registerRunIfNeeded(launch, route: route)
+        } else if let runKey = launch.configuration.runKey {
             removeRun(runKey)
         }
         return activated
@@ -166,7 +171,7 @@ struct PlayBattleLaunch {
         ).configuration
     }
 
-    private func makeBattleLaunch(
+    func makeBattleLaunch(
         origin: PlayBattleOrigin?,
         hero: Combatant,
         companion: Combatant,
@@ -180,7 +185,7 @@ struct PlayBattleLaunch {
         hasProgressionRewards: Bool? = nil,
         musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
-    ) -> (configuration: BattleRunConfiguration, presentation: PlayBattlePresentationContext) {
+    ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]) {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
@@ -205,175 +210,42 @@ struct PlayBattleLaunch {
         )
     }
 
-    /// Bakes party builds, enemy trait modifiers, and Play-owned presentation data.
-    static func assembleConfiguration(
-        runKey: BattleRunKey? = nil,
-        rngSeed: UInt64,
-        hero: Combatant,
-        companion: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState = .freshStart,
-        enemy: Combatant? = nil,
-        enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
-        hasProgressionRewards: Bool = false,
-        musicStageID: String? = nil
-    ) -> BattleRunConfiguration {
-        assembleLaunch(
-            runKey: runKey,
-            rngSeed: rngSeed,
-            hero: hero,
-            companion: companion,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
-            homesteadState: homesteadState,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID
-        ).configuration
-    }
-
-    static func assembleLaunch(
-        runKey: BattleRunKey? = nil,
-        rngSeed: UInt64,
-        hero: Combatant,
-        companion: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState = .freshStart,
-        enemy: Combatant? = nil,
-        enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
-        hasProgressionRewards: Bool = false,
-        musicStageID: String? = nil
-    ) -> (configuration: BattleRunConfiguration, presentation: PlayBattlePresentationContext) {
-        let enemyBuild = resolvedEnemyBuild(enemy: enemy)
-        var enemyModifiers = enemyBuild.modifiers
-        enemyModifiers.merge(universalModifiers)
-        let homesteadEffects = homesteadState.effects
-        let heroMember = partyMember(
-            combatant: hero,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
-            additionalModifiers: homesteadEffects.heroModifiers + universalModifiers
-        )
-        let companionMember = partyMember(
-            combatant: companion,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
-            additionalModifiers: homesteadEffects.companionModifiers + universalModifiers
-        )
-        let resolvedStageReward = stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
-        let enemyLevel = enemyEncounterLevel ?? heroMember.progression.level
-        let configuration = BattleRunConfiguration(
-            runKey: runKey,
-            rngSeed: rngSeed,
-            hero: heroMember,
-            companion: companionMember,
-            enemy: enemyBuild.combatant,
-            enemyEncounterLevel: enemyEncounterLevel,
-            enemyModifiers: enemyModifiers
-        )
-        let presentation = PlayBattlePresentationContext(
-            inventoryItems: inventoryState.items,
-            stageReward: stageReward,
-            rewardItems: resolvedRewardItems(
-                stageReward: stageReward,
-                pendingRewardItem: pendingRewardItem
-            ),
-            pendingRewardItem: pendingRewardItem,
-            experienceBonusPercent: experienceBonusPercent,
-            goldFindPercent: homesteadEffects.goldFindPercent,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID,
-            heroExperienceAward: StageCompletion.battleExperienceAward(
-                playerLevel: heroMember.progression.level,
-                enemyLevel: enemyLevel,
-                highestLevel: rosterState.highestHeroLevel,
-                xpPercent: experienceBonusPercent
-            ),
-            companionExperienceAward: StageCompletion.battleExperienceAward(
-                playerLevel: companionMember.progression.level,
-                enemyLevel: enemyLevel,
-                highestLevel: rosterState.highestCompanionLevel,
-                xpPercent: experienceBonusPercent
-            ),
-            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward)
-        )
-        return (configuration, presentation)
-    }
-
-    private static func partyMember(
-        combatant: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        additionalModifiers: [AffixModifier] = []
-    ) -> BattleRunConfiguration.PartyMember {
-        let progression = rosterState.progression(for: combatant)
-        let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
-        let build = CombatBuildResolver.build(
-            combatant: CombatantLevelScaler.scale(
-                combatant: combatant,
-                level: progression.level
-            ),
-            equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState.items,
-            additionalModifiers: additionalModifiers
-        )
-        return BattleRunConfiguration.PartyMember(
-            combatant: build.combatant,
-            progression: progression,
-            equipmentLoadout: equipmentLoadout,
-            modifiers: build.modifiers
-        )
-    }
-
-    private static func resolvedEnemyBuild(
-        enemy: Combatant?
-    ) -> CombatBuild {
-        guard let enemy else {
-            return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
+    private func isValidRoute(
+        _ route: PlayBattleRoute?,
+        for configuration: BattleRunConfiguration
+    ) -> Bool {
+        guard let runKey = configuration.runKey else { return route == nil }
+        guard let route, route.origin.runKey == runKey else {
+            appStateLogger.error("Missing route for prepared battle registration")
+            return false
         }
-        // Preserve the encounter combatant (already scaled by launch).
-        // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
-        // with the catalog base combatant.
-        if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
-            return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
-        }
-        return CombatBuild(combatant: enemy, modifiers: .zero)
+        return true
     }
 
-    private static func resolvedRewardItems(
-        stageReward: StageReward?,
-        pendingRewardItem: InventoryItem?
-    ) -> [InventoryItem] {
-        if let pendingRewardItem {
-            return [pendingRewardItem]
+    private func isValidRoute(
+        _ route: PlayBattleRoute?,
+        for origin: PlayBattleOrigin?
+    ) -> Bool {
+        guard let origin else { return route == nil }
+        guard let route, route.origin.runKey == origin.runKey else {
+            appStateLogger.error("Missing route for battle activation")
+            return false
         }
-        guard let stageReward else { return [] }
-        return stageReward.itemTemplateIDs.compactMap(GameContent.itemTemplate(matching:))
+        return true
+    }
+
+    private func registerRunIfNeeded(
+        _ launch: (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]),
+        route: PlayBattleRoute?
+    ) {
+        guard launch.configuration.runKey != nil, let route else { return }
+        registerRun(
+            PlayBattleRunRegistration(
+                route: route,
+                presentation: launch.presentation,
+                universalModifiers: launch.universalModifiers
+            )
+        )
     }
 }
 
@@ -393,8 +265,13 @@ public extension PlaySession {
         }
         let origin = route?.origin
         let presentation = battlePresentation(for: activeBattle.runKey)
+        guard activeBattle.runKey == nil || presentation != nil else {
+            appStateLogger.error("Missing presentation metadata for active battle restart")
+            return
+        }
+        let universalModifiers = battleUniversalModifiers(for: activeBattle.runKey)
 
-        let configuration = battleLaunch.makeBattleConfiguration(
+        let launch = battleLaunch.makeBattleLaunch(
             origin: origin,
             hero: hero,
             companion: companion,
@@ -407,8 +284,17 @@ public extension PlaySession {
             defeatPrimaryAction: presentation?.defeatPrimaryAction,
             hasProgressionRewards: presentation?.hasProgressionRewards,
             musicStageID: presentation?.musicStageID,
-            universalModifiers: presentation?.universalModifiers ?? []
+            universalModifiers: universalModifiers
         )
-        _ = battle.restart(configuration)
+        guard battle.restart(launch.configuration) else { return }
+        if let route {
+            registerBattleRun(
+                PlayBattleRunRegistration(
+                    route: route,
+                    presentation: launch.presentation,
+                    universalModifiers: launch.universalModifiers
+                )
+            )
+        }
     }
 }

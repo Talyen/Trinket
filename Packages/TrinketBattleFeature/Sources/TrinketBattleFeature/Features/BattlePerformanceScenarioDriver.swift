@@ -85,7 +85,7 @@ struct BattlePerformanceScenarioDriver {
     }
 
     static func feedbackEvents(in session: BattleSession) -> [ActionEvent] {
-        guard let readModel = session.simulation.readModel else { return [] }
+        guard let readModel = session.runtime.simulation.readModel else { return [] }
         let targets = [readModel.enemy, readModel.hero, readModel.companion]
         let keywords: [Keyword] = [.physical, .burn, .freeze, .holy, .poison, .block]
         return (0 ..< 9).map { index in

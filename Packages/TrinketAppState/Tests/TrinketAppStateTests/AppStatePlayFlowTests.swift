@@ -25,7 +25,8 @@ struct AppStatePlayFlowTests {
         #expect(state.journey.startBattle(for: stage) == nil)
 
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
-        #expect(state.uiBattle.hasActiveSimulation)
+        let battle = try #require(context.lastBattle)
+        #expect(battle.hasActiveSimulation)
     }
 
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
@@ -267,10 +268,11 @@ struct AppStatePlayFlowTests {
         _ = state.journey.startBattle(for: stage)
         state.shellSession.selectedTab = .options
 
-        state.uiBattle.presentBattleLog()
+        let battle = try #require(context.lastBattle)
+        battle.presentBattleLog()
 
         #expect(state.shellSession.selectedTab == .options)
-        #expect(state.uiBattle.isShowingBattleLog)
+        #expect(battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }
 

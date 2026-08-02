@@ -59,7 +59,8 @@ final class AppTestContext {
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
-        let battle = BattleSession(presentationEnvironment: .silent)
+        let runtime = BattleRuntimeSession()
+        let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
         let state = try AppState(
             environment: parsed,
             playerSave: playerSave ?? PlayerSaveStore(
@@ -71,7 +72,7 @@ final class AppTestContext {
             shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
-                runtime: battle,
+                runtime: runtime,
                 onLaunchBattleVictory: { battle.presentLaunchVictory() }
             )
         )
@@ -83,7 +84,8 @@ final class AppTestContext {
 
     @MainActor
     func makeAppState(environment: AppEnvironment) throws -> AppState {
-        let battle = BattleSession(presentationEnvironment: .silent)
+        let runtime = BattleRuntimeSession()
+        let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
         let state = try AppState(
             environment: environment,
             playerSave: PlayerSaveStore(
@@ -95,7 +97,7 @@ final class AppTestContext {
             shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
-                runtime: battle,
+                runtime: runtime,
                 onLaunchBattleVictory: { battle.presentLaunchVictory() }
             )
         )
@@ -120,14 +122,5 @@ final class AppTestContext {
     @MainActor
     func makePlaySession(environment: AppEnvironment) throws -> PlaySession {
         try makeAppState(environment: environment).play
-    }
-}
-
-extension PlaySession {
-    var uiBattle: BattleSession {
-        guard let battle = battle as? BattleSession else {
-            fatalError("AppState tests require the BattleFeature runtime")
-        }
-        return battle
     }
 }

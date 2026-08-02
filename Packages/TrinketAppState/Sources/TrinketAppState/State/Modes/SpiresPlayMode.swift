@@ -14,18 +14,15 @@ public final class SpiresPlayMode {
     private let playerSave: PlayerSaveStore
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
-    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
-        battleLaunch: PlayBattleLaunch,
-        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
+        battleLaunch: PlayBattleLaunch
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
-        self.registerBattleRoute = registerBattleRoute
     }
 
     public func resolvedEncounter(for floor: SpireFloor) -> (combatant: Combatant, level: Int)? {
@@ -114,10 +111,10 @@ public final class SpiresPlayMode {
         }
 
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: floor),
             defeatPrimaryAction: .restart
         )
@@ -139,10 +136,10 @@ public final class SpiresPlayMode {
         else { return }
 
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: floor),
             defeatPrimaryAction: .restart
         )

@@ -17,6 +17,8 @@ Fast iteration loop: `./Scripts/test.sh unit` or `./Scripts/test-package.sh <Pac
 ## Change discipline
 
 - Deliver the smallest change that fully satisfies the request. Do not add speculative extension points, compatibility paths, defensive layers for impossible states, or adjacent cleanup.
+- Do not preserve backward compatibility unless it is an explicit current requirement. Choose the simplest implementation that fully satisfies the behavior the product needs now.
+- Prefer established, well-maintained libraries over custom implementations when they meet the current requirements.
 - Prefer smaller surface area: delete → reuse → simplify locally → parameterize a confirmed duplicate → add an abstraction.
 - Extend the module that already owns the behavior before adding a file, type, protocol, manager, helper, wrapper, or configuration object. A generic abstraction needs at least three current uses or an enforced architectural boundary; predicted future reuse is insufficient.
 - Refactors remove the replaced path. Do not leave forwarding wrappers, parallel implementations, or duplicate tests unless compatibility explicitly requires them.

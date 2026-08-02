@@ -96,7 +96,8 @@ struct BattleSessionAppIntegrationTests {
         let original = try #require(appState.battle.activeBattle)
         let originalPresentation = try #require(appState.battlePresentation(for: original.runKey))
         let effects = appState.playerSave.labyrinth.effects(for: combatNodeID)
-        #expect(originalPresentation.universalModifiers.count == 1)
+        let originalUniversalModifiers = appState.battleUniversalModifiers(for: original.runKey)
+        #expect(originalUniversalModifiers.count == 1)
         for (keyword, amount) in effects.damageDealtBonus {
             #expect(original.hero.modifiers.damageDealtBonus(for: keyword) == amount)
             #expect(original.companion.modifiers.damageDealtBonus(for: keyword) == amount)
@@ -108,7 +109,9 @@ struct BattleSessionAppIntegrationTests {
         let restarted = try #require(appState.battle.activeBattle)
         let restartedPresentation = try #require(appState.battlePresentation(for: restarted.runKey))
         #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
-        #expect(restartedPresentation.universalModifiers == originalPresentation.universalModifiers)
+        #expect(
+            appState.battleUniversalModifiers(for: restarted.runKey) == originalUniversalModifiers
+        )
         #expect(restartedPresentation.pendingRewardItem == originalPresentation.pendingRewardItem)
         #expect(restartedPresentation.rewardItems == originalPresentation.rewardItems)
         #expect(restarted.id != original.id)

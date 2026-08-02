@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketAppState
+import TrinketBattleContracts
 import TrinketBattleFeature
 import TrinketBattleRuntime
 import TrinketContent
@@ -211,26 +212,30 @@ private struct PlayBattleOverlay: View {
         // content. Opacity crossfade softens enter/exit without a custom nav stack.
         NavigationStack {
             if let configuration {
-                let presentationContext = battlePresentationContext(for: configuration)
-                BattleView(
-                    configuration: configuration,
-                    presentationContext: presentationContext,
-                    battleSession: battle,
-                    completeBattle: { [weak play] configuration, earnedGold, rewards in
-                        play?.completeActiveBattle(
-                            configuration,
-                            battleEarnedGold: earnedGold,
-                            materialRewards: rewards
-                        ) ?? false
-                    },
-                    restartBattle: { [weak play] in
-                        play?.restartActiveBattle()
-                    },
-                    retreat: { [weak play] in
-                        play?.endBattleReturningToOrigin()
-                    },
-                    performanceScenario: AppEnvironment.shared.battlePerformanceScenario
-                )
+                if let presentationContext = battlePresentationContext(for: configuration) {
+                    BattleView(
+                        configuration: configuration,
+                        presentationContext: presentationContext,
+                        battleSession: battle,
+                        completeBattle: { [weak play] configuration, earnedGold, rewards in
+                            play?.completeActiveBattle(
+                                configuration,
+                                battleEarnedGold: earnedGold,
+                                materialRewards: rewards
+                            ) ?? false
+                        },
+                        restartBattle: { [weak play] in
+                            play?.restartActiveBattle()
+                        },
+                        retreat: { [weak play] in
+                            play?.endBattleReturningToOrigin()
+                        },
+                        performanceScenario: AppEnvironment.shared.battlePerformanceScenario
+                    )
+                } else {
+                    Color.clear
+                        .accessibilityHidden(true)
+                }
             } else {
                 Color.clear
                     .accessibilityHidden(true)
@@ -244,23 +249,9 @@ private struct PlayBattleOverlay: View {
 
     private func battlePresentationContext(
         for configuration: BattleRunConfiguration
-    ) -> BattlePresentationContext {
-        let playContext = play.battlePresentation(for: configuration.runKey)
-        return BattlePresentationContext(
-            inventoryItems: playContext?.inventoryItems ?? play.playerSave.inventory.items,
-            stageReward: playContext?.stageReward,
-            rewardItems: playContext?.rewardItems ?? [],
-            pendingRewardItem: playContext?.pendingRewardItem,
-            experienceBonusPercent: playContext?.experienceBonusPercent ?? 0,
-            goldFindPercent: playContext?.goldFindPercent ?? 0,
-            stageRewardsAlreadyClaimed: playContext?.stageRewardsAlreadyClaimed ?? false,
-            defeatPrimaryAction: playContext?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: playContext?.hasProgressionRewards ?? false,
-            musicStageID: playContext?.musicStageID,
-            heroExperienceAward: playContext?.heroExperienceAward ?? 0,
-            companionExperienceAward: playContext?.companionExperienceAward ?? 0,
-            materialRewards: playContext?.materialRewards ?? []
-        )
+    ) -> BattlePresentationContext? {
+        guard let runKey = configuration.runKey else { return .empty }
+        return play.battlePresentation(for: runKey)
     }
 }
 

@@ -18,14 +18,14 @@ extension BattleSession {
     /// the engine so deal-insert transitions can run. Stagger `<= 0` fills the
     /// hand synchronously for unit tests.
     func beginOpeningHandDeal(for configurationID: UUID) {
-        guard simulation.hasState,
-              simulation.hand.isEmpty,
+        guard runtime.simulation.hasState,
+              runtime.simulation.hand.isEmpty,
               let activeID = activeBattle?.id,
               activeID == configurationID
         else { return }
 
         if openingHandDrawStagger <= 0 {
-            _ = simulation.drawOpeningHand()
+            _ = runtime.simulation.drawOpeningHand()
             installSimulationPresentation()
             presentationEnvironment.playSFX([SFXID.abilityDraw])
             return
@@ -50,11 +50,11 @@ extension BattleSession {
             while true {
                 guard !Task.isCancelled else { return }
                 guard activeBattle?.id == configurationID,
-                      simulation.hasState
+                      runtime.simulation.hasState
                 else { return }
 
                 let drew = withAnimation(TrinketMotion.Battle.deal) {
-                    let didDraw = simulation.drawNextOpeningHandCard()
+                    let didDraw = runtime.simulation.drawNextOpeningHandCard()
                     if didDraw {
                         self.installSimulationPresentation()
                     }
@@ -70,10 +70,10 @@ extension BattleSession {
 
             guard !Task.isCancelled else { return }
             guard activeBattle?.id == configurationID,
-                  simulation.hasState
+                  runtime.simulation.hasState
             else { return }
 
-            simulation.finalizeOpeningHand()
+            runtime.simulation.finalizeOpeningHand()
             installSimulationPresentation()
             scheduleAutoEndIfNeeded()
         }

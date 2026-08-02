@@ -16,22 +16,19 @@ public final class JourneyPlayMode {
     private let battleLaunch: PlayBattleLaunch
     private let noteMapScrollFocus: (String) -> Void
     private let encounters: EncounterPlayMode
-    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
         noteMapScrollFocus: @escaping (String) -> Void,
-        encounters: EncounterPlayMode,
-        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
+        encounters: EncounterPlayMode
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.noteMapScrollFocus = noteMapScrollFocus
         self.encounters = encounters
-        self.registerBattleRoute = registerBattleRoute
     }
 
     public var playChapter: Chapter {
@@ -97,10 +94,10 @@ public final class JourneyPlayMode {
         }
 
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: stage, encounter: encounter),
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,
@@ -117,10 +114,10 @@ public final class JourneyPlayMode {
               let encounter = resolvedEncounter(for: stage)
         else { return }
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: stage, encounter: encounter),
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,

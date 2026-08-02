@@ -18,8 +18,8 @@ extension BattleSession {
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
               !isDealingOpeningHand,
-              simulation.hasState,
-              !simulation.isBattleOver else {
+              runtime.simulation.hasState,
+              !runtime.simulation.isBattleOver else {
             // No new events — still publish if prune dropped expired chips.
             feedback.noteItemsChanged()
             return .rejected
@@ -29,9 +29,9 @@ extension BattleSession {
             let events = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine
             ) {
-                try simulation.playCard(cardID: cardID)
+                try runtime.simulation.playCard(cardID: cardID)
             }
-            guard simulation.hasState, activeBattle?.id != nil else { return .rejected }
+            guard runtime.simulation.hasState, activeBattle?.id != nil else { return .rejected }
 
             measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardProjection

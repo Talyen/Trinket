@@ -15,7 +15,6 @@ public final class LabyrinthPlayMode {
     private let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
-    private let registerBattleRoute: (PlayBattleRoute) -> Void
 
     public var activeNodeSession: LabyrinthNodeSession?
 
@@ -23,14 +22,12 @@ public final class LabyrinthPlayMode {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
-        encounters: EncounterPlayMode,
-        registerBattleRoute: @escaping (PlayBattleRoute) -> Void
+        encounters: EncounterPlayMode
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
         self.encounters = encounters
-        self.registerBattleRoute = registerBattleRoute
     }
 
     private var canBeginTransientEncounter: Bool {
@@ -311,10 +308,10 @@ public final class LabyrinthPlayMode {
         }
 
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: node, labyrinth: labyrinth),
             defeatPrimaryAction: .retreat,
             universalModifiers: Self.combatModifiers(from: effects)
@@ -336,10 +333,10 @@ public final class LabyrinthPlayMode {
         guard let encounter = resolvedEncounter(for: node) else { return }
 
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        registerBattleRoute(battleRoute(for: origin))
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
+            route: battleRoute(for: origin),
             loot: battleLoot(for: node, labyrinth: labyrinth),
             defeatPrimaryAction: .retreat,
             universalModifiers: Self.combatModifiers(from: effects)

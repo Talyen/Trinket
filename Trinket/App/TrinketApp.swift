@@ -19,10 +19,13 @@ struct TrinketApp: App {
     @State private var bootstrapFailureMessage: String?
 
     init() {
+        var concreteBattleSession: BattleSession?
         let makeBattleComposition: (BattleRuntimeDependencies) -> BattleRuntimeComposition = { dependencies in
-            let session = Self.makeBattleSession(dependencies: dependencies)
+            let runtime = BattleRuntimeSession()
+            let session = Self.makeBattleSession(runtime: runtime, dependencies: dependencies)
+            concreteBattleSession = session
             return BattleRuntimeComposition(
-                runtime: session,
+                runtime: runtime,
                 onLaunchBattleVictory: { session.presentLaunchVictory() }
             )
         }
@@ -33,7 +36,7 @@ struct TrinketApp: App {
                 makeBattleComposition: makeBattleComposition
             )
             _appState = State(initialValue: state)
-            _battleSession = State(initialValue: state.play.battle as? BattleSession)
+            _battleSession = State(initialValue: concreteBattleSession)
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             trinketAppLogger.error(
@@ -49,7 +52,7 @@ struct TrinketApp: App {
                     makeBattleComposition: makeBattleComposition
                 )
                 _appState = State(initialValue: state)
-                _battleSession = State(initialValue: state.play.battle as? BattleSession)
+                _battleSession = State(initialValue: concreteBattleSession)
             } catch {
                 trinketAppLogger.fault(
                     "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)"
@@ -95,9 +98,11 @@ struct TrinketApp: App {
     }
 
     private static func makeBattleSession(
+        runtime: BattleRuntimeSession,
         dependencies: BattleRuntimeDependencies
     ) -> BattleSession {
         BattleSession(
+            runtime: runtime,
             presentationEnvironment: BattlePresentationEnvironment(
                 playSFX: dependencies.playSFX,
                 warmSFX: dependencies.warmSFX,

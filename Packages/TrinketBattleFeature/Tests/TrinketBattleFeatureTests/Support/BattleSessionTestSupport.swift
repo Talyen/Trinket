@@ -53,7 +53,7 @@ enum BattleSessionTestSupport {
             companion: resolvedCompanion,
             enemy: resolvedEnemy
         )
-        _ = session.activate(configuration)
+        _ = session.runtime.activate(configuration)
         session.installPresentationContext(
             BattleRunConfigurationTestSupport.presentation(for: configuration)
         )

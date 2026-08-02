@@ -46,7 +46,7 @@ struct BattleVictorySummaryTests {
             ]
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
+        _ = session.runtime.activate(configuration)
         let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
 
@@ -92,7 +92,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 13
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
-        _ = scaledSession.activate(scaledConfiguration)
+        _ = scaledSession.runtime.activate(scaledConfiguration)
         let scaledContext = BattleRunConfigurationTestSupport.presentation(for: scaledConfiguration)
         scaledSession.installPresentationContext(scaledContext)
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
@@ -142,7 +142,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 42
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
+        _ = session.runtime.activate(configuration)
         let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -176,13 +176,13 @@ struct BattleVictorySummaryTests {
             goldFindPercent: 10
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
+        _ = session.runtime.activate(configuration)
         let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
-        let earnedGold = try #require(session.simulation.readModel?.earnedGold)
+        let earnedGold = try #require(session.runtime.simulation.readModel?.earnedGold)
 
         let expectedTotal = HomesteadEffects(
             heroModifiers: [],

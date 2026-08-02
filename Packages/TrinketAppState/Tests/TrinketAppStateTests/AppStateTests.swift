@@ -30,7 +30,7 @@ struct AppStateTests {
         let state = try context.makeAppState(environment: context.makeEnvironment())
         let battle = try #require(context.lastBattle)
 
-        #expect(state.play.battle === battle)
+        #expect(state.play.battle === battle.runtime)
     }
 
     @Test func launchTabOverridesDefaultTabAndSurvivesForeground() throws {
@@ -154,8 +154,9 @@ struct AppStateTests {
         case "battle-victory":
             let activeBattle = try #require(state.play.battle.activeBattle)
             #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: "chapter-1-stage-1").runKey)
-            #expect(state.play.uiBattle.spectacle.isShowingVictory)
-            #expect(state.play.uiBattle.spectacle.victorySummary != nil)
+            let battle = try #require(context.lastBattle)
+            #expect(battle.spectacle.isShowingVictory)
+            #expect(battle.spectacle.victorySummary != nil)
             #expect(state.selectedTab == .play)
         case "shop":
             let session = try #require(state.play.encounters.activeShopEncounter)

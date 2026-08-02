@@ -1,4 +1,5 @@
 import Foundation
+import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketCore
 import TrinketPersistence
@@ -19,7 +20,7 @@ struct PlayBattleCompletion {
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil,
         route: PlayBattleRoute?,
-        presentation: PlayBattlePresentationContext?,
+        presentation: BattlePresentationContext?,
         queueReturnToOrigin: (PlayBattleOrigin?) -> Void
     ) -> Bool {
         guard battle.lifecyclePhase == .active else { return false }
@@ -28,6 +29,11 @@ struct PlayBattleCompletion {
             || route?.origin.runKey == configuration.runKey
         else {
             appStateLogger.error("Missing route for active battle completion")
+            return false
+        }
+
+        guard route == nil || presentation != nil else {
+            appStateLogger.error("Missing presentation metadata for active battle completion")
             return false
         }
 

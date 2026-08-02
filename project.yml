@@ -68,6 +68,8 @@ targets:
       - package: TrinketFeatureSupport
         product: TrinketFeatureContracts
       - package: TrinketFeatureSupport
+        product: TrinketBattleContracts
+      - package: TrinketFeatureSupport
         product: TrinketFeatureAdapters
       - package: TrinketBattleFeature
       - package: TrinketAppState

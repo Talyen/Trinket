@@ -1,4 +1,5 @@
 import Foundation
+import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
@@ -47,5 +48,16 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 @MainActor
 struct PlayBattleRoute {
     let origin: PlayBattleOrigin
-    let complete: @MainActor (BattleRunConfiguration, PlayBattlePresentationContext?, Int, [ResourceAmount]?) -> Bool
+    let complete: @MainActor (BattleRunConfiguration, BattlePresentationContext?, Int, [ResourceAmount]?) -> Bool
+}
+
+/// Complete metadata for one prepared or active Play battle.
+///
+/// Route, presentation, and restart-only modifiers are committed as one value
+/// so a run can never become visible with only half of its completion data.
+@MainActor
+struct PlayBattleRunRegistration {
+    let route: PlayBattleRoute
+    let presentation: BattlePresentationContext
+    let universalModifiers: [AffixModifier]
 }

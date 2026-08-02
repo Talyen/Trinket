@@ -56,11 +56,11 @@ extension BattleSession {
     func combatantID(for participant: BattleParticipant) -> String? {
         switch participant {
         case .hero:
-            presentation.hero?.combatant.id ?? simulation.heroID
+            presentation.hero?.combatant.id ?? runtime.simulation.heroID
         case .companion:
-            presentation.companion?.combatant.id ?? simulation.companionID
+            presentation.companion?.combatant.id ?? runtime.simulation.companionID
         case .enemy:
-            presentation.enemy?.combatant.id ?? simulation.enemyID
+            presentation.enemy?.combatant.id ?? runtime.simulation.enemyID
         }
     }
 
@@ -94,7 +94,7 @@ extension BattleSession {
         case .victory:
             if presentationContext?.stageRewardsAlreadyClaimed == true {
                 publishPartyCelebrateReactions(at: date)
-                onTurnAutoEnded?(simulation.earnedGold ?? 0)
+                onTurnAutoEnded?(runtime.simulation.earnedGold ?? 0)
                 return
             }
             if spectacle.victorySummary != nil, !spectacle.isShowingVictory {
@@ -137,7 +137,7 @@ extension BattleSession {
                     return nil
                 }
                 publishPartyCelebrateReactions(at: date)
-                return simulation.earnedGold ?? 0
+                return runtime.simulation.earnedGold ?? 0
             }
             guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return nil }
             spectacle.victorySummary = summary
@@ -188,20 +188,20 @@ extension BattleSession {
     }
 
     private func publishPartyCelebrateReactionsNow(at date: Date) {
-        guard let heroID = simulation.heroID,
-              let companionID = simulation.companionID
+        guard let heroID = runtime.simulation.heroID,
+              let companionID = runtime.simulation.companionID
         else { return }
         // Negative synthetic IDs stay clear of engine event / feedback item IDs.
         let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
         var didPublish = false
-        if simulation.isHeroAlive {
+        if runtime.simulation.isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
                 id: baseID,
                 kind: .celebrate
             )
             didPublish = true
         }
-        if simulation.isCompanionAlive {
+        if runtime.simulation.isCompanionAlive {
             feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
                 id: baseID &- 1,
                 kind: .celebrate
@@ -219,7 +219,7 @@ extension BattleSession {
         guard outcome == .victory,
               let configuration = activeBattle,
               let context = presentationContext,
-              simulation.hasState,
+              runtime.simulation.hasState,
               !spectacle.isShowingVictory
         else { return }
         if spectacle.victorySummary == nil {
@@ -232,7 +232,7 @@ extension BattleSession {
     func debugSkipCombat() {
         guard let configuration = activeBattle,
               let context = presentationContext,
-              simulation.hasState,
+              runtime.simulation.hasState,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat
         else { return }
@@ -290,8 +290,8 @@ extension BattleSession {
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
-        guard let heroID = simulation.heroID,
-              let companionID = simulation.companionID
+        guard let heroID = runtime.simulation.heroID,
+              let companionID = runtime.simulation.companionID
         else {
             feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
             return
@@ -421,7 +421,7 @@ extension BattleSession {
             guard let self, !Task.isCancelled else { return }
             guard !isSuspendedForScenePhase, canEndTurn, !hasPlayableCard else { return }
 
-            if shouldTelegraphEnemyAttack(), let enemyID = simulation.enemyID {
+            if shouldTelegraphEnemyAttack(), let enemyID = runtime.simulation.enemyID {
                 publishFullAttack(for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
                     ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
@@ -439,7 +439,7 @@ extension BattleSession {
 
     /// True when the upcoming `endTurn` will have the enemy perform an ability.
     func shouldTelegraphEnemyAttack() -> Bool {
-        simulation.shouldTelegraphEnemyAttack()
+        runtime.simulation.shouldTelegraphEnemyAttack()
     }
 
     func cancelPendingAutoEnd() {
@@ -450,16 +450,7 @@ extension BattleSession {
     func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
-        if let pendingPreparedRun,
-           pendingPreparedRun.configuration.id == configuration.id {
-            simulation.activate(pendingPreparedRun.simulation)
-            installSimulationPresentation()
-            self.pendingPreparedRun = nil
-        } else {
-            simulation.reset(from: configuration)
-            installSimulationPresentation()
-        }
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        installSimulationPresentation()
         feedback.clear()
         clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
@@ -478,10 +469,7 @@ extension BattleSession {
     func clearRunState() {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
-        preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        pendingPreparedRun = nil
         onTurnAutoEnded = nil
-        simulation.clear()
         presentation.clear()
         feedback.clear()
         clearSpectacle()

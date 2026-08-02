@@ -20,6 +20,7 @@ Packages/
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
   TrinketFeatureSupport/    Shared game UI, presentation models, artwork/frame support
+  TrinketBattleContracts/   SwiftUI-free battle presentation/reward DTOs
   TrinketFeatureContracts/ Pure navigation/deep-link values shared across orchestration and UI
   TrinketBattleRuntime/     SwiftUI-free battle lifecycle contract and launch DTOs
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
@@ -54,8 +55,9 @@ Manifests and pipelines live outside the app folder:
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
 | Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `MapScrollFocus`, and `StageMapMessage`; no save or view adapters |
+| Battle presentation contract | `TrinketBattleContracts` | Shared SwiftUI-free `BattlePresentationContext`; no Play registry, runtime state, or save writes |
 | Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `BattleRunConfiguration`, `BattleRunKey`, and performance scenario contracts. It contains only immutable simulation inputs and lifecycle; Play-owned reward/presentation context stays outside this boundary. |
-| Battle presentation | `TrinketBattleFeature` | `BattleSession`, combat projection, feedback/spectacle lanes, Battle UI; it implements `BattleRuntime`. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
+| Battle presentation | `TrinketBattleFeature` | `BattleRuntimeSession` owns concrete lifecycle/simulation state; `BattleSession` owns combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
 | App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
@@ -116,9 +118,11 @@ Trinket app
   │     └── TrinketFeatureContracts
   ├── TrinketBattleFeature
   ├── TrinketFeatureSupport
+  ├── TrinketBattleContracts
   └── TrinketFeatureAdapters
 
 TrinketBattleFeature ───→ TrinketFeatureSupport
+TrinketBattleFeature ───→ TrinketBattleContracts
 TrinketBattleFeature ───→ TrinketBattleRuntime
 
 TrinketBattleRuntime ───→ BattleEngine ───→ TrinketContent ──→ TrinketCore
@@ -134,6 +138,8 @@ TrinketFeatureSupport ───→ TrinketContent ──→ TrinketCore
         └───────────────→ TrinketDesignSystem ──→ TrinketCore
 
 TrinketFeatureContracts ──→ (Foundation only)
+TrinketBattleContracts ──→ TrinketFeatureContracts
+TrinketBattleContracts ──→ TrinketContent ──→ TrinketCore
 
 BattleEngine ───────────→ TrinketContent ──→ TrinketCore
 TrinketPersistence ─────→ TrinketContent ──→ TrinketCore
@@ -146,6 +152,10 @@ TrinketDesignSystem ────────────────────
 user-message contracts; it must not grow save-backed behavior. `SFXID` lives in
 `TrinketContent` with the generated sound catalog, so orchestration and battle
 resolution can name clips without importing presentation support.
+`TrinketBattleContracts` is the single neutral home for the immutable battle
+presentation/reward DTO shared by Play orchestration and BattleFeature. Play-only
+restart metadata remains in the Play run registry rather than being added to that
+shared contract.
 `TrinketFeatureAdapters` owns save-backed map/detail adapters and combat build resolution;
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
@@ -155,17 +165,19 @@ feature. No package may import the `Trinket` app module. `./Scripts/check-module
 enforces these rules in both source imports and package manifests.
 
 The app target is a composition root and view host. `TrinketAppState` production code
-depends on `TrinketBattleRuntime` and `TrinketFeatureContracts`, never the concrete
-BattleFeature or save-backed adapters. The app composition root supplies
+depends on `TrinketBattleRuntime`, `TrinketBattleContracts`, and
+`TrinketFeatureContracts`, never the concrete BattleFeature or save-backed adapters.
+The app composition root supplies
 `BattleRuntimeDependencies` as closure-only capabilities and builds one
 `BattleRuntimeComposition` containing the runtime plus the launch-victory action.
-That same runtime instance is exposed through `PlaySession.battle` and cast only at
-the app root for concrete `BattleSession` UI injection. App views receive the narrowest
+The root explicitly retains the concrete `BattleRuntimeSession` and its separate
+`BattleSession` presentation coordinator; `PlaySession.battle` receives only the
+runtime contract, so no existential-to-feature cast is required. App views receive the narrowest
 available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
 lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
-Shell battle activation routes through `PlaySession.battle` (the runtime from the
-composition root); the concrete `BattleSession` UI subtree receives that same object.
+Shell battle activation routes through `PlaySession.battle`; runtime change callbacks
+keep the separately retained `BattleSession` presentation coordinator synchronized.
 `PlaySession` remains in the environment for
 shell concerns (pending destination, map scroll, battle victory routing via
 `PlayBattleCompletion`). Active battle route and presentation metadata share one
@@ -204,7 +216,7 @@ Keep `AppState` as composition/wiring — new Play feature methods belong on mod
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
-| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/build bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode; `PlayBattlePresentationContext` registry | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `BattleRunConfiguration` / Battle UI; a parallel `AppState.battle` handle |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/build bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode; atomic `PlayBattleRunRecord` registry | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `BattleRunConfiguration` / Battle UI; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
@@ -221,7 +233,8 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use.
 - Battle simulation lives behind `BattleSimulationStore` and `BattleSimBridge`.
-  `BattleSession` owns lifecycle and commands; `BattlePresentationState`, `BattleFeedbackLane`, and
+  `BattleRuntimeSession` owns lifecycle and commands; `BattleSession` mirrors the
+  runtime lifecycle for SwiftUI and owns `BattlePresentationState`, `BattleFeedbackLane`, and
   `BattleSpectacleState` are distinct observable read lanes. A committed engine
   transition publishes one combat snapshot before its feedback/outcome work.
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.

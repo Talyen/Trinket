@@ -1,4 +1,5 @@
 import Observation
+import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
@@ -155,16 +156,12 @@ public final class PlaySession {
         return journey.isActive(stage)
     }
 
-    func registerBattleRoute(_ route: PlayBattleRoute) {
-        let runKey = route.origin.runKey
-        battleRuns[runKey, default: PlayBattleRunRecord()].route = route
-    }
-
-    func registerBattlePresentation(
-        _ runKey: BattleRunKey,
-        presentation: PlayBattlePresentationContext
-    ) {
-        battleRuns[runKey, default: PlayBattleRunRecord()].presentation = presentation
+    func registerBattleRun(_ registration: PlayBattleRunRegistration) {
+        battleRuns[registration.route.origin.runKey] = PlayBattleRunRecord(
+            route: registration.route,
+            presentation: registration.presentation,
+            universalModifiers: registration.universalModifiers
+        )
     }
 
     func removeBattleRun(_ runKey: BattleRunKey) {
@@ -180,9 +177,14 @@ public final class PlaySession {
         return battleRuns[runKey]?.route
     }
 
-    public func battlePresentation(for runKey: BattleRunKey?) -> PlayBattlePresentationContext? {
+    public func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
         guard let runKey else { return nil }
         return battleRuns[runKey]?.presentation
+    }
+
+    func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
+        guard let runKey else { return [] }
+        return battleRuns[runKey]?.universalModifiers ?? []
     }
 }
 
@@ -209,8 +211,8 @@ enum PlayModeGraph {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             battle: battle,
-            registerPresentation: { runKey, presentation in
-                battleRunSink.registerPresentation(runKey, presentation: presentation)
+            registerRun: { registration in
+                battleRunSink.register(registration)
             },
             removeRun: { runKey in
                 battleRunSink.remove(runKey: runKey)
@@ -230,21 +232,18 @@ enum PlayModeGraph {
             battle: battle,
             battleLaunch: battleLaunch,
             noteMapScrollFocus: noteMapScrollFocus,
-            encounters: encounters,
-            registerBattleRoute: { route in battleRunSink.register(route) }
+            encounters: encounters
         )
         let labyrinth = LabyrinthPlayMode(
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            encounters: encounters,
-            registerBattleRoute: { route in battleRunSink.register(route) }
+            encounters: encounters
         )
         let spires = SpiresPlayMode(
             playerSave: playerSave,
             battle: battle,
-            battleLaunch: battleLaunch,
-            registerBattleRoute: { route in battleRunSink.register(route) }
+            battleLaunch: battleLaunch
         )
         let battleCompletion = PlayBattleCompletion(
             playerSave: playerSave,
@@ -275,15 +274,8 @@ private final class MapScrollFocusSink {
 final class BattleRouteSink {
     weak var owner: PlaySession?
 
-    func register(_ route: PlayBattleRoute) {
-        owner?.registerBattleRoute(route)
-    }
-
-    func registerPresentation(
-        _ runKey: BattleRunKey,
-        presentation: PlayBattlePresentationContext
-    ) {
-        owner?.registerBattlePresentation(runKey, presentation: presentation)
+    func register(_ registration: PlayBattleRunRegistration) {
+        owner?.registerBattleRun(registration)
     }
 
     func remove(runKey: BattleRunKey) {
@@ -296,8 +288,7 @@ final class BattleRouteSink {
 }
 
 private struct PlayBattleRunRecord {
-    var route: PlayBattleRoute?
-    var presentation: PlayBattlePresentationContext?
-
-    init() {}
+    let route: PlayBattleRoute
+    let presentation: BattlePresentationContext
+    let universalModifiers: [AffixModifier]
 }

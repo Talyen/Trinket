@@ -129,7 +129,7 @@ struct PlayBattleLaunchTests {
         )
 
         let configuration = launch.configuration
-        #expect(launch.presentation.universalModifiers == [modifier])
+        #expect(launch.universalModifiers == [modifier])
         #expect(configuration.hero.modifiers.damageDealtBonus(for: .burn) == 1)
         #expect(configuration.companion.modifiers.damageDealtBonus(for: .burn) == 1)
         #expect(configuration.enemyModifiers.damageDealtBonus(for: .burn) == 1)

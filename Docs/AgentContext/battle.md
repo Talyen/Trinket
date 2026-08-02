@@ -8,16 +8,19 @@ Use for card rules, effects, decks/hands, turn flow, and battle presentation.
 | Authored combatants, abilities, stages | `Packages/TrinketContent` and `ContentManifest/` |
 | Rules, effect handlers, deck/hand | `Packages/BattleEngine` |
 | Battle lifecycle contract | `Packages/TrinketBattleRuntime` (`BattleRuntime`, launch DTOs) |
-| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleSession` implements the lifecycle-only runtime contract); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
-| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleLaunch`, `PlayBattlePresentationContext`, `PlayBattleCompletion`, mode owners) |
+| Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleRuntimeSession` implements the lifecycle contract; `BattleSession` owns presentation); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
+| Shared battle presentation DTO | `Packages/TrinketFeatureSupport/Sources/TrinketBattleContracts` (`BattlePresentationContext`) |
+| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleLaunch`, atomic `PlayBattleRunRecord`, `PlayBattleCompletion`, mode owners) |
 
 For rules, start with `BattleState`, the matching `EffectHandlers/` type, and the
 closest test in `Packages/BattleEngine/Tests/`. `BattleState` is a facade: add shared
 mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or
 engines. Do not put feature calls in the engine.
 
-For presentation, `BattleSession` is the lifecycle/command facade and
+For presentation, `BattleRuntimeSession` is the lifecycle/command owner and
 `BattleSimulationStore` is the only BattleFeature owner of mutable `BattleState`.
+`BattleSession` is the presentation coordinator and mirrors runtime transitions
+through its composition callback; it does not implement `BattleRuntime`.
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns
 bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns
 cinematics and outcome timing. Views observe the narrow lane they render. App-level
