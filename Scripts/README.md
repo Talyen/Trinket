@@ -144,13 +144,15 @@ regenerates files, review them, amend the commit, and rerun it.
 Push-gate is **generate/assert only** — not style or compile; path-scoped
 `verify-changed.sh` remains the pre-CI source gate (and schedules compile-only
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
-After push, agents run `./Scripts/agent-watch-ci.sh` (auto-dispatches full CI when
-path filters skipped substantive jobs; on failure prints check annotations plus a
-short log excerpt; simulator/XCUITest launch flakes get one `gh run rerun --failed`
-via `./Scripts/ci-infra-rerun.sh`). Nightly uses the same classifier from
-`.github/workflows/nightly-infra-rerun.yml` for a single attempt-1 infra retry;
-real (non-infra) failures create or update a "Nightly failing on main" issue.
-Nightly skips its expensive jobs when HEAD already passed the last successful run.
+Post-push CI watching is owned by cloud agent automations.
+`./Scripts/agent-watch-ci.sh` remains available for manual use (auto-dispatches
+full CI when path filters skipped substantive jobs; on failure prints check
+annotations plus a short log excerpt; simulator/XCUITest launch flakes get one
+`gh run rerun --failed` via `./Scripts/ci-infra-rerun.sh`). Nightly uses the same
+classifier from `.github/workflows/nightly-infra-rerun.yml` for a single attempt-1
+infra retry; real (non-infra) failures create or update a "Nightly failing on main"
+issue. Nightly skips its expensive jobs when HEAD already passed the last
+successful run.
 Task-scoped verification is the routine local source gate. Full local confidence
 runs remain available for release or high-risk changes, while PR/main CI owns the
 broad smoke and exhaustive UI coverage.
@@ -221,7 +223,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | Script | Purpose |
 |--------|---------|
 | `./Scripts/agent-push-gate.sh` | Pinned tools + `generate --force-xcodegen` + assert vs HEAD (conditional `--assets`); agents after commit, before push |
-| `./Scripts/agent-watch-ci.sh` | Watch Actions for HEAD; dispatch full CI if path-filtered; agents after push |
+| `./Scripts/agent-watch-ci.sh` | Watch Actions for HEAD; dispatch full CI if path-filtered; manual/optional (cloud automations own post-push watch) |
 | `./Scripts/ci-infra-rerun.sh` | Classify simulator/XCUITest infra failures; optional `gh run rerun --failed` |
 | `./Scripts/ensure-git-cliff.sh` | Install/run git-cliff (cached in `.tools/`) |
 | `./Scripts/release-notes.sh unreleased` | Preview unreleased changelog |

@@ -34,4 +34,3 @@ echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
 ./Scripts/agent-push-gate.sh
 
 echo "=== Pre-push gate passed ==="
-echo "Tip: after push, run ./Scripts/agent-watch-ci.sh (agents must babysit CI until green)."

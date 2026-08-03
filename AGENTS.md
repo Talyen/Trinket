@@ -36,8 +36,7 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 - Before handoff, changed paths must pass path-scoped verification with `--isolate`. `./Scripts/verify-changed.sh --isolate --paths <file...>` is the canonical gate. Never kill foreign Xcode or Simulator processes; concurrency, worktree, lock, and diagnostics details live in `Docs/AgentContext/ci-and-project-generation.md` and `Docs/AgentContext/ci-diagnostics.md`.
 - At handoff, summarize the behavior changed, verification status (what ran, pass/fail, skips), and any change-budget justification.
 
-## Commit, push, and CI babysit
+## Commit and push
 
 - Commits include only task-related authored and generated files and must pass repository hooks. Path-scoped verification should be green before commit.
 - Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: `Scripts/README.md`.
-- After an explicitly requested push, watch CI for the pushed HEAD until green (`./Scripts/agent-watch-ci.sh`). On failure, read failed job names, check annotations, and the short log excerpt.

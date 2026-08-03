@@ -48,11 +48,10 @@ This card adds the CI/project-generation exceptions:
   when you only need the post-commit generate/assert gate — it does **not** run
   style or compile. Do not use `--push-ready` as a pre-commit consistency check;
   intentional uncommitted generated output differs from HEAD by definition.
-- After push, agents must run `./Scripts/agent-watch-ci.sh` (quiet JSON polls by
-  default — do not stream `gh run watch` into the agent context; use `--verbose`
-  only for humans). On failure, read failed job names, printed check-run
-  annotations, and the short log excerpt. Path-filtered green runs auto-dispatch a
-  full `Trinket CI` `workflow_dispatch` and watch until green. Simulator/XCUITest
+- Post-push CI watching is owned by cloud agent automations, not the coding
+  agent. `./Scripts/agent-watch-ci.sh` remains available for manual use (quiet
+  JSON polls by default; `--verbose` streams `gh run watch`). Path-filtered green
+  runs can auto-dispatch a full `Trinket CI` `workflow_dispatch`. Simulator/XCUITest
   launch flakes get one automatic `gh run rerun --failed` (disable with
   `--no-infra-rerun`). Classification is shared via `./Scripts/ci-infra-rerun.sh`
   and also covers Nightly Integration / App performance job names. Nightly gets a
@@ -135,7 +134,7 @@ package schemes for full local/CI confidence.
 **Linux / portable SwiftLint:** SourceKit `custom_rules` are skipped, and some
 idiomatic findings may not match macOS CI. Style PASS on Linux is not a substitute
 for CI macOS style. On GitHub Actions, `lint.sh` emits both `xcode` (log-visible)
-and `github-actions-logging` (Checks annotations) reporters so `agent-watch-ci`
+and `github-actions-logging` (Checks annotations) reporters so CI watch tooling
 excerpts and annotations both show rule/file/line.
 
 ## Swift Testing compile checklist

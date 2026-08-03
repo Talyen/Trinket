@@ -2,8 +2,8 @@
 # Detect simulator/XCUITest launch infrastructure failures on a GitHub Actions
 # run and optionally rerun only the failed jobs once.
 #
-# Used by ./Scripts/agent-watch-ci.sh (push babysit) and the Nightly
-# infra-rerun workflow. Real product/test failures must not match.
+# Used by ./Scripts/agent-watch-ci.sh and the Nightly infra-rerun workflow.
+# Real product/test failures must not match.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

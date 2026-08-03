@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Watch GitHub Actions for the current commit; dispatch a full CI run when path
-# filters skipped the real suite. Agents must run this after pushing to main.
+# filters skipped the real suite. Optional/manual — cloud automations own
+# post-push CI watching.
 #
 # Quiet by default: poll status JSON only (no streamed watch logs). On failure,
 # print failed job names, check-run annotations, and a short --log-failed excerpt

@@ -159,7 +159,6 @@ if ! command -v xcodegen >/dev/null 2>&1; then
   echo "=== Agent push gate passed ==="
   echo "Note: push-gate is generate/assert completeness only — not style or compile."
   echo "Pre-CI source checks: ./Scripts/verify-changed.sh --isolate --paths …"
-  echo "Tip: after push, run ./Scripts/agent-watch-ci.sh"
   exit 0
 fi
 
@@ -178,4 +177,3 @@ report_change_budget
 echo "=== Agent push gate passed ==="
 echo "Note: push-gate is generate/assert completeness only — not style or compile."
 echo "Pre-CI source checks: ./Scripts/verify-changed.sh --isolate --paths …"
-echo "Tip: after push, run ./Scripts/agent-watch-ci.sh"
