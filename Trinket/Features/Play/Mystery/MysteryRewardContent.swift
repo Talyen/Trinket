@@ -21,7 +21,7 @@ struct MysteryRewardContent: View {
 
     var body: some View {
         RewardRevealShell(
-            eyebrow: "MYSTERY EVENT",
+            eyebrow: "MYSTERY",
             eyebrowAccessibilityIdentifier: nil,
             title: "Reward",
             subtitle: nil,

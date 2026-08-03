@@ -37,7 +37,7 @@ private struct CombatantCardEffectLab: View {
     @State private var statusConfig = CombatantStatusEffectConfig.defaults(for: .swirlingStars)
     @State private var deathConfig = CombatantDeathEffectConfig.defaults(for: .slice)
 
-    @State private var playsAutomatically = true
+    @State private var playsAutomatically = false
     @State private var duration: CGFloat = 1.6
     @State private var scrubProgress: CGFloat = 0
     @State private var playbackStart = Date()
@@ -293,12 +293,8 @@ private struct CombatantCardEffectLab: View {
         let cycle = TimeInterval(duration)
         guard cycle > 0 else { return 0 }
         let unit = elapsed / cycle
-        // Frozen plays once then holds fully frosted — looping would thaw and re-freeze.
-        if category == .frozen {
-            return CGFloat(min(unit, 1))
-        }
-        // Stunned uses absolute time so fade-in / wobble happen once; orbit keeps moving.
-        if category == .stunned {
+        // Status effects use absolute time so loops don't thaw/reset; death still cycles.
+        if category == .frozen || category == .stunned {
             return CGFloat(unit)
         }
         return CGFloat(unit.truncatingRemainder(dividingBy: 1))
@@ -329,7 +325,7 @@ struct CombatantCardEffectLab_Previews: PreviewProvider {
     static var previews: some View {
         CombatantCardEffectLab()
             .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
             .previewInterfaceOrientation(.landscapeLeft)
             .previewDisplayName("Combatant Card Effect Lab")
     }

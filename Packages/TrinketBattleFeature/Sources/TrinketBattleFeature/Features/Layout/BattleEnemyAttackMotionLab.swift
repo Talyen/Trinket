@@ -343,7 +343,7 @@ struct BattleEnemyAttackMotionLab_Previews: PreviewProvider {
     static var previews: some View {
         BattleEnemyAttackMotionLab()
             .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
             .previewInterfaceOrientation(.landscapeLeft)
             .previewDisplayName("Battle Enemy Attack Motion Lab")
     }

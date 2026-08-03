@@ -1,5 +1,8 @@
+import Foundation
 import Testing
 import TrinketFeatureSupport
+import TrinketTestSupport
+@testable import BattleEngine
 @testable import TrinketBattleFeature
 
 @MainActor
@@ -27,5 +30,105 @@ struct BattleSessionAutoBattleTests {
         )
 
         #expect(playedCardIDs == expectedCardIDs)
+    }
+
+    @Test func autoBattleResetsOffOnNewBattleWhenRememberIsOff() throws {
+        final class AutoBattleProbe: @unchecked Sendable {
+            var remember = false
+            var stored = false
+            var persistedValues: [Bool] = []
+        }
+
+        let probe = AutoBattleProbe()
+        let environment = BattlePresentationEnvironment(
+            playSFX: { _ in },
+            warmSFX: { _, _ in },
+            hapticsEnabled: { false },
+            effectsVolume: { 0 },
+            rememberAutoBattlePreference: { probe.remember },
+            autoBattleEnabled: { probe.stored },
+            setAutoBattleEnabled: { probe.persistedValues.append($0) },
+            shouldAutoSkipUltimateCinematic: { _, _ in false }
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            presentationEnvironment: environment
+        )
+        let firstConfiguration = try #require(session.activeBattle)
+
+        session.isAutoBattleEnabled = true
+        #expect(session.isAutoBattleEnabled)
+        #expect(probe.persistedValues.isEmpty)
+
+        session.runtime.endBattle()
+        let nextConfiguration = BattleRunConfigurationTestSupport.make(
+            rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
+            hero: firstConfiguration.hero.combatant,
+            companion: firstConfiguration.companion.combatant,
+            enemy: firstConfiguration.enemy
+        )
+        #expect(session.runtime.activate(nextConfiguration))
+
+        #expect(!session.isAutoBattleEnabled)
+        #expect(probe.persistedValues.isEmpty)
+    }
+
+    @Test func autoBattleRestoresAndPersistsWhenRememberIsOn() throws {
+        final class AutoBattleProbe: @unchecked Sendable {
+            var remember = true
+            var stored = true
+            var persistedValues: [Bool] = []
+        }
+
+        let probe = AutoBattleProbe()
+        let environment = BattlePresentationEnvironment(
+            playSFX: { _ in },
+            warmSFX: { _, _ in },
+            hapticsEnabled: { false },
+            effectsVolume: { 0 },
+            rememberAutoBattlePreference: { probe.remember },
+            autoBattleEnabled: { probe.stored },
+            setAutoBattleEnabled: { value in
+                probe.stored = value
+                probe.persistedValues.append(value)
+            },
+            shouldAutoSkipUltimateCinematic: { _, _ in false }
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            presentationEnvironment: environment
+        )
+        #expect(session.isAutoBattleEnabled)
+
+        session.isAutoBattleEnabled = false
+        #expect(probe.persistedValues == [false])
+        #expect(!probe.stored)
+
+        session.isAutoBattleEnabled = true
+        #expect(probe.persistedValues == [false, true])
+
+        session.runtime.endBattle()
+        let nextConfiguration = BattleRunConfigurationTestSupport.make(
+            rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 2,
+            hero: CombatantFixtures.combatant(
+                id: "hero",
+                role: .hero,
+                actionIntervalTurns: 1,
+                abilities: [.slash]
+            ),
+            companion: CombatantFixtures.combatant(
+                id: "companion",
+                role: .companion,
+                actionIntervalTurns: 100,
+                abilities: []
+            ),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 100,
+                actionIntervalTurns: 100,
+                abilities: []
+            )
+        )
+        #expect(session.runtime.activate(nextConfiguration))
+        #expect(session.isAutoBattleEnabled)
     }
 }

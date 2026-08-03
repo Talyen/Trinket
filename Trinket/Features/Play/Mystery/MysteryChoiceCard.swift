@@ -13,28 +13,17 @@ struct MysteryChoiceCard: View {
     let isDisabled: Bool
     let onSelect: () -> Void
 
-    @ScaledMetric(relativeTo: .body)
-    private var baseItemArtworkSize: CGFloat = 64
-
     var body: some View {
         Button {
             onSelect()
         } label: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
-                ZStack(alignment: .leading) {
-                    Text(choice.label)
-                        .trinketTypography(.rowTitle)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
+                Text(choice.label)
+                    .trinketTypography(.rowTitle)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(isSelected ? TrinketDesign.Colors.accent : .secondary)
-                        .accessibilityHidden(true)
-                }
-
-                choiceDivider
                 rewards
             }
             .padding(TrinketDesign.Metrics.largeSpacing)
@@ -63,53 +52,19 @@ struct MysteryChoiceCard: View {
         .disabled(isDisabled)
     }
 
-    private var choiceDivider: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            Rectangle()
-                .fill(TrinketDesign.Colors.subtleStroke)
-                .frame(height: 1)
-
-            Image(systemName: "diamond.fill")
-                .font(.caption2)
-                .foregroundStyle(
-                    isSelected
-                        ? TrinketDesign.Colors.accent
-                        : TrinketDesign.Colors.subtleStroke
-                )
-                .accessibilityHidden(true)
-
-            Rectangle()
-                .fill(TrinketDesign.Colors.subtleStroke)
-                .frame(height: 1)
-        }
-        .frame(maxWidth: .infinity)
-        .accessibilityHidden(true)
-    }
-
     private var rewards: some View {
         ViewThatFits(in: .horizontal) {
             rewardRow
             rewardGrid
         }
-        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
+        .padding(TrinketDesign.Metrics.denseSpacing)
         .frame(maxWidth: .infinity)
-        .background(
-            TrinketDesign.Colors.canvas.opacity(0.42),
-            in: TrinketDesign.cardShape
-        )
-        .trinketMaterial(.subtleOverlay)
+        .trinketMaterial(.homesteadFooter)
     }
 
     private var rewardRow: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Metrics.smallSpacing) {
-            ForEach(Array(choice.effects.enumerated()), id: \.offset) { index, effect in
-                if index > 0 {
-                    Divider()
-                        .frame(minHeight: 86)
-                        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
-                }
-
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
             }
         }
@@ -120,11 +75,14 @@ struct MysteryChoiceCard: View {
         LazyVGrid(
             columns: [
                 GridItem(
-                    .adaptive(minimum: 88, maximum: 160),
-                    spacing: TrinketDesign.Metrics.mediumSpacing
+                    .adaptive(
+                        minimum: TrinketDesign.Metrics.walletResourceArtworkSize * 2,
+                        maximum: 160
+                    ),
+                    spacing: TrinketDesign.Metrics.denseSpacing
                 ),
             ],
-            spacing: TrinketDesign.Metrics.mediumSpacing
+            spacing: TrinketDesign.Metrics.denseSpacing
         ) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
@@ -139,7 +97,7 @@ struct MysteryChoiceCard: View {
         case let .gainGold(amount):
             rewardSummary(
                 title: "Gold",
-                value: "\(playerSave.homestead.effects.adjustedGold(amount))",
+                value: "+\(playerSave.homestead.effects.adjustedGold(amount))",
                 resource: .gold,
                 tint: HomesteadResource.gold.tint
             )
@@ -147,7 +105,7 @@ struct MysteryChoiceCard: View {
         case let .gainMaterial(resource, amount):
             rewardSummary(
                 title: resource.displayName,
-                value: "\(amount)",
+                value: "+\(amount)",
                 resource: resource,
                 tint: resource.tint
             )
@@ -155,7 +113,7 @@ struct MysteryChoiceCard: View {
         case let .gainExperience(amount):
             rewardSummary(
                 title: "XP",
-                value: "\(amount)",
+                value: "+\(amount)",
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
             )
@@ -221,7 +179,7 @@ struct MysteryChoiceCard: View {
         baseTypeID: String? = nil,
         tint: Color
     ) -> some View {
-        VStack(alignment: .center, spacing: TrinketDesign.Metrics.tightSpacing) {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             if let baseTypeID {
                 baseItemPreview(baseTypeID: baseTypeID, tint: tint)
             } else if let resource {
@@ -240,20 +198,21 @@ struct MysteryChoiceCard: View {
                     )
             }
 
-            Text(title)
-                .trinketTypography(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
+                Text(title)
+                    .trinketTypography(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.76)
 
-            Text(value)
-                .trinketTypography(.statValue)
+                Text(value)
+                    .trinketTypography(.statValue)
+            }
         }
         .frame(
             maxWidth: .infinity,
-            minHeight: 112,
-            alignment: .top
+            minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
+            alignment: .leading
         )
     }
 
@@ -270,7 +229,10 @@ struct MysteryChoiceCard: View {
                     .decorativePreparedArtwork()
                     .padding(TrinketDesign.Metrics.extraSmallSpacing)
             }
-            .frame(width: baseItemArtworkSize, height: baseItemArtworkSize)
+            .frame(
+                width: TrinketDesign.Metrics.walletResourceArtworkSize,
+                height: TrinketDesign.Metrics.walletResourceArtworkSize
+            )
             .clipShape(TrinketDesign.cardShape)
             .overlay {
                 TrinketDesign.cardShape.strokeBorder(tint.opacity(0.72), lineWidth: 1)

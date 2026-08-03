@@ -65,6 +65,19 @@ struct OptionsView: View {
                     }
                 }
                 .accessibilityIdentifier("Show Animations Picker")
+
+                Toggle(isOn: $options.rememberAutoBattlePreference) {
+                    Label {
+                        Text("Remember Auto-Battle Preference")
+                            .trinketTypography(.body)
+                    } icon: {
+                        Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
+                    }
+                }
+                .accessibilityIdentifier("Remember Auto-Battle Preference Toggle")
+                .onChange(of: options.rememberAutoBattlePreference) { _, isEnabled in
+                    playToggleSFX(isEnabled, options.effectsVolume)
+                }
             }
 
             Section("Game Data") {

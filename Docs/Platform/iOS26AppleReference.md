@@ -126,6 +126,8 @@ iOS 26 app icons use layered compositions with system-applied effects. When prep
 - [Creating your app icon using Icon Composer](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer)
 - [Apple Design Resources](https://developer.apple.com/design/resources/) — updated icon grids
 
+Trinket authors the Icon Composer package under `Raw Assets/App Icon/` and installs it as `Trinket/AppIcon.icon` via `Scripts/prepare-app-icon.sh`. Prefer the `.icon` package over loose JPEG/PNG exports; the deployment target is iOS 26, so Xcode consumes the Icon Composer file directly.
+
 ---
 
 ## Trinket implementation map

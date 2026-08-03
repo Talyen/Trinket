@@ -110,27 +110,23 @@ public final class MysteryEncounterSession: Identifiable {
         origin: PlayEncounterOrigin,
         forcedEventID: String?,
         pickContext: MysteryEventPickContext = .excludingCorruptionAltar,
-        pinnedLabyrinthEventID: String? = nil
+        pinnedLabyrinthEventID: String? = nil,
+        pinnedJourneyEventID: String? = nil
     ) -> (session: MysteryEncounterSession, resolvedEventID: String) {
-        let event: MysteryEvent
-        switch origin {
+        let event = switch origin {
         case let .labyrinth(nodeID):
-            event = GameContent.resolveLabyrinthMysteryEvent(
+            GameContent.resolveLabyrinthMysteryEvent(
                 nodeID: nodeID,
                 forcedEventID: forcedEventID,
                 pinnedEventID: pinnedLabyrinthEventID,
                 context: pickContext
             )
         case let .journey(stage):
-            let authoredEvent = forcedEventID.flatMap {
-                GameContent.mysteryEvent(matching: $0) ?? GameContent.recruitEvent(matching: $0)
-            }
-                ?? stage.mysteryEvent
-            var pickRNG = SystemRandomNumberGenerator()
-            event = GameContent.resolveMysteryEncounterEvent(
-                authored: authoredEvent,
-                context: pickContext,
-                using: &pickRNG
+            GameContent.resolveJourneyMysteryEvent(
+                stage: stage,
+                forcedEventID: forcedEventID,
+                pinnedEventID: pinnedJourneyEventID,
+                context: pickContext
             )
         }
 

@@ -69,6 +69,16 @@ struct CombatantDeathEffect<Content: View>: View {
             }
         }
         .allowsHitTesting(false)
+        .onAppear {
+            guard kind == .slice else { return }
+            CardDissolveTexture.prewarm()
+        }
+        .task(id: kind) {
+            guard kind == .slice else { return }
+            // Bake dissolve masks before the mid-clip transition so the first
+            // threshold step never stalls the display link (which froze motion).
+            await CardDissolveTexture.prepare()
+        }
     }
 
     private var effectiveProgress: CGFloat {
@@ -79,19 +89,22 @@ struct CombatantDeathEffect<Content: View>: View {
         let delay = min(max(config.splitDelay, 0), 0.6)
         let p = effectiveProgress
         let splitT = delay >= 1 ? 0 : min(max((p - delay) / (1 - delay), 0), 1)
-        // Linear separation so halves keep drifting through the dissolve window
-        // (a decelerating ease made late motion look frozen).
+        // Linear separation for the whole post-cut window — dissolve must not
+        // change the motion curve or remount the drifting halves.
         let gap = size.width * config.splitGap * splitT * config.intensity
         let lift = size.height * 0.08 * splitT * config.intensity
         let twist = 7.0 * Double(splitT * config.intensity)
-        let dissolveStart: CGFloat = 0.48
-        let dissolveLocal = dissolveStart >= 1
+        let dissolveStart: CGFloat = 0.42
+        let dissolveLinear = dissolveStart >= 1
             ? 0
             : min(max((p - dissolveStart) / (1 - dissolveStart), 0), 1)
+        // Slow start, then accelerate — applied only to wipe/particles, not motion.
+        let dissolveEased = pow(dissolveLinear, 2.2)
         let halfParticles = max(config.particleCount / 2, 16)
         let radians = CombatantSliceGeometry.angleRadians
-        // Outward normal to the cut (halves separate along this axis).
         let normal = CGVector(dx: cos(radians), dy: -sin(radians))
+        let leftParticles = SliceBorderParticle.make(count: halfParticles)
+        let rightParticles = SliceBorderParticle.make(count: halfParticles, salt: 40)
 
         return ZStack {
             if splitT <= 0 {
@@ -99,11 +112,11 @@ struct CombatantDeathEffect<Content: View>: View {
                     .frame(width: size.width, height: size.height)
                     .clipShape(TrinketDesign.cardShape)
             } else {
-                dissolvingHalf(
+                slicedHalf(
                     size: size,
                     isPrimary: true,
-                    dissolveProgress: dissolveLocal,
-                    particles: CardActivationParticle.make(count: halfParticles, spread: .radial)
+                    dissolveProgress: dissolveEased,
+                    particles: leftParticles
                 )
                 .offset(
                     x: -normal.dx * gap / 2,
@@ -111,11 +124,11 @@ struct CombatantDeathEffect<Content: View>: View {
                 )
                 .rotationEffect(.degrees(-twist), anchor: .center)
 
-                dissolvingHalf(
+                slicedHalf(
                     size: size,
                     isPrimary: false,
-                    dissolveProgress: dissolveLocal,
-                    particles: CardActivationParticle.make(count: halfParticles, spread: .radial)
+                    dissolveProgress: dissolveEased,
+                    particles: rightParticles
                 )
                 .offset(
                     x: normal.dx * gap / 2,
@@ -135,58 +148,73 @@ struct CombatantDeathEffect<Content: View>: View {
         progress p: CGFloat,
         delay: CGFloat
     ) -> some View {
-        let crackFlash = p < delay + 0.14
-            ? Double((1 - abs(p - delay) / 0.14).clamped(to: 0 ... 1)) * Double(config.tintStrength)
-            : 0
-        let sliceFlashWindow = max(delay, 0.08)
-        let sliceLead = min(max(p / sliceFlashWindow, 0), 1)
-        let sliceFade = 1 - min(max((p - delay) / 0.1, 0), 1)
-        let sliceFlash = p <= delay + 0.1 ? Double(sliceLead * sliceFade) : 0
-        if crackFlash > 0 || sliceFlash > 0 {
-            let style = Keyword.bleed.visualStyle
-            ZStack {
-                if crackFlash > 0 {
-                    Rectangle()
-                        .fill(style.color.opacity(crackFlash))
-                        .frame(width: 3 + 4 * CGFloat(crackFlash), height: size.height * 1.35)
-                        .rotationEffect(.degrees(Double(CombatantSliceGeometry.angleDegrees)))
-                        .blur(radius: 1.1)
-                }
-                if sliceFlash > 0 {
-                    Canvas { context, canvasSize in
-                        drawSliceFlash(
-                            in: &context,
-                            size: canvasSize,
-                            progress: p,
-                            delay: delay,
-                            intensity: CGFloat(sliceFlash) * max(config.intensity, 0.35)
-                                * (0.55 + config.tintStrength * 0.7),
-                            particleCount: max(config.particleCount, 28),
-                            style: style
-                        )
-                    }
-                    .frame(width: size.width, height: size.height)
-                    .allowsHitTesting(false)
-                }
+        // Hold the drawn line through the cut, then fade once halves start moving.
+        let draw = min(max(p / max(delay, 0.001), 0), 1)
+        let fade = 1 - min(max((p - delay) / 0.18, 0), 1)
+        let lineOpacity = Double(fade) * Double(max(config.intensity, 0.35))
+            * (0.55 + Double(config.tintStrength) * 0.7)
+        if lineOpacity > 0.02, draw > 0 {
+            Canvas { context, canvasSize in
+                drawSliceLine(
+                    in: &context,
+                    size: canvasSize,
+                    drawProgress: draw,
+                    intensity: CGFloat(lineOpacity)
+                )
             }
+            .frame(width: size.width, height: size.height)
+            .allowsHitTesting(false)
         }
     }
 
-    private func dissolvingHalf(
+    /// Solid drifting half + dissolve layer share one offset parent so wipe
+    /// activation never remounts or stalls separation motion.
+    private func slicedHalf(
         size: CGSize,
         isPrimary: Bool,
         dissolveProgress: CGFloat,
-        particles: [CardActivationParticle]
+        particles: [SliceBorderParticle]
     ) -> some View {
-        BattleDissolveEffect(
-            progress: dissolveProgress,
-            keywords: [.bleed],
-            size: size,
-            particles: particles,
-            configuration: .sliceHalfDissolve
-        ) {
+        let dissolveConfig = CardCastEffectConfiguration.sliceHalfDissolve
+        let travelPad = dissolveConfig.particleDistance
+            + dissolveConfig.particleDistanceVariation
+            + 40
+        // Crossfade solid → masked wipe so we never hit BattleDissolveEffect's
+        // unmasked→masked view swap (that bake hitch paused the TimelineView).
+        let solidOpacity = Double(1 - min(dissolveProgress / 0.18, 1))
+        let wipeOpacity = dissolveProgress > 0 ? 1.0 : 0.0
+        let wipeProgress = max(dissolveProgress, 0.025)
+
+        return ZStack {
             halfCardContent(size: size, isPrimary: isPrimary)
+                .opacity(solidOpacity)
+
+            halfCardContent(size: size, isPrimary: isPrimary)
+                .mask {
+                    CardDissolveThresholdMask(
+                        progress: wipeProgress,
+                        edgeDepthWeight: dissolveConfig.dissolveEdgeDepthWeight,
+                        noiseWeight: dissolveConfig.dissolveNoiseWeight,
+                        cellSize: Int(dissolveConfig.dissolveCellSize.rounded()),
+                        thresholdMidpoint: dissolveConfig.dissolveThresholdMidpoint,
+                        thresholdContrast: dissolveConfig.dissolveThresholdContrast
+                    )
+                }
+                .compositingGroup()
+                .opacity(wipeOpacity)
+
+            // Particles wait until dissolve begins; emit from card borders outward.
+            if dissolveProgress > 0.001 {
+                SliceBorderParticles(
+                    progress: dissolveProgress,
+                    cardSize: size,
+                    particles: particles,
+                    configuration: dissolveConfig
+                )
+                .frame(width: size.width + travelPad * 2, height: size.height + travelPad * 2)
+            }
         }
+        .frame(width: size.width, height: size.height)
     }
 
     private func halfCardContent(size: CGSize, isPrimary: Bool) -> some View {
@@ -262,53 +290,51 @@ private struct DiagonalSliceMask: Shape {
 }
 
 private extension CardCastEffectConfiguration {
-    /// Late-window half dissolve for Slice — no shrink so halves keep sliding
-    /// while the face clears; denser, longer-lived particles.
+    /// Late-window half dissolve for Slice — ease is applied by the caller so
+    /// dissolve starts slow and accelerates; shrink stays 0 so halves keep sliding.
     static let sliceHalfDissolve = CardCastEffectConfiguration(
-        dissolveDuration: 0.78,
+        dissolveDuration: 1,
         dissolveShrink: 0,
-        particleDistance: 130,
-        particleDistanceVariation: 55,
-        particleDelay: 0.02,
-        particleLifetime: 0.58,
-        particleLifetimeVariation: 0.18,
-        particleCurve: 1.25,
-        particleOriginSpread: 0.42,
-        particleSize: 3.2,
-        particleSizeVariation: 2.8,
-        fadeStart: 0.22,
-        particleAgeEasePower: 2.0,
-        particleSizeShrink: 0.35,
-        particleFadeExponent: 1.25,
-        particlePathControl: 0.4
+        particleDistance: 110,
+        particleDistanceVariation: 50,
+        particleDelay: 0.12,
+        particleLifetime: 0.55,
+        particleLifetimeVariation: 0.2,
+        particleCurve: 0.85,
+        particleOriginSpread: 1,
+        particleSize: 3.0,
+        particleSizeVariation: 2.6,
+        fadeStart: 0.2,
+        particleAgeEasePower: 1.8,
+        particleSizeShrink: 0.4,
+        particleFadeExponent: 1.3,
+        particlePathControl: 0.35
     )
 }
 
-/// Dark-red sparks that travel along the diagonal cut before the card splits.
-private func drawSliceFlash(
+/// Progressive grey/white cut line drawn from one end of the slice to the other.
+private func drawSliceLine(
     in context: inout GraphicsContext,
     size: CGSize,
-    progress: CGFloat,
-    delay: CGFloat,
-    intensity: CGFloat,
-    particleCount: Int,
-    style: Keyword.VisualStyle
+    drawProgress: CGFloat,
+    intensity: CGFloat
 ) {
+    let lineStyle = Keyword.physical.visualStyle
     let angleRadians = CombatantSliceGeometry.angleRadians
     let center = CGPoint(x: size.width * 0.5, y: size.height * 0.5)
     let along = CGVector(dx: sin(angleRadians), dy: cos(angleRadians))
-    let normal = CGVector(dx: cos(angleRadians), dy: -sin(angleRadians))
-    let halfLen = max(size.width, size.height) * 0.72
-    let lead = min(max(progress / max(delay, 0.001), 0), 1)
-    let leadLen = lead * halfLen * 2
+    // Cover the full card diagonal so the stroke reads as a complete slice.
+    let halfLen = hypot(size.width, size.height) * 0.55
+    // Ease the tip so the early draw is readable, then finishes into the cut.
+    let lead = 1 - pow(1 - min(max(drawProgress, 0), 1), 1.55)
 
     let start = CGPoint(
         x: center.x - along.dx * halfLen,
         y: center.y - along.dy * halfLen
     )
     let tip = CGPoint(
-        x: start.x + along.dx * leadLen,
-        y: start.y + along.dy * leadLen
+        x: start.x + along.dx * halfLen * 2 * lead,
+        y: start.y + along.dy * halfLen * 2 * lead
     )
 
     var streak = Path()
@@ -316,44 +342,144 @@ private func drawSliceFlash(
     streak.addLine(to: tip)
     context.stroke(
         streak,
-        with: .color(style.glowColor.opacity(Double(0.75 * intensity))),
-        style: StrokeStyle(lineWidth: 5 * intensity, lineCap: .round)
+        with: .color(lineStyle.secondaryColor.opacity(Double(0.95 * intensity))),
+        style: StrokeStyle(lineWidth: 2.6 * intensity, lineCap: .round)
     )
-    context.stroke(
-        streak,
-        with: .color(style.color.opacity(Double(0.95 * intensity))),
-        style: StrokeStyle(lineWidth: 2.2 * intensity, lineCap: .round)
+    // Bright tip so the stroke reads as being drawn, not revealed all at once.
+    let tipRadius = 2.2 * intensity
+    let tipRect = CGRect(
+        x: tip.x - tipRadius,
+        y: tip.y - tipRadius,
+        width: tipRadius * 2,
+        height: tipRadius * 2
     )
+    context.fill(
+        Path(ellipseIn: tipRect),
+        with: .color(lineStyle.secondaryColor.opacity(Double(intensity)))
+    )
+}
 
-    for index in 0 ..< particleCount {
-        let noise = CombatantCardEffectNoise.value(index, salt: 61)
-        let alongT = CombatantCardEffectNoise.value(index, salt: 67)
-        let particleDist = alongT * halfLen * 2
-        guard particleDist <= leadLen + 6 else { continue }
-        let age = min(max((leadLen - particleDist) / max(halfLen * 0.45, 1), 0), 1)
-        let sparkOpacity = Double((1 - age * 0.85) * intensity)
-        guard sparkOpacity > 0.02 else { continue }
+/// Border-spawned dissolve sparks (DEBUG slice only).
+private struct SliceBorderParticle: Identifiable {
+    let id: Int
+    /// Origin in unit card space (0…1).
+    let origin: CGPoint
+    let direction: CGVector
+    let delayNoise: CGFloat
+    let lifetimeNoise: CGFloat
+    let distanceNoise: CGFloat
+    let sizeNoise: CGFloat
+    let fadeNoise: CGFloat
 
-        let spread = (noise - 0.5) * 16 * intensity
-        let point = CGPoint(
-            x: start.x + along.dx * particleDist + normal.dx * spread,
-            y: start.y + along.dy * particleDist + normal.dy * spread
+    static func make(count: Int, salt: Int = 0) -> [Self] {
+        (0 ..< max(0, count)).map { index in
+            let edge = (index + salt) % 4
+            let along = CombatantCardEffectNoise.value(index + salt, salt: 13)
+            let origin: CGPoint
+            let outward: CGVector
+            switch edge {
+            case 0:
+                origin = CGPoint(x: along, y: 0.02)
+                outward = CGVector(dx: 0, dy: -1)
+            case 1:
+                origin = CGPoint(x: 0.98, y: along)
+                outward = CGVector(dx: 1, dy: 0)
+            case 2:
+                origin = CGPoint(x: along, y: 0.98)
+                outward = CGVector(dx: 0, dy: 1)
+            default:
+                origin = CGPoint(x: 0.02, y: along)
+                outward = CGVector(dx: -1, dy: 0)
+            }
+            // Wide cone around the outward normal so sparks spray off the rim.
+            let tangent = CGVector(dx: -outward.dy, dy: outward.dx)
+            let spray = (CombatantCardEffectNoise.value(index + salt, salt: 29) - 0.5) * 1.6
+            let inward = CombatantCardEffectNoise.value(index + salt, salt: 31) * 0.35
+            var dx = outward.dx * (1 - inward) + tangent.dx * spray
+            var dy = outward.dy * (1 - inward) + tangent.dy * spray
+            // Occasional fully free direction for "all directions" variety.
+            if CombatantCardEffectNoise.value(index + salt, salt: 37) > 0.72 {
+                let angle = CombatantCardEffectNoise.value(index + salt, salt: 41) * .pi * 2
+                dx = cos(angle)
+                dy = sin(angle)
+            }
+            let length = max(0.001, hypot(dx, dy))
+            return Self(
+                id: index + salt * 1000,
+                origin: origin,
+                direction: CGVector(dx: dx / length, dy: dy / length),
+                delayNoise: CombatantCardEffectNoise.value(index + salt, salt: 53),
+                lifetimeNoise: CombatantCardEffectNoise.value(index + salt, salt: 59),
+                distanceNoise: CombatantCardEffectNoise.value(index + salt, salt: 61),
+                sizeNoise: CombatantCardEffectNoise.value(index + salt, salt: 67),
+                fadeNoise: CombatantCardEffectNoise.value(index + salt, salt: 71)
+            )
+        }
+    }
+}
+
+private struct SliceBorderParticles: View {
+    let progress: CGFloat
+    let cardSize: CGSize
+    let particles: [SliceBorderParticle]
+    var configuration = CardCastEffectConfiguration()
+
+    var body: some View {
+        GeometryReader { geometry in
+            let origin = CGPoint(
+                x: (geometry.size.width - cardSize.width) * 0.5,
+                y: (geometry.size.height - cardSize.height) * 0.5
+            )
+            ZStack {
+                ForEach(particles) { particle in
+                    let sample = sample(for: particle, cardOrigin: origin)
+                    Circle()
+                        .fill(Keyword.bleed.visualStyle.color)
+                        .frame(width: sample.diameter, height: sample.diameter)
+                        .position(sample.center)
+                        .opacity(sample.opacity)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private struct Sample {
+        let center: CGPoint
+        let diameter: CGFloat
+        let opacity: Double
+    }
+
+    private func sample(for particle: SliceBorderParticle, cardOrigin: CGPoint) -> Sample {
+        let distance = configuration.particleDistance
+            + particle.distanceNoise * configuration.particleDistanceVariation
+        let delay = particle.delayNoise * configuration.particleDelay
+        let lifetime = configuration.particleLifetime
+            + particle.lifetimeNoise * configuration.particleLifetimeVariation
+        let age = min(max((progress - delay) / max(lifetime, 0.01), 0), 1)
+        let easedAge = 1 - pow(1 - age, max(configuration.particleAgeEasePower, 0.01))
+        let start = CGPoint(
+            x: cardOrigin.x + particle.origin.x * cardSize.width,
+            y: cardOrigin.y + particle.origin.y * cardSize.height
         )
-        let diameter = (2.2 + noise * 4.5) * intensity
-        let rect = CGRect(
-            x: point.x - diameter / 2,
-            y: point.y - diameter / 2,
-            width: diameter,
-            height: diameter
+        let center = CGPoint(
+            x: start.x + particle.direction.dx * distance * easedAge,
+            y: start.y + particle.direction.dy * distance * easedAge
         )
-        context.fill(
-            Path(ellipseIn: rect),
-            with: .color(style.color.opacity(sparkOpacity))
+        let diameter = max(
+            0,
+            (configuration.particleSize + particle.sizeNoise * configuration.particleSizeVariation)
+                * (1 - age * configuration.particleSizeShrink)
         )
-        context.fill(
-            Path(ellipseIn: rect.insetBy(dx: -diameter * 0.7, dy: -diameter * 0.7)),
-            with: .color(style.glowColor.opacity(sparkOpacity * 0.5))
+        let fadeStart = min(
+            max(configuration.fadeStart + particle.fadeNoise * configuration.fadeStartVariation, 0),
+            0.99
         )
+        let fadeProgress = max(0, (age - fadeStart) / (1 - fadeStart))
+        let opacity = progress >= delay && age < 1
+            ? pow(1 - fadeProgress, max(configuration.particleFadeExponent, 0.01))
+            : 0
+        return Sample(center: center, diameter: diameter, opacity: opacity)
     }
 }
 

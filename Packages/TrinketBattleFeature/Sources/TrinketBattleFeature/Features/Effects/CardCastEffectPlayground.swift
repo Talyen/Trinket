@@ -11,13 +11,13 @@ private struct CardCastEffectPlayground: View {
     @State private var particleCount = 20
     @State private var duration: CGFloat = 1.0
     @State private var scrubProgress: CGFloat = 0.18
-    @State private var playsAutomatically = true
+    @State private var playsAutomatically = false
     @State private var playbackStart = Date()
     @State private var keyword = Keyword.burn
 
     var body: some View {
         HStack(spacing: 0) {
-            TimelineView(.animation) { timeline in
+            TimelineView(.animation(paused: !playsAutomatically)) { timeline in
                 BattleDissolveEffect(
                     progress: progress(at: timeline.date),
                     keywords: [keyword, .physical],
@@ -131,7 +131,7 @@ struct CardCastEffectLab_Previews: PreviewProvider {
     static var previews: some View {
         CardCastEffectPlayground()
             .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
             .previewInterfaceOrientation(.landscapeLeft)
             .previewDisplayName("Card Cast Effect Lab")
     }

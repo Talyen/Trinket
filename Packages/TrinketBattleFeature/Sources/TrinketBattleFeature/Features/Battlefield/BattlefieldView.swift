@@ -20,7 +20,7 @@ struct BattlefieldView<EnemyPane: View, HeroPane: View, CompanionPane: View>: Vi
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)
-        .allowsHitTesting(!interactionState.suppressCombatantTaps)
+        .allowsHitTesting(!interactionState.blocksCombatantTaps)
     }
 
     private func sizedPane(_ pane: some View, size: CGSize) -> some View {

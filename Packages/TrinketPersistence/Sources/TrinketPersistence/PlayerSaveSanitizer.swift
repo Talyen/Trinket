@@ -78,6 +78,11 @@ public enum PlayerSaveSanitizer {
         for stageID in sanitized.claimedRewardStageIDs {
             sanitized.completedStageIDs.insert(stageID)
         }
+        sanitized.pinnedMysteryEventIDs = journey.pinnedMysteryEventIDs.filter { stageID, eventID in
+            guard validStageIDs.contains(stageID), !eventID.isEmpty else { return false }
+            return GameContent.mysteryEvent(matching: eventID) != nil
+                || GameContent.recruitEvent(matching: eventID) != nil
+        }
         sanitized.lastCompletedStageID = latestStageID(in: sanitized.completedStageIDs, chapters: chapters)
 
         if validChapterIDs.contains(sanitized.activeChapterID) {

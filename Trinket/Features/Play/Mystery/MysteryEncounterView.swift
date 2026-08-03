@@ -86,7 +86,7 @@ struct MysteryEncounterView: View {
             hidesNavigationBar: true
         ) { baseHeight, overscroll in
             DetailHeroHeader(
-                eyebrow: "MYSTERY EVENT",
+                eyebrow: "MYSTERY",
                 title: session.event.title,
                 titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
                 baseHeight: baseHeight,
@@ -126,9 +126,9 @@ struct MysteryEncounterView: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             if session.event.choices.count > 1 {
                 Text("CHOOSE YOUR PATH")
-                    .trinketTypography(.eyebrow)
+                    .trinketTypography(.cardTitle)
                     .foregroundStyle(.secondary)
-                    .padding(.leading, TrinketDesign.Metrics.smallSpacing)
+                    .frame(maxWidth: .infinity)
             }
 
             ForEach(session.event.choices, id: \.id) { choice in
@@ -181,26 +181,8 @@ struct MysteryEncounterView: View {
         }
     }
 
-    @ViewBuilder
     private var heroArtwork: some View {
-        if let artID = session.event.artID, let art = ArtCatalog.encounterArtByID[artID] {
-            Image.preparedAsset(named: art.imageName)
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
-        } else if let artID = session.event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
-            Image.preparedAsset(named: art.imageName)
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
-        } else if let art = ArtCatalog.backgroundArtByID[session.stage.chapterID] {
-            Image.preparedAsset(named: art.imageName)
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
-        } else {
-            TrinketDesign.Colors.encounterEvent
-        }
+        MysteryEventHeroArtwork(event: session.event, chapterID: session.stage.chapterID)
     }
 }
 

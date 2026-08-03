@@ -6,8 +6,18 @@ import TrinketFeatureSupport
 
 struct EncounterArtwork: View {
     let stage: Stage
+    /// Seeded/pinned non-recruit mystery for unpinned journey stages.
+    var resolvedMysteryEvent: MysteryEvent?
 
     @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
+
+    private var nonRecruitMysteryEvent: MysteryEvent? {
+        if let resolvedMysteryEvent, !resolvedMysteryEvent.isRecruit {
+            return resolvedMysteryEvent
+        }
+        guard let event = stage.mysteryEvent, !event.isRecruit else { return nil }
+        return event
+    }
 
     var body: some View {
         ZStack {
@@ -16,6 +26,9 @@ struct EncounterArtwork: View {
                     .resizable()
                     .scaledToFill()
                     .decorativePreparedArtwork()
+
+            } else if let event = nonRecruitMysteryEvent {
+                MysteryEventHeroArtwork(event: event, chapterID: stage.chapterID)
 
             } else if let art = stage.encounterArtReference {
                 Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)

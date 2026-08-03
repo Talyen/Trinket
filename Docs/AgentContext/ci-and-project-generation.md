@@ -16,13 +16,13 @@ This card adds the CI/project-generation exceptions:
 - `verify-changed.sh --isolate` calls `Scripts/run-env.sh` once so the whole plan
   shares one agent simulator slot (`Trinket Agent N`), DerivedData under
   `.DerivedData/runs/agent-N/`, `TMPDIR`, and a unique `TRINKET_RUN_ID` for
-  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 3).
-  On EXIT, the top-level self-clean owner reclaims Xcode Preview sims, age-prunes
-  bulky DerivedData artifacts, and when isolate + the agent sim pool is empty shuts
-  down and erases `Trinket Agent N` device data (`Trinket CI` stays warm; held peer
-  slots keep their Agents Booted). Nested children release leases only. Omit
-  `--isolate` only for humans/CI that want the shared warm cache
-  (`.DerivedData` + `Trinket CI`).
+  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 1).
+  On self-clean start and EXIT, the top-level owner reclaims Xcode Preview sims,
+  enforces exactly one Booted managed sim (Agent or CI), and age-prunes bulky
+  DerivedData artifacts plus package-local `.build` / `.DerivedData`. The
+  keep-target stays Booted (no routine shutdown/erase). Nested children release
+  leases only. Omit `--isolate` only for humans/CI that
+  want the shared warm cache (`.DerivedData` + `Trinket CI`).
 - After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` and passes
   `SKIP_GENERATE=1` into package/unit/smoke/build children. Idempotent assert
   skips a second full generate when that stamp is still fresh vs generation
@@ -106,12 +106,10 @@ This card adds the CI/project-generation exceptions:
   rebuild-on-miss). Smoke/UI artifact-miss rebuilds use `build-for-testing.sh --app-only`.
 - Parallel source trees: `./Scripts/agent-worktree.sh create <slug>` then verify with
   `--isolate` inside the sibling checkout.
-- Verify/test EXIT self-cleans (top-level owner only): Preview sims, idle
-  `Trinket Agent N` device data when isolate + the `.active-sim` pool is empty
-  (`Trinket CI` stays warm), and age-pruned TestResults / PerformanceResults /
-  Logs (warm `runs/agent-N` Build products stay). Do not delete Simulator
-  runtimes. `./Scripts/clean-dev-artifacts.sh` is emergency-only when verify/test
-  cannot run.
+- Verify/test self-clean (top-level owner start + EXIT): Preview sims, single-warm
+  Booted cap, and age-pruned TestResults / PerformanceResults / Logs plus package
+  `.build` / `.DerivedData` (warm `runs/agent-N` Build products stay). The keep-target
+  managed sim stays Booted. Do not delete Simulator runtimes.
 
 When a test or CI invocation fails, load
 [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read

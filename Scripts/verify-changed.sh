@@ -46,21 +46,10 @@ and multi-package targets are batched into single invocations.
 DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
-On EXIT, the top-level owner reclaims Preview sims and age-prunes bulky DerivedData;
-when isolate + the agent sim pool is empty it shuts down and erases Trinket Agent N
-device data (Trinket CI stays warm; held peer slots keep their Agents Booted).
-
---push-ready switches generation asserts from --idempotent (task-scoped) to
-commit-completeness (force XcodeGen + assert vs HEAD, conditional --assets).
-Run it only after the task is committed; intentional pre-commit generated changes
-necessarily differ from HEAD.
-Prefer ./Scripts/agent-push-gate.sh for a dedicated push gate (generate/assert only);
-use this flag when you also want the path-scoped style/package/smoke/compile plan
-in the same run.
-
---quiet prints the selected checks, one PASS/FAIL line per check, the advisory
-change budget, and at most TRINKET_VERIFY_FAILURE_LINES (default 80) lines from a
-failed check. Full command output remains the default.
+On EXIT and at self-clean start, the top-level owner reclaims Preview sims,
+enforces exactly one Booted managed sim (Agent or CI), and age-prunes bulky
+DerivedData / package build artifacts. The keep-target stays Booted (no routine
+shutdown/erase).
 USAGE
       exit 0
       ;;
@@ -146,9 +135,7 @@ if [[ ${#commands[@]} -eq 0 ]]; then
   # Docs/tooling-only plans still self-clean when --isolate (no slot acquire).
   if [[ "$ISOLATE" == true && "$DRY_RUN" != true ]]; then
     TRINKET_SIM_SLOT_SKIP_ACQUIRE=1 trinket_run_env_init
-    trinket_preview_sims_reclaim
-    trinket_simulator_cleanup_idle_pool
-    trinket_derived_data_age_prune
+    trinket_run_env_self_clean_hygiene
   fi
   exit 0
 fi

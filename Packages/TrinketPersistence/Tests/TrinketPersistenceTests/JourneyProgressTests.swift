@@ -148,4 +148,22 @@ final class JourneyProgressTests {
         try #expect(secondSaveStore.journey.activeStageID == "chapter-1-stage-2")
         try #expect(secondSaveStore.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
+
+    @Test func journeyPersistsPinnedMysteryEventIDs() throws {
+        let directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("JourneyPinTests.\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directoryURL) }
+
+        let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
+        let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        try firstSaveStore.performBatchMutation { save in
+            save.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] = event.id
+        }
+
+        let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        try #expect(
+            secondSaveStore.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == event.id
+        )
+    }
 }

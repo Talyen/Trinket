@@ -52,7 +52,48 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 if (( ${#PATHS[@]} > 0 )); then
-  LINT_TARGETS=("${PATHS[@]}")
+  # Explicit paths bypass SwiftLint's `excluded:` list. Drop configured
+  # exclusions so path-scoped style matches full-tree behavior (DEBUG labs).
+  LINT_TARGETS=()
+  while IFS= read -r kept_path; do
+    [[ -n "$kept_path" ]] || continue
+    LINT_TARGETS+=("$kept_path")
+  done < <(python3 - "$PWD" "${PATHS[@]}" <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+paths = sys.argv[2:]
+excluded: list[str] = []
+in_excluded = False
+for line in (root / ".swiftlint.yml").read_text(encoding="utf-8").splitlines():
+    stripped = line.strip()
+    if stripped == "excluded:":
+        in_excluded = True
+        continue
+    if in_excluded:
+        if stripped.startswith("- "):
+            excluded.append(stripped[2:].strip().strip("'\""))
+            continue
+        if stripped and not stripped.startswith("#"):
+            break
+
+for path in paths:
+    normalized = path.replace("\\", "/").lstrip("./")
+    skip = False
+    for entry in excluded:
+        entry_n = entry.replace("\\", "/").lstrip("./")
+        if normalized == entry_n or normalized.startswith(entry_n.rstrip("/") + "/"):
+            skip = True
+            break
+    if not skip:
+        print(path)
+PY
+)
+  if (( ${#LINT_TARGETS[@]} == 0 )); then
+    echo "SwiftLint: all path-scoped targets are excluded; skipping."
+    exit 0
+  fi
 fi
 
 mkdir -p .DerivedData/swiftlint-cache

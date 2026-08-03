@@ -426,6 +426,10 @@ extension BattleSession {
         if isShowingBattleLog {
             isShowingBattleLog = false
         }
+        let preferred = Self.preferredAutoBattleEnabled(from: presentationEnvironment)
+        if isAutoBattleEnabled != preferred {
+            isAutoBattleEnabled = preferred
+        }
         commandCoordinator.beginOpeningHandDeal(for: configuration.id)
     }
 

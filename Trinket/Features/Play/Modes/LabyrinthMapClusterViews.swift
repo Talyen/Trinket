@@ -290,7 +290,15 @@ struct LabyrinthNodeInspector: View {
                 }
             },
             artwork: {
-                LabyrinthNodeArtwork(node: node, type: type)
+                LabyrinthNodeArtwork(
+                    node: node,
+                    type: type,
+                    pickContext: MysteryEventPickContext.labyrinth(
+                        inventory: playerSave.inventory,
+                        corruptionAltarCooldownRemaining: playerSave.currentSave
+                            .corruptionAltarCooldownRemaining
+                    )
+                )
             },
             partyPickerSheet: {
                 StageBattlePartyPickerSheet()
@@ -379,6 +387,7 @@ struct LabyrinthNodeInspector: View {
 private struct LabyrinthNodeArtwork: View {
     let node: LabyrinthNode
     let type: LabyrinthNodeType
+    let pickContext: MysteryEventPickContext
 
     private var symbolName: String {
         LabyrinthMapPresentation.symbolName(
@@ -387,12 +396,28 @@ private struct LabyrinthNodeArtwork: View {
         )
     }
 
+    private var resolvedMysteryEvent: MysteryEvent? {
+        switch type.canonical {
+        case .mystery, .event:
+            GameContent.resolveLabyrinthMysteryEvent(
+                nodeID: node.id,
+                forcedEventID: nil,
+                pinnedEventID: node.mysteryEventID,
+                context: pickContext
+            )
+        default:
+            nil
+        }
+    }
+
     var body: some View {
         Group {
             if type.isCombat,
                let enemyID = node.enemyID,
                let enemy = GameContent.enemy(matching: enemyID) {
                 CombatantArtwork(combatant: enemy.combatant, variant: .battle)
+            } else if let event = resolvedMysteryEvent, !event.isRecruit {
+                MysteryEventHeroArtwork(event: event, chapterID: "labyrinth")
             } else {
                 ZStack {
                     LabyrinthMapPresentation.tint(for: type).opacity(0.16)

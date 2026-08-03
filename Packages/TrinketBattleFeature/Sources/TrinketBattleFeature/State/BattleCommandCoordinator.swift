@@ -268,7 +268,7 @@ final class BattleCommandCoordinator {
         isAutoBattleEnabled: @escaping @MainActor () -> Bool,
         isCardCastActive: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
-        playCard: @escaping @MainActor (BattleCard) -> Bool
+        playCard: @escaping @MainActor (BattleCard) async -> Bool
     ) async {
         while !Task.isCancelled, isAutoBattleEnabled() {
             guard let session,
@@ -295,7 +295,7 @@ final class BattleCommandCoordinator {
                 continue
             }
 
-            guard playCard(card) else { return }
+            guard await playCard(card) else { return }
             guard !Task.isCancelled, isAutoBattleEnabled(), session.outcome == nil else { return }
 
             while !Task.isCancelled, isAutoBattleEnabled(), isCardCastActive() {

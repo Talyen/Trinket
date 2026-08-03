@@ -22,29 +22,51 @@ struct BattleAutoPlayLane: View {
                     isCardCastActive: { castPresentation.request != nil },
                     isManualInteractionActive: { interactionState.suppressCombatantTaps },
                     playCard: { card in
-                        guard let request = activationRequest(for: card) else { return false }
-                        return onPlay(card, request)
+                        await playCardWithTapLift(card)
                     }
                 )
             }
     }
 
-    private func activationRequest(for card: BattleCard) -> CardActivationRequest? {
+    private func playCardWithTapLift(_ card: BattleCard) async -> Bool {
+        let configuration = BattleHandMotionConfiguration()
+        interactionState.autoLiftCardID = card.id
+        defer {
+            if interactionState.autoLiftCardID == card.id {
+                interactionState.autoLiftCardID = nil
+            }
+        }
+
+        try? await Task.sleep(for: .seconds(configuration.tapLiftPlayDelay))
+        guard !Task.isCancelled, battleSession.isAutoBattleEnabled else { return false }
+        guard let request = activationRequest(for: card, configuration: configuration) else {
+            return false
+        }
+        return onPlay(card, request)
+    }
+
+    private func activationRequest(
+        for card: BattleCard,
+        configuration: BattleHandMotionConfiguration
+    ) -> CardActivationRequest? {
         let hand = battleSession.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
 
-        let configuration = BattleHandMotionConfiguration()
         let metrics = BattleHandLayout.metrics(
             containerWidth: battleSize.width,
             cardCount: hand.count,
             configuration: configuration
         )
-        let center = BattleHandLayout.restingCenter(
+        let restingCenter = BattleHandLayout.restingCenter(
             index: index,
             metrics: metrics,
             cardCount: hand.count,
             containerFrame: CGRect(origin: .zero, size: battleSize),
             configuration: configuration
+        )
+        let center = CGPoint(
+            x: restingCenter.x,
+            y: restingCenter.y - metrics.cardHeight * configuration.tapLiftHeight
         )
 
         return CardActivationRequest(

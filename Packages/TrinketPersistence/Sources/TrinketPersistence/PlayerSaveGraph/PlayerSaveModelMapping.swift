@@ -14,40 +14,6 @@ private let inventoryMappingLogger = Logger(
     category: "InventoryMapping"
 )
 
-extension JourneyProgressModel {
-    func toJourneyProgressState() -> JourneyProgressState {
-        let stageModels = stages ?? []
-        return JourneyProgressState(
-            activeChapterID: activeChapterID,
-            activeStageID: activeStageID,
-            completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
-            claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
-            lastCompletedStageID: lastCompletedStageID
-        )
-    }
-
-    func update(from state: JourneyProgressState, context: ModelContext?) {
-        activeChapterID = state.activeChapterID
-        activeStageID = state.activeStageID
-        lastCompletedStageID = state.lastCompletedStageID
-        let allStageIDs = state.completedStageIDs.union(state.claimedRewardStageIDs)
-        stages = reconcileModels(
-            existing: stages ?? [],
-            values: allStageIDs.sorted(),
-            existingKey: \.stageID,
-            valueKey: { $0 },
-            make: { JourneyStageProgressModel(stageID: $0) },
-            update: { model, stageID in
-                model.stageID = stageID
-                model.isCompleted = state.completedStageIDs.contains(stageID)
-                model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
-            },
-            context: context
-        )
-        stages?.linkEach(to: self, parent: \.journey)
-    }
-}
-
 private struct UnlockedCombatantValue {
     let combatantID: String
     let role: String
@@ -508,7 +474,7 @@ extension Array {
     }
 }
 
-private func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
+func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     existing: [Model],
     values: [Value],
     existingKey: (Model) -> Key,

@@ -84,6 +84,41 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
     }
 
+    @Test func journeyMysteryOpenMatchesSeededMapResolve() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        #expect(stage.encounter.mysteryEventID == nil)
+
+        let pickContext = MysteryEventPickContext.journey(
+            chapterNumber: stage.chapterNumber,
+            inventory: state.playerSave.inventory,
+            corruptionAltarCooldownRemaining: state.playerSave.currentSave
+                .corruptionAltarCooldownRemaining
+        )
+        let expected = GameContent.resolveJourneyMysteryEvent(
+            stage: stage,
+            context: pickContext
+        )
+
+        #expect(state.journey.beginMysteryEncounter(for: stage) == nil)
+        let session = try #require(state.encounters.activeMysteryEncounter)
+        #expect(session.event.id == expected.id)
+        #expect(!session.event.isRecruit)
+        #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == expected.id)
+
+        // Pin wins over a different pick context on later resolve.
+        let pinned = GameContent.resolveJourneyMysteryEvent(
+            stage: stage,
+            pinnedEventID: expected.id,
+            context: .journey(
+                chapterNumber: 2,
+                inventory: state.playerSave.inventory,
+                corruptionAltarCooldownRemaining: 0
+            )
+        )
+        #expect(pinned.id == expected.id)
+    }
+
     @Test func chooseItemPresentsCandidatesAndGrantsSelection() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let event = try #require(GameContent.mysteryEvent(matching: "abandoned-study"))

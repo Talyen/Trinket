@@ -38,6 +38,7 @@ trinket_set_generated_tracked_paths() {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
       "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicSourceHashes.generated.tsv"
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
+      "Trinket/AppIcon.icon"
       "Trinket/Assets.xcassets"
       "Trinket/Resources/Music"
       "Trinket/Resources/SFX"

@@ -40,6 +40,56 @@ public extension GameContent {
         authored ?? pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
+    /// Authored mystery or recruit for a stage, preferring an explicit forced id.
+    static func authoredMysteryOrRecruitEvent(
+        forcedEventID: String? = nil,
+        stage: Stage
+    ) -> MysteryEvent? {
+        forcedEventID.flatMap {
+            mysteryEvent(matching: $0) ?? recruitEvent(matching: $0)
+        } ?? stage.mysteryEvent
+    }
+
+    /// Seeded journey mystery pick (stable per stage so map art matches the encounter).
+    /// Prefer an authored / forced event, then a save-pinned id, then the seeded pool.
+    static func resolveJourneyMysteryEvent(
+        stageID: String,
+        authored: MysteryEvent?,
+        pinnedEventID: String? = nil,
+        context: MysteryEventPickContext = .excludingCorruptionAltar
+    ) -> MysteryEvent {
+        if let authored {
+            return authored
+        }
+        if let pinnedEventID,
+           let pinned = mysteryEvent(matching: pinnedEventID) ?? recruitEvent(matching: pinnedEventID) {
+            return pinned
+        }
+        var randomNumberGenerator = SeededRandomNumberGenerator(
+            seed: stableSeed(for: "journey-mystery-\(stageID)")
+        )
+        return resolveMysteryEncounterEvent(
+            authored: nil,
+            context: context,
+            using: &randomNumberGenerator
+        )
+    }
+
+    /// Shared journey resolve used by map art and encounter open.
+    static func resolveJourneyMysteryEvent(
+        stage: Stage,
+        forcedEventID: String? = nil,
+        pinnedEventID: String? = nil,
+        context: MysteryEventPickContext = .excludingCorruptionAltar
+    ) -> MysteryEvent {
+        resolveJourneyMysteryEvent(
+            stageID: stage.id,
+            authored: authoredMysteryOrRecruitEvent(forcedEventID: forcedEventID, stage: stage),
+            pinnedEventID: pinnedEventID,
+            context: context
+        )
+    }
+
     /// Seeded Labyrinth mystery pick (stable per node so reopen does not re-roll).
     /// Prefer a pinned `mysteryEventID` on the node when present.
     static func resolveLabyrinthMysteryEvent(

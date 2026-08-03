@@ -56,6 +56,11 @@ final class PlayerSaveSanitizerTests {
         journey.activeStageID = "missing-stage"
         journey.completedStageIDs = ["chapter-1-stage-1", "missing-stage"]
         journey.claimedRewardStageIDs = ["missing-reward"]
+        journey.pinnedMysteryEventIDs = [
+            "chapter-1-stage-5": "mana-berries",
+            "missing-stage": "mana-berries",
+            "chapter-1-stage-2": "not-a-real-event",
+        ]
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
@@ -63,6 +68,7 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.activeStageID == "chapter-1-stage-2")
         try #expect(sanitized.completedStageIDs == ["chapter-1-stage-1"])
         try #expect(sanitized.claimedRewardStageIDs.isEmpty)
+        try #expect(sanitized.pinnedMysteryEventIDs == ["chapter-1-stage-5": "mana-berries"])
     }
 
     @Test func sanitizeJourneyAlignsActiveChapterWithActiveStage() throws {

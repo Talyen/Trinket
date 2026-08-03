@@ -7,8 +7,8 @@
 # one-off .DerivedData/runs/<id> tenants, bulky TestResults/PerformanceResults/
 # Logs, and reap dead UI/sim slots.
 #
-# Simulator device lifecycle (Preview reclaim, idle-pool shutdown/erase) lives in
-# run-env release traps — this script never mutates devices.
+# Simulator device lifecycle (Preview reclaim; single-warm Booted cap) lives in
+# run-env self-clean start + EXIT — this script never mutates devices.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -138,6 +138,7 @@ if [[ -d "$SHARED_ROOT/.active-sim" ]]; then
   trinket_sim_slot_reap
 fi
 
-# Simulator lifecycle belongs to run-env release traps (Preview + idle-pool).
+# Simulator lifecycle belongs to run-env self-clean start + EXIT (Preview;
+# single-warm Booted cap). This script never mutates devices.
 
 echo "=== DerivedData prune complete ==="

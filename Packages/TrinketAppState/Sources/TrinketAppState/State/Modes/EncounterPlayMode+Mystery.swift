@@ -25,12 +25,16 @@ public extension EncounterPlayMode {
         let pinnedLabyrinthEventID = origin.labyrinthNodeID.flatMap {
             playerSave.labyrinth.nodes[$0]?.mysteryEventID
         }
+        let pinnedJourneyEventID = origin.stage.flatMap {
+            playerSave.journey.pinnedMysteryEventIDs[$0.id]
+        }
 
         let opened = MysteryEncounterSession.open(
             origin: origin,
             forcedEventID: forcedEventID,
             pickContext: pickContext,
-            pinnedLabyrinthEventID: pinnedLabyrinthEventID
+            pinnedLabyrinthEventID: pinnedLabyrinthEventID,
+            pinnedJourneyEventID: pinnedJourneyEventID
         )
 
         if let labyrinthNodeID = origin.labyrinthNodeID,
@@ -49,6 +53,21 @@ public extension EncounterPlayMode {
             }
         }
 
+        if let stage = origin.stage,
+           pinnedJourneyEventID == nil,
+           !opened.session.event.isRecruit,
+           stage.mysteryEvent == nil {
+            do {
+                try playerSave.performBatchMutation { save in
+                    save.journey.pinnedMysteryEventIDs[stage.id] = opened.resolvedEventID
+                }
+            } catch {
+                appStateLogger.error(
+                    "Failed to pin journey mystery event: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
+
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if opened.session.event.isRecruit {
@@ -60,19 +79,20 @@ public extension EncounterPlayMode {
     private func mysteryEventPickContext(
         origin: PlayEncounterOrigin
     ) -> MysteryEventPickContext {
-        let allowsCorruptionAltar: Bool = {
-            if origin.labyrinthNodeID != nil {
-                return true
-            }
-            guard let stage = origin.stage else { return false }
-            return stage.chapterNumber >= 2
-        }()
-        return MysteryEventPickContext(
-            allowsCorruptionAltar: allowsCorruptionAltar,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(
-                in: playerSave.inventory
-            ).isEmpty,
-            corruptionAltarCooldownRemaining: playerSave.currentSave.corruptionAltarCooldownRemaining
+        let cooldown = playerSave.currentSave.corruptionAltarCooldownRemaining
+        if origin.labyrinthNodeID != nil {
+            return .labyrinth(
+                inventory: playerSave.inventory,
+                corruptionAltarCooldownRemaining: cooldown
+            )
+        }
+        guard let stage = origin.stage else {
+            return .excludingCorruptionAltar
+        }
+        return .journey(
+            chapterNumber: stage.chapterNumber,
+            inventory: playerSave.inventory,
+            corruptionAltarCooldownRemaining: cooldown
         )
     }
 

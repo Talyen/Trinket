@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # No-Xcode coverage for Scripts/run-env.sh isolation, agent sim slots, UI slots,
-# idle-pool / Preview reclaim, and generate lock timeout.
+# Preview reclaim, single-warm Booted enforcement, and generate lock timeout.
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
@@ -265,7 +265,8 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-reclaim"
-  # Skip idle-pool so this case only asserts Preview reclaim.
+  # Isolate Preview reclaim from single-warm / idle-pool side effects.
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
@@ -276,6 +277,33 @@ bash -c '
   trinket_run_env_release_slots
   grep -Fx "shutdown" "$FAKE_PREVIEW_LOG"
   grep -Fx "delete" "$FAKE_PREVIEW_LOG"
+' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
+
+# --- self-clean install runs Preview reclaim at start ---
+: > "$FAKE_PREVIEW_LOG"
+: > "$FAKE_SHUTDOWN_LOG"
+: > "$FAKE_ERASE_LOG"
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_PREVIEW_LOG="$3"
+  export FAKE_SHUTDOWN_LOG="$4"
+  export FAKE_ERASE_LOG="$5"
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="start-hygiene"
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
+  export TRINKET_CLEANUP_IDLE_POOL=0
+  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  unset TRINKET_SELF_CLEAN_OWNER
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  trinket_run_env_install_self_clean
+  grep -Fx "shutdown" "$FAKE_PREVIEW_LOG"
+  grep -Fx "delete" "$FAKE_PREVIEW_LOG"
+  # Avoid EXIT double-clean noise; release lease only.
+  unset TRINKET_SELF_CLEAN_OWNER
+  trinket_sim_slot_release
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
 # --- child without self-clean ownership skips Preview reclaim ---
@@ -290,6 +318,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="child-no-self-clean"
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
@@ -304,7 +333,34 @@ bash -c '
   [[ ! -s "$FAKE_PREVIEW_LOG" ]]
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- held peer slot: idle-pool skips shutdown/erase ---
+# --- single-warm: keep Agent 1, shut down excess Agent 2; never erase ---
+: > "$FAKE_PREVIEW_LOG"
+: > "$FAKE_SHUTDOWN_LOG"
+: > "$FAKE_ERASE_LOG"
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_PREVIEW_LOG="$3"
+  export FAKE_SHUTDOWN_LOG="$4"
+  export FAKE_ERASE_LOG="$5"
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="single-warm"
+  export TRINKET_CLEANUP_IDLE_POOL=0
+  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket Agent 1" ]]
+  trinket_run_env_claim_self_clean_owner
+  trinket_run_env_release_slots
+  grep -Fx "agent-2" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "agent-1" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "personal-device" "$FAKE_SHUTDOWN_LOG"
+  [[ ! -s "$FAKE_ERASE_LOG" ]]
+' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
+
+# --- held peer slot: keep active Agent 2, shut down Agent 1; idle-pool skips erase ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -316,21 +372,48 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="held-peer"
+  export TRINKET_CLEANUP_IDLE_POOL=1
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
   source Scripts/run-env.sh
   trinket_run_env_init
   trinket_run_env_claim_self_clean_owner
-  # Peer still holds slot 2.
+  # Peer still holds slot 2 — prefer that keep-target over our released slot.
   printf "%s peer %s\n" "$$" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_SIM_ACTIVE_DIR/2.slot"
   trinket_run_env_release_slots
-  [[ ! -s "$FAKE_SHUTDOWN_LOG" ]]
+  grep -Fx "agent-1" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "agent-2" "$FAKE_SHUTDOWN_LOG"
   [[ ! -s "$FAKE_ERASE_LOG" ]]
   rm -f "$TRINKET_SIM_ACTIVE_DIR/2.slot"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- empty pool: shut down Booted Agents + erase Agents; never touch CI/personal ---
+# --- empty pool + single-warm off: keep Agents warm (no shutdown/erase) ---
+: > "$FAKE_PREVIEW_LOG"
+: > "$FAKE_SHUTDOWN_LOG"
+: > "$FAKE_ERASE_LOG"
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_PREVIEW_LOG="$3"
+  export FAKE_SHUTDOWN_LOG="$4"
+  export FAKE_ERASE_LOG="$5"
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="idle-pool-warm"
+  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_IDLE_POOL
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  [[ "$TRINKET_MAX_AGENT_SIMS" == "1" ]]
+  trinket_run_env_claim_self_clean_owner
+  trinket_run_env_release_slots
+  [[ ! -s "$FAKE_SHUTDOWN_LOG" ]]
+  [[ ! -s "$FAKE_ERASE_LOG" ]]
+' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
+
+# --- opt-in idle-pool: shut down Booted Agents + erase Agents; never touch CI/personal ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -342,6 +425,8 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="idle-pool"
+  export TRINKET_CLEANUP_IDLE_POOL=1
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
   unset TRINKET_SELF_CLEAN_OWNER
@@ -361,7 +446,7 @@ bash -c '
   ! grep -q "personal-device" "$FAKE_ERASE_LOG"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- non-isolate release never idle-pool erases (warm CI path) ---
+# --- non-isolate: keep CI Booted, shut down excess Agents; never erase ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -374,13 +459,18 @@ bash -c '
   export FAKE_ERASE_LOG="$5"
   unset TRINKET_ISOLATE TRINKET_RUN_ID TRINKET_AGENT_SLOT
   unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_SIM_SLOT_PATH
-  unset TRINKET_SELF_CLEAN_OWNER
+  unset TRINKET_SELF_CLEAN_OWNER TRINKET_CLEANUP_SINGLE_WARMED
   export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  export TRINKET_CLEANUP_IDLE_POOL=0
   source Scripts/run-env.sh
   trinket_run_env_init
+  [[ "$TRINKET_SIMULATOR_NAME" == "Trinket CI" ]]
   trinket_run_env_claim_self_clean_owner
   trinket_run_env_release_slots
-  [[ ! -s "$FAKE_SHUTDOWN_LOG" ]]
+  # Fake list has CI Shutdown + Agents Booted — keep target CI is not Booted, so
+  # first Booted managed (agent-1) is kept and agent-2 is shut down.
+  grep -Fx "agent-2" "$FAKE_SHUTDOWN_LOG"
+  ! grep -q "agent-1" "$FAKE_SHUTDOWN_LOG"
   [[ ! -s "$FAKE_ERASE_LOG" ]]
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
@@ -402,6 +492,27 @@ bash -c '
   [[ ! -e "$TRINKET_SHARED_DERIVED_DATA/TestResults/old-bundle" ]]
   [[ -d "$TRINKET_SHARED_DERIVED_DATA/TestResults/fresh-bundle" ]]
   [[ -f "$TRINKET_SHARED_DERIVED_DATA/Build/Products/keep" ]]
+' _ "$REPO"
+
+# --- age-prune drops aged package-local .build / .DerivedData ---
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  source Scripts/run-env.sh
+  unset TRINKET_ISOLATE TRINKET_RUN_ID TRINKET_AGENT_SLOT
+  trinket_run_env_init
+  mkdir -p "$1/Packages/DemoPkg/.build/objects"
+  mkdir -p "$1/Packages/DemoPkg/.DerivedData/ModuleCache"
+  mkdir -p "$1/Packages/DemoPkgFresh/.build/objects"
+  touch "$1/Packages/DemoPkg/.build/objects/old"
+  touch "$1/Packages/DemoPkgFresh/.build/objects/fresh"
+  touch -t 202001010101 "$1/Packages/DemoPkg/.build"
+  touch -t 202001010101 "$1/Packages/DemoPkg/.DerivedData"
+  touch "$1/Packages/DemoPkgFresh/.build"
+  trinket_derived_data_age_prune
+  [[ ! -e "$1/Packages/DemoPkg/.build" ]]
+  [[ ! -e "$1/Packages/DemoPkg/.DerivedData" ]]
+  [[ -d "$1/Packages/DemoPkgFresh/.build" ]]
 ' _ "$REPO"
 
 # --- generate lock timeout ---

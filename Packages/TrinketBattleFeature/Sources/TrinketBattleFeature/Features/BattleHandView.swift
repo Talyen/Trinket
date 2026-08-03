@@ -27,6 +27,8 @@ struct BattleHandView: View {
     let hapticsEnabled: Bool
     let battleFrame: CGRect
     var configuration: BattleHandMotionConfiguration = .init()
+    /// When set, the matching hand card mirrors Auto Battle's tap-lift rise.
+    var autoLiftCardID: Int?
     /// Fires when any hand card press/drag begins or ends (including long-press detail).
     var onCardInteractionChanged: ((Bool) -> Void)?
     /// Drag exceeded tap slop — start party attack wind-up for this card's owner.
@@ -85,6 +87,7 @@ struct BattleHandView: View {
                         configuration: configuration,
                         restingCenter: snapshot.restingCenter,
                         hapticsEnabled: hapticsEnabled,
+                        autoLiftCardID: autoLiftCardID,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
                         onInteractionChanged: { isActive in
@@ -142,6 +145,7 @@ struct BattleHandView: View {
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         hapticsEnabled: Bool,
         battleFrame: CGRect,
+        autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
         onAttackWindUp: ((BattleCard) -> Void)? = nil,
         onAttackCancel: ((BattleCard) -> Void)? = nil
@@ -154,6 +158,7 @@ struct BattleHandView: View {
             hapticsEnabled: hapticsEnabled,
             battleFrame: battleFrame,
             configuration: .init(),
+            autoLiftCardID: autoLiftCardID,
             onCardInteractionChanged: onCardInteractionChanged,
             onAttackWindUp: onAttackWindUp,
             onAttackCancel: onAttackCancel
@@ -168,6 +173,7 @@ struct BattleHandView: View {
         hapticsEnabled: Bool,
         battleFrame: CGRect,
         configuration: BattleHandMotionConfiguration,
+        autoLiftCardID: Int? = nil,
         onCardInteractionChanged: ((Bool) -> Void)? = nil,
         onAttackWindUp: ((BattleCard) -> Void)? = nil,
         onAttackCancel: ((BattleCard) -> Void)? = nil
@@ -179,6 +185,7 @@ struct BattleHandView: View {
         self.hapticsEnabled = hapticsEnabled
         self.battleFrame = battleFrame
         self.configuration = configuration
+        self.autoLiftCardID = autoLiftCardID
         self.onCardInteractionChanged = onCardInteractionChanged
         self.onAttackWindUp = onAttackWindUp
         self.onAttackCancel = onAttackCancel

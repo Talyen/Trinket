@@ -559,7 +559,7 @@ struct HandMotionLab_Previews: PreviewProvider {
     static var previews: some View {
         HandMotionPlayground()
             .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
             .previewInterfaceOrientation(.landscapeLeft)
             .previewDisplayName("Hand Motion Lab")
     }

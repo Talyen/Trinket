@@ -170,17 +170,20 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     /// Edge snowflakes plus a faint frosty veil that creeps inward from the rim.
-    /// Encroaches once over the early portion of the clip, then holds fully frozen
-    /// (lab playback for Frozen clamps at 1 so this never reverts mid-status).
+    /// Inward encroachment caps once, then flakes keep twinkling and the veil pulses.
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
         let flakes = max(config.particleCount, 12)
-        // First ~35% of the duration grows frost; the remainder stays fully frozen.
-        let reveal = min(max(phase / 0.35, 0), 1)
+        // First ~35% of absolute phase grows frost inward; then coverage stays maxed.
+        let encroach = min(max(phase / 0.35, 0), 1)
         let minDim = min(size.width, size.height)
         // Clear center shrinks as frost encroaches from the edges.
-        let clearRadius = minDim * 0.55 * (1 - reveal * (0.55 + config.crackDensity * 0.3))
+        let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + config.crackDensity * 0.3))
         let edgeRadius = minDim * 0.78
-        let veilOpacity = Double(reveal * config.frostOpacity * config.intensity)
+        // Subtle ongoing pulse after the rim is fully frosted.
+        let pulse = encroach >= 1
+            ? 0.88 + 0.12 * (0.5 + 0.5 * sin(phase * .pi * 2))
+            : 1
+        let veilOpacity = Double(encroach * config.frostOpacity * config.intensity * pulse)
 
         return ZStack {
             RadialGradient(
@@ -199,12 +202,11 @@ struct CombatantStatusEffectOverlay: View {
                 for index in 0 ..< flakes {
                     let along = CombatantCardEffectNoise.value(index, salt: 41)
                     let edge = index % 4
-                    // Stagger so flakes densify around the rim as the animation plays.
+                    // Stagger so flakes densify around the rim as encroachment plays.
                     let delay = CGFloat(index) / CGFloat(flakes) * 0.72
-                    let local = min(max((reveal - delay) / 0.28, 0), 1)
-                    guard local > 0.02 else { continue }
+                    let appear = min(max((encroach - delay) / 0.28, 0), 1)
+                    guard appear > 0.02 else { continue }
 
-                    let fadeIn = local < 0.55 ? local / 0.55 : 1
                     let insetNoise = CombatantCardEffectNoise.value(index, salt: 47)
                     // Stay near the rim; denser density pushes slightly further inward.
                     let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
@@ -215,17 +217,23 @@ struct CombatantStatusEffectOverlay: View {
                     default: CGPoint(x: inset, y: along * size.height)
                     }
 
+                    // Keep twinkling after fully revealed.
+                    let twinkle = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
+                    let breathe = 0.88 + 0.12 * twinkle
                     let radius = minDim
                         * (0.01 + config.crackDensity * 0.018)
                         * (0.7 + insetNoise * 0.5)
-                        * fadeIn
+                        * appear
+                        * breathe
                         * config.intensity
-                    let opacity = Double(0.35 + 0.55 * fadeIn * config.frostOpacity)
+                    let opacity = Double(
+                        (0.3 + 0.55 * appear * config.frostOpacity) * twinkle
+                    )
                     drawSnowflake(
                         in: &context,
                         at: center,
                         radius: radius,
-                        rotation: along * .pi + insetNoise,
+                        rotation: along * .pi + insetNoise + phase * 0.15,
                         color: style.color.opacity(opacity * 0.7),
                         secondary: style.secondaryColor.opacity(opacity)
                     )

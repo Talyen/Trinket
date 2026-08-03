@@ -70,4 +70,78 @@ struct CorruptionAltarPickTests {
         }
         #expect(hits > 0)
     }
+
+    @Test func journeyMysteryResolveIsStableAndPrefersAuthored() throws {
+        let context = MysteryEventPickContext.excludingCorruptionAltar
+        let stageID = "chapter-1-stage-5"
+        let first = GameContent.resolveJourneyMysteryEvent(
+            stageID: stageID,
+            authored: nil,
+            context: context
+        )
+        let second = GameContent.resolveJourneyMysteryEvent(
+            stageID: stageID,
+            authored: nil,
+            context: context
+        )
+        #expect(first.id == second.id)
+        #expect(first.id != GameContent.corruptionAltarEventID)
+
+        let authored = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
+        let forced = GameContent.resolveJourneyMysteryEvent(
+            stageID: stageID,
+            authored: authored,
+            context: context
+        )
+        #expect(forced.id == "mana-berries")
+
+        let pinned = GameContent.resolveJourneyMysteryEvent(
+            stageID: stageID,
+            authored: nil,
+            pinnedEventID: "mana-berries",
+            context: context
+        )
+        #expect(pinned.id == "mana-berries")
+
+        if let artID = first.artID {
+            #expect(
+                ArtCatalog.encounterArtByID[artID] != nil
+                    || ArtCatalog.backgroundArtByID[artID] != nil
+            )
+        }
+    }
+
+    @Test func seededNonAltarPickStableWhenAltarEligibilityFlips() {
+        let ineligible = MysteryEventPickContext(
+            allowsCorruptionAltar: true,
+            hasEligibleCorruptTarget: false,
+            corruptionAltarCooldownRemaining: 0
+        )
+        let eligible = MysteryEventPickContext(
+            allowsCorruptionAltar: true,
+            hasEligibleCorruptTarget: true,
+            corruptionAltarCooldownRemaining: 0
+        )
+
+        var matchedNonAltar = false
+        for seed in UInt64(1) ... 200 {
+            var ineligibleRNG = SeededRandomNumberGenerator(seed: seed)
+            var eligibleRNG = SeededRandomNumberGenerator(seed: seed)
+            let withoutAltar = GameContent.pickMysteryEvent(
+                context: ineligible,
+                using: &ineligibleRNG
+            )
+            let withAltarChance = GameContent.pickMysteryEvent(
+                context: eligible,
+                using: &eligibleRNG
+            )
+            if withAltarChance.id == GameContent.corruptionAltarEventID {
+                continue
+            }
+            #expect(withoutAltar.id == withAltarChance.id)
+            matchedNonAltar = true
+            break
+        }
+        #expect(matchedNonAltar)
+    }
 }

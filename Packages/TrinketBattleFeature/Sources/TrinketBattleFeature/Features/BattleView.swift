@@ -365,7 +365,7 @@ public struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant) {
-        guard !interactionState.suppressCombatantTaps,
+        guard !interactionState.blocksCombatantTaps,
               let combatantReadModel = battleSession.combatantReadModel(for: combatant)
         else { return }
         let partyMember = configuration.partyMember(for: combatant.id)
@@ -423,6 +423,7 @@ private struct BattleHandProjectionLane: View {
             hapticsEnabled: hapticsEnabled,
             battleFrame: CGRect(origin: .zero, size: battleSize),
             configuration: .init(),
+            autoLiftCardID: interactionState.autoLiftCardID,
             onCardInteractionChanged: onInteractionChanged,
             onAttackWindUp: onAttackWindUp,
             onAttackCancel: onAttackCancel

@@ -108,6 +108,7 @@ struct TrinketApp: App {
                 warmSFX: dependencies.warmSFX,
                 hapticsEnabled: dependencies.hapticsEnabled,
                 effectsVolume: dependencies.effectsVolume,
+                rememberAutoBattlePreference: dependencies.rememberAutoBattlePreference,
                 autoBattleEnabled: dependencies.autoBattleEnabled,
                 setAutoBattleEnabled: dependencies.setAutoBattleEnabled,
                 shouldAutoSkipUltimateCinematic: dependencies.shouldAutoSkipUltimateCinematic

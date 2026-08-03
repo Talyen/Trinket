@@ -57,6 +57,7 @@ public final class OptionsStore {
     @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
+    @ObservationIgnored private var rememberAutoBattlePreferenceStorage: AppStorage<Bool>
     @ObservationIgnored private var autoBattleEnabledStorage: AppStorage<Bool>
     @ObservationIgnored private var ultimateShowPolicyStorage: AppStorage<String>
 
@@ -72,7 +73,18 @@ public final class OptionsStore {
         didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
     }
 
-    /// Battle-only preference surfaced from the Battle toolbar, not Options.
+    /// When false (default), Auto starts OFF each battle and is not persisted.
+    /// When true, the battle toolbar Auto preference is restored across battles.
+    public var rememberAutoBattlePreference: Bool {
+        didSet {
+            rememberAutoBattlePreferenceStorage.wrappedValue = rememberAutoBattlePreference
+            if !rememberAutoBattlePreference, autoBattleEnabled {
+                autoBattleEnabled = false
+            }
+        }
+    }
+
+    /// Battle-toolbar Auto preference. Only meaningful when `rememberAutoBattlePreference` is on.
     public var autoBattleEnabled: Bool {
         didSet { autoBattleEnabledStorage.wrappedValue = autoBattleEnabled }
     }
@@ -90,6 +102,7 @@ public final class OptionsStore {
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
+    static let rememberAutoBattlePreferenceKey = "options.rememberAutoBattlePreference"
     static let autoBattleEnabledKey = "battle.autoBattleEnabled"
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
     /// Former "Skip Ultimate Animations" key. Cleared after one-shot migration to show framing.
@@ -115,6 +128,11 @@ public final class OptionsStore {
             Self.hapticsEnabledKey,
             store: defaults
         )
+        rememberAutoBattlePreferenceStorage = AppStorage(
+            wrappedValue: false,
+            Self.rememberAutoBattlePreferenceKey,
+            store: defaults
+        )
         autoBattleEnabledStorage = AppStorage(
             wrappedValue: false,
             Self.autoBattleEnabledKey,
@@ -131,9 +149,15 @@ public final class OptionsStore {
         musicVolume = musicVolumeStorage.wrappedValue
         effectsVolume = effectsVolumeStorage.wrappedValue
         hapticsEnabled = hapticsEnabledStorage.wrappedValue
+        rememberAutoBattlePreference = rememberAutoBattlePreferenceStorage.wrappedValue
         autoBattleEnabled = autoBattleEnabledStorage.wrappedValue
         ultimateCinematicShowPolicy = resolvedPolicy
         ultimateShowPolicyStorage.wrappedValue = resolvedPolicy.rawValue
+
+        // First assignments in init do not run didSet; clear stale ON after full init.
+        if !rememberAutoBattlePreference, autoBattleEnabled {
+            autoBattleEnabled = false
+        }
     }
 
     /// Whether a new Ultimate from this actor should skip the full-screen cinematic.

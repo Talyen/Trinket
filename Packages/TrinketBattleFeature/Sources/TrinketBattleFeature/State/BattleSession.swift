@@ -36,10 +36,12 @@ public final class BattleSession {
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
     let presentationEnvironment: BattlePresentationEnvironment
-    /// Persists locally through the app composition root while remaining a Battle-only control.
+    /// Session-local Auto control. Persists across battles only when Options
+    /// "Remember Auto-Battle Preference" is on.
     public var isAutoBattleEnabled: Bool {
         didSet {
             guard oldValue != isAutoBattleEnabled else { return }
+            guard presentationEnvironment.rememberAutoBattlePreference() else { return }
             presentationEnvironment.setAutoBattleEnabled(isAutoBattleEnabled)
         }
     }
@@ -117,10 +119,19 @@ public final class BattleSession {
         initialEnemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
         self.presentationEnvironment = presentationEnvironment
-        isAutoBattleEnabled = presentationEnvironment.autoBattleEnabled()
+        isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
+            from: presentationEnvironment
+        )
         runtime.onChange = { [weak self] change in
             self?.handleRuntimeChange(change)
         }
+    }
+
+    static func preferredAutoBattleEnabled(
+        from presentationEnvironment: BattlePresentationEnvironment
+    ) -> Bool {
+        presentationEnvironment.rememberAutoBattlePreference()
+            && presentationEnvironment.autoBattleEnabled()
     }
 
     private func handleRuntimeChange(_ change: BattleRuntimeSession.Change) {

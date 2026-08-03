@@ -20,7 +20,7 @@ extension BattleSession {
     func driveAutoBattle(
         isCardCastActive: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
-        playCard: @escaping @MainActor (BattleCard) -> Bool
+        playCard: @escaping @MainActor (BattleCard) async -> Bool
     ) async {
         await commandCoordinator.driveAutoBattle(
             isAutoBattleEnabled: { [weak self] in self?.isAutoBattleEnabled == true },

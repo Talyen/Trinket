@@ -90,6 +90,24 @@ struct StageMapPresentationTests {
         #expect(!(stage.encounterSubjectName.isEmpty))
     }
 
+    @Test func seededJourneyMysteryProvidesEncounterArtForUnpinnedStages() throws {
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        #expect(stage.encounter.mysteryEventID == nil)
+        #expect(stage.encounterArtReference == nil)
+
+        let event = GameContent.resolveJourneyMysteryEvent(
+            stage: stage,
+            context: .excludingCorruptionAltar
+        )
+        #expect(!event.isRecruit)
+        if let artID = event.artID {
+            #expect(
+                ArtCatalog.encounterArtByID[artID] != nil
+                    || ArtCatalog.backgroundArtByID[artID] != nil
+            )
+        }
+    }
+
     @Test func spireRowsHideClearedFloorsAndEndWithBossBeforeCompletion() throws {
         let spire = try #require(GameContent.spire(id: .ironVein))
         let floors = GameContent.spireFloors(for: spire.id)

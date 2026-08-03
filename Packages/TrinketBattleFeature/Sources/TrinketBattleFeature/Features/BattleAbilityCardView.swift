@@ -14,6 +14,8 @@ struct BattleAbilityCardView: View {
     var configuration: BattleHandMotionConfiguration = .init()
     let restingCenter: CGPoint
     let hapticsEnabled: Bool
+    /// When equal to `card.id`, mirrors the Auto Battle tap-lift rise.
+    var autoLiftCardID: Int?
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
     let onInteractionChanged: (Bool) -> Void
@@ -109,6 +111,12 @@ struct BattleAbilityCardView: View {
                 cancelInspection()
                 cancelTapLift()
                 onInteractionChanged(false)
+            }
+            .onAppear {
+                syncAutoLift(autoLiftCardID)
+            }
+            .onChange(of: autoLiftCardID) { _, liftCardID in
+                syncAutoLift(liftCardID)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
@@ -343,7 +351,25 @@ struct BattleAbilityCardView: View {
         publishPlay(request)
     }
 
-    private func beginTapPlay() {
+    private func publishPlay(_ request: CardActivationRequest) {
+        cancelInspection()
+        let hadWindUp = didAnnounceWindUp
+        didAnnounceWindUp = false
+        // End parent-held state before publishing the hand mutation. Otherwise
+        // this card's onDisappear performs nested state work during sibling reflow.
+        onInteractionChanged(false)
+        let didPlay = onPlay(request)
+        if didPlay {
+            cancelTapLift()
+            return
+        }
+        didAnnounceWindUp = hadWindUp
+        returnDrag()
+    }
+}
+
+private extension BattleAbilityCardView {
+    func beginTapPlay() {
         guard tapLiftTask == nil else { return }
         withAnimation(configuration.tapLift) {
             isTapLifting = true
@@ -356,7 +382,19 @@ struct BattleAbilityCardView: View {
         }
     }
 
-    private func publishTapPlay() {
+    func syncAutoLift(_ liftCardID: Int?) {
+        let shouldLift = liftCardID == card.id
+        guard shouldLift != isTapLifting else { return }
+        if shouldLift {
+            // Cancel a manual tap-lift task so Auto and tap cannot double-play.
+            cancelTapLift()
+        }
+        withAnimation(configuration.tapLift) {
+            isTapLifting = shouldLift
+        }
+    }
+
+    func publishTapPlay() {
         let request = CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
             center: CGPoint(
@@ -373,25 +411,9 @@ struct BattleAbilityCardView: View {
         publishPlay(request)
     }
 
-    private func cancelTapLift() {
+    func cancelTapLift() {
         tapLiftTask?.cancel()
         tapLiftTask = nil
-    }
-
-    private func publishPlay(_ request: CardActivationRequest) {
-        cancelInspection()
-        let hadWindUp = didAnnounceWindUp
-        didAnnounceWindUp = false
-        // End parent-held state before publishing the hand mutation. Otherwise
-        // this card's onDisappear performs nested state work during sibling reflow.
-        onInteractionChanged(false)
-        let didPlay = onPlay(request)
-        if didPlay {
-            cancelTapLift()
-            return
-        }
-        didAnnounceWindUp = hadWindUp
-        returnDrag()
     }
 }
 

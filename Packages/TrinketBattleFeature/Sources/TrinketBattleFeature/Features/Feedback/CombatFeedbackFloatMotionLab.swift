@@ -932,7 +932,7 @@ struct CombatFeedbackFloatMotionLab_Previews: PreviewProvider {
     static var previews: some View {
         CombatFeedbackFloatMotionLab()
             .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M4)"))
+            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
             .previewInterfaceOrientation(.landscapeLeft)
             .previewDisplayName("Combat Float Motion Lab")
     }

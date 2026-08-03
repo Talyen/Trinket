@@ -6,10 +6,10 @@
 # Isolated (TRINKET_ISOLATE=1): acquires a reusable agent simulator slot
 # (Trinket Agent N) with DerivedData under .DerivedData/runs/agent-N/.
 #
-# On EXIT (top-level self-clean owner only): reclaim Preview sims, age-prune bulky
-# .DerivedData artifacts, and when isolate + empty agent pool shut down + erase
-# Trinket Agent N devices. Shared Trinket CI stays warm. Held peer slots keep
-# their Agents Booted. Nested children release leases only — they do not self-clean.
+# On self-clean start + EXIT (top-level owner only): reclaim Preview sims, enforce
+# exactly one Booted managed sim (Agent or CI), and age-prune bulky artifacts.
+# The keep-target stays Booted (no routine shutdown/erase — avoids CrashReporter
+# sheets from guest apps). Nested children release leases only.
 #
 # Generation lock and XcodeGen cache stay under the shared $PWD/.DerivedData root
 # because they mutate the repo project tree, not build products.
@@ -39,12 +39,22 @@ trinket_simulator_is_active_agent_name() {
     && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
 }
 
-# Shut down + delete Xcode Preview simulator devices (best-effort).
+# Shut down + delete Xcode Preview simulator devices (best-effort), then prune
+# leftover device dirs under both literal and URL-encoded Previews paths.
 trinket_preview_sims_reclaim() {
   [[ "${TRINKET_CLEANUP_PREVIEW_SIMS:-1}" == "1" ]] || return 0
   echo "Simulator cleanup: reclaiming Xcode Preview devices."
   xcrun simctl --set previews shutdown all >/dev/null 2>&1 || true
   xcrun simctl --set previews delete all >/dev/null 2>&1 || true
+  local previews_root="${HOME}/Library/Developer/Xcode/UserData/Previews"
+  local dir
+  for dir in \
+    "${previews_root}/Simulator Devices" \
+    "${previews_root}/Simulator%20Devices"
+  do
+    [[ -d "$dir" ]] || continue
+    find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + >/dev/null 2>&1 || true
+  done
 }
 
 trinket_sim_slot_pool_is_empty() {
@@ -59,48 +69,67 @@ trinket_sim_slot_pool_is_empty() {
   return 0
 }
 
-# Age-prune bulky rebuildable artifacts under the shared .DerivedData root.
-# Keeps warm runs/agent-N Build products; never wipes Intermediates by default.
+# Age-prune bulky rebuildable artifacts under the shared .DerivedData root and
+# package-local build trees. Keeps warm runs/agent-N Build products; never wipes
+# Intermediates by default. Does not touch ~/Library/Developer/Xcode/DerivedData.
 trinket_derived_data_age_prune() {
   [[ "${TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE:-1}" == "1" ]] || return 0
   local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
   local max_age_days="${TRINKET_RUN_MAX_AGE_DAYS:-3}"
   local artifact_age_days="${TRINKET_ARTIFACT_MAX_AGE_DAYS:-${max_age_days}}"
-  [[ -d "$shared_root" ]] || return 0
+  local repo_root
+  repo_root="$(trinket_run_env_repo_root)"
 
-  # One-off isolated runs (not reusable agent-N tenants).
-  if [[ -d "$shared_root/runs" ]]; then
-    find "$shared_root/runs" -mindepth 1 -maxdepth 1 -type d \
-      ! -name 'agent-*' \
-      -mtime "+${max_age_days}" \
-      -exec rm -rf {} + 2>/dev/null || true
-  fi
+  if [[ -d "$shared_root" ]]; then
+    # One-off isolated runs (not reusable agent-N tenants).
+    if [[ -d "$shared_root/runs" ]]; then
+      find "$shared_root/runs" -mindepth 1 -maxdepth 1 -type d \
+        ! -name 'agent-*' \
+        -mtime "+${max_age_days}" \
+        -exec rm -rf {} + 2>/dev/null || true
+    fi
 
-  # Bulky result trees under the shared root and each agent tenant.
-  local -a roots=("$shared_root")
-  local agent_dir
-  if [[ -d "$shared_root/runs" ]]; then
-    for agent_dir in "$shared_root/runs"/agent-*; do
-      [[ -d "$agent_dir" ]] || continue
-      roots+=("$agent_dir")
+    # Bulky result trees under the shared root and each agent tenant.
+    local -a roots=("$shared_root")
+    local agent_dir
+    if [[ -d "$shared_root/runs" ]]; then
+      for agent_dir in "$shared_root/runs"/agent-*; do
+        [[ -d "$agent_dir" ]] || continue
+        roots+=("$agent_dir")
+      done
+    fi
+    local root name
+    for root in "${roots[@]}"; do
+      for name in TestResults PerformanceResults Logs; do
+        if [[ -d "$root/$name" ]]; then
+          find "$root/$name" -mindepth 1 -maxdepth 1 -mtime "+${artifact_age_days}" \
+            -exec rm -rf {} + 2>/dev/null || true
+        fi
+      done
     done
   fi
-  local root name
-  for root in "${roots[@]}"; do
-    for name in TestResults PerformanceResults Logs; do
-      if [[ -d "$root/$name" ]]; then
-        find "$root/$name" -mindepth 1 -maxdepth 1 -mtime "+${artifact_age_days}" \
-          -exec rm -rf {} + 2>/dev/null || true
-      fi
+
+  # Package-local SPM / Xcode package caches (gitignored).
+  local package_dir
+  if [[ -d "$repo_root/Packages" ]]; then
+    for package_dir in "$repo_root/Packages"/*; do
+      [[ -d "$package_dir" ]] || continue
+      for name in .build .DerivedData; do
+        if [[ -d "$package_dir/$name" ]]; then
+          find "$package_dir/$name" -mindepth 0 -maxdepth 0 -mtime "+${artifact_age_days}" \
+            -exec rm -rf {} + 2>/dev/null || true
+        fi
+      done
     done
-  done
+  fi
 }
 
-# When isolate + no agent sim slots held: shut down Booted Trinket Agent N devices,
-# then erase Agent device data (keeps entries). Never touches shared Trinket CI.
-# Peers with held slots are untouched.
+# Opt-in escape hatch only (TRINKET_CLEANUP_IDLE_POOL=1): when isolate + no agent
+# sim slots held, shut down Booted Trinket Agent N devices, then erase Agent
+# device data (keeps entries). Default off — normal hygiene never erases. Never
+# touches shared Trinket CI. Peers with held slots are untouched.
 trinket_simulator_cleanup_idle_pool() {
-  [[ "${TRINKET_CLEANUP_IDLE_POOL:-1}" == "1" ]] || return 0
+  [[ "${TRINKET_CLEANUP_IDLE_POOL:-0}" == "1" ]] || return 0
   # Shared warm-cache path must not reclaim agents; only isolate tenants do.
   [[ "${TRINKET_ISOLATE:-}" == "1" ]] || return 0
 
@@ -175,24 +204,21 @@ for name, udid, state, runtime_identifier in records:
   local index
   for index in "${!managed_udids[@]}"; do
     if [[ "${managed_states[$index]}" == "Booted" ]]; then
-      echo "Simulator cleanup: shutting down ${managed_names[$index]} (idle pool)."
-      xcrun simctl shutdown "${managed_udids[$index]}" 2>/dev/null || true
+      xcrun simctl shutdown "${managed_udids[$index]}" >/dev/null 2>&1 || true
     fi
   done
 
   for index in "${!managed_udids[@]}"; do
-    echo "Simulator cleanup: erasing ${managed_names[$index]} device data (idle pool)."
-    xcrun simctl erase "${managed_udids[$index]}" 2>/dev/null || true
+    xcrun simctl erase "${managed_udids[$index]}" >/dev/null 2>&1 || true
   done
 
   rm -f "$lock_path"
 }
 
-# Legacy alias: prefer idle-pool reclaim. Kept for older callers/tests that set
-# TRINKET_CLEANUP_EXCESS_SIMULATORS; when enabled it now shuts down excess Booted
-# managed sims while preserving held agent slots and at most one warm device.
-trinket_simulator_cleanup_excess() {
-  [[ "${TRINKET_CLEANUP_EXCESS_SIMULATORS:-0}" == "1" ]] || return 0
+# Keep exactly one Booted managed sim (Trinket CI / Trinket Agent N). Quietly
+# shut down the rest; never erase. Default on for self-clean start + EXIT.
+trinket_simulator_enforce_single_warm_booted() {
+  [[ "${TRINKET_CLEANUP_SINGLE_WARMED:-1}" == "1" ]] || return 0
 
   local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
   local lock_path="$shared_root/.simulator-cleanup.lock"
@@ -204,13 +230,11 @@ trinket_simulator_cleanup_excess() {
     if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
       rm -f "$lock_path"
     else
-      echo "Simulator cleanup already owned by pid ${lock_pid:-unknown}; leaving managed simulators running." >&2
       return 0
     fi
   fi
 
   if ! (set -o noclobber; printf '%s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" > "$lock_path") 2>/dev/null; then
-    echo "Simulator cleanup reservation is busy; leaving managed simulators running." >&2
     return 0
   fi
 
@@ -223,33 +247,29 @@ import sys
 payload = json.load(sys.stdin)
 records = []
 for runtime_identifier, devices in payload.get("devices", {}).items():
-    runtime_version = tuple(int(part) for part in re.findall(r"\d+", runtime_identifier))
     for device in devices:
         name = device.get("name", "")
         if device.get("state") != "Booted":
             continue
         if name == "Trinket CI" or re.fullmatch(r"Trinket Agent \d+", name):
-            records.append((runtime_version, runtime_identifier, name, device.get("udid", "")))
+            udid = device.get("udid", "")
+            if udid:
+                records.append((name, udid, runtime_identifier))
 
-records.sort(key=lambda record: (record[0], record[2]), reverse=True)
-for _, runtime_identifier, name, udid in records:
-    if udid:
-        print(f"{udid}\t{name}\t{runtime_identifier}")
+for name, udid, runtime_identifier in records:
+    print(f"{udid}\t{name}\t{runtime_identifier}")
 ')"; then
-    echo "Unable to list managed simulators; leaving them running." >&2
     rm -f "$lock_path"
     return 0
   fi
 
   local -a managed_udids=()
   local -a managed_names=()
-  local -a managed_runtimes=()
   local udid name runtime
   while IFS=$'\t' read -r udid name runtime; do
     [[ -n "$udid" ]] || continue
     managed_udids+=("$udid")
     managed_names+=("$name")
-    managed_runtimes+=("$runtime")
   done <<< "$managed_devices"
 
   local managed_count="${#managed_udids[@]}"
@@ -258,17 +278,26 @@ for _, runtime_identifier, name, udid in records:
     return 0
   fi
 
+  # Prefer: held agent slot → TRINKET_SIMULATOR_NAME → Trinket CI → first.
   local keep_index=-1
   local index
   for index in "${!managed_names[@]}"; do
-    if [[ "${managed_names[$index]}" == "Trinket CI" ]]; then
+    if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
       keep_index="$index"
       break
     fi
   done
+  if (( keep_index < 0 )) && [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then
+    for index in "${!managed_names[@]}"; do
+      if [[ "${managed_names[$index]}" == "${TRINKET_SIMULATOR_NAME}" ]]; then
+        keep_index="$index"
+        break
+      fi
+    done
+  fi
   if (( keep_index < 0 )); then
     for index in "${!managed_names[@]}"; do
-      if trinket_simulator_is_active_agent_name "${managed_names[$index]}"; then
+      if [[ "${managed_names[$index]}" == "Trinket CI" ]]; then
         keep_index="$index"
         break
       fi
@@ -278,23 +307,34 @@ for _, runtime_identifier, name, udid in records:
     keep_index=0
   fi
 
-  echo "Simulator cleanup: found $managed_count managed booted simulators; keeping ${managed_names[$keep_index]} (${managed_runtimes[$keep_index]})."
+  echo "Simulator cleanup: keeping ${managed_names[$keep_index]} Booted; shutting down $((managed_count - 1)) excess managed simulator(s)."
   for index in "${!managed_udids[@]}"; do
-    name="${managed_names[$index]}"
-    if [[ "$name" == "Trinket CI" ]] \
-      || trinket_simulator_is_active_agent_name "$name" \
-      || (( index == keep_index )); then
+    if (( index == keep_index )); then
       continue
     fi
-    echo "Simulator cleanup: shutting down $name (${managed_runtimes[$index]})."
-    xcrun simctl shutdown "${managed_udids[$index]}" 2>/dev/null || true
+    xcrun simctl shutdown "${managed_udids[$index]}" >/dev/null 2>&1 || true
   done
 
   rm -f "$lock_path"
 }
 
+# Legacy alias: TRINKET_CLEANUP_EXCESS_SIMULATORS=1 maps to single-warm enforcement.
+trinket_simulator_cleanup_excess() {
+  [[ "${TRINKET_CLEANUP_EXCESS_SIMULATORS:-0}" == "1" ]] || return 0
+  TRINKET_CLEANUP_SINGLE_WARMED=1 trinket_simulator_enforce_single_warm_booted
+}
+
+# Preview reclaim + single-warm + age-prune. Used on self-clean start and EXIT.
+trinket_run_env_self_clean_hygiene() {
+  trinket_preview_sims_reclaim
+  trinket_simulator_enforce_single_warm_booted
+  trinket_simulator_cleanup_idle_pool
+  trinket_derived_data_age_prune
+  trinket_simulator_cleanup_excess
+}
+
 # Claim once per process tree. Nested children inherit the parent token and must
-# not overwrite it — otherwise every child EXIT would wipe Previews / idle Agents.
+# not overwrite it — otherwise every child EXIT would wipe Previews mid-plan.
 trinket_run_env_claim_self_clean_owner() {
   if [[ -z "${TRINKET_SELF_CLEAN_OWNER:-}" ]]; then
     TRINKET_SELF_CLEAN_OWNER="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
@@ -306,15 +346,11 @@ trinket_run_env_release_slots() {
   trinket_sim_slot_release
   trinket_ui_slot_release
   # Self-clean only for the top-level owner (verify/test parent). Children that
-  # inherit the trap still release their own leases, but skip Preview / idle /
-  # age-prune so a mid-plan child EXIT cannot disrupt peers or Xcode Previews.
+  # inherit the trap still release their own leases, but skip Preview / single-
+  # warm / age-prune so a mid-plan child EXIT cannot disrupt peers or Xcode Previews.
   local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
   if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
-    trinket_preview_sims_reclaim
-    trinket_simulator_cleanup_idle_pool
-    trinket_derived_data_age_prune
-    # Optional legacy excess shutdown when explicitly enabled.
-    trinket_simulator_cleanup_excess
+    trinket_run_env_self_clean_hygiene
   fi
 }
 
@@ -322,9 +358,13 @@ trinket_run_env_install_release_trap() {
   trap 'trinket_run_env_release_slots' EXIT INT TERM
 }
 
-# Top-level verify/test: claim self-clean + install EXIT release.
+# Top-level verify/test: claim self-clean, run start hygiene, install EXIT release.
 trinket_run_env_install_self_clean() {
   trinket_run_env_claim_self_clean_owner
+  local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
+    trinket_run_env_self_clean_hygiene
+  fi
   trinket_run_env_install_release_trap
 }
 
@@ -334,6 +374,10 @@ trinket_run_env_install_test_simulator_cleanup() {
   trinket_run_env_claim_self_clean_owner
   TRINKET_TEST_SIMULATOR_CLEANUP_OWNER="${TRINKET_SELF_CLEAN_OWNER}"
   export TRINKET_TEST_SIMULATOR_CLEANUP_OWNER
+  local current_owner="${BASHPID:-$$}:${BASH_SUBSHELL:-0}"
+  if [[ "${TRINKET_SELF_CLEAN_OWNER:-}" == "$current_owner" ]]; then
+    trinket_run_env_self_clean_hygiene
+  fi
   trinket_run_env_install_release_trap
 }
 
@@ -380,10 +424,9 @@ trinket_sim_slot_release() {
   TRINKET_SIM_SLOT_OWNER_PID=""
 }
 
-# Acquire a reusable agent simulator slot (Trinket Agent N). Fail-fast when full.
-# On release, idle-pool cleanup shuts managed sims down when no slots remain held.
+# Agents stay warm after release (no routine shutdown/erase).
 trinket_sim_slot_acquire() {
-  local max="${TRINKET_MAX_AGENT_SIMS:-3}"
+  local max="${TRINKET_MAX_AGENT_SIMS:-1}"
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
   local n slot_path owner_pid owner_token
   owner_pid="$$"
@@ -456,7 +499,7 @@ trinket_run_env_init() {
   TRINKET_UI_ACTIVE_DIR="${TRINKET_UI_ACTIVE_DIR:-$shared/.active-ui}"
   TRINKET_SIM_ACTIVE_DIR="${TRINKET_SIM_ACTIVE_DIR:-$shared/.active-sim}"
   TRINKET_MAX_CONCURRENT_UI="${TRINKET_MAX_CONCURRENT_UI:-2}"
-  TRINKET_MAX_AGENT_SIMS="${TRINKET_MAX_AGENT_SIMS:-3}"
+  TRINKET_MAX_AGENT_SIMS="${TRINKET_MAX_AGENT_SIMS:-1}"
   TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
 
   if [[ "${TRINKET_ISOLATE:-}" == "1" ]]; then

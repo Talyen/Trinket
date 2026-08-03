@@ -7,6 +7,7 @@ public struct BattlePresentationEnvironment {
     public var warmSFX: ([String], Int) -> Void
     public var hapticsEnabled: () -> Bool
     public var effectsVolume: () -> Double
+    public var rememberAutoBattlePreference: () -> Bool
     public var autoBattleEnabled: () -> Bool
     public var setAutoBattleEnabled: (Bool) -> Void
     public var shouldAutoSkipUltimateCinematic: (String, Set<String>) -> Bool
@@ -16,6 +17,7 @@ public struct BattlePresentationEnvironment {
         warmSFX: { _, _ in },
         hapticsEnabled: { false },
         effectsVolume: { 0 },
+        rememberAutoBattlePreference: { false },
         autoBattleEnabled: { false },
         setAutoBattleEnabled: { _ in },
         shouldAutoSkipUltimateCinematic: { _, _ in false }
@@ -26,6 +28,7 @@ public struct BattlePresentationEnvironment {
         warmSFX: @escaping ([String], Int) -> Void,
         hapticsEnabled: @escaping () -> Bool,
         effectsVolume: @escaping () -> Double,
+        rememberAutoBattlePreference: @escaping () -> Bool = { false },
         autoBattleEnabled: @escaping () -> Bool = { false },
         setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool
@@ -34,6 +37,7 @@ public struct BattlePresentationEnvironment {
         self.warmSFX = warmSFX
         self.hapticsEnabled = hapticsEnabled
         self.effectsVolume = effectsVolume
+        self.rememberAutoBattlePreference = rememberAutoBattlePreference
         self.autoBattleEnabled = autoBattleEnabled
         self.setAutoBattleEnabled = setAutoBattleEnabled
         self.shouldAutoSkipUltimateCinematic = shouldAutoSkipUltimateCinematic

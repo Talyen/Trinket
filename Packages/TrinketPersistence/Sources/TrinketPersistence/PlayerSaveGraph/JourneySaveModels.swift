@@ -20,11 +20,61 @@ public final class JourneyStageProgressModel {
     public var stageID: String = ""
     public var isCompleted: Bool = false
     public var rewardsClaimed: Bool = false
+    /// Pinned non-recruit mystery event for unpinned journey stages.
+    public var mysteryEventID: String?
     public var journey: JourneyProgressModel?
 
-    public init(stageID: String = "", isCompleted: Bool = false, rewardsClaimed: Bool = false) {
+    public init(
+        stageID: String = "",
+        isCompleted: Bool = false,
+        rewardsClaimed: Bool = false,
+        mysteryEventID: String? = nil
+    ) {
         self.stageID = stageID
         self.isCompleted = isCompleted
         self.rewardsClaimed = rewardsClaimed
+        self.mysteryEventID = mysteryEventID
+    }
+}
+
+extension JourneyProgressModel {
+    func toJourneyProgressState() -> JourneyProgressState {
+        let stageModels = stages ?? []
+        let pinned = Dictionary(uniqueKeysWithValues: stageModels.compactMap { model -> (String, String)? in
+            guard let eventID = model.mysteryEventID, !eventID.isEmpty else { return nil }
+            return (model.stageID, eventID)
+        })
+        return JourneyProgressState(
+            activeChapterID: activeChapterID,
+            activeStageID: activeStageID,
+            completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
+            claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
+            lastCompletedStageID: lastCompletedStageID,
+            pinnedMysteryEventIDs: pinned
+        )
+    }
+
+    func update(from state: JourneyProgressState, context: ModelContext?) {
+        activeChapterID = state.activeChapterID
+        activeStageID = state.activeStageID
+        lastCompletedStageID = state.lastCompletedStageID
+        let allStageIDs = state.completedStageIDs
+            .union(state.claimedRewardStageIDs)
+            .union(Set(state.pinnedMysteryEventIDs.keys))
+        stages = reconcileModels(
+            existing: stages ?? [],
+            values: allStageIDs.sorted(),
+            existingKey: \.stageID,
+            valueKey: { $0 },
+            make: { JourneyStageProgressModel(stageID: $0) },
+            update: { model, stageID in
+                model.stageID = stageID
+                model.isCompleted = state.completedStageIDs.contains(stageID)
+                model.rewardsClaimed = state.claimedRewardStageIDs.contains(stageID)
+                model.mysteryEventID = state.pinnedMysteryEventIDs[stageID]
+            },
+            context: context
+        )
+        stages?.linkEach(to: self, parent: \.journey)
     }
 }

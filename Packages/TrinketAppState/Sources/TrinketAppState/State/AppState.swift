@@ -108,6 +108,9 @@ public final class AppState {
                 effectsVolume: {
                     dependencies.options.effectsVolume
                 },
+                rememberAutoBattlePreference: {
+                    dependencies.options.rememberAutoBattlePreference
+                },
                 autoBattleEnabled: {
                     dependencies.options.autoBattleEnabled
                 },

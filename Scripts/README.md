@@ -109,13 +109,13 @@ tree represents one task. Agents must run
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
-(default 3). On EXIT, the top-level self-clean owner (`trinket_run_env_release_slots`)
-reclaims Xcode Preview sims, age-prunes bulky `.DerivedData` artifacts (TestResults /
-PerformanceResults / Logs; keeps warm `runs/agent-N` Build products), and when isolate +
-the agent sim pool is empty shuts down and erases `Trinket Agent N` device data.
-`Trinket CI` stays warm. Held peer slots keep their Agents Booted. Nested children
-release leases only. Package schemes use per-package DerivedData under
-`$DERIVED_DATA_PATH/packages/<name>/`
+(default 1; one-at-a-time local agent). On self-clean start and EXIT, the top-level
+owner (`trinket_run_env_self_clean_hygiene`) reclaims Xcode Preview sims, enforces
+exactly one Booted managed sim (Agent or CI), and age-prunes bulky `.DerivedData`
+artifacts plus package-local `.build` / `.DerivedData` (TestResults /
+PerformanceResults / Logs; keeps warm `runs/agent-N` Build products). The keep-target
+stays Booted — no routine shutdown/erase. Nested children release leases only. Package
+schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
 so package builds can run in parallel. Humans/CI may omit `--isolate` to keep
 the shared warm cache.
 
@@ -178,10 +178,10 @@ Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`. Warm `agent-N` run
 kept; one-off legacy run dirs under `.DerivedData/runs/` are pruned by
 `./Scripts/prune-derived-data-cache.sh` (age via `TRINKET_RUN_MAX_AGE_DAYS`, default 3;
 Intermediate/compilation-cache wipe only when `CI=true` or `--ci`).
-That script never mutates simulator devices — Preview reclaim and idle-pool
-Agent shutdown/erase run from `Scripts/run-env.sh` top-level release traps on
-verify/test EXIT (`Trinket CI` is never erased). `./Scripts/clean-dev-artifacts.sh`
-is an emergency-only wrapper over those same helpers when verify/test cannot run.
+That script never mutates simulator devices — Preview reclaim, single-warm Booted
+enforcement, and age-prune live in `Scripts/run-env.sh` self-clean start + EXIT
+on verify/test. The keep-target managed sim stays Booted; excess managed Booted
+sims are shut down quietly; managed sims are never erased on the normal path.
 Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
 
@@ -237,7 +237,6 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; `--quiet` bounds output; agents always pass `--isolate` |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
-| `./Scripts/clean-dev-artifacts.sh [--dry-run]` | Emergency-only wrapper for run-env Preview/idle-pool/age-prune reclaim (prefer verify/test EXIT) |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
 
 ### Typical release flow

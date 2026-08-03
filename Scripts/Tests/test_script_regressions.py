@@ -127,34 +127,53 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("--ci", text)
         self.assertIn("Skipping Intermediate/compilation-cache wipe", text)
 
-    def test_clean_dev_artifacts_is_emergency_wrapper(self) -> None:
-        text = (ROOT / "Scripts" / "clean-dev-artifacts.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_preview_sims_reclaim", text)
-        self.assertIn("trinket_simulator_cleanup_idle_pool", text)
-        self.assertIn("trinket_derived_data_age_prune", text)
-        self.assertIn("Emergency", text)
-
-    def test_run_env_self_cleans_on_release(self) -> None:
+    def test_run_env_self_cleans_on_start_and_release(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
         self.assertIn("trinket_preview_sims_reclaim", text)
-        self.assertIn("trinket_simulator_cleanup_idle_pool", text)
+        self.assertIn("trinket_simulator_enforce_single_warm_booted", text)
         self.assertIn("trinket_derived_data_age_prune", text)
+        self.assertIn("trinket_run_env_self_clean_hygiene", text)
         self.assertIn("trinket_run_env_release_slots", text)
         self.assertIn("trinket_run_env_claim_self_clean_owner", text)
         self.assertIn("TRINKET_SELF_CLEAN_OWNER", text)
+        self.assertIn("Simulator%20Devices", text)
+        self.assertIn("Packages", text)
+        hygiene = text.split("trinket_run_env_self_clean_hygiene()", 1)[1].split(
+            "trinket_run_env_claim_self_clean_owner", 1
+        )[0]
+        self.assertIn("trinket_preview_sims_reclaim", hygiene)
+        self.assertIn("trinket_simulator_enforce_single_warm_booted", hygiene)
+        self.assertIn("trinket_derived_data_age_prune", hygiene)
+        install = text.split("trinket_run_env_install_self_clean()", 1)[1].split(
+            "trinket_run_env_install_test_simulator_cleanup", 1
+        )[0]
+        self.assertIn("trinket_run_env_self_clean_hygiene", install)
         release = text.split("trinket_run_env_release_slots()", 1)[1].split(
             "trinket_run_env_install_release_trap", 1
         )[0]
         self.assertIn("TRINKET_SELF_CLEAN_OWNER", release)
-        self.assertIn("trinket_preview_sims_reclaim", release)
-        self.assertIn("trinket_simulator_cleanup_idle_pool", release)
-        self.assertIn("trinket_derived_data_age_prune", release)
-        idle = text.split("trinket_simulator_cleanup_idle_pool()", 1)[1].split(
+        self.assertIn("trinket_run_env_self_clean_hygiene", release)
+        single = text.split("trinket_simulator_enforce_single_warm_booted()", 1)[1].split(
             "trinket_simulator_cleanup_excess", 1
+        )[0]
+        self.assertIn('TRINKET_CLEANUP_SINGLE_WARMED:-1', single)
+        self.assertIn("Trinket CI", single)
+        self.assertIn(r"Trinket Agent \d+", single)
+        idle = text.split("trinket_simulator_cleanup_idle_pool()", 1)[1].split(
+            "trinket_simulator_enforce_single_warm_booted", 1
         )[0]
         self.assertIn(r"Trinket Agent \d+", idle)
         self.assertIn("Trinket CI stays warm", idle)
+        self.assertIn('TRINKET_CLEANUP_IDLE_POOL:-0', idle)
         self.assertNotIn('name == "Trinket CI"', idle)
+        self.assertIn('TRINKET_MAX_AGENT_SIMS:-1', text)
+        self.assertFalse((ROOT / "Scripts" / "clean-dev-artifacts.sh").exists())
+
+    def test_verify_changed_docs_path_uses_self_clean_hygiene(self) -> None:
+        text = (ROOT / "Scripts" / "verify-changed.sh").read_text(encoding="utf-8")
+        self.assertIn("trinket_run_env_self_clean_hygiene", text)
+        self.assertNotIn("clean-dev-artifacts", text)
+        self.assertNotIn("TRINKET_CLEANUP_IDLE_POOL=1 opts", text)
 
 
 if __name__ == "__main__":

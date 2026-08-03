@@ -82,7 +82,10 @@ struct ChapterStageSelectView: View {
                 onArtworkTap: onEnemyTap,
                 onPrimaryAction: handlePrimaryAction,
                 artwork: { stage in
-                    EncounterArtwork(stage: stage)
+                    EncounterArtwork(
+                        stage: stage,
+                        resolvedMysteryEvent: resolvedMysteryEvent(for: stage)
+                    )
                 },
                 partyPickerSheet: { _ in
                     StageBattlePartyPickerSheet()
@@ -165,9 +168,26 @@ struct ChapterStageSelectView: View {
         onStageTap(stage)
     }
 
+    private func resolvedMysteryEvent(for stage: Stage) -> MysteryEvent? {
+        guard case .mysteryEvent = stage.encounter else { return nil }
+        let pickContext = MysteryEventPickContext.journey(
+            chapterNumber: stage.chapterNumber,
+            inventory: playerSave.inventory,
+            corruptionAltarCooldownRemaining: playerSave.currentSave.corruptionAltarCooldownRemaining
+        )
+        return GameContent.resolveJourneyMysteryEvent(
+            stage: stage,
+            pinnedEventID: playerSave.journey.pinnedMysteryEventIDs[stage.id],
+            context: pickContext
+        )
+    }
+
     private func artworkAccessibilityIdentifier(for stage: Stage) -> String {
         if stage.encounter.isCombat {
             return "\(stage.mapLabel) Enemy Art"
+        }
+        if case .mysteryEvent = stage.encounter {
+            return "\(stage.mapLabel) Mystery Art"
         }
         if stage.encounter.eventID != nil {
             return "\(stage.mapLabel) Mystery Art"
