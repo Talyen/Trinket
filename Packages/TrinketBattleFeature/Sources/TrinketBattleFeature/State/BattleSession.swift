@@ -247,7 +247,7 @@ public final class BattleSession {
 
     /// Schedules a delayed end turn when nothing in hand is playable.
     func considerAutoEndTurn() {
-        commandCoordinator.considerAutoEndTurn()
+        commandCoordinator.scheduleAutoEndIfNeeded()
     }
 
     public func presentBattleLog() {

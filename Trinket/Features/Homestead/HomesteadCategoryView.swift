@@ -27,35 +27,21 @@ struct HomesteadCategoryView: View {
     }
 
     var body: some View {
-        DetailHeroScrollShell(
+        HomesteadHeroScreen(
             title: category.rawValue,
-            heroHeightPolicy: .cinematicLandscape
-        ) { baseHeight, overscroll in
-            DetailHeroHeader(
-                title: category.rawValue,
-                baseHeight: baseHeight,
-                overscroll: overscroll,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.snugSpacing
-            ) {
-                categoryHeroArt
-            }
+            homestead: homestead,
+            roster: roster
+        ) {
+            categoryHeroArt
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
-                HomesteadResourceWallet(homestead: homestead, roster: roster)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-
-                HomesteadProjectSection(
-                    category: category,
-                    definitions: definitions,
-                    homestead: homestead,
-                    roster: roster,
-                    zoomNamespace: zoomNamespace,
-                    showsCategoryHeader: false
-                )
-            }
-            .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.tabBarContentClearance)
+            HomesteadProjectSection(
+                category: category,
+                definitions: definitions,
+                homestead: homestead,
+                roster: roster,
+                zoomNamespace: zoomNamespace,
+                showsCategoryHeader: false
+            )
         }
         .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
             HomesteadNodeDetailView(definition: definition)

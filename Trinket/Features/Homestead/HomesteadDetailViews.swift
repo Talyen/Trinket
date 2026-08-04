@@ -14,9 +14,6 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private let bodyTopPadding = TrinketDesign.Metrics.sectionHeaderSpacing
-    private let bodyStackSpacing = TrinketDesign.Metrics.homesteadBodySpacing
-
     private var homestead: PlayerHomesteadState {
         playerSave.homestead
     }
@@ -30,35 +27,22 @@ struct HomesteadNodeDetailView: View {
     }
 
     var body: some View {
-        DetailHeroScrollShell(
+        HomesteadHeroScreen(
             title: definition.title,
-            heroHeightPolicy: .cinematicLandscape
-        ) { baseHeight, overscroll in
-            DetailHeroHeader(
-                title: definition.title,
-                baseHeight: baseHeight,
-                overscroll: overscroll,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.snugSpacing
-            ) {
-                HomesteadBuildingArtwork(definition: definition, variant: .full)
-                    .saturation(status.isUnlocked ? 1 : 0)
-                    .opacity(status.isUnlocked ? 1 : 0.66)
-            }
+            homestead: homestead,
+            roster: roster,
+            bottomPadding: TrinketDesign.Metrics.extraLargeSpacing
+        ) {
+            HomesteadBuildingArtwork(definition: definition, variant: .full)
+                .saturation(status.isUnlocked ? 1 : 0)
+                .opacity(status.isUnlocked ? 1 : 0.66)
         } bodyContent: {
-            VStack(alignment: .leading, spacing: bodyStackSpacing) {
-                HomesteadResourceWallet(homestead: homestead, roster: roster)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-
-                HomesteadTierPath(
-                    definition: definition,
-                    status: status,
-                    isBuilding: build.isBuilding,
-                    onBuild: buildOrUpgrade
-                )
-            }
-            .padding(.top, bodyTopPadding)
-            .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
+            HomesteadTierPath(
+                definition: definition,
+                status: status,
+                isBuilding: build.isBuilding,
+                onBuild: buildOrUpgrade
+            )
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .appFramePacingSignpost(

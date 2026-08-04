@@ -214,10 +214,6 @@ final class BattleCommandCoordinator {
         isDealingOpeningHand = false
     }
 
-    func considerAutoEndTurn() {
-        scheduleAutoEndIfNeeded()
-    }
-
     func cancelPendingAutoEnd() {
         pendingAutoEndTask?.cancel()
         pendingAutoEndTask = nil

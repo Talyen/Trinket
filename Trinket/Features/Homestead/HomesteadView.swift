@@ -20,41 +20,27 @@ struct HomesteadView: View {
     }
 
     var body: some View {
-        DetailHeroScrollShell(
+        HomesteadHeroScreen(
             title: "Homestead",
-            heroHeightPolicy: .cinematicLandscape
-        ) { baseHeight, overscroll in
-            DetailHeroHeader(
-                title: "Homestead",
-                baseHeight: baseHeight,
-                overscroll: overscroll,
-                horizontalPadding: TrinketDesign.Metrics.contentMargin,
-                bottomPadding: TrinketDesign.Metrics.snugSpacing
-            ) {
-                if let art = ArtCatalog.backgroundArtByID["homestead"]
-                    ?? ArtCatalog.backgroundArtByID["wheatField"] {
-                    HomesteadFocalArtwork(art: art)
-                } else {
-                    TrinketDesign.Colors.surface
-                }
+            homestead: homestead,
+            roster: roster
+        ) {
+            if let art = ArtCatalog.backgroundArtByID["homestead"]
+                ?? ArtCatalog.backgroundArtByID["wheatField"] {
+                HomesteadFocalArtwork(art: art)
+            } else {
+                TrinketDesign.Colors.surface
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
-                HomesteadResourceWallet(homestead: homestead, roster: roster)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-
-                LazyVGrid(
-                    columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
-                    spacing: TrinketDesign.Metrics.largeSpacing
-                ) {
-                    ForEach(HomesteadNodeCategory.allCases) { category in
-                        categoryCard(category)
-                    }
+            LazyVGrid(
+                columns: TrinketDesign.Metrics.hubGridItems(for: horizontalSizeClass),
+                spacing: TrinketDesign.Metrics.largeSpacing
+            ) {
+                ForEach(HomesteadNodeCategory.allCases) { category in
+                    categoryCard(category)
                 }
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             }
-            .padding(.top, TrinketDesign.Metrics.sectionHeaderSpacing)
-            .padding(.bottom, TrinketDesign.Metrics.tabBarContentClearance)
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         }
         .navigationDestination(for: HomesteadNodeCategory.self) { category in
             HomesteadCategoryView(category: category)

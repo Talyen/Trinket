@@ -22,7 +22,7 @@ struct BattleVictorySummaryTests {
         let companionProgression = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
             .rewardInstance(for: "chapter-1-stage-1")
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|chapter-1-stage-1"),
             rngSeed: 0,
             hero: hero,
@@ -47,7 +47,6 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.runtime.activate(configuration)
-        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -79,7 +78,7 @@ struct BattleVictorySummaryTests {
             abilities: []
         )
 
-        let scaledConfiguration = BattleRunConfigurationTestSupport.make(
+        let (scaledConfiguration, scaledContext) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -93,7 +92,6 @@ struct BattleVictorySummaryTests {
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
         _ = scaledSession.runtime.activate(scaledConfiguration)
-        let scaledContext = BattleRunConfigurationTestSupport.presentation(for: scaledConfiguration)
         scaledSession.installPresentationContext(scaledContext)
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
         let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration, presentation: scaledContext))
@@ -124,7 +122,7 @@ struct BattleVictorySummaryTests {
             displayName: "Audit Find",
             affixes: []
         )
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("labyrinth|audit-node"),
             rngSeed: 0,
             hero: hero,
@@ -143,7 +141,6 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.runtime.activate(configuration)
-        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -167,7 +164,7 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -177,7 +174,6 @@ struct BattleVictorySummaryTests {
         )
         let session = BattleSession(openingHandDrawStagger: 0)
         _ = session.runtime.activate(configuration)
-        let context = BattleRunConfigurationTestSupport.presentation(for: configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 

@@ -77,7 +77,7 @@ This section owns day-to-day task → script routing, gate composition, and tier
 
 | Gate | Runs |
 |------|------|
-| `ci-gate.sh` | generate → assert (vs HEAD) → boundaries → Swift Testing check → style → release-notes validate |
+| `ci-gate.sh` | generate → assert (vs HEAD) → style → boundaries → Swift Testing check → release-notes validate |
 | `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **optional full local confidence run** |
 | `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **explicit release/pre-merge confidence run** |
 | GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit**, **smoke-full**, and sharded **exhaustive UI** (DerivedData cache) on `macos-26` |

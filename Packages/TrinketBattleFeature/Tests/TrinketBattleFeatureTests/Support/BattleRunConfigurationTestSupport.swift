@@ -14,12 +14,6 @@ import TrinketFeatureContracts
 /// builds, rewards, progression, or homestead effects.
 @MainActor
 enum BattleRunConfigurationTestSupport {
-    private static var presentations: [UUID: BattlePresentationContext] = [:]
-
-    static func presentation(for configuration: BattleRunConfiguration) -> BattlePresentationContext {
-        presentations[configuration.id] ?? .empty
-    }
-
     static func make(
         runKey: BattleRunKey? = nil,
         rngSeed: UInt64 = 0,
@@ -47,7 +41,7 @@ enum BattleRunConfigurationTestSupport {
         heroExperienceAward: Int = 0,
         companionExperienceAward: Int = 0,
         materialRewards: [ResourceAmount] = []
-    ) -> BattleRunConfiguration {
+    ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext) {
         let configuration = BattleRunConfiguration(
             runKey: runKey,
             rngSeed: rngSeed,
@@ -67,7 +61,7 @@ enum BattleRunConfigurationTestSupport {
             enemyEncounterLevel: enemyEncounterLevel,
             enemyModifiers: enemyModifiers
         )
-        presentations[configuration.id] = BattlePresentationContext(
+        let presentation = BattlePresentationContext(
             inventoryItems: inventoryItems,
             stageReward: stageReward,
             rewardItems: rewardItems,
@@ -82,6 +76,6 @@ enum BattleRunConfigurationTestSupport {
             companionExperienceAward: companionExperienceAward,
             materialRewards: materialRewards
         )
-        return configuration
+        return (configuration, presentation)
     }
 }

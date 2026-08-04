@@ -15,12 +15,13 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
         session.partyCelebrateDelayOverride = 0
-        _ = session.runtime.activate(BattleRunConfigurationTestSupport.make(
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
-        ))
+        )
+        _ = session.runtime.activate(configuration)
 
         #expect(session.canRetreat)
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -44,7 +45,7 @@ struct BattleSessionSimulationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
         session.partyCelebrateDelayOverride = 0
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
             hero: party.hero,
@@ -55,7 +56,7 @@ struct BattleSessionSimulationTests {
             musicStageID: stage.id
         )
         _ = session.runtime.activate(configuration)
-        session.installPresentationContext(BattleRunConfigurationTestSupport.presentation(for: configuration))
+        session.installPresentationContext(presentation)
 
         let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -191,7 +192,7 @@ struct BattleSessionSimulationTests {
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
-        ))
+        ).configuration)
 
         #expect(session.feedback.activeItems.isEmpty)
         let resetReadModel = try #require(session.runtime.readModel)
@@ -329,7 +330,7 @@ struct BattleSessionSimulationTests {
             .damageTakenVulnerability(.holy, 0.30),
             .damageTakenPercent(.bleed, 0.30),
         ])
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
@@ -345,7 +346,7 @@ struct BattleSessionSimulationTests {
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: enemy.combatant,
             enemyModifiers: enemyModifiers
-        ))
+        ).configuration)
 
         #expect(
             session.runtime.readModel?.modifiersByCombatantID[enemy.combatant.id]?

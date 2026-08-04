@@ -10,7 +10,7 @@ Use for card rules, effects, decks/hands, turn flow, and battle presentation.
 | Battle lifecycle contract | `Packages/TrinketBattleRuntime` (`BattleRuntime`, launch DTOs) |
 | Battle lifecycle, outcome, and SwiftUI | `Packages/TrinketBattleFeature` (`BattleRuntimeSession` implements the lifecycle contract; `BattleSession` owns presentation); DTO and launch ownership is canonical in [Architecture → Module ownership](../Platform/Architecture.md#module-ownership). |
 | Shared battle presentation DTO | `Packages/TrinketFeatureSupport/Sources/TrinketBattleContracts` (`BattlePresentationContext`) |
-| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleLaunch`, atomic `PlayBattleRunRecord`, `PlayBattleCompletion`, mode owners) |
+| Play-mode origin + launch/reward bake | `Packages/TrinketAppState` (`PlayBattleOrigin`, `PlayBattleLaunch.assembleLaunch`, atomic `PlayBattleRunRegistration`, `PlayBattleCompletion`, mode owners) |
 
 For rules, start with `BattleState`, the matching `EffectHandlers/` type, and the
 closest test in `Packages/BattleEngine/Tests/`. `BattleState` is a facade: add shared

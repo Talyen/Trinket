@@ -17,7 +17,7 @@ roster/inventory/homestead assembly into the Battle DTO.
 Mode owners (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`) own navigation/session state and mode-unique save writes — not
 the shared victory persist→dismiss sequence. Modes take constructor-injected
-collaborators (`PlayerSaveStore`, `BattleSession`, options/SFX, map-scroll hooks,
+collaborators (`PlayerSaveStore`, `any BattleRuntime`, options/SFX, map-scroll hooks,
 encounters) and completion ports; do not reintroduce a `PlaySession` back-pointer.
 
 Use Persistence-owned actions for save semantics. Do not forward save slices through

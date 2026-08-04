@@ -171,4 +171,64 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.companionExperienceAward > 0)
         #expect(launch.presentation.materialRewards == stageReward.materialRewards)
     }
+
+    @Test func assembleResolvesRewardItemsFromPendingOrStagePolicy() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let baseType = try #require(GameContent.itemBaseTypes.first)
+        let pendingItem = InventoryItem(
+            id: "pending-audit-reward",
+            templateID: "shortsword-basic",
+            baseType: baseType,
+            rarity: .basic,
+            displayName: "Pending Find",
+            affixes: []
+        )
+
+        let withPending = PlayBattleLaunch.assembleLaunch(
+            rngSeed: 0,
+            hero: knight,
+            companion: wolf,
+            rosterState: .initial,
+            inventoryState: .initial,
+            enemy: enemy,
+            stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
+            pendingRewardItem: pendingItem
+        )
+        #expect(withPending.presentation.rewardItems == [pendingItem])
+
+        let noPendingNilStage = PlayBattleLaunch.assembleLaunch(
+            rngSeed: 0,
+            hero: knight,
+            companion: wolf,
+            rosterState: .initial,
+            inventoryState: .initial,
+            enemy: enemy
+        )
+        #expect(noPendingNilStage.presentation.rewardItems.isEmpty)
+
+        let noPendingEmptyStage = PlayBattleLaunch.assembleLaunch(
+            rngSeed: 0,
+            hero: knight,
+            companion: wolf,
+            rosterState: .initial,
+            inventoryState: .initial,
+            enemy: enemy,
+            stageReward: StageReward(gold: 0, itemTemplateIDs: [])
+        )
+        #expect(noPendingEmptyStage.presentation.rewardItems.isEmpty)
+
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let fromStage = PlayBattleLaunch.assembleLaunch(
+            rngSeed: 0,
+            hero: knight,
+            companion: wolf,
+            rosterState: .initial,
+            inventoryState: .initial,
+            enemy: enemy,
+            stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"])
+        )
+        #expect(fromStage.presentation.rewardItems == [template])
+    }
 }

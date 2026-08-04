@@ -60,7 +60,7 @@ struct BattleSessionAutoBattleTests {
         #expect(probe.persistedValues.isEmpty)
 
         session.runtime.endBattle()
-        let nextConfiguration = BattleRunConfigurationTestSupport.make(
+        let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
             hero: firstConfiguration.hero.combatant,
             companion: firstConfiguration.companion.combatant,
@@ -106,7 +106,7 @@ struct BattleSessionAutoBattleTests {
         #expect(probe.persistedValues == [false, true])
 
         session.runtime.endBattle()
-        let nextConfiguration = BattleRunConfigurationTestSupport.make(
+        let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 2,
             hero: CombatantFixtures.combatant(
                 id: "hero",

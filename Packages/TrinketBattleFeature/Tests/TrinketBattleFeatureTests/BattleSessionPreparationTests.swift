@@ -18,7 +18,7 @@ struct BattleSessionPreparationTests {
             runtime: runtime,
             openingHandDrawStagger: 0
         )
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
@@ -44,7 +44,7 @@ struct BattleSessionPreparationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let runKey = BattleRunKey("test|prepared-run")
         let session = BattleSession(openingHandDrawStagger: 0)
-        let configuration = BattleRunConfigurationTestSupport.make(
+        let (configuration, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             hero: party.hero,
             companion: party.companion,
@@ -58,7 +58,7 @@ struct BattleSessionPreparationTests {
         #expect(session.runtime.prepareBattleRun(configuration))
         #expect(session.preparedBattlePresentationRevision == initialRevision)
 
-        let replacement = BattleRunConfigurationTestSupport.make(
+        let (replacement, _) = BattleRunConfigurationTestSupport.make(
             runKey: runKey,
             rngSeed: 1,
             hero: party.hero,
@@ -81,12 +81,12 @@ struct BattleSessionPreparationTests {
             runtime: runtime,
             openingHandDrawStagger: 0.05
         )
-        let initialConfiguration = BattleRunConfigurationTestSupport.make(
+        let (initialConfiguration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
         )
-        let replacementConfiguration = BattleRunConfigurationTestSupport.make(
+        let (replacementConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: 1,
             hero: party.hero,
             companion: party.companion,
