@@ -112,6 +112,12 @@ trinket_derived_data_age_prune() {
   # Package-local SPM / Xcode package caches (gitignored).
   local package_dir
   if [[ -d "$repo_root/Packages" ]]; then
+    # Shared Packages/.DerivedData is a parallel-build lock hazard (SPM package
+    # schemes used to race one build.db here). Always remove it; package builds
+    # pin SYMROOT/OBJROOT under $DERIVED_DATA_PATH/packages/<name>/.
+    if [[ -d "$repo_root/Packages/.DerivedData" ]]; then
+      rm -rf "$repo_root/Packages/.DerivedData" 2>/dev/null || true
+    fi
     for package_dir in "$repo_root/Packages"/*; do
       [[ -d "$package_dir" ]] || continue
       for name in .build .DerivedData; do

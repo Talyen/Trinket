@@ -76,11 +76,19 @@ struct BattleCombatantPane: View {
     @ViewBuilder
     private var artworkPresentation: some View {
         if isDefeated {
-            BattleDissolveArtwork(celebratesDefeat: recoilDirection != .down) {
-                artworkLayer
+            if recoilDirection == .up {
+                BattleSliceArtwork {
+                    artworkLayer
+                }
+            } else {
+                BattleDissolveArtwork(celebratesDefeat: false) {
+                    artworkLayer
+                }
             }
         } else {
-            artworkLayer
+            CombatantStatusEffectPresentation(keyword: borderAccentKeyword) {
+                artworkLayer
+            }
         }
     }
 
@@ -246,15 +254,20 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             adoptLatestReactionIfNeeded()
         }
         .onAppear {
-            syncStatusBorderPulse(isActive: borderAccentKeyword != nil)
+            syncStatusBorderPulse(isActive: usesStatusBorderPulse)
         }
-        .onChange(of: borderAccentKeyword) { _, keyword in
-            syncStatusBorderPulse(isActive: keyword != nil)
+        .onChange(of: borderAccentKeyword) { _, _ in
+            syncStatusBorderPulse(isActive: usesStatusBorderPulse)
         }
     }
 
+    /// Stun/freeze use portrait overlays; only Death's Door keeps the pulsing border.
+    private var usesStatusBorderPulse: Bool {
+        borderAccentKeyword == .deathsDoor
+    }
+
     private var borderStrokeColor: Color {
-        guard let borderAccentKeyword else {
+        guard usesStatusBorderPulse, let borderAccentKeyword else {
             return TrinketDesign.Colors.subtleStroke
         }
         let opacity = statusBorderPulseBright

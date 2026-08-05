@@ -410,6 +410,9 @@ run_package_tests() {
           -destination "generic/platform=iOS Simulator" \
           -derivedDataPath "$package_dd" \
           -resultBundlePath "$package_build_result" \
+          "SYMROOT=$(package_symroot "$package_dd")" \
+          "OBJROOT=$(package_objroot "$package_dd")" \
+          "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")" \
         || package_status=$?
       if [[ "$package_status" -eq 0 ]]; then
         touch_build_stamp "$results_dir" "package_$package"

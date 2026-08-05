@@ -89,9 +89,10 @@ This card adds the CI/project-generation exceptions:
   `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS` (default 120). On timeout, fail fast — do not
   kill the holder. XcodeGen cache stays at `.DerivedData/XcodeGen.cache`.
 - Shared-tenant (non-isolated) app `test.sh` wrappers must not run in parallel: they
-  share the app DerivedData `build.db`. Package schemes use per-package tenants under
+  share the app DerivedData `build.db`.   Package schemes use per-package tenants under
   `$DERIVED_DATA_PATH/packages/<name>/` so package builds and package tests can run
-  in parallel. Isolated unit/package runs may proceed in parallel once each has an
+  in parallel (`SYMROOT`/`OBJROOT`/`SHARED_PRECOMPS_DIR` are pinned into that tenant so SPM schemes do
+  not share `Packages/.DerivedData/build.db`). Isolated unit/package runs may proceed in parallel once each has an
   agent slot. UI/smoke modes also take a fail-fast concurrency slot
   (`TRINKET_MAX_CONCURRENT_UI`, default 2). Agent sim slots and UI slots are both
   fail-fast when full.

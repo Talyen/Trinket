@@ -2,27 +2,6 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-#if DEBUG
-// DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
-
-enum CombatantCardEffectCategory: String, CaseIterable, Identifiable {
-    case stunned
-    case frozen
-    case death
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        switch self {
-        case .stunned: "Stunned"
-        case .frozen: "Frozen"
-        case .death: "Death"
-        }
-    }
-}
-
 enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
     case swirlingStars
     case iceCrystals
@@ -31,24 +10,16 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
         self
     }
 
-    var category: CombatantCardEffectCategory {
-        switch self {
-        case .swirlingStars:
-            .stunned
-        case .iceCrystals:
-            .frozen
+    /// Maps a combatant border/status keyword to its production overlay, if any.
+    init?(statusKeyword: Keyword) {
+        switch statusKeyword {
+        case .stun:
+            self = .swirlingStars
+        case .freeze:
+            self = .iceCrystals
+        default:
+            return nil
         }
-    }
-
-    var title: String {
-        switch self {
-        case .swirlingStars: "Swirling Stars"
-        case .iceCrystals: "Ice Crystals"
-        }
-    }
-
-    static func kinds(for category: CombatantCardEffectCategory) -> [Self] {
-        allCases.filter { $0.category == category }
     }
 }
 
@@ -88,33 +59,16 @@ struct CombatantStatusEffectConfig: Equatable {
     }
 }
 
-/// Lab playback length defaults per variant.
-enum CombatantCardEffectLabDuration {
-    static func defaults(
-        category: CombatantCardEffectCategory,
-        deathKind: CombatantDeathEffectKind = .slice
-    ) -> CGFloat {
-        switch category {
-        case .stunned:
-            4.0
-        case .frozen:
-            4.0
-        case .death:
-            switch deathKind {
-            case .slice: 2.5
-            case .dissolveBaseline: 1.4
-            }
-        }
-    }
-}
-
 struct CombatantStatusEffectOverlay: View {
     let kind: CombatantStatusEffectKind
     let config: CombatantStatusEffectConfig
     let progress: CGFloat
 
     var body: some View {
-        let keyword: Keyword = kind.category == .stunned ? .stun : .freeze
+        let keyword: Keyword = switch kind {
+        case .swirlingStars: .stun
+        case .iceCrystals: .freeze
+        }
         let style = keyword.visualStyle
         let phase = progress * config.speed
 
@@ -329,10 +283,127 @@ struct CombatantStatusCardTransform: ViewModifier {
     }
 }
 
+/// Continuous stun/freeze overlay while a status accent is active.
+struct CombatantStatusEffectPresentation<Content: View>: View {
+    let keyword: Keyword?
+    let content: Content
+
+    @State private var startDate = Date()
+
+    init(
+        keyword: Keyword?,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.keyword = keyword
+        self.content = content()
+    }
+
+    var body: some View {
+        if let keyword,
+           let kind = CombatantStatusEffectKind(statusKeyword: keyword) {
+            let config = CombatantStatusEffectConfig.defaults(for: kind)
+            TimelineView(.animation) { timeline in
+                // Absolute phase in lab clip units (4s = progress 1); does not loop so
+                // Ice Crystals stay fully encroached after the intro.
+                let progress = CGFloat(
+                    timeline.date.timeIntervalSince(startDate)
+                        / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+                )
+                content
+                    .modifier(
+                        CombatantStatusCardTransform(
+                            kind: kind,
+                            config: config,
+                            progress: progress
+                        )
+                    )
+                    .overlay {
+                        CombatantStatusEffectOverlay(
+                            kind: kind,
+                            config: config,
+                            progress: progress
+                        )
+                    }
+            }
+            .onChange(of: keyword) { _, _ in
+                startDate = Date()
+            }
+            .onAppear {
+                startDate = Date()
+            }
+        } else {
+            content
+        }
+    }
+}
+
 enum CombatantCardEffectNoise {
     static func value(_ index: Int, salt: Int) -> CGFloat {
         let n = sin(Double(index * 12989 + salt * 78433)) * 43758.5453
         return CGFloat(n - floor(n))
+    }
+}
+
+#if DEBUG
+// DEBUG playground only — lab category pickers and duration presets. Do not ship lab UI.
+
+enum CombatantCardEffectCategory: String, CaseIterable, Identifiable {
+    case stunned
+    case frozen
+    case death
+
+    var id: Self {
+        self
+    }
+
+    var title: String {
+        switch self {
+        case .stunned: "Stunned"
+        case .frozen: "Frozen"
+        case .death: "Death"
+        }
+    }
+}
+
+extension CombatantStatusEffectKind {
+    var category: CombatantCardEffectCategory {
+        switch self {
+        case .swirlingStars:
+            .stunned
+        case .iceCrystals:
+            .frozen
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .swirlingStars: "Swirling Stars"
+        case .iceCrystals: "Ice Crystals"
+        }
+    }
+
+    static func kinds(for category: CombatantCardEffectCategory) -> [Self] {
+        allCases.filter { $0.category == category }
+    }
+}
+
+/// Lab playback length defaults per variant.
+enum CombatantCardEffectLabDuration {
+    static func defaults(
+        category: CombatantCardEffectCategory,
+        deathKind: CombatantDeathEffectKind = .slice
+    ) -> CGFloat {
+        switch category {
+        case .stunned:
+            4.0
+        case .frozen:
+            4.0
+        case .death:
+            switch deathKind {
+            case .slice: 2.5
+            case .dissolveBaseline: 1.4
+            }
+        }
     }
 }
 #endif

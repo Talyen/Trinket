@@ -292,6 +292,40 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("xargs -P", text)
         self.assertIn("package test schemes in parallel", text)
         self.assertIn("per-package DerivedData tenants", text)
+        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', text)
+        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', text)
+        self.assertIn(
+            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")', text
+        )
+        stamp = (ROOT / "Scripts" / "build-stamp.sh").read_text(encoding="utf-8")
+        self.assertIn("package_symroot()", stamp)
+        self.assertIn("package_objroot()", stamp)
+        self.assertIn("package_shared_precomps_dir()", stamp)
+        self.assertIn("Packages/.DerivedData", stamp)
+        build_for_testing = (ROOT / "Scripts" / "build-for-testing.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', build_for_testing)
+        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', build_for_testing)
+        self.assertIn(
+            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")',
+            build_for_testing,
+        )
+        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
+        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', test_sh)
+        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', test_sh)
+        self.assertIn(
+            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")',
+            test_sh,
+        )
+
+    def test_run_env_removes_shared_packages_derived_data(self) -> None:
+        text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
+        prune = text.split("trinket_derived_data_age_prune()", 1)[1].split(
+            "trinket_simulator_cleanup_idle_pool()", 1
+        )[0]
+        self.assertIn('Packages/.DerivedData', prune)
+        self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', prune)
 
     def test_presentation_only_line_classifier(self) -> None:
         classifier = load_script(

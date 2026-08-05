@@ -116,7 +116,9 @@ artifacts plus package-local `.build` / `.DerivedData` (TestResults /
 PerformanceResults / Logs; keeps warm `runs/agent-N` Build products). The keep-target
 stays Booted — no routine shutdown/erase. Nested children release leases only. Package
 schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
-so package builds can run in parallel. Humans/CI may omit `--isolate` to keep
+so package builds can run in parallel. Package xcodebuild also sets `SYMROOT` /
+`OBJROOT` / `SHARED_PRECOMPS_DIR` under that tenant — SPM package schemes otherwise share
+`Packages/.DerivedData/build.db` even when `-derivedDataPath` differs. Humans/CI may omit `--isolate` to keep
 the shared warm cache.
 
 Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
@@ -234,6 +236,8 @@ are none; codegen is external via `generate.sh`).
    rebuild local packages aggressively. Avoid a second Xcode window on a nested
    `Package.swift` while the app project is open (that creates
    `Packages/*/.DerivedData` / `.build`); delete those trees if they accumulate.
+   Self-clean also removes shared `Packages/.DerivedData` (a parallel package-test
+   lock hazard).
 5. **Skip local `ci-gate.sh` / push-gate during tight iteration** — they
    `--force-xcodegen` and reindex. Use path-scoped `verify-changed.sh` instead.
    When `.DerivedData` grows large, `./Scripts/prune-derived-data-cache.sh`

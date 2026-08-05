@@ -141,6 +141,9 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$package_build_jobs" -I{} bash -c '
     -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
     -parallelizeTargets \
     -disableAutomaticPackageResolution \
+    "SYMROOT=$(package_symroot "$package_dd")" \
+    "OBJROOT=$(package_objroot "$package_dd")" \
+    "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")" \
     || status=$?
 
   if [[ "$status" -eq 0 ]]; then

@@ -34,7 +34,8 @@ Runs Swift package test schemes from inside their package directories, allocatin
 a unique result bundle for each invocation so repeated runs do not collide.
 
 When multiple packages are passed, builds/tests run in parallel using per-package
-DerivedData tenants (same model as `test.sh unit`).
+DerivedData tenants (same model as `test.sh unit`), with SYMROOT/OBJROOT pinned
+into each tenant so SPM schemes do not share Packages/.DerivedData/build.db.
 
 --build-only compiles the package scheme without running tests (local verify
 presentation-only demotion). BattleEngine balance-sweep tests are skipped by
@@ -195,7 +196,10 @@ run_one_package() {
       -sdk iphonesimulator \
       -destination "$DESTINATION" \
       -derivedDataPath "$package_dd" \
-      -resultBundlePath "$result_bundle"
+      -resultBundlePath "$result_bundle" \
+      "SYMROOT=$(package_symroot "$package_dd")" \
+      "OBJROOT=$(package_objroot "$package_dd")" \
+      "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
   )
   # Test filters only apply to test / test-without-building.
   if [[ "$ACTION" != "build" && ${#package_test_filters[@]} -gt 0 ]]; then

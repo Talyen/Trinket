@@ -43,6 +43,21 @@ package_derived_data_path() {
   printf '%s/packages/%s' "${DERIVED_DATA_PATH:?}" "$package"
 }
 
+# SPM package schemes still emit XCBuildData under Packages/.DerivedData when only
+# -derivedDataPath is set, racing parallel package builds on one build.db. Pin
+# products/intermediates into the per-package tenant alongside -derivedDataPath.
+package_symroot() {
+  printf '%s/Build/Products' "${1:?}"
+}
+
+package_objroot() {
+  printf '%s/Build/Intermediates.noindex' "${1:?}"
+}
+
+package_shared_precomps_dir() {
+  printf '%s/Build/Intermediates.noindex/PrecompiledHeaders' "${1:?}"
+}
+
 # Fingerprints stamped after build-for-testing so test.sh --no-build can reuse
 # products. App-only builds omit unit/package/all (those need package schemes).
 # shellcheck disable=SC2034

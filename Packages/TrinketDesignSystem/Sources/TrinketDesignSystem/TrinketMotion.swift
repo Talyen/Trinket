@@ -49,6 +49,12 @@ public enum TrinketMotion: Sendable {
         /// Particle activation of a played card.
         public static let cardActivationDuration: TimeInterval = 1.0
 
+        /// Enemy combatant Slice death clip length (cut → split → half dissolve).
+        public static let combatantSliceDuration: TimeInterval = 2.5
+
+        /// Phase unit for continuous stun/freeze overlays (progress 1.0 == this many seconds).
+        public static let combatantStatusEffectPhaseDuration: TimeInterval = 4.0
+
         /// Breathing room after the last activation or feedback frame before an outcome replaces Battle.
         public static let outcomePresentationPadding: TimeInterval = 0.1
 
