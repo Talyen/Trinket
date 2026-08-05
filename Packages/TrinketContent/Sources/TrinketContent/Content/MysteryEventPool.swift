@@ -118,7 +118,7 @@ enum MysteryEventPool {
             narrative: "Dusty shelves line a circular tower room. A half-written thesis lies open on the desk, quill dried beside it centuries ago.",
             artID: "mystery-dusty-shelves-in-tower",
             choices: [
-                ("search-scrolls", "Search the Scrolls", [.chooseItem]),
+                ("search-scrolls", "Search the Scrolls", [generatedItem("spellbook")]),
                 ("catalog-library", "Catalog the Library", [.gainExperience(8), .gainMaterial(.crystal, 1)]),
             ]
         ),

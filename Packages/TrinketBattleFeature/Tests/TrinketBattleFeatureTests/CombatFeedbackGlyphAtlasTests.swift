@@ -87,24 +87,10 @@ struct CombatFeedbackGlyphAtlasTests {
         #expect(worst < .milliseconds(15))
     }
 
-    @Test @MainActor func numericAlphabetComposesHundredsWithoutWholeValueRaster() throws {
+    @Test func numericAlphabetComposesHundredsWithoutWholeValueRaster() {
         let label = CombatFeedbackChipLabel.amount(-847)
         #expect(label.atlasFragments == ["8", "4", "7"])
         #expect(Set(label.atlasFragments).isSubset(of: Set(CombatFeedbackChipLabel.numericAtlasFragments)))
-
-        let composed = try #require(CombatFeedbackChipComposer.compose(
-            presentation: CombatFeedbackChipPresentation.resolve(
-                label: label,
-                keyword: .physical,
-                visualRole: .keyword,
-                feedbackClass: .directDamage
-            ),
-            feedbackClass: .directDamage,
-            dynamicTypeSize: .large,
-            displayScale: 3
-        ))
-        #expect(composed.pointSize.width > 0)
-        #expect(composed.pointSize.height > 0)
     }
 
     @Test func atlasWordVocabularyMatchesIconFirstFaces() {

@@ -105,6 +105,12 @@ public final class BattleSession {
         set { commandCoordinator.openingHandDrawStagger = newValue }
     }
 
+    /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
+    var autoBattleRetryDelay: Duration {
+        get { commandCoordinator.autoBattleRetryDelay }
+        set { commandCoordinator.autoBattleRetryDelay = newValue }
+    }
+
     public init(
         runtime: BattleRuntimeSession = BattleRuntimeSession(),
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,

@@ -15,7 +15,8 @@ package enum ControlMeterEngine {
         in context: inout BattleState
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) {
+        // Block further charge while Stunned/Frozen, including post-skip linger.
+        if context.roster.hasControlStatus(for: combatant, keyword: keyword) {
             return []
         }
         let pacedAmount = applyFightPacing

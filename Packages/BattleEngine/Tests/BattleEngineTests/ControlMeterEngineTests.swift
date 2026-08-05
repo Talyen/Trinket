@@ -62,6 +62,31 @@ struct ControlMeterEngineTests {
         try #expect(events.isEmpty)
     }
 
+    @Test func applyBuildupNoDuplicateDuringControlStatusLinger() throws {
+        var context = makeContext(
+            targetEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .controlMeter(.stun, 10, 10),
+                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                ),
+            ],
+            seed: 1772
+        )
+        let target = context.roster.enemy.combatant
+        try #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .stun)))
+        try #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
+
+        let events = ControlMeterEngine.applyMeterCharge(
+            15,
+            keyword: .stun,
+            to: target,
+            sourceActorID: "source",
+            in: &context
+        )
+        try #expect(events.isEmpty)
+    }
+
     @Test func applyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
         var context = makeContext(
             targetEffects: [

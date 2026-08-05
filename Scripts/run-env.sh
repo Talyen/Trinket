@@ -6,10 +6,12 @@
 # Isolated (TRINKET_ISOLATE=1): acquires a reusable agent simulator slot
 # (Trinket Agent N) with DerivedData under .DerivedData/runs/agent-N/.
 #
-# On self-clean start + EXIT (top-level owner only): reclaim Preview sims, enforce
-# exactly one Booted managed sim (Agent or CI), and age-prune bulky artifacts.
-# The keep-target stays Booted (no routine shutdown/erase — avoids CrashReporter
-# sheets from guest apps). Nested children release leases only.
+# On self-clean start + EXIT (top-level owner only): reclaim Preview sims when
+# the Preview device set is non-empty, enforce exactly one Booted managed sim
+# (Agent or CI), and age-prune bulky artifacts. The keep-target stays Booted
+# (no routine erase — avoids CrashReporter sheets from guest apps). Nested
+# children release leases only. xcode-runner wall/idle watchdogs kill host
+# xcodebuild trees only; they never call simctl.
 #
 # Generation lock and XcodeGen cache stay under the shared $PWD/.DerivedData root
 # because they mutate the repo project tree, not build products.
@@ -39,13 +41,56 @@ trinket_simulator_is_active_agent_name() {
     && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
 }
 
-# Shut down + delete Xcode Preview simulator devices (best-effort), then prune
-# leftover device dirs under both literal and URL-encoded Previews paths.
+# Reclaim Xcode Preview simulator devices when the Preview set has entries.
+# Skip simctl shutdown/delete when empty (avoids needless CrashReporter sheets).
+# Always prune leftover device dirs under literal and URL-encoded Previews paths.
 trinket_preview_sims_reclaim() {
   [[ "${TRINKET_CLEANUP_PREVIEW_SIMS:-1}" == "1" ]] || return 0
-  echo "Simulator cleanup: reclaiming Xcode Preview devices."
-  xcrun simctl --set previews shutdown all >/dev/null 2>&1 || true
-  xcrun simctl --set previews delete all >/dev/null 2>&1 || true
+
+  local preview_counts=""
+  # simctl --set previews may print a device-set banner before JSON; keep from '{'.
+  if preview_counts="$(
+    xcrun simctl --set previews list devices available -j 2>/dev/null \
+      | sed -n '/^{/,$p' \
+      | python3 -c '
+import json
+import sys
+
+try:
+    payload = json.load(sys.stdin)
+except Exception:
+    print("0\t0")
+    raise SystemExit(0)
+
+total = 0
+booted = 0
+for devices in payload.get("devices", {}).values():
+    for device in devices:
+        total += 1
+        if device.get("state") == "Booted":
+            booted += 1
+print(f"{total}\t{booted}")
+' 2>/dev/null
+  )"; then
+    :
+  else
+    preview_counts="0	0"
+  fi
+
+  local preview_total=0
+  local preview_booted=0
+  IFS=$'\t' read -r preview_total preview_booted <<< "$preview_counts" || true
+  [[ "$preview_total" =~ ^[0-9]+$ ]] || preview_total=0
+  [[ "$preview_booted" =~ ^[0-9]+$ ]] || preview_booted=0
+
+  if (( preview_total > 0 )); then
+    echo "Simulator cleanup: reclaiming Xcode Preview devices (${preview_total} device(s), ${preview_booted} Booted)."
+    if (( preview_booted > 0 )); then
+      xcrun simctl --set previews shutdown all >/dev/null 2>&1 || true
+    fi
+    xcrun simctl --set previews delete all >/dev/null 2>&1 || true
+  fi
+
   local previews_root="${HOME}/Library/Developer/Xcode/UserData/Previews"
   local dir
   for dir in \

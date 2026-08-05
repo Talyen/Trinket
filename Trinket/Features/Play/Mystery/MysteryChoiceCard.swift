@@ -135,14 +135,6 @@ struct MysteryChoiceCard: View {
                 tint: TrinketDesign.Colors.encounterEvent
             )
 
-        case .chooseItem:
-            rewardSummary(
-                title: "Choose Item",
-                value: "1 of \(MysteryEffectApplier.chooseItemCandidateCount)",
-                systemIcon: "square.grid.2x2.fill",
-                tint: TrinketDesign.Colors.encounterEvent
-            )
-
         case let .unlockCombatant(combatantID):
             rewardSummary(
                 title: combatantName(id: combatantID),

@@ -205,7 +205,30 @@ run_one_package() {
   if [[ "$ACTION" != "build" && ${#package_test_filters[@]} -gt 0 ]]; then
     xcodebuild_args+=("${package_test_filters[@]}")
   fi
+  local package_wall=0
+  SECONDS=0
   xcode_runner_run "${runner_args[@]}" -- "${xcodebuild_args[@]}" || package_status=$?
+  package_wall=$SECONDS
+
+  # Record per-package timings for on-demand hotspot mining (test-timing.sh).
+  # Build-only runs have no test cases; skip those xcresults. Soft-fail record so a
+  # corrupt/partial bundle after a hung kill cannot mask the xcodebuild status.
+  if [[ "$ACTION" != "build" && -f "$result_bundle/Info.plist" ]]; then
+    if [[ "$ACTION" == "test-without-building" ]]; then
+      ./Scripts/test-timing.sh record \
+        --mode "package:$package" \
+        --wall "$package_wall" \
+        --xcresult "$result_bundle" \
+        --no-build \
+        || echo "Warning: failed to record timing for package:$package" >&2
+    else
+      ./Scripts/test-timing.sh record \
+        --mode "package:$package" \
+        --wall "$package_wall" \
+        --xcresult "$result_bundle" \
+        || echo "Warning: failed to record timing for package:$package" >&2
+    fi
+  fi
 
   if [[ "$package_status" -ne 0 ]]; then
     return "$package_status"

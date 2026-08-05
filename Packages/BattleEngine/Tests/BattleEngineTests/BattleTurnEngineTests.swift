@@ -40,7 +40,7 @@ struct BattleTurnEngineTests {
         return (context, BattleMatchup(hero: hero, companion: companion, enemy: enemy))
     }
 
-    @Test func consumeActionSkipEmitsEventRemovesEffectAndRecordsAction() throws {
+    @Test func consumeActionSkipEmitsEventLingersStatusAndRecordsAction() throws {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
@@ -51,6 +51,10 @@ struct BattleTurnEngineTests {
 
         try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
         try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
+        try #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
+        try #expect(context.roster.activeEffects(for: enemy).contains { active in
+            active.effect.isActionSkipPending && active.remainingTurns == BattleTiming.controlStatusLingerTurns
+        })
         try #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
         try #expect(context.actionCount == 1)
     }

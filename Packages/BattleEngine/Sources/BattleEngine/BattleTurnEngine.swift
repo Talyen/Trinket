@@ -31,18 +31,23 @@ public enum BattleTurnEngine {
     }
 
     /// Consumes a pending stun/freeze skip for `actor` and records the action.
+    ///
+    /// The control meter stays at threshold with a linger duration so Stunned /
+    /// Frozen status remains through the following player turn without skipping
+    /// a second action.
     public static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleState
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
-        guard let index = currentEffects.firstIndex(where: { $0.effect.isActionSkipPending }) else {
+        guard let index = currentEffects.firstIndex(where: \.isAwaitingActionSkip) else {
             return recordAction(for: actor, context: &context)
         }
 
-        let effect = currentEffects[index]
+        var effect = currentEffects[index]
         let keyword = effect.keyword
-        currentEffects.remove(at: index)
+        effect.remainingTurns = BattleTiming.controlStatusLingerTurns
+        currentEffects[index] = effect
         context.roster.setActiveEffects(currentEffects, for: actor)
 
         let event = context.nextEvent(

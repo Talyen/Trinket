@@ -135,42 +135,6 @@ extension EncounterPlayMode {
         return true
     }
 
-    /// Grants the chosen mystery item and completes the stage/node in one transaction.
-    @discardableResult
-    public func selectActiveMysteryItem(itemID: String) -> Bool {
-        selectActiveMysteryItem(itemID: itemID, completeProgress: nil)
-    }
-
-    @discardableResult
-    func selectActiveMysteryItem(
-        itemID: String,
-        completeProgress: MysteryProgressCompletion?
-    ) -> Bool {
-        guard let mysterySession = activeMysteryEncounter else { return false }
-
-        let progressClosure = completeProgress ?? Self.completeMysteryProgress
-        var outcome = MysteryChoiceOutcome.failed
-        do {
-            try playerSave.performBatchMutation { save in
-                outcome = mysterySession.selectItem(
-                    itemID: itemID,
-                    save: &save,
-                    completeProgress: progressClosure
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to grant mystery item: \(error.localizedDescription, privacy: .public)"
-            )
-            mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
-            return false
-        }
-
-        guard applyMysteryOutcome(outcome, session: mysterySession) else { return false }
-        noteMysteryMapFocus(for: outcome)
-        return true
-    }
-
     /// Corrupts the selected inventory item at the Corruption Altar.
     @discardableResult
     public func corruptActiveMysteryItem(itemID: String) -> Bool {
@@ -252,7 +216,7 @@ extension EncounterPlayMode {
         }
         mysterySession.clearPersistFailure()
         if mysterySession.showsReward {
-            // Progress was already completed inside resolveChoice / selectItem.
+            // Progress was already completed inside resolveChoice.
             // Dismiss only — never re-grant.
             sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             activeMysteryEncounter = nil
@@ -296,7 +260,7 @@ extension EncounterPlayMode {
         case .reward:
             mysterySession.applyOutcome(outcome)
             return true
-        case .reveal, .chooseItem:
+        case .reveal:
             mysterySession.applyOutcome(outcome)
             return true
         case .selectCorruptItem:

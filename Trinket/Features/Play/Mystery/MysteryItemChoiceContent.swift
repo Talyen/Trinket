@@ -56,25 +56,6 @@ private struct MysteryItemChoiceScaffold<Footer: View>: View {
     }
 }
 
-struct MysteryItemChoiceContent: View {
-    @Bindable var session: MysteryEncounterSession
-    let onSelectItem: (String) -> Void
-
-    var body: some View {
-        MysteryItemChoiceScaffold(
-            title: "Choose a Find",
-            titleAccessibilityIdentifier: AccessibilityID.Mystery.chooseItemTitle,
-            narrative: "Three relics answer the scrolls. Take one.",
-            persistFailureMessage: session.persistFailureMessage,
-            items: session.itemCandidates,
-            isDisabled: session.isResolvingChoice,
-            itemAccessibilityID: AccessibilityID.Mystery.chooseItemCard(itemID:),
-            onSelectItem: onSelectItem,
-            footer: { EmptyView() }
-        )
-    }
-}
-
 struct MysteryCorruptItemChoiceContent: View {
     @Bindable var session: MysteryEncounterSession
     let onCorruptItem: (String) -> Bool

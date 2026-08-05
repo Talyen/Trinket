@@ -42,12 +42,32 @@ struct ControlMeterHandler: BattleEffectHandler {
 
         if meter.effect.isActionSkipPending {
             let alias = keyword.statusAlias ?? keyword.rawValue
-            return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
+            if meter.isAwaitingActionSkip {
+                return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
+            }
+            return EffectSummary(keyword: keyword, text: alias)
         }
         guard let values = meter.effect.controlMeterValues else { return nil }
         return EffectSummary(
             keyword: keyword,
             text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold)"
+        )
+    }
+
+    func advanceTurn(
+        _ active: ActiveEffect,
+        on target: Combatant,
+        in context: inout BattleState
+    ) -> EffectTurnOutcome {
+        _ = target
+        _ = context
+        // Awaiting skip: do not tick. Post-consume linger: decrement and remove at 0.
+        guard active.remainingTurns > 0 else { return EffectTurnOutcome() }
+        var updated = active
+        updated.remainingTurns -= 1
+        return EffectTurnOutcome(
+            updatedStack: updated,
+            removeAfter: updated.remainingTurns <= 0
         )
     }
 

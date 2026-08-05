@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
-import TrinketFeatureSupport
 import TrinketPersistence
 
 public enum StageMapID {

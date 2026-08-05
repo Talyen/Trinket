@@ -110,11 +110,12 @@ tree represents one task. Agents must run
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
 agents do not share `build.db` or `Trinket CI`. Pool size is `TRINKET_MAX_AGENT_SIMS`
 (default 1; one-at-a-time local agent). On self-clean start and EXIT, the top-level
-owner (`trinket_run_env_self_clean_hygiene`) reclaims Xcode Preview sims, enforces
+owner (`trinket_run_env_self_clean_hygiene`) reclaims Xcode Preview sims when the
+Preview device set is non-empty (shutdown only Booted; then delete), enforces
 exactly one Booted managed sim (Agent or CI), and age-prunes bulky `.DerivedData`
 artifacts plus package-local `.build` / `.DerivedData` (TestResults /
 PerformanceResults / Logs; keeps warm `runs/agent-N` Build products). The keep-target
-stays Booted — no routine shutdown/erase. Nested children release leases only. Package
+stays Booted — no routine erase. Nested children release leases only. Package
 schemes use per-package DerivedData under `$DERIVED_DATA_PATH/packages/<name>/`
 so package builds can run in parallel. Package xcodebuild also sets `SYMROOT` /
 `OBJROOT` / `SHARED_PRECOMPS_DIR` under that tenant — SPM package schemes otherwise share
@@ -126,6 +127,9 @@ Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
 - Style and touched-package tests may run in parallel; multi-package and multi-smoke
   targets are batched into one invocation each. Batched `test-package.sh` runs those
   packages in parallel across per-package DerivedData tenants (wall ≈ slowest package).
+  When smoke is also scheduled, `verify-changed` prefetches `build-for-testing --app-only`
+  during that parallel window so smoke can use `--no-build`. Later handoffs in the same
+  isolate slot reuse a fresh stamp when build-inputs are unchanged.
 - Unit steps use `--app-only` (no 9-package fan-out); packages are scheduled only when
   touched.
 - AccessibilityID renames route package tests + Homestead smoke canary locally;
@@ -133,9 +137,16 @@ Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
 - BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) are local
   `--build-only` (compile proof); CI `unit` owns the full BattleFeature package suite.
   Shipping battle UI still routes full package tests + `SmokeBattleTests`.
-- Play smoke: `SmokePlayTests` only for Play shell/hub paths the canary owns
-  (`PlayView`, Explore/Spires/PlayMode hubs). Mystery, Labyrinth, StagePreview, and
-  other Play subflows without a smoke owner route compile-only `build.sh` instead.
+- Play smoke: `SmokePlayTests` for Play hub paths (`ExploreHub` / `SpiresHub` /
+  `PlayModeHub`) and for `PlayView.swift` when the diff touches mode-card shell
+  signals. Pure encounter/cover wiring in `PlayView` demotes via
+  `Scripts/classify-play-shell-diff.py` (fail-closed) to compile-only `build.sh`.
+  Mystery, Labyrinth, StagePreview, and other Play subflows without a smoke owner
+  stay compile-only.
+- Local targeted smoke canaries stay on path-scoped verify when routing resolves an
+  owner (AccessibilityID → Homestead canary; real Play shell → `SmokePlayTests`).
+  Do not relocate those canaries to CI-only — PR `smoke-full` / exhaustive UI remain
+  the broad net; local speedups only shrink *when* and *how* canaries run.
 - Presentation-only diffs (metrics/layout constants, SwiftUI chrome modifiers, SF Symbol
   / `Text("…")` copy) demote package **tests** and smoke to compile-only via
   `Scripts/classify-presentation-only.py` (fail-closed). DesignSystem-only demotions use
@@ -176,8 +187,16 @@ Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advis
 `change-budget.sh` report against HEAD: authored production/test/docs-tool LOC,
 new Swift files and types, and test declaration deltas. Generated output is excluded.
 Warnings never fail the change; agents explain the necessity and simpler rejected
-alternative. Declaration counts do not include expanded `@Test(arguments:)` cases,
-so use `test-timing.sh` for runtime decisions.
+alternative. Declaration counts do not include expanded `@Test(arguments:)` cases;
+inspect runtime with `./Scripts/test-timing.sh` when deliberately hunting slow tests.
+
+Local iteration speed comes from **path-scoped verify** (touched packages, demotions,
+targeted smoke)—not from reading timing reports. Full `test.sh unit`, `smoke-full`,
+and FullUI remain CI or explicit confidence runs. `test.sh` and `test-package.sh`
+append to `.DerivedData/TestResults/timing-log.jsonl` (`unit` / `smoke` / …
+and `package:<Name>`). Inspect on demand, e.g.
+`./Scripts/test-timing.sh report --mode package:TrinketAppState`. Agents do **not**
+act on timing output during normal feature work.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
 Generation uses a shared lock (timeout via `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS`,
@@ -201,7 +220,12 @@ That script never mutates simulator devices — Preview reclaim, single-warm Boo
 enforcement, and age-prune live in `Scripts/run-env.sh` self-clean start + EXIT
 on verify/test. The keep-target managed sim stays Booted; excess managed Booted
 sims are shut down quietly; managed sims are never erased on the normal path.
-Parallel source trees:
+`xcode-runner.sh` wall/idle watchdogs (`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` /
+`TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`) kill hung **host** xcodebuild trees only —
+they never call `simctl`. MobileCal / Widget “quit unexpectedly” sheets after
+`simctl` teardown are a known Simulator CrashReporter quirk, not Trinket failures;
+set CrashReporterPrefs (Additional Tools for Xcode → Utilities) to **Basic** to
+keep real app crash dialogs while silencing system-daemon spam. Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
 
 ### Xcode IDE loop (human day-to-day)
@@ -233,7 +257,9 @@ are none; codegen is external via `generate.sh`).
    `-parallelizeTargets`, `-disableAutomaticPackageResolution`, and
    `COMPILER_INDEX_STORE_ENABLE=NO`.
 4. **Close SwiftUI Canvas / Previews** when not actively tuning Labs — Previews
-   rebuild local packages aggressively. Avoid a second Xcode window on a nested
+   rebuild local packages aggressively, and Booted Preview devices are what
+   self-clean must `simctl shutdown` (empty Preview sets are skipped). Avoid a
+   second Xcode window on a nested
    `Package.swift` while the app project is open (that creates
    `Packages/*/.DerivedData` / `.build`); delete those trees if they accumulate.
    Self-clean also removes shared `Packages/.DerivedData` (a parallel package-test

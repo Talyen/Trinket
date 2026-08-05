@@ -73,6 +73,11 @@ struct EffectSummaryBuilderTests {
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
         try #expect(triggered.first?.text == "Stunned: action prevented.")
+
+        let lingered = EffectSummaryBuilder.build(for: [
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 1),
+        ])
+        try #expect(lingered.first?.text == "Stunned")
     }
 
     @Test func emptyEffectsProducesEmptySummaries() throws {

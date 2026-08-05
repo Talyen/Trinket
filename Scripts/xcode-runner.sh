@@ -4,7 +4,10 @@
 #
 # The runner is intentionally sourceable: the test/build wrappers retain
 # ownership of their command-line contracts while this file owns log/result
-# allocation, output policy, simulator retry, and failure reporting.
+# allocation, output policy, simulator retry, failure reporting, and hung-command
+# watchdogs for quiet runs:
+#   TRINKET_XCODE_WALL_TIMEOUT_SECONDS (default 1200; 0 disables)
+#   TRINKET_XCODE_IDLE_TIMEOUT_SECONDS (default 120 after terminal marker; 0 disables)
 
 xcode_runner_sanitize_label() {
   local value="${1:-run}"
@@ -163,6 +166,166 @@ PY
   export XCODE_RUNNER_MANIFEST_PATH
 }
 
+# Hard ceiling for one xcodebuild invocation (0 disables). Covers compile stalls
+# with no terminal marker. Default 20 minutes.
+xcode_runner_wall_timeout_seconds() {
+  printf '%s' "${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-1200}"
+}
+
+# After a terminal TEST/BUILD marker, kill if the raw log stops growing
+# (0 disables). Targets post-failure simctl/xcresult hangs. Default 2 minutes.
+xcode_runner_idle_timeout_seconds() {
+  printf '%s' "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-120}"
+}
+
+xcode_runner_watchdog_enabled() {
+  local wall idle
+  wall="$(xcode_runner_wall_timeout_seconds)"
+  idle="$(xcode_runner_idle_timeout_seconds)"
+  [[ "$wall" =~ ^[0-9]+$ ]] || wall=0
+  [[ "$idle" =~ ^[0-9]+$ ]] || idle=0
+  (( wall > 0 || idle > 0 ))
+}
+
+xcode_runner_log_byte_size() {
+  local log_file="$1"
+  if [[ -f "$log_file" ]]; then
+    wc -c <"$log_file" | tr -d '[:space:]'
+  else
+    printf '0'
+  fi
+}
+
+xcode_runner_log_has_terminal_marker() {
+  local log_file="$1"
+  [[ -f "$log_file" ]] || return 1
+  # Xcode classic banners plus Swift Testing's run summary line.
+  grep -Eq \
+    '\*\* (TEST|BUILD) (SUCCEEDED|FAILED) \*\*|Testing started completed|✘ Test run with |✔ Test run with ' \
+    "$log_file"
+}
+
+# Infer exit status when we kill a hung post-terminal xcodebuild.
+# 0 = success banner, 65 = failure banner/summary, 124 = timed out with no result.
+xcode_runner_infer_exit_from_log() {
+  local log_file="$1"
+  [[ -f "$log_file" ]] || {
+    printf '124'
+    return
+  }
+  if grep -Eq '\*\* (TEST|BUILD) FAILED \*\*|✘ Test run with ' "$log_file"; then
+    printf '65'
+    return
+  fi
+  if grep -Eq '\*\* (TEST|BUILD) SUCCEEDED \*\*|✔ Test run with ' "$log_file"; then
+    printf '0'
+    return
+  fi
+  printf '124'
+}
+
+xcode_runner_kill_tree() {
+  local pid="$1"
+  local child
+  [[ -n "$pid" ]] || return 0
+  for child in $(pgrep -P "$pid" 2>/dev/null || true); do
+    xcode_runner_kill_tree "$child"
+  done
+  kill -TERM "$pid" 2>/dev/null || true
+}
+
+xcode_runner_force_kill_tree() {
+  local pid="$1"
+  local child
+  [[ -n "$pid" ]] || return 0
+  for child in $(pgrep -P "$pid" 2>/dev/null || true); do
+    xcode_runner_force_kill_tree "$child"
+  done
+  kill -KILL "$pid" 2>/dev/null || true
+}
+
+# Run a command redirected to log_file, with optional wall-clock and post-terminal
+# idle-log watchdogs. Echoes nothing; returns the command (or inferred) exit status.
+xcode_runner_execute_watched() {
+  local log_file="$1"
+  local working_directory="${2:-}"
+  shift 2
+  local wall idle
+  local cmd_pid=0
+  local started_at last_growth last_size size
+  local saw_terminal=false
+  local kill_reason=""
+  local wait_status=0
+  local inferred=124
+
+  wall="$(xcode_runner_wall_timeout_seconds)"
+  idle="$(xcode_runner_idle_timeout_seconds)"
+  [[ "$wall" =~ ^[0-9]+$ ]] || wall=0
+  [[ "$idle" =~ ^[0-9]+$ ]] || idle=0
+
+  mkdir -p "$(dirname "$log_file")"
+  : >"$log_file"
+
+  if [[ -n "$working_directory" ]]; then
+    (
+      cd "$working_directory" || exit 127
+      exec "$@"
+    ) >>"$log_file" 2>&1 &
+    cmd_pid=$!
+  else
+    "$@" >>"$log_file" 2>&1 &
+    cmd_pid=$!
+  fi
+
+  started_at=$SECONDS
+  last_growth=$SECONDS
+  last_size="$(xcode_runner_log_byte_size "$log_file")"
+
+  while kill -0 "$cmd_pid" 2>/dev/null; do
+    sleep 1
+    size="$(xcode_runner_log_byte_size "$log_file")"
+    if (( size > last_size )); then
+      last_size=$size
+      last_growth=$SECONDS
+    fi
+    if [[ "$saw_terminal" == "false" ]] && xcode_runner_log_has_terminal_marker "$log_file"; then
+      saw_terminal=true
+      # Reset idle clock once tests/build report a terminal result so brief
+      # post-result log noise does not immediately trip the watchdog.
+      last_growth=$SECONDS
+    fi
+    if (( wall > 0 && SECONDS - started_at >= wall )); then
+      kill_reason="wall-clock ${wall}s"
+      break
+    fi
+    if [[ "$saw_terminal" == "true" ]] && (( idle > 0 && SECONDS - last_growth >= idle )); then
+      kill_reason="idle log ${idle}s after terminal marker"
+      break
+    fi
+  done
+
+  if [[ -n "$kill_reason" ]]; then
+    echo "xcode-runner: killing hung command ($kill_reason); log: $log_file" >&2
+    xcode_runner_kill_tree "$cmd_pid"
+    sleep 2
+    if kill -0 "$cmd_pid" 2>/dev/null; then
+      xcode_runner_force_kill_tree "$cmd_pid"
+    fi
+    wait "$cmd_pid" 2>/dev/null || true
+    inferred="$(xcode_runner_infer_exit_from_log "$log_file")"
+    if [[ "$inferred" -eq 124 ]]; then
+      echo "xcode-runner: no TEST/BUILD result in log; treating as timeout (exit 124)." >&2
+    else
+      echo "xcode-runner: inferred exit $inferred from log after hang kill." >&2
+    fi
+    return "$inferred"
+  fi
+
+  wait_status=0
+  wait "$cmd_pid" || wait_status=$?
+  return "$wait_status"
+}
+
 xcode_runner_run() {
   local label=""
   local result_bundle=""
@@ -276,7 +439,12 @@ xcode_runner_run() {
   fi
 
   while (( attempt <= max_attempts )); do
-    if [[ "$quiet" == "true" ]]; then
+    if [[ "$quiet" == "true" ]] && xcode_runner_watchdog_enabled; then
+      set +e
+      xcode_runner_execute_watched "$log_file" "$working_directory" "${command_args[@]}"
+      xcode_exit=$?
+      if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
+    elif [[ "$quiet" == "true" ]]; then
       set +e
       if [[ -n "$working_directory" ]]; then
         (cd "$working_directory" && "${command_args[@]}" >"$log_file" 2>&1)

@@ -130,18 +130,40 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
-    /// True when `combatant` has any stun/freeze control meter at threshold,
-    /// waiting to consume its next action opportunity.
+    /// True when `combatant` has any stun/freeze meter still awaiting an
+    /// unconsumed action skip.
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
+        activeEffects(for: combatant).contains(where: \.isAwaitingActionSkip)
     }
 
-    /// True when `combatant` has a full control meter for `keyword`, waiting
-    /// to consume its next action opportunity.
+    /// True when `combatant` has a full control meter for `keyword` still
+    /// awaiting an unconsumed action skip.
     public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
+        activeEffects(for: combatant).contains { activeEffect in
+            activeEffect.keyword == keyword && activeEffect.isAwaitingActionSkip
+        }
+    }
+
+    /// True when `combatant` has a full stun/freeze meter (status active),
+    /// whether or not the action skip has already been consumed.
+    public func hasControlStatus(for combatant: Combatant, keyword: Keyword) -> Bool {
         activeEffects(for: combatant).contains { activeEffect in
             activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending
         }
+    }
+
+    /// True when `combatant` has any full stun/freeze meter (status active).
+    public func hasControlStatus(for combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
+    }
+
+    /// Removes full stun/freeze meters that are no longer awaiting a skip
+    /// (post-consume linger), so the combatant does not look CC'd while acting.
+    public mutating func clearControlStatusLinger(for combatant: Combatant) {
+        let updated = activeEffects(for: combatant).filter { activeEffect in
+            !(activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip)
+        }
+        setActiveEffects(updated, for: combatant)
     }
 
     /// Mutates the runtime identified by `combatant` in place. A no-op

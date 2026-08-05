@@ -11,8 +11,6 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var companionProgressionBefore: CombatantProgression?
     public var companionProgressionAfter: CombatantProgression?
     public var grantedItems: [InventoryItem]
-    /// Populated when a choice includes `.chooseItem`; caller presents options then grants one.
-    public var chooseItemCandidates: [InventoryItem]
     /// Combatant IDs newly unlocked by this apply (heroes and companions).
     public var unlockedCombatantIDs: [String]
 
@@ -25,7 +23,6 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
         companionProgressionBefore: CombatantProgression? = nil,
         companionProgressionAfter: CombatantProgression? = nil,
         grantedItems: [InventoryItem] = [],
-        chooseItemCandidates: [InventoryItem] = [],
         unlockedCombatantIDs: [String] = []
     ) {
         self.grantedGold = grantedGold
@@ -36,7 +33,6 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
         self.companionProgressionBefore = companionProgressionBefore
         self.companionProgressionAfter = companionProgressionAfter
         self.grantedItems = grantedItems
-        self.chooseItemCandidates = chooseItemCandidates
         self.unlockedCombatantIDs = unlockedCombatantIDs
     }
 
@@ -45,14 +41,11 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
             && grantedMaterials.isEmpty
             && grantedExperience == 0
             && grantedItems.isEmpty
-            && chooseItemCandidates.isEmpty
             && unlockedCombatantIDs.isEmpty
     }
 }
 
 public enum MysteryEffectApplier {
-    public static let chooseItemCandidateCount = 3
-
     public static func apply(
         _ effects: [MysteryEffect],
         stageID: String,
@@ -102,14 +95,6 @@ public enum MysteryEffectApplier {
         }
 
         return state.result
-    }
-
-    public static func grantChosenItem(
-        _ item: InventoryItem,
-        save: inout PlayerSave
-    ) {
-        guard !save.inventory.items.contains(where: { $0.id == item.id }) else { return }
-        save.inventory.items.append(item)
     }
 
     private struct GeneratedItemContext {
@@ -181,13 +166,6 @@ public enum MysteryEffectApplier {
             state.itemOrdinal += 1
             appendItem(item, to: &save, result: &state.result)
 
-        case .chooseItem:
-            state.result.chooseItemCandidates = makeChooseItemCandidates(
-                startingOrdinal: state.itemOrdinal,
-                context: itemContext,
-                using: &randomNumberGenerator
-            )
-
         case let .unlockCombatant(combatantID):
             applyUnlock(combatantID, save: &save, result: &state.result)
 
@@ -213,31 +191,6 @@ public enum MysteryEffectApplier {
         }
     }
 
-    private static func makeChooseItemCandidates(
-        startingOrdinal: Int,
-        context: GeneratedItemContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> [InventoryItem] {
-        var candidates: [InventoryItem] = []
-        for candidateIndex in 0 ..< chooseItemCandidateCount {
-            guard let baseType = context.baseTypes.randomElement(using: &randomNumberGenerator) else {
-                continue
-            }
-            guard let item = makeGeneratedItem(
-                baseTypeID: baseType.id,
-                guaranteedAffixIDs: [],
-                ordinal: startingOrdinal + candidateIndex,
-                idSuffix: "choice-\(candidateIndex)",
-                context: context,
-                using: &randomNumberGenerator
-            ) else {
-                continue
-            }
-            candidates.append(item)
-        }
-        return candidates
-    }
-
     private static func appendItem(
         _ item: InventoryItem,
         to save: inout PlayerSave,
@@ -252,7 +205,6 @@ public enum MysteryEffectApplier {
         baseTypeID: String,
         guaranteedAffixIDs: [String],
         ordinal: Int,
-        idSuffix: String? = nil,
         context: GeneratedItemContext,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
@@ -263,9 +215,8 @@ public enum MysteryEffectApplier {
             astralChanceBonusPercent: context.astralChanceBonusPercent,
             using: &randomNumberGenerator
         )
-        let suffix = idSuffix.map { "-\($0)" } ?? ""
         let itemID =
-            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)\(suffix)"
+            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)"
         return context.itemGenerator.generate(
             id: itemID,
             templateID: "\(baseTypeID)-\(rarity.rawValue)",

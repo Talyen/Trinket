@@ -85,27 +85,6 @@ struct MysteryEffectApplierTests {
         try #expect(save.inventory.items.count == 1)
     }
 
-    @Test func chooseItemReturnsCandidatesWithoutGranting() throws {
-        var save = makeSave()
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 5)
-
-        let result = MysteryEffectApplier.apply(
-            [.chooseItem],
-            stageID: "chapter-1-stage-2",
-            choiceID: "search-scrolls",
-            save: &save,
-            using: &randomNumberGenerator
-        )
-
-        try #expect(result.chooseItemCandidates.count == MysteryEffectApplier.chooseItemCandidateCount)
-        try #expect(result.grantedItems.isEmpty)
-        try #expect(save.inventory.items.isEmpty)
-
-        let chosen = try #require(result.chooseItemCandidates.first)
-        MysteryEffectApplier.grantChosenItem(chosen, save: &save)
-        try #expect(save.inventory.items.map(\.id) == [chosen.id])
-    }
-
     @Test func manaBerryHarvestChoiceAppliesExpectedRewards() throws {
         var save = makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))

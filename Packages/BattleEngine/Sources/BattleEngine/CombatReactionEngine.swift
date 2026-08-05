@@ -68,8 +68,8 @@ package extension CombatReactionEngine {
         else { return 0 }
 
         let profile = context.modifiers(for: sourceActorID)
-        let targetIsFrozen = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .freeze)
-        let targetIsStunned = context.roster.hasPendingActionSkip(for: state.combatant, keyword: .stun)
+        let targetIsFrozen = context.roster.hasControlStatus(for: state.combatant, keyword: .freeze)
+        let targetIsStunned = context.roster.hasControlStatus(for: state.combatant, keyword: .stun)
         let targetIsBurning = context.roster.activeEffects(for: state.combatant).contains {
             if case .burn = $0.effect {
                 return true

@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketFeatureSupport
 import TrinketPersistence
 
 public enum HomesteadProjectRowState: Equatable {

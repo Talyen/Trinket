@@ -167,12 +167,13 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertNotIn("SmokePlayTests", plan)
 
     def test_play_shell_keeps_smoke_play(self) -> None:
+        # Hub paths always keep SmokePlayTests (PlayView may demote on subflow-only diffs).
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "verify-changed.sh"),
                 "--dry-run",
                 "--paths",
-                "Trinket/Features/Play/PlayView.swift",
+                "Trinket/Features/Play/Modes/PlayModeHubView.swift",
             ],
             cwd=ROOT,
             capture_output=True,
@@ -181,6 +182,51 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SmokePlayTests", result.stdout)
+
+    def test_play_shell_diff_classifier(self) -> None:
+        classifier = load_script("classify_play_shell_diff", "classify-play-shell-diff.py")
+        self.assertEqual(
+            classifier.classify_changed_lines(
+                [
+                    "PlayModeHubView()",
+                    "accessibilityIdentifier: AccessibilityID.Play.campaignModeCard",
+                ]
+            ),
+            "shell",
+        )
+        self.assertEqual(
+            classifier.classify_changed_lines(
+                [
+                    "PlayEncounterCoversModifier()",
+                    "onResolveChoice: { choiceID in",
+                    "encounters.resolveActiveMysteryChoice(choiceID: choiceID)",
+                ]
+            ),
+            "subflow",
+        )
+        self.assertEqual(
+            classifier.classify_changed_lines(
+                [
+                    "PlayEncounterCoversModifier()",
+                    "PlayModeHubView()",
+                ]
+            ),
+            "shell",
+        )
+        self.assertEqual(
+            classifier.classify_changed_lines(["import SwiftUI", "}"]),
+            "uncertain",
+        )
+        self.assertEqual(
+            classifier.classify_changed_lines(
+                [
+                    "onSelectItem: { itemID in",
+                    "encounters.selectActiveMysteryItem(itemID: itemID)",
+                    "},",
+                ]
+            ),
+            "subflow",
+        )
 
     def test_feature_support_generic_skips_app_build_when_package_tests_run(self) -> None:
         result = subprocess.run(
@@ -287,6 +333,12 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("assert_generate_input_git_snapshot_unchanged", assert_text)
         self.assertIn("Prefer stamp-time porcelain over dirty-vs-HEAD", assert_text)
 
+    def test_test_package_records_timing_log(self) -> None:
+        text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
+        self.assertIn("./Scripts/test-timing.sh record", text)
+        self.assertIn('package:$package', text)
+        self.assertIn("--xcresult", text)
+
     def test_test_package_parallelizes_multiple_packages(self) -> None:
         text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
         self.assertIn("xargs -P", text)
@@ -318,6 +370,16 @@ class ScriptRegressionTests(unittest.TestCase):
             'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")',
             test_sh,
         )
+
+    def test_verify_prefetch_helpers_exist(self) -> None:
+        text = (ROOT / "Scripts" / "verify-changed.sh").read_text(encoding="utf-8")
+        self.assertIn("should_prefetch_app_during_parallel", text)
+        self.assertIn("start_app_build_prefetch", text)
+        self.assertIn("finish_app_build_prefetch", text)
+        self.assertIn("try_reuse_warm_app_products", text)
+        self.assertIn("cleanup_app_prefetch", text)
+        self.assertIn("classify-play-shell-diff.py", (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"))
+        self.assertIn("trinket_apply_play_shell_smoke_demotion", (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"))
 
     def test_run_env_removes_shared_packages_derived_data(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")

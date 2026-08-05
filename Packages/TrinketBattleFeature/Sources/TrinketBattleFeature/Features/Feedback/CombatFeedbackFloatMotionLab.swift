@@ -14,9 +14,8 @@ import UIKit
 
 /// Tunable floating-combat-text motion recipe for the DEBUG Float Motion Lab.
 ///
-/// Defaults match production Ideal Core (`TrinketMotion.Battle`).
-/// The lab mutates a copy; promote dialed-in values into production sampling
-/// after picking a winner.
+/// Defaults match retained Ideal Core. Alchemy Pop is available as a candidate
+/// that samples production `TrinketMotion.Battle` with `.alchemyPop`.
 private struct CombatFeedbackFloatMotionConfiguration: Equatable {
     enum VerticalDirection: String, CaseIterable, Identifiable {
         case up
@@ -66,12 +65,14 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
 
     // MARK: Timing
 
-    var duration: TimeInterval = TrinketMotion.Battle.chipDisplayDuration
+    var duration: TimeInterval = TrinketMotion.Battle.idealCoreDisplayDuration
     var fadeOutDuration: TimeInterval = TrinketMotion.Battle.chipFadeOutDuration
     /// Fraction of `duration` that stays fully opaque before fade begins.
     var opaqueHoldFraction: Double = TrinketMotion.Battle.chipOpaqueHoldFraction
     /// Fraction of `duration` spent parked at origin before vertical travel begins.
     var riseDelayFraction: Double = 0
+    /// When set, `sample` uses production recipe sampling instead of lab knobs.
+    var productionRecipe: CombatFeedbackFloatRecipe?
 
     // MARK: Path
 
@@ -122,6 +123,20 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
         chipWidth: CGFloat,
         travelDistance: CGFloat
     ) -> Pose {
+        if let productionRecipe {
+            let ySign: CGFloat = verticalDirection == .up ? -1 : 1
+            return Pose(
+                opacity: TrinketMotion.Battle.chipOpacity(elapsed: elapsed, recipe: productionRecipe),
+                offsetX: 0,
+                offsetY: ySign * travelDistance
+                    * CGFloat(
+                        TrinketMotion.Battle.chipMotionProgress(elapsed: elapsed, recipe: productionRecipe)
+                    ),
+                scale: TrinketMotion.Battle.chipScale(elapsed: elapsed, recipe: productionRecipe),
+                rotationDegrees: 0
+            )
+        }
+
         let t = min(max(elapsed / max(duration, 0.001), 0), 1)
         let delay = min(max(riseDelayFraction, 0), 0.95)
         let riseWindow = max(1 - delay, 0.001)
@@ -157,6 +172,12 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
     /// Paste-friendly dump of every knob for promoting lab values into production.
     func parameterDump() -> String {
         var lines = [String]()
+        if let productionRecipe {
+            lines.append("// Production recipe")
+            lines.append("productionRecipe: \(productionRecipe.rawValue)")
+            lines.append("duration: \(fmt(TrinketMotion.Battle.displayDuration(for: productionRecipe)))")
+            return lines.joined(separator: "\n")
+        }
         lines.append("// Timing")
         lines.append("duration: \(fmt(duration))")
         lines.append("fadeOutDuration: \(fmt(fadeOutDuration))")
@@ -264,6 +285,7 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
         guard lhs.fadeOutDuration == rhs.fadeOutDuration else { return false }
         guard lhs.opaqueHoldFraction == rhs.opaqueHoldFraction else { return false }
         guard lhs.riseDelayFraction == rhs.riseDelayFraction else { return false }
+        guard lhs.productionRecipe == rhs.productionRecipe else { return false }
         guard lhs.travelFraction == rhs.travelFraction else { return false }
         guard lhs.verticalDirection == rhs.verticalDirection else { return false }
         guard lhs.lateralBias == rhs.lateralBias else { return false }
@@ -289,13 +311,14 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
     }
 }
 
-/// Ideal combat-float family: one cohesive recipe plus micro-variations.
+/// Ideal combat-float family plus production Alchemy Pop for comparison.
 ///
-/// Design intent — immediate readable impact, ease-out rise (never accelerates
-/// away), fade only after the number has been readable, pure vertical path.
-/// Candidates mainly explore how hard the number punches in and how far it
-/// scales down as it rises.
+/// Design intent for Ideal candidates — immediate readable impact, ease-out rise
+/// (never accelerates away), fade only after the number has been readable, pure
+/// vertical path. Candidates mainly explore how hard the number punches in and
+/// how far it scales down as it rises. Alchemy Pop samples production motion.
 private enum CombatFeedbackFloatMotionIdealCandidate: Int, CaseIterable, Identifiable {
+    case alchemyPop = 0
     case core = 1
     case softerImpact
     case firmerImpact
@@ -313,6 +336,7 @@ private enum CombatFeedbackFloatMotionIdealCandidate: Int, CaseIterable, Identif
 
     var title: String {
         switch self {
+        case .alchemyPop: "0. Alchemy Pop (production)"
         case .core: "1. Ideal Core"
         case .softerImpact: "2. Softer Impact"
         case .firmerImpact: "3. Firmer Impact"
@@ -328,6 +352,8 @@ private enum CombatFeedbackFloatMotionIdealCandidate: Int, CaseIterable, Identif
 
     var blurb: String {
         switch self {
+        case .alchemyPop:
+            "0.5→2.0→1.8→1.0 — pop overshoot, hold, cubic ease-in rise"
         case .core:
             "1.06→1.10→0.96 — balanced punch and settle"
         case .softerImpact:
@@ -353,6 +379,8 @@ private enum CombatFeedbackFloatMotionIdealCandidate: Int, CaseIterable, Identif
 
     var configuration: CombatFeedbackFloatMotionConfiguration {
         switch self {
+        case .alchemyPop:
+            .alchemyPop
         case .core:
             .idealCore
         case .softerImpact:
@@ -434,9 +462,17 @@ private enum CombatFeedbackFloatMotionIdealCandidate: Int, CaseIterable, Identif
 }
 
 extension CombatFeedbackFloatMotionConfiguration {
-    /// Matches production Ideal Core (`TrinketMotion.Battle` float recipe).
+    /// Matches retained Ideal Core (`TrinketMotion.Battle` Ideal Core recipe).
     static var idealCore: CombatFeedbackFloatMotionConfiguration {
         CombatFeedbackFloatMotionConfiguration()
+    }
+
+    /// Samples production Alchemy Pop motion (card-relative travel distance).
+    static var alchemyPop: CombatFeedbackFloatMotionConfiguration {
+        var config = CombatFeedbackFloatMotionConfiguration()
+        config.duration = TrinketMotion.Battle.alchemyPopDisplayDuration
+        config.productionRecipe = .alchemyPop
+        return config
     }
 
     fileprivate static func idealVarying(
@@ -555,8 +591,8 @@ private struct CombatFeedbackFloatMotionLab: View {
         let seed: Int
     }
 
-    @State private var selectedCandidate = CombatFeedbackFloatMotionIdealCandidate.core
-    @State private var configuration = CombatFeedbackFloatMotionConfiguration.idealCore
+    @State private var selectedCandidate = CombatFeedbackFloatMotionIdealCandidate.alchemyPop
+    @State private var configuration = CombatFeedbackFloatMotionConfiguration.alchemyPop
     @State private var focusTarget = StageTarget.enemy
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""
     @State private var floats: [LabFloat] = []
@@ -812,7 +848,7 @@ private struct CombatFeedbackFloatMotionLab: View {
 
     private var candidatesSection: some View {
         Section {
-            Text("Ease-out rise, soft impact punch, fade after readable — pure vertical. Candidates only nudge one axis.")
+            Text("Alchemy Pop is production. Ideal candidates: ease-out rise, soft impact punch, fade after readable — pure vertical.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -837,7 +873,7 @@ private struct CombatFeedbackFloatMotionLab: View {
                 }
             }
         } header: {
-            Text("Ideal Candidates")
+            Text("Motion Candidates")
         }
     }
 

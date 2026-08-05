@@ -79,6 +79,21 @@ trinket_add_verification() {
 }
 trinket_add_smoke_target() { trinket_add_unique TRINKET_SMOKE_TARGETS "$1"; }
 
+trinket_remove_smoke_target() {
+  local target="$1"
+  local filtered=()
+  local existing
+  for existing in "${TRINKET_SMOKE_TARGETS[@]+"${TRINKET_SMOKE_TARGETS[@]}"}"; do
+    if [[ "$existing" != "$target" ]]; then
+      filtered+=("$existing")
+    fi
+  done
+  TRINKET_SMOKE_TARGETS=("${filtered[@]+"${filtered[@]}"}")
+  if (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )); then
+    TRINKET_NEEDS_SMOKE=false
+  fi
+}
+
 trinket_collect_paths() {
   local path_mode="${1:-working-tree}"
   shift || true
@@ -185,6 +200,8 @@ trinket_classify_smoke_target() {
     Trinket/Features/Play/*|TrinketUITests/Play/*)
       # SmokePlayTests only asserts Play mode-card shell. Subflows without a
       # smoke owner (Mystery, Labyrinth, StagePreview, …) stay compile-only.
+      # PlayView.swift is whitelisted here; subflow-only diffs demote later via
+      # trinket_apply_play_shell_smoke_demotion.
       if trinket_is_play_smoke_shell_path "$path"; then
         trinket_add_smoke_target SmokePlayTests
       fi
@@ -200,6 +217,48 @@ trinket_classify_smoke_target() {
       TRINKET_SMOKE_TARGET_UNRESOLVED=true
       ;;
   esac
+}
+
+# Demote SmokePlayTests when PlayView.swift diffs are only subflow/cover wiring
+# (not mode-card shell) and no other Play shell whitelist path is in the set.
+# Fail-closed via Scripts/classify-play-shell-diff.py.
+trinket_apply_play_shell_smoke_demotion() {
+  local authored
+  local has_play_view=false
+  local has_other_shell=false
+  local assessment
+
+  for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
+    case "$authored" in
+      Trinket/Features/Play/PlayView.swift)
+        has_play_view=true
+        ;;
+      Trinket/Features/Play/Modes/ExploreHub*|Trinket/Features/Play/Modes/SpiresHub*|Trinket/Features/Play/Modes/PlayModeHub*|TrinketUITests/Play/PlayFlowUITests.swift|TrinketUITests/Smoke/SmokePlayTests.swift)
+        has_other_shell=true
+        ;;
+    esac
+  done
+
+  [[ "$has_play_view" == true ]] || return 0
+  [[ "$has_other_shell" == true ]] && return 0
+
+  local has_play_smoke=false
+  local target
+  for target in "${TRINKET_SMOKE_TARGETS[@]+"${TRINKET_SMOKE_TARGETS[@]}"}"; do
+    if [[ "$target" == "SmokePlayTests" ]]; then
+      has_play_smoke=true
+      break
+    fi
+  done
+  [[ "$has_play_smoke" == true ]] || return 0
+
+  assessment="$(
+    python3 "$TRINKET_CHANGE_CLASSIFICATION_DIR/classify-play-shell-diff.py" \
+      "Trinket/Features/Play/PlayView.swift"
+  )" || assessment="uncertain"
+  [[ "$assessment" == "subflow" ]] || return 0
+
+  trinket_remove_smoke_target SmokePlayTests
 }
 
 # Demote package tests + smoke to compile-only when every authored Swift diff is
@@ -480,6 +539,7 @@ trinket_classify_paths() {
 
   trinket_apply_presentation_only_demotion
   trinket_apply_battle_feature_lab_demotion
+  trinket_apply_play_shell_smoke_demotion
 
   if [[ "$TRINKET_NEEDS_ASSET_GENERATION" == true ]]; then
     TRINKET_NEEDS_CONTENT_GENERATION=true

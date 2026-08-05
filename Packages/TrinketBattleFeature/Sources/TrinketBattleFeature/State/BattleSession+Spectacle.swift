@@ -271,7 +271,7 @@ extension BattleSession {
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
-        let spectacleDelay = max(TrinketMotion.Battle.cardActivationDuration, latestFeedbackDelay)
+        let spectacleDelay = max(TrinketMotion.Battle.outcomePresentationMinimum, latestFeedbackDelay)
             + TrinketMotion.Battle.outcomePresentationPadding
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
         guard delay > 0 else {

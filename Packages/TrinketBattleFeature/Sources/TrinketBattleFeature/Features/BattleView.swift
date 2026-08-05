@@ -407,9 +407,11 @@ private struct BattleHandProjectionLane: View {
     var body: some View {
         let hand = presentation.hand
         let playableIDs = presentation.playableCardIDs
+        let ownerControlSkipKeywords = presentation.ownerControlSkipKeywords
         BattleHandView(
             cards: hand,
             isPlayable: { playableIDs.contains($0.id) },
+            ownerControlSkipKeywords: ownerControlSkipKeywords,
             onInspect: { card in
                 battleSession.presentAbilityDetail(card.ability)
             },

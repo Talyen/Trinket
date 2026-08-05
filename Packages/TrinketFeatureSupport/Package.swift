@@ -50,6 +50,7 @@ let package = Package(
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketDesignSystem",
+                "TrinketPersistence",
             ]
         ),
         .target(
@@ -69,7 +70,6 @@ let package = Package(
             name: "TrinketFeatureSupportTests",
             dependencies: [
                 "TrinketFeatureSupport",
-                "TrinketFeatureAdapters",
                 "TrinketCore",
                 "TrinketContent",
                 "TrinketPersistence",

@@ -24,6 +24,9 @@ struct BattlePresentationSnapshot: Equatable {
     /// Card IDs that may be cast with the current mana / phase. Stored on the
     /// projection so the hand lane does not observe the live simulation store.
     let playableCardIDs: Set<Int>
+    /// Party owners with a triggered Stun/Freeze skip, mapped to that keyword.
+    /// Independent of border accent so Death's Door does not hide hand control FX.
+    let ownerControlSkipKeywords: [BattleParticipant: Keyword]
     let isBattleOver: Bool
 
     init(configurationID: UUID, state: BattleState) {
@@ -33,6 +36,7 @@ struct BattlePresentationSnapshot: Equatable {
         enemy = Self.combatant(state.enemy, in: state)
         hand = state.hand.cards
         playableCardIDs = Set(hand.filter { state.isCardPlayable($0) }.map(\.id))
+        ownerControlSkipKeywords = Self.ownerControlSkipKeywords(in: state)
         isBattleOver = state.isBattleOver
     }
 
@@ -51,6 +55,20 @@ struct BattlePresentationSnapshot: Equatable {
             )
         )
     }
+
+    private static func ownerControlSkipKeywords(
+        in state: BattleState
+    ) -> [BattleParticipant: Keyword] {
+        var keywords: [BattleParticipant: Keyword] = [:]
+        for owner in [BattleParticipant.hero, .companion] {
+            let combatant = state.roster[owner].combatant
+            if let control = state.activeEffects(of: combatant)
+                .first(where: \.effect.isActionSkipPending) {
+                keywords[owner] = control.keyword
+            }
+        }
+        return keywords
+    }
 }
 
 /// UI-facing projections are deliberately separate from the authoritative battle
@@ -65,6 +83,7 @@ final class BattlePresentationState {
     private(set) var enemy: BattleCombatantPresentation?
     private(set) var hand: [BattleCard] = []
     private(set) var playableCardIDs: Set<Int> = []
+    private(set) var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     private(set) var isBattleOver = false
 
     var isReady: Bool {
@@ -90,6 +109,9 @@ final class BattlePresentationState {
         if playableCardIDs != snapshot.playableCardIDs {
             playableCardIDs = snapshot.playableCardIDs
         }
+        if ownerControlSkipKeywords != snapshot.ownerControlSkipKeywords {
+            ownerControlSkipKeywords = snapshot.ownerControlSkipKeywords
+        }
         if isBattleOver != snapshot.isBattleOver {
             isBattleOver = snapshot.isBattleOver
         }
@@ -102,6 +124,7 @@ final class BattlePresentationState {
         enemy = nil
         hand = []
         playableCardIDs = []
+        ownerControlSkipKeywords = [:]
         isBattleOver = false
     }
 }

@@ -137,7 +137,6 @@ public enum AccessibilityID {
         public static let unlockSubtitle = "Mystery Unlock Subtitle"
         public static let continueButton = "Mystery Continue Button"
         public static let confirmChoiceButton = "Mystery Confirm Choice Button"
-        public static let chooseItemTitle = "Mystery Choose Item Title"
         public static let persistFailure = "Mystery Persist Failure"
         public static let corruptItemTitle = "Mystery Corrupt Item Title"
         public static let corruptCancelButton = "Mystery Corrupt Cancel Button"
@@ -150,10 +149,6 @@ public enum AccessibilityID {
 
         public static func choiceButton(choiceID: String) -> String {
             "Mystery Choice \(choiceID)"
-        }
-
-        public static func chooseItemCard(itemID: String) -> String {
-            "Mystery Choose Item \(itemID)"
         }
 
         public static func corruptItemCard(itemID: String) -> String {

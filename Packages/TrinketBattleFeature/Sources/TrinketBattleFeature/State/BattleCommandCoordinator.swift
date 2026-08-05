@@ -17,6 +17,8 @@ final class BattleCommandCoordinator {
 
     var onTurnAutoEnded: ((Int?) -> Void)?
     var openingHandDrawStagger: TimeInterval
+    /// Poll interval while auto-battle is blocked. Unit tests set `.zero`.
+    var autoBattleRetryDelay: Duration = .milliseconds(50)
 
     private let autoEndTurnDelay: TimeInterval
     private let enemyAttackImpactDelayOverride: TimeInterval?
@@ -301,7 +303,11 @@ final class BattleCommandCoordinator {
     }
 
     private func waitForAutoBattleRetry() async {
-        try? await Task.sleep(for: .milliseconds(50))
+        if autoBattleRetryDelay > .zero {
+            try? await Task.sleep(for: autoBattleRetryDelay)
+        } else {
+            await Task.yield()
+        }
     }
 
     private func measurePlayCardInterval<Result>(

@@ -160,8 +160,11 @@ public extension Effect {
         return (amount, threshold)
     }
 
-    /// True when the control meter is full and the target's next action will
-    /// be skipped (Stunned / Frozen).
+    /// True when the control meter is full (Stunned / Frozen status).
+    ///
+    /// A full meter shows status overlays and enables Shatter/Dazed-style
+    /// conditions. Whether the next action is still queued to skip depends on
+    /// `ActiveEffect.remainingTurns` — see `ActiveEffect.isAwaitingActionSkip`.
     var isActionSkipPending: Bool {
         guard let values = controlMeterValues else { return false }
         return values.threshold > 0 && values.amount >= values.threshold

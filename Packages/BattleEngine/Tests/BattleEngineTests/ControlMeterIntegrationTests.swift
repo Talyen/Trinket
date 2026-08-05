@@ -33,6 +33,30 @@ struct ControlMeterIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         BattleTestFixtures.assertActionSkipConsumed(events: events, actorID: enemy.id, keyword: .stun)
         try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
+        // Skip is consumed, but Stunned status lingers into the next player turn.
+        try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+        try #expect(!(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
+    }
+
+    @Test func stunStatusLingersThroughFollowingPlayerTurnWithoutSecondSkip() throws {
+        var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: .stun)
+        let enemy = battle.enemy
+        let hero = battle.hero
+
+        let firstEnd = BattleTestFixtures.endTurn(on: &battle)
+        BattleTestFixtures.assertActionSkipConsumed(events: firstEnd, actorID: enemy.id, keyword: .stun)
+        try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+        try #expect(CombatantBorderAccent.keyword(from: battle.activeEffects(of: enemy)) == .stun)
+        try #expect(battle.health(of: hero) == hero.maxHealth)
+
+        // Following player turn: status still active, no second skip queued.
+        try #expect(!(battle.roster.hasPendingActionSkip(for: enemy)))
+
+        let secondEnd = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(!(secondEnd.contains(effectKind: .controlActionSkipped, keyword: .stun)))
+        try #expect(secondEnd.contains { $0.kind == .ability && $0.actorID == enemy.id })
+        try #expect(!(battle.roster.hasControlStatus(for: enemy, keyword: .stun)))
+        try #expect(battle.health(of: hero) < hero.maxHealth)
     }
 
     @Test func stunDamageBuildsMeterTriggersAndSkipsNextAction() throws {
@@ -114,5 +138,52 @@ struct ControlMeterIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
+        // Party skip is consumed once; Stunned status lingers without blocking the next turn.
+        try #expect(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun))
+        try #expect(!(battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .stun)))
+        try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
+    }
+
+    @Test func shatterAndDazedApplyDuringControlStatusLinger() throws {
+        let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [jab])
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
+
+        var frozenBattle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .controlMeter(.freeze, 1, 1),
+                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                ),
+            ],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetFrozenBonus: 2))
+        )
+        try #expect(!(frozenBattle.roster.hasPendingActionSkip(for: frozenBattle.enemy, keyword: .freeze)))
+        try #expect(frozenBattle.roster.hasControlStatus(for: frozenBattle.enemy, keyword: .freeze))
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &frozenBattle)
+        try #expect(100 - frozenBattle.health(of: frozenBattle.enemy) == 3)
+
+        var stunnedBattle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .controlMeter(.stun, 1, 1),
+                    remainingTurns: BattleTiming.controlStatusLingerTurns
+                ),
+            ],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(damageWhileTargetStunnedBonus: 1))
+        )
+        try #expect(!(stunnedBattle.roster.hasPendingActionSkip(for: stunnedBattle.enemy, keyword: .stun)))
+        try #expect(stunnedBattle.roster.hasControlStatus(for: stunnedBattle.enemy, keyword: .stun))
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &stunnedBattle)
+        try #expect(100 - stunnedBattle.health(of: stunnedBattle.enemy) == 2)
     }
 }

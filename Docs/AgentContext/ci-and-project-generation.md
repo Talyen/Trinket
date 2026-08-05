@@ -13,7 +13,7 @@ For complete gate composition, test tier inventory, isolation mechanics, and IDE
 
 ## Key exceptions & operational details
 
-- **Agent isolation (`--isolate`)**: `verify-changed.sh --isolate` calls `Scripts/run-env.sh` to assign an agent simulator slot (`Trinket Agent N`), `.DerivedData/runs/agent-N/`, `TMPDIR`, and `TRINKET_RUN_ID`. Top-level self-clean reclaims Preview sims, enforces 1 Booted managed sim, and age-prunes bulky build artifacts.
+- **Agent isolation (`--isolate`)**: `verify-changed.sh --isolate` calls `Scripts/run-env.sh` to assign an agent simulator slot (`Trinket Agent N`), `.DerivedData/runs/agent-N/`, `TMPDIR`, and `TRINKET_RUN_ID`. Top-level self-clean reclaims non-empty Preview sims (shutdown Booted, then delete), enforces 1 Booted managed sim, and age-prunes bulky build artifacts. xcode-runner wall/idle watchdogs kill host xcodebuild trees only (no `simctl`). Residual MobileCal/Widget CrashReporter sheets after `simctl` teardown: CrashReporterPrefs → **Basic** (Additional Tools for Xcode).
 - **Generation freshness**: Verify stamps `$RESULTS_DIR/.last-generate.stamp` with a porcelain sidecar. Idempotent asserts skip redundant regenerates when fresh against input mtimes and porcelain state.
 - **Push gates**: Use `./Scripts/agent-push-gate.sh` for post-commit generate/assert checks (does not run style/compile). Use `verify-changed.sh --push-ready` only when running full commit-completeness with verification.
 - **Environment & pinning**: `generate.sh` exports `LC_ALL=C` and pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's macOS SDK. `--force-xcodegen` bypasses cache. Pinned tools require `TRINKET_REQUIRE_PINNED_TOOLS=1`.

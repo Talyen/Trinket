@@ -7,7 +7,6 @@ import TrinketPersistence
 public enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
-    case choosingItem
     case selectingCorruptItem
     case revealingCorruption
     case reward
@@ -15,7 +14,6 @@ public enum MysteryEncounterPhase: Equatable {
 
 public enum MysteryChoiceOutcome: Equatable {
     case reveal(unlockedCombatantID: String)
-    case chooseItem(candidates: [InventoryItem])
     case selectCorruptItem
     case corruptionReveal(ItemCorruptionResult)
     case reward(MysteryEffectApplyResult, journey: JourneyProgressState?)
@@ -47,7 +45,6 @@ public final class MysteryEncounterSession: Identifiable {
     public let combatant: Combatant?
     public private(set) var phase: MysteryEncounterPhase = .reading
     public private(set) var unlockedCombatantID: String?
-    public private(set) var itemCandidates: [InventoryItem] = []
     public private(set) var corruptibleItems: [InventoryItem] = []
     public private(set) var corruptionResult: ItemCorruptionResult?
     public private(set) var applyResult: MysteryEffectApplyResult?
@@ -56,10 +53,6 @@ public final class MysteryEncounterSession: Identifiable {
 
     public var showsReveal: Bool {
         phase == .revealing && unlockedCombatantID != nil
-    }
-
-    public var showsItemChoice: Bool {
-        phase == .choosingItem && !itemCandidates.isEmpty
     }
 
     public var showsCorruptItemChoice: Bool {
@@ -148,13 +141,6 @@ extension MysteryEncounterSession {
     func presentReveal(unlockedCombatantID: String) {
         self.unlockedCombatantID = unlockedCombatantID
         phase = .revealing
-        isResolvingChoice = false
-        persistFailureMessage = nil
-    }
-
-    func presentItemChoice(candidates: [InventoryItem]) {
-        itemCandidates = candidates
-        phase = .choosingItem
         isResolvingChoice = false
         persistFailureMessage = nil
     }
@@ -254,35 +240,12 @@ extension MysteryEncounterSession {
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
         }
 
-        if !applyResult.chooseItemCandidates.isEmpty {
-            return .chooseItem(candidates: applyResult.chooseItemCandidates)
-        }
-
         noteMysteryCadence(save: &save)
         let journey = completeProgress(self, &save)
         if !applyResult.isEmpty {
             return .reward(applyResult, journey: journey)
         }
         return .dismiss(journey: journey)
-    }
-
-    /// Grants the chosen mystery item and completes progress in one mutation.
-    func selectItem(
-        itemID: String,
-        save: inout PlayerSave,
-        completeProgress: MysteryProgressCompletion
-    ) -> MysteryChoiceOutcome {
-        guard showsItemChoice else { return .failed }
-        guard !isResolvingChoice else { return .failed }
-        guard let item = itemCandidates.first(where: { $0.id == itemID }) else {
-            return .failed
-        }
-
-        markChoiceStarted()
-        MysteryEffectApplier.grantChosenItem(item, save: &save)
-        noteMysteryCadence(save: &save)
-        let journey = completeProgress(self, &save)
-        return .reward(MysteryEffectApplyResult(grantedItems: [item]), journey: journey)
     }
 
     /// Corrupts the chosen inventory item, records altar encounter, and completes progress.
@@ -315,8 +278,6 @@ extension MysteryEncounterSession {
         switch outcome {
         case let .reveal(unlockedCombatantID):
             presentReveal(unlockedCombatantID: unlockedCombatantID)
-        case let .chooseItem(candidates):
-            presentItemChoice(candidates: candidates)
         case .selectCorruptItem:
             let items = inventory.map(ItemCorruption.eligibleTargets(in:)) ?? []
             presentCorruptItemChoice(items: items)

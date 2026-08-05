@@ -215,6 +215,9 @@ public enum BattleCardCombatEngine {
             return BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
         }
 
+        // Drop post-skip linger so the enemy does not look CC'd while attacking.
+        context.roster.clearControlStatusLinger(for: enemy)
+
         let turnNumber = context.roster.enemy.actionCount + 1
         guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
             return []

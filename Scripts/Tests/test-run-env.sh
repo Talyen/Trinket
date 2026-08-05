@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # No-Xcode coverage for Scripts/run-env.sh isolation, agent sim slots, UI slots,
-# Preview reclaim, single-warm Booted enforcement, and generate lock timeout.
+# Preview reclaim (empty / Shutdown-only / Booted), single-warm Booted
+# enforcement, and generate lock timeout.
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
@@ -21,7 +22,30 @@ cat > "$FAKE_BIN/xcrun" <<'FAKE_XCRUN'
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Preview device-set commands: list / shutdown / delete.
 if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "--set" && "$3" == "previews" ]]; then
+  if [[ "$4" == "list" ]]; then
+    # Banner mirrors real simctl --set previews list -j (JSON follows).
+    echo "Using Previews Device Set: '/tmp/fake-previews'"
+    case "${FAKE_PREVIEW_DEVICES:-empty}" in
+      booted)
+        cat <<'JSON'
+{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Preview Phone","udid":"preview-1","state":"Booted"}]}}
+JSON
+        ;;
+      shutdown)
+        cat <<'JSON'
+{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Preview Phone","udid":"preview-1","state":"Shutdown"}]}}
+JSON
+        ;;
+      *)
+        cat <<'JSON'
+{"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[]}}
+JSON
+        ;;
+    esac
+    exit 0
+  fi
   printf '%s\n' "$4" >> "$FAKE_PREVIEW_LOG"
   exit 0
 fi
@@ -253,7 +277,7 @@ bash -c '
   rm -f "$TRINKET_UI_ACTIVE_DIR/one.slot" "$TRINKET_UI_ACTIVE_DIR/two.slot"
 ' _ "$REPO"
 
-# --- release reclaims Preview sims ---
+# --- empty Preview set: skip shutdown/delete ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -264,6 +288,58 @@ bash -c '
   export FAKE_PREVIEW_LOG="$3"
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
+  export FAKE_PREVIEW_DEVICES=empty
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-empty"
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
+  export TRINKET_CLEANUP_IDLE_POOL=0
+  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  unset TRINKET_SELF_CLEAN_OWNER
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  trinket_run_env_claim_self_clean_owner
+  trinket_run_env_release_slots
+  [[ ! -s "$FAKE_PREVIEW_LOG" ]]
+' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
+
+# --- Shutdown-only Preview devices: delete, skip shutdown ---
+: > "$FAKE_PREVIEW_LOG"
+: > "$FAKE_SHUTDOWN_LOG"
+: > "$FAKE_ERASE_LOG"
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_PREVIEW_LOG="$3"
+  export FAKE_SHUTDOWN_LOG="$4"
+  export FAKE_ERASE_LOG="$5"
+  export FAKE_PREVIEW_DEVICES=shutdown
+  export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-shutdown-only"
+  export TRINKET_CLEANUP_SINGLE_WARMED=0
+  export TRINKET_CLEANUP_IDLE_POOL=0
+  export TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE=0
+  unset DERIVED_DATA_PATH RESULTS_DIR TRINKET_SIMULATOR_NAME TRINKET_AGENT_SLOT TRINKET_SIM_SLOT_PATH
+  unset TRINKET_SELF_CLEAN_OWNER
+  source Scripts/run-env.sh
+  trinket_run_env_init
+  trinket_run_env_claim_self_clean_owner
+  trinket_run_env_release_slots
+  ! grep -q "shutdown" "$FAKE_PREVIEW_LOG"
+  grep -Fx "delete" "$FAKE_PREVIEW_LOG"
+' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
+
+# --- Booted Preview devices: shutdown + delete ---
+: > "$FAKE_PREVIEW_LOG"
+: > "$FAKE_SHUTDOWN_LOG"
+: > "$FAKE_ERASE_LOG"
+bash -c '
+  set -euo pipefail
+  cd "$1"
+  export PATH="$2:$PATH"
+  export FAKE_PREVIEW_LOG="$3"
+  export FAKE_SHUTDOWN_LOG="$4"
+  export FAKE_ERASE_LOG="$5"
+  export FAKE_PREVIEW_DEVICES=booted
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-reclaim"
   # Isolate Preview reclaim from single-warm / idle-pool side effects.
   export TRINKET_CLEANUP_SINGLE_WARMED=0
@@ -279,7 +355,7 @@ bash -c '
   grep -Fx "delete" "$FAKE_PREVIEW_LOG"
 ' _ "$REPO" "$FAKE_BIN" "$FAKE_PREVIEW_LOG" "$FAKE_SHUTDOWN_LOG" "$FAKE_ERASE_LOG"
 
-# --- self-clean install runs Preview reclaim at start ---
+# --- self-clean install runs Preview reclaim at start (Booted set) ---
 : > "$FAKE_PREVIEW_LOG"
 : > "$FAKE_SHUTDOWN_LOG"
 : > "$FAKE_ERASE_LOG"
@@ -290,6 +366,7 @@ bash -c '
   export FAKE_PREVIEW_LOG="$3"
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
+  export FAKE_PREVIEW_DEVICES=booted
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="start-hygiene"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
@@ -317,6 +394,7 @@ bash -c '
   export FAKE_PREVIEW_LOG="$3"
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
+  export FAKE_PREVIEW_DEVICES=booted
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="child-no-self-clean"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0

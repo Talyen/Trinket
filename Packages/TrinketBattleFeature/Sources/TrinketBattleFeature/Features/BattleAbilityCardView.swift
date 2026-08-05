@@ -1,12 +1,15 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BattleAbilityCardView: View {
     let card: BattleCard
     let isPlayable: Bool
+    /// Triggered Stun/Freeze on this card's owner; drives status FX instead of dimming.
+    var controlSkipKeyword: Keyword?
     let width: CGFloat
     let height: CGFloat
     let restingRotation: CGFloat
@@ -56,71 +59,83 @@ struct BattleAbilityCardView: View {
         configuration.playDragThreshold
     }
 
+    /// Stun/Freeze overlays replace dimming as the unplayable signal.
+    private var showsControlSkipEffect: Bool {
+        guard let controlSkipKeyword else { return false }
+        return CombatantStatusEffectKind(statusKeyword: controlSkipKeyword) != nil
+    }
+
+    private var faceOpacity: Double {
+        isPlayable || showsControlSkipEffect ? 1 : 0.45
+    }
+
     var body: some View {
-        BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
-            .equatable()
-            .frame(width: width, height: height)
-            .opacity(isPlayable ? 1 : 0.45)
-            .brightness(isPlayArmed ? configuration.armedBrightness : 0)
-            .overlay {
-                if isPlayArmed, configuration.showArmedRing {
-                    TrinketDesign.cardShape
-                        .stroke(
-                            TrinketDesign.Colors.accent.opacity(configuration.armedRingOpacity),
-                            lineWidth: configuration.armedRingLineWidth
-                        )
-                }
+        CombatantStatusEffectPresentation(keyword: controlSkipKeyword) {
+            BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
+                .equatable()
+                .frame(width: width, height: height)
+        }
+        .opacity(faceOpacity)
+        .brightness(isPlayArmed ? configuration.armedBrightness : 0)
+        .overlay {
+            if isPlayArmed, configuration.showArmedRing {
+                TrinketDesign.cardShape
+                    .stroke(
+                        TrinketDesign.Colors.accent.opacity(configuration.armedRingOpacity),
+                        lineWidth: configuration.armedRingLineWidth
+                    )
             }
-            // Match CardCastEffectsLayer: scale → rotate → offset/position.
-            .scaleEffect(x: activeScale.width, y: activeScale.height)
-            .rotationEffect(.degrees(activeRotation), anchor: .bottom)
-            .rotation3DEffect(
-                .degrees(isDragging ? verticalTilt : 0),
-                axis: (x: 1, y: 0, z: 0),
-                anchor: .bottom,
-                perspective: configuration.perspective
-            )
-            .offset(activeOffset)
-            .offset(tapLiftOffset)
-            .shadow(
-                color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
-                radius: configuration.cardHeldShadowRadius,
-                y: configuration.cardHeldShadowY
-            )
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged(updateDrag)
-                    .onEnded(endDrag)
-            )
-            .trinketSensoryFeedback(
-                .selection,
-                trigger: playArmFeedbackToken,
-                enabled: hapticsEnabled
-            )
-            .trinketSensoryFeedback(
-                .selection,
-                trigger: inspectFeedbackToken,
-                enabled: hapticsEnabled
-            )
-            .trinketSensoryFeedback(
-                .warning,
-                trigger: denyFeedbackToken,
-                enabled: hapticsEnabled
-            )
-            .onDisappear {
-                cancelInspection()
-                cancelTapLift()
-                onInteractionChanged(false)
-            }
-            .onAppear {
-                syncAutoLift(autoLiftCardID)
-            }
-            .onChange(of: autoLiftCardID) { _, liftCardID in
-                syncAutoLift(liftCardID)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
-            .accessibilityLabel(card.ability.name)
+        }
+        // Match CardCastEffectsLayer: scale → rotate → offset/position.
+        .scaleEffect(x: activeScale.width, y: activeScale.height)
+        .rotationEffect(.degrees(activeRotation), anchor: .bottom)
+        .rotation3DEffect(
+            .degrees(isDragging ? verticalTilt : 0),
+            axis: (x: 1, y: 0, z: 0),
+            anchor: .bottom,
+            perspective: configuration.perspective
+        )
+        .offset(activeOffset)
+        .offset(tapLiftOffset)
+        .shadow(
+            color: isDragging ? TrinketDesign.Colors.Overlay.dragShadow.opacity(0.55) : .clear,
+            radius: configuration.cardHeldShadowRadius,
+            y: configuration.cardHeldShadowY
+        )
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged(updateDrag)
+                .onEnded(endDrag)
+        )
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: playArmFeedbackToken,
+            enabled: hapticsEnabled
+        )
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: inspectFeedbackToken,
+            enabled: hapticsEnabled
+        )
+        .trinketSensoryFeedback(
+            .warning,
+            trigger: denyFeedbackToken,
+            enabled: hapticsEnabled
+        )
+        .onDisappear {
+            cancelInspection()
+            cancelTapLift()
+            onInteractionChanged(false)
+        }
+        .onAppear {
+            syncAutoLift(autoLiftCardID)
+        }
+        .onChange(of: autoLiftCardID) { _, liftCardID in
+            syncAutoLift(liftCardID)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
+        .accessibilityLabel(card.ability.name)
     }
 
     private var activeOffset: CGSize {

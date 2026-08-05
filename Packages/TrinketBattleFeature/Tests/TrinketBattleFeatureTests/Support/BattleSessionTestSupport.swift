@@ -47,6 +47,7 @@ enum BattleSessionTestSupport {
             presentationEnvironment: presentationEnvironment
         )
         session.partyCelebrateDelayOverride = 0
+        session.autoBattleRetryDelay = .zero
         let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: rngSeed,
             hero: resolvedHero,

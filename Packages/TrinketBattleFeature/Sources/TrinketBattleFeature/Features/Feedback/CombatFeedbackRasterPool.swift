@@ -425,6 +425,44 @@ final class CombatFeedbackRasterPool {
     }
 }
 
+extension CombatFeedbackRasterPool {
+    /// Seeds a raster without composing. Pool LRU/accounting tests use this so they
+    /// do not pay UIKit chip bake cost.
+    @discardableResult
+    func seedForTesting(
+        for canvasItem: CombatFeedbackCanvasItem,
+        dynamicTypeSize: DynamicTypeSize,
+        layoutDirection: LayoutDirection = .leftToRight,
+        displayScale: CGFloat,
+        image: CGImage,
+        pointSize: CGSize = CGSize(width: 1, height: 1)
+    ) -> CombatFeedbackRaster {
+        let scale = max(1, displayScale)
+        let key = makeKey(
+            for: canvasItem,
+            dynamicTypeSize: dynamicTypeSize,
+            layoutDirection: layoutDirection,
+            displayScale: scale
+        )
+        if let existing = rasters[key] {
+            hitCount += 1
+            markMostRecent(key)
+            return existing
+        }
+        missCount += 1
+        buildCount += 1
+        rasterAllocationCount += 1
+        let raster = CombatFeedbackRaster(
+            key: key,
+            image: image,
+            pointSize: pointSize,
+            displayScale: scale
+        )
+        insert(raster, for: key)
+        return raster
+    }
+}
+
 @MainActor
 private final class CombatFeedbackPacedPrepareTarget: NSObject {
     private weak var pool: CombatFeedbackRasterPool?

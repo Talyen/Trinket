@@ -13,10 +13,15 @@ final class AppTestContext {
     let shellSessionURL: URL
     private(set) var lastBattle: BattleSession?
 
+    /// Shared across `makeAppState` calls in this context so suite setup does not
+    /// reopen SwiftData for every trivial assertion. Disk + persist-immediately stay
+    /// explicit for reload-survival tests that pass their own `playerSave`.
+    private var cachedPlayerSave: PlayerSaveStore?
+    private var cachedShellSession: PlayerShellSessionStore?
+
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
         "-disable-audio",
-        "-persist-save-immediately",
     ]
 
     init() throws {
@@ -42,11 +47,20 @@ final class AppTestContext {
 
     @MainActor
     func makeShellSessionStore(environment: AppEnvironment) throws -> PlayerShellSessionStore {
-        try PlayerShellSessionStore(
+        if let cachedShellSession, !environment.resetState {
+            return cachedShellSession
+        }
+        // `-reset-state` must wipe the on-disk temp store so reload-survival tests see a clean file.
+        let store = try PlayerShellSessionStore(
             storeURL: shellSessionURL,
             resetState: environment.resetState,
+            inMemoryOnly: !environment.resetState,
             legacyUserDefaults: userDefaults
         )
+        if !environment.resetState {
+            cachedShellSession = store
+        }
+        return store
     }
 
     @MainActor
@@ -61,14 +75,10 @@ final class AppTestContext {
         )
         let runtime = BattleRuntimeSession()
         let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
+        let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
         let state = try AppState(
             environment: parsed,
-            playerSave: playerSave ?? PlayerSaveStore(
-                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-                disableCloudSync: true,
-                resetState: parsed.resetState,
-                persistSaveImmediately: parsed.persistSaveImmediately
-            ),
+            playerSave: resolvedSave,
             shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
@@ -88,12 +98,7 @@ final class AppTestContext {
         let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
         let state = try AppState(
             environment: environment,
-            playerSave: PlayerSaveStore(
-                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-                disableCloudSync: true,
-                resetState: environment.resetState,
-                persistSaveImmediately: environment.persistSaveImmediately
-            ),
+            playerSave: sharedPlayerSave(resetState: environment.resetState),
             shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
@@ -122,5 +127,25 @@ final class AppTestContext {
     @MainActor
     func makePlaySession(environment: AppEnvironment) throws -> PlaySession {
         try makeAppState(environment: environment).play
+    }
+
+    @MainActor
+    private func sharedPlayerSave(resetState: Bool) throws -> PlayerSaveStore {
+        if let cachedPlayerSave, !resetState {
+            return cachedPlayerSave
+        }
+        // Default path is in-memory + reused. `-reset-state` opens the temp disk URL so
+        // wipe/reload assertions observe the same store file as explicit disk tests.
+        let store = try PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+            disableCloudSync: true,
+            resetState: resetState,
+            inMemoryOnly: !resetState,
+            persistSaveImmediately: resetState
+        )
+        if !resetState {
+            cachedPlayerSave = store
+        }
+        return store
     }
 }

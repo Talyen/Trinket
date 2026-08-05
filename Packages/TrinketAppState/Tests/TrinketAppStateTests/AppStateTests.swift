@@ -1,7 +1,6 @@
 import Testing
 import TrinketBattleFeature
 import TrinketContent
-import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistence

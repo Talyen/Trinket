@@ -8,7 +8,6 @@ public enum MysteryEffect: Hashable, Sendable {
     /// Procedural item: rarity is rolled 80% basic / 20% astral at grant time.
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
-    case chooseItem
     /// Unlocks a hero or companion on the player roster (idempotent at apply time).
     case unlockCombatant(String)
     /// Opens inventory selection to corrupt one owned item.

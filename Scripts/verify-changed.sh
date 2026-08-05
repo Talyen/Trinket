@@ -46,10 +46,10 @@ and multi-package targets are batched into single invocations.
 DerivedData under .DerivedData/runs/agent-N/ so this verification does not
 collide with another agent on the same Mac. Agents should always pass --isolate.
 Humans and CI may omit it to keep the shared warm cache (.DerivedData + Trinket CI).
-On EXIT and at self-clean start, the top-level owner reclaims Preview sims,
-enforces exactly one Booted managed sim (Agent or CI), and age-prunes bulky
-DerivedData / package build artifacts. The keep-target stays Booted (no routine
-shutdown/erase).
+On EXIT and at self-clean start, the top-level owner reclaims non-empty Preview
+sims (shutdown Booted, then delete), enforces exactly one Booted managed sim
+(Agent or CI), and age-prunes bulky DerivedData / package build artifacts. The
+keep-target stays Booted (no routine erase).
 USAGE
       exit 0
       ;;
@@ -181,12 +181,36 @@ mkdir -p "$(dirname "$VERIFY_TIMING_LOG")"
 VERIFY_WALL_START=$SECONDS
 APP_PRODUCTS_WARMED=false
 SHARED_SIM_DESTINATION=""
+APP_PREFETCH_PID=""
+APP_PREFETCH_LOG=""
+
+cleanup_app_prefetch() {
+  if [[ -n "$APP_PREFETCH_PID" ]]; then
+    if kill -0 "$APP_PREFETCH_PID" 2>/dev/null; then
+      kill "$APP_PREFETCH_PID" 2>/dev/null || true
+      wait "$APP_PREFETCH_PID" 2>/dev/null || true
+    fi
+    APP_PREFETCH_PID=""
+  fi
+  if [[ -n "$APP_PREFETCH_LOG" ]]; then
+    rm -f "$APP_PREFETCH_LOG"
+    APP_PREFETCH_LOG=""
+  fi
+}
 
 quiet_log=""
 if [[ "$QUIET" == true ]]; then
   quiet_log=$(mktemp -t trinket-verify.XXXXXX)
-  # Compose with release (do not replace): quiet log cleanup + self-clean reclaim.
-  trap 'rm -f "$quiet_log"; trinket_run_env_release_slots' EXIT INT TERM
+fi
+# Compose EXIT trap: always stop orphan prefetch; keep isolate self-clean / quiet cleanup.
+if [[ "$ISOLATE" == true && "$QUIET" == true ]]; then
+  trap 'cleanup_app_prefetch; rm -f "$quiet_log"; trinket_run_env_release_slots' EXIT INT TERM
+elif [[ "$ISOLATE" == true ]]; then
+  trap 'cleanup_app_prefetch; trinket_run_env_release_slots' EXIT INT TERM
+elif [[ "$QUIET" == true ]]; then
+  trap 'cleanup_app_prefetch; rm -f "$quiet_log"' EXIT INT TERM
+else
+  trap 'cleanup_app_prefetch' EXIT INT TERM
 fi
 
 record_verify_stage() {
@@ -249,6 +273,121 @@ warm_app_products_if_needed() {
   SKIP_GENERATE=1 ./Scripts/build-for-testing.sh --app-only
   # Path-scoped unit is --app-only; stamp unit so --no-build is accepted.
   touch_build_stamp "${RESULTS_DIR:-$PWD/.DerivedData/TestResults}" unit
+  APP_PRODUCTS_WARMED=true
+}
+
+count_app_consumers() {
+  local app_consumers=0
+  local argument
+  for argument in "${arguments[@]+"${arguments[@]}"}"; do
+    case "$argument" in
+      unit|smoke:*)
+        app_consumers=$((app_consumers + 1))
+        ;;
+    esac
+  done
+  printf '%s\n' "$app_consumers"
+}
+
+plan_has_package_parallel() {
+  local index
+  for index in "${parallel_indices[@]+"${parallel_indices[@]}"}"; do
+    case "${kinds[$index]}" in
+      package|package-build) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+plan_has_smoke() {
+  local argument
+  for argument in "${arguments[@]+"${arguments[@]}"}"; do
+    case "$argument" in
+      smoke:*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+should_prefetch_app_during_parallel() {
+  [[ "$APP_PRODUCTS_WARMED" != true ]] || return 1
+  plan_has_smoke || return 1
+  plan_has_package_parallel || return 1
+  # unit+smoke still uses the sequential warm path after parallel work.
+  (( $(count_app_consumers) < 2 )) || return 1
+  return 0
+}
+
+start_app_build_prefetch() {
+  should_prefetch_app_during_parallel || return 0
+  APP_PREFETCH_LOG=$(mktemp -t trinket-verify-prefetch.XXXXXX)
+  echo ""
+  echo "=== Prefetch app products (build-for-testing --app-only, background) ==="
+  (
+    SKIP_GENERATE=1 ./Scripts/build-for-testing.sh --app-only
+  ) >"$APP_PREFETCH_LOG" 2>&1 &
+  APP_PREFETCH_PID=$!
+}
+
+finish_app_build_prefetch() {
+  [[ -n "$APP_PREFETCH_PID" ]] || return 0
+  local pid="$APP_PREFETCH_PID"
+  local log="$APP_PREFETCH_LOG"
+  APP_PREFETCH_PID=""
+  if wait "$pid"; then
+    APP_PRODUCTS_WARMED=true
+    if [[ "$QUIET" == true ]]; then
+      echo "PASS: prefetch build-for-testing --app-only"
+    else
+      echo ""
+      echo "=== Prefetch build-for-testing --app-only ==="
+      cat "$log"
+    fi
+    rm -f "$log"
+    APP_PREFETCH_LOG=""
+    return 0
+  fi
+  echo "WARN: app product prefetch failed; smoke will rebuild"
+  tail -n "${TRINKET_VERIFY_FAILURE_LINES:-40}" "$log" || true
+  rm -f "$log"
+  APP_PREFETCH_LOG=""
+  return 0
+}
+
+# Reuse a prior isolate-slot build-for-testing when stamps + build-input gitstatus
+# are still fresh (mid-task / second handoff). Prefetch covers the cold first run.
+try_reuse_warm_app_products() {
+  [[ "$APP_PRODUCTS_WARMED" != true ]] || return 0
+  plan_has_smoke || return 0
+
+  local results_dir="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
+  local built_app="${DERIVED_DATA_PATH:-$PWD/.DerivedData}/Build/Products/Debug-iphonesimulator/Trinket.app"
+  [[ -d "$built_app" ]] || return 0
+
+  local argument
+  local targets_string
+  local target
+  local fingerprint
+  local stamp
+  for argument in "${arguments[@]+"${arguments[@]}"}"; do
+    case "$argument" in
+      smoke:*)
+        targets_string="${argument#smoke:}"
+        # shellcheck disable=SC2206
+        local -a smoke_targets=($targets_string)
+        for target in "${smoke_targets[@]}"; do
+          fingerprint="smoke_${target}"
+          stamp="$(build_stamp_path "$results_dir" "$fingerprint")"
+          if ! assert_no_build_inputs_are_fresh "$stamp" "$fingerprint" >/dev/null 2>&1; then
+            return 0
+          fi
+        done
+        ;;
+    esac
+  done
+
+  echo ""
+  echo "=== Reusing warm app products (--no-build) ==="
   APP_PRODUCTS_WARMED=true
 }
 
@@ -426,6 +565,8 @@ for index in "${parallel_indices[@]+"${parallel_indices[@]}"}"; do
   fi
 done
 
+start_app_build_prefetch
+
 if (( ${#parallel_indices[@]} > 1 )); then
   echo ""
   echo "=== Parallel: style and package checks ==="
@@ -464,12 +605,15 @@ if (( ${#parallel_indices[@]} > 1 )); then
     rm -f "${parallel_logs[$i]}"
   done
   if [[ "$parallel_status" -ne 0 ]]; then
+    cleanup_app_prefetch
     exit "$parallel_status"
   fi
 elif (( ${#parallel_indices[@]} == 1 )); then
   run_one_indexed_check "${parallel_indices[0]}"
 fi
 
+finish_app_build_prefetch
+try_reuse_warm_app_products
 warm_app_products_if_needed
 
 for index in "${rest_indices[@]+"${rest_indices[@]}"}"; do

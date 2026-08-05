@@ -1,6 +1,7 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -22,6 +23,8 @@ private struct HeldCardInteraction: Equatable {
 struct BattleHandView: View {
     let cards: [BattleCard]
     let isPlayable: (BattleCard) -> Bool
+    /// Triggered Stun/Freeze keyword for party owners skipping this turn.
+    var ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:]
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
     let hapticsEnabled: Bool
@@ -80,6 +83,7 @@ struct BattleHandView: View {
                     BattleAbilityCardView(
                         card: card,
                         isPlayable: isPlayable(card),
+                        controlSkipKeyword: ownerControlSkipKeywords[card.owner],
                         width: snapshot.width,
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
@@ -141,6 +145,7 @@ struct BattleHandView: View {
     init(
         cards: [BattleCard],
         isPlayable: @escaping (BattleCard) -> Bool,
+        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         hapticsEnabled: Bool,
@@ -153,6 +158,7 @@ struct BattleHandView: View {
         self.init(
             cards: cards,
             isPlayable: isPlayable,
+            ownerControlSkipKeywords: ownerControlSkipKeywords,
             onInspect: onInspect,
             onPlay: onPlay,
             hapticsEnabled: hapticsEnabled,
@@ -168,6 +174,7 @@ struct BattleHandView: View {
     init(
         cards: [BattleCard],
         isPlayable: @escaping (BattleCard) -> Bool,
+        ownerControlSkipKeywords: [BattleParticipant: Keyword] = [:],
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
         hapticsEnabled: Bool,
@@ -180,6 +187,7 @@ struct BattleHandView: View {
     ) {
         self.cards = cards
         self.isPlayable = isPlayable
+        self.ownerControlSkipKeywords = ownerControlSkipKeywords
         self.onInspect = onInspect
         self.onPlay = onPlay
         self.hapticsEnabled = hapticsEnabled

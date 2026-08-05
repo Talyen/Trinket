@@ -326,9 +326,6 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     onResolveChoice: { choiceID in
                         encounters.resolveActiveMysteryChoice(choiceID: choiceID)
                     },
-                    onSelectItem: { itemID in
-                        encounters.selectActiveMysteryItem(itemID: itemID)
-                    },
                     onCorruptItem: { itemID in
                         encounters.corruptActiveMysteryItem(itemID: itemID)
                     },

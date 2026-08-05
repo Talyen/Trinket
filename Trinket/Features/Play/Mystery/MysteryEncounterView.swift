@@ -11,7 +11,6 @@ struct MysteryEncounterView: View {
     @Environment(OptionsStore.self) private var options
     @Bindable var session: MysteryEncounterSession
     let onResolveChoice: (String?) -> Bool
-    let onSelectItem: (String) -> Bool
     let onCorruptItem: (String) -> Bool
     let onCancelCorruptSelection: () -> Void
     let onFinish: () -> Bool
@@ -45,13 +44,6 @@ struct MysteryEncounterView: View {
                     session: session,
                     onCorruptItem: onCorruptItem,
                     onCancelCorruptSelection: onCancelCorruptSelection
-                )
-            } else if session.showsItemChoice {
-                MysteryItemChoiceContent(
-                    session: session,
-                    onSelectItem: { itemID in
-                        _ = onSelectItem(itemID)
-                    }
                 )
             } else {
                 readingContent

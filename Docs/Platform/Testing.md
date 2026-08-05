@@ -82,7 +82,10 @@ package tests / smoke to compile-only (`classify-presentation-only.py`, fail-clo
 BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) also demote
 to local `--build-only`; CI `unit` owns the full package suite. Play subflows
 without a smoke owner (Mystery, Labyrinth, StagePreview, …) route compile-only
-locally — `SmokePlayTests` only covers the Play mode-card shell. CI `smoke-full`
+locally — `SmokePlayTests` covers the Play mode-card shell (hub paths, or
+`PlayView` diffs that touch shell signals; subflow-only `PlayView` wiring demotes
+via `classify-play-shell-diff.py`). Local targeted canaries stay on path-scoped
+verify when routing resolves an owner; do not move them to CI-only. CI `smoke-full`
 / exhaustive UI stay the broad net.
 
 Verify with the AGENTS Task→Command Router (toolchain permitting), using
@@ -91,8 +94,15 @@ Verify with the AGENTS Task→Command Router (toolchain permitting), using
 - **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
 - **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
 - **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh TrinketAppState`
+- **Mid-task smoke iteration** → after one green rebuild in the isolate slot,
+  `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass> --no-build` (refused when
+  build-inputs changed). Handoff still runs full `verify-changed.sh --isolate`.
 - **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
 - **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, full smoke, and exhaustive UI remain CI or explicit full-local confidence work.
+
+Local speed is path-scoped verify itself. Do not treat `test-timing.sh` reports as
+handoff work; that log is for humans (or an explicit “speed up tests” task) after
+`test.sh` / `test-package.sh` have recorded runs.
 
 Compile-only and other path-scoped tiers: `Docs/AgentContext/ci-and-project-generation.md`.
 

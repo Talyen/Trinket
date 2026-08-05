@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Testing
 import TrinketDesignSystem
@@ -31,12 +32,14 @@ struct CombatFeedbackRasterCatalogTests {
             ).prefix(3)
         )
         #expect(canvasItems.count == 3)
+        let stub = try #require(Self.stubRasterImage())
 
-        let first = try #require(pool.prepare(
+        let first = pool.seedForTesting(
             for: canvasItems[0],
             dynamicTypeSize: .large,
-            displayScale: 2
-        ))
+            displayScale: 2,
+            image: stub
+        )
         let reused = try #require(pool.cachedRaster(
             for: canvasItems[0],
             dynamicTypeSize: .large,
@@ -44,14 +47,40 @@ struct CombatFeedbackRasterCatalogTests {
         ))
         #expect(first === reused)
 
-        _ = pool.prepare(for: canvasItems[1], dynamicTypeSize: .large, displayScale: 2)
-        _ = pool.prepare(for: canvasItems[2], dynamicTypeSize: .large, displayScale: 2)
+        _ = pool.seedForTesting(
+            for: canvasItems[1],
+            dynamicTypeSize: .large,
+            displayScale: 2,
+            image: stub
+        )
+        _ = pool.seedForTesting(
+            for: canvasItems[2],
+            dynamicTypeSize: .large,
+            displayScale: 2,
+            image: stub
+        )
         let snapshot = pool.snapshot()
         #expect(snapshot.entryCount == 2)
         #expect(snapshot.estimatedByteCount > 0)
         #expect(snapshot.hitCount == 1)
         #expect(snapshot.buildCount == 3)
         #expect(snapshot.evictionCount == 1)
+    }
+
+    private static func stubRasterImage() -> CGImage? {
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        guard let context = CGContext(
+            data: nil,
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bytesPerRow: 4,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            return nil
+        }
+        return context.makeImage()
     }
 
     @Test @MainActor func closedCatalogFitsDefaultCapacityWithoutEviction() async {
@@ -97,10 +126,11 @@ struct CombatFeedbackRasterCatalogTests {
             displayScale: 2
         )
         let pool = CombatFeedbackRasterPool(capacity: CombatFeedbackRasterPool.defaultCapacity)
+        let chipCount = CombatFeedbackRasterUIView.preallocatedSlotCount
         let canvasItems = Array(
-            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().prefix(7)
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().prefix(chipCount)
         )
-        #expect(canvasItems.count == 7)
+        #expect(canvasItems.count == chipCount)
         let chips = try canvasItems.map { canvasItem in
             let raster = try #require(pool.prepare(
                 for: canvasItem,
