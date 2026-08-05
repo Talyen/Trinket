@@ -1,0 +1,39 @@
+name: Build cache key
+description: >
+  Compose the two-tier DerivedData cache key used by tests.yml and nightly.yml.
+  nonsource covers toolchain/assets/build-config; full adds app/package/test sources.
+  Path lists for hashFiles live only here so workflows cannot drift.
+  Scripts/check-build-cache-paths.sh guards required shared roots against
+  Scripts/build-inputs.sh (intentional differences documented there).
+
+inputs:
+  artifact-prefix:
+    description: Optional prefix for the within-run build artifact name
+    required: false
+    default: ''
+
+outputs:
+  cache-key:
+    description: Exact build cache key (build-<nonsource>-<full>)
+    value: ${{ steps.export.outputs.cache-key }}
+  cache-restore-prefix:
+    description: Prefix restore-keys for same-nonsource incremental rebuilds
+    value: ${{ steps.export.outputs.cache-restore-prefix }}
+  artifact-name:
+    description: Within-run DerivedData artifact name
+    value: ${{ steps.export.outputs.artifact-name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Export build cache and artifact ids
+      id: export
+      shell: bash
+      run: |
+        # nonsource: toolchain/assets/build-config (Scripts/** includes tool-versions.env).
+        # full: nonsource + app/package/test Swift sources.
+        nonsource="${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+        full="${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
+        echo "cache-key=build-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
+        echo "cache-restore-prefix=build-${nonsource}-" >> "$GITHUB_OUTPUT"
+        echo "artifact-name=${{ inputs.artifact-prefix }}build-derived-data-${{ github.run_id }}" >> "$GITHUB_OUTPUT"

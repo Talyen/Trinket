@@ -68,7 +68,11 @@ struct PlayBattleLaunch {
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers
         )
-        guard isValidRoute(route, for: launch.configuration) else { return false }
+        guard PlayBattleRoute.matches(
+            route,
+            runKey: launch.configuration.runKey,
+            missingLog: "Missing route for prepared battle registration"
+        ) else { return false }
         let prepared = battle.prepareBattleRun(launch.configuration)
         if prepared {
             registerRunIfNeeded(launch, route: route)
@@ -93,7 +97,11 @@ struct PlayBattleLaunch {
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
-        guard isValidRoute(route, for: origin) else { return false }
+        guard PlayBattleRoute.matches(
+            route,
+            runKey: origin?.runKey,
+            missingLog: "Missing route for battle activation"
+        ) else { return false }
         if let origin,
            battle.activatePreparedBattle(
                runKey: origin.runKey,
@@ -161,30 +169,6 @@ struct PlayBattleLaunch {
         )
     }
 
-    private func isValidRoute(
-        _ route: PlayBattleRoute?,
-        for configuration: BattleRunConfiguration
-    ) -> Bool {
-        guard let runKey = configuration.runKey else { return route == nil }
-        guard let route, route.origin.runKey == runKey else {
-            appStateLogger.error("Missing route for prepared battle registration")
-            return false
-        }
-        return true
-    }
-
-    private func isValidRoute(
-        _ route: PlayBattleRoute?,
-        for origin: PlayBattleOrigin?
-    ) -> Bool {
-        guard let origin else { return route == nil }
-        guard let route, route.origin.runKey == origin.runKey else {
-            appStateLogger.error("Missing route for battle activation")
-            return false
-        }
-        return true
-    }
-
     private func registerRunIfNeeded(
         _ launch: (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]),
         route: PlayBattleRoute?
@@ -240,8 +224,11 @@ public extension PlaySession {
         guard let activeBattle = battle.activeBattle else { return }
 
         let route = route(for: activeBattle.runKey)
-        guard activeBattle.runKey == nil || route != nil else {
-            appStateLogger.error("Missing route for active battle restart")
+        guard PlayBattleRoute.matches(
+            route,
+            runKey: activeBattle.runKey,
+            missingLog: "Missing route for active battle restart"
+        ) else {
             return
         }
         let presentation = battlePresentation(for: activeBattle.runKey)

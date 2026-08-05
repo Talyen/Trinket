@@ -9,6 +9,8 @@ cd "$(dirname "$0")/.."
 source Scripts/change-classification.sh
 # shellcheck source=Scripts/run-env.sh
 source Scripts/run-env.sh
+# shellcheck source=Scripts/swift-source-dirs.env
+source Scripts/swift-source-dirs.env
 
 DRY_RUN=false
 ISOLATE=false
@@ -392,14 +394,14 @@ try_reuse_warm_app_products() {
 }
 
 valid_package_name() {
-  case "$1" in
-    BattleEngine|TrinketContent|TrinketPersistence|TrinketCore|TrinketDesignSystem|TrinketFeatureSupport|TrinketBattleRuntime|TrinketBattleFeature|TrinketAppState)
+  local candidate="$1"
+  local package
+  for package in "${TRINKET_TEST_PACKAGES[@]}"; do
+    if [[ "$package" == "$candidate" ]]; then
       return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+    fi
+  done
+  return 1
 }
 
 run_verification_command() {

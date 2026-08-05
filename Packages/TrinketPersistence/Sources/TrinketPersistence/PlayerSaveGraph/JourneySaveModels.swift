@@ -6,7 +6,6 @@ import TrinketCore
 public final class JourneyProgressModel {
     public var activeChapterID: String = JourneyProgressState.initial.activeChapterID
     public var activeStageID: String?
-    public var lastCompletedStageID: String?
     public var root: PlayerSaveRoot?
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyStageProgressModel.journey)
@@ -49,7 +48,6 @@ extension JourneyProgressModel {
             activeStageID: activeStageID,
             completedStageIDs: Set(stageModels.filter(\.isCompleted).map(\.stageID)),
             claimedRewardStageIDs: Set(stageModels.filter(\.rewardsClaimed).map(\.stageID)),
-            lastCompletedStageID: lastCompletedStageID,
             pinnedMysteryEventIDs: pinned
         )
     }
@@ -57,7 +55,6 @@ extension JourneyProgressModel {
     func update(from state: JourneyProgressState, context: ModelContext?) {
         activeChapterID = state.activeChapterID
         activeStageID = state.activeStageID
-        lastCompletedStageID = state.lastCompletedStageID
         let allStageIDs = state.completedStageIDs
             .union(state.claimedRewardStageIDs)
             .union(Set(state.pinnedMysteryEventIDs.keys))

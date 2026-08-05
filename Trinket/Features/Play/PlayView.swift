@@ -33,8 +33,8 @@ struct PlayView: View {
         .onAppear {
             restorePlayDestinationIfNeeded()
         }
-        .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
-            guard newTab == .play, previousTab != .play else { return }
+        .onChange(of: play.shellSession.selectedTabRaw) { previousTab, newTab in
+            guard newTab == AppTab.play.rawValue, previousTab != AppTab.play.rawValue else { return }
             // A normal Play-tab visit is a fresh choice. Pending destinations
             // are consumed only for battle/deep-link restoration below.
             guard battle.lifecyclePhase != .active else { return }
@@ -140,26 +140,11 @@ private struct PlayBrowsingStack: View {
 
     private func openMode(_ destination: PlayLaunchDestination) {
         guard battle.lifecyclePhase != .active else { return }
-
-        if destination == .campaign {
-            // Front-load Stage Select battle configuration on the mode-card press
-            // so the NavigationStack push frame is mostly compositor work.
-            prepareCampaignBattleRun()
-        }
         navigationPath.append(destination)
-    }
-
-    private func prepareCampaignBattleRun() {
-        if let stageID = playerSave.journey.activeStageID,
-           let stage = GameContent.stage(id: stageID),
-           stage.encounter.isCombat {
-            journey.prepareBattle(for: stage)
-        }
     }
 
     private func handleStageTap(_ stage: Stage) {
         if playerSave.journey.isActive(stage) {
-            play.noteMapScrollFocus(stage.id)
             let interval = AppFramePacingSignposts.signposter.beginInterval(
                 AppFramePacingSignposts.Name.stageSelectBattleActivate
             )

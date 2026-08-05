@@ -1,0 +1,85 @@
+name: Restore and build
+description: >
+  Shared DerivedData warm-cache restore + build-for-testing used by tests.yml
+  build and nightly integration. Optionally prune, save cache on miss, and
+  upload the within-run artifact for test fan-out.
+
+inputs:
+  artifact-prefix:
+    description: Optional prefix for the within-run build artifact name
+    required: false
+    default: ''
+  save-cache:
+    description: Save warm cache when restore was not an exact hit (true/false)
+    required: false
+    default: 'false'
+  prune:
+    description: Prune DerivedData before cache/artifact save (true/false)
+    required: false
+    default: 'false'
+  upload-artifact:
+    description: Upload pruned .DerivedData for within-run test fan-out (true/false)
+    required: false
+    default: 'false'
+
+outputs:
+  artifact-name:
+    description: Within-run DerivedData artifact name
+    value: ${{ steps.ids.outputs.artifact-name }}
+  cache-key:
+    description: Exact build cache key
+    value: ${{ steps.ids.outputs.cache-key }}
+  cache-hit:
+    description: Whether restore was an exact cache key hit
+    value: ${{ steps.restore.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Export build cache and artifact ids
+      id: ids
+      uses: ./.github/actions/build-cache-key
+      with:
+        artifact-prefix: ${{ inputs.artifact-prefix }}
+
+    - name: Restore warm build cache
+      id: restore
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: .DerivedData
+        # Exact hit = identical tree. Prefix hit = same nonsource, safe incremental rebuild.
+        key: ${{ steps.ids.outputs.cache-key }}
+        restore-keys: |
+          ${{ steps.ids.outputs.cache-restore-prefix }}
+
+    - name: Clear cached test diagnostics after cache restore
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
+
+    - name: Build for testing
+      shell: bash
+      env:
+        SKIP_GENERATE: 1
+      run: ./Scripts/build-for-testing.sh
+
+    - name: Prune DerivedData before cache/artifact save
+      if: inputs.prune == 'true'
+      shell: bash
+      run: ./Scripts/prune-derived-data-cache.sh
+
+    - name: Save warm build cache
+      if: inputs.save-cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: .DerivedData
+        key: ${{ steps.ids.outputs.cache-key }}
+
+    - name: Upload build products for test jobs
+      if: inputs.upload-artifact == 'true'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ steps.ids.outputs.artifact-name }}
+        path: .DerivedData
+        include-hidden-files: true
+        retention-days: 1
+        if-no-files-found: error

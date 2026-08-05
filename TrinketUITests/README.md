@@ -38,7 +38,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 
 - `-launch-screen` (`hero:`, `companion:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 2-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
-- `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
+- `-completed-stages`, `-battle-tick-interval`
 - `-disable-audio` (see `AppEnvironment.parse`)
 - `-enable-frame-metrics` — DEBUG frame-pacing sampler plus `AccessibilityID.Debug.frameMetrics` and reset probes for the performance test matrix (not smoke)
 
@@ -49,7 +49,7 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
 - Prefer one launch per class (`SeededSmokeUITestCase` or shared `setUp`) when methods share args; avoid `app.terminate()` + relaunch mid-suite unless args must change (then split classes).
 - Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
-- Avoid long Play-map scrolls; use `-completed-stages` or `-map-scroll-target`.
+- Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
 - Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (3s ticks), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; hand-drag safety lives in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.

@@ -102,13 +102,11 @@ public struct HomesteadProjectStatus {
         after: PathConnectorState?
     ) {
         let states = definition.tiers.map(tierPathState(for:))
-        let connectorBefore: PathConnectorState? = tierIndex == 0
-            ? nil
-            : (isFuturePathState(states[tierIndex]) ? .future : .progressed)
-        let connectorAfter: PathConnectorState? = tierIndex == definition.tiers.count - 1
-            ? nil
-            : (isFuturePathState(states[tierIndex + 1]) ? .future : .progressed)
-        return (connectorBefore, connectorAfter)
+        return PathConnectorState.pair(
+            at: tierIndex,
+            count: definition.tiers.count,
+            isFuture: { isFuturePathState(states[$0]) }
+        )
     }
 
     private func isFuturePathState(_ state: HomesteadTierPathState) -> Bool {

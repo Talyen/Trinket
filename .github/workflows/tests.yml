@@ -39,12 +39,9 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh --assets
-      - run: ./Scripts/assert-generated-output.sh --assets
-      - name: Locale-stable asset regenerate
-        run: |
-          LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 ./Scripts/generate.sh --assets
-          ./Scripts/assert-generated-output.sh --assets
+      # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
+      - name: Asset codegen gate
+        run: ./Scripts/ci-assets-gate.sh
 
   build:
     name: Build for testing
@@ -53,55 +50,18 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 25
     outputs:
-      build-artifact: ${{ steps.export-build-ids.outputs.artifact-name }}
+      build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Export build cache and artifact ids
-        id: export-build-ids
-        run: |
-          # nonsource: toolchain/assets/build-config (Scripts/** includes tool-versions.env).
-          # full: nonsource + app/package/test Swift sources.
-          nonsource="${{ hashFiles('ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
-          full="${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'CinematicManifest/**', 'Raw Assets/**', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
-          echo "cache-key=build-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
-          echo "cache-restore-prefix=build-${nonsource}-" >> "$GITHUB_OUTPUT"
-          echo "artifact-name=${{ inputs.artifact-prefix }}build-derived-data-${{ github.run_id }}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore warm build cache
-        id: restore-warm-cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Restore warm cache and build
+        id: restore-and-build
+        uses: ./.github/actions/restore-and-build
         with:
-          path: .DerivedData
-          # Exact hit = identical tree. Prefix hit = same nonsource, safe incremental rebuild.
-          key: ${{ steps.export-build-ids.outputs.cache-key }}
-          restore-keys: |
-            ${{ steps.export-build-ids.outputs.cache-restore-prefix }}
-
-      - name: Build for testing
-        run: ./Scripts/build-for-testing.sh
-        env:
-          SKIP_GENERATE: 1
-
-      - name: Prune DerivedData before cache/artifact save
-        run: ./Scripts/prune-derived-data-cache.sh
-
-      - name: Save warm build cache
-        if: steps.restore-warm-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: .DerivedData
-          key: ${{ steps.export-build-ids.outputs.cache-key }}
-
-      - name: Upload build products for test jobs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ${{ steps.export-build-ids.outputs.artifact-name }}
-          path: .DerivedData
-          include-hidden-files: true
-          retention-days: 1
-          if-no-files-found: error
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          prune: 'true'
+          save-cache: 'true'
+          upload-artifact: 'true'
 
   unit:
     name: Unit tests

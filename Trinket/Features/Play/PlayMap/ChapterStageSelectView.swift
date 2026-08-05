@@ -44,17 +44,60 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
     }
 }
 
+/// Invalidates prepared Stage Select / Spire battles when party, gear, or homestead effects change.
+///
+/// `PlayBattleLaunch` snapshots roster, inventory, and homestead into the prepared run;
+/// activation reuses that snapshot when party IDs match, so these slices must participate.
+@MainActor
+struct StageSelectPrepareDependency: Equatable {
+    let runKey: String
+    let roster: PlayerRosterState
+    let inventory: PlayerInventoryState
+    let homestead: PlayerHomesteadState
+
+    static func journey(playerSave: PlayerSaveStore) -> Self? {
+        guard let stageID = playerSave.journey.activeStageID,
+              let stage = GameContent.stage(id: stageID),
+              stage.encounter.isCombat
+        else { return nil }
+        return Self(runKey: stageID, playerSave: playerSave)
+    }
+
+    static func spire(spireID: SpireID, floor: Int, playerSave: PlayerSaveStore) -> Self {
+        Self(runKey: "\(spireID.rawValue)|\(floor)", playerSave: playerSave)
+    }
+
+    private init(runKey: String, playerSave: PlayerSaveStore) {
+        self.runKey = runKey
+        roster = playerSave.roster
+        inventory = playerSave.inventory
+        homestead = playerSave.homestead
+    }
+}
+
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(JourneyPlayMode.self) private var journey
     @Environment(BattleSession.self) private var battle
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.dismiss) private var dismiss
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
 
     private var chapter: Chapter {
         journey.playChapter
+    }
+
+    private var stageRows: [StageSelectRowPresentation<Stage>] {
+        StageSelectRowPresentation.stageRows(
+            for: chapter,
+            progress: playerSave.journey
+        )
+    }
+
+    private var isCampaignComplete: Bool {
+        playerSave.journey.activeStageID == nil && stageRows.isEmpty
     }
 
     var body: some View {
@@ -76,21 +119,27 @@ struct ChapterStageSelectView: View {
                 chapter.theme.tint
             }
         } content: {
-            StageSelectList(
-                rows: stageRows,
-                isPrimaryActionDisabled: { _ in false },
-                onArtworkTap: onEnemyTap,
-                onPrimaryAction: handlePrimaryAction,
-                artwork: { stage in
-                    EncounterArtwork(
-                        stage: stage,
-                        resolvedMysteryEvent: resolvedMysteryEvent(for: stage)
+            Group {
+                if isCampaignComplete {
+                    campaignCompletionState
+                } else {
+                    StageSelectList(
+                        rows: stageRows,
+                        isPrimaryActionDisabled: { _ in false },
+                        onArtworkTap: onEnemyTap,
+                        onPrimaryAction: handlePrimaryAction,
+                        artwork: { stage in
+                            EncounterArtwork(
+                                stage: stage,
+                                resolvedMysteryEvent: resolvedMysteryEvent(for: stage)
+                            )
+                        },
+                        partyPickerSheet: { _ in
+                            StageBattlePartyPickerSheet()
+                        }
                     )
-                },
-                partyPickerSheet: { _ in
-                    StageBattlePartyPickerSheet()
                 }
-            )
+            }
             .padding(.bottom, TrinketDesign.Metrics.compactTabBarContentClearance)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
@@ -102,21 +151,30 @@ struct ChapterStageSelectView: View {
                 .frame(width: 0, height: 0)
                 .opacity(0)
         }
-        .onAppear {
+        .task(id: StageSelectPrepareDependency.journey(playerSave: playerSave)) {
             prepareActiveBattleRun()
         }
-        .onChange(of: playerSave.journey) { _, _ in
-            prepareActiveBattleRun()
+    }
+
+    private var campaignCompletionState: some View {
+        VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
+            ContentUnavailableView(
+                "Campaign Complete",
+                systemImage: "checkmark.seal.fill",
+                description: Text("Every chapter stage is complete.")
+            )
+
+            Button("Back to Play") {
+                dismiss()
+            }
+            .frame(maxWidth: .infinity)
+            .trinketPrimaryActionButton(
+                tint: chapter.theme.tint,
+                accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack
+            )
         }
-        .onChange(of: playerSave.roster) { _, _ in
-            prepareActiveBattleRun()
-        }
-        .onChange(of: playerSave.inventory) { _, _ in
-            prepareActiveBattleRun()
-        }
-        .onChange(of: playerSave.homestead) { _, _ in
-            prepareActiveBattleRun()
-        }
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
     }
 
     private func prepareActiveBattleRun() {
@@ -124,43 +182,6 @@ struct ChapterStageSelectView: View {
               let stage = GameContent.stage(id: stageID),
               stage.encounter.isCombat else { return }
         journey.prepareBattle(for: stage)
-    }
-
-    private var stageRows: [StageSelectRowPresentation<Stage>] {
-        ChapterStageRowPresentation.rows(
-            for: chapter,
-            progress: playerSave.journey
-        )
-        .filter { !$0.isCompleted }
-        .map { row in
-            // Keep the map artwork tied to the authored recruit event. The
-            // configured recruit can be resolved to a fallback only when the
-            // player takes the stage action; resolving it here makes the card
-            // artwork change as roster state settles during navigation.
-            let stage = row.stage
-            return StageSelectRowPresentation(
-                item: stage,
-                isActive: row.isActionable,
-                activeEyebrow: stage.mapLabel,
-                mapLabel: stage.mapLabel,
-                title: stage.encounterSubjectName,
-                activeDetailLines: [],
-                encounterTypeTitle: stage.encounterTypeTitle,
-                symbolName: stage.encounter.symbolName,
-                tint: stage.encounter.mapTint,
-                primaryActionTitle: stage.encounter.primaryActionTitle,
-                showsPartyPicker: stage.encounter.isCombat,
-                isArtworkInteractive: stage.encounter.isCombat,
-                rowAccessibilityID: AccessibilityID.Play.stageRow(
-                    chapter: stage.chapterNumber,
-                    stage: stage.stageNumber
-                ),
-                artworkAccessibilityID: artworkAccessibilityIdentifier(for: stage),
-                actionAccessibilityID: StageMapID.stageAction(for: stage),
-                activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
-                partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl
-            )
-        }
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
@@ -180,18 +201,5 @@ struct ChapterStageSelectView: View {
             pinnedEventID: playerSave.journey.pinnedMysteryEventIDs[stage.id],
             context: pickContext
         )
-    }
-
-    private func artworkAccessibilityIdentifier(for stage: Stage) -> String {
-        if stage.encounter.isCombat {
-            return "\(stage.mapLabel) Enemy Art"
-        }
-        if case .mysteryEvent = stage.encounter {
-            return "\(stage.mapLabel) Mystery Art"
-        }
-        if stage.encounter.eventID != nil {
-            return "\(stage.mapLabel) Mystery Art"
-        }
-        return "\(stage.mapLabel) Encounter Art"
     }
 }

@@ -75,13 +75,37 @@ Agents do **not** edit `CHANGELOG.md` per commit. Release scripts generate it at
 
 This section owns day-to-day task → script routing, gate composition, and tier inventory; `AGENTS.md` defers here for all of them.
 
+### Confidence ladder
+
+Pick the cheapest rung that matches the question you need answered. Higher rungs include lower ones' intent, not always their exact flags.
+
+| Rung | Entry | Answers |
+|------|-------|---------|
+| Task handoff | `verify-changed.sh --isolate --paths …` | Did *these* paths stay green? (path-scoped; agents always use this) |
+| Gate only | `ci-gate.sh` | Generate/assert vs HEAD + full-tree style + boundaries (no unit/UI) |
+| Local CI canary | `ci-locally.sh` | Gate + unit + quick smoke |
+| Deploy confidence | `test-deploy.sh` | Gate + unit + full UI |
+| CI / main | `pr.yml` / `ci.yml` → `tests.yml` | Gate → build-once → unit + smoke-full (+ exhaustive UI) |
+
 | Gate | Runs |
 |------|------|
-| `ci-gate.sh` | generate → assert (vs HEAD) → style → boundaries → Swift Testing check → release-notes validate |
+| `ci-gate.sh` | generate → assert (vs HEAD) → style → boundaries → build-input/cache-key path check → Swift Testing check → release-notes validate |
+| `ci-assets-gate.sh` | generate `--assets` → assert → locale-stable regenerate (`en_US.UTF-8`) → assert (CI `assets-gate`) |
 | `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **optional full local confidence run** |
 | `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **explicit release/pre-merge confidence run** |
 | GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit**, **smoke-full**, and sharded **exhaustive UI** (DerivedData cache) on `macos-26` |
 | GitHub `ci.yml` (main) | Same shared `tests.yml` fan-out with sharded exhaustive UI included |
+| GitHub `nightly.yml` | gate → integration (`test.sh all`) + battle performance; DerivedData **restore-only** (PR/main `build` owns cache write-back) |
+
+CI DerivedData warmth (`.github/actions/restore-and-build`): two-tier key from
+`.github/actions/build-cache-key` (`build-<nonsource>-<full>` + nonsource prefix restore),
+then `build-for-testing`. PR/main `build` also prunes, saves on miss, and uploads a
+within-run artifact. Nightly integration restores the same key but does **not** save —
+sampled Nightly runs (2026-08) already take exact hits from PR/main write-back with
+~5–9 min incremental `build-for-testing`; adding nightly save would mostly upload cost.
+Revisit only if Nightlies start missing the warm prefix. Shared roots between local
+`--no-build` freshness and the cache key are guarded by `./Scripts/check-build-cache-paths.sh`
+(wired into `ci-gate.sh`).
 
 | Tier | Command | When |
 |------|---------|------|
@@ -453,6 +477,6 @@ git config core.hooksPath .githooks
 The repo includes:
 
 - `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
-- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + exclusivity + `./Scripts/agent-push-gate.sh` (pinned XcodeGen force generate + assert vs HEAD; conditional assets)
+- `.githooks/pre-push` → `./Scripts/test.sh style` + `./Scripts/agent-push-gate.sh` (pinned XcodeGen force generate + assert vs HEAD; conditional assets)
 
 Install pinned SwiftFormat/SwiftLint/XcodeGen with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. Skip only the generate/assert half with `SKIP_TRINKET_PUSH_GATE=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

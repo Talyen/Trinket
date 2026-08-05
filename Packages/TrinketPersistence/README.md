@@ -8,7 +8,7 @@ Player save model, SwiftData stores, and CloudKit sync.
 - **`PlayerSaveStoreConfiguration`** — Store URL / `ModelConfiguration` / fetch-root helpers (keeps open plumbing out of the hub body).
 - **Domain actions** — `PlayerHomesteadStore` owns cross-slice homestead build/upgrade; single-slice reads/writes use hub properties (`save.journey`, `save.roster`, `save.inventory`, `save.homestead`). Prefer `save.homesteadStore.buildOrUpgradeNode` for homestead player actions.
 - **Value types** — `PlayerSave`, `PlayerRosterState`, `PlayerHomesteadState`, etc. hold pure rules and calculation snapshots, not the canonical persisted form.
-- **Shell session** — `PlayerShellSessionStore` persists tab, map-scroll, and last Play-mode session keys in a local SwiftData store (not `PlayerSave` / CloudKit), and migrates legacy session keys from `UserDefaults`. Device-local `OptionsStore` is owned by `TrinketAppState`.
+- **Shell session** — `PlayerShellSessionStore` persists the in-session selected tab (raw `AppTab` string) in a local SwiftData store (not `PlayerSave` / CloudKit). Cold launch always lands on Play unless a UI-test launch override selects another tab/screen. Legacy battle-resume, map-scroll, and last Play-mode keys are discarded (cleared via `clearLegacyKeys`, never restored). Device-local `OptionsStore` is owned by `TrinketAppState`.
 
 ## Key conventions
 

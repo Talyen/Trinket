@@ -5,7 +5,7 @@ shell scene wiring. Refuse new feature methods on `AppState` unless they are
 bootstrap or composition. Do not expose a parallel `AppState.battle` handle; shell and
 views use `PlaySession.battle` (`appState.play.battle`).
 
-`PlaySession` is the Play shell and mode registry: pending destination, map scroll,
+`PlaySession` is the Play shell and mode registry: pending destination
 and public entry points that forward to shared lifecycle helpers. Assemble modes via
 `PlayModeGraph` (fully wired at init — no deferred `bind` steps). Shared battle
 lifecycle glue belongs on `PlayBattleLaunch` and `PlayBattleCompletion`; follow the
@@ -17,7 +17,7 @@ roster/inventory/homestead assembly into the Battle DTO.
 Mode owners (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`) own navigation/session state and mode-unique save writes — not
 the shared victory persist→dismiss sequence. Modes take constructor-injected
-collaborators (`PlayerSaveStore`, `any BattleRuntime`, options/SFX, map-scroll hooks,
+collaborators (`PlayerSaveStore`, `any BattleRuntime`, options/SFX,
 encounters) and completion ports; do not reintroduce a `PlaySession` back-pointer.
 
 Use Persistence-owned actions for save semantics. Do not forward save slices through

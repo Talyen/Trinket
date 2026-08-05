@@ -5,17 +5,11 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-struct MysteryEncounterFinishResult {
-    let didFinish: Bool
-    let journey: JourneyProgressState?
-}
-
-extension EncounterPlayMode {
+public extension EncounterPlayMode {
     @discardableResult
-    func beginMysteryEncounter(
+    internal func beginMysteryEncounter(
         origin: PlayEncounterOrigin,
-        forcedEventID: String? = nil,
-        completeProgress: MysteryProgressCompletion? = nil
+        forcedEventID: String? = nil
     ) -> StageMapMessage? {
         guard activeMysteryEncounter == nil else { return nil }
         guard activeShopEncounter == nil else { return nil }
@@ -71,7 +65,7 @@ extension EncounterPlayMode {
         activeMysteryEncounter = opened.session
         sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         if opened.session.event.isRecruit {
-            _ = resolveActiveMysteryChoice(choiceID: nil, completeProgress: completeProgress)
+            _ = resolveActiveMysteryChoice(choiceID: nil)
         }
         return nil
     }
@@ -98,19 +92,10 @@ extension EncounterPlayMode {
 
     /// Applies the single (or first) choice for the active mystery encounter.
     @discardableResult
-    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
-        resolveActiveMysteryChoice(choiceID: choiceID, completeProgress: nil)
-    }
-
-    @discardableResult
-    func resolveActiveMysteryChoice(
-        choiceID: String?,
-        completeProgress: MysteryProgressCompletion?
-    ) -> Bool {
+    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
         guard mysterySession.canResolveChoice else { return false }
 
-        let progressClosure = completeProgress ?? Self.completeMysteryProgress
         var outcome = MysteryChoiceOutcome.failed
         do {
             try playerSave.performBatchMutation { save in
@@ -119,7 +104,7 @@ extension EncounterPlayMode {
                     choiceID: choiceID,
                     save: &save,
                     using: &randomNumberGenerator,
-                    completeProgress: progressClosure
+                    completeProgress: Self.completeMysteryProgress
                 )
             }
         } catch {
@@ -131,25 +116,15 @@ extension EncounterPlayMode {
         }
 
         guard applyMysteryOutcome(outcome, session: mysterySession) else { return false }
-        noteMysteryMapFocus(for: outcome)
         return true
     }
 
     /// Corrupts the selected inventory item at the Corruption Altar.
     @discardableResult
-    public func corruptActiveMysteryItem(itemID: String) -> Bool {
-        corruptActiveMysteryItem(itemID: itemID, completeProgress: nil)
-    }
-
-    @discardableResult
-    func corruptActiveMysteryItem(
-        itemID: String,
-        completeProgress: MysteryProgressCompletion?
-    ) -> Bool {
+    func corruptActiveMysteryItem(itemID: String) -> Bool {
         guard let mysterySession = activeMysteryEncounter else { return false }
         guard mysterySession.showsCorruptItemChoice else { return false }
 
-        let progressClosure = completeProgress ?? Self.completeMysteryProgress
         var outcome = MysteryChoiceOutcome.failed
         do {
             try playerSave.performBatchMutation { save in
@@ -158,7 +133,7 @@ extension EncounterPlayMode {
                     itemID: itemID,
                     save: &save,
                     using: &randomNumberGenerator,
-                    completeProgress: progressClosure
+                    completeProgress: Self.completeMysteryProgress
                 )
             }
         } catch {
@@ -172,7 +147,7 @@ extension EncounterPlayMode {
         return applyMysteryOutcome(outcome, session: mysterySession)
     }
 
-    public func cancelActiveMysteryCorruptSelection() {
+    func cancelActiveMysteryCorruptSelection() {
         guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptItemChoice else {
             return
         }
@@ -181,7 +156,7 @@ extension EncounterPlayMode {
 
     /// Dismisses the corruption reveal after the player acknowledges the outcome.
     @discardableResult
-    public func finishActiveMysteryCorruptionReveal() -> Bool {
+    func finishActiveMysteryCorruptionReveal() -> Bool {
         guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptionReveal else {
             return false
         }
@@ -193,26 +168,9 @@ extension EncounterPlayMode {
     /// Completes the mystery stage/node only after persistence succeeds so a failed finish
     /// cannot clear the session while leaving progress uncleared (replay double-grants).
     @discardableResult
-    public func finishActiveMysteryEncounter() -> Bool {
-        finishActiveMysteryEncounter(completeProgress: nil)
-    }
-
-    @discardableResult
-    func finishActiveMysteryEncounter(
-        completeProgress: MysteryProgressCompletion?
-    ) -> Bool {
-        let result = finishActiveMysteryEncounterResult(completeProgress: completeProgress)
-        if let journey = result.journey {
-            noteMapScrollFocus?(journey.mapScrollFocusID())
-        }
-        return result.didFinish
-    }
-
-    func finishActiveMysteryEncounterResult(
-        completeProgress: MysteryProgressCompletion? = nil
-    ) -> MysteryEncounterFinishResult {
+    func finishActiveMysteryEncounter() -> Bool {
         guard let mysterySession = activeMysteryEncounter else {
-            return MysteryEncounterFinishResult(didFinish: false, journey: nil)
+            return false
         }
         mysterySession.clearPersistFailure()
         if mysterySession.showsReward {
@@ -220,13 +178,11 @@ extension EncounterPlayMode {
             // Dismiss only — never re-grant.
             sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
             activeMysteryEncounter = nil
-            return MysteryEncounterFinishResult(didFinish: true, journey: nil)
+            return true
         }
-        let progressClosure = completeProgress ?? Self.completeMysteryProgress
-        var resultingJourney: JourneyProgressState?
         do {
             try playerSave.performBatchMutation { save in
-                resultingJourney = progressClosure(mysterySession, &save)
+                Self.completeMysteryProgress(mysterySession, save: &save)
             }
         } catch {
             appStateLogger.error(
@@ -235,19 +191,19 @@ extension EncounterPlayMode {
             mysterySession.markPersistFailed(
                 "Couldn't save progress. Stay here and try Recruit again."
             )
-            return MysteryEncounterFinishResult(didFinish: false, journey: nil)
+            return false
         }
         sfxPlayer.play(SFXID.victory, volume: options.effectsVolume)
         activeMysteryEncounter = nil
-        return MysteryEncounterFinishResult(didFinish: true, journey: resultingJourney)
+        return true
     }
 
-    public func dismissActiveMysteryEncounterWithoutCompleting() {
+    func dismissActiveMysteryEncounterWithoutCompleting() {
         activeMysteryEncounter = nil
     }
 
     @discardableResult
-    func applyMysteryOutcome(
+    internal func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,
         session mysterySession: MysteryEncounterSession
     ) -> Bool {
@@ -257,17 +213,11 @@ extension EncounterPlayMode {
         case .dismiss:
             activeMysteryEncounter = nil
             return true
-        case .reward:
-            mysterySession.applyOutcome(outcome)
-            return true
-        case .reveal:
+        case .reward, .reveal, .corruptionReveal:
             mysterySession.applyOutcome(outcome)
             return true
         case .selectCorruptItem:
             mysterySession.applyOutcome(outcome, inventory: playerSave.inventory)
-            return true
-        case .corruptionReveal:
-            mysterySession.applyOutcome(outcome)
             return true
         }
     }
@@ -275,10 +225,10 @@ extension EncounterPlayMode {
     private static func completeMysteryProgress(
         _ session: MysteryEncounterSession,
         save: inout PlayerSave
-    ) -> JourneyProgressState? {
+    ) {
         switch session.origin {
         case let .journey(stage):
-            return StageCompletion.completeEncounter(
+            StageCompletion.completeEncounter(
                 stage: stage,
                 labyrinthNodeID: nil,
                 hero: save.roster.activeHero,
@@ -293,18 +243,6 @@ extension EncounterPlayMode {
                 companion: save.roster.activeCompanion,
                 save: &save
             )
-            return nil
-        }
-    }
-
-    private func noteMysteryMapFocus(for outcome: MysteryChoiceOutcome) {
-        let journey: JourneyProgressState? = switch outcome {
-        case let .dismiss(resultingJourney): resultingJourney
-        case let .reward(_, resultingJourney): resultingJourney
-        default: nil
-        }
-        if let journey {
-            noteMapScrollFocus?(journey.mapScrollFocusID())
         }
     }
 }

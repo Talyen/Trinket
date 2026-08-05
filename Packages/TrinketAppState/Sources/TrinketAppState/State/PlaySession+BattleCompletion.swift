@@ -25,10 +25,11 @@ struct PlayBattleCompletion {
     ) -> Bool {
         guard battle.lifecyclePhase == .active else { return false }
 
-        guard (configuration.runKey == nil && route == nil)
-            || route?.origin.runKey == configuration.runKey
-        else {
-            appStateLogger.error("Missing route for active battle completion")
+        guard PlayBattleRoute.matches(
+            route,
+            runKey: configuration.runKey,
+            missingLog: "Missing route for active battle completion"
+        ) else {
             return false
         }
 

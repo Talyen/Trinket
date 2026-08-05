@@ -130,13 +130,6 @@ struct StageSelectActiveCard<
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .lineLimit(2)
-
-            ForEach(Array(presentation.activeDetailLines.enumerated()), id: \.offset) { _, line in
-                Text(line)
-                    .trinketTypography(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
         }
     }
 

@@ -4,6 +4,24 @@ import SwiftUI
 public enum PathConnectorState: Equatable, Sendable {
     case progressed
     case future
+
+    /// Before/after connectors for a node in a vertical path of `count` nodes.
+    ///
+    /// `isFuture` is evaluated at the current index for the before segment and at
+    /// `index + 1` for the after segment.
+    public static func pair(
+        at index: Int,
+        count: Int,
+        isFuture: (Int) -> Bool
+    ) -> (before: Self?, after: Self?) {
+        let before: Self? = index == 0
+            ? nil
+            : (isFuture(index) ? .future : .progressed)
+        let after: Self? = index >= count - 1
+            ? nil
+            : (isFuture(index + 1) ? .future : .progressed)
+        return (before, after)
+    }
 }
 
 /// Colors and widths for progressed vs future connector segments.

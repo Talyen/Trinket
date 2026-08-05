@@ -11,14 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh --force-xcodegen
-      - name: Assert generated output is committed
-        run: |
-          if ! ./Scripts/assert-generated-output.sh; then
-            echo "::error::Generated output drifted. Run ./Scripts/generate.sh and commit Trinket.xcodeproj + Generated catalogs."
-            exit 1
-          fi
-      - run: ./Scripts/test.sh style
-      - run: ./Scripts/check-module-boundaries.sh
-      - run: ./Scripts/check-swift-testing-migration.sh
-      - run: ./Scripts/release-notes.sh validate
+      # Same semantics as local ./Scripts/ci-gate.sh (single owner).
+      - name: CI gate
+        run: ./Scripts/ci-gate.sh

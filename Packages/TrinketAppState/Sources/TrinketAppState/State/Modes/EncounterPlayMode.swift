@@ -14,8 +14,6 @@ public final class EncounterPlayMode: PlayModeProtocol {
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
 
-    let noteMapScrollFocus: (@MainActor @Sendable (String) -> Void)?
-
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
 
@@ -23,14 +21,12 @@ public final class EncounterPlayMode: PlayModeProtocol {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         options: OptionsStore,
-        sfxPlayer: SFXPlayer,
-        noteMapScrollFocus: (@MainActor @Sendable (String) -> Void)? = nil
+        sfxPlayer: SFXPlayer
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.options = options
         self.sfxPlayer = sfxPlayer
-        self.noteMapScrollFocus = noteMapScrollFocus
     }
 
     @discardableResult
@@ -114,12 +110,11 @@ public final class EncounterPlayMode: PlayModeProtocol {
         guard let shopSession = activeShopEncounter else { return false }
 
         shopSession.clearLeaveFailure()
-        var resultingJourney: JourneyProgressState?
         do {
             try playerSave.performBatchMutation { save in
                 switch shopSession.origin {
                 case let .journey(stage):
-                    resultingJourney = StageCompletion.completeEncounter(
+                    StageCompletion.completeEncounter(
                         stage: stage,
                         labyrinthNodeID: nil,
                         hero: save.roster.activeHero,
@@ -142,9 +137,6 @@ public final class EncounterPlayMode: PlayModeProtocol {
             )
             shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
-        }
-        if let resultingJourney {
-            noteMapScrollFocus?(resultingJourney.mapScrollFocusID())
         }
         clearActiveShopEncounter()
         return true

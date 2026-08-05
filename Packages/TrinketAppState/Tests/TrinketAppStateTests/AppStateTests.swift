@@ -228,33 +228,21 @@ struct AppStateTests {
         }
     }
 
-    @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
-        )
-        #expect(state.play.mapScrollStageID == "chapter-gate-placeholder-2")
-        #expect(state.play.mapScrollFocus?.stageID == "chapter-gate-placeholder-2")
-        #expect((state.play.mapScrollFocus?.revision ?? 0) > 0)
-    }
-
-    @Test func completeStageUpdatesStoresAndMapScrollFocus() throws {
+    @Test func completeStageUpdatesStores() throws {
         let state = try context.makeAppState(environment: context.makeEnvironment())
         let stage = try #require(GameContent.chapters[0].stages.first)
         let initialGold = state.playerSave.roster.gold
 
-        let scrollTarget = state.play.journey.completeStage(
+        let didComplete = state.play.journey.completeStage(
             stage,
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion
         )
 
+        #expect(didComplete)
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-2")
         #expect(state.playerSave.journey.completedStageIDs.contains(stage.id))
         #expect(state.playerSave.roster.gold > initialGold)
-        #expect(scrollTarget == "chapter-1-stage-2")
-        #expect(state.play.mapScrollStageID == "chapter-1-stage-2")
-        #expect(state.play.mapScrollFocus?.stageID == "chapter-1-stage-2")
-        #expect((state.play.mapScrollFocus?.revision ?? 0) > 0)
     }
 
     private func assertCollectionDetail(

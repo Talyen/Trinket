@@ -158,21 +158,11 @@ struct AppStatePlayFlowTests {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.play.journey.startBattle(for: stage)
-        state.play.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.unlockAllContent())
 
         #expect(state.play.battle.activeBattle == nil)
-        #expect(state.play.mapScrollStageID == nil)
-        #expect(state.play.shellSession.selectedTab == .play)
-    }
-
-    @Test func shouldRestoreMapScrollIgnoresCompletedStage() {
-        var journey = JourneyProgressState.initial
-        journey.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
-
-        #expect(!(PlaySession.shouldRestoreMapScroll("chapter-1-stage-1", journey: journey)))
-        #expect(PlaySession.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
+        #expect(state.play.shellSession.selectedTabRaw == AppTab.play.rawValue)
     }
 
     @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
@@ -182,12 +172,12 @@ struct AppStatePlayFlowTests {
             let state = try context.makePlaySession()
             let stage = try #require(GameContent.chapters[0].stages.first)
             _ = state.journey.startBattle(for: stage)
-            state.shellSession.selectedTab = .options
+            state.shellSession.selectedTabRaw = AppTab.options.rawValue
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.shellSession.selectedTab == .play)
+            #expect(state.shellSession.selectedTabRaw == AppTab.play.rawValue)
             #expect(state.consumePendingDestination() == .campaign)
         case "spire":
             let state = try makeProgressedStateForReturnTests()
@@ -195,24 +185,24 @@ struct AppStatePlayFlowTests {
 
             let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
             #expect(state.spires.startBattle(for: floor) == nil)
-            state.shellSession.selectedTab = .options
+            state.shellSession.selectedTabRaw = AppTab.options.rawValue
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.shellSession.selectedTab == .play)
+            #expect(state.shellSession.selectedTabRaw == AppTab.play.rawValue)
             #expect(state.consumePendingDestination() == .spireClimb(.ironVein))
         case "labyrinth":
             let state = try context.makePlaySession(arguments: ["-reset-state"])
             _ = state.labyrinth.enter()
             let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
             #expect(state.labyrinth.startBattle(nodeID: combatNodeID) == nil)
-            state.shellSession.selectedTab = .options
+            state.shellSession.selectedTabRaw = AppTab.options.rawValue
 
             state.endBattleReturningToOrigin()
 
             #expect(state.battle.activeBattle == nil)
-            #expect(state.shellSession.selectedTab == .play)
+            #expect(state.shellSession.selectedTabRaw == AppTab.play.rawValue)
             #expect(state.consumePendingDestination() == .labyrinthMap)
         default:
             Issue.record("Unexpected origin \(origin)")
@@ -266,12 +256,12 @@ struct AppStatePlayFlowTests {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.journey.startBattle(for: stage)
-        state.shellSession.selectedTab = .options
+        state.shellSession.selectedTabRaw = AppTab.options.rawValue
 
         let battle = try #require(context.lastBattle)
         battle.presentBattleLog()
 
-        #expect(state.shellSession.selectedTab == .options)
+        #expect(state.shellSession.selectedTabRaw == AppTab.options.rawValue)
         #expect(battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }

@@ -16,15 +16,15 @@ public enum MysteryChoiceOutcome: Equatable {
     case reveal(unlockedCombatantID: String)
     case selectCorruptItem
     case corruptionReveal(ItemCorruptionResult)
-    case reward(MysteryEffectApplyResult, journey: JourneyProgressState?)
-    case dismiss(journey: JourneyProgressState?)
+    case reward(MysteryEffectApplyResult)
+    case dismiss
     case failed
 }
 
 typealias MysteryProgressCompletion = (
     MysteryEncounterSession,
     inout PlayerSave
-) -> JourneyProgressState?
+) -> Void
 
 @MainActor
 @Observable
@@ -220,8 +220,8 @@ extension MysteryEncounterSession {
 
         if choice.effects.contains(.leave) {
             noteMysteryCadence(save: &save)
-            let journey = completeProgress(self, &save)
-            return .dismiss(journey: journey)
+            completeProgress(self, &save)
+            return .dismiss
         }
 
         let applyResult = MysteryEffectApplier.apply(
@@ -234,18 +234,18 @@ extension MysteryEncounterSession {
 
         if !applyResult.unlockedCombatantIDs.isEmpty {
             if case .labyrinth = origin {
-                _ = completeProgress(self, &save)
+                completeProgress(self, &save)
             }
             noteMysteryCadence(save: &save)
             return .reveal(unlockedCombatantID: applyResult.unlockedCombatantIDs[0])
         }
 
         noteMysteryCadence(save: &save)
-        let journey = completeProgress(self, &save)
+        completeProgress(self, &save)
         if !applyResult.isEmpty {
-            return .reward(applyResult, journey: journey)
+            return .reward(applyResult)
         }
-        return .dismiss(journey: journey)
+        return .dismiss
     }
 
     /// Corrupts the chosen inventory item, records altar encounter, and completes progress.
@@ -270,7 +270,7 @@ extension MysteryEncounterSession {
             return .failed
         }
         noteMysteryCadence(save: &save)
-        _ = completeProgress(self, &save)
+        completeProgress(self, &save)
         return .corruptionReveal(result)
     }
 
@@ -283,7 +283,7 @@ extension MysteryEncounterSession {
             presentCorruptItemChoice(items: items)
         case let .corruptionReveal(result):
             presentCorruptionReveal(result: result)
-        case let .reward(result, _):
+        case let .reward(result):
             presentReward(result: result)
         case .dismiss, .failed:
             markResolvedWithoutReveal()

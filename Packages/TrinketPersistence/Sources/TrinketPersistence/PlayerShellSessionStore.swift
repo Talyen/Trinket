@@ -7,6 +7,7 @@ import SwiftData
 @Observable
 public final class PlayerShellSessionStore {
     public static let legacySessionTabKey = "session.selectedTab"
+    /// Discarded battle-resume / map-scroll keys — cleared on reset, never restored.
     public static let legacyActiveBattleStageIDKey = "session.activeBattleStageID"
     public static let legacyMapScrollStageIDKey = "session.mapScrollStageID"
     public static let legacyActiveBattleSavedAtKey = "session.activeBattleSavedAt"
@@ -27,16 +28,9 @@ public final class PlayerShellSessionStore {
         category: "PlayerShellSession"
     )
 
-    public var selectedTab: PlayerShellSessionTab = .play {
+    /// Raw `AppTab` value. Persistence stores the string; AppState maps to `AppTab`.
+    public var selectedTabRaw: String = "play" {
         didSet { persistSelectedTab() }
-    }
-
-    public var mapScrollStageID: String? {
-        didSet { persistMapScrollStageID() }
-    }
-
-    public var lastPlayMode: PlayerShellSessionPlayMode = .campaign {
-        didSet { persistLastPlayMode() }
     }
 
     public init(
@@ -73,18 +67,13 @@ public final class PlayerShellSessionStore {
 
         let loadResult = Self.loadOrCreateRecord(in: context)
         record = loadResult.record
-        let resolvedTab = Self.tab(from: record.selectedTabRaw) ?? .play
-        selectedTab = resolvedTab
-        mapScrollStageID = record.mapScrollStageID
-        lastPlayMode = Self.playMode(from: record.lastPlayModeRaw) ?? .campaign
+        let resolvedTab = Self.normalizedTabRaw(record.selectedTabRaw)
+        selectedTabRaw = resolvedTab
 
         // Property observers do not run during init; rewrite remapped legacy tabs
-        // (e.g. "search" → collection), legacy play modes ("aspects" → spires),
-        // and first-create records explicitly.
-        let needsPlayModeRewrite = record.lastPlayModeRaw != lastPlayMode.rawValue
-        if loadResult.needsInitialSave || record.selectedTabRaw != resolvedTab.rawValue || needsPlayModeRewrite {
-            record.selectedTabRaw = resolvedTab.rawValue
-            record.lastPlayModeRaw = lastPlayMode.rawValue
+        // (e.g. "search" → collection) and first-create records explicitly.
+        if loadResult.needsInitialSave || record.selectedTabRaw != resolvedTab {
+            record.selectedTabRaw = resolvedTab
             saveContext()
         }
     }
@@ -119,19 +108,13 @@ public final class PlayerShellSessionStore {
         return (newRecord, true)
     }
 
-    public func clearMapScrollState() {
-        mapScrollStageID = nil
-    }
-
-    public func resetToDefaults(selectingTab tab: PlayerShellSessionTab = .play) {
-        selectedTab = tab
-        clearMapScrollState()
-        lastPlayMode = .campaign
+    public func resetToDefaults(selectingTabRaw raw: String = "play") {
+        selectedTabRaw = Self.normalizedTabRaw(raw)
         flushPendingPersistence()
     }
 
     private func persistSelectedTab() {
-        record.selectedTabRaw = selectedTab.rawValue
+        record.selectedTabRaw = selectedTabRaw
         record.updatedAt = .now
         selectedTabSaveTask?.cancel()
         selectedTabSaveTask = Task { @MainActor [weak self] in
@@ -160,18 +143,6 @@ public final class PlayerShellSessionStore {
         saveContext()
     }
 
-    private func persistMapScrollStageID() {
-        record.mapScrollStageID = mapScrollStageID
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistLastPlayMode() {
-        record.lastPlayModeRaw = lastPlayMode.rawValue
-        record.updatedAt = .now
-        saveContext()
-    }
-
     private func saveContext() {
         do {
             try context.save()
@@ -191,17 +162,19 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    private static func tab(from rawValue: String) -> PlayerShellSessionTab? {
-        if rawValue == "search" {
-            return .collection
-        }
-        return PlayerShellSessionTab(rawValue: rawValue)
-    }
+    /// Must stay aligned with `AppTab` raw values in TrinketAppState (Persistence
+    /// cannot import AppState).
+    private static let knownTabRaws: Set<String> = [
+        "play",
+        "collection",
+        "homestead",
+        "options",
+    ]
 
-    private static func playMode(from rawValue: String) -> PlayerShellSessionPlayMode? {
-        if rawValue == "aspects" {
-            return .spires
+    private static func normalizedTabRaw(_ rawValue: String) -> String {
+        if rawValue == "search" {
+            return "collection"
         }
-        return PlayerShellSessionPlayMode(rawValue: rawValue)
+        return knownTabRaws.contains(rawValue) ? rawValue : "play"
     }
 }

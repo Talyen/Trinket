@@ -4,76 +4,8 @@ import TrinketContent
 import TrinketDesignSystem
 
 public enum StageMapID {
-    public static func chapterGate(for chapter: Chapter) -> String {
-        "chapter-gate-\(chapter.id)"
-    }
-
-    public static func placeholderGate(afterChapterNumber number: Int) -> String {
-        "chapter-gate-placeholder-\(number)"
-    }
-
-    public static func stageNode(for stage: Stage) -> String {
-        "Stage \(stage.chapterNumber)-\(stage.stageNumber) Node"
-    }
-
     public static func stageAction(for stage: Stage) -> String {
         "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action"
-    }
-
-    public static func chapterLocked(_ chapter: Chapter) -> String {
-        "Chapter \(chapter.number) Locked"
-    }
-}
-
-public enum StageNodeState: Equatable {
-    case completed
-    case justCompleted
-    case active
-    case future
-}
-
-public struct ChapterStageRowPresentation: Identifiable, Equatable {
-    public let stage: Stage
-    public let state: StageNodeState
-    public let connectorBefore: PathConnectorState?
-    public let connectorAfter: PathConnectorState?
-    public let isBoss: Bool
-
-    public var id: String {
-        stage.id
-    }
-
-    public var isCompleted: Bool {
-        state == .completed || state == .justCompleted
-    }
-
-    public var isActionable: Bool {
-        state == .active
-    }
-
-    public var accessibilityStatus: String {
-        switch state {
-        case .completed, .justCompleted:
-            "Completed"
-        case .active:
-            "Current stage"
-        case .future:
-            "Not reached"
-        }
-    }
-
-    public init(
-        stage: Stage,
-        state: StageNodeState,
-        connectorBefore: PathConnectorState?,
-        connectorAfter: PathConnectorState?,
-        isBoss: Bool
-    ) {
-        self.stage = stage
-        self.state = state
-        self.connectorBefore = connectorBefore
-        self.connectorAfter = connectorAfter
-        self.isBoss = isBoss
     }
 }
 
@@ -84,7 +16,6 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     public let activeEyebrow: String
     public let mapLabel: String
     public let title: String
-    public let activeDetailLines: [String]
     public let encounterTypeTitle: String
     public let symbolName: String
     public let tint: Color
@@ -107,7 +38,6 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         activeEyebrow: String,
         mapLabel: String,
         title: String,
-        activeDetailLines: [String],
         encounterTypeTitle: String,
         symbolName: String,
         tint: Color,
@@ -125,7 +55,6 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         self.activeEyebrow = activeEyebrow
         self.mapLabel = mapLabel
         self.title = title
-        self.activeDetailLines = activeDetailLines
         self.encounterTypeTitle = encounterTypeTitle
         self.symbolName = symbolName
         self.tint = tint

@@ -123,6 +123,39 @@ class ScriptRegressionTests(unittest.TestCase):
             self.assertIn(plan, text)
         self.assertNotIn("Package.resolved", text)
 
+    def test_build_cache_paths_aligned(self) -> None:
+        result = subprocess.run(
+            [str(ROOT / "Scripts" / "check-build-cache-paths.sh")],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        self.assertIn("aligned", result.stdout)
+
+    def test_ci_assets_gate_locale_rerun(self) -> None:
+        text = (ROOT / "Scripts" / "ci-assets-gate.sh").read_text(encoding="utf-8")
+        self.assertIn("generate.sh --assets", text)
+        self.assertIn("assert-generated-output.sh --assets", text)
+        self.assertIn("LC_ALL=en_US.UTF-8", text)
+        self.assertIn("LANG=en_US.UTF-8", text)
+
+    def test_restore_and_build_action_owns_cache_prefix(self) -> None:
+        text = (
+            ROOT / ".github" / "actions" / "restore-and-build" / "action.yml"
+        ).read_text(encoding="utf-8")
+        self.assertIn("build-cache-key", text)
+        self.assertIn("build-for-testing.sh", text)
+        self.assertIn("prune-derived-data-cache.sh", text)
+        workflows = (
+            (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8"),
+            (ROOT / ".github" / "workflows" / "nightly.yml").read_text(encoding="utf-8"),
+        )
+        for workflow in workflows:
+            self.assertIn("restore-and-build", workflow)
+            self.assertNotIn("actions/cache/restore@", workflow)
+
     def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
         result = subprocess.run(
             [

@@ -60,7 +60,6 @@ struct AppEnvironmentTests {
             "-persist-save-immediately",
             "-battle-tick-interval", "0.4",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
-            "-map-scroll-target", "chapter-gate-placeholder-2",
             "-mystery-recruit-event", "recruit-ranger",
             "-enable-frame-metrics",
             "-battle-performance-scenario", "engine-feedback",
@@ -72,13 +71,11 @@ struct AppEnvironmentTests {
         #expect(env.persistSaveImmediately)
         #expect(env.battleTickInterval == 0.4)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
-        #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
         #expect(env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == .engineFeedback)
 
         #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
-        #expect(Self.parse(arguments: ["-map-scroll-target", ""]).mapScrollTarget == nil)
         #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
         #expect(
             Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil
@@ -95,7 +92,6 @@ struct AppEnvironmentTests {
         #expect(env.disableCloudSync)
         #expect(!env.disableAudio)
         #expect(env.completedStageIDs.isEmpty)
-        #expect(env.mapScrollTarget == nil)
         #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
         #expect(!env.persistSaveImmediately)

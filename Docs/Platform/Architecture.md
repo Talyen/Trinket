@@ -56,7 +56,7 @@ Manifests and pipelines live outside the app folder:
 | Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
-| Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `MapScrollFocus`, and `StageMapMessage`; no save or view adapters |
+| Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext` and `StageMapMessage`; no save or view adapters |
 | Battle presentation contract | `TrinketBattleContracts` | Shared SwiftUI-free `BattlePresentationContext`; no Play registry, runtime state, or save writes |
 | Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `BattleRunConfiguration`, `BattleRunKey`, and performance scenario contracts. It contains only immutable simulation inputs and lifecycle; Play-owned reward/presentation context stays outside this boundary. |
 | Battle presentation | `TrinketBattleFeature` | `BattleRuntimeSession` owns concrete lifecycle/simulation state; `BattleSession` owns combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
@@ -184,7 +184,7 @@ lanes) instead of observing `AppState` or the full `PlaySession` for unrelated s
 Shell battle activation routes through `PlaySession.battle`; runtime change callbacks
 keep the separately retained `BattleSession` presentation coordinator synchronized.
 `PlaySession` remains in the environment for
-shell concerns (pending destination, map scroll, battle victory routing via
+shell concerns (pending destination, battle victory routing via
 `PlayBattleCompletion`). Active battle route and presentation metadata are stored
 directly as `PlayBattleRunRegistration` values in `PlaySession`'s `BattleRunKey`
 registry, so cleanup is atomic. Play
@@ -207,7 +207,7 @@ presentation-only cases.
 - **Save hub:** `PlayerSaveStore` opens the versioned `ModelContainer` via `PlayerSaveMigrationPlan`, `ModelContainerBootstrap`, and `PlayerSaveStoreConfiguration`. A failed canonical-store open preserves the on-disk files and uses an explicitly degraded in-memory fallback; only a player-requested reset deletes progress. Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
 - **Write locality:** Every mutation computes a `PlayerSaveSlice` diff. Setters and batches reconcile and save only changed slices; rollback refreshes only touched slices. Stable child-row identities are preserved when values change.
-- **Options/preferences:** `TrinketAppState.OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (selected tab, map scroll, and last Play mode) remains on the local `PlayerShellSessionStore`; legacy battle-resume keys are discarded. The app is always dark mode (no appearance preference).
+- **Options/preferences:** `TrinketAppState.OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (in-session selected tab) remains on the local `PlayerShellSessionStore`; cold launch always lands on Play unless a UI-test launch override selects another tab/screen. Legacy battle-resume and map-scroll keys are discarded. The app is always dark mode (no appearance preference).
 - **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements. Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`

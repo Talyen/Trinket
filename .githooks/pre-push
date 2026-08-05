@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push gate: format lint + SwiftLint + UI style + agent push gate (generate/assert).
+# Pre-push gate: full-tree style + agent push gate (generate/assert).
 # Install with: git config core.hooksPath .githooks
 set -euo pipefail
 
@@ -15,20 +15,8 @@ echo "=== Pre-push: ensure pinned format/lint tools ==="
 ./Scripts/ensure-ci-tools.sh
 export PATH="$ROOT/.tools:$PATH"
 
-echo "=== Pre-push: SwiftFormat lint ==="
-./Scripts/format.sh --lint
-
-echo "=== Pre-push: SwiftLint ==="
-./Scripts/lint.sh
-
-echo "=== Pre-push: UI style guardrail ==="
-./Scripts/check-ui-style.sh
-
-echo "=== Pre-push: platform API bans ==="
-./Scripts/check-platform-api-bans.sh
-
-echo "=== Pre-push: exclusivity footguns ==="
-./Scripts/check-exclusivity-footguns.sh
+echo "=== Pre-push: style (format / lint / UI / platform bans / exclusivity) ==="
+./Scripts/test.sh style
 
 echo "=== Pre-push: agent push gate (generate + assert vs HEAD) ==="
 ./Scripts/agent-push-gate.sh

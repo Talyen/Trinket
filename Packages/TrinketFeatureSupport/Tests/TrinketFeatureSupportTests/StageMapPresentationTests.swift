@@ -8,55 +8,35 @@ struct StageMapPresentationTests {
     @Test func stageMapIdentifiersAndLabelsMatchAuthoredContent() throws {
         let chapter = GameContent.chapters[0]
         let stage = try #require(chapter.stages.first)
-        #expect(StageMapID.chapterGate(for: chapter) == "chapter-gate-\(chapter.id)")
-        #expect(StageMapID.placeholderGate(afterChapterNumber: 2) == "chapter-gate-placeholder-2")
 
-        let gateChapter = Chapter(
-            id: StageMapID.placeholderGate(afterChapterNumber: 2),
-            number: 2,
-            title: "",
-            theme: chapter.theme,
-            stages: []
-        )
-        #expect(ChapterJourneyRow.stage(stage, .active).id == stage.id)
-        #expect(ChapterJourneyRow.chapterGate(gateChapter).id == StageMapID.chapterGate(for: gateChapter))
         #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
         #expect(stage.mapMetaLabel == "\(stage.mapLabel) · \(stage.encounterTypeTitle)")
+        #expect(StageMapID.stageAction(for: stage) == "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action")
     }
 
-    @Test func chapterRowsKeepAllStagesAndStopProgressAtTheActiveNode() {
+    @Test func stageSelectRowsOmitCompletedStages() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial
-        progress.completedStageIDs = [chapter.stages[0].id, chapter.stages[1].id]
-        progress.lastCompletedStageID = chapter.stages[1].id
-        progress.activeStageID = chapter.stages[2].id
+        progress.complete(chapter.stages[0], in: GameContent.chapters)
 
-        let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
+        let rows = StageSelectRowPresentation<Stage>.stageRows(for: chapter, progress: progress)
 
-        #expect(rows.count == chapter.stages.count)
-        #expect(rows.map(\.stage.id) == chapter.stages.map(\.id))
-        #expect(rows[0].state == .completed)
-        #expect(rows[1].state == .justCompleted)
-        #expect(rows[2].state == .active)
-        #expect(rows[3].state == .future)
-        #expect(rows[1].connectorAfter == .progressed)
-        #expect(rows[2].connectorBefore == .progressed)
-        #expect(rows[2].connectorAfter == .future)
-        #expect(rows[3].connectorBefore == .future)
+        #expect(!(rows.map(\.item.id).contains(chapter.stages[0].id)))
+        #expect(rows.contains { $0.item.id == progress.activeStageID && $0.isActive })
     }
 
     @Test func bossAndRecruitmentPresentationAreDerivedFromLiveContent() {
         let chapter = GameContent.chapters[0]
-        let rows = ChapterStageRowPresentation.rows(for: chapter, progress: .initial)
+        let recruit = chapter.stages[1]
+        let bosses = chapter.stages.filter(\.isBossEncounter)
 
-        #expect(rows[1].stage.encounterSubjectName == "Mystery")
-        #expect(rows[1].stage.encounterTypeTitle == "Recruit")
-        #expect(rows[1].stage.encounterCombatantArtReference == nil)
-        #expect(rows[1].stage.encounterArtReference != nil)
-        #expect(abs(rows[1].stage.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
-        let bossRows = rows.filter(\.isBoss)
-        #expect(bossRows.count == 1)
-        #expect(bossRows[0].stage.encounterTypeTitle == "Boss")
+        #expect(recruit.encounterSubjectName == "Mystery")
+        #expect(recruit.encounterTypeTitle == "Recruit")
+        #expect(recruit.encounterCombatantArtReference == nil)
+        #expect(recruit.encounterArtReference != nil)
+        #expect(abs(recruit.encounter.artAspectRatio - (4.0 / 3.0)) < 0.000_1)
+        #expect(bosses.count == 1)
+        #expect(bosses[0].encounterTypeTitle == "Boss")
     }
 
     @Test func battleStagesPreferEnemyArtOverEncounterArt() throws {
@@ -125,7 +105,6 @@ struct StageMapPresentationTests {
         #expect(rows.first?.isActive == true)
         #expect(rows.dropFirst().allSatisfy { !$0.isActive })
         #expect(rows.first?.activeEyebrow == "Floor 3 · Battle")
-        #expect(rows.first?.activeDetailLines.isEmpty == true)
         #expect(rows.last?.encounterTypeTitle == "Boss")
 
         for floor in 3 ... spire.floorCount {

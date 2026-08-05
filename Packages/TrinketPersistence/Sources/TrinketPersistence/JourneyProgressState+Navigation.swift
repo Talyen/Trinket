@@ -2,40 +2,12 @@ import Foundation
 import TrinketContent
 
 public extension JourneyProgressState {
-    /// Returns the stable map row that should receive focus after progress changes.
-    ///
-    /// This is progression navigation policy, not view layout. Keeping it beside
-    /// the journey state lets AppState and map views agree without routing through
-    /// the save-backed FeatureAdapters module.
-    func mapScrollFocusID(in chapters: [Chapter] = GameContent.chapters) -> String {
-        guard !chapters.isEmpty else { return "chapter-gate-placeholder-1" }
-
-        let chapter = chapters.first { $0.id == activeChapterID } ?? chapters[0]
-        if let activeStageID {
-            return activeStageID
-        }
-        if let lastStage = chapter.stages.last, isCompleted(lastStage) {
-            return lastStage.id
-        }
-
-        guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),
-              chapters.indices.contains(chapterIndex + 1)
-        else {
-            return "chapter-gate-placeholder-\(chapter.number + 1)"
-        }
-        return "chapter-gate-\(chapters[chapterIndex + 1].id)"
-    }
-
     func isActive(_ stage: Stage) -> Bool {
         activeStageID == stage.id
     }
 
     func isCompleted(_ stage: Stage) -> Bool {
         completedStageIDs.contains(stage.id)
-    }
-
-    func isLastCompleted(_ stage: Stage) -> Bool {
-        lastCompletedStageID == stage.id
     }
 
     func hasClaimedRewards(for stage: Stage) -> Bool {
@@ -48,7 +20,6 @@ public extension JourneyProgressState {
 
     mutating func complete(_ stage: Stage, in chapters: [Chapter]) {
         completedStageIDs.insert(stage.id)
-        lastCompletedStageID = stage.id
 
         if let nextStage = Self.nextStage(after: stage, in: chapters) {
             activeChapterID = nextStage.chapterID
@@ -70,7 +41,6 @@ public extension JourneyProgressState {
         let stageIDs = Set(chapter.stages.map(\.id))
         completedStageIDs.formUnion(stageIDs)
         claimedRewardStageIDs.formUnion(stageIDs)
-        lastCompletedStageID = lastStage.id
         if let nextStage = Self.nextStage(after: lastStage, in: chapters) {
             activeChapterID = nextStage.chapterID
             activeStageID = nextStage.id
@@ -86,7 +56,6 @@ public extension JourneyProgressState {
         guard let lastStage = allStages.last else { return }
         completedStageIDs = Set(allStages.map(\.id))
         claimedRewardStageIDs = completedStageIDs
-        lastCompletedStageID = lastStage.id
         activeChapterID = lastStage.chapterID
         activeStageID = nil
     }

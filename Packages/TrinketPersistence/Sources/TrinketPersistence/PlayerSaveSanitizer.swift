@@ -55,16 +55,6 @@ public enum PlayerSaveSanitizer {
         }
     }
 
-    public static func latestStageID(
-        in completedStageIDs: Set<String>,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> String? {
-        chapters
-            .flatMap(\.stages)
-            .map(\.id)
-            .last { completedStageIDs.contains($0) }
-    }
-
     public static func sanitizeJourney(
         _ journey: JourneyProgressState,
         chapters: [Chapter] = GameContent.chapters
@@ -83,7 +73,6 @@ public enum PlayerSaveSanitizer {
             return GameContent.mysteryEvent(matching: eventID) != nil
                 || GameContent.recruitEvent(matching: eventID) != nil
         }
-        sanitized.lastCompletedStageID = latestStageID(in: sanitized.completedStageIDs, chapters: chapters)
 
         if validChapterIDs.contains(sanitized.activeChapterID) {
             // keep

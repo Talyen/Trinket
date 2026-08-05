@@ -66,9 +66,6 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
     @discardableResult
     public func handleNodeAction(nodeID: String) -> StageMapMessage? {
         guard canBeginTransientEncounter else { return nil }
-        if let message = enter() {
-            return message
-        }
         let labyrinth = playerSave.labyrinth
         guard let node = labyrinth.node(id: nodeID) else {
             return StageMapMessage(title: "Path Missing", message: "This path is not ready yet.")
@@ -236,7 +233,7 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(nodeID: nodeID),
             loot: battleLoot(for: node, labyrinth: labyrinth),
             universalModifiers: Self.combatModifiers(from: effects)
         )
@@ -260,7 +257,7 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(nodeID: nodeID),
             loot: battleLoot(for: node, labyrinth: labyrinth),
             universalModifiers: Self.combatModifiers(from: effects)
         )
@@ -356,10 +353,8 @@ extension LabyrinthPlayMode {
         )
     }
 
-    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
-        guard case let .labyrinth(nodeID) = origin else {
-            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
-        }
+    func battleRoute(nodeID: String) -> PlayBattleRoute {
+        let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
             guard let self else { return false }
             return completeNode(

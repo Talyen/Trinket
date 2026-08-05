@@ -14,20 +14,17 @@ public final class JourneyPlayMode: PlayModeProtocol {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
-    private let noteMapScrollFocus: @MainActor @Sendable (String) -> Void
     private let encounters: EncounterPlayMode
 
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         battleLaunch: PlayBattleLaunch,
-        noteMapScrollFocus: @escaping @MainActor @Sendable (String) -> Void,
         encounters: EncounterPlayMode
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.battleLaunch = battleLaunch
-        self.noteMapScrollFocus = noteMapScrollFocus
         self.encounters = encounters
     }
 
@@ -35,50 +32,24 @@ public final class JourneyPlayMode: PlayModeProtocol {
         GameContent.chapter(id: playerSave.journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
-    /// Completes a stage and returns the map scroll target when persistence succeeds.
+    /// Completes a stage when persistence succeeds.
     @discardableResult
     func completeStage(
         _ stage: Stage,
         hero: Combatant,
         companion: Combatant,
         battleEarnedGold: Int = 0,
-        materialRewards: [ResourceAmount]? = nil
-    ) -> String? {
-        guard let resultingJourney = persistStageCompletions(
-            [stage],
-            hero: hero,
-            companion: companion,
-            battleEarnedGold: battleEarnedGold,
-            materialRewards: materialRewards
-        ) else {
-            return nil
-        }
-        let scrollTarget = resultingJourney.mapScrollFocusID()
-        noteMapScrollFocus(scrollTarget)
-        return scrollTarget
-    }
-
-    /// Journey-unique victory write + map-scroll focus. Token resolution lives on `PlayBattleCompletion`.
-    func applyBattleVictory(
-        stage: Stage,
-        hero: Combatant,
-        companion: Combatant,
-        battleEarnedGold: Int,
-        materialRewards: [ResourceAmount]?,
-        rewardItem: InventoryItem?
+        materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil
     ) -> Bool {
-        guard let resultingJourney = persistStageCompletions(
+        persistStageCompletions(
             [stage],
             hero: hero,
             companion: companion,
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
             rewardItem: rewardItem
-        ) else {
-            return false
-        }
-        noteMapScrollFocus(resultingJourney.mapScrollFocusID())
-        return true
+        )
     }
 
     public func resolvedEncounter(for stage: Stage) -> (combatant: Combatant, level: Int)? {
@@ -97,7 +68,7 @@ public final class JourneyPlayMode: PlayModeProtocol {
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(stageID: stage.id),
             loot: battleLoot(for: stage, encounter: encounter),
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,
@@ -115,7 +86,7 @@ public final class JourneyPlayMode: PlayModeProtocol {
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(stageID: stage.id),
             loot: battleLoot(for: stage, encounter: encounter),
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,
@@ -185,7 +156,7 @@ public final class JourneyPlayMode: PlayModeProtocol {
             stage,
             hero: roster.activeHero,
             companion: roster.activeCompanion
-        ) != nil else {
+        ) else {
             return StageMapMessage(
                 title: "Couldn't Save Progress",
                 message: "This stage wasn't saved. Try again."
@@ -203,10 +174,9 @@ public final class JourneyPlayMode: PlayModeProtocol {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil,
         resetJourney: Bool = false
-    ) -> JourneyProgressState? {
-        guard !stages.isEmpty else { return nil }
+    ) -> Bool {
+        guard !stages.isEmpty else { return false }
 
-        var resultingJourney = playerSave.journey
         do {
             try playerSave.performBatchMutation { save in
                 if resetJourney {
@@ -225,15 +195,14 @@ public final class JourneyPlayMode: PlayModeProtocol {
                         save: &save
                     )
                 }
-                resultingJourney = save.journey
             }
         } catch {
             appStateLogger.error(
                 "Failed to persist stage completions: \(error.localizedDescription, privacy: .public)"
             )
-            return nil
+            return false
         }
-        return resultingJourney
+        return true
     }
 }
 
@@ -284,14 +253,12 @@ extension JourneyPlayMode {
         journey.hasClaimedRewards(for: stage)
     }
 
-    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
-        guard case let .journey(stageID) = origin else {
-            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
-        }
+    func battleRoute(stageID: String) -> PlayBattleRoute {
+        let origin = PlayBattleOrigin.journey(stageID: stageID)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
             guard let self, let stage = GameContent.stage(id: stageID) else { return false }
-            return applyBattleVictory(
-                stage: stage,
+            return completeStage(
+                stage,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
                 battleEarnedGold: battleEarnedGold,

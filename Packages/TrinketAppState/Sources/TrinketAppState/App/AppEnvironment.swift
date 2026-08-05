@@ -14,8 +14,6 @@ public struct AppEnvironment: Sendable {
     public let completedStageIDs: [String]
     /// Test-only deterministic recruit event selected for the Mystery deep link.
     public let mysteryRecruitEventID: String?
-    /// Scroll target ID for the Play map row id, used by UI tests.
-    public let mapScrollTarget: String?
     /// When set, overrides the default 1s battle tick interval in `BattleView`.
     /// One battle tick equals one second of player-facing duration.
     public let battleTickInterval: TimeInterval?
@@ -35,7 +33,6 @@ public struct AppEnvironment: Sendable {
         persistSaveImmediately: Bool,
         completedStageIDs: [String],
         mysteryRecruitEventID: String?,
-        mapScrollTarget: String?,
         battleTickInterval: TimeInterval?,
         storeName: String?,
         enableFrameMetrics: Bool,
@@ -50,7 +47,6 @@ public struct AppEnvironment: Sendable {
         self.persistSaveImmediately = persistSaveImmediately
         self.completedStageIDs = completedStageIDs
         self.mysteryRecruitEventID = mysteryRecruitEventID
-        self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
         self.storeName = storeName
         self.enableFrameMetrics = enableFrameMetrics
@@ -91,7 +87,6 @@ public struct AppEnvironment: Sendable {
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),
             completedStageIDs: completedStageIDs(from: arguments),
             mysteryRecruitEventID: argumentValue(after: "-mystery-recruit-event", in: arguments),
-            mapScrollTarget: mapScrollTarget(from: arguments),
             battleTickInterval: battleTickInterval(from: arguments),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
                 arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
@@ -144,14 +139,6 @@ public struct AppEnvironment: Sendable {
             .split(separator: ",")
             .map(String.init)
             .filter { !$0.isEmpty }
-    }
-
-    private static func mapScrollTarget(from arguments: [String]) -> String? {
-        guard let idx = arguments.firstIndex(of: "-map-scroll-target"),
-              arguments.indices.contains(idx + 1)
-        else { return nil }
-        let target = arguments[idx + 1]
-        return target.isEmpty ? nil : target
     }
 
     private static func argumentValue(after flag: String, in arguments: [String]) -> String? {

@@ -18,7 +18,6 @@ extension AppState {
         let sfxPlayer: SFXPlayer
         let options: OptionsStore
         let selectedTab: AppTab
-        let mapScrollStageID: String?
         let pendingCollectionPresentation: LaunchPresentation?
         let pendingPlayDestination: PlayLaunchDestination?
     }
@@ -73,7 +72,6 @@ extension AppState {
             sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
             selectedTab: selectedTab(environment: environment),
-            mapScrollStageID: resolvedShellSession.mapScrollStageID,
             pendingCollectionPresentation: launchCollection,
             pendingPlayDestination: launchPlay
         )
@@ -84,9 +82,6 @@ extension AppState {
         onLaunchBattleVictory: @escaping () -> Void
     ) {
         play.seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
-        if let mapScrollTarget = environment.mapScrollTarget {
-            play.noteMapScrollFocus(mapScrollTarget)
-        }
         switch environment.launchScreen {
         case .battle:
             play.startLaunchBattle()
@@ -100,7 +95,6 @@ extension AppState {
             break
         }
 
-        evaluateLaunchLanding()
         installMemoryPressureHandling()
     }
 
@@ -210,11 +204,5 @@ private extension AppState {
         case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .companionDetail, .itemDetail, .none:
             nil
         }
-    }
-}
-
-extension AppTab {
-    init?(shellSessionTab: PlayerShellSessionTab) {
-        self.init(rawValue: shellSessionTab.rawValue)
     }
 }

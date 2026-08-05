@@ -30,17 +30,6 @@ public final class PlaySession {
     let battleCompletion: PlayBattleCompletion
 
     public private(set) var pendingDestination: PlayLaunchDestination?
-    public private(set) var mapScrollFocus: MapScrollFocus?
-
-    public var mapScrollStageID: String? {
-        get { shellSession.mapScrollStageID }
-        set { shellSession.mapScrollStageID = newValue }
-    }
-
-    public var lastPlayMode: PlayerShellSessionPlayMode {
-        get { shellSession.lastPlayMode }
-        set { shellSession.lastPlayMode = newValue }
-    }
 
     init(
         playerSave: PlayerSaveStore,
@@ -60,7 +49,6 @@ public final class PlaySession {
         let registry = PlayBattleRunRegistry()
         battleRunRegistry = registry
 
-        let scrollSink = PlayMapScrollSink()
         let runCallbacks = LaunchRunCallbacks(
             registerRun: { [registry] reg in registry.register(reg) },
             removeRun: { [registry] key in registry.remove(key) },
@@ -71,10 +59,7 @@ public final class PlaySession {
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            runCallbacks: runCallbacks,
-            noteMapScrollFocus: { [scrollSink] targetID in
-                scrollSink.noteMapScrollFocus(targetID)
-            }
+            runCallbacks: runCallbacks
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -82,7 +67,6 @@ public final class PlaySession {
         spires = graph.spires
         encounters = graph.encounters
         battleCompletion = graph.battleCompletion
-        scrollSink.owner = self
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -101,17 +85,11 @@ public final class PlaySession {
             appStateLogger.error("Missing route for active battle dismissal")
         }
         queueReturnToBattleOrigin(from: origin)
-        shellSession.selectedTab = .play
+        shellSession.selectedTabRaw = AppTab.play.rawValue
         battle.endBattle()
         if let runKey {
             battleRunRegistry.remove(runKey)
         }
-    }
-
-    public func noteMapScrollFocus(_ targetID: String) {
-        mapScrollStageID = targetID
-        let nextRevision = (mapScrollFocus?.revision ?? 0) + 1
-        mapScrollFocus = MapScrollFocus(stageID: targetID, revision: nextRevision)
     }
 
     /// Persists victory rewards and ends the battle only when persistence succeeds.
@@ -143,33 +121,7 @@ public final class PlaySession {
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
-        shellSession.resetToDefaults(selectingTab: .play)
-    }
-
-    static func shouldRestoreMapScroll(
-        _ targetID: String,
-        journey: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        if targetID.hasPrefix("chapter-gate-") {
-            return true
-        }
-        guard let stage = chapters.flatMap(\.stages).first(where: { $0.id == targetID }) else {
-            return false
-        }
-        return journey.isActive(stage)
-    }
-
-    func registerBattleRun(_ registration: PlayBattleRunRegistration) {
-        battleRunRegistry.register(registration)
-    }
-
-    func removeBattleRun(_ runKey: BattleRunKey) {
-        battleRunRegistry.remove(runKey)
-    }
-
-    func removeBattleRuns(except runKey: BattleRunKey) {
-        battleRunRegistry.removeExcept(runKey)
+        shellSession.resetToDefaults(selectingTabRaw: AppTab.play.rawValue)
     }
 
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
@@ -221,15 +173,6 @@ final class PlayBattleRunRegistry {
     }
 }
 
-@MainActor
-private final class PlayMapScrollSink {
-    weak var owner: PlaySession?
-
-    func noteMapScrollFocus(_ targetID: String) {
-        owner?.noteMapScrollFocus(targetID)
-    }
-}
-
 struct LaunchRunCallbacks {
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
@@ -253,8 +196,7 @@ enum PlayModeGraph {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        runCallbacks: LaunchRunCallbacks,
-        noteMapScrollFocus: @escaping @MainActor @Sendable (String) -> Void
+        runCallbacks: LaunchRunCallbacks
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
@@ -273,7 +215,6 @@ enum PlayModeGraph {
             playerSave: playerSave,
             battle: battle,
             battleLaunch: battleLaunch,
-            noteMapScrollFocus: noteMapScrollFocus,
             encounters: encounters
         )
         let labyrinth = LabyrinthPlayMode(

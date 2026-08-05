@@ -18,26 +18,18 @@ final class PlayerShellSessionStoreTests {
     @Test func roundTripMatrixPersistsAndResetsShellState() throws {
         let storeURL = directoryURL.appending(path: "shell-round-trip.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(store.lastPlayMode == .campaign)
 
-        store.selectedTab = .options
-        store.mapScrollStageID = "chapter-1-stage-3"
-        store.lastPlayMode = .labyrinth
+        store.selectedTabRaw = "options"
         store.flushPendingPersistence()
 
         var reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(reloaded.selectedTab == .options)
-        try #expect(reloaded.mapScrollStageID == "chapter-1-stage-3")
-        try #expect(reloaded.lastPlayMode == .labyrinth)
+        try #expect(reloaded.selectedTabRaw == "options")
 
-        reloaded.clearMapScrollState()
-        reloaded.resetToDefaults(selectingTab: .homestead)
+        reloaded.resetToDefaults(selectingTabRaw: "homestead")
         reloaded.flushPendingPersistence()
 
         reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(reloaded.selectedTab == .homestead)
-        try #expect(reloaded.mapScrollStageID == nil)
-        try #expect(reloaded.lastPlayMode == .campaign)
+        try #expect(reloaded.selectedTabRaw == "homestead")
     }
 
     @Test func legacyTabRemappingMatrix() throws {
@@ -52,27 +44,24 @@ final class PlayerShellSessionStoreTests {
         try context.save()
 
         let persistedStore = try PlayerShellSessionStore(storeURL: persistedURL)
-        try #expect(persistedStore.selectedTab == .collection)
+        try #expect(persistedStore.selectedTabRaw == "collection")
     }
 
-    @Test func remapsLegacyAspectsPlayModeToSpires() throws {
-        let storeURL = directoryURL.appending(path: "legacy-aspects-mode.store")
-        let schema = Schema([PlayerShellSession.self])
-        let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
-        let container = try ModelContainer(for: schema, configurations: [config])
+    @Test func unknownTabRawFallsBackToPlay() throws {
+        let persistedSchema = Schema([PlayerShellSession.self])
+        let persistedURL = directoryURL.appending(path: "unknown-tab.store")
+        let config = ModelConfiguration(schema: persistedSchema, url: persistedURL, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: persistedSchema, configurations: [config])
         let context = ModelContext(container)
         let record = PlayerShellSession()
-        record.selectedTabRaw = "play"
-        record.lastPlayModeRaw = "aspects"
+        record.selectedTabRaw = "not-a-tab"
         context.insert(record)
         try context.save()
 
-        let store = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(store.lastPlayMode == .spires)
+        let store = try PlayerShellSessionStore(storeURL: persistedURL)
+        try #expect(store.selectedTabRaw == "play")
 
-        let reloadedContext = try ModelContext(ModelContainer(for: schema, configurations: [config]))
-        let descriptor = FetchDescriptor<PlayerShellSession>()
-        let reloaded = try #require(try reloadedContext.fetch(descriptor).first { $0.id == "current" })
-        try #expect(reloaded.lastPlayModeRaw == PlayerShellSessionPlayMode.spires.rawValue)
+        let reloaded = try PlayerShellSessionStore(storeURL: persistedURL)
+        try #expect(reloaded.selectedTabRaw == "play")
     }
 }

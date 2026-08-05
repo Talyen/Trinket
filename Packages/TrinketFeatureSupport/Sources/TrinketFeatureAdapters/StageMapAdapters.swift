@@ -5,88 +5,54 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
-public enum JourneyMapPresentation {
-    public static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {
-        guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),
-              chapters.indices.contains(chapterIndex + 1)
-        else { return placeholderGateChapter(after: chapter) }
-        return chapters[chapterIndex + 1]
-    }
-
-    public static func placeholderGateChapter(after chapter: Chapter) -> Chapter {
-        let nextNumber = chapter.number + 1
-        return Chapter(
-            id: StageMapID.placeholderGate(afterChapterNumber: nextNumber),
-            number: nextNumber,
-            title: "",
-            theme: chapter.theme,
-            stages: []
-        )
-    }
-
-    public static func stageNodeState(for stage: Stage, progress: JourneyProgressState) -> StageNodeState {
-        if progress.isActive(stage) {
-            return .active
-        }
-        if progress.isCompleted(stage) {
-            return progress.isLastCompleted(stage) ? .justCompleted : .completed
-        }
-        return .future
-    }
-
-    public static func chapterRows(
-        chapters: [Chapter],
-        chapter: Chapter,
-        progress: JourneyProgressState
-    ) -> [ChapterJourneyRow] {
-        chapter.stages.compactMap { stage -> ChapterJourneyRow? in
-            let state = stageNodeState(for: stage, progress: progress)
-            guard state != .completed, state != .justCompleted else { return nil }
-            return .stage(stage, state)
-        } + [.chapterGate(gateChapter(after: chapter, in: chapters))]
-    }
-}
-
-public enum ChapterJourneyRow: Identifiable {
-    case stage(Stage, StageNodeState)
-    case chapterGate(Chapter)
-
-    public var id: String {
-        switch self {
-        case let .stage(stage, _):
-            stage.id
-        case let .chapterGate(chapter):
-            StageMapID.chapterGate(for: chapter)
-        }
-    }
-}
-
-public extension ChapterStageRowPresentation {
-    static func rows(
+public extension StageSelectRowPresentation where Item == Stage {
+    /// Campaign Stage Select rows for incomplete stages.
+    ///
+    /// Keep map artwork tied to the authored recruit event. The configured recruit
+    /// can resolve to a fallback only when the player takes the stage action;
+    /// resolving it here would change card artwork as roster state settles during navigation.
+    static func stageRows(
         for chapter: Chapter,
         progress: JourneyProgressState
     ) -> [Self] {
-        let states = chapter.stages.map {
-            JourneyMapPresentation.stageNodeState(for: $0, progress: progress)
-        }
+        chapter.stages
+            .filter { !progress.isCompleted($0) }
+            .map { stage in
+                Self(
+                    item: stage,
+                    isActive: progress.isActive(stage),
+                    activeEyebrow: stage.mapLabel,
+                    mapLabel: stage.mapLabel,
+                    title: stage.encounterSubjectName,
+                    encounterTypeTitle: stage.encounterTypeTitle,
+                    symbolName: stage.encounter.symbolName,
+                    tint: stage.encounter.mapTint,
+                    primaryActionTitle: stage.encounter.primaryActionTitle,
+                    showsPartyPicker: stage.encounter.isCombat,
+                    isArtworkInteractive: stage.encounter.isCombat,
+                    rowAccessibilityID: AccessibilityID.Play.stageRow(
+                        chapter: stage.chapterNumber,
+                        stage: stage.stageNumber
+                    ),
+                    artworkAccessibilityID: artworkAccessibilityID(for: stage),
+                    actionAccessibilityID: StageMapID.stageAction(for: stage),
+                    activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
+                    partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl
+                )
+            }
+    }
 
-        return chapter.stages.enumerated().map { index, stage in
-            let state = states[index]
-            let connectorBefore: PathConnectorState? = index == chapter.stages.startIndex
-                ? nil
-                : (state == .future ? .future : .progressed)
-            let connectorAfter: PathConnectorState? = index == chapter.stages.index(before: chapter.stages.endIndex)
-                ? nil
-                : (states[index + 1] == .future ? .future : .progressed)
-
-            return Self(
-                stage: stage,
-                state: state,
-                connectorBefore: connectorBefore,
-                connectorAfter: connectorAfter,
-                isBoss: stage.isBossEncounter
-            )
+    private static func artworkAccessibilityID(for stage: Stage) -> String {
+        if stage.encounter.isCombat {
+            return "\(stage.mapLabel) Enemy Art"
         }
+        if case .mysteryEvent = stage.encounter {
+            return "\(stage.mapLabel) Mystery Art"
+        }
+        if stage.encounter.eventID != nil {
+            return "\(stage.mapLabel) Mystery Art"
+        }
+        return "\(stage.mapLabel) Encounter Art"
     }
 }
 
@@ -118,7 +84,6 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
                 activeEyebrow: "\(mapLabel) · \(encounterTypeTitle)",
                 mapLabel: mapLabel,
                 title: enemy.combatant.name,
-                activeDetailLines: [],
                 encounterTypeTitle: encounterTypeTitle,
                 symbolName: encounter.symbolName,
                 tint: encounter.mapTint,
@@ -145,6 +110,38 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
                 )
             )
         }
+    }
+}
+
+public extension StageSelectRowPresentation where Item == LabyrinthNode {
+    static func labyrinthRow(
+        for node: LabyrinthNode,
+        type: LabyrinthNodeType,
+        title: String,
+        isArtworkInteractive: Bool
+    ) -> Self {
+        let mapLabel = "Floor \(node.depth)"
+        return Self(
+            item: node,
+            isActive: true,
+            activeEyebrow: mapLabel,
+            mapLabel: mapLabel,
+            title: title,
+            encounterTypeTitle: type.title,
+            symbolName: LabyrinthMapPresentation.symbolName(
+                for: type,
+                recruitEventID: node.recruitEventID
+            ),
+            tint: LabyrinthMapPresentation.tint(for: type),
+            primaryActionTitle: LabyrinthMapPresentation.actionTitle(for: node, type: type),
+            showsPartyPicker: type.isCombat,
+            isArtworkInteractive: isArtworkInteractive,
+            rowAccessibilityID: AccessibilityID.Play.labyrinthNode(node.id),
+            artworkAccessibilityID: AccessibilityID.Play.labyrinthNodeArtwork(node.id),
+            actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
+            activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
+            partyControlAccessibilityID: "Labyrinth Node \(node.id) Party Control"
+        )
     }
 }
 

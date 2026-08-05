@@ -32,6 +32,13 @@ struct SpireClimbView: View {
         return playerSave.spires.activeFloor(for: spireID.rawValue, floorCount: spire.floorCount)
     }
 
+    private var prepareBattleDependency: StageSelectPrepareDependency? {
+        guard GameContent.spireFloor(spireID: spireID, floor: activeFloorNumber) != nil else {
+            return nil
+        }
+        return .spire(spireID: spireID, floor: activeFloorNumber, playerSave: playerSave)
+    }
+
     var body: some View {
         Group {
             if let spire {
@@ -49,19 +56,7 @@ struct SpireClimbView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-        .onAppear {
-            prepareActiveFloorBattle()
-        }
-        .onChange(of: activeFloorNumber) { _, _ in
-            prepareActiveFloorBattle()
-        }
-        .onChange(of: playerSave.roster) { _, _ in
-            prepareActiveFloorBattle()
-        }
-        .onChange(of: playerSave.inventory) { _, _ in
-            prepareActiveFloorBattle()
-        }
-        .onChange(of: playerSave.homestead) { _, _ in
+        .task(id: prepareBattleDependency) {
             prepareActiveFloorBattle()
         }
     }

@@ -251,27 +251,11 @@ struct LabyrinthNodeInspector: View {
     }
 
     private var presentation: StageSelectRowPresentation<LabyrinthNode> {
-        StageSelectRowPresentation(
-            item: node,
-            isActive: true,
-            activeEyebrow: "Floor \(node.depth)",
-            mapLabel: "Floor \(node.depth)",
+        StageSelectRowPresentation.labyrinthRow(
+            for: node,
+            type: type,
             title: subjectTitle,
-            activeDetailLines: [],
-            encounterTypeTitle: type.title,
-            symbolName: LabyrinthMapPresentation.symbolName(
-                for: type,
-                recruitEventID: node.recruitEventID
-            ),
-            tint: LabyrinthMapPresentation.tint(for: type),
-            primaryActionTitle: LabyrinthMapPresentation.actionTitle(for: node, type: type),
-            showsPartyPicker: type.isCombat,
-            isArtworkInteractive: enemyDetail != nil,
-            rowAccessibilityID: AccessibilityID.Play.labyrinthNode(node.id),
-            artworkAccessibilityID: AccessibilityID.Play.labyrinthNodeArtwork(node.id),
-            actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
-            activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
-            partyControlAccessibilityID: "Labyrinth Node \(node.id) Party Control"
+            isArtworkInteractive: enemyDetail != nil
         )
     }
 

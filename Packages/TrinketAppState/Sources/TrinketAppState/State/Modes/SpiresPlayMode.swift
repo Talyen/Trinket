@@ -54,16 +54,14 @@ public final class SpiresPlayMode: PlayModeProtocol {
         )
     }
 
-    func battleRoute(for origin: PlayBattleOrigin) -> PlayBattleRoute {
-        guard case let .spire(spireID, floorNumber) = origin,
-              let floor = GameContent.spireFloor(spireID: spireID, floor: floorNumber)
-        else {
-            return PlayBattleRoute(origin: origin) { _, _, _, _ in false }
-        }
+    func battleRoute(spireID: SpireID, floor: Int) -> PlayBattleRoute {
+        let origin = PlayBattleOrigin.spire(spireID: spireID, floor: floor)
         return PlayBattleRoute(origin: origin) { [weak self] configuration, presentation, battleEarnedGold, materialRewards in
-            guard let self else { return false }
+            guard let self,
+                  let resolvedFloor = GameContent.spireFloor(spireID: spireID, floor: floor)
+            else { return false }
             return completeFloor(
-                floor,
+                resolvedFloor,
                 hero: configuration.hero.combatant,
                 companion: configuration.companion.combatant,
                 battleEarnedGold: battleEarnedGold,
@@ -114,7 +112,7 @@ public final class SpiresPlayMode: PlayModeProtocol {
         battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(spireID: floor.spireID, floor: floor.floor),
             loot: battleLoot(for: floor)
         )
         return nil
@@ -138,7 +136,7 @@ public final class SpiresPlayMode: PlayModeProtocol {
         battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(for: origin),
+            route: battleRoute(spireID: floor.spireID, floor: floor.floor),
             loot: battleLoot(for: floor)
         )
     }

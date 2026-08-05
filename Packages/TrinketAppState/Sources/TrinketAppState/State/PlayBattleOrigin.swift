@@ -49,6 +49,16 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 struct PlayBattleRoute {
     let origin: PlayBattleOrigin
     let complete: @MainActor (BattleRunConfiguration, BattlePresentationContext?, Int, [ResourceAmount]?) -> Bool
+
+    /// True when `route` matches `runKey` (both nil, or same origin run key).
+    static func matches(_ route: Self?, runKey: BattleRunKey?, missingLog: String) -> Bool {
+        guard let runKey else { return route == nil }
+        guard let route, route.origin.runKey == runKey else {
+            appStateLogger.error("\(missingLog, privacy: .public)")
+            return false
+        }
+        return true
+    }
 }
 
 /// Complete metadata for one prepared or active Play battle.

@@ -96,6 +96,8 @@ public enum AccessibilityID {
             "Spire \(spireID) Completion Back"
         }
 
+        public static let campaignCompletionBack = "Campaign Completion Back"
+
         public static let labyrinthModeCard = "Labyrinth Mode Card"
         public static let labyrinthMap = "Labyrinth Map"
         public static let labyrinthEnter = "Labyrinth Enter"

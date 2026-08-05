@@ -28,8 +28,8 @@ public final class AppState {
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
     public var selectedTab: AppTab {
-        get { AppTab(shellSessionTab: shellSession.selectedTab) ?? .play }
-        set { shellSession.selectedTab = PlayerShellSessionTab(rawValue: newValue.rawValue) ?? .play }
+        get { AppTab(rawValue: shellSession.selectedTabRaw) ?? .play }
+        set { shellSession.selectedTabRaw = newValue.rawValue }
     }
 
     public init(
@@ -57,12 +57,9 @@ public final class AppState {
         options = dependencies.options
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
 
-        let desiredTab = PlayerShellSessionTab(rawValue: dependencies.selectedTab.rawValue) ?? .play
-        if shellSession.selectedTab != desiredTab {
-            shellSession.selectedTab = desiredTab
-        }
-        if shellSession.mapScrollStageID != dependencies.mapScrollStageID {
-            shellSession.mapScrollStageID = dependencies.mapScrollStageID
+        let desiredTabRaw = dependencies.selectedTab.rawValue
+        if shellSession.selectedTabRaw != desiredTabRaw {
+            shellSession.selectedTabRaw = desiredTabRaw
         }
         let resolvedBattle = Self.resolveBattleComposition(
             explicit: battleComposition,
@@ -251,14 +248,6 @@ public final class AppState {
         }
     }
 
-    /// Always land on Play unless a UI-test launch override selected another tab/screen.
-    public func evaluateLaunchLanding() {
-        let hasLaunchOverride = environment.launchTab != nil || environment.launchScreen != nil
-        if !hasLaunchOverride {
-            selectedTab = .play
-        }
-    }
-
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
         switch phase {
         case .background:
@@ -273,8 +262,8 @@ public final class AppState {
             shellSession.flushPendingPersistence()
             playerSave.flushPendingPersistence()
         case .active:
-            // Launch tab is applied once during bootstrap / finishBootstrap.
-            // Re-forcing Play on every foreground would wipe the persisted shell tab.
+            // Cold launch lands on Play via bootstrap `selectedTab(environment:)`.
+            // Re-forcing Play on every foreground would wipe the in-session shell tab.
             play.battle.setSuspendedForScenePhase(false)
         @unknown default:
             break

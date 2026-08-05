@@ -16,7 +16,7 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 | Baseline commit | Set after |
 |-----------------|-----------|
-| `38c4b072` | routine all-audits pass 2026-08-03 |
+| `d9eeb924` | dual-path + inelegant-slop simplification pass 2026-08-05; residual pass implemented open proposals (lastPlayMode / lastCompletedStageID / AppTab unify / cold-launch always-Play) plus ghost/slop cleanup (uncommitted until landed) |
 
 ## Open proposals
 
@@ -40,4 +40,12 @@ Candidates confirmed as intentional or not worth fixing. Skip them during triage
 
 | Owning audit | Candidate | Why accepted | Decided |
 |--------------|-----------|--------------|---------|
-| _none_ | | | |
+| 08 / 11 | `BattleRuntime` / `BattleCommandCoordinator` / `PlayBattleLaunch` | Intentional presentation/runtime and launch seams | 2026-08-05 |
+| 08 | Options vs `PlayerSave`; catalog authored vs generated | Architecture hard-stop dual seams | 2026-08-05 |
+| 08 / 11 | `TrinketFeatureAdapters` module split | Enforced package DAG boundary | 2026-08-05 |
+| 08 | `PlayerSaveSanitizer` / labyrinth regeneration | Live save migration; consumer window open | 2026-08-05 |
+| 11 | `PlayModeProtocol` marker (without `performModeMutation`) | Thin mode marker; not used as `any PlayModeProtocol` but kept | 2026-08-05 |
+| 11 | `StageSelectRowPresentation` stage/spire/labyrinth builders | Mode-specific field sources; shared config object would add ceremony | 2026-08-05 |
+| 08 | `PlayerSave` / wire aspects decode, ability-ID remaps, shell tab `"search"`→collection | Live save/shell consumer window still open; propose only after sunset | 2026-08-05 |
+| 11 | `PlayModeGraph` / `LaunchRunCallbacks` | Documented Play assembly owner; not deferred-bind theater | 2026-08-05 |
+| 11 | `check-build-cache-paths.sh` divergent path lists | Intentional CI vs local freshness differences; documented | 2026-08-05 |

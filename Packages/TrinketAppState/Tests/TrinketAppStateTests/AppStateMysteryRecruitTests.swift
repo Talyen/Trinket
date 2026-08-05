@@ -46,7 +46,7 @@ struct AppStateMysteryRecruitTests {
             [completedStage],
             hero: state.playerSave.roster.activeHero,
             companion: state.playerSave.roster.activeCompanion
-        ) != nil)
+        ))
 
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
