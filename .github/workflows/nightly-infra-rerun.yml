@@ -56,6 +56,18 @@ jobs:
           set -euo pipefail
           title="Nightly failing on main"
           body="Nightly failed for ${HEAD_SHA} (attempt ${RUN_ATTEMPT}): ${RUN_URL}"
+          has_issues="$(gh api "repos/$REPO" --jq '.has_issues')"
+          if [ "$has_issues" != "true" ]; then
+            {
+              echo "## Nightly failure (Issues disabled)"
+              echo
+              echo "$body"
+              echo
+              echo "GitHub Issues are disabled on \`$REPO\`; skipping issue create/comment."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Issues disabled on $REPO; recorded failure in step summary."
+            exit 0
+          fi
           existing="$(gh issue list --repo "$REPO" --state open \
             --search "in:title \"$title\"" --json number --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then

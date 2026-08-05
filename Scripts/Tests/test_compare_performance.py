@@ -19,14 +19,21 @@ SPEC.loader.exec_module(compare_performance)
 
 
 class ComparePerformanceTests(unittest.TestCase):
-    def run_comparison(self, reports: list[dict[str, object]]) -> tuple[int, str]:
+    def run_comparison(
+        self,
+        reports: list[dict[str, object]],
+        *,
+        mode: str = "enforce",
+        goals: dict[str, object] | None = None,
+    ) -> tuple[int, str]:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             baseline = root / "baseline.json"
             results = root / "results.json"
             summary = root / "summary.md"
             baseline.write_text(json.dumps({
-                "goals": {
+                "mode": mode,
+                "goals": goals or {
                     "minimumAverageFPS": 59,
                     "minimumOnePercentLowFPS": 59,
                     "maximumSevereStallCount": 0,
@@ -67,6 +74,7 @@ class ComparePerformanceTests(unittest.TestCase):
         status, summary = self.run_comparison([self.report()])
         self.assertEqual(status, 0)
         self.assertIn("59/59/zero-severe-stall", summary)
+        self.assertIn("Mode: `enforce`", summary)
 
     def test_duplicate_or_missing_reports_fail(self) -> None:
         status, summary = self.run_comparison([self.report(), self.report()])
@@ -90,7 +98,17 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertIn("1% low 58.80 FPS below 59.00", summary)
         self.assertIn("severe stalls 1 above zero", summary)
 
-    def test_configured_goals_and_metric_domains_are_enforced(self) -> None:
+    def test_observe_mode_is_non_blocking(self) -> None:
+        status, summary = self.run_comparison(
+            [self.report(averageFPS=40.0, onePercentLowFPS=1.5, severeStallCount=10)],
+            mode="observe",
+        )
+        self.assertEqual(status, 0)
+        self.assertIn("Mode: `observe`", summary)
+        self.assertIn("average FPS 40.00 below 59.00", summary)
+        self.assertIn("Calibration mode is non-blocking", summary)
+
+    def test_default_mode_is_observe(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             baseline = root / "baseline.json"
@@ -98,20 +116,16 @@ class ComparePerformanceTests(unittest.TestCase):
             summary = root / "summary.md"
             baseline.write_text(json.dumps({
                 "goals": {
-                    "minimumAverageFPS": 55,
-                    "minimumOnePercentLowFPS": 54,
-                    "maximumSevereStallCount": 2,
+                    "minimumAverageFPS": 59,
+                    "minimumOnePercentLowFPS": 59,
+                    "maximumSevereStallCount": 0,
                 },
+                "refreshTargetHz": 60,
                 "scenarios": ["navigation"],
             }))
-            report = self.report(
-                averageFPS=54.9,
-                onePercentLowFPS=53.9,
-                missedDeadlineCount=-1,
-                missedDeadlineRatio=2,
-                severeStallCount=3,
-            )
-            results.write_text(json.dumps({"reports": [report]}))
+            results.write_text(json.dumps({
+                "reports": [self.report(averageFPS=40.0, onePercentLowFPS=1.5, severeStallCount=1)],
+            }))
             argv = [
                 str(SCRIPT),
                 "--baseline", str(baseline),
@@ -121,11 +135,31 @@ class ComparePerformanceTests(unittest.TestCase):
             with patch.object(sys, "argv", argv):
                 status = compare_performance.main()
             rendered = summary.read_text()
-            self.assertEqual(status, 1)
-            self.assertIn("below 55.00", rendered)
-            self.assertIn("must be a non-negative integer", rendered)
-            self.assertIn("must be between 0 and 1", rendered)
-            self.assertIn("above 2", rendered)
+            self.assertEqual(status, 0)
+            self.assertIn("Mode: `observe`", rendered)
+            self.assertIn("Calibration mode is non-blocking", rendered)
+
+    def test_configured_goals_and_metric_domains_are_enforced(self) -> None:
+        status, rendered = self.run_comparison(
+            [self.report(
+                averageFPS=54.9,
+                onePercentLowFPS=53.9,
+                missedDeadlineCount=-1,
+                missedDeadlineRatio=2,
+                severeStallCount=3,
+            )],
+            mode="enforce",
+            goals={
+                "minimumAverageFPS": 55,
+                "minimumOnePercentLowFPS": 54,
+                "maximumSevereStallCount": 2,
+            },
+        )
+        self.assertEqual(status, 1)
+        self.assertIn("below 55.00", rendered)
+        self.assertIn("must be a non-negative integer", rendered)
+        self.assertIn("must be between 0 and 1", rendered)
+        self.assertIn("above 2", rendered)
 
 
 if __name__ == "__main__":

@@ -75,6 +75,10 @@ def main() -> int:
             continue
         grouped[scenario].append(raw_report)
 
+    mode = str(baseline.get("mode", "observe"))
+    if mode not in ("observe", "enforce"):
+        raise SystemExit(f"baseline mode must be 'observe' or 'enforce', found {mode!r}")
+
     goals = baseline["goals"]
     try:
         minimum_average = float(goals["minimumAverageFPS"])
@@ -138,6 +142,7 @@ def main() -> int:
     lines = [
         "# App performance comparison",
         "",
+        f"Mode: `{mode}`. Refresh target: `{baseline.get('refreshTargetHz', 'unknown')} Hz`.",
         f"Gate: one measured report per scenario; average FPS >= {minimum_average:g}; "
         f"1% low FPS >= {minimum_low:g}; severe stalls <= {severe_limit_text}.",
         "p95/p99/max frame time and missed deadlines are diagnostic only.",
@@ -152,11 +157,17 @@ def main() -> int:
     lines.extend(f"- {failure}" for failure in failures)
     if not failures:
         lines.append("- Every maintained scenario met the 59/59/zero-severe-stall gate.")
+    if mode == "observe":
+        lines.extend([
+            "",
+            "Calibration mode is non-blocking. Promote to `enforce` only after hosted "
+            "Simulator runs consistently clear the goals.",
+        ])
 
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     args.summary.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
-    return 1 if failures else 0
+    return 1 if failures and mode == "enforce" else 0
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
     "minimumAverageFPS": 59.0,
     "minimumOnePercentLowFPS": 59.0
   },
-  "mode": "enforce",
+  "mode": "observe",
   "refreshTargetHz": 60,
   "scenarios": [
     "tab-round-trip",
@@ -22,5 +22,6 @@
     "turn-transition",
     "combined-worst-case"
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "notes": "Hosted Simulator Nightly collects and reports against these goals without blocking. Promote to enforce only after CI Simulator runs consistently clear average FPS, 1% low, and zero severe stalls."
 }

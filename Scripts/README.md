@@ -190,7 +190,9 @@ Parallel source trees:
 `performance.sh` is intentionally separate from smoke and integration gates. It takes an
 exclusive Battle-performance lock, forces one UI lane, runs `BattlePerformance.xctestplan`
 with one measured report per scenario by default, collects raw frame reports, and compares
-them with the observe/enforce policy in `Performance/Baselines/simulator-60.json`. Override
+them with the observe/enforce policy in `Performance/Baselines/simulator-60.json`
+(`observe` reports findings without failing the job; `enforce` exits non-zero on misses).
+Nightly stays in `observe` until hosted Simulator consistently clears the goals. Override
 repetitions for diagnostic spreads with `TRINKET_PERFORMANCE_REPETITIONS=N` (skips the
 single-report gate compare when N > 1). Use `test.sh performance <Class[/method]>`
 only for focused harness iteration; use `performance.sh` for comparable artifacts.
