@@ -24,8 +24,7 @@ Propose-and-stop items awaiting user approval per the README right-size policy.
 
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
-| StateGravityOwnership | Collapse `PlayView` mystery/shop origin switches into `EncounterPlayMode` UI entry points (store `completeProgress` at begin; delete journey/labyrinth wrappers) | `PlayView.resolveMysteryChoice` / `finishShopEncounter`; `JourneyPlayMode`/`LabyrinthPlayMode` thin wrappers | Cross-mode session ownership rewrite with map-scroll + persist semantics; root deferred for confidence beyond a bounded in-pass patch | 2026-08-03 |
-| ChangeLocalityContextEfficiency | Make `Scripts/README.md` sole CI/routing prose owner; trim `Docs/AgentContext/ci-and-project-generation.md` to exceptions + links | Parallel path-scoped verify / self-clean prose co-touched in Ring 1 | Large guidance rewrite across two long owners; easy to drop card-specific exceptions without careful editorial pass | 2026-08-03 |
+| _none_ | | | | |
 
 ## Rejected proposals
 

@@ -1,4 +1,4 @@
-# Duplicate Feature Surface Audit
+# 09. Duplicate Feature Surface Audit
 
 **Goal:** Collapse near-duplicate SwiftUI product surfaces — copied hubs, encounter shells, detail panes, pickers, and summary grids — into one parameterized owner without inventing a new UI framework.
 

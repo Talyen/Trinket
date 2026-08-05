@@ -17,8 +17,7 @@ closest test in `Packages/BattleEngine/Tests/`. `BattleState` is a facade: add s
 mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or
 engines. Do not put feature calls in the engine.
 
-For presentation, `BattleRuntimeSession` is the lifecycle/command owner and
-`BattleSimulationStore` is the only BattleFeature owner of mutable `BattleState`.
+For presentation, `BattleRuntimeSession` is the lifecycle, command, and simulation owner of mutable `BattleState`.
 `BattleSession` is the presentation coordinator and mirrors runtime transitions
 through its composition callback; it does not implement `BattleRuntime`.
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns

@@ -69,7 +69,7 @@ struct AppStateShopEncounterTests {
         }
         let itemsBefore = state.playerSave.inventory.items.count
 
-        state.journey.finishActiveShopEncounter()
+        state.encounters.finishActiveShopEncounter()
 
         #expect(state.encounters.activeShopEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-2-stage-8"))
@@ -116,11 +116,11 @@ struct AppStateShopEncounterTests {
         let session = try #require(state.encounters.activeShopEncounter)
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.journey.finishActiveShopEncounter())
+        #expect(!state.encounters.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter != nil)
         #expect(session.leaveFailureMessage != nil)
 
-        #expect(state.journey.finishActiveShopEncounter())
+        #expect(state.encounters.finishActiveShopEncounter())
         #expect(state.encounters.activeShopEncounter == nil)
     }
     #endif

@@ -8,11 +8,13 @@ import TrinketPersistence
 /// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
 @MainActor
 @Observable
-public final class EncounterPlayMode {
-    let playerSave: PlayerSaveStore
-    let battle: any BattleRuntime
+public final class EncounterPlayMode: PlayModeProtocol {
+    public let playerSave: PlayerSaveStore
+    public let battle: any BattleRuntime
     let options: OptionsStore
     let sfxPlayer: SFXPlayer
+
+    let noteMapScrollFocus: (@MainActor @Sendable (String) -> Void)?
 
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
@@ -21,12 +23,14 @@ public final class EncounterPlayMode {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         options: OptionsStore,
-        sfxPlayer: SFXPlayer
+        sfxPlayer: SFXPlayer,
+        noteMapScrollFocus: (@MainActor @Sendable (String) -> Void)? = nil
     ) {
         self.playerSave = playerSave
         self.battle = battle
         self.options = options
         self.sfxPlayer = sfxPlayer
+        self.noteMapScrollFocus = noteMapScrollFocus
     }
 
     @discardableResult
@@ -102,6 +106,48 @@ public final class EncounterPlayMode {
 
     func clearActiveShopEncounter() {
         activeShopEncounter = nil
+    }
+
+    /// Completes an active shop encounter only after persistence succeeds.
+    @discardableResult
+    public func finishActiveShopEncounter() -> Bool {
+        guard let shopSession = activeShopEncounter else { return false }
+
+        shopSession.clearLeaveFailure()
+        var resultingJourney: JourneyProgressState?
+        do {
+            try playerSave.performBatchMutation { save in
+                switch shopSession.origin {
+                case let .journey(stage):
+                    resultingJourney = StageCompletion.completeEncounter(
+                        stage: stage,
+                        labyrinthNodeID: nil,
+                        hero: save.roster.activeHero,
+                        companion: save.roster.activeCompanion,
+                        in: GameContent.chapters,
+                        save: &save
+                    )
+                case let .labyrinth(nodeID):
+                    LabyrinthCompletion.complete(
+                        nodeID: nodeID,
+                        hero: save.roster.activeHero,
+                        companion: save.roster.activeCompanion,
+                        save: &save
+                    )
+                }
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to leave shop: \(error.localizedDescription, privacy: .public)"
+            )
+            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
+            return false
+        }
+        if let resultingJourney {
+            noteMapScrollFocus?(resultingJourney.mapScrollFocusID())
+        }
+        clearActiveShopEncounter()
+        return true
     }
 
     public func dismissActiveShopEncounterWithoutCompleting() {

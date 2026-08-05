@@ -67,7 +67,7 @@ Agents choose their own probes and process. Audits state invariants, evidence ba
 
 Routine passes (every few days) use a two-ring inventory. Ring 1 is code changed since the baseline commit in [Proposals.md](Proposals.md) plus its directly affected semantic owners. Ring 2 is the evidence cone of any confirmed Ring 1 candidate: relevant callers, implementations, sibling instances, tests, authored configuration, manifests, and documentation. Ring 2 is triggered by evidence, not scanned speculatively. Run whole-codebase passes on request or at a longer interval, then advance the baseline. This scope fits the defect classes agent sessions re-seed fastest while allowing a pass to remove a confirmed cause completely.
 
-`AuthoredMassGrowthAudit`, `ChangeLocalityContextEfficiencyAudit`, and `DocumentationStalenessAudit` are retrospective inventories — prefer whole-repo passes at a longer cadence (weekly or on request) over including them in every routine rotation.
+`02_AuthoredMassGrowthAudit.md`, `05_ChangeLocalityContextEfficiencyAudit.md`, and `07_DocumentationStalenessAudit.md` are retrospective inventories — prefer whole-repo passes at a longer cadence (weekly or on request) over including them in every routine rotation.
 
 ### Orchestrated runs
 
@@ -111,26 +111,26 @@ Each audit holds only its distinct scope, confirmation rules, and domain allowli
 
 ## Ownership
 
-| Concern | Owner audit |
-|---------|-------------|
-| Dead / unused symbols | `DeadCodeRatioAudit.md` |
-| Live dual paths / retained compatibility shims | `DualPathRetentionAudit.md` |
-| Authored mass / growth hotspots (retrospective) | `AuthoredMassGrowthAudit.md` |
-| RNG / I/O seams | `SideEffectSurfaceAudit.md` |
-| Persistence / idempotency / swallowed errors | `BehaviorHardeningAudit.md` |
-| Concurrency / Sendable | `SwiftConcurrencyDataRaceAudit.md` |
-| Force casts / unwraps / typing escapes | `TypeSafetyAudit.md` |
-| Unit/package test value, runtime, redundancy, fixture sprawl, and tier ownership | `UnitTestAudit.md` |
-| UI / smoke / exhaustive test quality | `E2ETestQualityAudit.md` |
-| Opportunistic defect hunt | `BugHuntingAudit.md` |
-| Doc drift | `DocumentationStalenessAudit.md` |
-| UI interaction / a11y / HIG | `UIInteractionFeedbackAudit.md` |
-| Custom layout/typography → Apple/SwiftUI native | `AppleNativeUIAudit.md` |
-| Over-engineered / verbose / inelegant agent slop | `InelegantSlopAudit.md` |
-| Copy-paste feature screens / shells | `DuplicateFeatureSurfaceAudit.md` |
-| Misplaced logic in AppState / hubs / mega-views | `StateGravityOwnershipAudit.md` |
-| Change locality / agent context, guidance-surface, and verification efficiency | `ChangeLocalityContextEfficiencyAudit.md` |
-| Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
+| # | Owner audit | Concern |
+|---|-------------|---------|
+| 01 | `01_AppleNativeUIAudit.md` | Custom layout/typography → Apple/SwiftUI native |
+| 02 | `02_AuthoredMassGrowthAudit.md` | Authored mass / growth hotspots (retrospective) |
+| 03 | `03_BehaviorHardeningAudit.md` | Persistence / idempotency / swallowed errors |
+| 04 | `04_BugHuntingAudit.md` | Opportunistic defect hunt |
+| 05 | `05_ChangeLocalityContextEfficiencyAudit.md` | Change locality / agent context, guidance-surface, and verification efficiency |
+| 06 | `06_DeadCodeRatioAudit.md` | Dead / unused symbols |
+| 07 | `07_DocumentationStalenessAudit.md` | Doc drift |
+| 08 | `08_DualPathRetentionAudit.md` | Live dual paths / retained compatibility shims |
+| 09 | `09_DuplicateFeatureSurfaceAudit.md` | Copy-paste feature screens / shells |
+| 10 | `10_E2ETestQualityAudit.md` | UI / smoke / exhaustive test quality |
+| 11 | `11_InelegantSlopAudit.md` | Over-engineered / verbose / inelegant agent slop |
+| 12 | `12_SideEffectSurfaceAudit.md` | RNG / I/O seams |
+| 13 | `13_StateGravityOwnershipAudit.md` | Misplaced logic in AppState / hubs / mega-views |
+| 14 | `14_SwiftConcurrencyDataRaceAudit.md` | Concurrency / Sendable |
+| 15 | `15_TypeSafetyAudit.md` | Force casts / unwraps / typing escapes |
+| 16 | `16_UIInteractionFeedbackAudit.md` | UI interaction / a11y / HIG |
+| 17 | `17_UnitTestAudit.md` | Unit/package test value, runtime, redundancy, fixture sprawl, and tier ownership |
+| — | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) | Device-led performance investigation |
 
 Ownership determines where a finding is reported and deduplicated. It does not require leaving necessary callers, tests, configuration, docs, or adjacent symptoms unchanged when they belong to the same root-cause remedy.
 
@@ -140,17 +140,17 @@ This table is the canonical routing for commonly confused hits. Audit guides kee
 
 | If the hit is… | Owner |
 |----------------|-------|
-| Zero live consumers | DeadCodeRatio |
-| Reachable twin path or forwarding shim (correct owner) | DualPathRetention |
-| Single surviving path that is pure ceremony | InelegantSlop |
-| Wrong semantic owner, with or without a leftover twin | StateGravityOwnership (move, then delete the old path) |
-| Large or mixed-jobs surface with correct owner and a single path | AuthoredMassGrowth |
-| Copy-paste product screens or repeated view scaffolding across 3+ files | DuplicateFeatureSurface (including repeated grid scaffolding spotted during AppleNativeUI passes) |
-| Raw layout/typography literals without a structural twin | AppleNativeUI |
-| Duplicate, weak, or over-expanded test coverage | UnitTest (unit/package) or E2ETestQuality (UI tiers) |
-| Recurring co-touch, duplicated policy/commands, or guidance-surface duplication | ChangeLocalityContextEfficiency |
-| Silent persistence/transition failure without ownership drift | BehaviorHardening |
-| Effect primitive outside its allowlisted seam | SideEffectSurface |
+| Zero live consumers | `06_DeadCodeRatioAudit.md` |
+| Reachable twin path or forwarding shim (correct owner) | `08_DualPathRetentionAudit.md` |
+| Single surviving path that is pure ceremony | `11_InelegantSlopAudit.md` |
+| Wrong semantic owner, with or without a leftover twin | `13_StateGravityOwnershipAudit.md` (move, then delete the old path) |
+| Large or mixed-jobs surface with correct owner and a single path | `02_AuthoredMassGrowthAudit.md` |
+| Copy-paste product screens or repeated view scaffolding across 3+ files | `09_DuplicateFeatureSurfaceAudit.md` (including repeated grid scaffolding spotted during AppleNativeUI passes) |
+| Raw layout/typography literals without a structural twin | `01_AppleNativeUIAudit.md` |
+| Duplicate, weak, or over-expanded test coverage | `17_UnitTestAudit.md` (unit/package) or `10_E2ETestQualityAudit.md` (UI tiers) |
+| Recurring co-touch, duplicated policy/commands, or guidance-surface duplication | `05_ChangeLocalityContextEfficiencyAudit.md` |
+| Silent persistence/transition failure without ownership drift | `03_BehaviorHardeningAudit.md` |
+| Effect primitive outside its allowlisted seam | `12_SideEffectSurfaceAudit.md` |
 
 Package/layer imports are continuously enforced by [Architecture.md](../Platform/Architecture.md) and `./Scripts/check-module-boundaries.sh`; they are not a user-invoked audit.
 

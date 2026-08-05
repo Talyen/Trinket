@@ -1,4 +1,4 @@
-# Native UI Layout, Typography & Adaptation Audit
+# 01. Native UI Layout, Typography & Adaptation Audit
 
 **Goal:** Migrate unjustified custom sizing, layout, typography, adaptation, and native-control patterns toward Apple/SwiftUI-native APIs and tokens already in `TrinketDesignSystem`, without losing justified game UI.
 
@@ -26,7 +26,11 @@ Shared scale: [README.md](README.md).
 | P2 | Typography / scale / container gaps | Point-sized fonts; non-scaling text bands; fixed frames or scale-down that fail supported content; avoidable custom control behavior |
 | P3 | Token / spacing consistency | Raw spacing next to existing Metrics; duplicated constants; manual insets before surface modifiers when the visible result remains correct |
 
-Same grid / scaffolding structure repeated across 3+ files, or across two substantial surfaces with demonstrated drift or shared defects, is a duplicate feature surface — route it to DuplicateFeatureSurfaceAudit rather than fixing it as a token migration.
+## Domain rules & allowlists
+
+- Prefer native SwiftUI modifiers (`.font()`, `.foregroundStyle()`, `.padding()`, `.grid()`) over custom utility wrappers.
+- Respect Apple Human Interface Guidelines (HIG) for dynamic type, accessibility, and platform-native layout behaviors.
+- Route structural duplications (e.g. repeated screen scaffolding across 3+ files) to `09_DuplicateFeatureSurfaceAudit.md`. Same grid / scaffolding structure repeated across 3+ files, or across two substantial surfaces with demonstrated drift or shared defects, is a duplicate feature surface — route it to `09_DuplicateFeatureSurfaceAudit.md` rather than fixing it as a token migration.
 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
 

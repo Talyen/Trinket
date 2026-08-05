@@ -238,8 +238,8 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use.
-- Battle simulation lives behind `BattleSimulationStore` and `BattleSimBridge`.
-  `BattleRuntimeSession` owns lifecycle and commands; `BattleSession` mirrors the
+- Battle simulation lives inside `BattleRuntimeSession` via `BattleSimBridge`.
+  `BattleRuntimeSession` owns lifecycle, simulation, and commands; `BattleSession` mirrors the
   runtime lifecycle for SwiftUI and owns `BattlePresentationState`, `BattleFeedbackLane`, and
   `BattleSpectacleState` are distinct observable read lanes. A committed engine
   transition publishes one combat snapshot before its feedback/outcome work.

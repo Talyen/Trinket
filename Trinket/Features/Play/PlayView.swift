@@ -311,7 +311,6 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
 
 private struct PlayEncounterCoversModifier: ViewModifier {
     @Environment(EncounterPlayMode.self) private var encounters
-    @Environment(JourneyPlayMode.self) private var journey
     @Environment(LabyrinthPlayMode.self) private var labyrinth
 
     func body(content: Content) -> some View {
@@ -325,19 +324,19 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 MysteryEncounterView(
                     session: session,
                     onResolveChoice: { choiceID in
-                        resolveMysteryChoice(session: session, choiceID: choiceID)
+                        encounters.resolveActiveMysteryChoice(choiceID: choiceID)
                     },
                     onSelectItem: { itemID in
-                        selectMysteryItem(session: session, itemID: itemID)
+                        encounters.selectActiveMysteryItem(itemID: itemID)
                     },
                     onCorruptItem: { itemID in
-                        corruptMysteryItem(session: session, itemID: itemID)
+                        encounters.corruptActiveMysteryItem(itemID: itemID)
                     },
                     onCancelCorruptSelection: {
                         encounters.cancelActiveMysteryCorruptSelection()
                     },
                     onFinish: {
-                        finishMysteryEncounter(session: session)
+                        encounters.finishActiveMysteryEncounter()
                     },
                     onFinishCorruptionReveal: {
                         encounters.finishActiveMysteryCorruptionReveal()
@@ -354,7 +353,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 ShopEncounterView(
                     session: session,
                     onLeave: {
-                        _ = finishShopEncounter(session: session)
+                        _ = encounters.finishActiveShopEncounter()
                     }
                 )
                 .interactiveDismissDisabled()
@@ -372,65 +371,6 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     LabyrinthCraftView(session: session)
                 }
             }
-    }
-
-    @discardableResult
-    private func resolveMysteryChoice(
-        session: MysteryEncounterSession,
-        choiceID: String?
-    ) -> Bool {
-        switch session.origin {
-        case .journey:
-            journey.resolveActiveMysteryChoice(choiceID: choiceID)
-        case .labyrinth:
-            labyrinth.resolveActiveMysteryChoice(choiceID: choiceID)
-        }
-    }
-
-    @discardableResult
-    private func selectMysteryItem(
-        session: MysteryEncounterSession,
-        itemID: String
-    ) -> Bool {
-        switch session.origin {
-        case .journey:
-            journey.selectActiveMysteryItem(itemID: itemID)
-        case .labyrinth:
-            labyrinth.selectActiveMysteryItem(itemID: itemID)
-        }
-    }
-
-    @discardableResult
-    private func corruptMysteryItem(
-        session: MysteryEncounterSession,
-        itemID: String
-    ) -> Bool {
-        switch session.origin {
-        case .journey:
-            journey.corruptActiveMysteryItem(itemID: itemID)
-        case .labyrinth:
-            labyrinth.corruptActiveMysteryItem(itemID: itemID)
-        }
-    }
-
-    @discardableResult
-    private func finishMysteryEncounter(session: MysteryEncounterSession) -> Bool {
-        switch session.origin {
-        case .journey:
-            journey.finishActiveMysteryEncounter()
-        case .labyrinth:
-            labyrinth.finishActiveMysteryEncounter()
-        }
-    }
-
-    @discardableResult
-    private func finishShopEncounter(session: ShopEncounterSession) -> Bool {
-        switch session.origin {
-        case .journey:
-            journey.finishActiveShopEncounter()
-        case .labyrinth:
-            labyrinth.finishActiveShopEncounter()
-        }
     }
 
     /// Sheet/cover dismiss sets `nil`; route that through the incomplete-dismiss path

@@ -10,9 +10,9 @@ import TrinketPersistence
 /// Labyrinth map flow: enter, node routing, rest/craft, and node completion writes.
 @MainActor
 @Observable
-public final class LabyrinthPlayMode {
-    private let playerSave: PlayerSaveStore
-    private let battle: any BattleRuntime
+public final class LabyrinthPlayMode: PlayModeProtocol {
+    public let playerSave: PlayerSaveStore
+    public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
 
@@ -44,83 +44,8 @@ public final class LabyrinthPlayMode {
     ) -> StageMapMessage? {
         encounters.beginMysteryEncounter(
             origin: .labyrinth(nodeID: nodeID),
-            forcedEventID: forcedEventID,
-            completeProgress: Self.completeMysteryProgress
+            forcedEventID: forcedEventID
         )
-    }
-
-    /// Completes a Labyrinth shop only after persistence succeeds so a failed leave
-    /// keeps the encounter available for another attempt.
-    @discardableResult
-    public func finishActiveShopEncounter() -> Bool {
-        guard let shopSession = encounters.activeShopEncounter,
-              case let .labyrinth(nodeID) = shopSession.origin
-        else { return false }
-
-        shopSession.clearLeaveFailure()
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.complete(
-                    nodeID: nodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to leave Labyrinth shop: \(error.localizedDescription, privacy: .public)"
-            )
-            shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
-            return false
-        }
-        encounters.clearActiveShopEncounter()
-        return true
-    }
-
-    @discardableResult
-    public func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
-        encounters.resolveActiveMysteryChoice(
-            choiceID: choiceID,
-            completeProgress: Self.completeMysteryProgress
-        ) != nil
-    }
-
-    @discardableResult
-    public func selectActiveMysteryItem(itemID: String) -> Bool {
-        encounters.selectActiveMysteryItem(
-            itemID: itemID,
-            completeProgress: Self.completeMysteryProgress
-        ) != nil
-    }
-
-    @discardableResult
-    public func corruptActiveMysteryItem(itemID: String) -> Bool {
-        encounters.corruptActiveMysteryItem(
-            itemID: itemID,
-            completeProgress: Self.completeMysteryProgress
-        )
-    }
-
-    @discardableResult
-    public func finishActiveMysteryEncounter() -> Bool {
-        encounters.finishActiveMysteryEncounter(
-            completeProgress: Self.completeMysteryProgress
-        ).didFinish
-    }
-
-    private static func completeMysteryProgress(
-        _ session: MysteryEncounterSession,
-        save: inout PlayerSave
-    ) -> JourneyProgressState? {
-        guard case let .labyrinth(nodeID) = session.origin else { return nil }
-        LabyrinthCompletion.complete(
-            nodeID: nodeID,
-            hero: save.roster.activeHero,
-            companion: save.roster.activeCompanion,
-            save: &save
-        )
-        return nil
     }
 
     @discardableResult

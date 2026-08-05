@@ -1,4 +1,4 @@
-# Authored Mass & Growth Hotspot Audit
+# 02. Authored Mass & Growth Hotspot Audit
 
 **Goal:** Reduce expensive authored maintenance surface by confirming live mass/growth hotspots across source, tests, scripts, configuration, and guidance — not per-change deltas and not unused symbols alone.
 

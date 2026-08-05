@@ -1,4 +1,4 @@
-# Dual-Path & Compatibility Retention Audit
+# 08. Dual-Path & Compatibility Retention Audit
 
 **Goal:** Delete confirmed parallel live implementations, migration shims past their window, and “keep both” leftovers that still compile and remain reachable — the over-engineering that is neither unused nor single-path ceremony.
 

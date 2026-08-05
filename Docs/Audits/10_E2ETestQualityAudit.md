@@ -1,4 +1,4 @@
-# UI Test Reliability & Signal Audit
+# 10. UI Test Reliability & Signal Audit
 
 **Goal:** Improve confirmed UI-test reliability, signal, tier fit, and application testability without weakening product coverage.
 
@@ -13,7 +13,7 @@ Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues
 - XCTest stays for `TrinketUITests/` (`XCUIApplication`). Do not migrate UI tests to Swift Testing.
 - Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals.
 - Do not invent wall-clock budgets that conflict with Testing.md / `AGENTS.md` (smoke is a short UI-only plan).
-- Do not expand into unit XCTest→Testing migration (UnitTestAudit + `check-swift-testing-migration.sh`).
+- Do not expand into unit XCTest→Testing migration (`17_UnitTestAudit.md` + `check-swift-testing-migration.sh`).
 
 ## Tier rules
 
@@ -38,7 +38,7 @@ Shared scale: [README.md](README.md).
 
 ## Domain rules
 
-UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Do not add accessibility audits; product accessibility scope is defined by PD-007 and UIInteractionFeedbackAudit.
+UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Do not add accessibility audits; product accessibility scope is defined by PD-007 and 16_UIInteractionFeedbackAudit.md.
 
 E2E owns an identifier change only when it is required to stabilize an existing owned journey; UIInteractionFeedback owns the broader shipping-control inventory and visible/native interaction behavior.
 

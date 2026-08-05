@@ -25,9 +25,7 @@ public final class PlaySession {
     public let spires: SpiresPlayMode
     public let encounters: EncounterPlayMode
 
-    private let mapScrollFocusSink: MapScrollFocusSink
-    private let battleRouteSink: BattleRouteSink
-    private var battleRuns: [BattleRunKey: PlayBattleRunRegistration] = [:]
+    private let battleRunRegistry: PlayBattleRunRegistry
     let battleLaunch: PlayBattleLaunch
     let battleCompletion: PlayBattleCompletion
 
@@ -59,17 +57,24 @@ public final class PlaySession {
         self.sfxPlayer = sfxPlayer
         self.pendingDestination = pendingDestination
 
-        let focusSink = MapScrollFocusSink()
-        mapScrollFocusSink = focusSink
-        let routeSink = BattleRouteSink()
-        battleRouteSink = routeSink
+        let registry = PlayBattleRunRegistry()
+        battleRunRegistry = registry
+
+        let scrollSink = PlayMapScrollSink()
+        let runCallbacks = LaunchRunCallbacks(
+            registerRun: { [registry] reg in registry.register(reg) },
+            removeRun: { [registry] key in registry.remove(key) },
+            removePreparedRunsExcept: { [registry] key in registry.removeExcept(key) }
+        )
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
-            noteMapScrollFocus: { targetID in focusSink.note(targetID) },
-            battleRunSink: routeSink
+            runCallbacks: runCallbacks,
+            noteMapScrollFocus: { [scrollSink] targetID in
+                scrollSink.noteMapScrollFocus(targetID)
+            }
         )
         battleLaunch = graph.battleLaunch
         journey = graph.journey
@@ -77,8 +82,7 @@ public final class PlaySession {
         spires = graph.spires
         encounters = graph.encounters
         battleCompletion = graph.battleCompletion
-        focusSink.owner = self
-        routeSink.owner = self
+        scrollSink.owner = self
     }
 
     public func consumePendingDestination() -> PlayLaunchDestination? {
@@ -100,7 +104,7 @@ public final class PlaySession {
         shellSession.selectedTab = .play
         battle.endBattle()
         if let runKey {
-            battleRuns.removeValue(forKey: runKey)
+            battleRunRegistry.remove(runKey)
         }
     }
 
@@ -128,14 +132,14 @@ public final class PlaySession {
             }
         )
         if persisted, let runKey = configuration.runKey {
-            battleRuns.removeValue(forKey: runKey)
+            battleRunRegistry.remove(runKey)
         }
         return persisted
     }
 
     func clearTransientState() {
         battle.endBattle()
-        battleRuns.removeAll(keepingCapacity: true)
+        battleRunRegistry.removeAll()
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
@@ -157,14 +161,43 @@ public final class PlaySession {
     }
 
     func registerBattleRun(_ registration: PlayBattleRunRegistration) {
-        battleRuns[registration.route.origin.runKey] = registration
+        battleRunRegistry.register(registration)
     }
 
     func removeBattleRun(_ runKey: BattleRunKey) {
-        battleRuns.removeValue(forKey: runKey)
+        battleRunRegistry.remove(runKey)
     }
 
     func removeBattleRuns(except runKey: BattleRunKey) {
+        battleRunRegistry.removeExcept(runKey)
+    }
+
+    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
+        battleRunRegistry.route(for: runKey)
+    }
+
+    public func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
+        battleRunRegistry.presentation(for: runKey)
+    }
+
+    func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
+        battleRunRegistry.universalModifiers(for: runKey)
+    }
+}
+
+@MainActor
+final class PlayBattleRunRegistry {
+    private var battleRuns: [BattleRunKey: PlayBattleRunRegistration] = [:]
+
+    func register(_ registration: PlayBattleRunRegistration) {
+        battleRuns[registration.route.origin.runKey] = registration
+    }
+
+    func remove(_ runKey: BattleRunKey) {
+        battleRuns.removeValue(forKey: runKey)
+    }
+
+    func removeExcept(_ runKey: BattleRunKey) {
         battleRuns = battleRuns.filter { $0.key == runKey }
     }
 
@@ -173,15 +206,34 @@ public final class PlaySession {
         return battleRuns[runKey]?.route
     }
 
-    public func battlePresentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
+    func presentation(for runKey: BattleRunKey?) -> BattlePresentationContext? {
         guard let runKey else { return nil }
         return battleRuns[runKey]?.presentation
     }
 
-    func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
+    func universalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
         guard let runKey else { return [] }
         return battleRuns[runKey]?.universalModifiers ?? []
     }
+
+    func removeAll() {
+        battleRuns.removeAll(keepingCapacity: true)
+    }
+}
+
+@MainActor
+private final class PlayMapScrollSink {
+    weak var owner: PlaySession?
+
+    func noteMapScrollFocus(_ targetID: String) {
+        owner?.noteMapScrollFocus(targetID)
+    }
+}
+
+struct LaunchRunCallbacks {
+    let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
+    let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
+    let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
 }
 
 /// Assembles a fully wired Play mode graph in one place — no deferred bind steps.
@@ -201,21 +253,15 @@ enum PlayModeGraph {
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
-        noteMapScrollFocus: @escaping (String) -> Void,
-        battleRunSink: BattleRouteSink
+        runCallbacks: LaunchRunCallbacks,
+        noteMapScrollFocus: @escaping @MainActor @Sendable (String) -> Void
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
             battle: battle,
-            registerRun: { registration in
-                battleRunSink.register(registration)
-            },
-            removeRun: { runKey in
-                battleRunSink.remove(runKey: runKey)
-            },
-            removePreparedRunsExcept: { runKey in
-                battleRunSink.removePreparedRunsExcept(runKey: runKey)
-            }
+            registerRun: runCallbacks.registerRun,
+            removeRun: runCallbacks.removeRun,
+            removePreparedRunsExcept: runCallbacks.removePreparedRunsExcept
         )
         let encounters = EncounterPlayMode(
             playerSave: playerSave,
@@ -254,31 +300,5 @@ enum PlayModeGraph {
             encounters: encounters,
             battleCompletion: battleCompletion
         )
-    }
-}
-
-@MainActor
-private final class MapScrollFocusSink {
-    weak var owner: PlaySession?
-
-    func note(_ targetID: String) {
-        owner?.noteMapScrollFocus(targetID)
-    }
-}
-
-@MainActor
-final class BattleRouteSink {
-    weak var owner: PlaySession?
-
-    func register(_ registration: PlayBattleRunRegistration) {
-        owner?.registerBattleRun(registration)
-    }
-
-    func remove(runKey: BattleRunKey) {
-        owner?.removeBattleRun(runKey)
-    }
-
-    func removePreparedRunsExcept(runKey: BattleRunKey) {
-        owner?.removeBattleRuns(except: runKey)
     }
 }

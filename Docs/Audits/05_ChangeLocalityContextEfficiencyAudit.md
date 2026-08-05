@@ -1,4 +1,4 @@
-# Change Locality & Context Efficiency Audit
+# 05. Change Locality & Context Efficiency Audit
 
 **Goal:** Reduce maintenance and agent-context cost by finding recurring changes that require more authored edits, unrelated context, verification, or output than the behavior warrants.
 
@@ -8,16 +8,8 @@ Identify repeated high-friction clusters and simplify them through existing sour
 
 ## What counts as locality or context friction
 
-| Tell | Why it is a finding candidate |
-|------|-------------------------------|
-| One policy or command is maintained in several authored sources | Every change risks drift and consumes repeated context |
-| Comparable changes repeatedly co-touch unrelated authored owners | The behavior may lack one source of truth |
-| A local path routes unrelated context cards, skills, or verification tiers | Routine work pays avoidable reading or execution cost |
-| Routine successful commands emit repetitive output, or failures require opening raw logs | Useful signal is buried in avoidable tool output |
-| A frequently changed owner requires unrelated code to understand one concern | The semantic change is not locally reviewable |
-| Agent guidance surface restates the same policy across nested `AGENTS.md`, AgentContext cards, skills, or audit guides | Agents re-read duplicated guardrails; Platform docs / root `AGENTS.md` / executable scripts should own the canonical copy |
-
-**Not this audit:** import legality → the enforced module-boundary gate; live authored mass without locality/routing friction → AuthoredMassGrowthAudit; dual live paths → DualPathRetentionAudit. Full routing: [README.md](README.md) confusable pairs.
+- **Focus:** Co-touch patterns across 3+ files for routine changes, duplicated script logic, bloated guidance cards, and test-suite setup tax.
+- **Not this audit:** import legality → the enforced module-boundary gate; live authored mass without locality/routing friction → `02_AuthoredMassGrowthAudit.md`; dual live paths → `08_DualPathRetentionAudit.md`. Full routing: [README.md](README.md) confusable pairs.
 
 ## Hard stops
 

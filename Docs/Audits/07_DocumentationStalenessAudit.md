@@ -1,4 +1,4 @@
-# Documentation Staleness Audit
+# 07. Documentation Staleness Audit
 
 **Goal:** Fix documentation that can mislead execution or maintenance — stale paths, broken links, wrong versions, outdated claims, incomplete required workflows, and drifting duplicated policy.
 

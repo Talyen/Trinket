@@ -85,7 +85,7 @@ Trinket enables **Swift 6 strict concurrency** on all targets. Relevant Apple gu
 - [Swift 6 migration](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/) — `@MainActor`, `Sendable`, actor isolation
 - [What's new in Swift (WWDC26-262)](https://wwdcnotes.com/documentation/wwdc26-262-whats-new-in-swift/) — `@diagnose`, ownership improvements, `Subprocess` package
 
-Project audit: [SwiftConcurrencyDataRaceAudit.md](../Audits/SwiftConcurrencyDataRaceAudit.md).
+Project audit: [14_SwiftConcurrencyDataRaceAudit.md](../Audits/14_SwiftConcurrencyDataRaceAudit.md).
 
 ---
 

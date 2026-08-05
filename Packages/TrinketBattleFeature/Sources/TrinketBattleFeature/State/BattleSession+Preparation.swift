@@ -46,7 +46,7 @@ public extension BattleSession {
     /// Peeks a copy so the prepared run keeps an empty hand for the paced deal.
     internal func preparedAbilityArtworkNames(for runKey: BattleRunKey) -> [String] {
         guard let run = runtime.preparedBattleRun(for: runKey) else { return [] }
-        return runtime.openingHandArtworkNames(for: run.simulation)
+        return runtime.openingHandArtworkNames(for: run)
     }
 
     internal func installSimulationPresentation() {

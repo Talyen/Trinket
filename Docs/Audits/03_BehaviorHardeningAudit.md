@@ -1,4 +1,4 @@
-# Persistence, Synchronization & Transition Integrity Audit
+# 03. Persistence, Synchronization & Transition Integrity Audit
 
 **Goal:** Strengthen confirmed integrity gaps across persistence, synchronization, lifecycle, and player-state transaction boundaries.
 
@@ -9,7 +9,7 @@ Fix confirmed persistence, synchronization, lifecycle, or transition issues acro
 ## Hard stops
 
 - Do not run full-repo concurrency or type-safety sweeps here — link out.
-- Audio playback handling belongs to SideEffectSurfaceAudit.
+- Audio playback handling belongs to 12_SideEffectSurfaceAudit.md.
 
 ## Triage
 

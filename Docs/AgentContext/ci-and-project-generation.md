@@ -7,155 +7,26 @@ The root workflow owns task-scoped routing: start with
 (`--json` is machine-readable), optionally preview an unfamiliar or potentially
 expensive route with `./Scripts/verify-changed.sh --dry-run --isolate --paths <same files>`,
 then run it by omitting `--dry-run`. A preview does not count as verification.
-Agents **always** pass `--isolate`. Without `--paths`,
-both commands inspect the entire working tree; use that mode only when the tree
-represents one task.
+Agents **always** pass `--isolate`.
 
-This card adds the CI/project-generation exceptions:
+For complete gate composition, test tier inventory, isolation mechanics, and IDE workflows, see [Scripts/README.md#verification-gates--test-tiers](../../Scripts/README.md#verification-gates--test-tiers).
 
-- `verify-changed.sh --isolate` calls `Scripts/run-env.sh` once so the whole plan
-  shares one agent simulator slot (`Trinket Agent N`), DerivedData under
-  `.DerivedData/runs/agent-N/`, `TMPDIR`, and a unique `TRINKET_RUN_ID` for
-  diagnostics. The slot pool size is `TRINKET_MAX_AGENT_SIMS` (default 1).
-  On self-clean start and EXIT, the top-level owner reclaims Xcode Preview sims,
-  enforces exactly one Booted managed sim (Agent or CI), and age-prunes bulky
-  DerivedData artifacts plus package-local `.build` / `.DerivedData`. The
-  keep-target stays Booted (no routine shutdown/erase). Nested children release
-  leases only. Omit `--isolate` only for humans/CI that
-  want the shared warm cache (`.DerivedData` + `Trinket CI`).
-- After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` (with a
-  generation-input porcelain sidecar) and passes `SKIP_GENERATE=1` into
-  package/unit/smoke/build children. Idempotent assert skips a second full
-  generate when that stamp is still fresh vs generation-input mtimes **and** the
-  porcelain sidecar is unchanged — dirty-vs-HEAD alone must not force a second
-  `--assets` pass in agent worktrees (otherwise regenerate must be a no-op).
-  That answers “does this working tree match the manifests?” — it does **not**
-  require generated files to match HEAD. Review and stage only the task's authored
-  and generated files before commit; after commit, completeness is
-  `./Scripts/agent-push-gate.sh`, pre-push, `ci-gate.sh`, and CI. Stage wall times
-  append to `$RESULTS_DIR/verify-timing.jsonl`.
-- Path-scoped plans: style on changed Swift files only (full-tree style stays in
-  `ci-gate` / CI); style ∥ packages; batched multi-package / multi-smoke; unit
-  uses `test.sh unit --app-only` (no all-package fan-out). AccessibilityID →
-  FeatureSupport package + Homestead canary (PR `smoke-full` owns five-surface
-  coverage). BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`)
-  → local `--build-only` (CI `unit` owns full BattleFeature package tests). Play
-  `SmokePlayTests` only for Play shell/hub paths; Mystery /
-  Labyrinth / StagePreview and other unowned Play subflows → compile-only
-  `build.sh`. Presentation-only diffs (metrics/chrome/copy/SF Symbol) demote
-  package tests and smoke to compile-only via `classify-presentation-only.py`
-  (fail-closed; DesignSystem uses `test-package.sh --build-only`). FeatureSupport
-  no longer sets the feature/app-compile flag (package tests only, plus smoke for
-  AccessibilityID / PreparedArtworkCache). When unit and smoke both run, verify
-  warms with `build-for-testing --app-only` then `--no-build` for those stages.
-- Without explicit `--paths`, `agent-push-gate.sh` classifies working-tree paths;
-  when the tree is clean after a commit, it classifies local commits not present on
-  a remote, falling back to the latest commit. This preserves conditional asset
-  generation in the documented post-commit workflow.
-- `--push-ready` on `verify-changed.sh` switches to commit-completeness (pinned
-  tools + `generate.sh --force-xcodegen` + assert vs HEAD, conditional `--assets`)
-  plus the normal style/package/smoke/compile plan. Prefer `./Scripts/agent-push-gate.sh`
-  when you only need the post-commit generate/assert gate — it does **not** run
-  style or compile. Do not use `--push-ready` as a pre-commit consistency check;
-  intentional uncommitted generated output differs from HEAD by definition.
-- Post-push CI watching is owned by cloud agent automations, not the coding
-  agent. `./Scripts/agent-watch-ci.sh` remains available for manual use (quiet
-  JSON polls by default; `--verbose` streams `gh run watch`). Path-filtered green
-  runs can auto-dispatch a full `Trinket CI` `workflow_dispatch`. Simulator/XCUITest
-  launch flakes get one automatic `gh run rerun --failed` (disable with
-  `--no-infra-rerun`). Classification is shared via `./Scripts/ci-infra-rerun.sh`
-  and also covers Nightly Integration / App performance job names. Nightly gets a
-  separate one-shot infra rerun from `.github/workflows/nightly-infra-rerun.yml`
-  when attempt 1 fails on infrastructure only.
-- `generate.sh` exports `LC_ALL=C` / `LANG=C` so asset hash TSV headers stay
-  stable on CI locales. It also pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's
-  macOS SDK (rejects Command Line Tools SDK) before `content_codegen` / SPM
-  `swift run`, so newer macOS/CLT betas cannot mismatch Xcode's `swiftc`. Asset
-  prepare scripts also preserve the two header lines
-  and sort data rows with `LC_ALL=C sort` — keep that pattern for any new
-  `*SourceHashes.generated.tsv` writer. `generate.sh` prefers `.tools/xcodegen`.
-  `--force-xcodegen` (or `TRINKET_FORCE_XCODEGEN=1`) ignores the XcodeGen cache so
-  stale “project has not changed” cannot hide `project.pbxproj` drift. Agent push
-  gate sets `TRINKET_REQUIRE_PINNED_TOOLS=1`. Art prepare invalidates on source
-  content hash (not mtime); other asset prepare scripts still use mtime. Set
-  `FORCE_ASSET_REENCODE=1` only for intentional binary refreshes.
-- `verify-changed.sh` sets `SKIP_GENERATE=1` for package/unit/smoke/build children
-  so a single verification run does not regenerate the project repeatedly.
-- Completed task-scoped and push-gate runs print an advisory `change-budget.sh`
-  report. It excludes generated output and never fails solely for size; warnings
-  require a necessity explanation. Use `verify-changed.sh --quiet` for PASS/FAIL
-  lines and bounded failure excerpts rather than streaming successful command logs.
-- Generation uses a **shared** lock at `.DerivedData/.generate.lock` with
-  `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS` (default 120). On timeout, fail fast — do not
-  kill the holder. XcodeGen cache stays at `.DerivedData/XcodeGen.cache`.
-- Shared-tenant (non-isolated) app `test.sh` wrappers must not run in parallel: they
-  share the app DerivedData `build.db`.   Package schemes use per-package tenants under
-  `$DERIVED_DATA_PATH/packages/<name>/` so package builds and package tests can run
-  in parallel (`SYMROOT`/`OBJROOT`/`SHARED_PRECOMPS_DIR` are pinned into that tenant so SPM schemes do
-  not share `Packages/.DerivedData/build.db`). Isolated unit/package runs may proceed in parallel once each has an
-  agent slot. UI/smoke modes also take a fail-fast concurrency slot
-  (`TRINKET_MAX_CONCURRENT_UI`, default 2). Agent sim slots and UI slots are both
-  fail-fast when full.
-- Use a filtered command for intentionally narrow work; an affected player flow needs
-  only the path-scoped plan from `verify-changed.sh` (style always when Swift changes;
-  package tests when packages are touched; focused smoke when a SmokeClass resolves;
-  compile-only `build.sh` when feature/shared/model Swift has no unit or smoke owner).
-  Bare `smoke` is optional local Homestead confidence. Full unit, `smoke-full`, and
-  exhaustive UI are CI or explicit full-local flows, not pre-push hook requirements.
-- Use `--no-build` only after a matching successful build in the **same** DerivedData
-  tenant; the wrappers reject stale inputs. Without Xcode 26/simulator, run the applicable
-  generation, generated-output, boundary, style, and CI-gate checks and report skipped
-  build/test/compile work. Linux portable SwiftLint also skips SourceKit `custom_rules`
-  and can under-report idiomatic findings vs macOS CI — treat local style PASS as
-  provisional for CI parity.
-- CI (`pr.yml` / `ci.yml`, via the shared `tests.yml`) builds once, prunes DerivedData with
-  `Scripts/prune-derived-data-cache.sh`, uploads a run-scoped artifact for test fan-out, and
-  saves a two-tier warm cache (`build-<nonsource>-<full>`) only on exact miss — prefix
-  restore-keys reuse same toolchain/assets for incremental source rebuilds. Unit / smoke /
-  exhaustive UI restore that artifact via `.github/actions/test-job` (`--no-build`,
-  rebuild-on-miss). Smoke/UI artifact-miss rebuilds use `build-for-testing.sh --app-only`.
-- Parallel source trees: `./Scripts/agent-worktree.sh create <slug>` then verify with
-  `--isolate` inside the sibling checkout.
-- Verify/test self-clean (top-level owner start + EXIT): Preview sims, single-warm
-  Booted cap, and age-pruned TestResults / PerformanceResults / Logs plus package
-  `.build` / `.DerivedData` (warm `runs/agent-N` Build products stay). The keep-target
-  managed sim stays Booted. Do not delete Simulator runtimes.
-- Human Xcode IDE setup (shared DerivedData path, when to generate, scoped tests,
-  Previews / dual-window caveats): see **Xcode IDE loop** in `Scripts/README.md`.
+## Key exceptions & operational details
 
-When a test or CI invocation fails, load
-[`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read
-`Scripts/README.md` for gate composition and `Docs/Platform/Testing.md` for test
-ownership.
+- **Agent isolation (`--isolate`)**: `verify-changed.sh --isolate` calls `Scripts/run-env.sh` to assign an agent simulator slot (`Trinket Agent N`), `.DerivedData/runs/agent-N/`, `TMPDIR`, and `TRINKET_RUN_ID`. Top-level self-clean reclaims Preview sims, enforces 1 Booted managed sim, and age-prunes bulky build artifacts.
+- **Generation freshness**: Verify stamps `$RESULTS_DIR/.last-generate.stamp` with a porcelain sidecar. Idempotent asserts skip redundant regenerates when fresh against input mtimes and porcelain state.
+- **Push gates**: Use `./Scripts/agent-push-gate.sh` for post-commit generate/assert checks (does not run style/compile). Use `verify-changed.sh --push-ready` only when running full commit-completeness with verification.
+- **Environment & pinning**: `generate.sh` exports `LC_ALL=C` and pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's macOS SDK. `--force-xcodegen` bypasses cache. Pinned tools require `TRINKET_REQUIRE_PINNED_TOOLS=1`.
+- **Diagnostics**: When a test or CI invocation fails, load [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs.
+- **Linux style builds**: SourceKit `custom_rules` are skipped on Linux — treat Linux style PASS as provisional.
 
 ## Style gate (fail closed)
 
-`./Scripts/test.sh style` must fail when SwiftFormat lint, SwiftLint `--strict`,
-UI style, platform API bans, or exclusivity footguns fail. Do not treat a non-zero
-subgate as success.
-
-Path-scoped `verify-changed.sh` always includes style when Swift sources change
-(path-scoped to changed Swift files; full-tree style remains in `ci-gate` / CI), and
-schedules `test-package.sh` for touched packages (batched when multiple) — those
-failures never need a simulator. Feature paths with no resolved smoke owner also
-schedule compile-only `./Scripts/build.sh` when `xcodebuild` is present (generic
-simulator destination, no boot) so Swift 6 concurrency and Testing-macro errors
-are not style-only false greens — package tests do not replace app compile for
-feature paths. Presentation-only demotions keep that compile fallback
-(`build.sh` or `test-package.sh --build-only`) and never leave style as the sole
-gate. That tier does **not** expand QuickSmoke. Path-scoped unit uses
-`test.sh unit --app-only`; bare `test.sh unit` still runs all package schemes for
-full local/CI confidence.
-
-**Linux / portable SwiftLint:** SourceKit `custom_rules` are skipped, and some
-idiomatic findings may not match macOS CI. Style PASS on Linux is not a substitute
-for CI macOS style. On GitHub Actions, `lint.sh` emits both `xcode` (log-visible)
-and `github-actions-logging` (Checks annotations) reporters so CI watch tooling
-excerpts and annotations both show rule/file/line.
+`./Scripts/test.sh style` must fail when SwiftFormat lint, SwiftLint `--strict`, UI style, platform API bans, or exclusivity footguns fail. Path-scoped `verify-changed.sh` includes style on changed Swift files and schedules compile-only `./Scripts/build.sh` for feature paths without a smoke owner. Presentation-only demotions (`classify-presentation-only.py`) fall back to compile-only checks.
 
 ## Swift Testing compile checklist
 
-When adding `@Test(arguments:)` cases (see `Docs/Platform/Testing.md`):
+When adding `@Test(arguments:)` cases (see [Testing.md](../Platform/Testing.md)):
 
 1. `private` argument types ⇒ `private` test function.
 2. Argument / tuple element types ⇒ `Sendable` (typically also `Hashable`).

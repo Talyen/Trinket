@@ -1,4 +1,4 @@
-# Strategic Bug Hunting Audit
+# 04. Strategic Bug Hunting Audit
 
 **Goal:** Find and fix real defects — no file-by-file browsing, no speculative backlog.
 
@@ -28,7 +28,7 @@ Shared scale: [README.md](README.md).
 | P2 | Degraded UX (stuck spinner, missing dismiss) | Fix when confirmed and scoped |
 | P3 | Recoverable failure without appropriate diagnostics | Fix only if trivial |
 
-Maintainability hits (orphaned state) route to DeadCodeRatioAudit; future concurrency risk routes to SwiftConcurrencyDataRaceAudit — do not track them as low-severity findings here.
+Maintainability hits (orphaned state) route to [06_DeadCodeRatioAudit.md](06_DeadCodeRatioAudit.md); future concurrency risk routes to [14_SwiftConcurrencyDataRaceAudit.md](14_SwiftConcurrencyDataRaceAudit.md) — do not track them as low-severity findings here.
 
 ## Example signals
 

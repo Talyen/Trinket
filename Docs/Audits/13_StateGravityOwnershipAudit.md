@@ -1,4 +1,4 @@
-# State Gravity & Ownership Audit
+# 13. State Gravity & Ownership Audit
 
 **Goal:** Pull misplaced rules, persistence, and presentation logic out of gravity wells (`AppState`, fat sessions, mega-views) into the owners defined by Architecture — without inventing new hubs.
 

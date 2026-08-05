@@ -20,16 +20,44 @@ public final class BattleRuntimeSession: BattleRuntime {
         case memoryTrimmed(releaseBattleLog: Bool)
     }
 
-    struct PreparedBattleRun {
-        let configuration: BattleRunConfiguration
-        let simulation: BattleSimulationStore.PreparedRun
+    public struct PreparedBattleRun {
+        public let configuration: BattleRunConfiguration
+        fileprivate let state: BattleState
+    }
+
+    public struct CombatantReadModel {
+        public let combatant: Combatant
+        public let health: Int
+        public let maxHealth: Int
+        public let activeEffectSummaries: [TrinketCore.EffectSummary]
+    }
+
+    public struct ReadModel {
+        public let hero: Combatant
+        public let companion: Combatant
+        public let enemy: Combatant
+        public let hand: [BattleCard]
+        public let turnCount: Int
+        public let earnedGold: Int
+        public let isBattleOver: Bool
+        public let isPartyDefeated: Bool
+        public let events: [ActionEvent]
+        public let log: [LogEntry]
+        public let healthByCombatantID: [String: Int]
+        public let modifiersByCombatantID: [String: CombatModifierProfile]
+    }
+
+    public struct VictoryInput {
+        public let earnedGold: Int
+        public let heroName: String
+        public let companionName: String
     }
 
     /// The presentation coordinator installs this callback at the composition
     /// root. It is internal so the lifecycle contract remains closure-free.
     var onChange: (@MainActor (Change) -> Void)?
 
-    private let simulation = BattleSimulationStore()
+    private var state: BattleState?
 
     public private(set) var activeBattle: BattleRunConfiguration?
     public private(set) var lifecyclePhase: BattleLifecyclePhase = .idle
@@ -43,111 +71,154 @@ public final class BattleRuntimeSession: BattleRuntime {
     }
 
     var outcome: BattleSimulationOutcome? {
-        simulation.outcome
+        BattleSimBridge.outcome(for: state)
     }
 
     var phase: BattlePhase? {
-        simulation.phase
+        state?.phase
     }
 
     var hasActiveSimulation: Bool {
-        simulation.hasState
+        state != nil
     }
 
     var isBattleOver: Bool {
-        simulation.isBattleOver
+        state?.isBattleOver ?? false
     }
 
     var earnedGold: Int? {
-        simulation.earnedGold
+        state?.earnedGold
     }
 
     var heroID: String? {
-        simulation.heroID
+        state?.hero.id
     }
 
     var companionID: String? {
-        simulation.companionID
+        state?.companion.id
     }
 
     var enemyID: String? {
-        simulation.enemyID
+        state?.enemy.id
     }
 
     var hand: [BattleCard] {
-        simulation.hand
+        state?.hand.cards ?? []
     }
 
     var isHeroAlive: Bool {
-        simulation.isHeroAlive
+        state?.isHeroAlive ?? false
     }
 
     var isCompanionAlive: Bool {
-        simulation.isCompanionAlive
+        state?.isCompanionAlive ?? false
     }
 
     var logEntries: [LogEntry] {
-        simulation.logEntries
+        state?.log ?? []
     }
 
-    var victoryInput: BattleSimulationStore.VictoryInput? {
-        simulation.victoryInput
+    var victoryInput: VictoryInput? {
+        guard let state else { return nil }
+        return VictoryInput(
+            earnedGold: state.earnedGold,
+            heroName: state.hero.name,
+            companionName: state.companion.name
+        )
     }
 
-    var readModel: BattleSimulationStore.ReadModel? {
-        simulation.readModel
+    var readModel: ReadModel? {
+        guard let state else { return nil }
+        let combatants = [state.hero, state.companion, state.enemy]
+        return ReadModel(
+            hero: state.hero,
+            companion: state.companion,
+            enemy: state.enemy,
+            hand: state.hand.cards,
+            turnCount: state.turnCount,
+            earnedGold: state.earnedGold,
+            isBattleOver: state.isBattleOver,
+            isPartyDefeated: state.isPartyDefeated,
+            events: state.events,
+            log: state.log,
+            healthByCombatantID: Dictionary(
+                uniqueKeysWithValues: combatants.map { ($0.id, state.health(of: $0)) }
+            ),
+            modifiersByCombatantID: Dictionary(
+                uniqueKeysWithValues: combatants.map { ($0.id, state.modifiers(for: $0.id)) }
+            )
+        )
     }
 
     func presentationSnapshot() -> BattlePresentationSnapshot? {
-        simulation.presentationSnapshot()
+        guard let state, let activeBattle else { return nil }
+        return BattlePresentationSnapshot(configurationID: activeBattle.id, state: state)
     }
 
-    func openingHandArtworkNames(for preparedRun: BattleSimulationStore.PreparedRun) -> [String] {
-        simulation.openingHandArtworkNames(for: preparedRun)
+    func openingHandArtworkNames(for preparedRun: PreparedBattleRun) -> [String] {
+        var preview = preparedRun.state
+        preview.drawOpeningHand(rebuildLog: false)
+        return preview.hand.cards.compactMap { $0.ability.artReference?.imageName }
     }
 
     @discardableResult
     func drawOpeningHand() -> Bool {
-        simulation.drawOpeningHand()
+        guard var state else { return false }
+        state.drawOpeningHand(rebuildLog: false)
+        self.state = state
+        return true
     }
 
     @discardableResult
     func drawNextOpeningHandCard() -> Bool {
-        simulation.drawNextOpeningHandCard()
+        guard var state else { return false }
+        let didDraw = state.drawNextOpeningHandCard(rebuildLog: false)
+        self.state = state
+        return didDraw
     }
 
     func finalizeOpeningHand() {
-        simulation.finalizeOpeningHand()
+        guard var state else { return }
+        state.finalizeOpeningHand()
+        self.state = state
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        simulation.isCardPlayable(card)
+        BattleSimBridge.isCardPlayable(card, in: state)
     }
 
     @discardableResult
     func playCard(cardID: Int) throws -> [ActionEvent] {
-        try simulation.playCard(cardID: cardID)
+        try BattleSimBridge.playCard(cardID: cardID, state: &state)
     }
 
     @discardableResult
     func endTurn() -> [ActionEvent] {
-        simulation.endTurn()
+        BattleSimBridge.endTurn(state: &state)
     }
 
     func syncLog() {
-        simulation.syncLog()
+        BattleSimBridge.syncLog(state: &state)
     }
 
     func releaseLogProjection() {
-        simulation.releaseLogProjection()
+        BattleSimBridge.releaseLogProjection(state: &state)
     }
 
-    func combatantReadModel(for combatant: Combatant) -> BattleSimulationStore.CombatantReadModel? {
-        simulation.combatantReadModel(for: combatant)
+    func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
+        guard let state else { return nil }
+        return CombatantReadModel(
+            combatant: combatant,
+            health: state.health(of: combatant),
+            maxHealth: state.maxHealth(of: combatant),
+            activeEffectSummaries: state.effectSummaries(of: combatant)
+        )
     }
 
     func shouldTelegraphEnemyAttack() -> Bool {
-        simulation.shouldTelegraphEnemyAttack()
+        guard let state else { return false }
+        guard state.roster.enemy.isAlive else { return false }
+        return !state.roster.hasPendingActionSkip(for: state.enemy)
     }
 
     public init() {}
@@ -162,7 +233,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         }
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
-            simulation: simulation.makePreparedRun(from: configuration)
+            state: BattleSimBridge.makeBattleState(from: configuration)
         )
         preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
@@ -190,7 +261,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         preparedBattleRunsByKey.removeValue(forKey: runKey)
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         activeBattle = preparedBattleRun.configuration
-        simulation.activate(preparedBattleRun.simulation)
+        state = preparedBattleRun.state
         lifecyclePhase = .active
         onChange?(.activated)
         return true
@@ -201,7 +272,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         guard activeBattle == nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         activeBattle = configuration
-        simulation.reset(from: configuration)
+        state = BattleSimBridge.makeBattleState(from: configuration)
         lifecyclePhase = .active
         onChange?(.activated)
         return true
@@ -212,7 +283,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         guard activeBattle != nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         activeBattle = configuration
-        simulation.reset(from: configuration)
+        state = BattleSimBridge.makeBattleState(from: configuration)
         lifecyclePhase = .active
         onChange?(.activated)
         return true
@@ -221,7 +292,7 @@ public final class BattleRuntimeSession: BattleRuntime {
     public func endBattle() {
         activeBattle = nil
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
-        simulation.clear()
+        state = nil
         lifecyclePhase = .idle
         onChange?(.ended)
     }
@@ -234,7 +305,7 @@ public final class BattleRuntimeSession: BattleRuntime {
 
     public func trimMemoryFootprint(releaseBattleLog: Bool) {
         if releaseBattleLog {
-            simulation.releaseLogProjection()
+            releaseLogProjection()
         }
         onChange?(.memoryTrimmed(releaseBattleLog: releaseBattleLog))
     }

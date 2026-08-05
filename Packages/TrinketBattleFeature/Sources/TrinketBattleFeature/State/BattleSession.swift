@@ -229,7 +229,7 @@ public final class BattleSession {
         spectacle.isShowingVictory = true
     }
 
-    func combatantReadModel(for combatant: Combatant) -> BattleSimulationStore.CombatantReadModel? {
+    func combatantReadModel(for combatant: Combatant) -> BattleRuntimeSession.CombatantReadModel? {
         runtime.combatantReadModel(for: combatant)
     }
 

@@ -1,4 +1,4 @@
-# Dead Code & API Surface Audit
+# 06. Dead Code & API Surface Audit
 
 **Goal:** Remove clearly unused authored source, resources, configuration, fixtures, dependencies, and generated inputs, and narrow unnecessary APIs without deleting live entry points.
 

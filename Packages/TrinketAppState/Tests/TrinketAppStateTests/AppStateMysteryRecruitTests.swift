@@ -31,12 +31,12 @@ struct AppStateMysteryRecruitTests {
         // Opening / resolving a mystery does not advance journey progress.
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
 
-        #expect(state.journey.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishActiveMysteryEncounter())
 
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-3")
-        #expect(!state.journey.finishActiveMysteryEncounter())
+        #expect(!state.encounters.finishActiveMysteryEncounter())
     }
 
     @Test func completedRosterTurnsRecruitStageIntoMystery() throws {
@@ -130,7 +130,7 @@ struct AppStateMysteryRecruitTests {
         )
 
         let itemsBefore = state.playerSave.inventory.items.count
-        #expect(state.journey.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
 
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.phase == .choosingItem)
@@ -139,9 +139,9 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.inventory.items.count == itemsBefore)
 
         let chosen = try #require(session.itemCandidates.first)
-        #expect(state.journey.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.encounters.selectActiveMysteryItem(itemID: chosen.id))
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
-        #expect(state.journey.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.inventory.items.contains(where: { $0.id == chosen.id }))
         #expect(state.playerSave.inventory.items.count == itemsBefore + 1)
@@ -169,15 +169,15 @@ struct AppStateMysteryRecruitTests {
 
         let goldBefore = state.playerSave.roster.gold
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.journey.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(state.playerSave.roster.gold == goldBefore)
 
-        #expect(state.journey.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
         playerSave.forcesNextSaveFailure = true
-        #expect(state.journey.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(playerSave.forcesNextSaveFailure)
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.roster.gold == goldBefore + 20)
@@ -193,12 +193,12 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter?.phase == .revealing)
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.journey.finishActiveMysteryEncounter())
+        #expect(!state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
-        #expect(state.journey.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
     }
@@ -214,21 +214,21 @@ struct AppStateMysteryRecruitTests {
             combatant: nil
         )
 
-        #expect(state.journey.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
+        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
         let chosen = try #require(state.encounters.activeMysteryEncounter?.itemCandidates.first)
         let itemsBefore = state.playerSave.inventory.items.count
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.journey.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(!state.encounters.selectActiveMysteryItem(itemID: chosen.id))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.encounters.activeMysteryEncounter?.phase == .choosingItem)
         #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage != nil)
         #expect(state.playerSave.inventory.items.count == itemsBefore)
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
 
-        #expect(state.journey.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.encounters.selectActiveMysteryItem(itemID: chosen.id))
         #expect(state.encounters.activeMysteryEncounter?.phase == .reward)
-        #expect(state.journey.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.inventory.items.contains(where: { $0.id == chosen.id }))
         #expect(state.playerSave.journey.completedStageIDs.contains(stage.id))

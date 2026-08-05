@@ -1,4 +1,4 @@
-# Side-Effect Surface Audit
+# 12. Side-Effect Surface Audit
 
 **Goal:** Confine I/O, shared mutation, and non-deterministic primitives to designated seams, and ensure their initiation, lifetime, ordering, cancellation, and failure handling remain owned there — none in pure logic / domain models.
 

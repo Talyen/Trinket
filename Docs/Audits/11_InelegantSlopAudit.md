@@ -1,4 +1,4 @@
-# Inelegant Slop Audit
+# 11. Inelegant Slop Audit
 
 **Goal:** Find and simplify confirmed hotspots and repeated module-level patterns of over-engineered, verbose, or un-pragmatic code — especially agent-produced “slop” — without an unbounded rewrite.
 

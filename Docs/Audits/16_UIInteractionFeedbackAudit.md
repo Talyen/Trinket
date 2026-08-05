@@ -1,4 +1,4 @@
-# UI Interaction & Accessibility Audit
+# 16. UI Interaction & Accessibility Audit
 
 > Trinket follows the visual-first baseline in PD-007. This audit checks native control interaction and visible UI clarity; it does not require comprehensive accessibility support or platform accessibility audits.
 
