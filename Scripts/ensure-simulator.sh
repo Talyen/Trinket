@@ -10,6 +10,18 @@ set -euo pipefail
 SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
 SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 
+# Prefer shared helper from run-env.sh (callers source run-env before this file).
+shutdown_and_wait_simulator() {
+  local target_udid="$1"
+  [[ -n "$target_udid" ]] || return 0
+  if declare -F trinket_sim_shutdown_wait >/dev/null 2>&1; then
+    trinket_sim_shutdown_wait "$target_udid"
+    return
+  fi
+  xcrun simctl spawn "$target_udid" launchctl stop com.apple.PosterBoard 2>/dev/null || true
+  xcrun simctl shutdown "$target_udid" 2>/dev/null || true
+}
+
 resolve_or_create_simulator() {
   SIMULATOR_UDID="$(xcrun simctl list devices available -j 2>/dev/null | python3 -c '
 import json, sys
@@ -187,7 +199,7 @@ ensure_test_simulator() {
 
   if [[ -n "${SIMULATOR_UDID:-}" && -n "$force" ]]; then
     echo "Force-resetting simulator (erase): $SIMULATOR_NAME ($SIMULATOR_UDID)"
-    xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+    shutdown_and_wait_simulator "$SIMULATOR_UDID"
     if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null; then
       if boot_simulator; then
         SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
@@ -196,7 +208,7 @@ ensure_test_simulator() {
       fi
     fi
     echo "Erase/reboot failed; deleting simulator and recreating..." >&2
-    xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+    shutdown_and_wait_simulator "$SIMULATOR_UDID"
     xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
     SIMULATOR_UDID=""
   fi
@@ -214,13 +226,13 @@ ensure_test_simulator() {
         echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying once after erase (or recreate)."
       fi
       if [[ -n "${SIMULATOR_UDID:-}" ]]; then
-        xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+        shutdown_and_wait_simulator "$SIMULATOR_UDID"
         if xcrun simctl erase "$SIMULATOR_UDID" 2>/dev/null && boot_simulator; then
           SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
           echo "Simulator ready after erase retry: $SIMULATOR_DESTINATION"
           return 0
         fi
-        xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+        shutdown_and_wait_simulator "$SIMULATOR_UDID"
         xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
         SIMULATOR_UDID=""
       fi

@@ -238,7 +238,6 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
             encounter: encounter,
             route: battleRoute(for: origin),
             loot: battleLoot(for: node, labyrinth: labyrinth),
-            defeatPrimaryAction: .retreat,
             universalModifiers: Self.combatModifiers(from: effects)
         )
         return nil
@@ -263,7 +262,6 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
             encounter: encounter,
             route: battleRoute(for: origin),
             loot: battleLoot(for: node, labyrinth: labyrinth),
-            defeatPrimaryAction: .retreat,
             universalModifiers: Self.combatModifiers(from: effects)
         )
     }

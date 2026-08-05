@@ -23,6 +23,21 @@ enum RosterHydration {
     }
 
     static func resolveAbilityLoadouts(
+        from loadouts: [String: AbilityLoadout]
+    ) -> [String: AbilityLoadout] {
+        var resolved: [String: AbilityLoadout] = [:]
+        for (combatantID, loadout) in loadouts {
+            guard let combatant = combatantsByID[combatantID] else { continue }
+            // Same exact-then-remap rules as wire decode via WireAbilityLoadout.
+            resolved[combatantID] = WireAbilityLoadout(loadout).loadout(
+                defaults: combatant.abilityLoadout,
+                choices: combatant.abilityChoices
+            )
+        }
+        return resolved
+    }
+
+    static func resolveAbilityLoadouts(
         from wireLoadouts: [String: WireAbilityLoadout]
     ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
@@ -37,6 +52,24 @@ enum RosterHydration {
     }
 
     static func resolveEquipmentLoadout(
+        _ loadout: EquipmentLoadout,
+        inventoryItemIDs: Set<String>,
+        combatant: Combatant? = nil,
+        inventoryItems: [InventoryItem]? = nil
+    ) -> EquipmentLoadout {
+        var resolvedItems: [ItemSlot: String] = [:]
+        for (slot, itemID) in loadout.itemIDsBySlot {
+            guard inventoryItemIDs.contains(itemID) else { continue }
+            resolvedItems[slot] = itemID
+        }
+        var cleaned = EquipmentLoadout(itemIDsBySlot: resolvedItems)
+        if let combatant, let inventoryItems {
+            cleaned = cleaned.sanitized(for: combatant, inventory: inventoryItems)
+        }
+        return cleaned
+    }
+
+    static func resolveEquipmentLoadout(
         _ wireLoadout: WireEquipmentLoadout,
         inventoryItemIDs: Set<String>,
         combatant: Combatant? = nil,
@@ -47,6 +80,27 @@ enum RosterHydration {
             loadout = loadout.sanitized(for: combatant, inventory: inventoryItems)
         }
         return loadout
+    }
+
+    static func resolveEquipmentLoadouts(
+        from loadouts: [String: EquipmentLoadout],
+        inventoryItemIDs: Set<String>,
+        inventoryItems: [InventoryItem]? = nil
+    ) -> [String: EquipmentLoadout] {
+        var resolved: [String: EquipmentLoadout] = [:]
+        for (combatantID, loadout) in loadouts {
+            let combatant = combatantsByID[combatantID]
+            if inventoryItems != nil, combatant == nil {
+                continue
+            }
+            resolved[combatantID] = resolveEquipmentLoadout(
+                loadout,
+                inventoryItemIDs: inventoryItemIDs,
+                combatant: combatant,
+                inventoryItems: inventoryItems
+            )
+        }
+        return enforceUniqueEquippedItems(resolved)
     }
 
     static func resolveEquipmentLoadouts(

@@ -10,8 +10,6 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
     case never
     /// Show each of Hero and Companion's Ultimate cinematic once per battle; later casts auto-skip.
     case oncePerBattle
-    /// Legacy raw value from an earlier Options label; migrated to `oncePerBattle` on load.
-    case afterFirstView
 
     public var id: String {
         rawValue
@@ -21,31 +19,13 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
         switch self {
         case .always: "Always"
         case .never: "Never"
-        case .oncePerBattle, .afterFirstView: "Once Per Battle"
+        case .oncePerBattle: "Once Per Battle"
         }
     }
 
-    /// Cases shown in the Options picker (excludes legacy alias).
+    /// Cases shown in the Options picker.
     public static var pickerCases: [Self] {
-        [.always, .never, .oncePerBattle]
-    }
-
-    var normalized: Self {
-        self == .afterFirstView ? .oncePerBattle : self
-    }
-
-    /// Maps a value stored under the former "Skip Ultimate Animations" framing.
-    static func migratedFromSkipPolicy(_ rawValue: String) -> Self {
-        switch Self(rawValue: rawValue)?.normalized {
-        case .always:
-            // Old "Always" meant always skip → never show.
-            .never
-        case .never:
-            // Old "Never" meant never skip → always show.
-            .always
-        case .oncePerBattle, .afterFirstView, .none:
-            .oncePerBattle
-        }
+        allCases
     }
 }
 
@@ -90,13 +70,7 @@ public final class OptionsStore {
     }
 
     public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
-        didSet {
-            let normalized = ultimateCinematicShowPolicy.normalized
-            ultimateShowPolicyStorage.wrappedValue = normalized.rawValue
-            if ultimateCinematicShowPolicy != normalized {
-                ultimateCinematicShowPolicy = normalized
-            }
-        }
+        didSet { ultimateShowPolicyStorage.wrappedValue = ultimateCinematicShowPolicy.rawValue }
     }
 
     static let musicVolumeKey = "options.musicVolume"
@@ -105,12 +79,6 @@ public final class OptionsStore {
     static let rememberAutoBattlePreferenceKey = "options.rememberAutoBattlePreference"
     static let autoBattleEnabledKey = "battle.autoBattleEnabled"
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
-    /// Former "Skip Ultimate Animations" key. Cleared after one-shot migration to show framing.
-    static let ultimateCinematicSkipPolicyKey = "options.ultimateCinematicSkipPolicy"
-    /// Removed: appearance preference. Kept so reset clears any leftover key.
-    static let appearanceKey = "options.appearance"
-    /// Removed: lifetime seen-ability tracking. Kept so reset clears any leftover key.
-    static let seenUltimateCinematicsKey = "options.seenUltimateCinematics"
 
     init(defaults: UserDefaults = .standard) {
         musicVolumeStorage = AppStorage(
@@ -152,7 +120,6 @@ public final class OptionsStore {
         rememberAutoBattlePreference = rememberAutoBattlePreferenceStorage.wrappedValue
         autoBattleEnabled = autoBattleEnabledStorage.wrappedValue
         ultimateCinematicShowPolicy = resolvedPolicy
-        ultimateShowPolicyStorage.wrappedValue = resolvedPolicy.rawValue
 
         // First assignments in init do not run didSet; clear stale ON after full init.
         if !rememberAutoBattlePreference, autoBattleEnabled {
@@ -165,10 +132,10 @@ public final class OptionsStore {
         actorID: String,
         actorsWhoPresentedThisBattle: Set<String>
     ) -> Bool {
-        switch ultimateCinematicShowPolicy.normalized {
+        switch ultimateCinematicShowPolicy {
         case .always:
             false
-        case .oncePerBattle, .afterFirstView:
+        case .oncePerBattle:
             actorsWhoPresentedThisBattle.contains(actorID)
         case .never:
             true
@@ -176,19 +143,10 @@ public final class OptionsStore {
     }
 
     private static func resolveShowPolicy(from defaults: UserDefaults) -> UltimateCinematicShowPolicy {
-        if let raw = defaults.string(forKey: ultimateCinematicShowPolicyKey),
-           let policy = UltimateCinematicShowPolicy(rawValue: raw) {
-            return policy.normalized
-        }
-
-        if let legacyRaw = defaults.string(forKey: ultimateCinematicSkipPolicyKey) {
-            let migrated = UltimateCinematicShowPolicy.migratedFromSkipPolicy(legacyRaw)
-            defaults.set(migrated.rawValue, forKey: ultimateCinematicShowPolicyKey)
-            defaults.removeObject(forKey: ultimateCinematicSkipPolicyKey)
-            return migrated
-        }
-
-        return .oncePerBattle
+        guard let raw = defaults.string(forKey: ultimateCinematicShowPolicyKey),
+              let policy = UltimateCinematicShowPolicy(rawValue: raw)
+        else { return .oncePerBattle }
+        return policy
     }
 
     private static var defaultMusicVolume: Double {

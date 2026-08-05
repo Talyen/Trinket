@@ -29,8 +29,6 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
-        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
         let roster = playerSave.roster
@@ -44,8 +42,6 @@ struct PlayBattleLaunch {
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: defeatPrimaryAction ?? origin.defeatPrimaryAction,
-            musicStageID: musicStageID ?? origin.musicStageID,
             universalModifiers: universalModifiers
         )
     }
@@ -58,8 +54,6 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
-        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
         let roster = playerSave.roster
@@ -72,8 +66,6 @@ struct PlayBattleLaunch {
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: defeatPrimaryAction ?? origin.defeatPrimaryAction,
-            musicStageID: musicStageID ?? origin.musicStageID,
             universalModifiers: universalModifiers
         )
         guard isValidRoute(route, for: launch.configuration) else { return false }
@@ -99,9 +91,6 @@ struct PlayBattleLaunch {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
-        hasProgressionRewards: Bool? = nil,
-        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> Bool {
         guard isValidRoute(route, for: origin) else { return false }
@@ -125,9 +114,6 @@ struct PlayBattleLaunch {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            defeatPrimaryAction: defeatPrimaryAction,
-            hasProgressionRewards: hasProgressionRewards,
-            musicStageID: musicStageID,
             universalModifiers: universalModifiers
         )
         let activated = battle.activate(launch.configuration)
@@ -149,9 +135,6 @@ struct PlayBattleLaunch {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        defeatPrimaryAction: BattleDefeatPrimaryAction? = nil,
-        hasProgressionRewards: Bool? = nil,
-        musicStageID: String? = nil,
         universalModifiers: [AffixModifier] = []
     ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]) {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
@@ -172,9 +155,9 @@ struct PlayBattleLaunch {
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
-            defeatPrimaryAction: defeatPrimaryAction ?? origin?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: hasProgressionRewards ?? (origin != nil),
-            musicStageID: musicStageID ?? origin?.musicStageID
+            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: origin != nil,
+            musicStageID: origin?.musicStageID
         )
     }
 
@@ -237,9 +220,6 @@ struct PlayBattleLaunch {
             experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
             pendingRewardItem: presentation?.pendingRewardItem,
             stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
-            defeatPrimaryAction: presentation?.defeatPrimaryAction,
-            hasProgressionRewards: presentation?.hasProgressionRewards,
-            musicStageID: presentation?.musicStageID,
             universalModifiers: universalModifiers
         )
         guard battle.restart(launch.configuration) else { return }

@@ -53,8 +53,7 @@ extension AppState {
         let resolvedShellSession = try shellSessionStore ?? PlayerShellSessionStore(
             storeName: environment.storeName,
             resetState: environment.resetState,
-            inMemoryOnly: environment.resetState && environment.storeName == nil,
-            legacyUserDefaults: userDefaults
+            inMemoryOnly: environment.resetState && environment.storeName == nil
         )
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
@@ -112,10 +111,7 @@ extension AppState {
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
         defaults.removeObject(forKey: OptionsStore.rememberAutoBattlePreferenceKey)
         defaults.removeObject(forKey: OptionsStore.autoBattleEnabledKey)
-        defaults.removeObject(forKey: OptionsStore.appearanceKey)
         defaults.removeObject(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
-        defaults.removeObject(forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
-        defaults.removeObject(forKey: OptionsStore.seenUltimateCinematicsKey)
     }
 }
 

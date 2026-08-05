@@ -12,7 +12,8 @@ public final class PlayerShellSessionStore {
     public static let legacyActiveBattleSavedAtKey = "session.activeBattleSavedAt"
     public static let legacyActiveBattleSchemaVersionKey = "session.activeBattleSchemaVersion"
     public static let legacyLastBackgroundedTimeKey = "session.lastBackgroundedTime"
-    /// Cleared on migrate only — Collection attention was removed; do not restore into session state.
+    /// Cleared on reset via `clearLegacyKeys` — Collection attention was removed;
+    /// do not restore into session state.
     public static let legacyViewedCombatantIDsKey = "session.viewedCombatantIDs"
 
     private let context: ModelContext
@@ -42,8 +43,7 @@ public final class PlayerShellSessionStore {
         storeName: String? = nil,
         storeURL: URL? = nil,
         resetState: Bool = false,
-        inMemoryOnly: Bool = false,
-        legacyUserDefaults: UserDefaults? = nil
+        inMemoryOnly: Bool = false
     ) throws {
         let finalURL = Self.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
@@ -78,18 +78,6 @@ public final class PlayerShellSessionStore {
         mapScrollStageID = record.mapScrollStageID
         lastPlayMode = Self.playMode(from: record.lastPlayModeRaw) ?? .campaign
 
-        // Drop any leftover battle-resume fields from older builds.
-        let hadStaleBattleResume = record.activeBattleStageID != nil
-            || record.activeBattleSpireID != nil
-            || record.activeBattleSpireFloor != nil
-            || record.activeBattleLabyrinthNodeID != nil
-            || record.activeBattleSavedAt != nil
-            || record.activeBattleSchemaVersion != nil
-            || record.lastBackgroundedTime != nil
-        if hadStaleBattleResume {
-            clearStaleBattleResumeFields()
-        }
-
         // Property observers do not run during init; rewrite remapped legacy tabs
         // (e.g. "search" → collection), legacy play modes ("aspects" → spires),
         // and first-create records explicitly.
@@ -98,10 +86,6 @@ public final class PlayerShellSessionStore {
             record.selectedTabRaw = resolvedTab.rawValue
             record.lastPlayModeRaw = lastPlayMode.rawValue
             saveContext()
-        }
-
-        if let legacyUserDefaults {
-            migrateLegacyUserDefaultsIfNeeded(from: legacyUserDefaults)
         }
     }
 
@@ -143,52 +127,7 @@ public final class PlayerShellSessionStore {
         selectedTab = tab
         clearMapScrollState()
         lastPlayMode = .campaign
-        clearStaleBattleResumeFields()
         flushPendingPersistence()
-    }
-
-    public static func clearLegacyKeys(from defaults: UserDefaults) {
-        defaults.removeObject(forKey: legacySessionTabKey)
-        defaults.removeObject(forKey: legacyActiveBattleStageIDKey)
-        defaults.removeObject(forKey: legacyMapScrollStageIDKey)
-        defaults.removeObject(forKey: legacyActiveBattleSavedAtKey)
-        defaults.removeObject(forKey: legacyActiveBattleSchemaVersionKey)
-        defaults.removeObject(forKey: legacyLastBackgroundedTimeKey)
-        defaults.removeObject(forKey: legacyViewedCombatantIDsKey)
-    }
-
-    public func migrateLegacyUserDefaultsIfNeeded(from defaults: UserDefaults) {
-        let hasLegacyValues = defaults.string(forKey: Self.legacySessionTabKey) != nil
-            || defaults.string(forKey: Self.legacyActiveBattleStageIDKey) != nil
-            || defaults.string(forKey: Self.legacyMapScrollStageIDKey) != nil
-            || defaults.object(forKey: Self.legacyActiveBattleSavedAtKey) != nil
-            || defaults.object(forKey: Self.legacyActiveBattleSchemaVersionKey) != nil
-            || defaults.object(forKey: Self.legacyLastBackgroundedTimeKey) != nil
-            || defaults.object(forKey: Self.legacyViewedCombatantIDsKey) != nil
-        guard hasLegacyValues else { return }
-
-        if let rawTab = defaults.string(forKey: Self.legacySessionTabKey),
-           let tab = Self.tab(from: rawTab) {
-            selectedTab = tab
-        }
-        if let scrollStageID = defaults.string(forKey: Self.legacyMapScrollStageIDKey) {
-            mapScrollStageID = scrollStageID
-        }
-        // Legacy battle-resume / backgrounded keys are intentionally discarded.
-
-        Self.clearLegacyKeys(from: defaults)
-    }
-
-    private func clearStaleBattleResumeFields() {
-        record.activeBattleStageID = nil
-        record.activeBattleSpireID = nil
-        record.activeBattleSpireFloor = nil
-        record.activeBattleLabyrinthNodeID = nil
-        record.activeBattleSavedAt = nil
-        record.activeBattleSchemaVersion = nil
-        record.lastBackgroundedTime = nil
-        record.updatedAt = .now
-        saveContext()
     }
 
     private func persistSelectedTab() {
@@ -201,6 +140,16 @@ public final class PlayerShellSessionStore {
             saveContext()
             selectedTabSaveTask = nil
         }
+    }
+
+    public static func clearLegacyKeys(from defaults: UserDefaults) {
+        defaults.removeObject(forKey: legacySessionTabKey)
+        defaults.removeObject(forKey: legacyActiveBattleStageIDKey)
+        defaults.removeObject(forKey: legacyMapScrollStageIDKey)
+        defaults.removeObject(forKey: legacyActiveBattleSavedAtKey)
+        defaults.removeObject(forKey: legacyActiveBattleSchemaVersionKey)
+        defaults.removeObject(forKey: legacyLastBackgroundedTimeKey)
+        defaults.removeObject(forKey: legacyViewedCombatantIDsKey)
     }
 
     /// Writes any coalesced tab selection immediately. Call before opening a

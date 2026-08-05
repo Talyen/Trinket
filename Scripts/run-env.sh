@@ -41,6 +41,77 @@ trinket_simulator_is_active_agent_name() {
     && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
 }
 
+# Gracefully stop PosterBoard and wait for simulator process teardown before erase/delete.
+trinket_sim_shutdown_wait() {
+  local udid="$1"
+  local device_set="${2:-}"
+
+  if [[ -n "$udid" && "$udid" != "all" ]]; then
+    if [[ -n "$device_set" ]]; then
+      xcrun simctl $device_set spawn "$udid" launchctl stop com.apple.PosterBoard >/dev/null 2>&1 || true
+      xcrun simctl $device_set shutdown "$udid" >/dev/null 2>&1 || true
+    else
+      xcrun simctl spawn "$udid" launchctl stop com.apple.PosterBoard >/dev/null 2>&1 || true
+      xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true
+    fi
+  elif [[ "$udid" == "all" ]]; then
+    if [[ -n "$device_set" ]]; then
+      xcrun simctl $device_set shutdown all >/dev/null 2>&1 || true
+    else
+      xcrun simctl shutdown all >/dev/null 2>&1 || true
+    fi
+  fi
+
+  local attempt=0
+  local max_attempts=40
+  while (( attempt < max_attempts )); do
+    local state=""
+    if [[ -n "$udid" && "$udid" != "all" ]]; then
+      local sim_cmd=("xcrun" "simctl")
+      [[ -n "$device_set" ]] && sim_cmd+=($device_set)
+      sim_cmd+=("list" "devices" "$udid" "-j")
+      state="$("${sim_cmd[@]}" 2>/dev/null | python3 -c '
+import json, sys
+try:
+    payload = json.load(sys.stdin)
+    for dev_list in payload.get("devices", {}).values():
+        for d in dev_list:
+            if d.get("udid") == "'"$udid"'":
+                print(d.get("state", ""))
+                sys.exit(0)
+except Exception:
+    pass
+' 2>/dev/null || true)"
+      if [[ "$state" == "Shutdown" || -z "$state" ]]; then
+        break
+      fi
+    else
+      local sim_cmd=("xcrun" "simctl")
+      [[ -n "$device_set" ]] && sim_cmd+=($device_set)
+      sim_cmd+=("list" "devices" "available" "-j")
+      local booted_count=0
+      booted_count="$("${sim_cmd[@]}" 2>/dev/null | python3 -c '
+import json, sys
+try:
+    payload = json.load(sys.stdin)
+    b = 0
+    for dev_list in payload.get("devices", {}).values():
+        for d in dev_list:
+            if d.get("state") == "Booted":
+                b += 1
+    print(b)
+except Exception:
+    print(0)
+' 2>/dev/null || echo 0)"
+      if (( booted_count == 0 )); then
+        break
+      fi
+    fi
+    sleep 0.05
+    ((attempt++))
+  done
+}
+
 # Reclaim Xcode Preview simulator devices when the Preview set has entries.
 # Skip simctl shutdown/delete when empty (avoids needless CrashReporter sheets).
 # Always prune leftover device dirs under literal and URL-encoded Previews paths.
@@ -86,7 +157,7 @@ print(f"{total}\t{booted}")
   if (( preview_total > 0 )); then
     echo "Simulator cleanup: reclaiming Xcode Preview devices (${preview_total} device(s), ${preview_booted} Booted)."
     if (( preview_booted > 0 )); then
-      xcrun simctl --set previews shutdown all >/dev/null 2>&1 || true
+      trinket_sim_shutdown_wait "all" "--set previews"
     fi
     xcrun simctl --set previews delete all >/dev/null 2>&1 || true
   fi
@@ -255,7 +326,7 @@ for name, udid, state, runtime_identifier in records:
   local index
   for index in "${!managed_udids[@]}"; do
     if [[ "${managed_states[$index]}" == "Booted" ]]; then
-      xcrun simctl shutdown "${managed_udids[$index]}" >/dev/null 2>&1 || true
+      trinket_sim_shutdown_wait "${managed_udids[$index]}"
     fi
   done
 
@@ -363,7 +434,7 @@ for name, udid, runtime_identifier in records:
     if (( index == keep_index )); then
       continue
     fi
-    xcrun simctl shutdown "${managed_udids[$index]}" >/dev/null 2>&1 || true
+    trinket_sim_shutdown_wait "${managed_udids[$index]}"
   done
 
   rm -f "$lock_path"

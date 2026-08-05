@@ -164,18 +164,15 @@ public enum PlayerSaveSanitizer {
         sanitized.activeHeroID = resolvedHeroID
         sanitized.activeCompanionID = resolvedCompanionID
 
-        let wireEquipment = roster.equipmentLoadouts.mapValues(WireEquipmentLoadout.init)
         sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(
-            from: wireEquipment,
+            from: roster.equipmentLoadouts,
             inventoryItemIDs: inventoryItemIDs,
             inventoryItems: inventory.items
         )
 
-        var wireAbility = roster.abilityLoadouts.mapValues(WireAbilityLoadout.init)
-        for combatantID in Array(wireAbility.keys) where RosterHydration.combatantsByID[combatantID] == nil {
-            wireAbility.removeValue(forKey: combatantID)
-        }
-        sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(from: wireAbility)
+        sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(
+            from: roster.abilityLoadouts
+        )
 
         return sanitized
     }

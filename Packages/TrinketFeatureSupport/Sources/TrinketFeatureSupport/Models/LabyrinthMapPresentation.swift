@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
-import TrinketPersistence
 
 public enum LabyrinthMapNodeState: Equatable {
     case locked
@@ -10,17 +9,6 @@ public enum LabyrinthMapNodeState: Equatable {
 }
 
 public enum LabyrinthMapPresentation {
-    public static func floorNodes(
-        for cluster: LabyrinthCluster,
-        in state: PlayerLabyrinthState
-    ) -> [LabyrinthNode] {
-        cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
-            let left = $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            let right = $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            return left.row == right.row ? left.column < right.column : left.row < right.row
-        }
-    }
-
     public static func effectiveType(
         for node: LabyrinthNode,
         unlockedHeroIDs: Set<String>,
@@ -37,16 +25,6 @@ public enum LabyrinthMapPresentation {
             return .mystery
         }
         return .recruit
-    }
-
-    public static func state(
-        for node: LabyrinthNode,
-        in labyrinth: PlayerLabyrinthState
-    ) -> LabyrinthMapNodeState {
-        if node.isCleared {
-            return .cleared
-        }
-        return labyrinth.isNodeReachable(node.id) ? .reachable : .locked
     }
 
     public static func actionTitle(

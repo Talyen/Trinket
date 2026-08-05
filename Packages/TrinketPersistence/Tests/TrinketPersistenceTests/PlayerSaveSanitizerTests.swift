@@ -405,3 +405,29 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.roster.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
     }
 }
+
+@MainActor
+struct PlayerSaveSanitizerAbilityCollisionTests {
+    @Test func sanitizeRosterKeepsLiveSkillThatSharesLegacyRemapID() throws {
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        let glacialWard = try #require(wizard.abilityChoices.skills.first { $0.id == "glacial-ward" })
+        let blizzard = try #require(wizard.abilityChoices.ultimates.first { $0.id == "blizzard" })
+        var loadout = wizard.abilityLoadout.selecting(glacialWard)
+        loadout = loadout.selecting(blizzard)
+        let roster = PlayerRosterState(
+            activeHeroID: PlayerRosterState.starterHeroID,
+            activeCompanionID: PlayerRosterState.starterCompanionID,
+            unlockedHeroIDs: [PlayerRosterState.starterHeroID, "wizard"],
+            unlockedCompanionIDs: [PlayerRosterState.starterCompanionID],
+            abilityLoadouts: ["wizard": loadout],
+            progressions: [:],
+            equipmentLoadouts: [:],
+            gold: 0
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+
+        try #expect(sanitized.loadout(for: wizard).skill?.id == "glacial-ward")
+        try #expect(sanitized.loadout(for: wizard).ultimate?.id == "blizzard")
+    }
+}

@@ -24,21 +24,19 @@ struct AppStateSessionPersistenceTests {
         #expect(state.play.mapScrollStageID == nil)
     }
 
-    @Test func migratesLegacyShellKeysWithAppStatePolicy() throws {
+    @Test func ignoresLegacyShellUserDefaultsKeys() throws {
         context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
         context.userDefaults.set("chapter-1-stage-3", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
         context.userDefaults.set("chapter-2-stage-1", forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
         let state = try makeState()
 
-        // App policy: relaunch always lands on Play even when a legacy tab was stored.
+        // Shell session is SwiftData-only; legacy UserDefaults keys are not migrated.
         #expect(state.selectedTab == .play)
-        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
-        // Battles are never restored from legacy shell keys.
         #expect(state.play.battle.activeBattle == nil)
-        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
-        // Map scroll target still restores.
-        #expect(state.play.mapScrollStageID == "chapter-2-stage-1")
+        #expect(state.play.mapScrollStageID == nil)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == AppTab.homestead.rawValue)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey) == "chapter-2-stage-1")
     }
 
     @Test func selectedTabPersistsOnChangeButRelaunchLandsOnPlay() throws {

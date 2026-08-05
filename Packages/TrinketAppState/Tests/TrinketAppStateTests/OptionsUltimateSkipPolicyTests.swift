@@ -31,28 +31,6 @@ struct OptionsUltimateSkipPolicyTests {
         )
     }
 
-    @Test func migratesLegacyAfterFirstViewToOncePerBattle() throws {
-        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.legacy.\(UUID().uuidString)"))
-        defaults.set(UltimateCinematicShowPolicy.afterFirstView.rawValue, forKey: OptionsStore.ultimateCinematicShowPolicyKey)
-        let options = OptionsStore(defaults: defaults)
-        #expect(options.ultimateCinematicShowPolicy == .oncePerBattle)
-    }
-
-    @Test func migratesLegacySkipFramingAlwaysNever() throws {
-        let defaults = try #require(
-            UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.skipFraming.\(UUID().uuidString)")
-        )
-        defaults.set("always", forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
-
-        let options = OptionsStore(defaults: defaults)
-        #expect(options.ultimateCinematicShowPolicy == .never)
-        #expect(defaults.string(forKey: OptionsStore.ultimateCinematicSkipPolicyKey) == nil)
-        #expect(
-            defaults.string(forKey: OptionsStore.ultimateCinematicShowPolicyKey)
-                == UltimateCinematicShowPolicy.never.rawValue
-        )
-    }
-
     @Test(arguments: [
         (UltimateCinematicShowPolicy.always, false),
         (.never, true),

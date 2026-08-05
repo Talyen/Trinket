@@ -222,11 +222,37 @@ on verify/test. The keep-target managed sim stays Booted; excess managed Booted
 sims are shut down quietly; managed sims are never erased on the normal path.
 `xcode-runner.sh` wall/idle watchdogs (`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` /
 `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`) kill hung **host** xcodebuild trees only —
-they never call `simctl`. MobileCal / Widget “quit unexpectedly” sheets after
-`simctl` teardown are a known Simulator CrashReporter quirk, not Trinket failures;
-set CrashReporterPrefs (Additional Tools for Xcode → Utilities) to **Basic** to
-keep real app crash dialogs while silencing system-daemon spam. Parallel source trees:
+they never call `simctl`. Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
+
+### Local Mac setup (simulator CrashReporter)
+
+MobileCal / Widget / PosterBoard “quit unexpectedly” sheets after intentional
+`simctl` teardown are Simulator host noise, not Trinket test failures. Do this
+once per development Mac:
+
+1. Download **Additional Tools for Xcode** from
+   [developer.apple.com/download/all](https://developer.apple.com/download/all/?q=Additional%20Tools)
+   (or **Xcode → Open Developer Tool → More Developer Tools…**). Match your Xcode
+   major version.
+2. Mount the disk image → **Utilities** → open **CrashReporterPrefs**.
+3. Set **Basic** (keeps real app crash dialogs; silences guest-daemon teardown spam).
+4. Log out/in or reboot so the preference applies.
+
+Do **not** unload ReportCrash system-wide. Erase stays a recovery path only
+(`ensure-simulator` force / failed cold-boot retry); happy-path self-clean shuts
+down excess managed sims and reclaims non-empty Preview sets via
+`trinket_sim_shutdown_wait` (PosterBoard stop + wait) — never routine erase.
+
+### Simulator process rules
+
+- Agents: always `--isolate`; never ad-hoc `simctl erase` / `shutdown all`.
+- Humans: warm shared `Trinket CI` for day-to-day; close SwiftUI Canvas / Previews
+  before long verify runs (Booted Preview devices force reclaim shutdown/delete).
+  Set `TRINKET_CLEANUP_PREVIEW_SIMS=0` only when you intentionally keep Preview
+  devices alive mid-session.
+- Investigate CrashReporter sheets only when they appear without a recent
+  `simctl` teardown, or alongside real boot/test failures.
 
 ### Xcode IDE loop (human day-to-day)
 

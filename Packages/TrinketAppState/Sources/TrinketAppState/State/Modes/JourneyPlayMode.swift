@@ -102,9 +102,7 @@ public final class JourneyPlayMode: PlayModeProtocol {
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,
                 journey: playerSave.journey
-            ),
-            defeatPrimaryAction: .restart,
-            musicStageID: stage.id
+            )
         )
         return nil
     }
@@ -122,9 +120,7 @@ public final class JourneyPlayMode: PlayModeProtocol {
             stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
                 for: stage,
                 journey: playerSave.journey
-            ),
-            defeatPrimaryAction: .restart,
-            musicStageID: stage.id
+            )
         )
     }
 

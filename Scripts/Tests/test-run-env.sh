@@ -50,7 +50,11 @@ JSON
   exit 0
 fi
 
-if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "list" && "$3" == "devices" && "$4" == "available" ]]; then
+if [[ "$#" -ge 3 && "$1" == "simctl" && "$2" == "spawn" ]]; then
+  exit 0
+fi
+
+if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "list" && "$3" == "devices" ]]; then
   cat <<'JSON'
 {"devices":{"com.apple.CoreSimulator.SimRuntime.iOS-26-5":[{"name":"Trinket Agent 1","udid":"agent-1","state":"Booted"},{"name":"Trinket CI","udid":"ci-1","state":"Shutdown"}],"com.apple.CoreSimulator.SimRuntime.iOS-27-0":[{"name":"Trinket Agent 2","udid":"agent-2","state":"Booted"},{"name":"Trinket Agent 3","udid":"agent-3","state":"Shutdown"},{"name":"iPhone 17 Pro","udid":"personal-device","state":"Booted"}]}}
 JSON

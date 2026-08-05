@@ -115,8 +115,7 @@ public final class SpiresPlayMode: PlayModeProtocol {
             origin: origin,
             encounter: encounter,
             route: battleRoute(for: origin),
-            loot: battleLoot(for: floor),
-            defeatPrimaryAction: .restart
+            loot: battleLoot(for: floor)
         )
         return nil
     }
@@ -140,8 +139,7 @@ public final class SpiresPlayMode: PlayModeProtocol {
             origin: origin,
             encounter: encounter,
             route: battleRoute(for: origin),
-            loot: battleLoot(for: floor),
-            defeatPrimaryAction: .restart
+            loot: battleLoot(for: floor)
         )
     }
 

@@ -39,7 +39,8 @@ public final class PreparedArtworkCache {
     /// images needed by the first interactive transitions.
     @ObservationIgnored private var pinnedImages: [String: UIImage] = [:]
     @ObservationIgnored private var pinnedNames: Set<String> = []
-    @ObservationIgnored private var launchWarmupTask: Task<Void, Never>?
+    @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
+    @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedNames: Set<String> = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeBox: DecodeBox
@@ -110,8 +111,8 @@ public final class PreparedArtworkCache {
         if isLaunchWarmupComplete {
             return
         }
-        if launchWarmupTask != nil {
-            await waitUntilLaunchWarmupComplete()
+        if let priorityWarmupTask {
+            await priorityWarmupTask.value
             return
         }
 
@@ -126,26 +127,17 @@ public final class PreparedArtworkCache {
 
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
-            // Unblock interactive UI after the critical path; keep decoding the rest
-            // so later screens still hit the warm cache without stalling launch.
             await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
-            guard !Task.isCancelled else { return }
             isLaunchWarmupComplete = true
+        }
+        priorityWarmupTask = task
+        await task.value
+
+        deferredWarmupTask = Task(priority: .utility) { @MainActor [weak self] in
+            guard let self else { return }
             await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
-            guard !Task.isCancelled else { return }
             isDeferredWarmupComplete = true
             completedCount = totalCount
-            launchWarmupTask = nil
-        }
-        launchWarmupTask = task
-        await waitUntilLaunchWarmupComplete()
-    }
-
-    private func waitUntilLaunchWarmupComplete() async {
-        while !isLaunchWarmupComplete {
-            guard !Task.isCancelled else { return }
-            await Task.yield()
-            try? await Task.sleep(for: .milliseconds(5))
         }
     }
 

@@ -54,8 +54,7 @@ final class AppTestContext {
         let store = try PlayerShellSessionStore(
             storeURL: shellSessionURL,
             resetState: environment.resetState,
-            inMemoryOnly: !environment.resetState,
-            legacyUserDefaults: userDefaults
+            inMemoryOnly: !environment.resetState
         )
         if !environment.resetState {
             cachedShellSession = store

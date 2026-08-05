@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
-import TrinketPersistence
 
 public enum StageMapID {
     public static func chapterGate(for chapter: Chapter) -> String {
@@ -63,31 +62,18 @@ public struct ChapterStageRowPresentation: Identifiable, Equatable {
         }
     }
 
-    public static func rows(
-        for chapter: Chapter,
-        progress: JourneyProgressState
-    ) -> [Self] {
-        let states = chapter.stages.map {
-            JourneyMapPresentation.stageNodeState(for: $0, progress: progress)
-        }
-
-        return chapter.stages.enumerated().map { index, stage in
-            let state = states[index]
-            let connectorBefore: PathConnectorState? = index == chapter.stages.startIndex
-                ? nil
-                : (state == .future ? .future : .progressed)
-            let connectorAfter: PathConnectorState? = index == chapter.stages.index(before: chapter.stages.endIndex)
-                ? nil
-                : (states[index + 1] == .future ? .future : .progressed)
-
-            return Self(
-                stage: stage,
-                state: state,
-                connectorBefore: connectorBefore,
-                connectorAfter: connectorAfter,
-                isBoss: stage.isBossEncounter
-            )
-        }
+    public init(
+        stage: Stage,
+        state: StageNodeState,
+        connectorBefore: PathConnectorState?,
+        connectorAfter: PathConnectorState?,
+        isBoss: Bool
+    ) {
+        self.stage = stage
+        self.state = state
+        self.connectorBefore = connectorBefore
+        self.connectorAfter = connectorAfter
+        self.isBoss = isBoss
     }
 }
 
@@ -151,64 +137,6 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         self.actionAccessibilityID = actionAccessibilityID
         self.activeDetailAccessibilityID = activeDetailAccessibilityID
         self.partyControlAccessibilityID = partyControlAccessibilityID
-    }
-}
-
-public extension StageSelectRowPresentation where Item == SpireFloor {
-    static func spireRows(
-        for spire: SpireDefinition,
-        floors: [SpireFloor],
-        progress: PlayerSpiresState
-    ) -> [Self] {
-        let highestCleared = progress.highestClearedFloor(for: spire.id.rawValue)
-        guard highestCleared < spire.floorCount else { return [] }
-
-        let activeFloor = progress.activeFloor(
-            for: spire.id.rawValue,
-            floorCount: spire.floorCount
-        )
-
-        return floors.compactMap { floor in
-            guard floor.floor > highestCleared,
-                  let enemy = GameContent.enemy(matching: floor.enemyID)
-            else { return nil }
-
-            let encounter = StageEncounter.battle(enemyID: floor.enemyID)
-            let encounterTypeTitle = enemy.isBoss ? "Boss" : encounter.title
-            let mapLabel = "Floor \(floor.floor)"
-            return Self(
-                item: floor,
-                isActive: floor.floor == activeFloor,
-                activeEyebrow: "\(mapLabel) · \(encounterTypeTitle)",
-                mapLabel: mapLabel,
-                title: enemy.combatant.name,
-                activeDetailLines: [],
-                encounterTypeTitle: encounterTypeTitle,
-                symbolName: encounter.symbolName,
-                tint: encounter.mapTint,
-                primaryActionTitle: "Battle",
-                showsPartyPicker: true,
-                isArtworkInteractive: true,
-                rowAccessibilityID: AccessibilityID.Play.spireFloor(
-                    spire.id.rawValue,
-                    floor: floor.floor
-                ),
-                artworkAccessibilityID: AccessibilityID.Play.spireFloorEnemyArt(
-                    spire.id.rawValue,
-                    floor: floor.floor
-                ),
-                actionAccessibilityID: AccessibilityID.Play.spireBeginFloor(
-                    spire.id.rawValue,
-                    floor: floor.floor
-                ),
-                activeDetailAccessibilityID: AccessibilityID.Play.spireActiveFloorDetail(
-                    spire.id.rawValue
-                ),
-                partyControlAccessibilityID: AccessibilityID.Play.spirePartyControl(
-                    spire.id.rawValue
-                )
-            )
-        }
     }
 }
 

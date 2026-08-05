@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketFeatureAdapters
 import TrinketPersistence
 @testable import TrinketFeatureSupport
 
