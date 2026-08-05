@@ -148,7 +148,7 @@ public final class SFXPlayer {
             Bundle.main.url(
                 forResource: clip.resourceName,
                 withExtension: clip.fileExtension,
-                subdirectory: "Resources/SFX"
+                subdirectory: "Media/SFX"
             )
     }
 

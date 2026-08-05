@@ -9,9 +9,9 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
   App/                      TrinketApp, ContentView, launch/error presentation
   Features/                 Play, Collection, Homestead, and Options screens
   Assets.xcassets           Processed art (HEIC) from ArtManifest
-  Resources/Music           AAC tracks from MusicManifest
-  Resources/SFX             AAC clips from SoundManifest
-  Resources/Cinematics      Ultimate cinematic MP4s from CinematicManifest
+  Media/Music               AAC tracks from MusicManifest
+  Media/SFX                 AAC clips from SoundManifest
+  Media/Cinematics          Ultimate cinematic MP4s from CinematicManifest
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
@@ -42,9 +42,9 @@ Manifests and pipelines live outside the app folder:
 
 - `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Packages/TrinketContent/Sources/TrinketContent/Generated/`
 - `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Packages/TrinketContent/.../Generated/ArtCatalog.generated.swift` + `Trinket/Assets.xcassets`
-- `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh` → `Packages/TrinketContent/.../Generated/MusicCatalog.generated.swift` + `Trinket/Resources/Music`
-- `SoundManifest/sfx.tsv` → `Scripts/prepare-sfx-assets.sh` → `Packages/TrinketContent/.../Generated/SFXCatalog.generated.swift` + `Trinket/Resources/SFX`
-- `CinematicManifest/cinematics.tsv` → `Scripts/prepare-cinematic-assets.sh` → `Packages/TrinketContent/.../Generated/UltimateCinematicCatalog.generated.swift` + `Trinket/Resources/Cinematics`
+- `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh` → `Packages/TrinketContent/.../Generated/MusicCatalog.generated.swift` + `Trinket/Media/Music`
+- `SoundManifest/sfx.tsv` → `Scripts/prepare-sfx-assets.sh` → `Packages/TrinketContent/.../Generated/SFXCatalog.generated.swift` + `Trinket/Media/SFX`
+- `CinematicManifest/cinematics.tsv` → `Scripts/prepare-cinematic-assets.sh` → `Packages/TrinketContent/.../Generated/UltimateCinematicCatalog.generated.swift` + `Trinket/Media/Cinematics`
 
 ## Module ownership
 
@@ -62,7 +62,7 @@ Manifests and pipelines live outside the app folder:
 | Battle presentation | `TrinketBattleFeature` | `BattleRuntimeSession` owns concrete lifecycle/simulation state; `BattleSession` owns combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
 | App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
-| Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
+| Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Binary art/music committed after `--assets` codegen |
 
 ## Product tabs vs code
 

@@ -28,13 +28,17 @@ DID_ENSURE_SIMULATOR=false
 
 usage() {
   cat <<'USAGE'
-Usage: ./Scripts/test-package.sh [--no-build] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
+Usage: ./Scripts/test-package.sh [--no-build] [--build-only] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
 
-BattleEngine balance-sweep tests are skipped by default. Pass
---include-balance-sweep-tests for a one-off balance-tool test run.
+When multiple packages are passed, builds/tests run in parallel using per-package
+DerivedData tenants (same model as `test.sh unit`).
+
+--build-only compiles the package scheme without running tests (local verify
+presentation-only demotion). BattleEngine balance-sweep tests are skipped by
+default; pass --include-balance-sweep-tests for a one-off balance-tool test run.
 
 Packages:
 USAGE
@@ -45,6 +49,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     no-build|--no-build)
       ACTION="test-without-building"
+      shift
+      ;;
+    --build-only|build-only)
+      ACTION="build"
       shift
       ;;
     --destination)
@@ -116,9 +124,20 @@ if [[ "$ACTION" == "test" ]]; then
   prepare_generated_inputs "$RESULTS_DIR"
 fi
 
-for package in "${PACKAGES[@]}"; do
+run_one_package() {
+  local package="$1"
+  local defer_output="${2:-false}"
+  local scheme
+  local package_report_prefix=""
+  local result_bundle
+  local log_file
+  local package_dd
+  local package_test_filters=()
+  local package_status=0
+  local runner_args=()
+  local xcodebuild_args=()
+
   scheme="$(package_test_scheme "$package")"
-  package_report_prefix=""
   if [[ -n "$REPORT_PREFIX" ]]; then
     package_report_prefix="${REPORT_PREFIX}-${package}"
   fi
@@ -129,7 +148,6 @@ for package in "${PACKAGES[@]}"; do
   package_dd="$(package_derived_data_path "$package")"
   mkdir -p "$package_dd"
 
-  package_test_filters=()
   if [[ "$package" == "BattleEngine" && "$INCLUDE_BALANCE_SWEEP_TESTS" == "false" ]]; then
     package_test_filters+=("-skip-testing:BattleBalanceToolsTests")
   fi
@@ -140,18 +158,21 @@ for package in "${PACKAGES[@]}"; do
       "package_$package"; then
       :
     else
-      freshness_status=$?
+      local freshness_status=$?
       # This is a wrapper/preflight failure rather than an Xcode invocation;
       # still leave a completion record so CI cannot mistake a partial unit
       # run for a clean pass.
       xcode_runner_write_manifest "$result_bundle" "$package_report_prefix" "$freshness_status" "$package"
-      exit "$freshness_status"
+      return "$freshness_status"
     fi
   fi
 
-  package_status=0
-  if [[ "$DEFER_TERMINAL_OUTPUT" == "false" ]]; then
-    echo "Running $package package tests..."
+  if [[ "$defer_output" == "false" ]]; then
+    if [[ "$ACTION" == "build" ]]; then
+      echo "Building $package package (build-only)..."
+    else
+      echo "Running $package package tests..."
+    fi
   fi
   runner_args=(
     --label "$package"
@@ -165,7 +186,7 @@ for package in "${PACKAGES[@]}"; do
   else
     runner_args+=(--verbose)
   fi
-  if [[ "$DEFER_TERMINAL_OUTPUT" == "true" ]]; then
+  if [[ "$defer_output" == "true" || "$DEFER_TERMINAL_OUTPUT" == "true" ]]; then
     runner_args+=(--defer-terminal-output)
   fi
   xcodebuild_args=(
@@ -176,16 +197,108 @@ for package in "${PACKAGES[@]}"; do
       -derivedDataPath "$package_dd" \
       -resultBundlePath "$result_bundle"
   )
-  if [[ ${#package_test_filters[@]} -gt 0 ]]; then
+  # Test filters only apply to test / test-without-building.
+  if [[ "$ACTION" != "build" && ${#package_test_filters[@]} -gt 0 ]]; then
     xcodebuild_args+=("${package_test_filters[@]}")
   fi
   xcode_runner_run "${runner_args[@]}" -- "${xcodebuild_args[@]}" || package_status=$?
 
   if [[ "$package_status" -ne 0 ]]; then
-    exit "$package_status"
+    return "$package_status"
   fi
 
-  if [[ "$ACTION" == "test" ]]; then
+  if [[ "$ACTION" == "test" || "$ACTION" == "build" ]]; then
     touch_build_stamp "$RESULTS_DIR" "package_$package"
   fi
+  return 0
+}
+
+if [[ ${#PACKAGES[@]} -eq 1 ]]; then
+  run_one_package "${PACKAGES[0]}" false
+  exit $?
+fi
+
+# Multi-package: parallelize across per-package DerivedData tenants.
+cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
+jobs="$cpu_count"
+if [[ "$jobs" -gt ${#PACKAGES[@]} ]]; then
+  jobs=${#PACKAGES[@]}
+fi
+if [[ "$jobs" -lt 1 ]]; then
+  jobs=1
+fi
+
+package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
+package_output_root="$RESULTS_DIR/.deferred/test-package-$package_run_token"
+mkdir -p "$package_output_root"
+
+if [[ "$ACTION" == "build" ]]; then
+  echo "Building ${#PACKAGES[@]} packages in parallel (jobs=$jobs)..."
+else
+  echo "Running ${#PACKAGES[@]} package test schemes in parallel (jobs=$jobs)..."
+fi
+
+failed=0
+printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
+  set -euo pipefail
+  package="$1"
+  destination="$2"
+  action="$3"
+  quiet="$4"
+  verbose="$5"
+  report_prefix="$6"
+  include_balance="$7"
+  output_root="$8"
+  derived_data_path="$9"
+  results_dir="${10}"
+
+  export DERIVED_DATA_PATH="$derived_data_path"
+  export RESULTS_DIR="$results_dir"
+  # Children already share a prepared generate stamp / SKIP_GENERATE from parents.
+  export SKIP_GENERATE=1
+
+  package_args=("$package" --destination "$destination" --defer-terminal-output)
+  case "$action" in
+    test-without-building) package_args=(--no-build "${package_args[@]}") ;;
+    build) package_args=(--build-only "${package_args[@]}") ;;
+  esac
+  if [[ "$quiet" == "true" ]]; then
+    package_args+=(--quiet)
+  fi
+  if [[ "$verbose" == "true" ]]; then
+    package_args+=(--verbose)
+  fi
+  if [[ -n "$report_prefix" ]]; then
+    package_args+=(--report-prefix "$report_prefix")
+  fi
+  if [[ "$include_balance" == "true" ]]; then
+    package_args+=(--include-balance-sweep-tests)
+  fi
+
+  status=0
+  ./Scripts/test-package.sh "${package_args[@]}" >"$output_root/$package.stdout" 2>&1 || status=$?
+  printf "%s\n" "$status" >"$output_root/$package.status"
+  exit "$status"
+' _ {} "$DESTINATION" "$ACTION" "$QUIET" "$VERBOSE" "$REPORT_PREFIX" "$INCLUDE_BALANCE_SWEEP_TESTS" "$package_output_root" "$DERIVED_DATA_PATH" "$RESULTS_DIR" || failed=1
+
+# Emit deferred output in declaration order after all workers finish.
+for package in "${PACKAGES[@]}"; do
+  status_file="$package_output_root/$package.status"
+  stdout_file="$package_output_root/$package.stdout"
+  package_status=1
+  if [[ -f "$status_file" ]]; then
+    package_status="$(cat "$status_file")"
+  fi
+  if [[ -s "$stdout_file" ]]; then
+    cat "$stdout_file"
+  elif [[ "$package_status" -eq 0 ]]; then
+    echo "Package $package completed without deferred output."
+  else
+    echo "Package $package failed without deferred output." >&2
+  fi
+  if [[ "$package_status" != "0" ]]; then
+    failed=1
+  fi
 done
+
+exit "$failed"

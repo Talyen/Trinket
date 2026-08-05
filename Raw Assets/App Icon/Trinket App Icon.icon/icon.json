@@ -6,14 +6,24 @@
     {
       "layers" : [
         {
+          "blend-mode" : "normal",
           "glass" : false,
-          "image-name" : "Trinket App Icon.jpeg",
-          "name" : "Trinket App Icon",
+          "image-name" : "3.jpeg",
+          "name" : "3",
+          "opacity-specializations" : [
+            {
+              "value" : 1
+            },
+            {
+              "appearance" : "dark",
+              "value" : 1
+            }
+          ],
           "position" : {
-            "scale" : 0.6,
+            "scale" : 0.83,
             "translation-in-points" : [
-              0,
-              0
+              -1.1368683772161603e-13,
+              -1.1368683772161603e-13
             ]
           }
         }

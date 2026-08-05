@@ -49,13 +49,24 @@ targets:
     platform: iOS
     deploymentTarget: "26.0"
     sources:
-      - path: Trinket
+      # Swift-only synchronized roots. Heavy Assets/Media/AppIcon are explicit
+      # source entries (buildPhase resources) so actool/audio churn does not resync
+      # the whole app tree. Prefer `sources` over `resources:` — XcodeGen + xcode16_0
+      # drops standalone `resources:` when synchronized folders are present.
+      # Do not name the media folder `Resources` — a top-level Resources directory
+      # in an iOS .app breaks codesign.
+      - path: Trinket/App
+        type: syncedFolder
+      - path: Trinket/Features
         type: syncedFolder
         excludes:
-          - PrivacyInfo.xcprivacy
           - "**/*.md"
-    resources:
+      - path: Trinket/Assets.xcassets
+      - path: Trinket/Media
+        type: folder
+      - path: Trinket/AppIcon.icon
       - path: Trinket/PrivacyInfo.xcprivacy
+        buildPhase: resources
     entitlements:
       path: Trinket/Trinket.entitlements
     dependencies:

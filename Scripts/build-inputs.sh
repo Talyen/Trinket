@@ -69,6 +69,15 @@ generation_inputs_are_dirty() {
   [[ -n "$(git status --porcelain -- "${paths[@]}")" ]]
 }
 
+# All inputs that feed generate.sh (content + project.yml + assets). Used for
+# stamp-time porcelain snapshots so dirty-vs-HEAD worktrees do not defeat the
+# verify-changed idempotent-assert skip after a fresh generate.
+generation_input_paths=(
+  "${content_generation_inputs[@]}"
+  project.yml
+  "${asset_generation_inputs[@]}"
+)
+
 # Snapshot of build-input git porcelain at stamp time. Comparing against HEAD
 # alone would refuse --no-build in any dirty worktree after a fresh build.
 build_input_git_snapshot() {
@@ -78,6 +87,38 @@ build_input_git_snapshot() {
 record_build_input_git_snapshot() {
   local stamp="$1"
   printf '%s\n' "$(build_input_git_snapshot)" >"${stamp}.gitstatus"
+}
+
+generation_input_git_snapshot() {
+  git status --porcelain -- "${generation_input_paths[@]}" 2>/dev/null || true
+}
+
+record_generate_input_git_snapshot() {
+  local stamp="$1"
+  printf '%s\n' "$(generation_input_git_snapshot)" >"${stamp}.gitstatus"
+}
+
+# Return 0 when generation-input porcelain matches the stamp sidecar (or the
+# sidecar is missing — legacy stamps fall back to mtime-only callers).
+assert_generate_input_git_snapshot_unchanged() {
+  local stamp="$1"
+  local snapshot="${stamp}.gitstatus"
+  local previous=""
+  local current
+
+  [[ -f "$snapshot" ]] || return 0
+
+  previous="$(cat "$snapshot")"
+  current="$(generation_input_git_snapshot)"
+  [[ "$current" == "$previous" ]]
+}
+
+touch_generate_stamp() {
+  local results_dir="${1:-${RESULTS_DIR:-$PWD/.DerivedData/TestResults}}"
+  local stamp="$results_dir/.last-generate.stamp"
+  mkdir -p "$results_dir"
+  touch "$stamp"
+  record_generate_input_git_snapshot "$stamp"
 }
 
 assert_build_input_git_snapshot_unchanged() {
@@ -152,7 +193,7 @@ prepare_generated_inputs() {
   else
     ./Scripts/generate.sh
   fi
-  touch "$stamp"
+  touch_generate_stamp "$results_dir"
 }
 
 assert_no_build_inputs_are_fresh() {

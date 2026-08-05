@@ -3,8 +3,10 @@ import Foundation
 import TrinketCore
 
 enum GameContentHomesteadGenerated {
-    static let homesteadNodes: [HomesteadNodeDefinition] = [
-        HomesteadNodeDefinition(
+    static let homesteadNodes: [HomesteadNodeDefinition] = {
+        var list = [HomesteadNodeDefinition]()
+        list.reserveCapacity(14)
+        list.append(HomesteadNodeDefinition(
             id: .wheatField,
             title: "Wheat Field",
             summary: "A first field that turns quiet earth into dependable stores.",
@@ -46,8 +48,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .herbGarden,
             title: "Herb Garden",
             summary: "A small medicinal garden for tonics, reagents, and green magic.",
@@ -89,8 +91,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .chickenCoop,
             title: "Chicken Coop",
             summary: "A lively coop that keeps simple supplies moving between runs.",
@@ -132,8 +134,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .pasture,
             title: "Pasture",
             summary: "Open grazing land for larger stores and slower, stronger support.",
@@ -175,8 +177,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .culinaryArts,
             title: "Culinary Arts",
             summary: "A warm kitchen that turns the harvest into lasting strength.",
@@ -218,8 +220,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .blacksmithForge,
             title: "Blacksmith's Forge",
             summary: "A working forge for hardware, weapons, and stronger construction.",
@@ -261,8 +263,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .woolTailoring,
             title: "Wool Tailoring",
             summary: "A loom shop that weaves padded wraps against winter chill.",
@@ -304,8 +306,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .alchemyLab,
             title: "Alchemy Lab",
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
@@ -347,8 +349,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .crystalGarden,
             title: "Crystal Garden",
             summary: "A luminous garden where rare formations grow around quiet magic.",
@@ -390,8 +392,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .runesmithWorkshop,
             title: "Runesmith's Workshop",
             summary: "A careful workshop where metalwork and crystal study meet.",
@@ -433,8 +435,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .hunterLodge,
             title: "Hunter's Lodge",
             summary: "A trail lodge for companion drills and field craft.",
@@ -476,8 +478,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .agilityTraining,
             title: "Agility Training",
             summary: "A practice yard that sharpens companion footwork and reflexes.",
@@ -519,8 +521,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .moonlitSanctum,
             title: "Moonlit Sanctum",
             summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
@@ -562,8 +564,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        ),
-        HomesteadNodeDefinition(
+        ))
+        list.append(HomesteadNodeDefinition(
             id: .wishingWell,
             title: "Wishing Well",
             summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
@@ -605,7 +607,8 @@ enum GameContentHomesteadGenerated {
                     )
                 )
             ]
-        )
-    ]
+        ))
+        return list
+    }()
 }
 

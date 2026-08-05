@@ -758,11 +758,19 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
             "        )"
         )
 
+    capacity = len(entries)
+    appends = "\n".join(
+        f"        list.append({entry.strip()})"
+        for entry in entries
+    )
     body = (
         "enum ItemAffixCatalogGenerated {\n"
-        "    static let definitions: [ItemAffixDefinition] = [\n"
-        + ",\n".join(entries)
-        + ",\n    ]\n"
+        "    static let definitions: [ItemAffixDefinition] = {\n"
+        f"        var list = [ItemAffixDefinition]()\n"
+        f"        list.reserveCapacity({capacity})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
         "}\n"
     )
     write_generated_file(GENERATED_DIR / "ItemAffixCatalog.generated.swift", body)
@@ -954,11 +962,19 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
             "        )"
         )
 
+    capacity = len(entries)
+    appends = "\n".join(
+        f"        list.append({entry.strip()})"
+        for entry in entries
+    )
     body = (
         "enum GameContentTraitsGenerated {\n"
-        "    static let definitions: [CombatantTraitDefinition] = [\n"
-        + ",\n".join(entries)
-        + ",\n    ]\n"
+        "    static let definitions: [CombatantTraitDefinition] = {\n"
+        f"        var list = [CombatantTraitDefinition]()\n"
+        f"        list.reserveCapacity({capacity})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
         "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentTraits.generated.swift", body)
@@ -967,34 +983,55 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
 def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     heroes = [row for row in rows if row.role == "hero"]
     companions = [row for row in rows if row.role == "companion"]
-    trait_map_entries = ",\n".join(
-        f'        "{swift_escape(row.id)}": "{swift_escape(row.trait_id)}"' for row in rows
+    hero_appends = "\n".join(
+        f"        list.append({render_party_combatant(row).strip()})"
+        for row in heroes
     )
-    hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
-    companion_blocks = ",\n".join(render_party_combatant(row) for row in companions)
+    companion_appends = "\n".join(
+        f"        list.append({render_party_combatant(row).strip()})"
+        for row in companions
+    )
     body = (
         "enum GameContentRosterGenerated {\n"
-        "    static let combatantTraitIDs: [String: String] = [\n"
-        f"{trait_map_entries}\n"
-        "    ]\n\n"
-        "    static let heroes: [Combatant] = [\n"
-        f"{hero_blocks}\n"
-        "    ]\n\n"
-        "    static let companions: [Combatant] = [\n"
-        f"{companion_blocks}\n"
-        "    ]\n"
+        "    static let combatantTraitIDs: [String: String] = {\n"
+        f"        var dict = [String: String]()\n"
+        f"        dict.reserveCapacity({len(rows)})\n"
+        + "\n".join(
+            f'        dict["{swift_escape(row.id)}"] = "{swift_escape(row.trait_id)}"'
+            for row in rows
+        )
+        + "\n        return dict\n"
+        "    }()\n\n"
+        "    static let heroes: [Combatant] = {\n"
+        f"        var list = [Combatant]()\n"
+        f"        list.reserveCapacity({len(heroes)})\n"
+        + hero_appends
+        + "\n        return list\n"
+        "    }()\n\n"
+        "    static let companions: [Combatant] = {\n"
+        f"        var list = [Combatant]()\n"
+        f"        list.reserveCapacity({len(companions)})\n"
+        + companion_appends
+        + "\n        return list\n"
+        "    }()\n"
         "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentRoster.generated.swift", body)
 
 
 def generate_enemies_catalog(rows: list[EnemyRow]) -> None:
-    enemy_blocks = ",\n".join(render_enemy(row) for row in rows)
+    appends = "\n".join(
+        f"        list.append({render_enemy(row).strip()})"
+        for row in rows
+    )
     body = (
         "enum GameContentEnemiesGenerated {\n"
-        "    static let enemies: [Enemy] = [\n"
-        f"{enemy_blocks}\n"
-        "    ]\n"
+        "    static let enemies: [Enemy] = {\n"
+        f"        var list = [Enemy]()\n"
+        f"        list.reserveCapacity({len(rows)})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
         "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentEnemies.generated.swift", body)
@@ -1204,11 +1241,20 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
         )"""
         )
 
+    capacity = len(chapter_blocks)
+    appends = "\n".join(
+        f"        list.append({block.strip()})"
+        for block in chapter_blocks
+    )
     body = (
         "enum GameContentChaptersGenerated {\n"
-        "    static let chapters: [Chapter] = [\n"
-        + ",\n".join(chapter_blocks)
-        + "\n    ]\n}\n"
+        "    static let chapters: [Chapter] = {\n"
+        f"        var list = [Chapter]()\n"
+        f"        list.reserveCapacity({capacity})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
+        "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
 
@@ -1420,15 +1466,20 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
     if set(HOMESTEAD_NODE_ORDER) != VALID_HOMESTEAD_NODE_IDS:
         raise ValueError("HOMESTEAD_NODE_ORDER must match VALID_HOMESTEAD_NODE_IDS")
 
-    node_blocks = ",\n".join(
-        render_homestead_node(node_id, nodes[node_id])
+    node_count = len(HOMESTEAD_NODE_ORDER)
+    appends = "\n".join(
+        f"        list.append({render_homestead_node(node_id, nodes[node_id]).strip()})"
         for node_id in HOMESTEAD_NODE_ORDER
     )
     body = (
         "enum GameContentHomesteadGenerated {\n"
-        "    static let homesteadNodes: [HomesteadNodeDefinition] = [\n"
-        + node_blocks
-        + "\n    ]\n}\n"
+        "    static let homesteadNodes: [HomesteadNodeDefinition] = {\n"
+        f"        var list = [HomesteadNodeDefinition]()\n"
+        f"        list.reserveCapacity({node_count})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
+        "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentHomestead.generated.swift", body)
 
@@ -1458,11 +1509,20 @@ def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
             f"keywordAffinities: {parse_keywords(row.keywords)}"
             ")"
         )
+    capacity = len(entries)
+    appends = "\n".join(
+        f"        list.append({entry.strip()})"
+        for entry in entries
+    )
     body = (
         "enum GameContentItemBasesGenerated {\n"
-        "    static let itemBaseTypes: [ItemBaseType] = [\n"
-        + ",\n".join(entries)
-        + "\n    ]\n}\n"
+        "    static let itemBaseTypes: [ItemBaseType] = {\n"
+        f"        var list = [ItemBaseType]()\n"
+        f"        list.reserveCapacity({capacity})\n"
+        + appends
+        + "\n        return list\n"
+        "    }()\n"
+        "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentItemBases.generated.swift", body)
 
@@ -1477,11 +1537,20 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
             f'        "{swift_escape(stage_id)}": (id: "{swift_escape(row.encounter_art_id)}", '
             f'title: "{swift_escape(row.encounter_art_title)}")'
         )
+    capacity = len(entries)
+    appends = "\n".join(
+        f"        dict[{entry.strip().split(':', 1)[0].strip()}] = {entry.strip().split(':', 1)[1].strip()}"
+        for entry in entries
+    )
     body = (
         "enum GameContentEncounterArtGenerated {\n"
-        "    static let stageEncounterArt: [String: (id: String, title: String)] = [\n"
-        + ",\n".join(entries)
-        + "\n    ]\n}\n"
+        "    static let stageEncounterArt: [String: (id: String, title: String)] = {\n"
+        f"        var dict = [String: (id: String, title: String)]()\n"
+        f"        dict.reserveCapacity({capacity})\n"
+        + appends
+        + "\n        return dict\n"
+        "    }()\n"
+        "}\n"
     )
     write_generated_file(GENERATED_DIR / "GameContentEncounterArt.generated.swift", body)
 
@@ -1639,6 +1708,10 @@ def generate_ability_inventory() -> None:
             )
 
     out = GENERATED_DIR / "AbilityInventory.generated.tsv"
+    # Skip rewrite when unchanged so generate no-ops do not bump mtimes under
+    # Packages/TrinketContent (Xcode watches the package tree).
+    if out.exists() and out.read_text(encoding="utf-8") == tsv:
+        return
     out.write_text(tsv)
 
 

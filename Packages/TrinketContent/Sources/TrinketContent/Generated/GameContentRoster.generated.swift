@@ -3,29 +3,34 @@ import Foundation
 import TrinketCore
 
 enum GameContentRosterGenerated {
-    static let combatantTraitIDs: [String: String] = [
-        "knight": "oathbound",
-        "rogue": "cutpurse",
-        "wizard": "arcane_focus",
-        "ranger": "pack_leader",
-        "warlock": "soul_siphon",
-        "bear": "thick_hide",
-        "frost_whelp": "permafrost",
-        "lizard_scout": "cold_blood",
-        "panther": "razor_claws",
-        "phoenix": "immortal_ember",
-        "wolf": "pack_ferocity",
-        "golden_retriever": "gold_retriever",
-        "library_owl": "purifying_wisdom",
-        "risen_skeleton": "unliving_frame",
-        "mana_moth": "arcane_reservoir",
-        "pixie": "fae_fortune",
-        "shield_scarab": "iron_carapace",
-        "fox": "sly_trickery"
-    ]
+    static let combatantTraitIDs: [String: String] = {
+        var dict = [String: String]()
+        dict.reserveCapacity(18)
+        dict["knight"] = "oathbound"
+        dict["rogue"] = "cutpurse"
+        dict["wizard"] = "arcane_focus"
+        dict["ranger"] = "pack_leader"
+        dict["warlock"] = "soul_siphon"
+        dict["bear"] = "thick_hide"
+        dict["frost_whelp"] = "permafrost"
+        dict["lizard_scout"] = "cold_blood"
+        dict["panther"] = "razor_claws"
+        dict["phoenix"] = "immortal_ember"
+        dict["wolf"] = "pack_ferocity"
+        dict["golden_retriever"] = "gold_retriever"
+        dict["library_owl"] = "purifying_wisdom"
+        dict["risen_skeleton"] = "unliving_frame"
+        dict["mana_moth"] = "arcane_reservoir"
+        dict["pixie"] = "fae_fortune"
+        dict["shield_scarab"] = "iron_carapace"
+        dict["fox"] = "sly_trickery"
+        return dict
+    }()
 
-    static let heroes: [Combatant] = [
-        Combatant(
+    static let heroes: [Combatant] = {
+        var list = [Combatant]()
+        list.reserveCapacity(5)
+        list.append(Combatant(
             id: "knight",
             name: "Knight",
             role: .hero,
@@ -37,8 +42,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "rogue",
             name: "Rogue",
             role: .hero,
@@ -50,8 +55,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
             growthArchetype: .assassin
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "wizard",
             name: "Wizard",
             role: .hero,
@@ -64,8 +69,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 8, intellect: 14, wisdom: 12),
             growthArchetype: .mage
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "ranger",
             name: "Ranger",
             role: .hero,
@@ -77,8 +82,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 9, intellect: 7, wisdom: 12),
             growthArchetype: .assassin
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "warlock",
             name: "Warlock",
             role: .hero,
@@ -91,11 +96,14 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 8, intellect: 13, wisdom: 12),
             growthArchetype: .mage
-        )
-    ]
+        ))
+        return list
+    }()
 
-    static let companions: [Combatant] = [
-        Combatant(
+    static let companions: [Combatant] = {
+        var list = [Combatant]()
+        list.reserveCapacity(13)
+        list.append(Combatant(
             id: "bear",
             name: "Bear",
             role: .companion,
@@ -107,8 +115,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 11, agility: 9, toughness: 12, intellect: 7, wisdom: 11),
             growthArchetype: .tank
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "frost_whelp",
             name: "Frost Whelp",
             role: .companion,
@@ -121,8 +129,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 14, wisdom: 11),
             growthArchetype: .mage
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "lizard_scout",
             name: "Lizard Scout",
             role: .companion,
@@ -134,8 +142,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 12, toughness: 9, intellect: 9, wisdom: 11),
             growthArchetype: .assassin
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "panther",
             name: "Panther",
             role: .companion,
@@ -147,8 +155,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 12, agility: 12, toughness: 10, intellect: 8, wisdom: 8),
             growthArchetype: .bruiser
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "phoenix",
             name: "Phoenix",
             role: .companion,
@@ -161,8 +169,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 8, intellect: 13, wisdom: 12),
             growthArchetype: .mage
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "wolf",
             name: "Wolf",
             role: .companion,
@@ -174,8 +182,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 12, toughness: 10, intellect: 7, wisdom: 11),
             growthArchetype: .assassin
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "golden_retriever",
             name: "Golden Retriever",
             role: .companion,
@@ -187,8 +195,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 11, intellect: 8, wisdom: 14),
             growthArchetype: .support
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "library_owl",
             name: "Library Owl",
             role: .companion,
@@ -201,8 +209,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 9, toughness: 9, intellect: 12, wisdom: 13),
             growthArchetype: .support
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "risen_skeleton",
             name: "Risen Skeleton",
             role: .companion,
@@ -214,8 +222,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 12, agility: 10, toughness: 11, intellect: 9, wisdom: 8),
             growthArchetype: .bruiser
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "mana_moth",
             name: "Mana Moth",
             role: .companion,
@@ -228,8 +236,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 10, toughness: 8, intellect: 13, wisdom: 11),
             growthArchetype: .mage
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "pixie",
             name: "Pixie",
             role: .companion,
@@ -242,8 +250,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 11, toughness: 8, intellect: 11, wisdom: 13),
             growthArchetype: .support
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "shield_scarab",
             name: "Shield Scarab",
             role: .companion,
@@ -255,8 +263,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 10, agility: 9, toughness: 14, intellect: 7, wisdom: 10),
             growthArchetype: .tank
-        ),
-        Combatant(
+        ))
+        list.append(Combatant(
             id: "fox",
             name: "Fox",
             role: .companion,
@@ -268,7 +276,8 @@ enum GameContentRosterGenerated {
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 13, toughness: 9, intellect: 8, wisdom: 11),
             growthArchetype: .assassin
-        )
-    ]
+        ))
+        return list
+    }()
 }
 

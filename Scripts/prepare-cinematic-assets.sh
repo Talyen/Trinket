@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 manifest="CinematicManifest/cinematics.tsv"
-resources_dir="Trinket/Resources/Cinematics"
+resources_dir="Trinket/Media/Cinematics"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 generated_swift="$generated_dir/UltimateCinematicCatalog.generated.swift"
 state_file="$generated_dir/UltimateCinematicSourceHashes.generated.tsv"
@@ -193,7 +193,9 @@ cat >> "$generated_temp" <<'SWIFT'
         let reference = reference(for: abilityID)
         guard let videoName = reference.videoName else { return nil }
         return Bundle.main.url(forResource: videoName, withExtension: "mp4")
+            ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
             ?? Bundle.main.url(forResource: videoName, withExtension: nil)
+            ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
     }
 }
 SWIFT
@@ -204,7 +206,11 @@ rm -f "$entries_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_assets_temp"
   head -n 2 "$state_temp"
   tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
 } > "$state_temp.sorted"
-mv -f "$state_temp.sorted" "$state_temp"
-mv -f "$state_temp" "$state_file"
+if [[ -f "$state_file" ]] && cmp -s "$state_temp.sorted" "$state_file"; then
+  rm -f "$state_temp.sorted" "$state_temp"
+else
+  mv -f "$state_temp.sorted" "$state_file"
+  rm -f "$state_temp"
+fi
 
 echo "Prepared $processed_count cinematic asset(s)."

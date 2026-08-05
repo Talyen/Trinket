@@ -3,11 +3,14 @@ import Foundation
 import TrinketCore
 
 enum GameContentEncounterArtGenerated {
-    static let stageEncounterArt: [String: (id: String, title: String)] = [
-        "chapter-1-stage-8": (id: "destination-merchant-shop", title: "Merchant's Shop"),
-        "chapter-2-stage-8": (id: "destination-merchant-shop", title: "Merchant's Shop"),
-        "chapter-3-stage-8": (id: "destination-merchant-shop", title: "Merchant's Shop"),
-        "chapter-4-stage-8": (id: "destination-merchant-shop", title: "Merchant's Shop")
-    ]
+    static let stageEncounterArt: [String: (id: String, title: String)] = {
+        var dict = [String: (id: String, title: String)]()
+        dict.reserveCapacity(4)
+        dict["chapter-1-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
+        dict["chapter-2-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
+        dict["chapter-3-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
+        dict["chapter-4-stage-8"] = (id: "destination-merchant-shop", title: "Merchant's Shop")
+        return dict
+    }()
 }
 

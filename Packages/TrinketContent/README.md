@@ -20,7 +20,7 @@ Game content catalogs — heroes, companions, enemies, abilities, items, stages,
 | `ContentManifest/homestead_nodes.tsv` | `GameContentHomestead.generated.swift` |
 | `ArtManifest/curated-assets.tsv` | `ArtCatalog.generated.swift` |
 | `MusicManifest/music.tsv` | `MusicCatalog.generated.swift` |
-| `SoundManifest/sfx.tsv` | `SFXCatalog.generated.swift` + `Trinket/Resources/SFX` |
+| `SoundManifest/sfx.tsv` | `SFXCatalog.generated.swift` + `Trinket/Media/SFX` |
 
 ## Adding content
 

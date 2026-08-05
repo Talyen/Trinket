@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 manifest="SoundManifest/sfx.tsv"
-resources_dir="Trinket/Resources/SFX"
+resources_dir="Trinket/Media/SFX"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 generated_swift="$generated_dir/SFXCatalog.generated.swift"
 state_file="$generated_dir/SFXSourceHashes.generated.tsv"
@@ -177,8 +177,12 @@ shopt -u nullglob
   head -n 2 "$state_temp"
   tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
 } > "$state_temp.sorted"
-mv -f "$state_temp.sorted" "$state_temp"
-mv -f "$state_temp" "$state_file"
+if [[ -f "$state_file" ]] && cmp -s "$state_temp.sorted" "$state_file"; then
+  rm -f "$state_temp.sorted" "$state_temp"
+else
+  mv -f "$state_temp.sorted" "$state_file"
+  rm -f "$state_temp"
+fi
 rm -f "$clips_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_clips_temp"
 
 echo "Prepared $processed_count SFX assets in $resources_dir and regenerated $generated_swift."

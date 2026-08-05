@@ -64,6 +64,33 @@ class ScriptRegressionTests(unittest.TestCase):
                 ("head -n 2" in text and "tail -n +3" in text) or ("tail -n +3" in text),
                 f"{name} should preserve hash TSV headers before sorting",
             )
+            self.assertIn(
+                "cmp -s",
+                text,
+                f"{name} should skip rewriting unchanged hash/catalog stamps",
+            )
+
+    def test_prepare_art_skips_unchanged_catalog_contents_json(self) -> None:
+        text = (ROOT / "Scripts" / "prepare-art-assets.sh").read_text(encoding="utf-8")
+        self.assertIn("contents_json_temp", text)
+        self.assertIn('"$asset_catalog/Contents.json"', text)
+        self.assertRegex(
+            text,
+            r"cmp -s \"\$contents_json_temp\" \"\$asset_catalog/Contents\.json\"",
+        )
+
+    def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
+        text = (ROOT / "project.yml").read_text(encoding="utf-8")
+        self.assertIn("path: Trinket/App", text)
+        self.assertIn("type: syncedFolder", text)
+        self.assertIn("path: Trinket/Assets.xcassets", text)
+        self.assertIn("path: Trinket/Media", text)
+        self.assertIn("path: Trinket/AppIcon.icon", text)
+        # Whole-folder sync of Trinket/ would pull assets into the FS sync root.
+        self.assertNotRegex(
+            text,
+            r"(?m)^\s+- path: Trinket\n\s+type: syncedFolder\n",
+        )
 
     def test_generate_pins_c_locale(self) -> None:
         text = (ROOT / "Scripts" / "generate.sh").read_text(encoding="utf-8")
@@ -119,6 +146,178 @@ class ScriptRegressionTests(unittest.TestCase):
                 "./Scripts/test.sh style Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
                 "./Scripts/test-package.sh TrinketContent",
             ],
+        )
+
+    def test_mystery_subflow_routes_compile_not_smoke_play(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/build.sh", plan)
+        self.assertNotIn("SmokePlayTests", plan)
+
+    def test_play_shell_keeps_smoke_play(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Trinket/Features/Play/PlayView.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("SmokePlayTests", result.stdout)
+
+    def test_feature_support_generic_skips_app_build_when_package_tests_run(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/HomesteadResourceArtwork.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/test-package.sh TrinketFeatureSupport", plan)
+        self.assertNotIn("./Scripts/build.sh", plan)
+
+    def test_accessibility_id_keeps_homestead_smoke(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("SmokeHomesteadTests", result.stdout)
+
+    def test_battle_feature_lab_routes_build_only_not_full_package_tests(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn(
+            "./Scripts/test-package.sh --build-only TrinketBattleFeature", plan
+        )
+        self.assertNotIn("./Scripts/test-package.sh TrinketBattleFeature\n", plan + "\n")
+        self.assertNotIn("SmokeBattleTests", plan)
+
+    def test_battle_feature_shipping_keeps_package_tests_and_smoke(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
+        self.assertNotIn("--build-only TrinketBattleFeature", plan)
+        self.assertIn("SmokeBattleTests", plan)
+
+    def test_battle_feature_lab_plus_shipping_keeps_full_package_tests(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "verify-changed.sh"),
+                "--dry-run",
+                "--paths",
+                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
+                "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        plan = "\n".join(result.stdout.splitlines())
+        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
+        self.assertNotIn("--build-only TrinketBattleFeature", plan)
+        self.assertIn("SmokeBattleTests", plan)
+
+    def test_generate_stamp_records_input_porcelain_sidecar(self) -> None:
+        text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
+        self.assertIn("touch_generate_stamp", text)
+        self.assertIn("record_generate_input_git_snapshot", text)
+        self.assertIn("assert_generate_input_git_snapshot_unchanged", text)
+        assert_text = (ROOT / "Scripts" / "assert-generated-output.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("assert_generate_input_git_snapshot_unchanged", assert_text)
+        self.assertIn("Prefer stamp-time porcelain over dirty-vs-HEAD", assert_text)
+
+    def test_test_package_parallelizes_multiple_packages(self) -> None:
+        text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
+        self.assertIn("xargs -P", text)
+        self.assertIn("package test schemes in parallel", text)
+        self.assertIn("per-package DerivedData tenants", text)
+
+    def test_presentation_only_line_classifier(self) -> None:
+        classifier = load_script(
+            "classify_presentation_only", "classify-presentation-only.py"
+        )
+        self.assertTrue(
+            classifier._line_is_presentation(
+                "public static let mysteryRewardArtworkSize: CGFloat = 56"
+            )
+        )
+        self.assertTrue(
+            classifier._line_is_presentation('Text("PICK A REWARD")')
+        )
+        self.assertTrue(
+            classifier._line_is_presentation('systemIcon: "gift.fill",')
+        )
+        self.assertFalse(
+            classifier._line_is_presentation(
+                "accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton"
+            )
+        )
+        self.assertFalse(
+            classifier._line_is_presentation("private func baseItemPreview(")
+        )
+        self.assertFalse(
+            classifier._line_is_presentation("playerSave.homestead.effects.adjustedGold(amount)")
         )
 
     def test_prune_gates_bulk_wipe(self) -> None:

@@ -6,7 +6,7 @@ Trinket keeps source Ultimate cinematic videos separate from app-ready bundle co
 
 - `Raw Assets/Animations/`: source MP4 files. Do not add this folder to the Xcode target.
 - `CinematicManifest/cinematics.tsv`: editable source of truth for Ultimate cinematics.
-- `Trinket/Resources/Cinematics/`: generated app-ready `.mp4` copies.
+- `Trinket/Media/Cinematics/`: generated app-ready `.mp4` copies.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift`: generated Swift lookup keyed by ability ID.
 
 ## Manifest Format
@@ -37,4 +37,4 @@ Or via the full asset pipeline:
 ./Scripts/generate.sh --assets
 ```
 
-The script validates manifest rows, copies source MP4s into `Trinket/Resources/Cinematics/`, and regenerates the Swift catalog. Battle presentation crops with aspect-fill; missing rows fall back to ability art.
+The script validates manifest rows, copies source MP4s into `Trinket/Media/Cinematics/`, and regenerates the Swift catalog. Battle presentation crops with aspect-fill; missing rows fall back to ability art.

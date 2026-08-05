@@ -86,7 +86,11 @@ printf '%s\t%s\n' "$asset_name" "$source_hash" >> "$state_temp"
   head -n 2 "$state_temp"
   tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
 } > "$state_temp.sorted"
-mv -f "$state_temp.sorted" "$state_temp"
-mv -f "$state_temp" "$state_file"
+if [[ -f "$state_file" ]] && cmp -s "$state_temp.sorted" "$state_file"; then
+  rm -f "$state_temp.sorted" "$state_temp"
+else
+  mv -f "$state_temp.sorted" "$state_file"
+  rm -f "$state_temp"
+fi
 
 echo "=== App icon ready ==="

@@ -125,7 +125,7 @@ struct MysteryEncounterView: View {
     private var mysteryChoices: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             if session.event.choices.count > 1 {
-                Text("CHOOSE YOUR PATH")
+                Text("PICK A REWARD")
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)

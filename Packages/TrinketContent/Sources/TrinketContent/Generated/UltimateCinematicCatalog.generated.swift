@@ -40,6 +40,8 @@ public enum UltimateCinematicCatalog {
         let reference = reference(for: abilityID)
         guard let videoName = reference.videoName else { return nil }
         return Bundle.main.url(forResource: videoName, withExtension: "mp4")
+            ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
             ?? Bundle.main.url(forResource: videoName, withExtension: nil)
+            ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
     }
 }

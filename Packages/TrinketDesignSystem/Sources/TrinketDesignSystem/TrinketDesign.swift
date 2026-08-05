@@ -68,6 +68,10 @@ public enum TrinketDesign {
         public static let walletResourceArtworkSize: CGFloat = 36
         /// Wallet / reward-summary resource row minimum height.
         public static let walletResourceRowMinHeight: CGFloat = 46
+        /// Mystery choice card reward artwork square edge.
+        public static let mysteryRewardArtworkSize: CGFloat = 56
+        /// Mystery choice card reward row minimum height.
+        public static let mysteryRewardRowMinHeight: CGFloat = 60
         public static let statBarHeight: CGFloat = 7
         /// Bottom-edge health strip height for battle cards.
         public static let battleHealthBarHeight: CGFloat = 3

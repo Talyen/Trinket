@@ -57,13 +57,11 @@ struct MysteryChoiceCard: View {
             rewardRow
             rewardGrid
         }
-        .padding(TrinketDesign.Metrics.denseSpacing)
         .frame(maxWidth: .infinity)
-        .trinketMaterial(.homesteadFooter)
     }
 
     private var rewardRow: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.mediumSpacing) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
             }
@@ -76,13 +74,13 @@ struct MysteryChoiceCard: View {
             columns: [
                 GridItem(
                     .adaptive(
-                        minimum: TrinketDesign.Metrics.walletResourceArtworkSize * 2,
-                        maximum: 160
+                        minimum: TrinketDesign.Metrics.mysteryRewardArtworkSize * 2.5,
+                        maximum: 200
                     ),
-                    spacing: TrinketDesign.Metrics.denseSpacing
+                    spacing: TrinketDesign.Metrics.smallSpacing
                 ),
             ],
-            spacing: TrinketDesign.Metrics.denseSpacing
+            spacing: TrinketDesign.Metrics.smallSpacing
         ) {
             ForEach(Array(choice.effects.enumerated()), id: \.offset) { _, effect in
                 reward(for: effect)
@@ -124,15 +122,15 @@ struct MysteryChoiceCard: View {
                     baseTypeID: baseTypeID,
                     guaranteedAffixIDs: guaranteedAffixIDs
                 ),
-                value: "1",
-                baseTypeID: baseTypeID,
-                tint: TrinketDesign.Colors.encounterEvent
+                value: nil,
+                systemIcon: "gift.fill",
+                tint: HomesteadResource.gold.tint
             )
 
         case .gainRandomItem:
             rewardSummary(
                 title: "Random Item",
-                value: "1",
+                value: nil,
                 systemIcon: "shippingbox.fill",
                 tint: TrinketDesign.Colors.encounterEvent
             )
@@ -173,81 +171,53 @@ struct MysteryChoiceCard: View {
 
     private func rewardSummary(
         title: String,
-        value: String,
+        value: String? = nil,
         resource: HomesteadResource? = nil,
         systemIcon: String? = nil,
-        baseTypeID: String? = nil,
         tint: Color
     ) -> some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            if let baseTypeID {
-                baseItemPreview(baseTypeID: baseTypeID, tint: tint)
-            } else if let resource {
+        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+            if let resource {
                 HomesteadResourceArtwork(resource: resource)
                     .frame(
-                        width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                        height: TrinketDesign.Metrics.walletResourceArtworkSize
+                        width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
+                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize
                     )
             } else if let systemIcon {
                 Image(systemName: systemIcon)
-                    .font(.title2.weight(.semibold))
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(tint)
                     .frame(
-                        width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                        height: TrinketDesign.Metrics.walletResourceArtworkSize
+                        width: TrinketDesign.Metrics.mysteryRewardArtworkSize,
+                        height: TrinketDesign.Metrics.mysteryRewardArtworkSize
                     )
             }
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
-                Text(title)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.76)
+                if let value {
+                    Text(title)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.76)
 
-                Text(value)
-                    .trinketTypography(.statValue)
+                    Text(value)
+                        .trinketTypography(.rowTitle)
+                        .monospacedDigit()
+                } else {
+                    Text(title)
+                        .trinketTypography(.rowTitle)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.85)
+                }
             }
         }
         .frame(
             maxWidth: .infinity,
-            minHeight: TrinketDesign.Metrics.walletResourceRowMinHeight,
+            minHeight: TrinketDesign.Metrics.mysteryRewardRowMinHeight,
             alignment: .leading
         )
-    }
-
-    @ViewBuilder
-    private func baseItemPreview(baseTypeID: String, tint: Color) -> some View {
-        if let art = GameContent.itemBaseTypes.first(where: { $0.id == baseTypeID })?.previewArtReference {
-            ZStack {
-                TrinketDesign.cardShape
-                    .fill(TrinketDesign.Colors.canvas.opacity(0.45))
-
-                Image.preparedAsset(named: art.imageName)
-                    .resizable()
-                    .scaledToFit()
-                    .decorativePreparedArtwork()
-                    .padding(TrinketDesign.Metrics.extraSmallSpacing)
-            }
-            .frame(
-                width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                height: TrinketDesign.Metrics.walletResourceArtworkSize
-            )
-            .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape.strokeBorder(tint.opacity(0.72), lineWidth: 1)
-            }
-            .accessibilityHidden(true)
-        } else {
-            Image(systemName: "shippingbox.fill")
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(tint)
-                .frame(
-                    width: TrinketDesign.Metrics.walletResourceArtworkSize,
-                    height: TrinketDesign.Metrics.walletResourceArtworkSize
-                )
-                .accessibilityHidden(true)
-        }
     }
 
     private func generatedItemRewardText(

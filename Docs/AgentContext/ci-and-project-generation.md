@@ -23,21 +23,31 @@ This card adds the CI/project-generation exceptions:
   keep-target stays Booted (no routine shutdown/erase). Nested children release
   leases only. Omit `--isolate` only for humans/CI that
   want the shared warm cache (`.DerivedData` + `Trinket CI`).
-- After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` and passes
-  `SKIP_GENERATE=1` into package/unit/smoke/build children. Idempotent assert
-  skips a second full generate when that stamp is still fresh vs generation
-  inputs (otherwise regenerate must be a no-op). That answers “does this working
-  tree match the manifests?” — it does **not** require generated files to match
-  HEAD. Review and stage only the task's authored and generated files before
-  commit; after commit, completeness is `./Scripts/agent-push-gate.sh`, pre-push,
-  `ci-gate.sh`, and CI. Stage wall times append to `$RESULTS_DIR/verify-timing.jsonl`.
+- After generate, verify stamps `$RESULTS_DIR/.last-generate.stamp` (with a
+  generation-input porcelain sidecar) and passes `SKIP_GENERATE=1` into
+  package/unit/smoke/build children. Idempotent assert skips a second full
+  generate when that stamp is still fresh vs generation-input mtimes **and** the
+  porcelain sidecar is unchanged — dirty-vs-HEAD alone must not force a second
+  `--assets` pass in agent worktrees (otherwise regenerate must be a no-op).
+  That answers “does this working tree match the manifests?” — it does **not**
+  require generated files to match HEAD. Review and stage only the task's authored
+  and generated files before commit; after commit, completeness is
+  `./Scripts/agent-push-gate.sh`, pre-push, `ci-gate.sh`, and CI. Stage wall times
+  append to `$RESULTS_DIR/verify-timing.jsonl`.
 - Path-scoped plans: style on changed Swift files only (full-tree style stays in
   `ci-gate` / CI); style ∥ packages; batched multi-package / multi-smoke; unit
   uses `test.sh unit --app-only` (no all-package fan-out). AccessibilityID →
   FeatureSupport package + Homestead canary (PR `smoke-full` owns five-surface
   coverage). BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`)
-  → package only. When unit and smoke both run, verify warms with
-  `build-for-testing --app-only` then `--no-build` for those stages.
+  → local `--build-only` (CI `unit` owns full BattleFeature package tests). Play
+  `SmokePlayTests` only for Play shell/hub paths; Mystery /
+  Labyrinth / StagePreview and other unowned Play subflows → compile-only
+  `build.sh`. Presentation-only diffs (metrics/chrome/copy/SF Symbol) demote
+  package tests and smoke to compile-only via `classify-presentation-only.py`
+  (fail-closed; DesignSystem uses `test-package.sh --build-only`). FeatureSupport
+  no longer sets the feature/app-compile flag (package tests only, plus smoke for
+  AccessibilityID / PreparedArtworkCache). When unit and smoke both run, verify
+  warms with `build-for-testing --app-only` then `--no-build` for those stages.
 - Without explicit `--paths`, `agent-push-gate.sh` classifies working-tree paths;
   when the tree is clean after a commit, it classifies local commits not present on
   a remote, falling back to the latest commit. This preserves conditional asset
@@ -109,6 +119,8 @@ This card adds the CI/project-generation exceptions:
   Booted cap, and age-pruned TestResults / PerformanceResults / Logs plus package
   `.build` / `.DerivedData` (warm `runs/agent-N` Build products stay). The keep-target
   managed sim stays Booted. Do not delete Simulator runtimes.
+- Human Xcode IDE setup (shared DerivedData path, when to generate, scoped tests,
+  Previews / dual-window caveats): see **Xcode IDE loop** in `Scripts/README.md`.
 
 When a test or CI invocation fails, load
 [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs. Read
@@ -124,12 +136,15 @@ subgate as success.
 Path-scoped `verify-changed.sh` always includes style when Swift sources change
 (path-scoped to changed Swift files; full-tree style remains in `ci-gate` / CI), and
 schedules `test-package.sh` for touched packages (batched when multiple) — those
-failures never need a simulator. Feature/Shared/Models paths with no resolved smoke
-owner also schedule compile-only `./Scripts/build.sh` when `xcodebuild` is present
-(generic simulator destination, no boot) so Swift 6 concurrency and Testing-macro
-errors are not style-only false greens. That tier does **not** expand QuickSmoke.
-Path-scoped unit uses `test.sh unit --app-only`; bare `test.sh unit` still runs all
-package schemes for full local/CI confidence.
+failures never need a simulator. Feature paths with no resolved smoke owner also
+schedule compile-only `./Scripts/build.sh` when `xcodebuild` is present (generic
+simulator destination, no boot) so Swift 6 concurrency and Testing-macro errors
+are not style-only false greens — package tests do not replace app compile for
+feature paths. Presentation-only demotions keep that compile fallback
+(`build.sh` or `test-package.sh --build-only`) and never leave style as the sole
+gate. That tier does **not** expand QuickSmoke. Path-scoped unit uses
+`test.sh unit --app-only`; bare `test.sh unit` still runs all package schemes for
+full local/CI confidence.
 
 **Linux / portable SwiftLint:** SourceKit `custom_rules` are skipped, and some
 idiomatic findings may not match macOS CI. Style PASS on Linux is not a substitute

@@ -217,18 +217,13 @@ struct CombatantStatusEffectOverlay: View {
                     default: CGPoint(x: inset, y: along * size.height)
                     }
 
-                    // Keep twinkling after fully revealed.
-                    let twinkle = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
-                    let breathe = 0.88 + 0.12 * twinkle
-                    let radius = minDim
-                        * (0.01 + config.crackDensity * 0.018)
-                        * (0.7 + insetNoise * 0.5)
-                        * appear
-                        * breathe
-                        * config.intensity
-                    let opacity = Double(
-                        (0.3 + 0.55 * appear * config.frostOpacity) * twinkle
-                    )
+                    let twinkle: CGFloat = 0.55 + 0.45 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
+                    let breathe: CGFloat = 0.88 + 0.12 * twinkle
+                    let radiusFraction: CGFloat = minDim * (0.01 + config.crackDensity * 0.018)
+                    let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
+                    let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * config.intensity
+                    let opacityBase: CGFloat = 0.3 + 0.55 * appear * config.frostOpacity
+                    let opacity = Double(opacityBase * twinkle)
                     drawSnowflake(
                         in: &context,
                         at: center,

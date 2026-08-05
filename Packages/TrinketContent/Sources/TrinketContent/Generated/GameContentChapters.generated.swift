@@ -3,8 +3,10 @@ import Foundation
 import TrinketCore
 
 enum GameContentChaptersGenerated {
-    static let chapters: [Chapter] = [
-        Chapter(
+    static let chapters: [Chapter] = {
+        var list = [Chapter]()
+        list.reserveCapacity(4)
+        list.append(Chapter(
             id: "chapter-1",
             number: 1,
             title: "Forest",
@@ -91,8 +93,8 @@ enum GameContentChaptersGenerated {
                     rewards: .empty
                 )
             ]
-        ),
-        Chapter(
+        ))
+        list.append(Chapter(
             id: "chapter-2",
             number: 2,
             title: "Dungeon",
@@ -179,8 +181,8 @@ enum GameContentChaptersGenerated {
                     rewards: .empty
                 )
             ]
-        ),
-        Chapter(
+        ))
+        list.append(Chapter(
             id: "chapter-3",
             number: 3,
             title: "Desert",
@@ -267,8 +269,8 @@ enum GameContentChaptersGenerated {
                     rewards: .empty
                 )
             ]
-        ),
-        Chapter(
+        ))
+        list.append(Chapter(
             id: "chapter-4",
             number: 4,
             title: "Tundra",
@@ -355,7 +357,8 @@ enum GameContentChaptersGenerated {
                     rewards: .empty
                 )
             ]
-        )
-    ]
+        ))
+        return list
+    }()
 }
 

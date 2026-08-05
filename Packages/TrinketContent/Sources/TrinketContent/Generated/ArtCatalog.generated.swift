@@ -49,843 +49,857 @@ public struct EncounterArtReference: Hashable, Sendable {
 
 
 public enum ArtCatalog {
-    public static let combatantArtByID: [String: CombatantArtReference] = [
-        "knight": CombatantArtReference(
+    public static let combatantArtByID: [String: CombatantArtReference] = {
+        var dict = [String: CombatantArtReference]()
+        dict["knight"] = CombatantArtReference(
             imageName: "hero_knight_card",
             thumbnailImageName: "hero_knight_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "ranger": CombatantArtReference(
+        )
+        dict["ranger"] = CombatantArtReference(
             imageName: "hero_ranger_card",
             thumbnailImageName: "hero_ranger_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "rogue": CombatantArtReference(
+        )
+        dict["rogue"] = CombatantArtReference(
             imageName: "hero_rogue_card",
             thumbnailImageName: "hero_rogue_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.34)
-        ),
-        "warlock": CombatantArtReference(
+        )
+        dict["warlock"] = CombatantArtReference(
             imageName: "hero_warlock_card",
             thumbnailImageName: "hero_warlock_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "wizard": CombatantArtReference(
+        )
+        dict["wizard"] = CombatantArtReference(
             imageName: "hero_wizard_card",
             thumbnailImageName: "hero_wizard_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "wolf": CombatantArtReference(
+        )
+        dict["wolf"] = CombatantArtReference(
             imageName: "companion_wolf_card",
             thumbnailImageName: "companion_wolf_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.36)
-        ),
-        "bear": CombatantArtReference(
+        )
+        dict["bear"] = CombatantArtReference(
             imageName: "companion_bear_card",
             thumbnailImageName: "companion_bear_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "frost_whelp": CombatantArtReference(
+        )
+        dict["frost_whelp"] = CombatantArtReference(
             imageName: "companion_frost_whelp_card",
             thumbnailImageName: "companion_frost_whelp_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "lizard_scout": CombatantArtReference(
+        )
+        dict["lizard_scout"] = CombatantArtReference(
             imageName: "companion_lizard_scout_card",
             thumbnailImageName: "companion_lizard_scout_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "panther": CombatantArtReference(
+        )
+        dict["panther"] = CombatantArtReference(
             imageName: "companion_panther_card",
             thumbnailImageName: "companion_panther_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "phoenix": CombatantArtReference(
+        )
+        dict["phoenix"] = CombatantArtReference(
             imageName: "companion_phoenix_card",
             thumbnailImageName: "companion_phoenix_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "golden_retriever": CombatantArtReference(
+        )
+        dict["golden_retriever"] = CombatantArtReference(
             imageName: "companion_golden_retriever_card",
             thumbnailImageName: "companion_golden_retriever_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "library_owl": CombatantArtReference(
+        )
+        dict["library_owl"] = CombatantArtReference(
             imageName: "companion_library_owl_card",
             thumbnailImageName: "companion_library_owl_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "risen_skeleton": CombatantArtReference(
+        )
+        dict["risen_skeleton"] = CombatantArtReference(
             imageName: "companion_risen_skeleton_card",
             thumbnailImageName: "companion_risen_skeleton_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "mana_moth": CombatantArtReference(
+        )
+        dict["mana_moth"] = CombatantArtReference(
             imageName: "companion_mana_moth_card",
             thumbnailImageName: "companion_mana_moth_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "fox": CombatantArtReference(
+        )
+        dict["fox"] = CombatantArtReference(
             imageName: "companion_fox_card",
             thumbnailImageName: "companion_fox_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.36)
-        ),
-        "living_armor": CombatantArtReference(
+        )
+        dict["living_armor"] = CombatantArtReference(
             imageName: "enemy_living_armor_card",
             thumbnailImageName: "enemy_living_armor_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "mimic": CombatantArtReference(
+        )
+        dict["mimic"] = CombatantArtReference(
             imageName: "enemy_mimic_card",
             thumbnailImageName: "enemy_mimic_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "mud_elemental": CombatantArtReference(
+        )
+        dict["mud_elemental"] = CombatantArtReference(
             imageName: "enemy_mud_elemental_card",
             thumbnailImageName: "enemy_mud_elemental_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "necromancer": CombatantArtReference(
+        )
+        dict["necromancer"] = CombatantArtReference(
             imageName: "enemy_necromancer_card",
             thumbnailImageName: "enemy_necromancer_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "plague_doctor": CombatantArtReference(
+        )
+        dict["plague_doctor"] = CombatantArtReference(
             imageName: "enemy_plague_doctor_card",
             thumbnailImageName: "enemy_plague_doctor_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "skeleton": CombatantArtReference(
+        )
+        dict["skeleton"] = CombatantArtReference(
             imageName: "enemy_skeleton_card",
             thumbnailImageName: "enemy_skeleton_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "the_blight_treant": CombatantArtReference(
+        )
+        dict["the_blight_treant"] = CombatantArtReference(
             imageName: "enemy_the_blight_treant_card",
             thumbnailImageName: "enemy_the_blight_treant_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "the_forge_golem": CombatantArtReference(
+        )
+        dict["the_forge_golem"] = CombatantArtReference(
             imageName: "enemy_the_forge_golem_card",
             thumbnailImageName: "enemy_the_forge_golem_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "the_frostwarden": CombatantArtReference(
+        )
+        dict["the_frostwarden"] = CombatantArtReference(
             imageName: "enemy_the_frostwarden_card",
             thumbnailImageName: "enemy_the_frostwarden_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "the_iron_bear": CombatantArtReference(
+        )
+        dict["the_iron_bear"] = CombatantArtReference(
             imageName: "enemy_the_iron_bear_card",
             thumbnailImageName: "enemy_the_iron_bear_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "fire_elemental": CombatantArtReference(
+        )
+        dict["fire_elemental"] = CombatantArtReference(
             imageName: "enemy_fire_elemental_card",
             thumbnailImageName: "enemy_fire_elemental_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "frost_elemental": CombatantArtReference(
+        )
+        dict["frost_elemental"] = CombatantArtReference(
             imageName: "enemy_frost_elemental_card",
             thumbnailImageName: "enemy_frost_elemental_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "goblin": CombatantArtReference(
+        )
+        dict["goblin"] = CombatantArtReference(
             imageName: "enemy_goblin_card",
             thumbnailImageName: "enemy_goblin_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "slime": CombatantArtReference(
+        )
+        dict["slime"] = CombatantArtReference(
             imageName: "enemy_slime_card",
             thumbnailImageName: "enemy_slime_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "will_o_wisp": CombatantArtReference(
+        )
+        dict["will_o_wisp"] = CombatantArtReference(
             imageName: "enemy_will_o_wisp_card",
             thumbnailImageName: "enemy_will_o_wisp_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "pixie": CombatantArtReference(
+        )
+        dict["pixie"] = CombatantArtReference(
             imageName: "companion_pixie_card",
             thumbnailImageName: "companion_pixie_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "shield_scarab": CombatantArtReference(
+        )
+        dict["shield_scarab"] = CombatantArtReference(
             imageName: "companion_shield_scarab_card",
             thumbnailImageName: "companion_shield_scarab_card_thumb",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let abilityArtByID: [String: AbilityArtReference] = [
-        "acid-potion": AbilityArtReference(
+    public static let abilityArtByID: [String: AbilityArtReference] = {
+        var dict = [String: AbilityArtReference]()
+        dict["acid-potion"] = AbilityArtReference(
             imageName: "ability_acid_potion_thumb"
-        ),
-        "apple": AbilityArtReference(
+        )
+        dict["apple"] = AbilityArtReference(
             imageName: "ability_apple_thumb"
-        ),
-        "astral-arrow": AbilityArtReference(
+        )
+        dict["astral-arrow"] = AbilityArtReference(
             imageName: "ability_astral_arrow_thumb"
-        ),
-        "avatar-of-justice": AbilityArtReference(
+        )
+        dict["avatar-of-justice"] = AbilityArtReference(
             imageName: "ability_avatar_of_justice_thumb"
-        ),
-        "bash": AbilityArtReference(
+        )
+        dict["bash"] = AbilityArtReference(
             imageName: "ability_bash_thumb"
-        ),
-        "blackjack": AbilityArtReference(
+        )
+        dict["blackjack"] = AbilityArtReference(
             imageName: "ability_blackjack_thumb"
-        ),
-        "blessed-aegis": AbilityArtReference(
+        )
+        dict["blessed-aegis"] = AbilityArtReference(
             imageName: "ability_blessed_aegis_thumb"
-        ),
-        "blizzard": AbilityArtReference(
+        )
+        dict["blizzard"] = AbilityArtReference(
             imageName: "ability_blizzard_thumb"
-        ),
-        "block": AbilityArtReference(
+        )
+        dict["block"] = AbilityArtReference(
             imageName: "ability_block_thumb"
-        ),
-        "blood-offering": AbilityArtReference(
+        )
+        dict["blood-offering"] = AbilityArtReference(
             imageName: "ability_blood_offering_thumb"
-        ),
-        "bloodthorn": AbilityArtReference(
+        )
+        dict["bloodthorn"] = AbilityArtReference(
             imageName: "ability_bloodthorn_thumb"
-        ),
-        "bounty-shot": AbilityArtReference(
+        )
+        dict["bounty-shot"] = AbilityArtReference(
             imageName: "ability_bounty_shot_thumb"
-        ),
-        "briar-shield": AbilityArtReference(
+        )
+        dict["briar-shield"] = AbilityArtReference(
             imageName: "ability_briar_shield_thumb"
-        ),
-        "caustic-jab": AbilityArtReference(
+        )
+        dict["caustic-jab"] = AbilityArtReference(
             imageName: "ability_caustic_jab_thumb"
-        ),
-        "cinderbloom": AbilityArtReference(
+        )
+        dict["cinderbloom"] = AbilityArtReference(
             imageName: "ability_cinderbloom_thumb"
-        ),
-        "cleanse": AbilityArtReference(
+        )
+        dict["cleanse"] = AbilityArtReference(
             imageName: "ability_cleanse_thumb"
-        ),
-        "cold-snap": AbilityArtReference(
+        )
+        dict["cold-snap"] = AbilityArtReference(
             imageName: "ability_cold_snap_thumb"
-        ),
-        "combustion": AbilityArtReference(
+        )
+        dict["combustion"] = AbilityArtReference(
             imageName: "ability_combustion_thumb"
-        ),
-        "dark-pact": AbilityArtReference(
+        )
+        dict["dark-pact"] = AbilityArtReference(
             imageName: "ability_dark_pact_thumb"
-        ),
-        "earthquake": AbilityArtReference(
+        )
+        dict["earthquake"] = AbilityArtReference(
             imageName: "ability_earthquake_thumb"
-        ),
-        "fangs": AbilityArtReference(
+        )
+        dict["fangs"] = AbilityArtReference(
             imageName: "ability_fangs_thumb"
-        ),
-        "faustian-bargain": AbilityArtReference(
+        )
+        dict["faustian-bargain"] = AbilityArtReference(
             imageName: "ability_faustian_bargain_thumb"
-        ),
-        "fire-arrow": AbilityArtReference(
+        )
+        dict["fire-arrow"] = AbilityArtReference(
             imageName: "ability_fire_arrow_thumb"
-        ),
-        "fireball": AbilityArtReference(
+        )
+        dict["fireball"] = AbilityArtReference(
             imageName: "ability_fireball_thumb"
-        ),
-        "frostbolt": AbilityArtReference(
+        )
+        dict["frostbolt"] = AbilityArtReference(
             imageName: "ability_frostbolt_thumb"
-        ),
-        "glacial-ward": AbilityArtReference(
+        )
+        dict["glacial-ward"] = AbilityArtReference(
             imageName: "ability_glacial_ward_thumb"
-        ),
-        "golden-plate": AbilityArtReference(
+        )
+        dict["golden-plate"] = AbilityArtReference(
             imageName: "ability_golden_plate_thumb"
-        ),
-        "heal": AbilityArtReference(
+        )
+        dict["heal"] = AbilityArtReference(
             imageName: "ability_heal_thumb"
-        ),
-        "hemorrhage": AbilityArtReference(
+        )
+        dict["hemorrhage"] = AbilityArtReference(
             imageName: "ability_hemorrhage_thumb"
-        ),
-        "ice-shot": AbilityArtReference(
+        )
+        dict["ice-shot"] = AbilityArtReference(
             imageName: "ability_ice_shot_thumb"
-        ),
-        "kindling": AbilityArtReference(
+        )
+        dict["kindling"] = AbilityArtReference(
             imageName: "ability_kindling_thumb"
-        ),
-        "luck-potion": AbilityArtReference(
+        )
+        dict["luck-potion"] = AbilityArtReference(
             imageName: "ability_luck_potion_thumb"
-        ),
-        "mana-berries": AbilityArtReference(
+        )
+        dict["mana-berries"] = AbilityArtReference(
             imageName: "ability_mana_berries_thumb"
-        ),
-        "mana-potion": AbilityArtReference(
+        )
+        dict["mana-potion"] = AbilityArtReference(
             imageName: "ability_mana_potion_thumb"
-        ),
-        "mana-shield": AbilityArtReference(
+        )
+        dict["mana-shield"] = AbilityArtReference(
             imageName: "ability_mana_shield_thumb"
-        ),
-        "maul": AbilityArtReference(
+        )
+        dict["maul"] = AbilityArtReference(
             imageName: "ability_maul_thumb"
-        ),
-        "meteor": AbilityArtReference(
+        )
+        dict["meteor"] = AbilityArtReference(
             imageName: "ability_meteor_thumb"
-        ),
-        "molten-bulwark": AbilityArtReference(
+        )
+        dict["molten-bulwark"] = AbilityArtReference(
             imageName: "ability_molten_bulwark_thumb"
-        ),
-        "pack-tactics": AbilityArtReference(
+        )
+        dict["pack-tactics"] = AbilityArtReference(
             imageName: "ability_pack_tactics_thumb"
-        ),
-        "panacea-potion": AbilityArtReference(
+        )
+        dict["panacea-potion"] = AbilityArtReference(
             imageName: "ability_panacea_potion_thumb"
-        ),
-        "phoenix-feather": AbilityArtReference(
+        )
+        dict["phoenix-feather"] = AbilityArtReference(
             imageName: "ability_phoenix_feather_thumb"
-        ),
-        "pixie-dust": AbilityArtReference(
+        )
+        dict["pixie-dust"] = AbilityArtReference(
             imageName: "ability_pixie_dust_thumb"
-        ),
-        "poison-dagger": AbilityArtReference(
+        )
+        dict["poison-dagger"] = AbilityArtReference(
             imageName: "ability_poison_dagger_thumb"
-        ),
-        "pounce": AbilityArtReference(
+        )
+        dict["pounce"] = AbilityArtReference(
             imageName: "ability_pounce_thumb"
-        ),
-        "predators-focus": AbilityArtReference(
+        )
+        dict["predators-focus"] = AbilityArtReference(
             imageName: "ability_predators_focus_thumb"
-        ),
-        "ray-of-frost": AbilityArtReference(
+        )
+        dict["ray-of-frost"] = AbilityArtReference(
             imageName: "ability_ray_of_frost_thumb"
-        ),
-        "rending-slash": AbilityArtReference(
+        )
+        dict["rending-slash"] = AbilityArtReference(
             imageName: "ability_rending_slash_thumb"
-        ),
-        "sap-arrow": AbilityArtReference(
+        )
+        dict["sap-arrow"] = AbilityArtReference(
             imageName: "ability_sap_arrow_thumb"
-        ),
-        "serrated-edge": AbilityArtReference(
+        )
+        dict["serrated-edge"] = AbilityArtReference(
             imageName: "ability_serrated_edge_thumb"
-        ),
-        "shadowstep": AbilityArtReference(
+        )
+        dict["shadowstep"] = AbilityArtReference(
             imageName: "ability_shadowstep_thumb"
-        ),
-        "shield-bash": AbilityArtReference(
+        )
+        dict["shield-bash"] = AbilityArtReference(
             imageName: "ability_shield_bash_thumb"
-        ),
-        "slash": AbilityArtReference(
+        )
+        dict["slash"] = AbilityArtReference(
             imageName: "ability_slash_thumb"
-        ),
-        "smite": AbilityArtReference(
+        )
+        dict["smite"] = AbilityArtReference(
             imageName: "ability_smite_thumb"
-        ),
-        "sniff-out": AbilityArtReference(
+        )
+        dict["sniff-out"] = AbilityArtReference(
             imageName: "ability_sniff_out_thumb"
-        ),
-        "spiked-shield": AbilityArtReference(
+        )
+        dict["spiked-shield"] = AbilityArtReference(
             imageName: "ability_spiked_shield_thumb"
-        ),
-        "stab": AbilityArtReference(
+        )
+        dict["stab"] = AbilityArtReference(
             imageName: "ability_stab_thumb"
-        ),
-        "stargaze": AbilityArtReference(
+        )
+        dict["stargaze"] = AbilityArtReference(
             imageName: "ability_stargaze_thumb"
-        ),
-        "steal": AbilityArtReference(
+        )
+        dict["steal"] = AbilityArtReference(
             imageName: "ability_steal_thumb"
-        ),
-        "stoneskin-potion": AbilityArtReference(
+        )
+        dict["stoneskin-potion"] = AbilityArtReference(
             imageName: "ability_stoneskin_potion_thumb"
-        ),
-        "sunburst": AbilityArtReference(
+        )
+        dict["sunburst"] = AbilityArtReference(
             imageName: "ability_sunburst_thumb"
-        ),
-        "sunder": AbilityArtReference(
+        )
+        dict["sunder"] = AbilityArtReference(
             imageName: "ability_sunder_armor_thumb"
-        ),
-        "thorn-mail": AbilityArtReference(
+        )
+        dict["thorn-mail"] = AbilityArtReference(
             imageName: "ability_thorn_mail_thumb"
-        ),
-        "tithe": AbilityArtReference(
+        )
+        dict["tithe"] = AbilityArtReference(
             imageName: "ability_tithe_thumb"
-        ),
-        "venom-arrow": AbilityArtReference(
+        )
+        dict["venom-arrow"] = AbilityArtReference(
             imageName: "ability_venom_arrow_thumb"
-        ),
-        "venom-fangs": AbilityArtReference(
+        )
+        dict["venom-fangs"] = AbilityArtReference(
             imageName: "ability_venom_fangs_thumb"
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let itemArtByID: [String: ItemArtReference] = [
-        "crossbow-astral": ItemArtReference(
+    public static let itemArtByID: [String: ItemArtReference] = {
+        var dict = [String: ItemArtReference]()
+        dict["crossbow-astral"] = ItemArtReference(
             imageName: "item_crossbow_astral",
             thumbnailImageName: "item_crossbow_astral_thumb"
-        ),
-        "crossbow-basic": ItemArtReference(
+        )
+        dict["crossbow-basic"] = ItemArtReference(
             imageName: "item_crossbow_basic",
             thumbnailImageName: "item_crossbow_basic_thumb"
-        ),
-        "dagger-astral": ItemArtReference(
+        )
+        dict["dagger-astral"] = ItemArtReference(
             imageName: "item_dagger_astral",
             thumbnailImageName: "item_dagger_astral_thumb"
-        ),
-        "dagger-basic": ItemArtReference(
+        )
+        dict["dagger-basic"] = ItemArtReference(
             imageName: "item_dagger_basic",
             thumbnailImageName: "item_dagger_basic_thumb"
-        ),
-        "double_axe-astral": ItemArtReference(
+        )
+        dict["double_axe-astral"] = ItemArtReference(
             imageName: "item_double_axe_astral",
             thumbnailImageName: "item_double_axe_astral_thumb"
-        ),
-        "double_axe-basic": ItemArtReference(
+        )
+        dict["double_axe-basic"] = ItemArtReference(
             imageName: "item_double_axe_basic",
             thumbnailImageName: "item_double_axe_basic_thumb"
-        ),
-        "emerald_amulet-astral": ItemArtReference(
+        )
+        dict["emerald_amulet-astral"] = ItemArtReference(
             imageName: "item_emerald_amulet_astral",
             thumbnailImageName: "item_emerald_amulet_astral_thumb"
-        ),
-        "emerald_amulet-basic": ItemArtReference(
+        )
+        dict["emerald_amulet-basic"] = ItemArtReference(
             imageName: "item_emerald_amulet_basic",
             thumbnailImageName: "item_emerald_amulet_basic_thumb"
-        ),
-        "emerald_ring-astral": ItemArtReference(
+        )
+        dict["emerald_ring-astral"] = ItemArtReference(
             imageName: "item_emerald_ring_astral",
             thumbnailImageName: "item_emerald_ring_astral_thumb"
-        ),
-        "emerald_ring-basic": ItemArtReference(
+        )
+        dict["emerald_ring-basic"] = ItemArtReference(
             imageName: "item_emerald_ring_basic",
             thumbnailImageName: "item_emerald_ring_basic_thumb"
-        ),
-        "flail-astral": ItemArtReference(
+        )
+        dict["flail-astral"] = ItemArtReference(
             imageName: "item_flail_astral",
             thumbnailImageName: "item_flail_astral_thumb"
-        ),
-        "flail-basic": ItemArtReference(
+        )
+        dict["flail-basic"] = ItemArtReference(
             imageName: "item_flail_basic",
             thumbnailImageName: "item_flail_basic_thumb"
-        ),
-        "greatsword-astral": ItemArtReference(
+        )
+        dict["greatsword-astral"] = ItemArtReference(
             imageName: "item_greatsword_astral",
             thumbnailImageName: "item_greatsword_astral_thumb"
-        ),
-        "greatsword-basic": ItemArtReference(
+        )
+        dict["greatsword-basic"] = ItemArtReference(
             imageName: "item_greatsword_basic",
             thumbnailImageName: "item_greatsword_basic_thumb"
-        ),
-        "hatchet-astral": ItemArtReference(
+        )
+        dict["hatchet-astral"] = ItemArtReference(
             imageName: "item_hatchet_astral",
             thumbnailImageName: "item_hatchet_astral_thumb"
-        ),
-        "hatchet-basic": ItemArtReference(
+        )
+        dict["hatchet-basic"] = ItemArtReference(
             imageName: "item_hatchet_basic",
             thumbnailImageName: "item_hatchet_basic_thumb"
-        ),
-        "kite_shield-astral": ItemArtReference(
+        )
+        dict["kite_shield-astral"] = ItemArtReference(
             imageName: "item_kite_shield_astral",
             thumbnailImageName: "item_kite_shield_astral_thumb"
-        ),
-        "kite_shield-basic": ItemArtReference(
+        )
+        dict["kite_shield-basic"] = ItemArtReference(
             imageName: "item_kite_shield_basic",
             thumbnailImageName: "item_kite_shield_basic_thumb"
-        ),
-        "leather_armor-astral": ItemArtReference(
+        )
+        dict["leather_armor-astral"] = ItemArtReference(
             imageName: "item_leather_armor_astral",
             thumbnailImageName: "item_leather_armor_astral_thumb"
-        ),
-        "leather_armor-basic": ItemArtReference(
+        )
+        dict["leather_armor-basic"] = ItemArtReference(
             imageName: "item_leather_armor_basic",
             thumbnailImageName: "item_leather_armor_basic_thumb"
-        ),
-        "longbow-astral": ItemArtReference(
+        )
+        dict["longbow-astral"] = ItemArtReference(
             imageName: "item_longbow_astral",
             thumbnailImageName: "item_longbow_astral_thumb"
-        ),
-        "longbow-basic": ItemArtReference(
+        )
+        dict["longbow-basic"] = ItemArtReference(
             imageName: "item_longbow_basic",
             thumbnailImageName: "item_longbow_basic_thumb"
-        ),
-        "longsword-astral": ItemArtReference(
+        )
+        dict["longsword-astral"] = ItemArtReference(
             imageName: "item_longsword_astral",
             thumbnailImageName: "item_longsword_astral_thumb"
-        ),
-        "longsword-basic": ItemArtReference(
+        )
+        dict["longsword-basic"] = ItemArtReference(
             imageName: "item_longsword_basic",
             thumbnailImageName: "item_longsword_basic_thumb"
-        ),
-        "mace-astral": ItemArtReference(
+        )
+        dict["mace-astral"] = ItemArtReference(
             imageName: "item_mace_astral",
             thumbnailImageName: "item_mace_astral_thumb"
-        ),
-        "mace-basic": ItemArtReference(
+        )
+        dict["mace-basic"] = ItemArtReference(
             imageName: "item_mace_basic",
             thumbnailImageName: "item_mace_basic_thumb"
-        ),
-        "maul-astral": ItemArtReference(
+        )
+        dict["maul-astral"] = ItemArtReference(
             imageName: "item_maul_astral",
             thumbnailImageName: "item_maul_astral_thumb"
-        ),
-        "maul-basic": ItemArtReference(
+        )
+        dict["maul-basic"] = ItemArtReference(
             imageName: "item_maul_basic",
             thumbnailImageName: "item_maul_basic_thumb"
-        ),
-        "plate_armor-astral": ItemArtReference(
+        )
+        dict["plate_armor-astral"] = ItemArtReference(
             imageName: "item_plate_armor_astral",
             thumbnailImageName: "item_plate_armor_astral_thumb"
-        ),
-        "plate_armor-basic": ItemArtReference(
+        )
+        dict["plate_armor-basic"] = ItemArtReference(
             imageName: "item_plate_armor_basic",
             thumbnailImageName: "item_plate_armor_basic_thumb"
-        ),
-        "recurve_bow-astral": ItemArtReference(
+        )
+        dict["recurve_bow-astral"] = ItemArtReference(
             imageName: "item_recurve_bow_astral",
             thumbnailImageName: "item_recurve_bow_astral_thumb"
-        ),
-        "recurve_bow-basic": ItemArtReference(
+        )
+        dict["recurve_bow-basic"] = ItemArtReference(
             imageName: "item_recurve_bow_basic",
             thumbnailImageName: "item_recurve_bow_basic_thumb"
-        ),
-        "ruby_amulet-astral": ItemArtReference(
+        )
+        dict["ruby_amulet-astral"] = ItemArtReference(
             imageName: "item_ruby_amulet_astral",
             thumbnailImageName: "item_ruby_amulet_astral_thumb"
-        ),
-        "ruby_amulet-basic": ItemArtReference(
+        )
+        dict["ruby_amulet-basic"] = ItemArtReference(
             imageName: "item_ruby_amulet_basic",
             thumbnailImageName: "item_ruby_amulet_basic_thumb"
-        ),
-        "ruby_ring-astral": ItemArtReference(
+        )
+        dict["ruby_ring-astral"] = ItemArtReference(
             imageName: "item_ruby_ring_astral",
             thumbnailImageName: "item_ruby_ring_astral_thumb"
-        ),
-        "ruby_ring-basic": ItemArtReference(
+        )
+        dict["ruby_ring-basic"] = ItemArtReference(
             imageName: "item_ruby_ring_basic",
             thumbnailImageName: "item_ruby_ring_basic_thumb"
-        ),
-        "sapphire_amulet-astral": ItemArtReference(
+        )
+        dict["sapphire_amulet-astral"] = ItemArtReference(
             imageName: "item_sapphire_amulet_astral",
             thumbnailImageName: "item_sapphire_amulet_astral_thumb"
-        ),
-        "sapphire_amulet-basic": ItemArtReference(
+        )
+        dict["sapphire_amulet-basic"] = ItemArtReference(
             imageName: "item_sapphire_amulet_basic",
             thumbnailImageName: "item_sapphire_amulet_basic_thumb"
-        ),
-        "sapphire_ring-astral": ItemArtReference(
+        )
+        dict["sapphire_ring-astral"] = ItemArtReference(
             imageName: "item_sapphire_ring_astral",
             thumbnailImageName: "item_sapphire_ring_astral_thumb"
-        ),
-        "sapphire_ring-basic": ItemArtReference(
+        )
+        dict["sapphire_ring-basic"] = ItemArtReference(
             imageName: "item_sapphire_ring_basic",
             thumbnailImageName: "item_sapphire_ring_basic_thumb"
-        ),
-        "shortbow-astral": ItemArtReference(
+        )
+        dict["shortbow-astral"] = ItemArtReference(
             imageName: "item_shortbow_astral",
             thumbnailImageName: "item_shortbow_astral_thumb"
-        ),
-        "shortbow-basic": ItemArtReference(
+        )
+        dict["shortbow-basic"] = ItemArtReference(
             imageName: "item_shortbow_basic",
             thumbnailImageName: "item_shortbow_basic_thumb"
-        ),
-        "shortsword-astral": ItemArtReference(
+        )
+        dict["shortsword-astral"] = ItemArtReference(
             imageName: "item_shortsword_astral",
             thumbnailImageName: "item_shortsword_astral_thumb"
-        ),
-        "shortsword-basic": ItemArtReference(
+        )
+        dict["shortsword-basic"] = ItemArtReference(
             imageName: "item_shortsword_basic",
             thumbnailImageName: "item_shortsword_basic_thumb"
-        ),
-        "spellbook-astral": ItemArtReference(
+        )
+        dict["spellbook-astral"] = ItemArtReference(
             imageName: "item_spellbook_astral",
             thumbnailImageName: "item_spellbook_astral_thumb"
-        ),
-        "spellbook-basic": ItemArtReference(
+        )
+        dict["spellbook-basic"] = ItemArtReference(
             imageName: "item_spellbook_basic",
             thumbnailImageName: "item_spellbook_basic_thumb"
-        ),
-        "staff-astral": ItemArtReference(
+        )
+        dict["staff-astral"] = ItemArtReference(
             imageName: "item_staff_astral",
             thumbnailImageName: "item_staff_astral_thumb"
-        ),
-        "staff-basic": ItemArtReference(
+        )
+        dict["staff-basic"] = ItemArtReference(
             imageName: "item_staff_basic",
             thumbnailImageName: "item_staff_basic_thumb"
-        ),
-        "topaz_amulet-astral": ItemArtReference(
+        )
+        dict["topaz_amulet-astral"] = ItemArtReference(
             imageName: "item_topaz_amulet_astral",
             thumbnailImageName: "item_topaz_amulet_astral_thumb"
-        ),
-        "topaz_amulet-basic": ItemArtReference(
+        )
+        dict["topaz_amulet-basic"] = ItemArtReference(
             imageName: "item_topaz_amulet_basic",
             thumbnailImageName: "item_topaz_amulet_basic_thumb"
-        ),
-        "topaz_ring-astral": ItemArtReference(
+        )
+        dict["topaz_ring-astral"] = ItemArtReference(
             imageName: "item_topaz_ring_astral",
             thumbnailImageName: "item_topaz_ring_astral_thumb"
-        ),
-        "topaz_ring-basic": ItemArtReference(
+        )
+        dict["topaz_ring-basic"] = ItemArtReference(
             imageName: "item_topaz_ring_basic",
             thumbnailImageName: "item_topaz_ring_basic_thumb"
-        ),
-        "wand-astral": ItemArtReference(
+        )
+        dict["wand-astral"] = ItemArtReference(
             imageName: "item_wand_astral",
             thumbnailImageName: "item_wand_astral_thumb"
-        ),
-        "wand-basic": ItemArtReference(
+        )
+        dict["wand-basic"] = ItemArtReference(
             imageName: "item_wand_basic",
             thumbnailImageName: "item_wand_basic_thumb"
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
-        .armor: SlotBackgroundArtReference(
+    public static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = {
+        var dict = [ItemSlot: SlotBackgroundArtReference]()
+        dict[.armor] = SlotBackgroundArtReference(
             imageName: "slot_armor"
-        ),
-        .trinket: SlotBackgroundArtReference(
+        )
+        dict[.trinket] = SlotBackgroundArtReference(
             imageName: "slot_trinket"
-        ),
-        .weapon: SlotBackgroundArtReference(
+        )
+        dict[.weapon] = SlotBackgroundArtReference(
             imageName: "slot_weapon"
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let backgroundArtByID: [String: BackgroundArtReference] = [
-        "chapter-1": BackgroundArtReference(
+    public static let backgroundArtByID: [String: BackgroundArtReference] = {
+        var dict = [String: BackgroundArtReference]()
+        dict["chapter-1"] = BackgroundArtReference(
             imageName: "bg_forest",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "chapter-2": BackgroundArtReference(
+        )
+        dict["chapter-2"] = BackgroundArtReference(
             imageName: "bg_dungeon",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "chapter-3": BackgroundArtReference(
+        )
+        dict["chapter-3"] = BackgroundArtReference(
             imageName: "bg_desert",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "chapter-4": BackgroundArtReference(
+        )
+        dict["chapter-4"] = BackgroundArtReference(
             imageName: "bg_tundra",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "homestead": BackgroundArtReference(
+        )
+        dict["homestead"] = BackgroundArtReference(
             imageName: "bg_homestead",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "wheatField": BackgroundArtReference(
+        )
+        dict["wheatField"] = BackgroundArtReference(
             imageName: "bg_homestead_wheat_field",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "herbGarden": BackgroundArtReference(
+        )
+        dict["herbGarden"] = BackgroundArtReference(
             imageName: "bg_homestead_herb_garden",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "chickenCoop": BackgroundArtReference(
+        )
+        dict["chickenCoop"] = BackgroundArtReference(
             imageName: "bg_homestead_chicken_coop",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "pasture": BackgroundArtReference(
+        )
+        dict["pasture"] = BackgroundArtReference(
             imageName: "bg_homestead_pasture",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "culinaryArts": BackgroundArtReference(
+        )
+        dict["culinaryArts"] = BackgroundArtReference(
             imageName: "bg_homestead_culinary_arts",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "blacksmithForge": BackgroundArtReference(
+        )
+        dict["blacksmithForge"] = BackgroundArtReference(
             imageName: "bg_homestead_blacksmith_forge",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "woolTailoring": BackgroundArtReference(
+        )
+        dict["woolTailoring"] = BackgroundArtReference(
             imageName: "bg_homestead_wool_tailoring",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "alchemyLab": BackgroundArtReference(
+        )
+        dict["alchemyLab"] = BackgroundArtReference(
             imageName: "bg_homestead_alchemy_lab",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "crystalGarden": BackgroundArtReference(
+        )
+        dict["crystalGarden"] = BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "runesmithWorkshop": BackgroundArtReference(
+        )
+        dict["runesmithWorkshop"] = BackgroundArtReference(
             imageName: "bg_homestead_runesmith_workshop",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "hunterLodge": BackgroundArtReference(
+        )
+        dict["hunterLodge"] = BackgroundArtReference(
             imageName: "bg_homestead_hunter_lodge",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "agilityTraining": BackgroundArtReference(
+        )
+        dict["agilityTraining"] = BackgroundArtReference(
             imageName: "bg_homestead_agility_training",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "moonlitSanctum": BackgroundArtReference(
+        )
+        dict["moonlitSanctum"] = BackgroundArtReference(
             imageName: "bg_homestead_moonlit_sanctum",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "wishingWell": BackgroundArtReference(
+        )
+        dict["wishingWell"] = BackgroundArtReference(
             imageName: "bg_homestead_wishing_well",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "gameModeCampaign": BackgroundArtReference(
+        )
+        dict["gameModeCampaign"] = BackgroundArtReference(
             imageName: "bg_game_mode_campaign",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "gameModeExplore": BackgroundArtReference(
+        )
+        dict["gameModeExplore"] = BackgroundArtReference(
             imageName: "bg_game_mode_explore",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "gameModeLabyrinth": BackgroundArtReference(
+        )
+        dict["gameModeLabyrinth"] = BackgroundArtReference(
             imageName: "bg_game_mode_labyrinth",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "gameModeSpires": BackgroundArtReference(
+        )
+        dict["gameModeSpires"] = BackgroundArtReference(
             imageName: "bg_game_mode_spires",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-ironVein": BackgroundArtReference(
+        )
+        dict["spire-ironVein"] = BackgroundArtReference(
             imageName: "bg_spire_iron_vein",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-cinderSpire": BackgroundArtReference(
+        )
+        dict["spire-cinderSpire"] = BackgroundArtReference(
             imageName: "bg_spire_cinder_spire",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-serpentHollow": BackgroundArtReference(
+        )
+        dict["spire-serpentHollow"] = BackgroundArtReference(
             imageName: "bg_spire_serpent_hollow",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-sanguineCourt": BackgroundArtReference(
+        )
+        dict["spire-sanguineCourt"] = BackgroundArtReference(
             imageName: "bg_spire_scar_gallery",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-aureateChoir": BackgroundArtReference(
+        )
+        dict["spire-aureateChoir"] = BackgroundArtReference(
             imageName: "bg_spire_aureate_choir",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-rimeVault": BackgroundArtReference(
+        )
+        dict["spire-rimeVault"] = BackgroundArtReference(
             imageName: "bg_spire_rime_vault",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "spire-resonanceHall": BackgroundArtReference(
+        )
+        dict["spire-resonanceHall"] = BackgroundArtReference(
             imageName: "bg_spire_storm_anvil",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let encounterArtByID: [String: EncounterArtReference] = [
-        "mystery-amethyst-geode": EncounterArtReference(
+    public static let encounterArtByID: [String: EncounterArtReference] = {
+        var dict = [String: EncounterArtReference]()
+        dict["mystery-amethyst-geode"] = EncounterArtReference(
             imageName: "encounter_mystery_amethyst_geode",
             thumbnailImageName: "encounter_mystery_amethyst_geode_thumb"
-        ),
-        "mystery-bioluminescent-mushrooms": EncounterArtReference(
+        )
+        dict["mystery-bioluminescent-mushrooms"] = EncounterArtReference(
             imageName: "encounter_mystery_bioluminescent_mushrooms",
             thumbnailImageName: "encounter_mystery_bioluminescent_mushrooms_thumb"
-        ),
-        "mystery-circle-of-glowing-mushrooms": EncounterArtReference(
+        )
+        dict["mystery-circle-of-glowing-mushrooms"] = EncounterArtReference(
             imageName: "encounter_mystery_circle_of_glowing_mushrooms",
             thumbnailImageName: "encounter_mystery_circle_of_glowing_mushrooms_thumb"
-        ),
-        "mystery-dusty-shelves-in-tower": EncounterArtReference(
+        )
+        dict["mystery-dusty-shelves-in-tower"] = EncounterArtReference(
             imageName: "encounter_mystery_dusty_shelves_in_tower",
             thumbnailImageName: "encounter_mystery_dusty_shelves_in_tower_thumb"
-        ),
-        "mystery-field-of-glowing-mana-berries": EncounterArtReference(
+        )
+        dict["mystery-field-of-glowing-mana-berries"] = EncounterArtReference(
             imageName: "encounter_mystery_field_of_glowing_mana_berries",
             thumbnailImageName: "encounter_mystery_field_of_glowing_mana_berries_thumb"
-        ),
-        "mystery-gold-coins-among-bones": EncounterArtReference(
+        )
+        dict["mystery-gold-coins-among-bones"] = EncounterArtReference(
             imageName: "encounter_mystery_gold_coins_among_bones",
             thumbnailImageName: "encounter_mystery_gold_coins_among_bones_thumb"
-        ),
-        "mystery-leather-book-floats": EncounterArtReference(
+        )
+        dict["mystery-leather-book-floats"] = EncounterArtReference(
             imageName: "encounter_mystery_leather_book_floats",
             thumbnailImageName: "encounter_mystery_leather_book_floats_thumb"
-        ),
-        "mystery-leather-bundle-between-roots": EncounterArtReference(
+        )
+        dict["mystery-leather-bundle-between-roots"] = EncounterArtReference(
             imageName: "encounter_mystery_leather_bundle_between_roots",
             thumbnailImageName: "encounter_mystery_leather_bundle_between_roots_thumb"
-        ),
-        "mystery-narrow-pass-through-peaks": EncounterArtReference(
+        )
+        dict["mystery-narrow-pass-through-peaks"] = EncounterArtReference(
             imageName: "encounter_mystery_narrow_pass_through_peaks",
             thumbnailImageName: "encounter_mystery_narrow_pass_through_peaks_thumb"
-        ),
-        "mystery-oak-tree-with-face": EncounterArtReference(
+        )
+        dict["mystery-oak-tree-with-face"] = EncounterArtReference(
             imageName: "encounter_mystery_oak_tree_with_face",
             thumbnailImageName: "encounter_mystery_oak_tree_with_face_thumb"
-        ),
-        "mystery-pond-reflects-gnarled-trees": EncounterArtReference(
+        )
+        dict["mystery-pond-reflects-gnarled-trees"] = EncounterArtReference(
             imageName: "encounter_mystery_pond_reflects_gnarled_trees",
             thumbnailImageName: "encounter_mystery_pond_reflects_gnarled_trees_thumb"
-        ),
-        "mystery-pool-of-water-steams": EncounterArtReference(
+        )
+        dict["mystery-pool-of-water-steams"] = EncounterArtReference(
             imageName: "encounter_mystery_pool_of_water_steams",
             thumbnailImageName: "encounter_mystery_pool_of_water_steams_thumb"
-        ),
-        "mystery-smoldering-crater": EncounterArtReference(
+        )
+        dict["mystery-smoldering-crater"] = EncounterArtReference(
             imageName: "encounter_mystery_smoldering_crater",
             thumbnailImageName: "encounter_mystery_smoldering_crater_thumb"
-        ),
-        "mystery-sunlight-breaks-canopy": EncounterArtReference(
+        )
+        dict["mystery-sunlight-breaks-canopy"] = EncounterArtReference(
             imageName: "encounter_mystery_sunlight_breaks_canopy",
             thumbnailImageName: "encounter_mystery_sunlight_breaks_canopy_thumb"
-        ),
-        "mystery-vines-carpet-mosaic-floors": EncounterArtReference(
+        )
+        dict["mystery-vines-carpet-mosaic-floors"] = EncounterArtReference(
             imageName: "encounter_mystery_vines_carpet_mosaic_floors",
             thumbnailImageName: "encounter_mystery_vines_carpet_mosaic_floors_thumb"
-        ),
-        "mystery-weathered-stone-altar": EncounterArtReference(
+        )
+        dict["mystery-weathered-stone-altar"] = EncounterArtReference(
             imageName: "encounter_mystery_weathered_stone_altar",
             thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb"
-        ),
-        "mystery-recruit-companions": EncounterArtReference(
+        )
+        dict["mystery-recruit-companions"] = EncounterArtReference(
             imageName: "encounter_mystery_recruit_companions",
             thumbnailImageName: "encounter_mystery_recruit_companions_thumb"
-        ),
-        "mystery-recruit-heroes": EncounterArtReference(
+        )
+        dict["mystery-recruit-heroes"] = EncounterArtReference(
             imageName: "encounter_mystery_recruit_heroes",
             thumbnailImageName: "encounter_mystery_recruit_heroes_thumb"
-        ),
-        "destination-merchant-shop": EncounterArtReference(
+        )
+        dict["destination-merchant-shop"] = EncounterArtReference(
             imageName: "encounter_destination_merchant_shop",
             thumbnailImageName: "encounter_destination_merchant_shop_thumb"
-        ),
-        "destination-alchemist-shop": EncounterArtReference(
+        )
+        dict["destination-alchemist-shop"] = EncounterArtReference(
             imageName: "encounter_destination_alchemist_shop",
             thumbnailImageName: "encounter_destination_alchemist_shop_thumb"
-        ),
-        "destination-campfire": EncounterArtReference(
+        )
+        dict["destination-campfire"] = EncounterArtReference(
             imageName: "encounter_destination_campfire",
             thumbnailImageName: "encounter_destination_campfire_thumb"
-        ),
-        "destination-corruption-altar": EncounterArtReference(
+        )
+        dict["destination-corruption-altar"] = EncounterArtReference(
             imageName: "encounter_destination_corruption_altar",
             thumbnailImageName: "encounter_destination_corruption_altar_thumb"
-        ),
-    ]
+        )
+        return dict
+    }()
 
-    public static let resourceArtByID: [String: ResourceArtReference] = [
-        "wood": ResourceArtReference(
+    public static let resourceArtByID: [String: ResourceArtReference] = {
+        var dict = [String: ResourceArtReference]()
+        dict["wood"] = ResourceArtReference(
             imageName: "resource_homestead_wood"
-        ),
-        "stone": ResourceArtReference(
+        )
+        dict["stone"] = ResourceArtReference(
             imageName: "resource_homestead_stone"
-        ),
-        "iron": ResourceArtReference(
+        )
+        dict["iron"] = ResourceArtReference(
             imageName: "resource_homestead_iron"
-        ),
-        "food": ResourceArtReference(
+        )
+        dict["food"] = ResourceArtReference(
             imageName: "resource_homestead_food"
-        ),
-        "herbs": ResourceArtReference(
+        )
+        dict["herbs"] = ResourceArtReference(
             imageName: "resource_homestead_herbs"
-        ),
-        "hide": ResourceArtReference(
+        )
+        dict["hide"] = ResourceArtReference(
             imageName: "resource_homestead_hide"
-        ),
-        "crystal": ResourceArtReference(
+        )
+        dict["crystal"] = ResourceArtReference(
             imageName: "resource_homestead_crystal"
-        ),
-        "gold": ResourceArtReference(
+        )
+        dict["gold"] = ResourceArtReference(
             imageName: "resource_homestead_gold"
-        ),
-    ]
+        )
+        return dict
+    }()
 
 }
 

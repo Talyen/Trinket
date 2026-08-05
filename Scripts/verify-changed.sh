@@ -212,9 +212,11 @@ PY
 }
 
 stamp_generate_if_needed() {
-  local results="${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
-  mkdir -p "$results"
-  touch "$results/.last-generate.stamp"
+  # Records generation-input porcelain so idempotent assert can skip a second
+  # full regenerate in dirty agent worktrees (mtime + snapshot, not dirty-vs-HEAD).
+  # shellcheck source=Scripts/build-inputs.sh
+  source Scripts/build-inputs.sh
+  touch_generate_stamp "${RESULTS_DIR:-$PWD/.DerivedData/TestResults}"
 }
 
 ensure_shared_simulator() {
@@ -334,6 +336,18 @@ run_verification_command() {
       ensure_shared_simulator
       SKIP_GENERATE=1 ./Scripts/test-package.sh --destination "$SHARED_SIM_DESTINATION" "${packages[@]}"
       ;;
+    package-build)
+      local -a packages=()
+      local package
+      # shellcheck disable=SC2206
+      packages=($argument)
+      (( ${#packages[@]} > 0 )) || { echo "Empty package-build list" >&2; return 2; }
+      for package in "${packages[@]}"; do
+        valid_package_name "$package" || { echo "Unknown structured package-build check: $package" >&2; return 2; }
+      done
+      ensure_shared_simulator
+      SKIP_GENERATE=1 ./Scripts/test-package.sh --build-only --destination "$SHARED_SIM_DESTINATION" "${packages[@]}"
+      ;;
     build)
       [[ "$argument" == app ]] || { echo "Unknown structured build check: $argument" >&2; return 2; }
       SKIP_GENERATE=1 ./Scripts/build.sh
@@ -391,7 +405,7 @@ for index in "${!commands[@]}"; do
         rest_indices+=("$index")
       fi
       ;;
-    package)
+    package|package-build)
       parallel_indices+=("$index")
       ;;
     *)
@@ -406,7 +420,7 @@ done
 
 # Boot once before parallel package work so children share a destination.
 for index in "${parallel_indices[@]+"${parallel_indices[@]}"}"; do
-  if [[ "${kinds[$index]}" == package ]]; then
+  if [[ "${kinds[$index]}" == package || "${kinds[$index]}" == package-build ]]; then
     ensure_shared_simulator
     break
   fi

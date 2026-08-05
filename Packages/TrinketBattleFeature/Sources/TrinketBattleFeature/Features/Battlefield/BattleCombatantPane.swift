@@ -134,32 +134,11 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         // Subscribe to the observation fence (hitReactions storage is ignored).
         // swiftlint:disable:next redundant_discardable_let
         let _ = battleSession.feedback.hitReactionEpoch
-        let recipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
-        let defaultOffset = CGSize(
-            width: CGFloat(recipe.offsetX[safe: 0]?.value ?? 0),
-            height: CGFloat(recipe.offsetY[safe: 0]?.value ?? 0)
+        let layout = ReactionLayoutState(
+            activeKind: activeKind,
+            recoilDirection: recoilDirection,
+            borderColor: borderStrokeColor
         )
-        let impactOffset = impactOffset(
-            for: activeKind,
-            magnitude: abs(defaultOffset.width),
-            defaultOffset: defaultOffset
-        )
-        let isVerticalImpact = activeKind == .damage || activeKind == .critical
-        let recipeScaleX = recipe.scaleX[safe: 0]?.value ?? 1.0
-        let recipeScaleY = recipe.scaleY[safe: 0]?.value ?? 1.0
-        let impactScales = isVerticalImpact
-            ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
-            : (x: recipeScaleX, y: recipeScaleY)
-        let impactScaleX = impactScales.x
-        let impactScaleY = impactScales.y
-        let impactDuration = recipe.scaleX[safe: 0]?.duration ?? 0.08
-        let recoveryDuration = recipe.scaleX[safe: 1]?.duration ?? 0.16
-        // KeyframeAnimator interpolates Doubles; keep tracks typed explicitly.
-        let impactOffsetX = Double(impactOffset.width)
-        let impactOffsetY = Double(impactOffset.height)
-        let recoverOffsetX = recipe.offsetX[safe: 1]?.value ?? 0
-        let recoverOffsetY = recipe.offsetY[safe: 1]?.value ?? 0
-        let borderColor = borderStrokeColor
 
         KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
@@ -173,7 +152,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 // the same scale/offset as art + bars (whole-card hop).
                 .overlay {
                     TrinketDesign.cardShape.strokeBorder(
-                        borderColor,
+                        layout.borderColor,
                         lineWidth: 1
                     )
                     .opacity(borderVisible ? 1 : 0)
@@ -184,78 +163,76 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
                 SpringKeyframe(
-                    impactScaleX,
-                    duration: impactDuration,
-                    spring: .snappy(duration: impactDuration)
+                    layout.impactScaleX,
+                    duration: layout.impactDuration,
+                    spring: .snappy(duration: layout.impactDuration)
                 )
                 SpringKeyframe(
-                    recipe.scaleX[safe: 1]?.value ?? 1.0,
-                    duration: recoveryDuration,
-                    spring: .bouncy(duration: recoveryDuration)
+                    layout.recipe.scaleX[safe: 1]?.value ?? 1.0,
+                    duration: layout.recoveryDuration,
+                    spring: .bouncy(duration: layout.recoveryDuration)
                 )
             }
             KeyframeTrack(\.scaleY) {
                 SpringKeyframe(
-                    impactScaleY,
-                    duration: impactDuration,
-                    spring: .snappy(duration: impactDuration)
+                    layout.impactScaleY,
+                    duration: layout.impactDuration,
+                    spring: .snappy(duration: layout.impactDuration)
                 )
                 SpringKeyframe(
-                    recipe.scaleY[safe: 1]?.value ?? 1.0,
-                    duration: recoveryDuration,
-                    spring: .bouncy(duration: recoveryDuration)
+                    layout.recipe.scaleY[safe: 1]?.value ?? 1.0,
+                    duration: layout.recoveryDuration,
+                    spring: .bouncy(duration: layout.recoveryDuration)
                 )
             }
             KeyframeTrack(\.offsetX) {
-                // Cubic guarantees the impact translation is reached; springs on
-                // sub-0.1s segments can undershoot small offsets into invisibility.
-                CubicKeyframe(impactOffsetX, duration: impactDuration)
-                CubicKeyframe(recoverOffsetX, duration: recoveryDuration)
+                CubicKeyframe(layout.impactOffsetX, duration: layout.impactDuration)
+                CubicKeyframe(layout.recoverOffsetX, duration: layout.recoveryDuration)
             }
             KeyframeTrack(\.offsetY) {
-                CubicKeyframe(impactOffsetY, duration: impactDuration)
-                CubicKeyframe(recoverOffsetY, duration: recoveryDuration)
+                CubicKeyframe(layout.impactOffsetY, duration: layout.impactDuration)
+                CubicKeyframe(layout.recoverOffsetY, duration: layout.recoveryDuration)
             }
             KeyframeTrack(\.rotation) {
                 CubicKeyframe(
-                    recipe.rotation[safe: 0]?.value ?? 0,
-                    duration: recipe.rotation[safe: 0]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 0]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 0]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 1]?.value ?? 0,
-                    duration: recipe.rotation[safe: 1]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 1]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 1]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 2]?.value ?? 0,
-                    duration: recipe.rotation[safe: 2]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 2]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 2]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 3]?.value ?? 0,
-                    duration: recipe.rotation[safe: 3]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 3]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 3]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 4]?.value ?? 0,
-                    duration: recipe.rotation[safe: 4]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 4]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 4]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 5]?.value ?? 0,
-                    duration: recipe.rotation[safe: 5]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 5]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 5]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 6]?.value ?? 0,
-                    duration: recipe.rotation[safe: 6]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 6]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 6]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 7]?.value ?? 0,
-                    duration: recipe.rotation[safe: 7]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 7]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 7]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 8]?.value ?? 0,
-                    duration: recipe.rotation[safe: 8]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 8]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 8]?.duration ?? 0.01
                 )
                 CubicKeyframe(
-                    recipe.rotation[safe: 9]?.value ?? 0,
-                    duration: recipe.rotation[safe: 9]?.duration ?? 0.01
+                    layout.recipe.rotation[safe: 9]?.value ?? 0,
+                    duration: layout.recipe.rotation[safe: 9]?.duration ?? 0.01
                 )
             }
         }
@@ -314,17 +291,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         }
     }
 
-    private func impactOffset(
-        for kind: CombatantHitReactionKind,
-        magnitude: CGFloat,
-        defaultOffset: CGSize
-    ) -> CGSize {
-        guard kind == .damage || kind == .critical else {
-            return defaultOffset
-        }
-        return recoilDirection.impactOffset(magnitude: magnitude)
-    }
-
     private func reactionFeedback(for kind: CombatantHitReactionKind?) -> SensoryFeedback {
         switch kind {
         case .some(.critical):
@@ -364,6 +330,51 @@ private struct CombatantSkillCalloutLane: View {
                 .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
                 .allowsHitTesting(false)
         }
+    }
+}
+
+/// Pre-computes hit-reaction keyframe parameters outside of `body` so each
+/// stored property is type-checked individually (O(1)) rather than as a single
+/// body expression. Without this helper, the compiler spends ~160ms solving the
+/// combined constraint set.
+private struct ReactionLayoutState {
+    let recipe: CombatantHitReactionRecipe
+    let impactScaleX: Double
+    let impactScaleY: Double
+    let impactDuration: Double
+    let recoveryDuration: Double
+    let impactOffsetX: Double
+    let impactOffsetY: Double
+    let recoverOffsetX: Double
+    let recoverOffsetY: Double
+    let borderColor: Color
+
+    init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection, borderColor: Color) {
+        let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
+        let defaultOffset = CGSize(
+            width: CGFloat(reactionRecipe.offsetX[safe: 0]?.value ?? 0),
+            height: CGFloat(reactionRecipe.offsetY[safe: 0]?.value ?? 0)
+        )
+        let isVerticalImpact = activeKind == .damage || activeKind == .critical
+        let recipeScaleX: Double = reactionRecipe.scaleX[safe: 0]?.value ?? 1.0
+        let recipeScaleY: Double = reactionRecipe.scaleY[safe: 0]?.value ?? 1.0
+        let impactScales = isVerticalImpact
+            ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
+            : (x: recipeScaleX, y: recipeScaleY)
+        let resolvedOffset: CGSize = isVerticalImpact
+            ? recoilDirection.impactOffset(magnitude: abs(defaultOffset.width))
+            : defaultOffset
+
+        recipe = reactionRecipe
+        impactScaleX = impactScales.x
+        impactScaleY = impactScales.y
+        impactDuration = reactionRecipe.scaleX[safe: 0]?.duration ?? 0.08
+        recoveryDuration = reactionRecipe.scaleX[safe: 1]?.duration ?? 0.16
+        impactOffsetX = Double(resolvedOffset.width)
+        impactOffsetY = Double(resolvedOffset.height)
+        recoverOffsetX = reactionRecipe.offsetX[safe: 1]?.value ?? 0
+        recoverOffsetY = reactionRecipe.offsetY[safe: 1]?.value ?? 0
+        self.borderColor = borderColor
     }
 }
 

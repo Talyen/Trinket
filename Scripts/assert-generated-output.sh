@@ -40,9 +40,9 @@ trinket_set_generated_tracked_paths() {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv"
       "Trinket/AppIcon.icon"
       "Trinket/Assets.xcassets"
-      "Trinket/Resources/Music"
-      "Trinket/Resources/SFX"
-      "Trinket/Resources/Cinematics"
+      "Trinket/Media/Music"
+      "Trinket/Media/SFX"
+      "Trinket/Media/Cinematics"
     )
   fi
 }
@@ -180,14 +180,13 @@ if [[ "$MODE" == "idempotent" ]]; then
     if [[ "$INCLUDE_ASSETS" == true ]]; then
       assets_changed="$(generation_paths_newer_than "$stamp" "${asset_generation_inputs[@]}" || true)"
     fi
-    if [[ -z "$content_changed" ]] && ! generation_inputs_are_dirty "${content_generation_inputs[@]}"; then
-      if [[ -z "$project_changed" ]] && ! generation_inputs_are_dirty project.yml; then
-        if [[ "$INCLUDE_ASSETS" != true ]] || {
-          [[ -z "$assets_changed" ]] && ! generation_inputs_are_dirty "${asset_generation_inputs[@]}"
-        }; then
-          skip_regenerate=true
-        fi
-      fi
+    # Prefer stamp-time porcelain over dirty-vs-HEAD. Agent/verify worktrees are
+    # normally dirty after generate; re-checking HEAD dirtiness forced a second
+    # full --assets generate + shasum pass (~30–50s) on every verify run.
+    if [[ -z "$content_changed" && -z "$project_changed" ]] \
+      && { [[ "$INCLUDE_ASSETS" != true ]] || [[ -z "$assets_changed" ]]; } \
+      && assert_generate_input_git_snapshot_unchanged "$stamp"; then
+      skip_regenerate=true
     fi
   fi
 
@@ -203,8 +202,7 @@ if [[ "$MODE" == "idempotent" ]]; then
   if [[ "$before" == "$after" ]]; then
     echo "Generated output is stable under regenerate (matches manifests)."
     # Align with verify/ci-gate so later wrappers skip generate.
-    mkdir -p "$RESULTS_DIR"
-    touch "$RESULTS_DIR/.last-generate.stamp"
+    touch_generate_stamp "$RESULTS_DIR"
     exit 0
   fi
   echo "ERROR: Regenerating still changed tracked generated output." >&2

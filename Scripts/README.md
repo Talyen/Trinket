@@ -122,13 +122,26 @@ the shared warm cache.
 Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
 - Style is path-scoped to changed Swift files (full-tree style remains in `ci-gate` / CI).
 - Style and touched-package tests may run in parallel; multi-package and multi-smoke
-  targets are batched into one invocation each.
+  targets are batched into one invocation each. Batched `test-package.sh` runs those
+  packages in parallel across per-package DerivedData tenants (wall ≈ slowest package).
 - Unit steps use `--app-only` (no 9-package fan-out); packages are scheduled only when
   touched.
 - AccessibilityID renames route package tests + Homestead smoke canary locally;
   `smoke-full` on PR covers the five-surface matrix.
-- BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) are package-only
-  locally; shipping battle UI still routes `SmokeBattleTests`.
+- BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) are local
+  `--build-only` (compile proof); CI `unit` owns the full BattleFeature package suite.
+  Shipping battle UI still routes full package tests + `SmokeBattleTests`.
+- Play smoke: `SmokePlayTests` only for Play shell/hub paths the canary owns
+  (`PlayView`, Explore/Spires/PlayMode hubs). Mystery, Labyrinth, StagePreview, and
+  other Play subflows without a smoke owner route compile-only `build.sh` instead.
+- Presentation-only diffs (metrics/layout constants, SwiftUI chrome modifiers, SF Symbol
+  / `Text("…")` copy) demote package **tests** and smoke to compile-only via
+  `Scripts/classify-presentation-only.py` (fail-closed). DesignSystem-only demotions use
+  `test-package.sh --build-only`; feature demotions reuse `build.sh`. AccessibilityID /
+  action/store/control-flow edits never demote.
+- FeatureSupport package tests already compile the shared package — FeatureSupport
+  paths no longer set the feature/app-compile flag (AccessibilityID /
+  PreparedArtworkCache still route their smoke canaries).
 - After generate, verify stamps `.last-generate.stamp` and skips redundant regenerate in
   children / fresh idempotent asserts. Stage walls append to
   `$RESULTS_DIR/verify-timing.jsonl`.
@@ -168,9 +181,11 @@ so use `test-timing.sh` for runtime decisions.
 Generation uses a shared lock (timeout via `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS`,
 default 120). Isolated runs take an agent sim slot; UI/smoke modes also take a fail-fast
 UI concurrency slot (`TRINKET_MAX_CONCURRENT_UI`, default 2). XcodeGen uses its cache so
-unchanged project inputs do not rewrite the project, and the app/test source roots are
-Xcode synchronized folders so ordinary source-file additions and deletions do not require
-regeneration. CI reports timing regressions from per-run artifacts, but does not fail a
+unchanged project inputs do not rewrite the project, and Swift under `Trinket/App`,
+`Features`, `Models`, `Shared`, and related roots are synchronized folders so ordinary
+source-file additions do not require regeneration. Asset catalogs, `Media/`, and
+`AppIcon.icon` are explicit resource entries (not part of those sync roots) so actool
+and audio churn stay isolated from Swift folder sync. CI reports timing regressions from per-run artifacts, but does not fail a
 passing suite solely because hosted-runner session overhead exceeds a wall-clock budget.
 `run-simulator.sh` (the `run` alias's build-to-launch path) builds quietly into a per-run
 log and uses `-parallelizeTargets` + `-disableAutomaticPackageResolution` to speed warm
@@ -186,6 +201,43 @@ on verify/test. The keep-target managed sim stays Booted; excess managed Booted
 sims are shut down quietly; managed sims are never erased on the normal path.
 Parallel source trees:
 `./Scripts/agent-worktree.sh create <slug>`.
+
+### Xcode IDE loop (human day-to-day)
+
+Trinket’s rebuild cost is mostly local-SPM fan-out from `TrinketContent`, asset
+catalog work, and cache fragmentation — not Always-Out-Of-Date Run Scripts (there
+are none; codegen is external via `generate.sh`).
+
+1. **Share build products with scripts.** File → Workspace Settings… → Build
+   Location → **Custom** → **Relative to Workspace**, then set:
+   - Products: `.DerivedData/Build/Products`
+   - Intermediates: `.DerivedData/Build/Intermediates.noindex`
+   That matches `xcodebuild -derivedDataPath .DerivedData` used by
+   `./Scripts/build.sh` / `./Scripts/test.sh`. Do not use plain `Build/Products`
+   (creates an unignored `Build/` at the workspace root). Absolute paths to the
+   same folders under this repo are equivalent for one checkout. Leave global
+   Xcode → Settings → Locations → Derived Data on the default unless you also
+   want indexing/other IDE caches under the repo. Agents keep `--isolate`
+   (`.DerivedData/runs/agent-N/`); humans omit `--isolate` for the shared warm tree.
+2. **Do not run `./Scripts/generate.sh --assets` while iterating Swift UI** unless
+   manifests or raw art/music/SFX/cinematics changed. Content-only: `./Scripts/generate.sh`
+   once, then leave Xcode alone. Asset prepare scripts skip rewriting unchanged
+   catalogs / hash TSVs / `Assets.xcassets/Contents.json` so no-op `--assets` does
+   not invalidate actool.
+3. **Prefer scoped loops:** `./Scripts/test-package.sh <Package>`,
+   `./Scripts/test.sh unit --app-only`, or `./Scripts/test-iterate.sh <Class>`.
+   Avoid bare `./Scripts/test.sh unit` (builds the app, then rebuilds every package
+   scheme in separate tenants). For app launch, `./Scripts/run-simulator.sh` uses
+   `-parallelizeTargets`, `-disableAutomaticPackageResolution`, and
+   `COMPILER_INDEX_STORE_ENABLE=NO`.
+4. **Close SwiftUI Canvas / Previews** when not actively tuning Labs — Previews
+   rebuild local packages aggressively. Avoid a second Xcode window on a nested
+   `Package.swift` while the app project is open (that creates
+   `Packages/*/.DerivedData` / `.build`); delete those trees if they accumulate.
+5. **Skip local `ci-gate.sh` / push-gate during tight iteration** — they
+   `--force-xcodegen` and reindex. Use path-scoped `verify-changed.sh` instead.
+   When `.DerivedData` grows large, `./Scripts/prune-derived-data-cache.sh`
+   (local mode keeps Build/Intermediates).
 
 `performance.sh` is intentionally separate from smoke and integration gates. It takes an
 exclusive Battle-performance lock, forces one UI lane, runs `BattlePerformance.xctestplan`

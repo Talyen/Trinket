@@ -88,9 +88,10 @@ struct CombatantDeathEffect<Content: View>: View {
     private func slice(size: CGSize) -> some View {
         let delay = min(max(config.splitDelay, 0), 0.6)
         let p = effectiveProgress
-        let splitT = delay >= 1 ? 0 : min(max((p - delay) / (1 - delay), 0), 1)
-        // Linear separation for the whole post-cut window — dissolve must not
-        // change the motion curve or remount the drifting halves.
+        let rawSplitT = delay >= 1 ? 0 : min(max((p - delay) / (1 - delay), 0), 1)
+        // Fast, smooth ease-out separation after cut line finishes so halves break apart
+        // responsively without a linear jerk or sudden view branch swap.
+        let splitT = 1 - pow(1 - rawSplitT, 3)
         let gap = size.width * config.splitGap * splitT * config.intensity
         let lift = size.height * 0.08 * splitT * config.intensity
         let twist = 7.0 * Double(splitT * config.intensity)
@@ -105,39 +106,40 @@ struct CombatantDeathEffect<Content: View>: View {
         let normal = CGVector(dx: cos(radians), dy: -sin(radians))
         let leftParticles = SliceBorderParticle.make(count: halfParticles)
         let rightParticles = SliceBorderParticle.make(count: halfParticles, salt: 40)
+        let cutParticles = SliceCutParticle.make(count: max(config.particleCount, 32))
 
         return ZStack {
-            if splitT <= 0 {
-                content()
-                    .frame(width: size.width, height: size.height)
-                    .clipShape(TrinketDesign.cardShape)
-            } else {
-                slicedHalf(
-                    size: size,
-                    isPrimary: true,
-                    dissolveProgress: dissolveEased,
-                    particles: leftParticles
-                )
-                .offset(
-                    x: -normal.dx * gap / 2,
-                    y: -normal.dy * gap / 2 - lift
-                )
-                .rotationEffect(.degrees(-twist), anchor: .center)
+            slicedHalf(
+                size: size,
+                isPrimary: true,
+                dissolveProgress: dissolveEased,
+                particles: leftParticles
+            )
+            .offset(
+                x: -normal.dx * gap / 2,
+                y: -normal.dy * gap / 2 - lift
+            )
+            .rotationEffect(.degrees(-twist), anchor: .center)
 
-                slicedHalf(
-                    size: size,
-                    isPrimary: false,
-                    dissolveProgress: dissolveEased,
-                    particles: rightParticles
-                )
-                .offset(
-                    x: normal.dx * gap / 2,
-                    y: normal.dy * gap / 2 + lift
-                )
-                .rotationEffect(.degrees(twist), anchor: .center)
-            }
+            slicedHalf(
+                size: size,
+                isPrimary: false,
+                dissolveProgress: dissolveEased,
+                particles: rightParticles
+            )
+            .offset(
+                x: normal.dx * gap / 2,
+                y: normal.dy * gap / 2 + lift
+            )
+            .rotationEffect(.degrees(twist), anchor: .center)
 
             sliceFlashOverlay(size: size, progress: p, delay: delay)
+
+            SliceCutParticles(
+                rawSplitProgress: rawSplitT,
+                cardSize: size,
+                particles: cutParticles
+            )
         }
         .frame(width: size.width, height: size.height)
     }
@@ -293,22 +295,10 @@ private extension CardCastEffectConfiguration {
     /// Late-window half dissolve for Slice — ease is applied by the caller so
     /// dissolve starts slow and accelerates; shrink stays 0 so halves keep sliding.
     static let sliceHalfDissolve = CardCastEffectConfiguration(
-        dissolveDuration: 1,
-        dissolveShrink: 0,
-        particleDistance: 110,
-        particleDistanceVariation: 50,
-        particleDelay: 0.12,
-        particleLifetime: 0.55,
-        particleLifetimeVariation: 0.2,
-        particleCurve: 0.85,
-        particleOriginSpread: 1,
-        particleSize: 3.0,
-        particleSizeVariation: 2.6,
-        fadeStart: 0.2,
-        particleAgeEasePower: 1.8,
-        particleSizeShrink: 0.4,
-        particleFadeExponent: 1.3,
-        particlePathControl: 0.35
+        dissolveDuration: 1, dissolveShrink: 0, particleDistance: 110, particleDistanceVariation: 50,
+        particleDelay: 0.12, particleLifetime: 0.55, particleLifetimeVariation: 0.2, particleCurve: 0.85,
+        particleOriginSpread: 1, particleSize: 3.0, particleSizeVariation: 2.6, fadeStart: 0.2,
+        particleAgeEasePower: 1.8, particleSizeShrink: 0.4, particleFadeExponent: 1.3, particlePathControl: 0.35
     )
 }
 
@@ -362,7 +352,6 @@ private func drawSliceLine(
 /// Border-spawned dissolve sparks (DEBUG slice only).
 private struct SliceBorderParticle: Identifiable {
     let id: Int
-    /// Origin in unit card space (0…1).
     let origin: CGPoint
     let direction: CGVector
     let delayNoise: CGFloat
@@ -483,9 +472,68 @@ private struct SliceBorderParticles: View {
     }
 }
 
-private extension Comparable {
-    func clamped(to range: ClosedRange<Self>) -> Self {
-        min(max(self, range.lowerBound), range.upperBound)
+/// Red sparks emitted directly along the diagonal cut line as the card splits open.
+private struct SliceCutParticle: Identifiable {
+    let id: Int
+    let linePosition: CGFloat
+    let side: CGFloat
+    let sprayAngle: CGFloat
+    let delay: CGFloat
+    let speed: CGFloat
+    let size: CGFloat
+    let lifetime: CGFloat
+
+    static func make(count: Int) -> [Self] {
+        (0 ..< count).map { index in
+            let pos = (CombatantCardEffectNoise.value(index, salt: 101) - 0.5) * 1.3
+            let side: CGFloat = index.isMultiple(of: 2) ? 1 : -1
+            let spray = (CombatantCardEffectNoise.value(index, salt: 107) - 0.5) * 0.8
+            let delay = CombatantCardEffectNoise.value(index, salt: 113) * 0.12
+            let speed = 45 + CombatantCardEffectNoise.value(index, salt: 127) * 95
+            let size = 2.5 + CombatantCardEffectNoise.value(index, salt: 131) * 3.5
+            let lifetime = 0.35 + CombatantCardEffectNoise.value(index, salt: 139) * 0.35
+            return Self(
+                id: index, linePosition: pos, side: side, sprayAngle: spray,
+                delay: delay, speed: speed, size: size, lifetime: lifetime
+            )
+        }
+    }
+}
+
+private struct SliceCutParticles: View {
+    let rawSplitProgress: CGFloat
+    let cardSize: CGSize
+    let particles: [SliceCutParticle]
+
+    var body: some View {
+        GeometryReader { geometry in
+            let center = CGPoint(x: geometry.size.width * 0.5, y: geometry.size.height * 0.5)
+            let angle = CombatantSliceGeometry.angleRadians
+            let along = CGVector(dx: sin(angle), dy: cos(angle))
+            let normal = CGVector(dx: cos(angle), dy: -sin(angle))
+            let diagLen = hypot(cardSize.width, cardSize.height)
+
+            ZStack {
+                ForEach(particles) { p in
+                    let age = (rawSplitProgress - p.delay) / p.lifetime
+                    if age > 0, age < 1 {
+                        let easedAge = 1 - pow(1 - age, 2)
+                        let originX = center.x + along.dx * p.linePosition * diagLen * 0.5
+                        let originY = center.y + along.dy * p.linePosition * diagLen * 0.5
+                        let sprayDx = normal.dx * p.side + along.dx * p.sprayAngle
+                        let sprayDy = normal.dy * p.side + along.dy * p.sprayAngle
+                        let dist = p.speed * easedAge
+
+                        Circle()
+                            .fill(Keyword.bleed.visualStyle.color)
+                            .frame(width: p.size * (1 - 0.3 * age), height: p.size * (1 - 0.3 * age))
+                            .position(x: originX + sprayDx * dist, y: originY + sprayDy * dist)
+                            .opacity(Double(pow(1 - age, 1.4)))
+                    }
+                }
+            }
+        }
+        .allowsHitTesting(false)
     }
 }
 #endif

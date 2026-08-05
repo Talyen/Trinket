@@ -16,8 +16,9 @@ echo "=== Generating Xcode project / catalogs ==="
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
 trinket_run_env_init
-mkdir -p "$RESULTS_DIR"
-touch "$RESULTS_DIR/.last-generate.stamp"
+# shellcheck source=build-inputs.sh
+source ./Scripts/build-inputs.sh
+touch_generate_stamp "$RESULTS_DIR"
 
 echo "=== Assert generated output is committed ==="
 ./Scripts/assert-generated-output.sh

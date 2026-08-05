@@ -6,7 +6,7 @@ Trinket keeps source sound effects separate from app-ready audio, matching the m
 
 - `Raw Assets/Sound Effects/`: source `.wav` / `.ogg` files. Do not add this folder to the Xcode target.
 - `SoundManifest/sfx.tsv`: editable source of truth for curated SFX.
-- `Trinket/Resources/SFX/`: generated app-ready AAC `.m4a` files.
+- `Trinket/Media/SFX/`: generated app-ready AAC `.m4a` files.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift`: generated Swift lookup table for runtime routing.
 
 ## Manifest Format

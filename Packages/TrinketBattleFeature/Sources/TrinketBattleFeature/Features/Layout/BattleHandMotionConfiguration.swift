@@ -130,66 +130,66 @@ struct BattleHandMotionConfiguration: Equatable {
 
     /// Paste-friendly dump of every knob for promoting lab values into production.
     func parameterDump() -> String {
-        """
-        // Fan / sizing
-        minCardWidth: \(fmt(minCardWidth))
-        maxCardWidth: \(fmt(maxCardWidth))
-        aspectRatio: \(fmt(aspectRatio))
-        widthRatio: \(fmt(widthRatio))
-        horizontalInset: \(fmt(horizontalInset))
-        maxOverlapRatio: \(fmt(maxOverlapRatio))
-        fanAngleStep: \(fmt(fanAngleStep))
-        fanLiftStep: \(fmt(fanLiftStep))
-        bottomRise: \(fmt(bottomRise))
-        restingYFraction: \(fmt(restingYFraction))
-
-        // Play / arm
-        playDragThreshold: \(fmt(playDragThreshold))
-        playArmReleaseRatio: \(fmt(playArmReleaseRatio))
-        dragMinimumDistance: \(fmt(dragMinimumDistance)), detailLongPressDuration: \(fmt(detailLongPressDuration))
-        armedHorizontalAllowance: \(fmt(armedHorizontalAllowance))
-
-        // Deny resist
-        denyOvershootFactor: \(fmt(denyOvershootFactor))
-        denyWidthDamp: \(fmt(denyWidthDamp))
-
-        // Held feel
-        cardHeldScale: \(fmt(cardHeldScale))
-        cardHeldShadowRadius: \(fmt(cardHeldShadowRadius))
-        cardHeldShadowY: \(fmt(cardHeldShadowY))
-        cardMaximumTiltDegrees: \(fmt(cardMaximumTiltDegrees))
-        tiltLeanMultiplier: \(fmt(tiltLeanMultiplier))
-        verticalTiltGain: \(fmt(verticalTiltGain))
-        verticalTiltClamp: \(fmt(verticalTiltClamp))
-        perspective: \(fmt(perspective))
-
-        // Armed visual
-        armedScaleBoost: \(fmt(armedScaleBoost))
-        armedBrightness: \(fmt(armedBrightness))
-        showArmedRing: \(showArmedRing)
-        armedRingOpacity: \(fmt(armedRingOpacity))
-        armedRingLineWidth: \(fmt(armedRingLineWidth))
-
-        // Deal / draw
-        dealInsertOffsetX: \(fmt(dealInsertOffsetX))
-        dealInsertOffsetY: \(fmt(dealInsertOffsetY))
-        dealInsertScale: \(fmt(dealInsertScale))
-        cardDrawStagger: \(fmt(cardDrawStagger))
-
-        // Springs
-        cardPress: \(fmt(cardPressResponse)) / \(fmt(cardPressDamping))
-        cardLift: \(fmt(cardLiftResponse)) / \(fmt(cardLiftDamping))
-        cardReturn: \(fmt(cardReturnResponse)) / \(fmt(cardReturnDamping))
-        handReflow: \(fmt(handReflowResponse)) / \(fmt(handReflowDamping))
-        deal: \(fmt(dealResponse)) / \(fmt(dealDamping))
-
-        // Experimental
-        pickup: \(fmt(pickupResponse)) / \(fmt(pickupDamping))
-        readiness: \(fmt(readinessResponse)) / \(fmt(readinessDamping))
-        cardCommit: \(fmt(cardCommitResponse)) / \(fmt(cardCommitDamping))
-        impact: \(fmt(impactResponse)) / \(fmt(impactDamping))
-        cardMaximumStretch: \(fmt(cardMaximumStretch))
-        """
+        var lines = [String]()
+        lines.append("// Fan / sizing")
+        lines.append("minCardWidth: \(fmt(minCardWidth))")
+        lines.append("maxCardWidth: \(fmt(maxCardWidth))")
+        lines.append("aspectRatio: \(fmt(aspectRatio))")
+        lines.append("widthRatio: \(fmt(widthRatio))")
+        lines.append("horizontalInset: \(fmt(horizontalInset))")
+        lines.append("maxOverlapRatio: \(fmt(maxOverlapRatio))")
+        lines.append("fanAngleStep: \(fmt(fanAngleStep))")
+        lines.append("fanLiftStep: \(fmt(fanLiftStep))")
+        lines.append("bottomRise: \(fmt(bottomRise))")
+        lines.append("restingYFraction: \(fmt(restingYFraction))")
+        lines.append("")
+        lines.append("// Play / arm")
+        lines.append("playDragThreshold: \(fmt(playDragThreshold))")
+        lines.append("playArmReleaseRatio: \(fmt(playArmReleaseRatio))")
+        lines.append("dragMinimumDistance: \(fmt(dragMinimumDistance)), detailLongPressDuration: \(fmt(detailLongPressDuration))")
+        lines.append("armedHorizontalAllowance: \(fmt(armedHorizontalAllowance))")
+        lines.append("")
+        lines.append("// Deny resist")
+        lines.append("denyOvershootFactor: \(fmt(denyOvershootFactor))")
+        lines.append("denyWidthDamp: \(fmt(denyWidthDamp))")
+        lines.append("")
+        lines.append("// Held feel")
+        lines.append("cardHeldScale: \(fmt(cardHeldScale))")
+        lines.append("cardHeldShadowRadius: \(fmt(cardHeldShadowRadius))")
+        lines.append("cardHeldShadowY: \(fmt(cardHeldShadowY))")
+        lines.append("cardMaximumTiltDegrees: \(fmt(cardMaximumTiltDegrees))")
+        lines.append("tiltLeanMultiplier: \(fmt(tiltLeanMultiplier))")
+        lines.append("verticalTiltGain: \(fmt(verticalTiltGain))")
+        lines.append("verticalTiltClamp: \(fmt(verticalTiltClamp))")
+        lines.append("perspective: \(fmt(perspective))")
+        lines.append("")
+        lines.append("// Armed visual")
+        lines.append("armedScaleBoost: \(fmt(armedScaleBoost))")
+        lines.append("armedBrightness: \(fmt(armedBrightness))")
+        lines.append("showArmedRing: \(showArmedRing)")
+        lines.append("armedRingOpacity: \(fmt(armedRingOpacity))")
+        lines.append("armedRingLineWidth: \(fmt(armedRingLineWidth))")
+        lines.append("")
+        lines.append("// Deal / draw")
+        lines.append("dealInsertOffsetX: \(fmt(dealInsertOffsetX))")
+        lines.append("dealInsertOffsetY: \(fmt(dealInsertOffsetY))")
+        lines.append("dealInsertScale: \(fmt(dealInsertScale))")
+        lines.append("cardDrawStagger: \(fmt(cardDrawStagger))")
+        lines.append("")
+        lines.append("// Springs")
+        lines.append("cardPress: \(fmt(cardPressResponse)) / \(fmt(cardPressDamping))")
+        lines.append("cardLift: \(fmt(cardLiftResponse)) / \(fmt(cardLiftDamping))")
+        lines.append("cardReturn: \(fmt(cardReturnResponse)) / \(fmt(cardReturnDamping))")
+        lines.append("handReflow: \(fmt(handReflowResponse)) / \(fmt(handReflowDamping))")
+        lines.append("deal: \(fmt(dealResponse)) / \(fmt(dealDamping))")
+        lines.append("")
+        lines.append("// Experimental")
+        lines.append("pickup: \(fmt(pickupResponse)) / \(fmt(pickupDamping))")
+        lines.append("readiness: \(fmt(readinessResponse)) / \(fmt(readinessDamping))")
+        lines.append("cardCommit: \(fmt(cardCommitResponse)) / \(fmt(cardCommitDamping))")
+        lines.append("impact: \(fmt(impactResponse)) / \(fmt(impactDamping))")
+        lines.append("cardMaximumStretch: \(fmt(cardMaximumStretch))")
+        return lines.joined(separator: "\n")
     }
 
     private func fmt(_ value: Double) -> String {
@@ -198,5 +198,95 @@ struct BattleHandMotionConfiguration: Equatable {
 
     private func fmt(_ value: CGFloat) -> String {
         String(format: "%.4g", Double(value))
+    }
+
+    // MARK: Explicit Equatable
+
+    /// Explicit implementation: auto-synthesis over 30+ properties generates a single
+    /// boolean conjunction the Swift type-checker spends >400ms solving. Split helpers
+    /// keep each function under the cyclomatic-complexity limit while preserving O(1) checks.
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        layoutFieldsEqual(lhs, rhs)
+            && interactionFieldsEqual(lhs, rhs)
+            && visualFieldsEqual(lhs, rhs)
+            && cardSpringFieldsEqual(lhs, rhs)
+            && handSpringFieldsEqual(lhs, rhs)
+    }
+
+    private static func layoutFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.minCardWidth == rhs.minCardWidth else { return false }
+        guard lhs.maxCardWidth == rhs.maxCardWidth else { return false }
+        guard lhs.aspectRatio == rhs.aspectRatio else { return false }
+        guard lhs.widthRatio == rhs.widthRatio else { return false }
+        guard lhs.horizontalInset == rhs.horizontalInset else { return false }
+        guard lhs.maxOverlapRatio == rhs.maxOverlapRatio else { return false }
+        guard lhs.fanAngleStep == rhs.fanAngleStep else { return false }
+        guard lhs.fanLiftStep == rhs.fanLiftStep else { return false }
+        guard lhs.bottomRise == rhs.bottomRise else { return false }
+        guard lhs.restingYFraction == rhs.restingYFraction else { return false }
+        return true
+    }
+
+    private static func interactionFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.playDragThreshold == rhs.playDragThreshold else { return false }
+        guard lhs.playArmReleaseRatio == rhs.playArmReleaseRatio else { return false }
+        guard lhs.dragMinimumDistance == rhs.dragMinimumDistance else { return false }
+        guard lhs.detailLongPressDuration == rhs.detailLongPressDuration else { return false }
+        guard lhs.armedHorizontalAllowance == rhs.armedHorizontalAllowance else { return false }
+        guard lhs.denyOvershootFactor == rhs.denyOvershootFactor else { return false }
+        guard lhs.denyWidthDamp == rhs.denyWidthDamp else { return false }
+        guard lhs.cardHeldScale == rhs.cardHeldScale else { return false }
+        guard lhs.cardHeldShadowRadius == rhs.cardHeldShadowRadius else { return false }
+        guard lhs.cardHeldShadowY == rhs.cardHeldShadowY else { return false }
+        guard lhs.cardMaximumTiltDegrees == rhs.cardMaximumTiltDegrees else { return false }
+        guard lhs.tiltLeanMultiplier == rhs.tiltLeanMultiplier else { return false }
+        guard lhs.verticalTiltGain == rhs.verticalTiltGain else { return false }
+        guard lhs.verticalTiltClamp == rhs.verticalTiltClamp else { return false }
+        guard lhs.perspective == rhs.perspective else { return false }
+        return true
+    }
+
+    private static func visualFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.armedScaleBoost == rhs.armedScaleBoost else { return false }
+        guard lhs.armedBrightness == rhs.armedBrightness else { return false }
+        guard lhs.showArmedRing == rhs.showArmedRing else { return false }
+        guard lhs.armedRingOpacity == rhs.armedRingOpacity else { return false }
+        guard lhs.armedRingLineWidth == rhs.armedRingLineWidth else { return false }
+        guard lhs.dealInsertOffsetX == rhs.dealInsertOffsetX else { return false }
+        guard lhs.dealInsertOffsetY == rhs.dealInsertOffsetY else { return false }
+        guard lhs.dealInsertScale == rhs.dealInsertScale else { return false }
+        guard lhs.cardDrawStagger == rhs.cardDrawStagger else { return false }
+        return true
+    }
+
+    private static func cardSpringFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.cardPressResponse == rhs.cardPressResponse else { return false }
+        guard lhs.cardPressDamping == rhs.cardPressDamping else { return false }
+        guard lhs.cardLiftResponse == rhs.cardLiftResponse else { return false }
+        guard lhs.cardLiftDamping == rhs.cardLiftDamping else { return false }
+        guard lhs.cardReturnResponse == rhs.cardReturnResponse else { return false }
+        guard lhs.cardReturnDamping == rhs.cardReturnDamping else { return false }
+        guard lhs.tapLiftHeight == rhs.tapLiftHeight else { return false }
+        guard lhs.tapLiftResponse == rhs.tapLiftResponse else { return false }
+        guard lhs.tapLiftDamping == rhs.tapLiftDamping else { return false }
+        guard lhs.tapLiftPlayDelay == rhs.tapLiftPlayDelay else { return false }
+        return true
+    }
+
+    private static func handSpringFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.handReflowResponse == rhs.handReflowResponse else { return false }
+        guard lhs.handReflowDamping == rhs.handReflowDamping else { return false }
+        guard lhs.dealResponse == rhs.dealResponse else { return false }
+        guard lhs.dealDamping == rhs.dealDamping else { return false }
+        guard lhs.pickupResponse == rhs.pickupResponse else { return false }
+        guard lhs.pickupDamping == rhs.pickupDamping else { return false }
+        guard lhs.readinessResponse == rhs.readinessResponse else { return false }
+        guard lhs.readinessDamping == rhs.readinessDamping else { return false }
+        guard lhs.cardCommitResponse == rhs.cardCommitResponse else { return false }
+        guard lhs.cardCommitDamping == rhs.cardCommitDamping else { return false }
+        guard lhs.impactResponse == rhs.impactResponse else { return false }
+        guard lhs.impactDamping == rhs.impactDamping else { return false }
+        guard lhs.cardMaximumStretch == rhs.cardMaximumStretch else { return false }
+        return true
     }
 }

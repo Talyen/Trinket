@@ -76,6 +76,15 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the verify-changed style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
+Pure presentation chrome is different: metrics/layout constants, SwiftUI chrome
+modifiers, SF Symbol swaps, and `Text("…")` copy-only diffs may demote local
+package tests / smoke to compile-only (`classify-presentation-only.py`, fail-closed).
+BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) also demote
+to local `--build-only`; CI `unit` owns the full package suite. Play subflows
+without a smoke owner (Mystery, Labyrinth, StagePreview, …) route compile-only
+locally — `SmokePlayTests` only covers the Play mode-card shell. CI `smoke-full`
+/ exhaustive UI stay the broad net.
+
 Verify with the AGENTS Task→Command Router (toolchain permitting), using
    **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
 

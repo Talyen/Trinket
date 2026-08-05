@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 manifest="MusicManifest/music.tsv"
-resources_dir="Trinket/Resources/Music"
+resources_dir="Trinket/Media/Music"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 generated_swift="$generated_dir/MusicCatalog.generated.swift"
 state_file="$generated_dir/MusicSourceHashes.generated.tsv"
@@ -239,8 +239,12 @@ fi
   head -n 2 "$state_temp"
   tail -n +3 "$state_temp" | LC_ALL=C sort -t$'\t' -k1,1
 } > "$state_temp.sorted"
-mv -f "$state_temp.sorted" "$state_temp"
-mv -f "$state_temp" "$state_file"
+if [[ -f "$state_file" ]] && cmp -s "$state_temp.sorted" "$state_file"; then
+  rm -f "$state_temp.sorted" "$state_temp"
+else
+  mv -f "$state_temp.sorted" "$state_file"
+  rm -f "$state_temp"
+fi
 rm -f "$tracks_temp" "$menu_temp" "$battle_temp" "$boss_temp" "$seen_ids_temp" "$seen_assets_temp" "$seen_boss_ids_temp" "$active_tracks_temp"
 
 echo "Prepared $processed_count music assets in $resources_dir and regenerated $generated_swift."

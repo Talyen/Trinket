@@ -156,38 +156,38 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
 
     /// Paste-friendly dump of every knob for promoting lab values into production.
     func parameterDump() -> String {
-        """
-        // Timing
-        duration: \(fmt(duration))
-        fadeOutDuration: \(fmt(fadeOutDuration))
-        opaqueHoldFraction: \(fmt(opaqueHoldFraction))
-        riseDelayFraction: \(fmt(riseDelayFraction))
-
-        // Path
-        travelFraction: \(fmt(travelFraction))
-        verticalDirection: \(verticalDirection.rawValue)
-        lateralBias: \(fmt(lateralBias))
-        arcAmplitude: \(fmt(arcAmplitude))
-        driftAmplitude: \(fmt(driftAmplitude))
-        driftFrequency: \(fmt(driftFrequency))
-        settleAmount: \(fmt(settleAmount))
-
-        // Easing
-        easing: \(easing.rawValue)
-        easingPower: \(fmt(easingPower))
-
-        // Scale
-        startScale: \(fmt(startScale))
-        peakScale: \(fmt(peakScale))
-        endScale: \(fmt(endScale))
-        peakProgress: \(fmt(peakProgress))
-
-        // Rotation
-        startRotation: \(fmt(startRotation))
-        endRotation: \(fmt(endRotation))
-        shakeAmplitude: \(fmt(shakeAmplitude))
-        shakeFrequency: \(fmt(shakeFrequency))
-        """
+        var lines = [String]()
+        lines.append("// Timing")
+        lines.append("duration: \(fmt(duration))")
+        lines.append("fadeOutDuration: \(fmt(fadeOutDuration))")
+        lines.append("opaqueHoldFraction: \(fmt(opaqueHoldFraction))")
+        lines.append("riseDelayFraction: \(fmt(riseDelayFraction))")
+        lines.append("")
+        lines.append("// Path")
+        lines.append("travelFraction: \(fmt(travelFraction))")
+        lines.append("verticalDirection: \(verticalDirection.rawValue)")
+        lines.append("lateralBias: \(fmt(lateralBias))")
+        lines.append("arcAmplitude: \(fmt(arcAmplitude))")
+        lines.append("driftAmplitude: \(fmt(driftAmplitude))")
+        lines.append("driftFrequency: \(fmt(driftFrequency))")
+        lines.append("settleAmount: \(fmt(settleAmount))")
+        lines.append("")
+        lines.append("// Easing")
+        lines.append("easing: \(easing.rawValue)")
+        lines.append("easingPower: \(fmt(easingPower))")
+        lines.append("")
+        lines.append("// Scale")
+        lines.append("startScale: \(fmt(startScale))")
+        lines.append("peakScale: \(fmt(peakScale))")
+        lines.append("endScale: \(fmt(endScale))")
+        lines.append("peakProgress: \(fmt(peakProgress))")
+        lines.append("")
+        lines.append("// Rotation")
+        lines.append("startRotation: \(fmt(startRotation))")
+        lines.append("endRotation: \(fmt(endRotation))")
+        lines.append("shakeAmplitude: \(fmt(shakeAmplitude))")
+        lines.append("shakeFrequency: \(fmt(shakeFrequency))")
+        return lines.joined(separator: "\n")
     }
 
     // MARK: Private
@@ -248,6 +248,44 @@ private struct CombatFeedbackFloatMotionConfiguration: Equatable {
 
     private func fmt(_ value: CGFloat) -> String {
         String(format: "%.4g", Double(value))
+    }
+
+    // MARK: Explicit Equatable
+
+    /// Explicit implementation: auto-synthesis produces a conjunction the Swift
+    /// type-checker spends 160-200ms solving. Split helpers stay under the
+    /// cyclomatic-complexity limit while preserving O(1) sequential checks.
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        motionFieldsEqual(lhs, rhs) && scaleRotationFieldsEqual(lhs, rhs)
+    }
+
+    private static func motionFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.duration == rhs.duration else { return false }
+        guard lhs.fadeOutDuration == rhs.fadeOutDuration else { return false }
+        guard lhs.opaqueHoldFraction == rhs.opaqueHoldFraction else { return false }
+        guard lhs.riseDelayFraction == rhs.riseDelayFraction else { return false }
+        guard lhs.travelFraction == rhs.travelFraction else { return false }
+        guard lhs.verticalDirection == rhs.verticalDirection else { return false }
+        guard lhs.lateralBias == rhs.lateralBias else { return false }
+        guard lhs.arcAmplitude == rhs.arcAmplitude else { return false }
+        guard lhs.driftAmplitude == rhs.driftAmplitude else { return false }
+        guard lhs.driftFrequency == rhs.driftFrequency else { return false }
+        guard lhs.settleAmount == rhs.settleAmount else { return false }
+        guard lhs.easing == rhs.easing else { return false }
+        guard lhs.easingPower == rhs.easingPower else { return false }
+        return true
+    }
+
+    private static func scaleRotationFieldsEqual(_ lhs: Self, _ rhs: Self) -> Bool {
+        guard lhs.startScale == rhs.startScale else { return false }
+        guard lhs.peakScale == rhs.peakScale else { return false }
+        guard lhs.endScale == rhs.endScale else { return false }
+        guard lhs.peakProgress == rhs.peakProgress else { return false }
+        guard lhs.startRotation == rhs.startRotation else { return false }
+        guard lhs.endRotation == rhs.endRotation else { return false }
+        guard lhs.shakeAmplitude == rhs.shakeAmplitude else { return false }
+        guard lhs.shakeFrequency == rhs.shakeFrequency else { return false }
+        return true
     }
 }
 

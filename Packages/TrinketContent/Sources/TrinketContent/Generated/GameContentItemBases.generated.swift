@@ -3,34 +3,37 @@ import Foundation
 import TrinketCore
 
 enum GameContentItemBasesGenerated {
-    static let itemBaseTypes: [ItemBaseType] = [
-        ItemBaseType(id: "crossbow", name: "Crossbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
-        ItemBaseType(id: "dagger", name: "Dagger", slot: .weapon, keywordAffinities: [.physical, .poison, .bleed, .leech]),
-        ItemBaseType(id: "double_axe", name: "Double Axe", slot: .weapon, keywordAffinities: [.physical, .bleed, .leech]),
-        ItemBaseType(id: "flail", name: "Flail", slot: .weapon, keywordAffinities: [.physical, .stun, .block]),
-        ItemBaseType(id: "greatsword", name: "Greatsword", slot: .weapon, keywordAffinities: [.physical, .bleed, .stun]),
-        ItemBaseType(id: "hatchet", name: "Hatchet", slot: .weapon, keywordAffinities: [.physical, .bleed, .leech]),
-        ItemBaseType(id: "kite_shield", name: "Kite Shield", slot: .weapon, keywordAffinities: [.block, .stun]),
-        ItemBaseType(id: "longbow", name: "Longbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
-        ItemBaseType(id: "longsword", name: "Longsword", slot: .weapon, keywordAffinities: [.physical, .bleed, .holy]),
-        ItemBaseType(id: "mace", name: "Mace", slot: .weapon, keywordAffinities: [.physical, .stun, .holy]),
-        ItemBaseType(id: "maul", name: "Maul", slot: .weapon, keywordAffinities: [.physical, .stun, .block]),
-        ItemBaseType(id: "recurve_bow", name: "Recurve Bow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
-        ItemBaseType(id: "shortbow", name: "Shortbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
-        ItemBaseType(id: "shortsword", name: "Shortsword", slot: .weapon, keywordAffinities: [.physical, .bleed]),
-        ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .gold, .mana]),
-        ItemBaseType(id: "staff", name: "Staff", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .block, .mana]),
-        ItemBaseType(id: "wand", name: "Wand", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .poison, .mana]),
-        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.physical, .block, .health, .poison, .leech, .bleed]),
-        ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, keywordAffinities: [.block, .health, .holy, .stun]),
-        ItemBaseType(id: "emerald_amulet", name: "Emerald Amulet", slot: .trinket, keywordAffinities: [.poison, .health]),
-        ItemBaseType(id: "emerald_ring", name: "Emerald Ring", slot: .trinket, keywordAffinities: [.poison, .health]),
-        ItemBaseType(id: "ruby_amulet", name: "Ruby Amulet", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]),
-        ItemBaseType(id: "ruby_ring", name: "Ruby Ring", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]),
-        ItemBaseType(id: "sapphire_amulet", name: "Sapphire Amulet", slot: .trinket, keywordAffinities: [.freeze, .block, .mana]),
-        ItemBaseType(id: "sapphire_ring", name: "Sapphire Ring", slot: .trinket, keywordAffinities: [.freeze, .block, .mana]),
-        ItemBaseType(id: "topaz_amulet", name: "Topaz Amulet", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block]),
-        ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block])
-    ]
+    static let itemBaseTypes: [ItemBaseType] = {
+        var list = [ItemBaseType]()
+        list.reserveCapacity(27)
+        list.append(ItemBaseType(id: "crossbow", name: "Crossbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]))
+        list.append(ItemBaseType(id: "dagger", name: "Dagger", slot: .weapon, keywordAffinities: [.physical, .poison, .bleed, .leech]))
+        list.append(ItemBaseType(id: "double_axe", name: "Double Axe", slot: .weapon, keywordAffinities: [.physical, .bleed, .leech]))
+        list.append(ItemBaseType(id: "flail", name: "Flail", slot: .weapon, keywordAffinities: [.physical, .stun, .block]))
+        list.append(ItemBaseType(id: "greatsword", name: "Greatsword", slot: .weapon, keywordAffinities: [.physical, .bleed, .stun]))
+        list.append(ItemBaseType(id: "hatchet", name: "Hatchet", slot: .weapon, keywordAffinities: [.physical, .bleed, .leech]))
+        list.append(ItemBaseType(id: "kite_shield", name: "Kite Shield", slot: .weapon, keywordAffinities: [.block, .stun]))
+        list.append(ItemBaseType(id: "longbow", name: "Longbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]))
+        list.append(ItemBaseType(id: "longsword", name: "Longsword", slot: .weapon, keywordAffinities: [.physical, .bleed, .holy]))
+        list.append(ItemBaseType(id: "mace", name: "Mace", slot: .weapon, keywordAffinities: [.physical, .stun, .holy]))
+        list.append(ItemBaseType(id: "maul", name: "Maul", slot: .weapon, keywordAffinities: [.physical, .stun, .block]))
+        list.append(ItemBaseType(id: "recurve_bow", name: "Recurve Bow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]))
+        list.append(ItemBaseType(id: "shortbow", name: "Shortbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]))
+        list.append(ItemBaseType(id: "shortsword", name: "Shortsword", slot: .weapon, keywordAffinities: [.physical, .bleed]))
+        list.append(ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .gold, .mana]))
+        list.append(ItemBaseType(id: "staff", name: "Staff", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .block, .mana]))
+        list.append(ItemBaseType(id: "wand", name: "Wand", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .poison, .mana]))
+        list.append(ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.physical, .block, .health, .poison, .leech, .bleed]))
+        list.append(ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, keywordAffinities: [.block, .health, .holy, .stun]))
+        list.append(ItemBaseType(id: "emerald_amulet", name: "Emerald Amulet", slot: .trinket, keywordAffinities: [.poison, .health]))
+        list.append(ItemBaseType(id: "emerald_ring", name: "Emerald Ring", slot: .trinket, keywordAffinities: [.poison, .health]))
+        list.append(ItemBaseType(id: "ruby_amulet", name: "Ruby Amulet", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]))
+        list.append(ItemBaseType(id: "ruby_ring", name: "Ruby Ring", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]))
+        list.append(ItemBaseType(id: "sapphire_amulet", name: "Sapphire Amulet", slot: .trinket, keywordAffinities: [.freeze, .block, .mana]))
+        list.append(ItemBaseType(id: "sapphire_ring", name: "Sapphire Ring", slot: .trinket, keywordAffinities: [.freeze, .block, .mana]))
+        list.append(ItemBaseType(id: "topaz_amulet", name: "Topaz Amulet", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block]))
+        list.append(ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block]))
+        return list
+    }()
 }
 
