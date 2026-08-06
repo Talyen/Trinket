@@ -1,40 +1,51 @@
 {
+  "features" : [
+    "refractivity"
+  ],
   "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+    "solid" : "extended-srgb:1.00000,0.55294,0.15686,1.00000"
   },
   "groups" : [
     {
+      "blur-material" : null,
+      "hidden" : false,
       "layers" : [
         {
           "blend-mode" : "normal",
-          "glass" : false,
-          "image-name" : "3.jpeg",
-          "name" : "3",
-          "opacity-specializations" : [
-            {
-              "value" : 1
-            },
-            {
-              "appearance" : "dark",
-              "value" : 1
-            }
-          ],
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "8.jpeg",
+          "name" : "8",
           "position" : {
-            "scale" : 0.83,
+            "scale" : 0.6,
             "translation-in-points" : [
-              -1.1368683772161603e-13,
-              -1.1368683772161603e-13
+              1.1368683772161603e-13,
+              55.593749999999886
             ]
           }
         }
       ],
+      "lighting" : "individual",
+      "position" : {
+        "scale" : 1,
+        "translation-in-points" : [
+          0,
+          0
+        ]
+      },
+      "refractivity" : {
+        "depth" : 0,
+        "enabled" : true,
+        "strength" : 0.5
+      },
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
       },
+      "specular" : true,
       "translucency" : {
         "enabled" : true,
-        "value" : 0.5
+        "value" : 0.2
       }
     }
   ],
