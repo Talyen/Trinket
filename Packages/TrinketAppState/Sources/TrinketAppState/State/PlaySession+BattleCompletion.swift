@@ -1,7 +1,7 @@
 import Foundation
-import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketPersistence
 
 /// Shared battle victory sequencing used by the Play shell.

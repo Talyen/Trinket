@@ -1,11 +1,11 @@
 import BattleEngine
 import Foundation
 import Observation
-import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 enum BattleCardPlayResolution: Equatable, Sendable {

@@ -31,7 +31,6 @@ let package = Package(
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
-                .product(name: "TrinketBattleContracts", package: "TrinketFeatureSupport"),
             ]
         ),
         .testTarget(
@@ -45,7 +44,6 @@ let package = Package(
                 "TrinketDesignSystem",
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
-                .product(name: "TrinketBattleContracts", package: "TrinketFeatureSupport"),
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
             ]
         ),

@@ -1,5 +1,4 @@
 import Observation
-import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore

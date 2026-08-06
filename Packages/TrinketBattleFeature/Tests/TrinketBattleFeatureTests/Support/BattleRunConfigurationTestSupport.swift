@@ -1,6 +1,5 @@
 import BattleEngine
 import Foundation
-import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore

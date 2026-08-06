@@ -11,10 +11,6 @@ let package = Package(
             targets: ["TrinketFeatureContracts"]
         ),
         .library(
-            name: "TrinketBattleContracts",
-            targets: ["TrinketBattleContracts"]
-        ),
-        .library(
             name: "TrinketFeatureSupport",
             targets: ["TrinketFeatureSupport"]
         ),
@@ -33,16 +29,10 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketFeatureContracts",
-            dependencies: []
-        ),
-        .target(
-            name: "TrinketBattleContracts",
             dependencies: [
                 "TrinketContent",
                 "TrinketCore",
-                "TrinketFeatureContracts",
-            ],
-            path: "Sources/TrinketBattleContracts"
+            ]
         ),
         .target(
             name: "TrinketFeatureSupport",

@@ -1,6 +1,5 @@
 import TrinketContent
 import TrinketCore
-import TrinketFeatureContracts
 
 /// Immutable Play-owned data required to render and resolve one battle.
 ///

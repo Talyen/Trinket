@@ -1,8 +1,8 @@
 import Foundation
-import TrinketBattleContracts
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 public struct BattleVictorySummary: Equatable {
