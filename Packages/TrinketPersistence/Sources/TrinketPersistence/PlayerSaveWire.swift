@@ -18,40 +18,6 @@ struct WireAbilityLoadout: Codable, Equatable {
         self.skillID = skillID
         self.ultimateID = ultimateID
     }
-
-    func loadout(defaults: AbilityLoadout, choices: AbilityChoices) -> AbilityLoadout {
-        func resolved(_ id: String?, tier: AbilityTier, fallback: Ability?) -> Ability? {
-            guard let id else { return fallback }
-            let tierChoices = choices.abilities(for: tier)
-            if let match = tierChoices.first(where: { $0.id == id }) {
-                return match
-            }
-            if let remappedID = Self.remappedAbilityID(id),
-               let match = tierChoices.first(where: { $0.id == remappedID }) {
-                return match
-            }
-            return fallback
-        }
-
-        return AbilityLoadout(
-            basic: resolved(basicID, tier: .basic, fallback: defaults.basic),
-            skill: resolved(skillID, tier: .skill, fallback: defaults.skill),
-            ultimate: resolved(ultimateID, tier: .ultimate, fallback: defaults.ultimate)
-        )
-    }
-
-    /// Catalog renames / choice swaps that would otherwise fall back to the first
-    /// ability in a tier and silently change the player's selection.
-    private static func remappedAbilityID(_ id: String) -> String? {
-        switch id {
-        case "concussive-shot": "astral-arrow"
-        case "crystal-bulwark": "glacial-ward"
-        case "glacial-ward": "blizzard"
-        case "mana-crystals": "pixie-dust"
-        case "wise-frost": "apple"
-        default: nil
-        }
-    }
 }
 
 struct WireEquipmentLoadout: Codable, Equatable {
@@ -95,14 +61,6 @@ struct WireItemAffix: Codable, Equatable {
         self.keywordRawValues = keywordRawValues
     }
 
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(String.self, forKey: .id)
-        title = try container.decode(String.self, forKey: .title)
-        description = try container.decode(String.self, forKey: .description)
-        keywordRawValues = try container.decode([String].self, forKey: .keywordRawValues)
-    }
-
     func affix() -> ItemAffix? {
         let keywords = Set(keywordRawValues.compactMap { Keyword(rawValue: $0) })
         return ItemAffix(
@@ -111,13 +69,6 @@ struct WireItemAffix: Codable, Equatable {
             description: description,
             keywords: keywords
         )
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case title
-        case description
-        case keywordRawValues
     }
 }
 

@@ -25,11 +25,25 @@ enum RosterHydration {
     static func resolveAbilityLoadouts(
         from loadouts: [String: AbilityLoadout]
     ) -> [String: AbilityLoadout] {
+        resolvedAbilities(loadouts.mapValues(rawIDs(of:)))
+    }
+
+    static func resolveAbilityLoadouts(
+        from wireLoadouts: [String: WireAbilityLoadout]
+    ) -> [String: AbilityLoadout] {
+        resolvedAbilities(wireLoadouts.mapValues {
+            AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID)
+        })
+    }
+
+    private static func resolvedAbilities(
+        _ loadouts: [String: AbilityLoadoutIDs]
+    ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
-        for (combatantID, loadout) in loadouts {
+        for (combatantID, ids) in loadouts {
             guard let combatant = combatantsByID[combatantID] else { continue }
-            // Same exact-then-remap rules as wire decode via WireAbilityLoadout.
-            resolved[combatantID] = WireAbilityLoadout(loadout).loadout(
+            resolved[combatantID] = resolvedLoadout(
+                ids,
                 defaults: combatant.abilityLoadout,
                 choices: combatant.abilityChoices
             )
@@ -37,18 +51,57 @@ enum RosterHydration {
         return resolved
     }
 
-    static func resolveAbilityLoadouts(
-        from wireLoadouts: [String: WireAbilityLoadout]
-    ) -> [String: AbilityLoadout] {
-        var resolved: [String: AbilityLoadout] = [:]
-        for (combatantID, wireLoadout) in wireLoadouts {
-            guard let combatant = combatantsByID[combatantID] else { continue }
-            resolved[combatantID] = wireLoadout.loadout(
-                defaults: combatant.abilityLoadout,
-                choices: combatant.abilityChoices
-            )
+    private static func resolvedLoadout(
+        _ ids: AbilityLoadoutIDs,
+        defaults: AbilityLoadout,
+        choices: AbilityChoices
+    ) -> AbilityLoadout {
+        AbilityLoadout(
+            basic: resolvedAbility(ids.basicID, tier: .basic, fallback: defaults.basic, choices: choices),
+            skill: resolvedAbility(ids.skillID, tier: .skill, fallback: defaults.skill, choices: choices),
+            ultimate: resolvedAbility(ids.ultimateID, tier: .ultimate, fallback: defaults.ultimate, choices: choices)
+        )
+    }
+
+    private static func resolvedAbility(
+        _ id: String?,
+        tier: AbilityTier,
+        fallback: Ability?,
+        choices: AbilityChoices
+    ) -> Ability? {
+        guard let id else { return fallback }
+        let tierChoices = choices.abilities(for: tier)
+        if let match = tierChoices.first(where: { $0.id == id }) {
+            return match
         }
-        return resolved
+        if let remappedID = remapAbilityID(id),
+           let match = tierChoices.first(where: { $0.id == remappedID }) {
+            return match
+        }
+        return fallback
+    }
+
+    /// Catalog renames / choice swaps that would otherwise fall back to the first
+    /// ability in a tier and silently change the player's selection.
+    private static func remapAbilityID(_ id: String) -> String? {
+        switch id {
+        case "concussive-shot": "astral-arrow"
+        case "crystal-bulwark": "glacial-ward"
+        case "glacial-ward": "blizzard"
+        case "mana-crystals": "pixie-dust"
+        case "wise-frost": "apple"
+        default: nil
+        }
+    }
+
+    private struct AbilityLoadoutIDs {
+        var basicID: String?
+        var skillID: String?
+        var ultimateID: String?
+    }
+
+    private static func rawIDs(of loadout: AbilityLoadout) -> AbilityLoadoutIDs {
+        AbilityLoadoutIDs(basicID: loadout.basic?.id, skillID: loadout.skill?.id, ultimateID: loadout.ultimate?.id)
     }
 
     static func resolveEquipmentLoadout(
