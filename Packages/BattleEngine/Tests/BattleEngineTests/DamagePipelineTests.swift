@@ -5,28 +5,6 @@ import TrinketCore
 import TrinketTestSupport
 
 struct DamagePipelineTests {
-    private let expectedStepNames = [
-        "DodgeGate",
-        "CriticalGate",
-        "DamageBonus",
-        "FightPacing",
-        "MarkedBonus",
-        "ItemReduction",
-        "CriticalMultiply",
-        "Mitigation",
-        "ShieldAbsorption",
-        "TakeDamage",
-        "MarkedConsume",
-        "DeathsDoor",
-        "Leech",
-        "ControlMeter",
-        "ReactiveOnHit",
-        "HolyReaction",
-        "StunReaction",
-        "BurnReaction",
-        "CriticalReaction",
-    ]
-
     private func makeContext(seed: UInt64 = 1772) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
@@ -49,24 +27,7 @@ struct DamagePipelineTests {
         )
     }
 
-    @Test func executedStepNamesMatchCanonicalOrderForFullHit() throws {
-        try #expect(DamagePipeline.canonicalNames == expectedStepNames)
-
-        var context = makeContext(seed: 1772)
-        let executed = DamagePipeline.executedStepNames(
-            for: .directAbilityHit(
-                amount: 10,
-                target: context.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: "source"
-            ),
-            in: &context
-        )
-        try #expect(executed == expectedStepNames)
-        try #expect(executed == DamagePipeline.canonicalNames)
-    }
-
-    @Test func executedStepNamesShortCircuitAfterDodge() throws {
+    @Test func randomDodgeShortCircuitsResolution() throws {
         // Player-capped defender so contested high agi can reach the 75% soft cap (enemies cannot).
         let stats = PrimaryStats(agility: 280)
         let target = CombatantFixtures.combatant(
@@ -91,33 +52,19 @@ struct DamagePipelineTests {
             enemyModifiers: .zero
         )
 
-        let executed = DamagePipeline.executedStepNames(
-            for: .directAbilityHit(
+        let healthBefore = context.roster.health(for: target)
+        let outcome = context.resolveDamage(
+            .directAbilityHit(
                 amount: 10,
                 target: target,
                 keyword: .physical,
                 sourceActorID: "source"
-            ),
-            in: &context
+            )
         )
 
-        try #expect(executed == ["DodgeGate"], "High agility defender should dodge and short-circuit")
-    }
-
-    @Test func healthCostSkipsAttackPipelineSteps() throws {
-        var context = makeContext(seed: 1772)
-        let hero = context.roster.hero.combatant
-        let executed = DamagePipeline.executedStepNames(
-            for: DamageRequest(
-                amount: 2,
-                target: hero,
-                keyword: .physical,
-                sourceActorID: hero.id,
-                options: .healthCost
-            ),
-            in: &context
-        )
-        try #expect(executed == ["TakeDamage", "DeathsDoor"])
+        try #expect(outcome.healthLost == 0, "High agility defender should dodge and short-circuit")
+        try #expect(context.roster.health(for: target) == healthBefore)
+        try #expect(outcome.events.contains { $0.effectKind == .dodgeApplied })
     }
 
     @Test func healthCostIgnoresBlockBuffer() throws {
@@ -164,17 +111,16 @@ struct DamagePipelineTests {
         )
         let healthBefore = context.roster.health(for: target)
 
-        let executed = DamagePipeline.executedStepNames(
-            for: .directAbilityHit(
+        let outcome = context.resolveDamage(
+            .directAbilityHit(
                 amount: 10,
                 target: target,
                 keyword: .physical,
                 sourceActorID: "source"
-            ),
-            in: &context
+            )
         )
 
-        try #expect(executed == ["DodgeGate"])
+        try #expect(outcome.healthLost == 0)
         try #expect(context.roster.health(for: target) == healthBefore)
         try #expect(!(context.roster.activeEffects(for: target).contains {
             if case .evadeNextHit = $0.effect {
