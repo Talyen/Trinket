@@ -83,7 +83,7 @@ Pick the cheapest rung that matches the question you need answered. Higher rungs
 |------|-------|---------|
 | Task handoff | `verify-changed.sh --isolate --paths …` | Did *these* paths stay green? (path-scoped; agents always use this) |
 | Gate only | `ci-gate.sh` | Generate/assert vs HEAD + full-tree style + boundaries (no unit/UI) |
-| Local CI canary | `ci-locally.sh` | Gate + unit + quick smoke |
+| Local CI canary | `test-deploy.sh --mode smoke` | Gate + unit + quick smoke |
 | Deploy confidence | `test-deploy.sh` | Gate + unit + full UI |
 | CI / main | `pr.yml` / `ci.yml` → `tests.yml` | Gate → build-once → unit + smoke-full (+ exhaustive UI) |
 
@@ -91,8 +91,7 @@ Pick the cheapest rung that matches the question you need answered. Higher rungs
 |------|------|
 | `ci-gate.sh` | generate → assert (vs HEAD) → style → boundaries → build-input/cache-key path check → Swift Testing check → release-notes validate |
 | `ci-assets-gate.sh` | generate `--assets` → assert → locale-stable regenerate (`en_US.UTF-8`) → assert (CI `assets-gate`) |
-| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **optional full local confidence run** |
-| `test-deploy.sh` | `ci-gate.sh` → unit → full UI — **explicit release/pre-merge confidence run** |
+| `test-deploy.sh` | `ci-gate.sh` → unit → **full UI** (default) or quick smoke + timing (`--mode smoke`) — **local canary / explicit release confidence in one script** |
 | GitHub `pr.yml` | Shared `tests.yml`: gate → one **build-for-testing** → parallel **unit**, **smoke-full**, and sharded **exhaustive UI** (DerivedData cache) on `macos-26` |
 | GitHub `ci.yml` (main) | Same shared `tests.yml` fan-out with sharded exhaustive UI included |
 | GitHub `nightly.yml` | gate → integration (`test.sh all`) + battle performance; DerivedData **restore-only** (PR/main `build` owns cache write-back) |
@@ -368,7 +367,6 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/release.sh` | Full release orchestration |
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
-| `./Scripts/changed-source-summary.sh [--paths <file...>]` | Summarize task-scoped or working-tree changes and focused agent route |
 | `./Scripts/change-budget.sh [--paths <file...>]` | Advisory authored LOC/file/type/test-declaration delta report against HEAD |
 | `./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; `--quiet` bounds output; agents always pass `--isolate` |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |

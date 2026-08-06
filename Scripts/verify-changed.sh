@@ -3,8 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Keep source routing aligned with changed-source-summary.sh and
-# agent-context.sh.
+# Keep source routing aligned with agent-context.sh.
 # shellcheck source=Scripts/change-classification.sh
 source Scripts/change-classification.sh
 # shellcheck source=Scripts/run-env.sh

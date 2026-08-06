@@ -2,9 +2,9 @@
 
 # Shared path collection and routing for agent-facing scripts.
 #
-# This file is sourced by changed-source-summary.sh, verify-changed.sh, and
-# agent-context.sh. It intentionally has no set -e/-u so callers retain control
-# of shell error handling.
+# This file is sourced by verify-changed.sh and agent-context.sh. It
+# intentionally has no set -e/-u so callers retain control of shell error
+# handling.
 
 TRINKET_CHANGE_CLASSIFICATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

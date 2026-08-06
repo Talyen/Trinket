@@ -12,11 +12,11 @@ edits are subflow-only and no other Play shell path is in the change set.
 from __future__ import annotations
 
 import re
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from classify_diff import changed_lines, git_diff, is_tracked  # noqa: E402
 
 PLAY_VIEW = "Trinket/Features/Play/PlayView.swift"
 
@@ -92,38 +92,6 @@ _NOISE_LINE = re.compile(
 )
 
 
-def _git_diff(path: str) -> str:
-    result = subprocess.run(
-        ["git", "diff", "HEAD", "--", path],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout
-
-
-def _is_tracked(path: str) -> bool:
-    result = subprocess.run(
-        ["git", "ls-files", "--error-unmatch", "--", path],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.returncode == 0
-
-
-def _changed_lines(diff: str) -> list[str]:
-    lines: list[str] = []
-    for raw in diff.splitlines():
-        if raw.startswith("+++ ") or raw.startswith("--- "):
-            continue
-        if raw.startswith("+") or raw.startswith("-"):
-            lines.append(raw[1:])
-    return lines
-
-
 def classify_changed_lines(changed: list[str]) -> str:
     if not changed:
         return "uncertain"
@@ -144,12 +112,12 @@ def classify_changed_lines(changed: list[str]) -> str:
 def classify_play_view_diff(path: str = PLAY_VIEW) -> str:
     if path != PLAY_VIEW and not path.endswith("/PlayView.swift"):
         return "uncertain"
-    if not _is_tracked(path):
+    if not is_tracked(path):
         return "uncertain"
-    diff = _git_diff(path)
+    diff = git_diff(path)
     if not diff.strip():
         return "uncertain"
-    return classify_changed_lines(_changed_lines(diff))
+    return classify_changed_lines(changed_lines(diff))
 
 
 def main(argv: list[str]) -> int:

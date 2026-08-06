@@ -13,11 +13,11 @@ smoke to compile-only. CI coverage is unchanged.
 from __future__ import annotations
 
 import re
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from classify_diff import changed_lines, git_diff, is_tracked  # noqa: E402
 
 # Lines that are clearly presentation chrome when they are the only edits.
 _PRESENTATION_LINE = re.compile(
@@ -86,38 +86,6 @@ _BEHAVIORAL_HINT = re.compile(
 )
 
 
-def _git_diff(path: str) -> str:
-    result = subprocess.run(
-        ["git", "diff", "HEAD", "--", path],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.stdout
-
-
-def _is_tracked(path: str) -> bool:
-    result = subprocess.run(
-        ["git", "ls-files", "--error-unmatch", "--", path],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    return result.returncode == 0
-
-
-def _changed_lines(diff: str) -> list[str]:
-    lines: list[str] = []
-    for raw in diff.splitlines():
-        if raw.startswith("+++ ") or raw.startswith("--- "):
-            continue
-        if raw.startswith("+") or raw.startswith("-"):
-            lines.append(raw[1:])
-    return lines
-
-
 def _line_is_presentation(line: str) -> bool:
     stripped = line.strip()
     if not stripped:
@@ -130,17 +98,16 @@ def _line_is_presentation(line: str) -> bool:
 def path_is_presentation_only(path: str) -> bool:
     if not path.endswith(".swift"):
         return False
-    if not _is_tracked(path):
+    if not is_tracked(path):
         # New files are fail-closed: too easy to hide logic in an add.
         return False
-    diff = _git_diff(path)
+    diff = git_diff(path)
     if not diff.strip():
         # No diff vs HEAD (e.g. dry-run of an unchanged path) → not a demotion signal.
         return False
-    changed = _changed_lines(diff)
-    if not changed:
+    if not changed_lines(diff):
         return False
-    return all(_line_is_presentation(line) for line in changed)
+    return all(_line_is_presentation(line) for line in changed_lines(diff))
 
 
 def main(argv: list[str]) -> int:

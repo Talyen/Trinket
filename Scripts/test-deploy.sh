@@ -3,23 +3,43 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Full deploy gate. Runs CI gate checks plus unit and full UI tests.
-# Intended for pre-merge / nightly runs, not the local iteration loop.
+# Local/release confidence gate. Runs CI gate checks plus unit and UI tests.
+# --mode smoke mirrors the former ci-locally.sh (gate + unit + quick smoke
+# canary + timing reports); --mode ui (default) is the full pre-merge/release
+# confidence run.
 #
 # Examples:
 #   ./Scripts/test-deploy.sh
-#   ./Scripts/test-deploy.sh --no-build   # re-run previously built test binaries
+#   ./Scripts/test-deploy.sh --mode smoke   # optional full local confidence
+#   ./Scripts/test-deploy.sh --no-build     # re-run previously built test binaries
 
+MODE="ui"
 NO_BUILD=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --mode)
+      if [[ $# -lt 2 ]]; then
+        echo "--mode requires smoke or ui" >&2
+        exit 1
+      fi
+      MODE="$2"
+      shift 2
+      case "$MODE" in
+        smoke|ui) ;;
+        *)
+          echo "Unknown mode: $MODE"
+          echo "Usage: $0 [--mode smoke|ui] [--no-build]"
+          exit 1
+          ;;
+      esac
+      ;;
     --no-build)
       NO_BUILD=true
       shift
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 [--no-build]"
+      echo "Usage: $0 [--mode smoke|ui] [--no-build]"
       exit 1
       ;;
   esac
@@ -39,9 +59,23 @@ echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh unit --no-build
 
-echo ""
-echo "=== Full UI tests ==="
-./Scripts/test.sh ui --no-build
+if [[ "$MODE" == "ui" ]]; then
+  echo ""
+  echo "=== Full UI tests ==="
+  ./Scripts/test.sh ui --no-build
+else
+  echo ""
+  echo "=== Unit timing report ==="
+  ./Scripts/test-timing.sh report --mode unit --last 1 --top 10
+
+  echo ""
+  echo "=== Quick smoke UI canary ==="
+  ./Scripts/test.sh smoke --no-build
+
+  echo ""
+  echo "=== Smoke timing report ==="
+  ./Scripts/test-timing.sh report --mode smoke --last 1 --top 10
+fi
 
 echo ""
-echo "=== All deploy checks passed ==="
+echo "=== All checks passed ==="

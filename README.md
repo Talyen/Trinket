@@ -58,7 +58,7 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
 ./Scripts/verify-changed.sh --isolate --paths <changed-files>
                                    # fast local path-scoped verification
-./Scripts/ci-locally.sh            # optional full local confidence: gate + unit + quick smoke
+./Scripts/test-deploy.sh --mode smoke   # optional full local confidence: gate + unit + quick smoke
 ./Scripts/test-deploy.sh           # explicit release/pre-merge confidence: unit + full UI
 ./Scripts/run-simulator.sh
 ./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)
