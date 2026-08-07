@@ -29,35 +29,30 @@ public enum UltimateCinematicShowPolicy: String, CaseIterable, Identifiable, Sen
     }
 }
 
-/// Local player preferences. Keys are `@AppStorage`-compatible and stay device-local
+/// Local player preferences. Values persist device-locally in `UserDefaults`
 /// (not part of `PlayerSave` / CloudKit).
 @MainActor
 @Observable
 public final class OptionsStore {
-    @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
-    @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
-    @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
-    @ObservationIgnored private var rememberAutoBattlePreferenceStorage: AppStorage<Bool>
-    @ObservationIgnored private var autoBattleEnabledStorage: AppStorage<Bool>
-    @ObservationIgnored private var ultimateShowPolicyStorage: AppStorage<String>
+    @ObservationIgnored private let defaults: UserDefaults
 
     public var musicVolume: Double {
-        didSet { musicVolumeStorage.wrappedValue = musicVolume }
+        didSet { defaults.set(musicVolume, forKey: Self.musicVolumeKey) }
     }
 
     public var effectsVolume: Double {
-        didSet { effectsVolumeStorage.wrappedValue = effectsVolume }
+        didSet { defaults.set(effectsVolume, forKey: Self.effectsVolumeKey) }
     }
 
     public var hapticsEnabled: Bool {
-        didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
+        didSet { defaults.set(hapticsEnabled, forKey: Self.hapticsEnabledKey) }
     }
 
     /// When false (default), Auto starts OFF each battle and is not persisted.
     /// When true, the battle toolbar Auto preference is restored across battles.
     public var rememberAutoBattlePreference: Bool {
         didSet {
-            rememberAutoBattlePreferenceStorage.wrappedValue = rememberAutoBattlePreference
+            defaults.set(rememberAutoBattlePreference, forKey: Self.rememberAutoBattlePreferenceKey)
             if !rememberAutoBattlePreference, autoBattleEnabled {
                 autoBattleEnabled = false
             }
@@ -66,11 +61,11 @@ public final class OptionsStore {
 
     /// Battle-toolbar Auto preference. Only meaningful when `rememberAutoBattlePreference` is on.
     public var autoBattleEnabled: Bool {
-        didSet { autoBattleEnabledStorage.wrappedValue = autoBattleEnabled }
+        didSet { defaults.set(autoBattleEnabled, forKey: Self.autoBattleEnabledKey) }
     }
 
     public var ultimateCinematicShowPolicy: UltimateCinematicShowPolicy {
-        didSet { ultimateShowPolicyStorage.wrappedValue = ultimateCinematicShowPolicy.rawValue }
+        didSet { defaults.set(ultimateCinematicShowPolicy.rawValue, forKey: Self.ultimateCinematicShowPolicyKey) }
     }
 
     static let musicVolumeKey = "options.musicVolume"
@@ -81,49 +76,29 @@ public final class OptionsStore {
     static let ultimateCinematicShowPolicyKey = "options.ultimateCinematicShowPolicy"
 
     init(defaults: UserDefaults = .standard) {
-        musicVolumeStorage = AppStorage(
-            wrappedValue: Self.defaultMusicVolume,
-            Self.musicVolumeKey,
-            store: defaults
-        )
-        effectsVolumeStorage = AppStorage(
-            wrappedValue: 0.85,
-            Self.effectsVolumeKey,
-            store: defaults
-        )
-        hapticsEnabledStorage = AppStorage(
-            wrappedValue: true,
-            Self.hapticsEnabledKey,
-            store: defaults
-        )
-        rememberAutoBattlePreferenceStorage = AppStorage(
-            wrappedValue: false,
-            Self.rememberAutoBattlePreferenceKey,
-            store: defaults
-        )
-        autoBattleEnabledStorage = AppStorage(
-            wrappedValue: false,
-            Self.autoBattleEnabledKey,
-            store: defaults
-        )
+        self.defaults = defaults
 
-        let resolvedPolicy = Self.resolveShowPolicy(from: defaults)
-        ultimateShowPolicyStorage = AppStorage(
-            wrappedValue: resolvedPolicy.rawValue,
-            Self.ultimateCinematicShowPolicyKey,
-            store: defaults
-        )
+        let musicVolumeValue = defaults.object(forKey: Self.musicVolumeKey) != nil
+            ? defaults.double(forKey: Self.musicVolumeKey)
+            : Self.defaultMusicVolume
+        let effectsVolumeValue = defaults.object(forKey: Self.effectsVolumeKey) != nil
+            ? defaults.double(forKey: Self.effectsVolumeKey)
+            : 0.85
+        let hapticsEnabledValue = defaults.object(forKey: Self.hapticsEnabledKey) != nil
+            ? defaults.bool(forKey: Self.hapticsEnabledKey)
+            : true
+        let rememberAutoValue = defaults.bool(forKey: Self.rememberAutoBattlePreferenceKey)
+        let autoBattleValue = rememberAutoValue && defaults.bool(forKey: Self.autoBattleEnabledKey)
 
-        musicVolume = musicVolumeStorage.wrappedValue
-        effectsVolume = effectsVolumeStorage.wrappedValue
-        hapticsEnabled = hapticsEnabledStorage.wrappedValue
-        rememberAutoBattlePreference = rememberAutoBattlePreferenceStorage.wrappedValue
-        autoBattleEnabled = autoBattleEnabledStorage.wrappedValue
-        ultimateCinematicShowPolicy = resolvedPolicy
+        musicVolume = musicVolumeValue
+        effectsVolume = effectsVolumeValue
+        hapticsEnabled = hapticsEnabledValue
+        rememberAutoBattlePreference = rememberAutoValue
+        autoBattleEnabled = autoBattleValue
+        ultimateCinematicShowPolicy = Self.resolveShowPolicy(from: defaults)
 
-        // First assignments in init do not run didSet; clear stale ON after full init.
-        if !rememberAutoBattlePreference, autoBattleEnabled {
-            autoBattleEnabled = false
+        if !rememberAutoValue {
+            defaults.set(false, forKey: Self.autoBattleEnabledKey)
         }
     }
 

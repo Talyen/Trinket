@@ -1,10 +1,8 @@
 import Foundation
 import TrinketCore
 
-/// Concurrency-Safety: `@unchecked Sendable` — heap-backed mutable class; callers mutate
-/// only after `CombatModifierProfile.uniqueTriggers()` CoW ensures a unique copy; no
-/// concurrent shared mutation.
-public final class CombatTraitTriggers: @unchecked Sendable {
+/// Trait and affix trigger knobs authored for combat builds.
+public struct CombatTraitTriggers: Sendable, Equatable, Hashable {
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var restoreHealthAlsoHealHero: Int
@@ -191,12 +189,6 @@ public final class CombatTraitTriggers: @unchecked Sendable {
         self.onHitAttackerBurn = onHitAttackerBurn
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
         self.damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn
-        self.affixReactions = affixReactions.map { $0.copy() }
-    }
-
-    public func copy() -> CombatTraitTriggers {
-        let copied = CombatTraitTriggers()
-        copied.merge(self)
-        return copied
+        self.affixReactions = affixReactions
     }
 }

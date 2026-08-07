@@ -8,7 +8,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().enemyStunnedPurgeCount = newValue
+            ensureAffixReactions()
+            affixReactions?.enemyStunnedPurgeCount = newValue
         }
     }
 
@@ -18,7 +19,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, !newValue {
                 return
             }
-            ensureAffixReactions().enemyStunnedPurgeAll = newValue
+            ensureAffixReactions()
+            affixReactions?.enemyStunnedPurgeAll = newValue
         }
     }
 
@@ -28,7 +30,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().criticalPurgeCount = newValue
+            ensureAffixReactions()
+            affixReactions?.criticalPurgeCount = newValue
         }
     }
 
@@ -38,7 +41,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, !newValue {
                 return
             }
-            ensureAffixReactions().criticalPurgeAll = newValue
+            ensureAffixReactions()
+            affixReactions?.criticalPurgeAll = newValue
         }
     }
 
@@ -48,7 +52,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().criticalGoldFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.criticalGoldFlat = newValue
         }
     }
 
@@ -58,7 +63,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().leechRestoreManaFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.leechRestoreManaFlat = newValue
         }
     }
 
@@ -68,7 +74,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().gainManaBlockFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.gainManaBlockFlat = newValue
         }
     }
 
@@ -78,7 +85,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().defeatEnemyGoldFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.defeatEnemyGoldFlat = newValue
         }
     }
 
@@ -88,7 +96,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().leechGoldFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.leechGoldFlat = newValue
         }
     }
 
@@ -98,7 +107,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().dodgeHealFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.dodgeHealFlat = newValue
         }
     }
 
@@ -108,7 +118,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().dodgeChanceBelowHealthPercentThreshold = newValue
+            ensureAffixReactions()
+            affixReactions?.dodgeChanceBelowHealthPercentThreshold = newValue
         }
     }
 
@@ -118,7 +129,8 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().dodgeChanceBelowHealthPercentBonus = newValue
+            ensureAffixReactions()
+            affixReactions?.dodgeChanceBelowHealthPercentBonus = newValue
         }
     }
 
@@ -128,16 +140,14 @@ public extension CombatTraitTriggers {
             if affixReactions == nil, newValue == 0 {
                 return
             }
-            ensureAffixReactions().dodgeDealStunFlat = newValue
+            ensureAffixReactions()
+            affixReactions?.dodgeDealStunFlat = newValue
         }
     }
 
-    func ensureAffixReactions() -> CombatAffixReactionTriggers {
-        if let existing = affixReactions {
-            return existing
+    private mutating func ensureAffixReactions() {
+        if affixReactions == nil {
+            affixReactions = CombatAffixReactionTriggers()
         }
-        let created = CombatAffixReactionTriggers()
-        affixReactions = created
-        return created
     }
 }

@@ -87,7 +87,7 @@ enum AffixPowerBump {
 
     private static func apply(target: Target, to power: ItemAffixPower, direction: Direction) -> ItemAffixPower {
         var modifiers = power.modifiers
-        let triggers = power.triggers.copy()
+        var triggers = power.triggers
         var description = power.description
 
         switch target {
@@ -97,7 +97,7 @@ enum AffixPowerBump {
             modifiers[index] = new
             description = rewrittenDescription(description, from: old, to: new)
         case let .trigger(field):
-            description = bumpTrigger(field, triggers: triggers, direction: direction, description: description)
+            description = bumpTrigger(field, triggers: &triggers, direction: direction, description: description)
         }
 
         return ItemAffixPower(description: description, modifiers: modifiers, triggers: triggers)
@@ -175,7 +175,7 @@ enum AffixPowerBump {
     // swiftlint:disable:next function_body_length
     private static func bumpTrigger(
         _ field: TriggerField,
-        triggers: CombatTraitTriggers,
+        triggers: inout CombatTraitTriggers,
         direction: Direction,
         description: String
     ) -> String {
@@ -332,7 +332,7 @@ extension ItemAffixPower {
         ItemAffixPower(
             description: description,
             modifiers: modifiers,
-            triggers: triggers.copy()
+            triggers: triggers
         )
     }
 }

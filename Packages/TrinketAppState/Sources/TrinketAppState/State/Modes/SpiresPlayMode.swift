@@ -10,7 +10,7 @@ import TrinketPersistence
 /// Spire climb flow: prepare/start floor battles and floor completion writes.
 @MainActor
 @Observable
-public final class SpiresPlayMode: PlayModeProtocol {
+public final class SpiresPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch

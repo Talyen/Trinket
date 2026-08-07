@@ -43,21 +43,20 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodedNames: Set<String> = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
-    @ObservationIgnored private let decodeBox: DecodeBox
+    @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
 
     private init() {
         catalogNamesProvider = { Self.defaultPresentationImageNames }
-        decodeBox = DecodeBox { await Self.decodeImage(named: $0) }
+        decodeHandler = { await Self.decodeImage(named: $0) }
         configureImageBudget()
     }
 
     private init(
         catalogNamesProvider: @escaping () -> [String],
-        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork,
-        deferredWarmupDelay _: Duration
+        decodeHandler: @escaping @Sendable (String) async -> PreparedArtwork
     ) {
         self.catalogNamesProvider = catalogNamesProvider
-        decodeBox = DecodeBox(decodeHandler)
+        self.decodeHandler = decodeHandler
         configureImageBudget()
     }
 
@@ -74,8 +73,7 @@ public final class PreparedArtworkCache {
     ) -> PreparedArtworkCache {
         PreparedArtworkCache(
             catalogNamesProvider: { catalogNames },
-            decodeHandler: decode,
-            deferredWarmupDelay: .zero
+            decodeHandler: decode
         )
     }
 
@@ -146,13 +144,13 @@ public final class PreparedArtworkCache {
         maximumConcurrency: Int,
         countsTowardLaunch: Bool
     ) async {
-        let decoder = decodeBox
+        let decode = decodeHandler
         await withTaskGroup(of: PreparedArtwork.self) { group in
             var iterator = imageNames.filter { !decodedNames.contains($0) }.makeIterator()
 
             for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
-                group.addTask { await decoder.decode(name) }
+                group.addTask { await decode(name) }
             }
 
             while let prepared = await group.next() {
@@ -176,7 +174,7 @@ public final class PreparedArtworkCache {
                 }
 
                 if let name = iterator.next() {
-                    group.addTask { await decoder.decode(name) }
+                    group.addTask { await decode(name) }
                 }
                 await Task.yield()
             }
@@ -234,19 +232,6 @@ public final class PreparedArtworkCache {
         }
 
         return names.sorted()
-    }
-}
-
-/// Sendable decode seam so concurrent warmup tasks never capture MainActor state.
-///
-/// Concurrency-Safety: checked `Sendable` — only stores an already-`@Sendable`
-/// decode closure; task-group workers call that closure without capturing
-/// `PreparedArtworkCache` MainActor state.
-private final class DecodeBox: Sendable {
-    let decode: @Sendable (String) async -> PreparedArtwork
-
-    init(_ decode: @escaping @Sendable (String) async -> PreparedArtwork) {
-        self.decode = decode
     }
 }
 

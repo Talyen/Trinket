@@ -8,7 +8,7 @@ import TrinketPersistence
 /// Shared shop and mystery encounter flow for journey stages and labyrinth nodes.
 @MainActor
 @Observable
-public final class EncounterPlayMode: PlayModeProtocol {
+public final class EncounterPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     let options: OptionsStore

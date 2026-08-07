@@ -57,26 +57,27 @@ public final class BattleSession {
 
     let presentation = BattlePresentationState()
 
-    @ObservationIgnored
-    private let initialAutoEndTurnDelay: TimeInterval
-    @ObservationIgnored
-    private let initialOpeningHandDrawStagger: TimeInterval
-    @ObservationIgnored
-    private let initialEnemyAttackImpactDelayOverride: TimeInterval?
+    public var onTurnAutoEnded: ((Int?) -> Void)?
+    /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
+    /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
+    public var openingHandDrawStagger: TimeInterval
 
-    @ObservationIgnored
-    lazy var commandCoordinator = BattleCommandCoordinator(
-        session: self,
-        runtime: runtime,
-        autoEndTurnDelay: initialAutoEndTurnDelay,
-        openingHandDrawStagger: initialOpeningHandDrawStagger,
-        enemyAttackImpactDelayOverride: initialEnemyAttackImpactDelayOverride
-    )
+    /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
+    var autoBattleRetryDelay: Duration = .milliseconds(50)
 
+    let autoEndTurnDelay: TimeInterval
+    let enemyAttackImpactDelayOverride: TimeInterval?
     @ObservationIgnored
-    var onTurnAutoEnded: ((Int?) -> Void)? {
-        get { commandCoordinator.onTurnAutoEnded }
-        set { commandCoordinator.onTurnAutoEnded = newValue }
+    var pendingAutoEndTask: Task<Void, Never>?
+    @ObservationIgnored
+    var pendingOpeningHandDealTask: Task<Void, Never>?
+    @ObservationIgnored
+    var openingHandDealGeneration = 0
+
+    public internal(set) var isDealingOpeningHand = false
+
+    var hasPendingAutoEnd: Bool {
+        pendingAutoEndTask != nil
     }
 
     /// When true, delayed auto-end (and its enemy telegraph) must not advance combat.
@@ -98,19 +99,6 @@ public final class BattleSession {
     /// Beat after the last playable card so feedback can show before the turn advances.
     public static let autoEndTurnDelay: TimeInterval = 0.4
 
-    /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
-    /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
-    public var openingHandDrawStagger: TimeInterval {
-        get { commandCoordinator.openingHandDrawStagger }
-        set { commandCoordinator.openingHandDrawStagger = newValue }
-    }
-
-    /// Auto-battle poll interval while blocked. Unit tests set `.zero`.
-    var autoBattleRetryDelay: Duration {
-        get { commandCoordinator.autoBattleRetryDelay }
-        set { commandCoordinator.autoBattleRetryDelay = newValue }
-    }
-
     public init(
         runtime: BattleRuntimeSession = BattleRuntimeSession(),
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
@@ -120,9 +108,9 @@ public final class BattleSession {
         presentationEnvironment: BattleRuntimeDependencies = .silent
     ) {
         self.runtime = runtime
-        initialAutoEndTurnDelay = autoEndTurnDelay
-        initialOpeningHandDrawStagger = openingHandDrawStagger
-        initialEnemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
+        self.autoEndTurnDelay = autoEndTurnDelay
+        self.openingHandDrawStagger = openingHandDrawStagger
+        self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
         self.outcomePresentationDelayOverride = outcomePresentationDelayOverride
         self.presentationEnvironment = presentationEnvironment
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
@@ -159,9 +147,9 @@ public final class BattleSession {
         case let .suspensionChanged(suspended):
             isSuspendedForScenePhase = suspended
             if suspended {
-                commandCoordinator.cancelPendingAutoEnd()
+                cancelPendingAutoEnd()
             } else {
-                commandCoordinator.scheduleAutoEndIfNeeded()
+                scheduleAutoEndIfNeeded()
             }
         case .memoryTrimmed:
             trimPresentationMemory()
@@ -179,7 +167,7 @@ public final class BattleSession {
     var canEndTurn: Bool {
         runtime.phase == .playerTurn && !runtime.isBattleOver
             && runtime.hasActiveSimulation
-            && !commandCoordinator.isDealingOpeningHand
+            && !isDealingOpeningHand
             && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
     }
@@ -253,7 +241,7 @@ public final class BattleSession {
 
     /// Schedules a delayed end turn when nothing in hand is playable.
     func considerAutoEndTurn() {
-        commandCoordinator.scheduleAutoEndIfNeeded()
+        scheduleAutoEndIfNeeded()
     }
 
     public func presentBattleLog() {

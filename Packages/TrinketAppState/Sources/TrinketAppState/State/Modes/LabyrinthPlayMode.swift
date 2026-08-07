@@ -10,7 +10,7 @@ import TrinketPersistence
 /// Labyrinth map flow: enter, node routing, rest/craft, and node completion writes.
 @MainActor
 @Observable
-public final class LabyrinthPlayMode: PlayModeProtocol {
+public final class LabyrinthPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch

@@ -3,7 +3,7 @@ import TrinketContent
 
 public extension CombatTraitTriggers {
     func apply(to profile: inout CombatModifierProfile) {
-        profile.uniqueTriggers().merge(self)
+        profile.triggers.merge(self)
     }
 }
 

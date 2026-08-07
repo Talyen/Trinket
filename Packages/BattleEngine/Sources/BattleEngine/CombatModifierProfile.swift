@@ -109,19 +109,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
         manaCostReductionPercent += other.manaCostReductionPercent
-        uniqueTriggers().merge(other.triggers)
+        triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
         }
-    }
-
-    /// Copy-on-write for heap-backed `triggers` so `CombatModifierProfile.zero` stays immutable.
-    @discardableResult
-    public mutating func uniqueTriggers() -> CombatTraitTriggers {
-        if !isKnownUniquelyReferenced(&triggers) {
-            triggers = triggers.copy()
-        }
-        return triggers
     }
 
     public mutating func merge(_ modifier: AffixModifier) {

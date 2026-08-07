@@ -197,12 +197,21 @@ public final class AppState {
         refreshMusic(scenePhase: scenePhase)
     }
 
-    private var memoryPressureObserver: NotificationToken?
+    private var memoryPressureObserver: (any NSObjectProtocol)?
+
+    isolated deinit {
+        if let memoryPressureObserver {
+            NotificationCenter.default.removeObserver(memoryPressureObserver)
+        }
+    }
 
     public func installMemoryPressureHandling() {
         #if canImport(UIKit)
-        memoryPressureObserver = NotificationCenter.default.observe(
-            name: UIApplication.didReceiveMemoryWarningNotification,
+        if let memoryPressureObserver {
+            NotificationCenter.default.removeObserver(memoryPressureObserver)
+        }
+        memoryPressureObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in

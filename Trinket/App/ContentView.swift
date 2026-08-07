@@ -10,7 +10,6 @@ struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(BattleSession.self) private var battle
     @Environment(\.scenePhase) private var scenePhase
-    @State private var localSelectedTab: AppTab = .play
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
@@ -20,7 +19,7 @@ struct ContentView: View {
                 PlayView()
                     .transition(.opacity)
             } else {
-                tabRoot(selection: battleLockedSelection)
+                tabRoot(selection: selectedTabBinding)
                     .transition(.opacity)
             }
         }
@@ -52,32 +51,23 @@ struct ContentView: View {
         }
         .onAppear {
             if battle.lifecyclePhase == .active {
-                localSelectedTab = .play
                 appState.selectedTab = .play
-            } else {
-                localSelectedTab = appState.selectedTab
             }
             appState.reconcileShellState(.appeared, scenePhase: scenePhase)
-        }
-        .onChange(of: localSelectedTab) { _, newTab in
-            guard battle.lifecyclePhase != .active || newTab == .play else {
-                localSelectedTab = .play
-                return
-            }
-            appState.selectedTab = newTab
         }
         .onChange(of: appState.selectedTab) { _, newTab in
             guard battle.lifecyclePhase != .active || newTab == .play else {
                 appState.selectedTab = .play
-                localSelectedTab = .play
                 return
             }
-            localSelectedTab = newTab
             appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
+            AppFramePacingSignposts.event(
+                AppFramePacingSignposts.Name.tabSwitch,
+                detail: "tab=\(newTab.rawValue)"
+            )
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
             if newValue != nil {
-                localSelectedTab = .play
                 appState.selectedTab = .play
             }
             appState.reconcileShellState(
@@ -132,20 +122,14 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: localSelectedTab) { _, newTab in
-            AppFramePacingSignposts.event(
-                AppFramePacingSignposts.Name.tabSwitch,
-                detail: "tab=\(newTab.rawValue)"
-            )
-        }
     }
 
-    private var battleLockedSelection: Binding<AppTab> {
+    private var selectedTabBinding: Binding<AppTab> {
         Binding(
-            get: { localSelectedTab },
+            get: { appState.selectedTab },
             set: { newTab in
                 guard battle.lifecyclePhase != .active || newTab == .play else { return }
-                localSelectedTab = newTab
+                appState.selectedTab = newTab
             }
         )
     }

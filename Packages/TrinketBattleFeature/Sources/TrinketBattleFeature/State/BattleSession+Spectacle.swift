@@ -109,7 +109,7 @@ extension BattleSession {
         case .none:
             break
         }
-        commandCoordinator.scheduleAutoEndIfNeeded()
+        scheduleAutoEndIfNeeded()
     }
 
     func beginCinematicCollapse(expectedID: Int? = nil) {
@@ -237,8 +237,8 @@ extension BattleSession {
               !spectacle.isShowingDefeat
         else { return }
 
-        commandCoordinator.cancelPendingAutoEnd()
-        commandCoordinator.cancelOpeningHandDeal()
+        cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
         spectacle.pendingOutcomePresentationTask?.cancel()
         spectacle.pendingOutcomePresentationTask = nil
         clearSpectacle()
@@ -411,8 +411,8 @@ extension BattleSession {
     }
 
     func resetRun(from configuration: BattleRunConfiguration) {
-        commandCoordinator.cancelPendingAutoEnd()
-        commandCoordinator.cancelOpeningHandDeal()
+        cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
         installSimulationPresentation()
         feedback.clear()
         clearSpectacle(releaseCinematicPlayers: false)
@@ -430,13 +430,13 @@ extension BattleSession {
         if isAutoBattleEnabled != preferred {
             isAutoBattleEnabled = preferred
         }
-        commandCoordinator.beginOpeningHandDeal(for: configuration.id)
+        beginOpeningHandDeal(for: configuration.id)
     }
 
     func clearRunState() {
-        commandCoordinator.cancelPendingAutoEnd()
-        commandCoordinator.cancelOpeningHandDeal()
-        commandCoordinator.onTurnAutoEnded = nil
+        cancelPendingAutoEnd()
+        cancelOpeningHandDeal()
+        onTurnAutoEnded = nil
         presentation.clear()
         feedback.clear()
         clearSpectacle()

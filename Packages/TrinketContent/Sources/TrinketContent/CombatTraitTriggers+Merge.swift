@@ -2,13 +2,13 @@ import Foundation
 import TrinketCore
 
 public extension CombatTraitTriggers {
-    func merge(_ other: CombatTraitTriggers) {
+    mutating func merge(_ other: Self) {
         mergeBaseTriggers(other)
         mergeAdvancedTriggers(other)
         mergeNewAffixTriggers(other)
     }
 
-    private func mergeBaseTriggers(_ other: CombatTraitTriggers) {
+    private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
@@ -40,7 +40,7 @@ public extension CombatTraitTriggers {
         poisonDecayIncreaseChance += other.poisonDecayIncreaseChance
     }
 
-    private func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
+    private mutating func mergeAdvancedTriggers(_ other: CombatTraitTriggers) {
         freezeDamageWhileBurningBonus += other.freezeDamageWhileBurningBonus
         damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
         damageBelowHealthPercentThreshold = max(
@@ -86,12 +86,12 @@ public extension CombatTraitTriggers {
         damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
     }
 
-    private func mergeNewAffixTriggers(_ other: CombatTraitTriggers) {
+    private mutating func mergeNewAffixTriggers(_ other: CombatTraitTriggers) {
         guard let otherAffix = other.affixReactions else { return }
         if affixReactions == nil {
-            affixReactions = otherAffix.copy()
+            affixReactions = otherAffix
         } else {
-            ensureAffixReactions().merge(otherAffix)
+            affixReactions?.merge(otherAffix)
         }
     }
 }

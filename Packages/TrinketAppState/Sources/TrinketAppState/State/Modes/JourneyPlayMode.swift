@@ -10,7 +10,7 @@ import TrinketPersistence
 /// Journey/campaign stage flow: map actions, prepare/start battle, and journey-unique victory writes.
 @MainActor
 @Observable
-public final class JourneyPlayMode: PlayModeProtocol {
+public final class JourneyPlayMode {
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
