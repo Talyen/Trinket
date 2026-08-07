@@ -24,8 +24,9 @@ struct BattlePresentationSnapshot: Equatable {
     /// Card IDs that may be cast with the current mana / phase. Stored on the
     /// projection so the hand lane does not observe the live simulation store.
     let playableCardIDs: Set<Int>
-    /// Party owners with a triggered Stun/Freeze skip, mapped to that keyword.
+    /// Party owners with an unconsumed Stun/Freeze action skip, mapped to that keyword.
     /// Independent of border accent so Death's Door does not hide hand control FX.
+    /// Post-skip linger does not appear here — cards stay playable during linger.
     let ownerControlSkipKeywords: [BattleParticipant: Keyword]
     let isBattleOver: Bool
 
@@ -44,14 +45,16 @@ struct BattlePresentationSnapshot: Equatable {
         _ combatant: Combatant,
         in state: BattleState
     ) -> BattleCombatantPresentation {
-        BattleCombatantPresentation(
+        let isParty = combatant.role != .enemy
+        return BattleCombatantPresentation(
             combatant: combatant,
             health: state.health(of: combatant),
             maxHealth: state.maxHealth(of: combatant),
             mana: state.mana(of: combatant),
             maxMana: state.maxMana(of: combatant),
             borderAccentKeyword: CombatantBorderAccent.keyword(
-                from: state.activeEffects(of: combatant)
+                from: state.activeEffects(of: combatant),
+                controlAccentRequiresPendingSkip: isParty
             )
         )
     }
@@ -63,7 +66,7 @@ struct BattlePresentationSnapshot: Equatable {
         for owner in [BattleParticipant.hero, .companion] {
             let combatant = state.roster[owner].combatant
             if let control = state.activeEffects(of: combatant)
-                .first(where: \.effect.isActionSkipPending) {
+                .first(where: \.isAwaitingActionSkip) {
                 keywords[owner] = control.keyword
             }
         }

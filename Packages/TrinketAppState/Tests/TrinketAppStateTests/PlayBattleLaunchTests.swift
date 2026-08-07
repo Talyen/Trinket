@@ -86,6 +86,27 @@ struct PlayBattleLaunchTests {
         #expect(configuration.enemyModifiers.damageDealtBonus(for: .burn) == 1)
     }
 
+    @Test func assembleCarriesLabyrinthModifiersOnPresentation() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let companion = try #require(GameContent.companions.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let modifiers = try [
+            #require(GameContent.labyrinthModifier(id: LabyrinthModifierID("ironPressure"))),
+        ]
+
+        let launch = PlayBattleLaunch.assembleLaunch(
+            rngSeed: 0,
+            hero: hero,
+            companion: companion,
+            rosterState: .initial,
+            inventoryState: .initial,
+            enemy: enemy,
+            labyrinthModifiers: modifiers
+        )
+
+        #expect(launch.presentation.labyrinthModifiers == modifiers)
+    }
+
     @Test func assembleBakesGoldFindAndClaimedStagePolicy() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })

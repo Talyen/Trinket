@@ -25,7 +25,7 @@ struct AbilityChoiceCard: View {
             reservesLabelSpace: reservesLabelSpace,
             art: {
                 if let artRef = ability.artReference {
-                    Image.preparedAsset(named: artRef.imageName)
+                    Image.preparedAsset(named: artRef.thumbnailImageName ?? artRef.imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .decorativePreparedArtwork()

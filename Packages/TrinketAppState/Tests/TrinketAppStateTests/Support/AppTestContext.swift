@@ -10,14 +10,12 @@ final class AppTestContext {
     let directoryURL: URL
     let suiteName: String
     let userDefaults: UserDefaults
-    let shellSessionURL: URL
     private(set) var lastBattle: BattleSession?
 
     /// Shared across `makeAppState` calls in this context so suite setup does not
     /// reopen SwiftData for every trivial assertion. Disk + persist-immediately stay
     /// explicit for reload-survival tests that pass their own `playerSave`.
     private var cachedPlayerSave: PlayerSaveStore?
-    private var cachedShellSession: PlayerShellSessionStore?
 
     private static let defaultTestArguments = [
         "-disable-cloud-sync",
@@ -28,7 +26,6 @@ final class AppTestContext {
         let prefix = "AppTestContext"
         suiteName = "\(prefix).\(UUID().uuidString)"
         directoryURL = try SaveTestSupport.makeTempDirectory(prefix: prefix)
-        shellSessionURL = directoryURL.appending(path: "shell-session.store")
         guard let userDefaults = UserDefaults(suiteName: suiteName) else {
             throw CocoaError(.fileWriteUnknown)
         }
@@ -43,23 +40,6 @@ final class AppTestContext {
     @MainActor
     func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
         AppEnvironment.parse(arguments: Self.defaultTestArguments + arguments, environment: [:])
-    }
-
-    @MainActor
-    func makeShellSessionStore(environment: AppEnvironment) throws -> PlayerShellSessionStore {
-        if let cachedShellSession, !environment.resetState {
-            return cachedShellSession
-        }
-        // `-reset-state` must wipe the on-disk temp store so reload-survival tests see a clean file.
-        let store = try PlayerShellSessionStore(
-            storeURL: shellSessionURL,
-            resetState: environment.resetState,
-            inMemoryOnly: !environment.resetState
-        )
-        if !environment.resetState {
-            cachedShellSession = store
-        }
-        return store
     }
 
     @MainActor
@@ -78,7 +58,6 @@ final class AppTestContext {
         let state = try AppState(
             environment: parsed,
             playerSave: resolvedSave,
-            shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
                 runtime: runtime,
@@ -98,7 +77,6 @@ final class AppTestContext {
         let state = try AppState(
             environment: environment,
             playerSave: sharedPlayerSave(resetState: environment.resetState),
-            shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults,
             battleComposition: BattleRuntimeComposition(
                 runtime: runtime,

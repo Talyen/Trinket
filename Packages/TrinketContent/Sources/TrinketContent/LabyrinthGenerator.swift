@@ -214,9 +214,10 @@ public enum LabyrinthGenerator {
         preconditionFailure("Labyrinth floor constraints must produce a layout")
     }
 
-    /// Limits projected center positions to five half-column slots, or three full hex columns.
+    /// Limits projected center positions to `LabyrinthMapLayout` half-column slots.
     private static func boundedPositions(in row: Int) -> [LabyrinthGridPosition] {
-        (-2 ... 2).compactMap { projectedColumn in
+        let bound = LabyrinthMapLayout.maxProjectedHalfColumn
+        return (-bound ... bound).compactMap { projectedColumn in
             guard (projectedColumn - row).isMultiple(of: 2) else { return nil }
             return LabyrinthGridPosition(
                 row: row,

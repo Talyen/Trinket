@@ -11,6 +11,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
     public let inventoryItems: [InventoryItem]
     public let health: Int?
     public let activeEffectSummaries: [EffectSummary]
+    public let labyrinthModifiers: [LabyrinthModifierDefinition]
 
     public var id: String {
         combatant.id
@@ -22,7 +23,8 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         equipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryItems: [InventoryItem] = [],
         health: Int? = nil,
-        activeEffectSummaries: [EffectSummary] = []
+        activeEffectSummaries: [EffectSummary] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) {
         self.combatant = combatant
         self.progression = progression
@@ -30,5 +32,6 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         self.inventoryItems = inventoryItems
         self.health = health
         self.activeEffectSummaries = activeEffectSummaries
+        self.labyrinthModifiers = labyrinthModifiers
     }
 }

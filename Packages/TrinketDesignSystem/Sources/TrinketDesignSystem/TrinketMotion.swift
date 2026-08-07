@@ -57,13 +57,13 @@ public enum TrinketMotion: Sendable {
         public static let cardActivationDuration: TimeInterval = 1.0
 
         /// Enemy combatant Slice death clip length (cut → split → half dissolve).
-        public static let combatantSliceDuration: TimeInterval = 2.5
+        public static let combatantSliceDuration: TimeInterval = 1.25
 
         /// Phase unit for continuous stun/freeze overlays (progress 1.0 == this many seconds).
         public static let combatantStatusEffectPhaseDuration: TimeInterval = 4.0
 
         /// Minimum hold after battle outcome so death/cast spectacle can play before Victory/Defeat.
-        public static let outcomePresentationMinimum: TimeInterval = 2.0
+        public static let outcomePresentationMinimum: TimeInterval = 1.25
 
         /// Breathing room after the last activation or feedback frame before an outcome replaces Battle.
         public static let outcomePresentationPadding: TimeInterval = 0.1
@@ -115,10 +115,10 @@ public enum TrinketMotion: Sendable {
         public static let idealCoreDisplayDuration: TimeInterval = 1.02
 
         /// Alchemy Pop presentation lifetime (`pop + hold + rise`).
-        public static let alchemyPopDisplayDuration: TimeInterval = 0.9
+        public static let alchemyPopDisplayDuration: TimeInterval = 0.63
 
         /// Rapid FIFO cadence for successive chips in one combatant's vertical stream.
-        public static let feedbackStreamStagger: TimeInterval = 0.18
+        public static let feedbackStreamStagger: TimeInterval = 0.126
 
         /// Ideal Core: fraction of lifetime that stays fully opaque before fade begins.
         public static let chipOpaqueHoldFraction: Double = 0.64
@@ -150,11 +150,11 @@ public enum TrinketMotion: Sendable {
         public static let alchemyPopOvershootScale: CGFloat = 2.0
         public static let alchemyPopHoldScale: CGFloat = 1.8
         public static let alchemyPopEndScale: CGFloat = 1.0
-        public static let alchemyPopDuration: TimeInterval = 0.2
-        public static let alchemyPopHoldDuration: TimeInterval = 0.2
-        public static let alchemyPopShrinkDuration: TimeInterval = 0.5
-        public static let alchemyPopRiseDuration: TimeInterval = 0.5
-        public static let alchemyPopFadeDuration: TimeInterval = 0.4
+        public static let alchemyPopDuration: TimeInterval = 0.14
+        public static let alchemyPopHoldDuration: TimeInterval = 0.14
+        public static let alchemyPopShrinkDuration: TimeInterval = 0.35
+        public static let alchemyPopRiseDuration: TimeInterval = 0.35
+        public static let alchemyPopFadeDuration: TimeInterval = 0.28
 
         /// Lifetime buffer for delayed raw-event cleanup.
         public static var maxChipLifetime: TimeInterval {

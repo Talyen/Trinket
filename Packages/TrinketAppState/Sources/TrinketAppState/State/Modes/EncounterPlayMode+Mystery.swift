@@ -226,23 +226,13 @@ public extension EncounterPlayMode {
         _ session: MysteryEncounterSession,
         save: inout PlayerSave
     ) {
-        switch session.origin {
-        case let .journey(stage):
-            StageCompletion.completeEncounter(
-                stage: stage,
-                labyrinthNodeID: nil,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                in: GameContent.chapters,
-                save: &save
-            )
-        case let .labyrinth(nodeID):
-            LabyrinthCompletion.complete(
-                nodeID: nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
-                save: &save
-            )
-        }
+        StageCompletion.completeEncounter(
+            stage: session.stage,
+            labyrinthNodeID: session.labyrinthNodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            in: GameContent.chapters,
+            save: &save
+        )
     }
 }

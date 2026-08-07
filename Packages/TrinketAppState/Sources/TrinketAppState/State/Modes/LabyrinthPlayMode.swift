@@ -235,7 +235,8 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
             encounter: encounter,
             route: battleRoute(nodeID: nodeID),
             loot: battleLoot(for: node, labyrinth: labyrinth),
-            universalModifiers: Self.combatModifiers(from: effects)
+            universalModifiers: Self.combatModifiers(from: effects),
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
         return nil
     }
@@ -259,7 +260,8 @@ public final class LabyrinthPlayMode: PlayModeProtocol {
             encounter: encounter,
             route: battleRoute(nodeID: nodeID),
             loot: battleLoot(for: node, labyrinth: labyrinth),
-            universalModifiers: Self.combatModifiers(from: effects)
+            universalModifiers: Self.combatModifiers(from: effects),
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
     }
 

@@ -16,7 +16,10 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.statusBorderPulseDimOpacity < 1)
         #expect(TrinketMotion.Battle.combatantSliceDuration > TrinketMotion.Battle.cardActivationDuration)
         #expect(TrinketMotion.Battle.outcomePresentationMinimum > TrinketMotion.Battle.cardActivationDuration)
-        #expect(TrinketMotion.Battle.combatantSliceDuration > TrinketMotion.Battle.outcomePresentationMinimum)
+        #expect(
+            TrinketMotion.Battle.outcomePresentationMinimum
+                >= TrinketMotion.Battle.combatantSliceDuration
+        )
         #expect(TrinketMotion.Battle.combatantStatusEffectPhaseDuration > 0)
         #expect(TrinketMotion.Content.secondEntranceDelay == TrinketMotion.Content.entranceStagger * 2)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
@@ -92,7 +95,7 @@ struct TrinketMotionTests {
     @Test func alchemyPopChipMotionUsesPopHoldCubicRiseAndFade() {
         let recipe = CombatFeedbackFloatRecipe.alchemyPop
         let duration = TrinketMotion.Battle.displayDuration(for: recipe)
-        #expect(duration == 0.9)
+        #expect(duration == 0.63)
 
         let popPeak = TrinketMotion.Battle.alchemyPopDuration * 0.75
         let popEnd = TrinketMotion.Battle.alchemyPopDuration

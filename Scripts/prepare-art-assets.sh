@@ -132,12 +132,10 @@ JSON
 }
 
 # Catalog usage drives which variants we ship:
-# - ability: thumb only (AbilityArtReference.imageName is the thumb)
 # - background / resource / slot_background: full only
-# - combatant / item / encounter: full + thumb
+# - combatant / ability / item / encounter: full + thumb
 emit_full_for_kind() {
   case "$1" in
-    ability) return 1 ;;
     *) return 0 ;;
   esac
 }
@@ -269,7 +267,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     fi
   fi
 
-  # Remove the variant we no longer ship for this kind (e.g. leftover ability fulls).
+  # Remove the variant we no longer ship for this kind.
   if ! $want_full && [[ -d "$imageset" ]]; then
     rm -rf "$imageset"
   fi
@@ -291,7 +289,8 @@ SWIFT
   elif [[ "$kind" == "ability" ]]; then
     cat >> "$abilities_temp" <<SWIFT
         dict["$escaped_id"] = AbilityArtReference(
-            imageName: "$escaped_thumb"
+            imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb"
         )
 SWIFT
   elif [[ "$kind" == "item" ]]; then
@@ -368,6 +367,7 @@ public struct CombatantArtReference: Hashable, Sendable {
 
 public struct AbilityArtReference: Hashable, Sendable {
     public let imageName: String
+    public let thumbnailImageName: String?
 }
 
 public struct ItemArtReference: Hashable, Sendable {

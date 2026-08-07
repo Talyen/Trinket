@@ -375,7 +375,10 @@ public struct BattleView: View {
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
                 inventoryItems: presentationContext.inventoryItems,
                 health: combatantReadModel.health,
-                activeEffectSummaries: combatantReadModel.activeEffectSummaries
+                activeEffectSummaries: combatantReadModel.activeEffectSummaries,
+                labyrinthModifiers: combatant.role == .enemy
+                    ? presentationContext.labyrinthModifiers
+                    : []
             )
         )
     }

@@ -207,6 +207,9 @@ public final class PreparedArtworkCache {
         }
         for reference in ArtCatalog.abilityArtByID.values {
             names.insert(reference.imageName)
+            if let thumbnailImageName = reference.thumbnailImageName {
+                names.insert(thumbnailImageName)
+            }
         }
         for reference in ArtCatalog.itemArtByID.values {
             names.insert(reference.imageName)

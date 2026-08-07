@@ -1,3 +1,4 @@
+import CoreGraphics
 import Testing
 import TrinketContent
 import TrinketFeatureAdapters
@@ -157,5 +158,18 @@ struct StageMapPresentationTests {
         clearedTarget.isCleared = true
         state.nodes[target.id] = clearedTarget
         #expect(LabyrinthMapPresentation.state(for: clearedTarget, in: state) == .cleared)
+    }
+
+    @Test func labyrinthHexRadiusFillsThreeColumnsAcrossAvailableWidth() {
+        let availableWidth: CGFloat = 350
+        let radius = LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth)
+        let hexWidth = radius * CGFloat(3).squareRoot()
+        let outerSpan = hexWidth * CGFloat(LabyrinthMapLayout.fullColumnsAcross)
+        #expect(abs(outerSpan - availableWidth) < 0.001)
+        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .shop) == "destination-merchant-shop")
+        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .rest) == "destination-campfire")
+        #expect(LabyrinthMapPresentation.destinationEncounterArtID(for: .craft) == nil)
+        #expect(ArtCatalog.encounterArtByID["destination-merchant-shop"] != nil)
+        #expect(ArtCatalog.encounterArtByID["destination-campfire"] != nil)
     }
 }

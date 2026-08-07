@@ -42,12 +42,7 @@ public final class ShopEncounterSession: Identifiable {
         greeting: String = "Welcome, traveler. Take a look at what I've got."
     ) {
         self.origin = origin
-        switch origin {
-        case let .journey(stage):
-            self.stage = stage
-        case let .labyrinth(nodeID):
-            stage = GameContent.syntheticLabyrinthStage(nodeID: nodeID, encounter: .shop)
-        }
+        stage = origin.resolvedStage(labyrinthEncounter: .shop)
         self.offers = offers
         self.visitToken = visitToken
         self.greeting = greeting
@@ -58,17 +53,10 @@ public final class ShopEncounterSession: Identifiable {
         origin: PlayEncounterOrigin,
         astralChanceBonusPercent: Int
     ) -> ShopEncounterOpenResult {
-        let resolvedStage: Stage
-        switch origin {
-        case let .labyrinth(nodeID):
-            resolvedStage = GameContent.syntheticLabyrinthStage(
-                nodeID: nodeID,
-                encounter: .shop
-            )
-        case let .journey(stage):
+        if case let .journey(stage) = origin {
             guard case .shop = stage.encounter else { return .unavailable }
-            resolvedStage = stage
         }
+        let resolvedStage = origin.resolvedStage(labyrinthEncounter: .shop)
 
         var randomNumberGenerator = SeededRandomNumberGenerator(
             seed: ShopOfferGenerator.seed(forStageID: resolvedStage.id)

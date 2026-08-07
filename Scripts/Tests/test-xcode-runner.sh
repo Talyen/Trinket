@@ -37,6 +37,16 @@ echo "Testing started completed."
 while true; do sleep 60; done
 FAKE_HANG
 
+# Reproduces the real smoke hang: XCTest outer suite finishes, then xcodebuild
+# idles ~600s collecting simulator diagnostics before printing ** TEST SUCCEEDED **.
+cat > "$TMP_DIR/fake-hang-selected-suite" <<'FAKE_HANG_SUITE'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
+echo "	 Executed 1 test, with 0 failures (0 unexpected) in 10.489 (10.493) seconds"
+while true; do sleep 60; done
+FAKE_HANG_SUITE
+
 cat > "$TMP_DIR/fake-hang-fail" <<'FAKE_HANG_FAIL'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -59,7 +69,8 @@ printf '%s\n' "$*" > "${REPORT_CAPTURE:?}"
 exit 0
 FAKE_REPORTER
 chmod +x "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
-  "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent"
+  "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
+  "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent"
 
 failure_results="$TMP_DIR/failure-results"
 failure_state="$TMP_DIR/failure-state"
@@ -141,6 +152,33 @@ REPORT_CAPTURE="$TMP_DIR/idle-args" \
   ' _ "$RUNNER" "$idle_results" "$TMP_DIR/fake-hang-success" >"$idle_terminal" 2>&1
 grep -F -- "killing hung command" "$idle_terminal"
 grep -F -- "inferred exit 0" "$idle_terminal"
+
+suite_idle_results="$TMP_DIR/suite-idle-results"
+suite_idle_terminal="$TMP_DIR/suite-idle-terminal"
+REPORT_CAPTURE="$TMP_DIR/suite-idle-args" \
+  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
+  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
+  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
+  bash -c '
+    set -euo pipefail
+    source "$1"
+    xcode_runner_prepare idle-selected "$2"
+    if xcode_runner_run --label idle-selected \
+      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+      --log "$XCODE_RUNNER_LOG_PATH" \
+      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
+      --quiet -- "$3"; then
+      status=0
+    else
+      status=$?
+    fi
+    [[ "$status" -eq 0 ]]
+    grep -F -- "Test Suite '\''Selected tests'\'' passed" "$XCODE_RUNNER_LOG_PATH"
+    # Must not require the late banner — that is what the diagnostics hang delays.
+    ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH"
+  ' _ "$RUNNER" "$suite_idle_results" "$TMP_DIR/fake-hang-selected-suite" >"$suite_idle_terminal" 2>&1
+grep -F -- "killing hung command" "$suite_idle_terminal"
+grep -F -- "inferred exit 0" "$suite_idle_terminal"
 
 fail_idle_results="$TMP_DIR/fail-idle-results"
 fail_idle_terminal="$TMP_DIR/fail-idle-terminal"

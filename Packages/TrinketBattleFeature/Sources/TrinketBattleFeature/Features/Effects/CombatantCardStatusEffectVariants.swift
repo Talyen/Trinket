@@ -400,7 +400,7 @@ enum CombatantCardEffectLabDuration {
             4.0
         case .death:
             switch deathKind {
-            case .slice: 2.5
+            case .slice: TrinketMotion.Battle.combatantSliceDuration
             case .dissolveBaseline: 1.4
             }
         }

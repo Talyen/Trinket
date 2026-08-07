@@ -42,4 +42,32 @@ struct CardDissolveTextureTests {
         #expect(high.width > 0)
         #expect(high.height > 0)
     }
+
+    @Test func cutAwareMaskUsesSeparateCacheFromRectangular() async throws {
+        let cutAngle = CombatantSliceGeometry.angleDegrees
+        await CardDissolveTexture.prepare()
+        await CardDissolveTexture.prepare(cutAngleDegrees: cutAngle)
+
+        let rectangular = try #require(
+            CardDissolveTexture.thresholdMaskImage(progress: 0.45)
+        )
+        let cutAware = try #require(
+            CardDissolveTexture.thresholdMaskImage(
+                progress: 0.45,
+                cutAngleDegrees: cutAngle
+            )
+        )
+        // Distinct noise fields must not alias the same CGImage instance.
+        #expect(rectangular !== cutAware)
+        #expect(rectangular.width == cutAware.width)
+        #expect(rectangular.height == cutAware.height)
+
+        let cutCached = try #require(
+            CardDissolveTexture.thresholdMaskImage(
+                progress: 0.45,
+                cutAngleDegrees: cutAngle
+            )
+        )
+        #expect(cutCached === cutAware)
+    }
 }

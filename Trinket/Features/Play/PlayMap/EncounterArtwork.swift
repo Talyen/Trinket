@@ -22,7 +22,7 @@ struct EncounterArtwork: View {
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference {
-                Image.preparedAsset(named: combatantArt.thumbnailImageName ?? combatantArt.imageName)
+                Image.preparedAsset(named: combatantArt.imageName)
                     .resizable()
                     .scaledToFill()
                     .decorativePreparedArtwork()
@@ -31,7 +31,7 @@ struct EncounterArtwork: View {
                 MysteryEventHeroArtwork(event: event, chapterID: stage.chapterID)
 
             } else if let art = stage.encounterArtReference {
-                Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)
+                Image.preparedAsset(named: art.imageName)
                     .resizable()
                     .scaledToFill()
                     .decorativePreparedArtwork()

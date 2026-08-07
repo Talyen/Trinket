@@ -22,4 +22,14 @@ public enum PlayEncounterOrigin: Hashable, Sendable {
         }
         return nil
     }
+
+    /// Journey stage as-is, or a synthetic Labyrinth stage stub for the given encounter.
+    func resolvedStage(labyrinthEncounter: StageEncounter) -> Stage {
+        switch self {
+        case let .journey(stage):
+            stage
+        case let .labyrinth(nodeID):
+            GameContent.syntheticLabyrinthStage(nodeID: nodeID, encounter: labyrinthEncounter)
+        }
+    }
 }

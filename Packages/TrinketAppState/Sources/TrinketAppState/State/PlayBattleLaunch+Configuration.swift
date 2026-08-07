@@ -22,6 +22,7 @@ extension PlayBattleLaunch {
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
         defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil
@@ -79,7 +80,8 @@ extension PlayBattleLaunch {
                 highestLevel: rosterState.highestCompanionLevel,
                 xpPercent: experienceBonusPercent
             ),
-            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward)
+            materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward),
+            labyrinthModifiers: labyrinthModifiers
         )
         return (configuration, presentation, universalModifiers)
     }

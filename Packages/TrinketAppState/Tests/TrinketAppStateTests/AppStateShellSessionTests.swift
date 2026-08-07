@@ -5,7 +5,7 @@ import TrinketPersistence
 @testable import TrinketAppState
 
 @MainActor
-struct AppStateSessionPersistenceTests {
+struct AppStateShellSessionTests {
     let context: AppTestContext
 
     init() throws {
@@ -23,17 +23,17 @@ struct AppStateSessionPersistenceTests {
     }
 
     @Test func ignoresLegacyShellUserDefaultsKeys() throws {
-        context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
+        context.userDefaults.set(AppTab.homestead.rawValue, forKey: ShellSession.legacySessionTabKey)
 
         let state = try makeState()
 
-        // Shell session is SwiftData-only; legacy UserDefaults keys are not migrated.
+        // Shell session is never persisted; legacy UserDefaults keys are not migrated.
         #expect(state.selectedTab == .play)
         #expect(state.play.battle.activeBattle == nil)
-        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == AppTab.homestead.rawValue)
+        #expect(context.userDefaults.string(forKey: ShellSession.legacySessionTabKey) == AppTab.homestead.rawValue)
     }
 
-    @Test func selectedTabPersistsOnChangeButRelaunchLandsOnPlay() throws {
+    @Test func freshStateLandsOnPlayAfterTabChange() throws {
         let state = try makeState()
         state.selectedTab = .options
 

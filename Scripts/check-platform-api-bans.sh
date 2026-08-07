@@ -18,8 +18,9 @@ scan_pattern() {
     rest="${match#*:}"
     line="${rest%%:*}"
     text="${rest#*:}"
-    # Ignore comment-only lines or explicitly allowed style exceptions.
-    if [[ "$text" =~ ^[[:space:]]*// ]] || [[ "$text" == *"UIStyleCheck:"* ]]; then
+    # Ignore comment-only lines. UIStyleCheck is owned by check-ui-style.py and
+    # must not silence NavigationView / Observation bans here.
+    if [[ "$text" =~ ^[[:space:]]*// ]]; then
       continue
     fi
     violations+=("$file:$line: $reason")
@@ -33,8 +34,8 @@ scan_pattern '@StateObject\b' 'Use @Observable + @Environment(Type.self) instead
 scan_pattern '@EnvironmentObject\b' 'Use @Environment(Type.self) instead of @EnvironmentObject'
 scan_pattern '@ObservedObject\b' 'Use @Bindable / @Environment(Type.self) instead of @ObservedObject'
 scan_pattern 'Color\s*\(\s*red\s*:' 'Use TrinketDesign.Colors / DesignColors assets via DesignAssetColors — not Color(red:green:blue:)'
-scan_pattern '(^|[^A-Za-z0-9_])Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white)\b' 'Use TrinketDesign.Colors tokens — not SwiftUI system Color.* literals'
-scan_pattern '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\b' 'Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red)'
+scan_pattern '(^|[^A-Za-z0-9_])Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white|accentColor)\b' 'Use TrinketDesign.Colors tokens — not SwiftUI system Color.* literals'
+scan_pattern '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|accentColor)\b' 'Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red)'
 scan_pattern 'Color\s*\(\s*"[^"]+"\s*,\s*bundle\s*:\s*\.main\b' 'Move named colors into DesignColors.xcassets and expose them via TrinketDesignSystem'
 
 if (( ${#violations[@]} > 0 )); then

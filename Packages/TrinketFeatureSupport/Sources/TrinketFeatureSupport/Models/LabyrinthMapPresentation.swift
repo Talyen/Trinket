@@ -62,4 +62,25 @@ public enum LabyrinthMapPresentation {
         }
         return type.symbolName
     }
+
+    /// Shared destination encounter art for Labyrinth map seals and inspectors.
+    public static func destinationEncounterArtID(for type: LabyrinthNodeType) -> String? {
+        switch type.canonical {
+        case .shop: "destination-merchant-shop"
+        case .rest: "destination-campfire"
+        case .battle, .boss, .mystery, .event, .recruit, .craft, .entrance:
+            nil
+        }
+    }
+
+    /// Pointy-top hex radius that fills `availableWidth` for
+    /// `LabyrinthMapLayout.fullColumnsAcross` columns edge-to-edge.
+    public static func hexRadius(
+        forAvailableWidth availableWidth: CGFloat,
+        edgePad: CGFloat = 0
+    ) -> CGFloat {
+        let usableWidth = max(1, availableWidth - edgePad * 2)
+        let columns = CGFloat(LabyrinthMapLayout.fullColumnsAcross)
+        return usableWidth / (columns * CGFloat(3).squareRoot())
+    }
 }

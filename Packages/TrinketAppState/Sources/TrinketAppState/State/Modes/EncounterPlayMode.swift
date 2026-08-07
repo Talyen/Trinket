@@ -112,24 +112,14 @@ public final class EncounterPlayMode: PlayModeProtocol {
         shopSession.clearLeaveFailure()
         do {
             try playerSave.performBatchMutation { save in
-                switch shopSession.origin {
-                case let .journey(stage):
-                    StageCompletion.completeEncounter(
-                        stage: stage,
-                        labyrinthNodeID: nil,
-                        hero: save.roster.activeHero,
-                        companion: save.roster.activeCompanion,
-                        in: GameContent.chapters,
-                        save: &save
-                    )
-                case let .labyrinth(nodeID):
-                    LabyrinthCompletion.complete(
-                        nodeID: nodeID,
-                        hero: save.roster.activeHero,
-                        companion: save.roster.activeCompanion,
-                        save: &save
-                    )
-                }
+                StageCompletion.completeEncounter(
+                    stage: shopSession.stage,
+                    labyrinthNodeID: shopSession.labyrinthNodeID,
+                    hero: save.roster.activeHero,
+                    companion: save.roster.activeCompanion,
+                    in: GameContent.chapters,
+                    save: &save
+                )
             }
         } catch {
             appStateLogger.error(

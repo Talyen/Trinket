@@ -113,8 +113,13 @@ def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
     return [str(ROOT / root) for root in SCAN_ROOTS if (ROOT / root).exists()]
 
 
-def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]]:
-    """Map file -> line numbers that look like potential violations."""
+def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]] | None:
+    """Map file -> line numbers that look like potential violations.
+
+    Returns an empty dict when rg finds no candidates, or None when rg is
+    unavailable (caller should fall back to a full Swift scan). Raises
+    RuntimeError when rg is present but the search fails — fail closed.
+    """
     if not scan_paths:
         return {}
     cmd = [
@@ -126,9 +131,14 @@ def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]]:
         RG_PATTERN,
         *scan_paths,
     ]
-    result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+    except FileNotFoundError:
+        return None
     if result.returncode not in (0, 1):
-        return {}
+        stderr = (result.stderr or "").strip()
+        detail = f": {stderr}" if stderr else ""
+        raise RuntimeError(f"rg failed (exit {result.returncode}){detail}")
     hits: dict[Path, set[int]] = {}
     for line in result.stdout.splitlines():
         # path:line:content — path may contain colons on exotic FS; split from left twice.
@@ -267,24 +277,23 @@ def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
 def main(argv: list[str]) -> int:
     os.chdir(ROOT)
     scan_paths = resolve_scan_paths(argv[1:] or None)
-    hits = candidate_hits(scan_paths)
     violations: list[str] = []
 
-    if hits:
+    try:
+        hits = candidate_hits(scan_paths)
+    except RuntimeError as exc:
+        print(f"error: UI style guardrail search failed: {exc}", file=sys.stderr)
+        return 1
+
+    if hits is None:
+        # rg unavailable — fall back to listed Swift files.
+        for path in fallback_list_swift_files(scan_paths):
+            violations.extend(scan_file(path))
+    elif hits:
         # Only open files ripgrep flagged — avoids full-tree iCloud/Documents I/O.
         for path in sorted(hits, key=str):
             violations.extend(scan_file(path))
-    else:
-        # rg unavailable or zero candidates — fall back to listed Swift files.
-        # Zero candidates with a working rg is a clean pass (skip full read).
-        rg_probe = subprocess.run(
-            ["rg", "--version"], capture_output=True, check=False
-        )
-        if rg_probe.returncode == 0 and not hits:
-            pass
-        else:
-            for path in fallback_list_swift_files(scan_paths):
-                violations.extend(scan_file(path))
+    # else: rg ran cleanly with zero candidates — pass without a full read.
 
     if violations:
         print("UI style guardrail found ad hoc native styling:")

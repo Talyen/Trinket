@@ -28,7 +28,8 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
+        universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> Bool {
         let roster = playerSave.roster
         return activateBattle(
@@ -41,7 +42,8 @@ struct PlayBattleLaunch {
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers
         )
     }
 
@@ -53,7 +55,8 @@ struct PlayBattleLaunch {
         route: PlayBattleRoute? = nil,
         loot: BattleLootPackage? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
+        universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> Bool {
         let roster = playerSave.roster
         let launch = makeBattleLaunch(
@@ -65,7 +68,8 @@ struct PlayBattleLaunch {
             stageReward: loot?.asStageReward ?? .empty,
             pendingRewardItem: loot?.item,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers
         )
         guard PlayBattleRoute.matches(
             route,
@@ -94,7 +98,8 @@ struct PlayBattleLaunch {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
+        universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> Bool {
         guard PlayBattleRoute.matches(
             route,
@@ -121,7 +126,8 @@ struct PlayBattleLaunch {
             experienceBonusPercent: experienceBonusPercent,
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers
         )
         let activated = battle.activate(launch.configuration)
         if activated {
@@ -142,7 +148,8 @@ struct PlayBattleLaunch {
         experienceBonusPercent: Int = 0,
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = []
+        universalModifiers: [AffixModifier] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]) {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
@@ -162,6 +169,7 @@ struct PlayBattleLaunch {
             pendingRewardItem: pendingRewardItem,
             stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
             universalModifiers: universalModifiers,
+            labyrinthModifiers: labyrinthModifiers,
             defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
             hasProgressionRewards: origin != nil,
             musicStageID: origin?.musicStageID
@@ -203,7 +211,8 @@ struct PlayBattleLaunch {
             experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
             pendingRewardItem: presentation?.pendingRewardItem,
             stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
-            universalModifiers: universalModifiers
+            universalModifiers: universalModifiers,
+            labyrinthModifiers: presentation?.labyrinthModifiers ?? []
         )
         guard battle.restart(launch.configuration) else { return }
         if let route {

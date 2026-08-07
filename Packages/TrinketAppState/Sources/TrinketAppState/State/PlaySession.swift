@@ -14,7 +14,7 @@ import TrinketPersistence
 @Observable
 public final class PlaySession {
     public let playerSave: PlayerSaveStore
-    public let shellSession: PlayerShellSessionStore
+    public let shellSession: ShellSession
     public let battle: any BattleRuntime
     public let options: OptionsStore
     public let sfxPlayer: SFXPlayer
@@ -32,7 +32,7 @@ public final class PlaySession {
 
     init(
         playerSave: PlayerSaveStore,
-        shellSession: PlayerShellSessionStore,
+        shellSession: ShellSession,
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
@@ -84,7 +84,7 @@ public final class PlaySession {
             appStateLogger.error("Missing route for active battle dismissal")
         }
         queueReturnToBattleOrigin(from: origin)
-        shellSession.selectedTabRaw = AppTab.play.rawValue
+        shellSession.selectedTab = .play
         battle.endBattle()
         if let runKey {
             battleRunRegistry.remove(runKey)
@@ -120,7 +120,7 @@ public final class PlaySession {
         encounters.activeMysteryEncounter = nil
         encounters.activeShopEncounter = nil
         labyrinth.activeNodeSession = nil
-        shellSession.resetToDefaults(selectingTabRaw: AppTab.play.rawValue)
+        shellSession.selectedTab = .play
     }
 
     func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {

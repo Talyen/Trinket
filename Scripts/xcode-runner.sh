@@ -7,7 +7,7 @@
 # allocation, output policy, simulator retry, failure reporting, and hung-command
 # watchdogs for quiet runs:
 #   TRINKET_XCODE_WALL_TIMEOUT_SECONDS (default 1200; 0 disables)
-#   TRINKET_XCODE_IDLE_TIMEOUT_SECONDS (default 120 after terminal marker; 0 disables)
+#   TRINKET_XCODE_IDLE_TIMEOUT_SECONDS (default 45 after terminal marker; 0 disables)
 
 xcode_runner_sanitize_label() {
   local value="${1:-run}"
@@ -172,10 +172,13 @@ xcode_runner_wall_timeout_seconds() {
   printf '%s' "${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-1200}"
 }
 
-# After a terminal TEST/BUILD marker, kill if the raw log stops growing
-# (0 disables). Targets post-failure simctl/xcresult hangs. Default 2 minutes.
+# After a terminal TEST/BUILD / XCTest outer-suite marker, kill if the raw log
+# stops growing (0 disables). Targets post-result simulator-diagnostics hangs
+# (Xcode can wait ~600s after suites finish before printing ** TEST SUCCEEDED **).
+# Default 45 seconds — long enough for brief post-suite log/xcresult noise,
+# short enough that a diagnostics hang does not dominate smoke wall-clock.
 xcode_runner_idle_timeout_seconds() {
-  printf '%s' "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-120}"
+  printf '%s' "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-45}"
 }
 
 xcode_runner_watchdog_enabled() {
@@ -199,25 +202,29 @@ xcode_runner_log_byte_size() {
 xcode_runner_log_has_terminal_marker() {
   local log_file="$1"
   [[ -f "$log_file" ]] || return 1
-  # Xcode classic banners plus Swift Testing's run summary line.
+  # Prefer XCTest outer-suite completion over `** TEST SUCCEEDED **`:
+  # Xcode often hangs ~600s collecting simulator diagnostics *after* suites
+  # finish and only then prints the classic banner. Idle watchdogs must arm
+  # on the earlier marker or smoke wall-clock burns the full diagnostics wait.
+  # Also match Swift Testing run summaries and classic build/test banners.
   grep -Eq \
-    '\*\* (TEST|BUILD) (SUCCEEDED|FAILED) \*\*|Testing started completed|✘ Test run with |✔ Test run with ' \
+    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with " \
     "$log_file"
 }
 
 # Infer exit status when we kill a hung post-terminal xcodebuild.
-# 0 = success banner, 65 = failure banner/summary, 124 = timed out with no result.
+# 0 = success banner/suite, 65 = failure banner/summary, 124 = timed out with no result.
 xcode_runner_infer_exit_from_log() {
   local log_file="$1"
   [[ -f "$log_file" ]] || {
     printf '124'
     return
   }
-  if grep -Eq '\*\* (TEST|BUILD) FAILED \*\*|✘ Test run with ' "$log_file"; then
+  if grep -Eq "\\*\\* (TEST|BUILD) FAILED \\*\\*|✘ Test run with |Test Suite '(Selected tests|All tests)' failed" "$log_file"; then
     printf '65'
     return
   fi
-  if grep -Eq '\*\* (TEST|BUILD) SUCCEEDED \*\*|✔ Test run with ' "$log_file"; then
+  if grep -Eq "\\*\\* (TEST|BUILD) SUCCEEDED \\*\\*|✔ Test run with |Test Suite '(Selected tests|All tests)' passed" "$log_file"; then
     printf '0'
     return
   fi

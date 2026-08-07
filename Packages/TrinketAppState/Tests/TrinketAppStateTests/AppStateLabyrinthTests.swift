@@ -34,12 +34,16 @@ struct AppStateLabyrinthTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
+        let node = try #require(state.playerSave.labyrinth.nodes[combatNodeID])
+        let expectedModifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         let message = state.labyrinth.startBattle(nodeID: combatNodeID)
         #expect(message == nil)
         let battle = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: battle.runKey))
         #expect(presentation.hasProgressionRewards)
         #expect(presentation.defeatPrimaryAction == .retreat)
+        #expect(presentation.labyrinthModifiers == expectedModifiers)
+        #expect(!presentation.labyrinthModifiers.isEmpty)
         #expect(battle.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
     }
 

@@ -13,11 +13,10 @@ extension AppState {
 
     struct BootstrapDependencies {
         let playerSave: PlayerSaveStore
-        let shellSession: PlayerShellSessionStore
+        let shellSession: ShellSession
         let musicPlayer: MusicPlayer
         let sfxPlayer: SFXPlayer
         let options: OptionsStore
-        let selectedTab: AppTab
         let pendingCollectionPresentation: LaunchPresentation?
         let pendingPlayDestination: PlayLaunchDestination?
     }
@@ -25,7 +24,6 @@ extension AppState {
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
-        shellSessionStore: PlayerShellSessionStore?,
         userDefaults: UserDefaults
     ) throws -> BootstrapDependencies {
         if environment.resetState {
@@ -49,11 +47,7 @@ extension AppState {
             }
         }
 
-        let resolvedShellSession = try shellSessionStore ?? PlayerShellSessionStore(
-            storeName: environment.storeName,
-            resetState: environment.resetState,
-            inMemoryOnly: environment.resetState && environment.storeName == nil
-        )
+        let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
         // Seeded UI launches hide Ultimate overlays so matched-geometry expand
@@ -71,7 +65,6 @@ extension AppState {
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
-            selectedTab: selectedTab(environment: environment),
             pendingCollectionPresentation: launchCollection,
             pendingPlayDestination: launchPlay
         )
@@ -99,7 +92,7 @@ extension AppState {
     }
 
     private static func clearResetStateDefaults(from defaults: UserDefaults) {
-        PlayerShellSessionStore.clearLegacyKeys(from: defaults)
+        ShellSession.clearLegacyKeys(from: defaults)
         defaults.removeObject(forKey: OptionsStore.musicVolumeKey)
         defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)

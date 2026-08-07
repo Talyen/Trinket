@@ -184,6 +184,8 @@ public enum AccessibilityID {
         public static let traitDescription = "Combatant Trait Description"
         public static let enemyTraitsSection = "Combatant Enemy Traits Section"
         public static let enemyTraitDescription = "Combatant Enemy Trait Description"
+        public static let labyrinthModifiersSection = "Combatant Labyrinth Modifiers Section"
+        public static let labyrinthModifierDescription = "Combatant Labyrinth Modifier Description"
 
         public static func header(name: String) -> String {
             "\(name) detail hero header"

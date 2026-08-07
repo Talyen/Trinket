@@ -401,7 +401,7 @@ struct BattleDissolveArtwork<Content: View>: View {
 /// once, then tears down. Uses a real ability card face so production first-cast
 /// does not pay card-surface + artwork + mask + particles together cold.
 public struct CardCastEffectsPrewarmView: View {
-    public var artworkName: String? = "ability_bash_thumb"
+    public var artworkName: String? = "ability_bash"
     let onComplete: () -> Void
 
     private let cardSize = CGSize(width: 168, height: 224)
@@ -411,7 +411,7 @@ public struct CardCastEffectsPrewarmView: View {
     @State private var startDate = Date()
 
     public init(
-        artworkName: String? = "ability_bash_thumb",
+        artworkName: String? = "ability_bash",
         onComplete: @escaping () -> Void
     ) {
         self.artworkName = artworkName

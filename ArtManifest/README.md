@@ -34,13 +34,12 @@ The pipeline writes **HEIC** (HEVC-based) images per manifest row. Which variant
 
 | Kind | Full (`<asset_name>`) | Thumb (`<asset_name>_thumb`) |
 |------|-----------------------|------------------------------|
-| `combatant`, `item`, `encounter` | yes (`max_dimension`, default `1600`) | yes (`thumb_dimension`, default `480`) |
-| `ability` | no | yes (`imageName` is the thumb) |
+| `combatant`, `ability`, `item`, `encounter` | yes (`max_dimension`, default `1600`) | yes (`thumb_dimension`, default `480`) |
 | `background`, `resource`, `slot_background` | yes | no |
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
-`CombatantArtReference`, `ItemArtReference`, and `EncounterArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Packages/TrinketFeatureSupport/.../Shared/Cards/CombatantArtwork.swift`). Background and resource callers always use the full `imageName`.
+`CombatantArtReference`, `AbilityArtReference`, `ItemArtReference`, and `EncounterArtReference` expose both `imageName` (full) and `thumbnailImageName`. Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Packages/TrinketFeatureSupport/.../Shared/Cards/CombatantArtwork.swift`): large surfaces (battle hand, detail heroes, stage/spire encounter art) use `imageName`; grid cards use `thumbnailImageName`. Background and resource callers always use the full `imageName`.
 
 ## Generate Curated Assets
 

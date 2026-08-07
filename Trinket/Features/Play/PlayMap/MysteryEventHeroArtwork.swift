@@ -7,10 +7,12 @@ import TrinketFeatureSupport
 struct MysteryEventHeroArtwork: View {
     let event: MysteryEvent
     let chapterID: String
+    /// Labyrinth hex seals prefer encounter thumbs; large surfaces keep full art.
+    var preferThumbnail = false
 
     var body: some View {
         if let artID = event.artID, let art = ArtCatalog.encounterArtByID[artID] {
-            Image.preparedAsset(named: art.imageName)
+            Image.preparedAsset(named: encounterImageName(art))
                 .resizable()
                 .scaledToFill()
                 .decorativePreparedArtwork()
@@ -26,6 +28,14 @@ struct MysteryEventHeroArtwork: View {
                 .decorativePreparedArtwork()
         } else {
             TrinketDesign.Colors.encounterEvent
+        }
+    }
+
+    private func encounterImageName(_ art: EncounterArtReference) -> String {
+        if preferThumbnail {
+            art.thumbnailImageName ?? art.imageName
+        } else {
+            art.imageName
         }
     }
 }

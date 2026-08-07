@@ -12,6 +12,9 @@ struct CardDissolveThresholdMask: View {
     var cellSize: Int = 1
     var thresholdMidpoint: CGFloat = 0.46
     var thresholdContrast: CGFloat = 100
+    /// When set, distance to a center diagonal at this angle (degrees from vertical)
+    /// is treated as an additional dissolve edge (Slice death cut face).
+    var cutAngleDegrees: CGFloat?
 
     var body: some View {
         // Quantize before lookup so TimelineView ticks that share a dissolve step
@@ -23,7 +26,8 @@ struct CardDissolveThresholdMask: View {
             noiseWeight: noiseWeight,
             cellSize: cellSize,
             thresholdMidpoint: thresholdMidpoint,
-            thresholdContrast: thresholdContrast
+            thresholdContrast: thresholdContrast,
+            cutAngleDegrees: cutAngleDegrees
         )
         .equatable()
     }
@@ -38,6 +42,7 @@ private struct StableCardDissolveThresholdMask: View, Equatable {
     let cellSize: Int
     let thresholdMidpoint: CGFloat
     let thresholdContrast: CGFloat
+    let cutAngleDegrees: CGFloat?
 
     var body: some View {
         // CPU-baked alpha masks avoid per-frame brightness/contrast/luminanceToAlpha.
@@ -48,7 +53,8 @@ private struct StableCardDissolveThresholdMask: View, Equatable {
             noiseWeight: noiseWeight,
             cellSize: cellSize,
             thresholdMidpoint: thresholdMidpoint,
-            thresholdContrast: thresholdContrast
+            thresholdContrast: thresholdContrast,
+            cutAngleDegrees: cutAngleDegrees
         ) {
             Image(decorative: image, scale: 1)
                 .resizable()
@@ -86,6 +92,8 @@ enum CardDissolveTexture {
         let edgeDepthWeight: Int
         let noiseWeight: Int
         let cellSize: Int
+        /// Quantized cut angle; `nil` = rectangular edges only.
+        let cutAngleDegrees: Int?
     }
 
     private struct ThresholdCacheKey: Hashable {
@@ -165,12 +173,14 @@ enum CardDissolveTexture {
     static func noiseImage(
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
-        cellSize: Int = 1
+        cellSize: Int = 1,
+        cutAngleDegrees: CGFloat? = nil
     ) -> CGImage? {
         let bytes = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: cellSize
+            cellSize: cellSize,
+            cutAngleDegrees: cutAngleDegrees
         )
         return makeGrayscaleImage(pixels: bytes, width: width, height: height)
     }
@@ -185,13 +195,15 @@ enum CardDissolveTexture {
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1,
         thresholdMidpoint: CGFloat = 0.46,
-        thresholdContrast: CGFloat = 100
+        thresholdContrast: CGFloat = 100,
+        cutAngleDegrees: CGFloat? = nil
     ) -> CGImage? {
         let clampedCell = max(1, min(cellSize, 16))
-        let noiseKey = NoiseCacheKey(
-            edgeDepthWeight: quantize(edgeDepthWeight),
-            noiseWeight: quantize(noiseWeight),
-            cellSize: clampedCell
+        let noiseKey = noiseCacheKey(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: clampedCell,
+            cutAngleDegrees: cutAngleDegrees
         )
         let step = progressStep(for: progress)
         let key = ThresholdCacheKey(
@@ -209,7 +221,8 @@ enum CardDissolveTexture {
             noiseWeight: noiseWeight,
             cellSize: clampedCell,
             thresholdMidpoint: thresholdMidpoint,
-            thresholdContrast: thresholdContrast
+            thresholdContrast: thresholdContrast,
+            cutAngleDegrees: cutAngleDegrees
         )
     }
 
@@ -220,13 +233,15 @@ enum CardDissolveTexture {
         noiseWeight: CGFloat = 0.18,
         cellSize: Int = 1,
         thresholdMidpoint: CGFloat = 0.46,
-        thresholdContrast: CGFloat = 100
+        thresholdContrast: CGFloat = 100,
+        cutAngleDegrees: CGFloat? = nil
     ) -> CGImage? {
         let clampedCell = max(1, min(cellSize, 16))
-        let noiseKey = NoiseCacheKey(
-            edgeDepthWeight: quantize(edgeDepthWeight),
-            noiseWeight: quantize(noiseWeight),
-            cellSize: clampedCell
+        let noiseKey = noiseCacheKey(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: clampedCell,
+            cutAngleDegrees: cutAngleDegrees
         )
         let step = progressStep(for: progress)
         let key = ThresholdCacheKey(
@@ -238,7 +253,8 @@ enum CardDissolveTexture {
         let noise = noiseBytes(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: clampedCell
+            cellSize: clampedCell,
+            cutAngleDegrees: cutAngleDegrees
         )
         let steppedProgress = CGFloat(step) / CGFloat(progressSteps)
         return cache.thresholdImage(key: key) {
@@ -256,24 +272,28 @@ enum CardDissolveTexture {
     static func prewarm(
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
-        cellSize: Int = 1
+        cellSize: Int = 1,
+        cutAngleDegrees: CGFloat? = nil
     ) {
         _ = prewarmTask(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: cellSize
+            cellSize: cellSize,
+            cutAngleDegrees: cutAngleDegrees
         )
     }
 
     static func prepare(
         edgeDepthWeight: CGFloat = 0.86,
         noiseWeight: CGFloat = 0.18,
-        cellSize: Int = 1
+        cellSize: Int = 1,
+        cutAngleDegrees: CGFloat? = nil
     ) async {
         guard let task = prewarmTask(
             edgeDepthWeight: edgeDepthWeight,
             noiseWeight: noiseWeight,
-            cellSize: cellSize
+            cellSize: cellSize,
+            cutAngleDegrees: cutAngleDegrees
         ) else { return }
         await task.value
     }
@@ -281,12 +301,14 @@ enum CardDissolveTexture {
     private static func prewarmTask(
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
-        cellSize: Int
+        cellSize: Int,
+        cutAngleDegrees: CGFloat?
     ) -> Task<Void, Never>? {
-        let key = NoiseCacheKey(
-            edgeDepthWeight: quantize(edgeDepthWeight),
-            noiseWeight: quantize(noiseWeight),
-            cellSize: max(1, min(cellSize, 16))
+        let key = noiseCacheKey(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: max(1, min(cellSize, 16)),
+            cutAngleDegrees: cutAngleDegrees
         )
         return prewarmState.withLock { state in
             if state.prepared.contains(key) {
@@ -301,7 +323,8 @@ enum CardDissolveTexture {
                 _ = noiseImage(
                     edgeDepthWeight: edgeDepthWeight,
                     noiseWeight: noiseWeight,
-                    cellSize: cellSize
+                    cellSize: cellSize,
+                    cutAngleDegrees: cutAngleDegrees
                 )
                 for step in 0 ... progressSteps {
                     let progress = CGFloat(step) / CGFloat(progressSteps)
@@ -309,7 +332,8 @@ enum CardDissolveTexture {
                         progress: progress,
                         edgeDepthWeight: edgeDepthWeight,
                         noiseWeight: noiseWeight,
-                        cellSize: cellSize
+                        cellSize: cellSize,
+                        cutAngleDegrees: cutAngleDegrees
                     )
                 }
                 prewarmState.withLock { state in
@@ -324,22 +348,39 @@ enum CardDissolveTexture {
 }
 
 extension CardDissolveTexture {
+    private static func noiseCacheKey(
+        edgeDepthWeight: CGFloat,
+        noiseWeight: CGFloat,
+        cellSize: Int,
+        cutAngleDegrees: CGFloat?
+    ) -> NoiseCacheKey {
+        NoiseCacheKey(
+            edgeDepthWeight: quantize(edgeDepthWeight),
+            noiseWeight: quantize(noiseWeight),
+            cellSize: cellSize,
+            cutAngleDegrees: cutAngleDegrees.map { Int($0.rounded()) }
+        )
+    }
+
     private static func noiseBytes(
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
-        cellSize: Int
+        cellSize: Int,
+        cutAngleDegrees: CGFloat?
     ) -> [UInt8] {
         let clampedCell = max(1, min(cellSize, 16))
-        let key = NoiseCacheKey(
-            edgeDepthWeight: quantize(edgeDepthWeight),
-            noiseWeight: quantize(noiseWeight),
-            cellSize: clampedCell
+        let key = noiseCacheKey(
+            edgeDepthWeight: edgeDepthWeight,
+            noiseWeight: noiseWeight,
+            cellSize: clampedCell,
+            cutAngleDegrees: cutAngleDegrees
         )
         return cache.noiseBytes(key: key) {
             makeNoiseBytes(
                 edgeDepthWeight: edgeDepthWeight,
                 noiseWeight: noiseWeight,
-                cellSize: clampedCell
+                cellSize: clampedCell,
+                cutAngleDegrees: cutAngleDegrees
             )
         }
     }
@@ -351,7 +392,8 @@ extension CardDissolveTexture {
     private static func makeNoiseBytes(
         edgeDepthWeight: CGFloat,
         noiseWeight: CGFloat,
-        cellSize: Int
+        cellSize: Int,
+        cutAngleDegrees: CGFloat?
     ) -> [UInt8] {
         var pixels = [UInt8](repeating: 0, count: width * height)
         let columns = max(1, width / cellSize)
@@ -359,6 +401,11 @@ extension CardDissolveTexture {
         let maximumInset = CGFloat(min(width, height)) / 2
         let depthWeight = max(edgeDepthWeight, 0)
         let noiseAmount = max(noiseWeight, 0)
+        let center = CGPoint(x: CGFloat(width) * 0.5, y: CGFloat(height) * 0.5)
+        let cutNormal: CGVector? = cutAngleDegrees.map { degrees in
+            let radians = degrees * .pi / 180
+            return CGVector(dx: cos(radians), dy: -sin(radians))
+        }
 
         for row in 0 ..< rows {
             for column in 0 ..< columns {
@@ -370,7 +417,17 @@ extension CardDissolveTexture {
                     min(midpoint.x, CGFloat(width) - midpoint.x),
                     min(midpoint.y, CGFloat(height) - midpoint.y)
                 )
-                let edgeDepth = max(0, inset / maximumInset)
+                let edgeInset: CGFloat
+                if let cutNormal {
+                    let cutDistance = abs(
+                        (midpoint.x - center.x) * cutNormal.dx
+                            + (midpoint.y - center.y) * cutNormal.dy
+                    )
+                    edgeInset = min(inset, cutDistance)
+                } else {
+                    edgeInset = inset
+                }
+                let edgeDepth = max(0, edgeInset / maximumInset)
                 let noise = CombatFeedbackLayout.unitNoise(
                     seed: column &* 12989 &+ row &* 78233
                 )

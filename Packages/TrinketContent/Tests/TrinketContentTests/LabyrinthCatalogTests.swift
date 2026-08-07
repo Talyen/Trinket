@@ -159,8 +159,11 @@ struct LabyrinthCatalogTests {
         #expect(rows.count(where: { $0 == minimumRow }) == 1)
         #expect(rows.count(where: { $0 == maximumRow }) == 1)
 
-        let projectedColumns = positions.map { 2 * $0.column + $0.row }
-        #expect((projectedColumns.max() ?? 0) - (projectedColumns.min() ?? 0) <= 4)
+        let projectedColumns = positions.map(\.projectedHalfColumn)
+        #expect(
+            (projectedColumns.max() ?? 0) - (projectedColumns.min() ?? 0)
+                <= LabyrinthMapLayout.maxProjectedSpan
+        )
         let neighborsByID = Dictionary(uniqueKeysWithValues: nodes.map { node in
             (node.id, nodes.filter { node.id != $0.id && areAdjacent(node, $0) }.map(\.id))
         })

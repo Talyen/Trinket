@@ -83,17 +83,11 @@ public final class MysteryEncounterSession: Identifiable {
         combatant: Combatant?
     ) {
         self.origin = origin
-        switch origin {
-        case let .journey(stage):
-            self.stage = stage
-        case let .labyrinth(nodeID):
-            stage = GameContent.syntheticLabyrinthStage(
-                nodeID: nodeID,
-                encounter: event.isRecruit
-                    ? .recruit(eventID: event.id)
-                    : .mysteryEvent(eventID: event.id)
-            )
-        }
+        stage = origin.resolvedStage(
+            labyrinthEncounter: event.isRecruit
+                ? .recruit(eventID: event.id)
+                : .mysteryEvent(eventID: event.id)
+        )
         self.event = event
         self.combatant = combatant
     }

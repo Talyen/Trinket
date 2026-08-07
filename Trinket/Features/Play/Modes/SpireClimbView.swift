@@ -174,7 +174,7 @@ private struct SpireFloorArtwork: View {
         ZStack {
             if let combatant = GameContent.enemy(matching: floor.enemyID)?.combatant,
                let art = combatant.artReference {
-                Image.preparedAsset(named: art.thumbnailImageName ?? art.imageName)
+                Image.preparedAsset(named: art.imageName)
                     .resizable()
                     .scaledToFill()
                     .decorativePreparedArtwork()

@@ -216,6 +216,24 @@ public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
         self.row = row
         self.column = column
     }
+
+    /// Axial projected half-column: `2 * column + row`.
+    public var projectedHalfColumn: Int {
+        2 * column + row
+    }
+}
+
+/// Shared floor-width contract for Labyrinth generation and map UI.
+///
+/// Floors stay within three full hex columns so portrait layout can size seals
+/// edge-to-edge for that worst case.
+public enum LabyrinthMapLayout {
+    /// Inclusive half-column bound: projected indices in `-max...max`.
+    public static let maxProjectedHalfColumn = 2
+    /// `max − min` of projected half-columns across a valid floor.
+    public static let maxProjectedSpan = maxProjectedHalfColumn * 2
+    /// Full hex columns that fit the projected half-column window.
+    public static let fullColumnsAcross = maxProjectedHalfColumn + 1
 }
 
 public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {

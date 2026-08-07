@@ -23,7 +23,7 @@ Confirm two reachable paths for one behavior (or a reachable shim that only forw
 ## Hard stops
 
 - Do not collapse intentional dual seams listed in Architecture or sibling audits (battle RNG injection, persistence write coalescing, Options/`UserDefaults` vs `PlayerSave`, catalog authored vs generated).
-- Do not delete a migration path while save or shell-session clients still require the old shape — confirm the consumer window is closed first.
+- Do not delete a migration path while save clients still require the old shape — confirm the consumer window is closed first.
 - Do not rewrite battle pipeline math or save wire format under this audit; prove equivalence via existing package owners when a dual rule path is confirmed.
 - Do not demote or delete package `public` API that is an intentional cross-package contract without the same consumer inventory DeadCode requires.
 
@@ -36,7 +36,7 @@ Either:
 
 Plus a delete-one-path remedy that preserves behavior and removes or migrates the associated callers, flags, tests, configuration, and documentation. Speculative “might need later” is not evidence.
 
-For migration / legacy-bridge tells, also confirm the consumer window is closed: inventory shows no remaining save / shell-session / schema consumer of the old shape, or Architecture / persistence docs mark the bridge obsolete. Speculative “enough time has passed” is not evidence.
+For migration / legacy-bridge tells, also confirm the consumer window is closed: inventory shows no remaining save / schema consumer of the old shape, or Architecture / persistence docs mark the bridge obsolete. Speculative “enough time has passed” is not evidence.
 
 DeadCode owns symbols with **zero** live consumers. This audit owns reachable twins or reachable no-op shims.
 

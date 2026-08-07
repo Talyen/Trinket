@@ -222,9 +222,11 @@ enforcement, and age-prune live in `Scripts/run-env.sh` self-clean start + EXIT
 on verify/test. The keep-target managed sim stays Booted; excess managed Booted
 sims are shut down quietly; managed sims are never erased on the normal path.
 `xcode-runner.sh` wall/idle watchdogs (`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` /
-`TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`) kill hung **host** xcodebuild trees only —
-they never call `simctl`. Parallel source trees:
-`./Scripts/agent-worktree.sh create <slug>`.
+`TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`, default idle 45s) kill hung **host**
+xcodebuild trees only — they never call `simctl`. Idle arms on XCTest
+`Selected tests`/`All tests` completion (not only `** TEST SUCCEEDED **`) so
+post-suite simulator-diagnostics hangs do not burn Xcode's ~600s wait.
+Parallel source trees: `./Scripts/agent-worktree.sh create <slug>`.
 
 ### Local Mac setup (simulator CrashReporter)
 

@@ -9,9 +9,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct LabyrinthFloorMap: View {
-    private static let maximumMapScale: CGFloat = 2
-    private static let nodeFrame: CGFloat = 97
-    private static let verticalStep = LabyrinthHexMetrics.radius * 1.5
+    @Environment(PlayerSaveStore.self) private var playerSave
 
     let cluster: LabyrinthCluster
     let state: PlayerLabyrinthState
@@ -20,28 +18,33 @@ struct LabyrinthFloorMap: View {
     let onSelectNode: (String) -> Void
     let onDismissSelection: () -> Void
 
+    private var metrics: LabyrinthHexMetrics {
+        LabyrinthHexMetrics(
+            radius: LabyrinthMapPresentation.hexRadius(forAvailableWidth: availableWidth)
+        )
+    }
+
     private var nodes: [LabyrinthNode] {
         LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
     }
 
     private var mapHeight: CGFloat {
         let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
-        return (CGFloat(lastRow) * Self.verticalStep + 104) * mapScale
-    }
-
-    private var unscaledMapWidth: CGFloat {
-        let projectedXs = nodes.map { projectedX(for: $0) }
-        return (projectedXs.max() ?? 0) - (projectedXs.min() ?? 0) + Self.nodeFrame
-    }
-
-    private var mapScale: CGFloat {
-        min(Self.maximumMapScale, availableWidth / max(1, unscaledMapWidth))
+        return CGFloat(lastRow) * metrics.verticalStep + metrics.height + metrics.hitExpansion * 2
     }
 
     private var displayNodes: [LabyrinthNode] {
         nodes.sorted {
             renderPriority(for: $0) < renderPriority(for: $1)
         }
+    }
+
+    /// Built once for the floor so seals do not rematerialize inventory / save.
+    private var pickContext: MysteryEventPickContext {
+        MysteryEventPickContext.labyrinth(
+            inventory: playerSave.inventory,
+            corruptionAltarCooldownRemaining: playerSave.corruptionAltarCooldownRemaining
+        )
     }
 
     var body: some View {
@@ -56,7 +59,8 @@ struct LabyrinthFloorMap: View {
                     node: node,
                     state: state,
                     isSelected: selectedNodeID == node.id,
-                    scale: mapScale,
+                    metrics: metrics,
+                    pickContext: pickContext,
                     onActivate: {
                         if LabyrinthMapPresentation.state(for: node, in: state) == .reachable {
                             onSelectNode(node.id)
@@ -73,7 +77,7 @@ struct LabyrinthFloorMap: View {
 
     private func projectedX(for node: LabyrinthNode) -> CGFloat {
         let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
-        return LabyrinthHexMetrics.radius * sqrt(3) * (
+        return metrics.radius * sqrt(3) * (
             CGFloat(position.column) + CGFloat(position.row) / 2
         )
     }
@@ -90,8 +94,8 @@ struct LabyrinthFloorMap: View {
         let projectedXs = nodes.map { projectedX(for: $0) }
         let horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
         return CGPoint(
-            x: availableWidth / 2 + (projectedX(for: node) - horizontalCenter) * mapScale,
-            y: (CGFloat(position.row) * Self.verticalStep + 52) * mapScale
+            x: availableWidth / 2 + (projectedX(for: node) - horizontalCenter),
+            y: CGFloat(position.row) * metrics.verticalStep + metrics.height / 2 + metrics.hitExpansion
         )
     }
 }
@@ -102,7 +106,8 @@ private struct LabyrinthMapNodeSeal: View {
     let node: LabyrinthNode
     let state: PlayerLabyrinthState
     let isSelected: Bool
-    let scale: CGFloat
+    let metrics: LabyrinthHexMetrics
+    let pickContext: MysteryEventPickContext
     let onActivate: () -> Void
 
     private var visualState: LabyrinthMapNodeState {
@@ -128,6 +133,22 @@ private struct LabyrinthMapNodeSeal: View {
     var body: some View {
         Button(action: onActivate) {
             ZStack {
+                LabyrinthNodeArtwork(
+                    node: node,
+                    type: type,
+                    pickContext: pickContext,
+                    style: .hexSeal
+                )
+                .opacity(visualState == .locked ? 0.42 : 1)
+                .clipShape(LabyrinthHexagon())
+
+                if visualState == .cleared {
+                    Image(systemName: "checkmark")
+                        .trinketTypography(type == .boss ? .sectionTitle : .rowTitle)
+                        .foregroundStyle(TrinketDesign.Colors.success)
+                        .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.55), radius: 2, y: 1)
+                }
+
                 LabyrinthHexagon()
                     .stroke(
                         visualState == .cleared
@@ -139,50 +160,37 @@ private struct LabyrinthMapNodeSeal: View {
                             : displayedTint,
                         lineWidth: visualState == .reachable ? 3 : 2
                     )
-                Image(systemName: symbolName)
-                    .trinketTypography(type == .boss ? .sectionTitle : .rowTitle)
-                    .foregroundStyle(
-                        visualState == .locked
-                            ? AnyShapeStyle(.secondary)
-                            : AnyShapeStyle(displayedTint)
-                    )
             }
-            .frame(width: LabyrinthHexMetrics.width, height: LabyrinthHexMetrics.height)
+            .frame(width: metrics.width, height: metrics.height)
             .contentShape(
                 .interaction,
-                LabyrinthHexagon().inset(by: -LabyrinthHexMetrics.hitExpansion)
+                LabyrinthHexagon().inset(by: -metrics.hitExpansion)
             )
-            .scaleEffect(scale)
             .frame(
-                width: (LabyrinthHexMetrics.width + 2 * LabyrinthHexMetrics.hitExpansion) * scale,
-                height: (LabyrinthHexMetrics.height + 2 * LabyrinthHexMetrics.hitExpansion) * scale
+                width: metrics.width + 2 * metrics.hitExpansion,
+                height: metrics.height + 2 * metrics.hitExpansion
             )
         }
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
     }
-
-    private var symbolName: String {
-        if type == .boss {
-            return type.symbolName
-        }
-        return switch visualState {
-        case .locked, .reachable:
-            LabyrinthMapPresentation.symbolName(
-                for: type,
-                recruitEventID: node.recruitEventID
-            )
-        case .cleared:
-            "checkmark"
-        }
-    }
 }
 
-private enum LabyrinthHexMetrics {
-    static let radius: CGFloat = 32
-    static let width = radius * sqrt(3)
-    static let height = radius * 2
-    static let hitExpansion: CGFloat = 6
+private struct LabyrinthHexMetrics {
+    let radius: CGFloat
+    let hitExpansion: CGFloat = 6
+
+    var width: CGFloat {
+        radius * sqrt(3)
+    }
+
+    var height: CGFloat {
+        radius * 2
+    }
+
+    var verticalStep: CGFloat {
+        radius * 1.5
+    }
 }
 
 private struct LabyrinthHexagon: InsettableShape {
@@ -279,9 +287,9 @@ struct LabyrinthNodeInspector: View {
                     type: type,
                     pickContext: MysteryEventPickContext.labyrinth(
                         inventory: playerSave.inventory,
-                        corruptionAltarCooldownRemaining: playerSave.currentSave
-                            .corruptionAltarCooldownRemaining
-                    )
+                        corruptionAltarCooldownRemaining: playerSave.corruptionAltarCooldownRemaining
+                    ),
+                    style: .inspector
                 )
             },
             partyPickerSheet: {
@@ -308,7 +316,8 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryItems: playerSave.inventory.items
+            inventoryItems: playerSave.inventory.items,
+            labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
     }
 
@@ -369,9 +378,15 @@ struct LabyrinthNodeInspector: View {
 }
 
 private struct LabyrinthNodeArtwork: View {
+    enum Style {
+        case inspector
+        case hexSeal
+    }
+
     let node: LabyrinthNode
     let type: LabyrinthNodeType
     let pickContext: MysteryEventPickContext
+    var style: Style = .inspector
 
     private var symbolName: String {
         LabyrinthMapPresentation.symbolName(
@@ -395,24 +410,62 @@ private struct LabyrinthNodeArtwork: View {
     }
 
     var body: some View {
-        Group {
-            if type.isCombat,
-               let enemyID = node.enemyID,
-               let enemy = GameContent.enemy(matching: enemyID) {
-                CombatantArtwork(combatant: enemy.combatant, variant: .battle)
-            } else if let event = resolvedMysteryEvent, !event.isRecruit {
-                MysteryEventHeroArtwork(event: event, chapterID: "labyrinth")
-            } else {
-                ZStack {
-                    LabyrinthMapPresentation.tint(for: type).opacity(0.16)
-                    Image(systemName: symbolName)
-                        .trinketTypography(.sectionDisplay)
-                        .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
-                        .symbolRenderingMode(.hierarchical)
+        switch style {
+        case .inspector:
+            resolvedContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+        case .hexSeal:
+            Color.clear
+                .overlay(alignment: .top) {
+                    resolvedContent
+                        .scaledToFill()
                 }
+                .clipped()
+        }
+    }
+
+    private var prefersThumbnail: Bool {
+        style == .hexSeal
+    }
+
+    @ViewBuilder
+    private var resolvedContent: some View {
+        if type.isCombat,
+           let enemyID = node.enemyID,
+           let enemy = GameContent.enemy(matching: enemyID) {
+            CombatantArtwork(
+                combatant: enemy.combatant,
+                variant: prefersThumbnail ? .card : .battle
+            )
+        } else if let event = resolvedMysteryEvent, !event.isRecruit {
+            MysteryEventHeroArtwork(
+                event: event,
+                chapterID: "labyrinth",
+                preferThumbnail: prefersThumbnail
+            )
+        } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
+                  let art = ArtCatalog.encounterArtByID[artID] {
+            Image.preparedAsset(named: encounterImageName(art))
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
+        } else {
+            ZStack {
+                LabyrinthMapPresentation.tint(for: type).opacity(0.16)
+                Image(systemName: symbolName)
+                    .trinketTypography(.sectionDisplay)
+                    .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
+                    .symbolRenderingMode(.hierarchical)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
+    }
+
+    private func encounterImageName(_ art: EncounterArtReference) -> String {
+        if prefersThumbnail {
+            art.thumbnailImageName ?? art.imageName
+        } else {
+            art.imageName
+        }
     }
 }

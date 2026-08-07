@@ -38,4 +38,17 @@ struct CombatantBorderAccentTests {
         ]
         #expect(CombatantBorderAccent.keyword(from: effects) == .freeze)
     }
+
+    @Test func controlStatusLingerAccentsUnlessPendingSkipRequired() {
+        let linger = [
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 1),
+        ]
+        #expect(CombatantBorderAccent.keyword(from: linger) == .stun)
+        #expect(
+            CombatantBorderAccent.keyword(
+                from: linger,
+                controlAccentRequiresPendingSkip: true
+            ) == nil
+        )
+    }
 }

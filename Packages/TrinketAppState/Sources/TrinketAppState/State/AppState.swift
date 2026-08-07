@@ -19,7 +19,7 @@ let appStateLogger = Logger(
 public final class AppState {
     public let environment: AppEnvironment
     public let playerSave: PlayerSaveStore
-    public let shellSession: PlayerShellSessionStore
+    public let shellSession: ShellSession
     let musicPlayer: MusicPlayer
     public let sfxPlayer: SFXPlayer
     public var shellScenePhase: ScenePhase = .active
@@ -28,14 +28,13 @@ public final class AppState {
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
     public var selectedTab: AppTab {
-        get { AppTab(rawValue: shellSession.selectedTabRaw) ?? .play }
-        set { shellSession.selectedTabRaw = newValue.rawValue }
+        get { shellSession.selectedTab }
+        set { shellSession.selectedTab = newValue }
     }
 
     public init(
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
-        shellSessionStore: PlayerShellSessionStore? = nil,
         userDefaults: UserDefaults? = nil,
         battleComposition: BattleRuntimeComposition? = nil,
         makeBattleComposition: ((BattleRuntimeDependencies) -> BattleRuntimeComposition)? = nil
@@ -46,7 +45,6 @@ public final class AppState {
         let dependencies = try Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
-            shellSessionStore: shellSessionStore,
             userDefaults: resolvedDefaults
         )
 
@@ -57,10 +55,6 @@ public final class AppState {
         options = dependencies.options
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
 
-        let desiredTabRaw = dependencies.selectedTab.rawValue
-        if shellSession.selectedTabRaw != desiredTabRaw {
-            shellSession.selectedTabRaw = desiredTabRaw
-        }
         let resolvedBattle = Self.resolveBattleComposition(
             explicit: battleComposition,
             factory: makeBattleComposition,
@@ -254,12 +248,10 @@ public final class AppState {
             play.battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
-            shellSession.flushPendingPersistence()
             playerSave.flushPendingPersistence()
         case .inactive:
             play.battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
-            shellSession.flushPendingPersistence()
             playerSave.flushPendingPersistence()
         case .active:
             // Cold launch lands on Play via bootstrap `selectedTab(environment:)`.

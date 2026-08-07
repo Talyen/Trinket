@@ -44,11 +44,9 @@ struct TrinketApp: App {
             )
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
-                let fallbackShell = try PlayerShellSessionStore(inMemoryOnly: true)
                 let state = try AppState(
                     environment: .shared,
                     playerSave: fallbackSave,
-                    shellSessionStore: fallbackShell,
                     makeBattleComposition: makeBattleComposition
                 )
                 _appState = State(initialValue: state)

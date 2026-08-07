@@ -18,6 +18,7 @@ public struct CombatantDetailPane: View {
     let effectsVolume: Double
     var battleHealth: Int?
     var activeEffectSummaries: [EffectSummary] = []
+    var labyrinthModifiers: [LabyrinthModifierDefinition] = []
     var hidesNavigationBar = false
 
     /// Loadout picker navigation state is owned here at the pane level so the picker
@@ -139,6 +140,10 @@ public struct CombatantDetailPane: View {
             )
         }
 
+        if !labyrinthModifiers.isEmpty {
+            labyrinthModifiersSection
+        }
+
         if !activeEffectSummaries.isEmpty {
             activeEffectsSection
         }
@@ -155,15 +160,17 @@ public struct CombatantDetailPane: View {
             .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
         }
 
-        DetailSection("Items") {
-            EquipmentSlotSummaryGrid(
-                role: combatant.role,
-                equipmentLoadout: equipmentLoadout,
-                inventoryItems: inventoryItems,
-                onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
-                onViewItem: allowsEditing ? nil : { viewingItem = $0 }
-            )
-            .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+        if combatant.role != .enemy {
+            DetailSection("Items") {
+                EquipmentSlotSummaryGrid(
+                    role: combatant.role,
+                    equipmentLoadout: equipmentLoadout,
+                    inventoryItems: inventoryItems,
+                    onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil,
+                    onViewItem: allowsEditing ? nil : { viewingItem = $0 }
+                )
+                .padding(.vertical, TrinketDesign.Metrics.extraSmallSpacing)
+            }
         }
     }
 
@@ -198,6 +205,23 @@ public struct CombatantDetailPane: View {
                 ForEach(activeEffectSummaries) { summary in
                     let parts = activeEffectCardParts(for: summary)
                     DetailTraitRow(title: parts.title, description: parts.description)
+                }
+            }
+        }
+    }
+
+    private var labyrinthModifiersSection: some View {
+        DetailSection(
+            "Labyrinth",
+            sectionID: AccessibilityID.CombatantDetail.labyrinthModifiersSection
+        ) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                ForEach(labyrinthModifiers) { modifier in
+                    DetailTraitRow(
+                        title: modifier.title,
+                        description: detailDescription(modifier.effect.description),
+                        descriptionAccessibilityID: AccessibilityID.CombatantDetail.labyrinthModifierDescription
+                    )
                 }
             }
         }
@@ -294,6 +318,7 @@ public extension CombatantDetailPane {
             effectsVolume: 0,
             battleHealth: snapshot.health,
             activeEffectSummaries: snapshot.activeEffectSummaries,
+            labyrinthModifiers: snapshot.labyrinthModifiers,
             hidesNavigationBar: hidesNavigationBar
         )
     }

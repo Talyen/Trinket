@@ -22,6 +22,7 @@ public struct CombatantArtReference: Hashable, Sendable {
 
 public struct AbilityArtReference: Hashable, Sendable {
     public let imageName: String
+    public let thumbnailImageName: String?
 }
 
 public struct ItemArtReference: Hashable, Sendable {
@@ -222,199 +223,264 @@ public enum ArtCatalog {
     public static let abilityArtByID: [String: AbilityArtReference] = {
         var dict = [String: AbilityArtReference]()
         dict["acid-potion"] = AbilityArtReference(
-            imageName: "ability_acid_potion_thumb"
+            imageName: "ability_acid_potion",
+            thumbnailImageName: "ability_acid_potion_thumb"
         )
         dict["apple"] = AbilityArtReference(
-            imageName: "ability_apple_thumb"
+            imageName: "ability_apple",
+            thumbnailImageName: "ability_apple_thumb"
         )
         dict["astral-arrow"] = AbilityArtReference(
-            imageName: "ability_astral_arrow_thumb"
+            imageName: "ability_astral_arrow",
+            thumbnailImageName: "ability_astral_arrow_thumb"
         )
         dict["avatar-of-justice"] = AbilityArtReference(
-            imageName: "ability_avatar_of_justice_thumb"
+            imageName: "ability_avatar_of_justice",
+            thumbnailImageName: "ability_avatar_of_justice_thumb"
         )
         dict["bash"] = AbilityArtReference(
-            imageName: "ability_bash_thumb"
+            imageName: "ability_bash",
+            thumbnailImageName: "ability_bash_thumb"
         )
         dict["blackjack"] = AbilityArtReference(
-            imageName: "ability_blackjack_thumb"
+            imageName: "ability_blackjack",
+            thumbnailImageName: "ability_blackjack_thumb"
         )
         dict["blessed-aegis"] = AbilityArtReference(
-            imageName: "ability_blessed_aegis_thumb"
+            imageName: "ability_blessed_aegis",
+            thumbnailImageName: "ability_blessed_aegis_thumb"
         )
         dict["blizzard"] = AbilityArtReference(
-            imageName: "ability_blizzard_thumb"
+            imageName: "ability_blizzard",
+            thumbnailImageName: "ability_blizzard_thumb"
         )
         dict["block"] = AbilityArtReference(
-            imageName: "ability_block_thumb"
+            imageName: "ability_block",
+            thumbnailImageName: "ability_block_thumb"
         )
         dict["blood-offering"] = AbilityArtReference(
-            imageName: "ability_blood_offering_thumb"
+            imageName: "ability_blood_offering",
+            thumbnailImageName: "ability_blood_offering_thumb"
         )
         dict["bloodthorn"] = AbilityArtReference(
-            imageName: "ability_bloodthorn_thumb"
+            imageName: "ability_bloodthorn",
+            thumbnailImageName: "ability_bloodthorn_thumb"
         )
         dict["bounty-shot"] = AbilityArtReference(
-            imageName: "ability_bounty_shot_thumb"
+            imageName: "ability_bounty_shot",
+            thumbnailImageName: "ability_bounty_shot_thumb"
         )
         dict["briar-shield"] = AbilityArtReference(
-            imageName: "ability_briar_shield_thumb"
+            imageName: "ability_briar_shield",
+            thumbnailImageName: "ability_briar_shield_thumb"
         )
         dict["caustic-jab"] = AbilityArtReference(
-            imageName: "ability_caustic_jab_thumb"
+            imageName: "ability_caustic_jab",
+            thumbnailImageName: "ability_caustic_jab_thumb"
         )
         dict["cinderbloom"] = AbilityArtReference(
-            imageName: "ability_cinderbloom_thumb"
+            imageName: "ability_cinderbloom",
+            thumbnailImageName: "ability_cinderbloom_thumb"
         )
         dict["cleanse"] = AbilityArtReference(
-            imageName: "ability_cleanse_thumb"
+            imageName: "ability_cleanse",
+            thumbnailImageName: "ability_cleanse_thumb"
         )
         dict["cold-snap"] = AbilityArtReference(
-            imageName: "ability_cold_snap_thumb"
+            imageName: "ability_cold_snap",
+            thumbnailImageName: "ability_cold_snap_thumb"
         )
         dict["combustion"] = AbilityArtReference(
-            imageName: "ability_combustion_thumb"
+            imageName: "ability_combustion",
+            thumbnailImageName: "ability_combustion_thumb"
         )
         dict["dark-pact"] = AbilityArtReference(
-            imageName: "ability_dark_pact_thumb"
+            imageName: "ability_dark_pact",
+            thumbnailImageName: "ability_dark_pact_thumb"
         )
         dict["earthquake"] = AbilityArtReference(
-            imageName: "ability_earthquake_thumb"
+            imageName: "ability_earthquake",
+            thumbnailImageName: "ability_earthquake_thumb"
         )
         dict["fangs"] = AbilityArtReference(
-            imageName: "ability_fangs_thumb"
+            imageName: "ability_fangs",
+            thumbnailImageName: "ability_fangs_thumb"
         )
         dict["faustian-bargain"] = AbilityArtReference(
-            imageName: "ability_faustian_bargain_thumb"
+            imageName: "ability_faustian_bargain",
+            thumbnailImageName: "ability_faustian_bargain_thumb"
         )
         dict["fire-arrow"] = AbilityArtReference(
-            imageName: "ability_fire_arrow_thumb"
+            imageName: "ability_fire_arrow",
+            thumbnailImageName: "ability_fire_arrow_thumb"
         )
         dict["fireball"] = AbilityArtReference(
-            imageName: "ability_fireball_thumb"
+            imageName: "ability_fireball",
+            thumbnailImageName: "ability_fireball_thumb"
         )
         dict["frostbolt"] = AbilityArtReference(
-            imageName: "ability_frostbolt_thumb"
+            imageName: "ability_frostbolt",
+            thumbnailImageName: "ability_frostbolt_thumb"
         )
         dict["glacial-ward"] = AbilityArtReference(
-            imageName: "ability_glacial_ward_thumb"
+            imageName: "ability_glacial_ward",
+            thumbnailImageName: "ability_glacial_ward_thumb"
         )
         dict["golden-plate"] = AbilityArtReference(
-            imageName: "ability_golden_plate_thumb"
+            imageName: "ability_golden_plate",
+            thumbnailImageName: "ability_golden_plate_thumb"
         )
         dict["heal"] = AbilityArtReference(
-            imageName: "ability_heal_thumb"
+            imageName: "ability_heal",
+            thumbnailImageName: "ability_heal_thumb"
         )
         dict["hemorrhage"] = AbilityArtReference(
-            imageName: "ability_hemorrhage_thumb"
+            imageName: "ability_hemorrhage",
+            thumbnailImageName: "ability_hemorrhage_thumb"
         )
         dict["ice-shot"] = AbilityArtReference(
-            imageName: "ability_ice_shot_thumb"
+            imageName: "ability_ice_shot",
+            thumbnailImageName: "ability_ice_shot_thumb"
         )
         dict["kindling"] = AbilityArtReference(
-            imageName: "ability_kindling_thumb"
+            imageName: "ability_kindling",
+            thumbnailImageName: "ability_kindling_thumb"
         )
         dict["luck-potion"] = AbilityArtReference(
-            imageName: "ability_luck_potion_thumb"
+            imageName: "ability_luck_potion",
+            thumbnailImageName: "ability_luck_potion_thumb"
         )
         dict["mana-berries"] = AbilityArtReference(
-            imageName: "ability_mana_berries_thumb"
+            imageName: "ability_mana_berries",
+            thumbnailImageName: "ability_mana_berries_thumb"
         )
         dict["mana-potion"] = AbilityArtReference(
-            imageName: "ability_mana_potion_thumb"
+            imageName: "ability_mana_potion",
+            thumbnailImageName: "ability_mana_potion_thumb"
         )
         dict["mana-shield"] = AbilityArtReference(
-            imageName: "ability_mana_shield_thumb"
+            imageName: "ability_mana_shield",
+            thumbnailImageName: "ability_mana_shield_thumb"
         )
         dict["maul"] = AbilityArtReference(
-            imageName: "ability_maul_thumb"
+            imageName: "ability_maul",
+            thumbnailImageName: "ability_maul_thumb"
         )
         dict["meteor"] = AbilityArtReference(
-            imageName: "ability_meteor_thumb"
+            imageName: "ability_meteor",
+            thumbnailImageName: "ability_meteor_thumb"
         )
         dict["molten-bulwark"] = AbilityArtReference(
-            imageName: "ability_molten_bulwark_thumb"
+            imageName: "ability_molten_bulwark",
+            thumbnailImageName: "ability_molten_bulwark_thumb"
         )
         dict["pack-tactics"] = AbilityArtReference(
-            imageName: "ability_pack_tactics_thumb"
+            imageName: "ability_pack_tactics",
+            thumbnailImageName: "ability_pack_tactics_thumb"
         )
         dict["panacea-potion"] = AbilityArtReference(
-            imageName: "ability_panacea_potion_thumb"
+            imageName: "ability_panacea_potion",
+            thumbnailImageName: "ability_panacea_potion_thumb"
         )
         dict["phoenix-feather"] = AbilityArtReference(
-            imageName: "ability_phoenix_feather_thumb"
+            imageName: "ability_phoenix_feather",
+            thumbnailImageName: "ability_phoenix_feather_thumb"
         )
         dict["pixie-dust"] = AbilityArtReference(
-            imageName: "ability_pixie_dust_thumb"
+            imageName: "ability_pixie_dust",
+            thumbnailImageName: "ability_pixie_dust_thumb"
         )
         dict["poison-dagger"] = AbilityArtReference(
-            imageName: "ability_poison_dagger_thumb"
+            imageName: "ability_poison_dagger",
+            thumbnailImageName: "ability_poison_dagger_thumb"
         )
         dict["pounce"] = AbilityArtReference(
-            imageName: "ability_pounce_thumb"
+            imageName: "ability_pounce",
+            thumbnailImageName: "ability_pounce_thumb"
         )
         dict["predators-focus"] = AbilityArtReference(
-            imageName: "ability_predators_focus_thumb"
+            imageName: "ability_predators_focus",
+            thumbnailImageName: "ability_predators_focus_thumb"
         )
         dict["ray-of-frost"] = AbilityArtReference(
-            imageName: "ability_ray_of_frost_thumb"
+            imageName: "ability_ray_of_frost",
+            thumbnailImageName: "ability_ray_of_frost_thumb"
         )
         dict["rending-slash"] = AbilityArtReference(
-            imageName: "ability_rending_slash_thumb"
+            imageName: "ability_rending_slash",
+            thumbnailImageName: "ability_rending_slash_thumb"
         )
         dict["sap-arrow"] = AbilityArtReference(
-            imageName: "ability_sap_arrow_thumb"
+            imageName: "ability_sap_arrow",
+            thumbnailImageName: "ability_sap_arrow_thumb"
         )
         dict["serrated-edge"] = AbilityArtReference(
-            imageName: "ability_serrated_edge_thumb"
+            imageName: "ability_serrated_edge",
+            thumbnailImageName: "ability_serrated_edge_thumb"
         )
         dict["shadowstep"] = AbilityArtReference(
-            imageName: "ability_shadowstep_thumb"
+            imageName: "ability_shadowstep",
+            thumbnailImageName: "ability_shadowstep_thumb"
         )
         dict["shield-bash"] = AbilityArtReference(
-            imageName: "ability_shield_bash_thumb"
+            imageName: "ability_shield_bash",
+            thumbnailImageName: "ability_shield_bash_thumb"
         )
         dict["slash"] = AbilityArtReference(
-            imageName: "ability_slash_thumb"
+            imageName: "ability_slash",
+            thumbnailImageName: "ability_slash_thumb"
         )
         dict["smite"] = AbilityArtReference(
-            imageName: "ability_smite_thumb"
+            imageName: "ability_smite",
+            thumbnailImageName: "ability_smite_thumb"
         )
         dict["sniff-out"] = AbilityArtReference(
-            imageName: "ability_sniff_out_thumb"
+            imageName: "ability_sniff_out",
+            thumbnailImageName: "ability_sniff_out_thumb"
         )
         dict["spiked-shield"] = AbilityArtReference(
-            imageName: "ability_spiked_shield_thumb"
+            imageName: "ability_spiked_shield",
+            thumbnailImageName: "ability_spiked_shield_thumb"
         )
         dict["stab"] = AbilityArtReference(
-            imageName: "ability_stab_thumb"
+            imageName: "ability_stab",
+            thumbnailImageName: "ability_stab_thumb"
         )
         dict["stargaze"] = AbilityArtReference(
-            imageName: "ability_stargaze_thumb"
+            imageName: "ability_stargaze",
+            thumbnailImageName: "ability_stargaze_thumb"
         )
         dict["steal"] = AbilityArtReference(
-            imageName: "ability_steal_thumb"
+            imageName: "ability_steal",
+            thumbnailImageName: "ability_steal_thumb"
         )
         dict["stoneskin-potion"] = AbilityArtReference(
-            imageName: "ability_stoneskin_potion_thumb"
+            imageName: "ability_stoneskin_potion",
+            thumbnailImageName: "ability_stoneskin_potion_thumb"
         )
         dict["sunburst"] = AbilityArtReference(
-            imageName: "ability_sunburst_thumb"
+            imageName: "ability_sunburst",
+            thumbnailImageName: "ability_sunburst_thumb"
         )
         dict["sunder"] = AbilityArtReference(
-            imageName: "ability_sunder_armor_thumb"
+            imageName: "ability_sunder_armor",
+            thumbnailImageName: "ability_sunder_armor_thumb"
         )
         dict["thorn-mail"] = AbilityArtReference(
-            imageName: "ability_thorn_mail_thumb"
+            imageName: "ability_thorn_mail",
+            thumbnailImageName: "ability_thorn_mail_thumb"
         )
         dict["tithe"] = AbilityArtReference(
-            imageName: "ability_tithe_thumb"
+            imageName: "ability_tithe",
+            thumbnailImageName: "ability_tithe_thumb"
         )
         dict["venom-arrow"] = AbilityArtReference(
-            imageName: "ability_venom_arrow_thumb"
+            imageName: "ability_venom_arrow",
+            thumbnailImageName: "ability_venom_arrow_thumb"
         )
         dict["venom-fangs"] = AbilityArtReference(
-            imageName: "ability_venom_fangs_thumb"
+            imageName: "ability_venom_fangs",
+            thumbnailImageName: "ability_venom_fangs_thumb"
         )
         return dict
     }()
