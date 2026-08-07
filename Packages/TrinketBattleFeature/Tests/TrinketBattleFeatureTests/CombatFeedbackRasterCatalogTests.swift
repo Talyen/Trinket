@@ -150,6 +150,5 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(!CombatFeedbackRasterUIView.isMotionClockPaused)
         host.apply(chips: [])
         #expect(CombatFeedbackRasterUIView.isMotionClockPaused)
-        #expect(pool.snapshot().isPrepareClockPaused)
     }
 }

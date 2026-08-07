@@ -7,7 +7,9 @@ import TrinketFeatureSupport
 #if DEBUG
 // DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
-private struct BattleHitReactionMotionLab: View {
+/// DEBUG tuning bed for the enemy hit-reaction. Drives production enemy artwork with
+/// native SwiftUI springs.
+struct BattleHitReactionMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""
     @State private var direction = HitDirection.up
     @State private var cyclesDirection = false
@@ -67,14 +69,10 @@ private struct BattleHitReactionMotionLab: View {
 
     private var stage: some View {
         VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-            VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                Text("Battle Hit Reaction Lab")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.primary)
-                Text("Tune native SwiftUI springs on production enemy artwork")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            BattleLab.Title(
+                title: "Battle Hit Reaction Lab",
+                subtitle: "Tune native SwiftUI springs on production enemy artwork"
+            )
 
             if let selectedEnemy {
                 HitReactionPreview(
@@ -128,11 +126,7 @@ private struct BattleHitReactionMotionLab: View {
 
     private var subjectSection: some View {
         Section("Subject") {
-            Picker("Enemy", selection: $selectedEnemyID) {
-                ForEach(GameContent.enemies, id: \.id) { enemy in
-                    Text(enemy.name).tag(enemy.id)
-                }
-            }
+            BattleLab.enemyPicker($selectedEnemyID)
         }
     }
 
@@ -166,12 +160,12 @@ private struct BattleHitReactionMotionLab: View {
             }
             .pickerStyle(.segmented)
 
-            parameterSlider("Duration", value: duration, range: 0.04 ... 0.5, format: "%.2f s")
+            BattleLab.parameterSlider("Duration", value: duration, range: 0.04 ... 0.5, format: "%.2f s")
 
             if preset.wrappedValue == .custom {
-                parameterSlider("Damping", value: damping, range: 0.35 ... 1.15, format: "%.2f")
+                BattleLab.parameterSlider("Damping", value: damping, range: 0.35 ... 1.15, format: "%.2f")
             } else {
-                parameterSlider(
+                BattleLab.parameterSlider(
                     "Extra bounce",
                     value: extraBounce,
                     range: -0.2 ... 0.35,
@@ -188,11 +182,11 @@ private struct BattleHitReactionMotionLab: View {
                     Text(deformation.title).tag(deformation)
                 }
             }
-            parameterSlider("Squash", value: $squash, range: 0 ... 0.15, format: "%.3f")
+            BattleLab.parameterSlider("Squash", value: $squash, range: 0 ... 0.15, format: "%.3f")
                 .disabled(deformation == .none)
-            parameterSlider("Stretch", value: $stretch, range: 0 ... 0.12, format: "%.3f")
+            BattleLab.parameterSlider("Stretch", value: $stretch, range: 0 ... 0.12, format: "%.3f")
                 .disabled(deformation == .none || deformation == .uniformPulse)
-            parameterSlider("Recoil", value: $recoilDistance, range: 0 ... 20, format: "%.1f pt")
+            BattleLab.parameterSlider("Recoil", value: $recoilDistance, range: 0 ... 20, format: "%.1f pt")
         }
     }
 
@@ -212,18 +206,6 @@ private struct BattleHitReactionMotionLab: View {
         return "\(impactSpring.title) → \(recoverySpring.title) · \(directionLabel) · "
             + "\(String(format: "%.2f", impactDuration))s / "
             + "\(String(format: "%.2f", recoveryDuration))s"
-    }
-
-    private func parameterSlider(
-        _ title: String,
-        value: Binding<Double>,
-        range: ClosedRange<Double>,
-        format: String
-    ) -> some View {
-        VStack(alignment: .leading) {
-            LabeledContent(title, value: String(format: format, value.wrappedValue))
-            Slider(value: value, in: range)
-        }
     }
 
     private func loadNormalHit() {
@@ -388,16 +370,6 @@ private enum SpringPreset: String, CaseIterable, Identifiable {
         case .custom:
             Spring(response: duration, dampingRatio: damping)
         }
-    }
-}
-
-struct BattleHitReactionMotionLab_Previews: PreviewProvider {
-    static var previews: some View {
-        BattleHitReactionMotionLab()
-            .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
-            .previewInterfaceOrientation(.landscapeLeft)
-            .previewDisplayName("Battle Hit Reaction Motion Lab")
     }
 }
 #endif

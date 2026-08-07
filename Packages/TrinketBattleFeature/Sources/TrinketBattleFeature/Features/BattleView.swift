@@ -502,11 +502,9 @@ private extension BattleView {
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )
-        // Start prune / multimodal loops, paced raster prepare, and the chip motion
-        // clock before the first chip publish so that frame only bumps dates /
-        // enqueues work / inserts layers.
+        // Start prune/multimodal loops and the chip motion clock before the first
+        // chip publish so that frame only bumps dates / inserts layers.
         battleSession.feedback.prepareScheduler()
-        CombatFeedbackRasterPool.shared.prewarmPacedPrepareLoop()
         CombatFeedbackRasterUIView.prewarmMotionClock()
         let handArtNames = battleSession.hand.compactMap { $0.ability.artReference?.imageName }
         guard !handArtNames.isEmpty else { return }

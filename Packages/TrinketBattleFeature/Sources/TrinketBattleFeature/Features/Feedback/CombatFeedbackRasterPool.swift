@@ -52,7 +52,6 @@ struct CombatFeedbackRasterPoolSnapshot: Equatable {
     let unexpectedClosedVocabularyBuildCount: Int
     let numericMissCount: Int
     let rasterAllocationCount: Int
-    let isPrepareClockPaused: Bool
 }
 
 /// Battle-scoped, bounded storage for composed feedback chips. Composition is a
@@ -74,28 +73,10 @@ final class CombatFeedbackRasterPool {
     private var unexpectedClosedVocabularyBuildCount = 0
     private var numericMissCount = 0
     private var rasterAllocationCount = 0
-    private var pacedPrepareDisplayLink: CADisplayLink?
-    private lazy var pacedPrepareTarget = CombatFeedbackPacedPrepareTarget(pool: self)
-    private var pendingPrepareQueue: [PendingPrepareRequest] = []
     private var preparedCatalogKey: String?
-
-    private struct PendingPrepareRequest {
-        let canvasItems: [CombatFeedbackCanvasItem]
-        let dynamicTypeSize: DynamicTypeSize
-        let layoutDirection: LayoutDirection
-        let displayScale: CGFloat
-        let onComplete: (@MainActor () -> Void)?
-        var nextIndex = 0
-    }
 
     init(capacity: Int = defaultCapacity) {
         self.capacity = max(1, capacity)
-    }
-
-    /// Starts the paced-prepare loop before the first cache miss so publish frames
-    /// only enqueue work instead of allocating a Task.
-    func prewarmPacedPrepareLoop() {
-        ensurePacedPrepareLoopRunning()
     }
 
     /// Lookup-only. The display-link path prefers this before composing.
@@ -118,15 +99,12 @@ final class CombatFeedbackRasterPool {
     }
 
     /// Composes and stores a raster when missing. Warm atlas hits stay under 1 ms.
-    /// When `useFrameBudget` is true and the key is a miss, skips compose so the
-    /// caller can pace work across display-link ticks (see `prepareAll`).
     @discardableResult
     func prepare(
         for canvasItem: CombatFeedbackCanvasItem,
         dynamicTypeSize: DynamicTypeSize,
         layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        useFrameBudget: Bool = false
+        displayScale: CGFloat
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = makeKey(
@@ -139,9 +117,6 @@ final class CombatFeedbackRasterPool {
             hitCount += 1
             markMostRecent(key)
             return raster
-        }
-        if useFrameBudget {
-            return nil
         }
         missCount += 1
         switch canvasItem.label {
@@ -187,110 +162,7 @@ final class CombatFeedbackRasterPool {
         return raster
     }
 
-    /// Eagerly composes every canvas item for the supplied feedback rows.
-    /// When `useFrameBudget` is true, composes at most one miss per display-link
-    /// tick so multi-target batches stay off a single publish frame.
-    func prepareAll(
-        for items: [CombatFeedbackItem],
-        dynamicTypeSize: DynamicTypeSize,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        useFrameBudget: Bool = false
-    ) {
-        prepareCanvasItems(
-            Self.canvasItems(from: items),
-            dynamicTypeSize: dynamicTypeSize,
-            layoutDirection: layoutDirection,
-            displayScale: displayScale,
-            useFrameBudget: useFrameBudget
-        )
-    }
-
-    /// Paced or immediate compose for already-resolved canvas items.
-    func prepareCanvasItems(
-        _ canvasItems: [CombatFeedbackCanvasItem],
-        dynamicTypeSize: DynamicTypeSize,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        useFrameBudget: Bool = false,
-        onComplete: (@MainActor () -> Void)? = nil
-    ) {
-        guard !canvasItems.isEmpty else {
-            onComplete?()
-            return
-        }
-        guard useFrameBudget else {
-            for canvasItem in canvasItems {
-                _ = prepare(
-                    for: canvasItem,
-                    dynamicTypeSize: dynamicTypeSize,
-                    layoutDirection: layoutDirection,
-                    displayScale: displayScale
-                )
-            }
-            onComplete?()
-            return
-        }
-        // Publish frames only enqueue. A long-lived loop owns sleeps — cancelling
-        // and reallocating `Task` here was a measured ChipPublish hitch.
-        pendingPrepareQueue.append(
-            PendingPrepareRequest(
-                canvasItems: canvasItems,
-                dynamicTypeSize: dynamicTypeSize,
-                layoutDirection: layoutDirection,
-                displayScale: displayScale,
-                onComplete: onComplete
-            )
-        )
-        ensurePacedPrepareLoopRunning()
-        pacedPrepareDisplayLink?.isPaused = false
-    }
-
-    private func ensurePacedPrepareLoopRunning() {
-        guard pacedPrepareDisplayLink == nil else { return }
-        let link = CADisplayLink(
-            target: pacedPrepareTarget,
-            selector: #selector(CombatFeedbackPacedPrepareTarget.tick)
-        )
-        link.add(to: .main, forMode: .common)
-        link.isPaused = pendingPrepareQueue.isEmpty
-        pacedPrepareDisplayLink = link
-    }
-
-    fileprivate func handlePacedPrepareTick() {
-        guard !pendingPrepareQueue.isEmpty else {
-            pacedPrepareDisplayLink?.isPaused = true
-            return
-        }
-        var request = pendingPrepareQueue.removeFirst()
-        while request.nextIndex < request.canvasItems.count {
-            let canvasItem = request.canvasItems[request.nextIndex]
-            request.nextIndex += 1
-            if cachedRaster(
-                for: canvasItem,
-                dynamicTypeSize: request.dynamicTypeSize,
-                layoutDirection: request.layoutDirection,
-                displayScale: request.displayScale
-            ) != nil {
-                continue
-            }
-            _ = prepare(
-                for: canvasItem,
-                dynamicTypeSize: request.dynamicTypeSize,
-                layoutDirection: request.layoutDirection,
-                displayScale: request.displayScale
-            )
-            break
-        }
-        if request.nextIndex < request.canvasItems.count {
-            pendingPrepareQueue.insert(request, at: 0)
-        } else {
-            request.onComplete?()
-        }
-        pacedPrepareDisplayLink?.isPaused = pendingPrepareQueue.isEmpty
-    }
-
-    /// Starts paced glyph-atlas + closed-catalog prewarm for the current Dynamic Type / scale.
+    /// Starts glyph-atlas + closed-catalog prewarm for the current Dynamic Type / scale.
     func prewarmInfrastructure(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
@@ -335,10 +207,6 @@ final class CombatFeedbackRasterPool {
     }
 
     func removeAll() {
-        // Keep the paced-prepare loop alive across clears — restarting it on the
-        // next miss allocated a Task on the measured ChipPublish frame.
-        pendingPrepareQueue.removeAll(keepingCapacity: true)
-        pacedPrepareDisplayLink?.isPaused = true
         rasters.removeAll(keepingCapacity: true)
         recency.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil
@@ -371,8 +239,7 @@ final class CombatFeedbackRasterPool {
             evictionCount: evictionCount,
             unexpectedClosedVocabularyBuildCount: unexpectedClosedVocabularyBuildCount,
             numericMissCount: numericMissCount,
-            rasterAllocationCount: rasterAllocationCount,
-            isPrepareClockPaused: pacedPrepareDisplayLink?.isPaused ?? true
+            rasterAllocationCount: rasterAllocationCount
         )
     }
 
@@ -460,18 +327,5 @@ extension CombatFeedbackRasterPool {
         )
         insert(raster, for: key)
         return raster
-    }
-}
-
-@MainActor
-private final class CombatFeedbackPacedPrepareTarget: NSObject {
-    private weak var pool: CombatFeedbackRasterPool?
-
-    init(pool: CombatFeedbackRasterPool) {
-        self.pool = pool
-    }
-
-    @objc func tick() {
-        pool?.handlePacedPrepareTick()
     }
 }

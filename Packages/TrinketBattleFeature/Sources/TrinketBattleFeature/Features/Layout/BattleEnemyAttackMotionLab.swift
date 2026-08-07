@@ -7,7 +7,8 @@ import TrinketFeatureSupport
 #if DEBUG
 // DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
-private struct BattleEnemyAttackMotionLab: View {
+/// DEBUG tuning bed for the enemy whole-card attack telegraph (art + HP + border).
+struct BattleEnemyAttackMotionLab: View {
     @State private var selectedEnemyID = GameContent.enemies.first?.id ?? ""
     @State private var windUpDuration = 0.40
     @State private var swingDuration = 0.15
@@ -54,14 +55,10 @@ private struct BattleEnemyAttackMotionLab: View {
 
     private var stage: some View {
         VStack(spacing: TrinketDesign.Metrics.largeSpacing) {
-            VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                Text("Enemy Attack Motion Lab")
-                    .font(.title2.weight(.bold))
-                    .foregroundStyle(.primary)
-                Text("Whole-card telegraph (art + HP + border) toward the party")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            BattleLab.Title(
+                title: "Enemy Attack Motion Lab",
+                subtitle: "Whole-card telegraph (art + HP + border) toward the party"
+            )
 
             if let selectedEnemy {
                 AttackPreview(
@@ -105,11 +102,7 @@ private struct BattleEnemyAttackMotionLab: View {
 
     private var subjectSection: some View {
         Section("Subject") {
-            Picker("Enemy", selection: $selectedEnemyID) {
-                ForEach(GameContent.enemies, id: \.id) { enemy in
-                    Text(enemy.name).tag(enemy.id)
-                }
-            }
+            BattleLab.enemyPicker($selectedEnemyID)
         }
     }
 
@@ -125,22 +118,22 @@ private struct BattleEnemyAttackMotionLab: View {
 
     private var timingSection: some View {
         Section("Timing") {
-            parameterSlider("Wind-up", value: $windUpDuration, range: 0.08 ... 0.7, format: "%.2f s")
-            parameterSlider("Swing", value: $swingDuration, range: 0.06 ... 0.4, format: "%.2f s")
-            parameterSlider("Recover", value: $recoverDuration, range: 0.1 ... 0.8, format: "%.2f s")
+            BattleLab.parameterSlider("Wind-up", value: $windUpDuration, range: 0.08 ... 0.7, format: "%.2f s")
+            BattleLab.parameterSlider("Swing", value: $swingDuration, range: 0.06 ... 0.4, format: "%.2f s")
+            BattleLab.parameterSlider("Recover", value: $recoverDuration, range: 0.1 ... 0.8, format: "%.2f s")
         }
     }
 
     private var transformSection: some View {
         Section("Transform") {
-            parameterSlider("Wind-up Y", value: $windUpOffsetY, range: -40 ... 0, format: "%.0f pt")
-            parameterSlider("Swing Y", value: $swingOffsetY, range: 0 ... 60, format: "%.0f pt")
-            parameterSlider("Wind-up scale X", value: $windUpScaleX, range: 0.85 ... 1.1, format: "%.2f")
-            parameterSlider("Wind-up scale Y", value: $windUpScaleY, range: 0.9 ... 1.15, format: "%.2f")
-            parameterSlider("Swing scale X", value: $swingScaleX, range: 0.9 ... 1.15, format: "%.2f")
-            parameterSlider("Swing scale Y", value: $swingScaleY, range: 0.85 ... 1.1, format: "%.2f")
-            parameterSlider("Wind-up rotation", value: $windUpRotation, range: -20 ... 20, format: "%.0f°")
-            parameterSlider("Swing rotation", value: $swingRotation, range: -20 ... 20, format: "%.0f°")
+            BattleLab.parameterSlider("Wind-up Y", value: $windUpOffsetY, range: -40 ... 0, format: "%.0f pt")
+            BattleLab.parameterSlider("Swing Y", value: $swingOffsetY, range: 0 ... 60, format: "%.0f pt")
+            BattleLab.parameterSlider("Wind-up scale X", value: $windUpScaleX, range: 0.85 ... 1.1, format: "%.2f")
+            BattleLab.parameterSlider("Wind-up scale Y", value: $windUpScaleY, range: 0.9 ... 1.15, format: "%.2f")
+            BattleLab.parameterSlider("Swing scale X", value: $swingScaleX, range: 0.9 ... 1.15, format: "%.2f")
+            BattleLab.parameterSlider("Swing scale Y", value: $swingScaleY, range: 0.85 ... 1.1, format: "%.2f")
+            BattleLab.parameterSlider("Wind-up rotation", value: $windUpRotation, range: -20 ... 20, format: "%.0f°")
+            BattleLab.parameterSlider("Swing rotation", value: $swingRotation, range: -20 ... 20, format: "%.0f°")
         }
     }
 
@@ -158,18 +151,6 @@ private struct BattleEnemyAttackMotionLab: View {
     private var parameterSummary: String {
         "impact \(String(format: "%.2f", impactDelay))s · total "
             + "\(String(format: "%.2f", totalDuration))s · swing \(Int(swingOffsetY))pt"
-    }
-
-    private func parameterSlider(
-        _ title: String,
-        value: Binding<Double>,
-        range: ClosedRange<Double>,
-        format: String
-    ) -> some View {
-        VStack(alignment: .leading) {
-            LabeledContent(title, value: String(format: format, value.wrappedValue))
-            Slider(value: value, in: range)
-        }
     }
 
     private func loadLunge() {
@@ -280,7 +261,7 @@ private struct AttackPreview: View {
 
     var body: some View {
         KeyframeAnimator(initialValue: AttackPreviewState(), trigger: trigger) { state in
-            cardChrome
+            BattleLab.combatantCard(combatant)
                 .scaleEffect(x: state.scaleX, y: state.scaleY)
                 .rotationEffect(.degrees(state.rotation))
                 .offset(x: state.offsetX, y: state.offsetY)
@@ -312,23 +293,6 @@ private struct AttackPreview: View {
             }
         }
     }
-
-    private var cardChrome: some View {
-        ZStack(alignment: .bottom) {
-            CombatantArtwork(combatant: combatant, variant: .battle)
-            CombatHealthBar(
-                health: 72,
-                maxHealth: 100,
-                fillColor: TrinketDesign.Colors.battleHealth,
-                style: .battleBorder,
-                height: TrinketDesign.Metrics.battleHealthBarHeight
-            )
-        }
-        .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
-        }
-    }
 }
 
 private struct AttackPreviewState {
@@ -337,15 +301,5 @@ private struct AttackPreviewState {
     var offsetX = 0.0
     var offsetY = 0.0
     var rotation = 0.0
-}
-
-struct BattleEnemyAttackMotionLab_Previews: PreviewProvider {
-    static var previews: some View {
-        BattleEnemyAttackMotionLab()
-            .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
-            .previewInterfaceOrientation(.landscapeLeft)
-            .previewDisplayName("Battle Enemy Attack Motion Lab")
-    }
 }
 #endif

@@ -8,7 +8,9 @@ import UIKit
 #if DEBUG
 // DEBUG playground only — production motion lives in recipe/config types. Do not ship lab UI.
 
-private struct HandMotionPlayground: View {
+/// DEBUG tuning bed for the production hand view. Mutates a `BattleHandMotionConfiguration`
+/// copy; promote dialed-in values back into production defaults after tuning.
+struct HandMotionPlayground: View {
     @State private var configuration = BattleHandMotionConfiguration()
     @State private var cardCount: CGFloat = 5
     @State private var includeUnplayableCard = true
@@ -35,7 +37,6 @@ private struct HandMotionPlayground: View {
                 denySection
                 springsSection
                 armedVisualSection
-                experimentalSection
                 exportSection
             }
             .frame(width: 360)
@@ -238,7 +239,7 @@ private struct HandMotionPlayground: View {
 
     private var scenarioSection: some View {
         Section("Scenario") {
-            parameterSlider("Card count", value: $cardCount, range: 1 ... 5, format: "%.0f")
+            BattleLab.parameterSlider("Card count", value: $cardCount, range: 1 ... 5, format: "%.0f")
             Toggle("First card unplayable", isOn: $includeUnplayableCard)
             Toggle("Show threshold guides", isOn: $showThresholdGuides)
             Toggle("Show fan angle labels", isOn: $showFanLabels)
@@ -250,24 +251,24 @@ private struct HandMotionPlayground: View {
 
     private var fanSection: some View {
         Section("Fan Layout") {
-            parameterSlider("Min width", value: $configuration.minCardWidth, range: 120 ... 180, format: "%.0f")
-            parameterSlider("Max width", value: $configuration.maxCardWidth, range: 150 ... 220, format: "%.0f")
-            parameterSlider("Width ratio", value: $configuration.widthRatio, range: 0.25 ... 0.6, format: "%.2f")
-            parameterSlider("Overlap ratio", value: $configuration.maxOverlapRatio, range: 0.15 ... 0.7, format: "%.2f")
-            parameterSlider("Fan angle step", value: $configuration.fanAngleStep, range: 0 ... 18, format: "%.1f°")
-            parameterSlider("Fan lift step", value: $configuration.fanLiftStep, range: 0 ... 24, format: "%.0f")
-            parameterSlider("Bottom rise", value: $configuration.bottomRise, range: 0 ... 60, format: "%.0f")
-            parameterSlider("Rest Y fraction", value: $configuration.restingYFraction, range: 0 ... 0.5, format: "%.2f")
-            parameterSlider("Horizontal inset", value: $configuration.horizontalInset, range: 0 ... 24, format: "%.0f")
+            BattleLab.parameterSlider("Min width", value: $configuration.minCardWidth, range: 120 ... 180, format: "%.0f")
+            BattleLab.parameterSlider("Max width", value: $configuration.maxCardWidth, range: 150 ... 220, format: "%.0f")
+            BattleLab.parameterSlider("Width ratio", value: $configuration.widthRatio, range: 0.25 ... 0.6, format: "%.2f")
+            BattleLab.parameterSlider("Overlap ratio", value: $configuration.maxOverlapRatio, range: 0.15 ... 0.7, format: "%.2f")
+            BattleLab.parameterSlider("Fan angle step", value: $configuration.fanAngleStep, range: 0 ... 18, format: "%.1f°")
+            BattleLab.parameterSlider("Fan lift step", value: $configuration.fanLiftStep, range: 0 ... 24, format: "%.0f")
+            BattleLab.parameterSlider("Bottom rise", value: $configuration.bottomRise, range: 0 ... 60, format: "%.0f")
+            BattleLab.parameterSlider("Rest Y fraction", value: $configuration.restingYFraction, range: 0 ... 0.5, format: "%.2f")
+            BattleLab.parameterSlider("Horizontal inset", value: $configuration.horizontalInset, range: 0 ... 24, format: "%.0f")
         }
     }
 
     private var dealSection: some View {
         Section("Deal / Draw") {
-            parameterSlider("Insert offset X", value: $configuration.dealInsertOffsetX, range: 0 ... 120, format: "%.0f")
-            parameterSlider("Insert offset Y", value: $configuration.dealInsertOffsetY, range: 0 ... 140, format: "%.0f")
-            parameterSlider("Insert scale", value: $configuration.dealInsertScale, range: 0.5 ... 1, format: "%.2f")
-            parameterSlider(
+            BattleLab.parameterSlider("Insert offset X", value: $configuration.dealInsertOffsetX, range: 0 ... 120, format: "%.0f")
+            BattleLab.parameterSlider("Insert offset Y", value: $configuration.dealInsertOffsetY, range: 0 ... 140, format: "%.0f")
+            BattleLab.parameterSlider("Insert scale", value: $configuration.dealInsertScale, range: 0.5 ... 1, format: "%.2f")
+            BattleLab.parameterSlider(
                 "Draw stagger",
                 value: Binding(
                     get: { CGFloat(configuration.cardDrawStagger) },
@@ -291,10 +292,10 @@ private struct HandMotionPlayground: View {
 
     private var heldSection: some View {
         Section("Pickup / Held") {
-            parameterSlider("Held scale", value: $configuration.cardHeldScale, range: 1 ... 1.2, format: "%.3f")
-            parameterSlider("Shadow radius", value: $configuration.cardHeldShadowRadius, range: 0 ... 40, format: "%.0f")
-            parameterSlider("Shadow Y", value: $configuration.cardHeldShadowY, range: 0 ... 30, format: "%.0f")
-            parameterSlider(
+            BattleLab.parameterSlider("Held scale", value: $configuration.cardHeldScale, range: 1 ... 1.2, format: "%.3f")
+            BattleLab.parameterSlider("Shadow radius", value: $configuration.cardHeldShadowRadius, range: 0 ... 40, format: "%.0f")
+            BattleLab.parameterSlider("Shadow Y", value: $configuration.cardHeldShadowY, range: 0 ... 30, format: "%.0f")
+            BattleLab.parameterSlider(
                 "Max tilt °",
                 value: Binding(
                     get: { CGFloat(configuration.cardMaximumTiltDegrees) },
@@ -303,7 +304,7 @@ private struct HandMotionPlayground: View {
                 range: 0 ... 20,
                 format: "%.1f"
             )
-            parameterSlider(
+            BattleLab.parameterSlider(
                 "Tilt lean ×",
                 value: Binding(
                     get: { CGFloat(configuration.tiltLeanMultiplier) },
@@ -312,7 +313,7 @@ private struct HandMotionPlayground: View {
                 range: 0 ... 1,
                 format: "%.2f"
             )
-            parameterSlider(
+            BattleLab.parameterSlider(
                 "Vertical tilt gain",
                 value: Binding(
                     get: { CGFloat(configuration.verticalTiltGain) },
@@ -321,7 +322,7 @@ private struct HandMotionPlayground: View {
                 range: 0 ... 12,
                 format: "%.1f"
             )
-            parameterSlider(
+            BattleLab.parameterSlider(
                 "Vertical tilt clamp",
                 value: Binding(
                     get: { CGFloat(configuration.verticalTiltClamp) },
@@ -330,7 +331,7 @@ private struct HandMotionPlayground: View {
                 range: 0 ... 12,
                 format: "%.1f"
             )
-            parameterSlider("Perspective", value: $configuration.perspective, range: 0.1 ... 1, format: "%.2f")
+            BattleLab.parameterSlider("Perspective", value: $configuration.perspective, range: 0.1 ... 1, format: "%.2f")
             springSliders(
                 title: "Press",
                 response: $configuration.cardPressResponse,
@@ -351,10 +352,10 @@ private struct HandMotionPlayground: View {
 
     private var thresholdSection: some View {
         Section("Drag / Play Thresholds") {
-            parameterSlider("Play threshold", value: $configuration.playDragThreshold, range: 30 ... 160, format: "%.0f")
-            parameterSlider("Arm release ratio", value: $configuration.playArmReleaseRatio, range: 0.4 ... 1, format: "%.2f")
-            parameterSlider("Drag min distance", value: $configuration.dragMinimumDistance, range: 0 ... 40, format: "%.0f")
-            parameterSlider(
+            BattleLab.parameterSlider("Play threshold", value: $configuration.playDragThreshold, range: 30 ... 160, format: "%.0f")
+            BattleLab.parameterSlider("Arm release ratio", value: $configuration.playArmReleaseRatio, range: 0.4 ... 1, format: "%.2f")
+            BattleLab.parameterSlider("Drag min distance", value: $configuration.dragMinimumDistance, range: 0 ... 40, format: "%.0f")
+            BattleLab.parameterSlider(
                 "Armed horizontal allow",
                 value: $configuration.armedHorizontalAllowance,
                 range: 0.4 ... 1.2,
@@ -365,8 +366,8 @@ private struct HandMotionPlayground: View {
 
     private var denySection: some View {
         Section("Deny Resist") {
-            parameterSlider("Overshoot factor", value: $configuration.denyOvershootFactor, range: 0.5 ... 4, format: "%.2f")
-            parameterSlider("Width damp", value: $configuration.denyWidthDamp, range: 0.3 ... 1, format: "%.2f")
+            BattleLab.parameterSlider("Overshoot factor", value: $configuration.denyOvershootFactor, range: 0.5 ... 4, format: "%.2f")
+            BattleLab.parameterSlider("Width damp", value: $configuration.denyWidthDamp, range: 0.3 ... 1, format: "%.2f")
         }
     }
 
@@ -381,44 +382,10 @@ private struct HandMotionPlayground: View {
     private var armedVisualSection: some View {
         Section("Armed Visual") {
             Toggle("Show armed ring", isOn: $configuration.showArmedRing)
-            parameterSlider("Armed scale boost", value: $configuration.armedScaleBoost, range: 0 ... 0.15, format: "%.3f")
-            parameterSlider("Armed brightness", value: $configuration.armedBrightness, range: 0 ... 0.25, format: "%.3f")
-            parameterSlider("Ring opacity", value: $configuration.armedRingOpacity, range: 0 ... 1, format: "%.2f")
-            parameterSlider("Ring line width", value: $configuration.armedRingLineWidth, range: 1 ... 6, format: "%.1f")
-        }
-    }
-
-    private var experimentalSection: some View {
-        Section("Experimental (unused in production)") {
-            springSliders(
-                title: "Pickup",
-                response: $configuration.pickupResponse,
-                damping: $configuration.pickupDamping
-            )
-            springSliders(
-                title: "Readiness",
-                response: $configuration.readinessResponse,
-                damping: $configuration.readinessDamping
-            )
-            springSliders(
-                title: "Commit / cast",
-                response: $configuration.cardCommitResponse,
-                damping: $configuration.cardCommitDamping
-            )
-            springSliders(
-                title: "Impact",
-                response: $configuration.impactResponse,
-                damping: $configuration.impactDamping
-            )
-            parameterSlider(
-                "Max stretch",
-                value: $configuration.cardMaximumStretch,
-                range: 0 ... 0.1,
-                format: "%.3f"
-            )
-            Text("These springs are not wired into the hand path yet. Tune for future commit-flight work.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            BattleLab.parameterSlider("Armed scale boost", value: $configuration.armedScaleBoost, range: 0 ... 0.15, format: "%.3f")
+            BattleLab.parameterSlider("Armed brightness", value: $configuration.armedBrightness, range: 0 ... 0.25, format: "%.3f")
+            BattleLab.parameterSlider("Ring opacity", value: $configuration.armedRingOpacity, range: 0 ... 1, format: "%.2f")
+            BattleLab.parameterSlider("Ring line width", value: $configuration.armedRingLineWidth, range: 1 ... 6, format: "%.1f")
         }
     }
 
@@ -513,18 +480,6 @@ private struct HandMotionPlayground: View {
 
     // MARK: - Controls
 
-    private func parameterSlider(
-        _ title: String,
-        value: Binding<CGFloat>,
-        range: ClosedRange<CGFloat>,
-        format: String
-    ) -> some View {
-        VStack(alignment: .leading) {
-            LabeledContent(title, value: String(format: format, value.wrappedValue))
-            Slider(value: value, in: range)
-        }
-    }
-
     private func springSliders(
         title: String,
         response: Binding<Double>,
@@ -533,7 +488,7 @@ private struct HandMotionPlayground: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(title)
                 .font(.subheadline.weight(.semibold))
-            parameterSlider(
+            BattleLab.parameterSlider(
                 "Response",
                 value: Binding(
                     get: { CGFloat(response.wrappedValue) },
@@ -542,7 +497,7 @@ private struct HandMotionPlayground: View {
                 range: 0.08 ... 0.8,
                 format: "%.2f"
             )
-            parameterSlider(
+            BattleLab.parameterSlider(
                 "Damping",
                 value: Binding(
                     get: { CGFloat(damping.wrappedValue) },
@@ -552,16 +507,6 @@ private struct HandMotionPlayground: View {
                 format: "%.2f"
             )
         }
-    }
-}
-
-struct HandMotionLab_Previews: PreviewProvider {
-    static var previews: some View {
-        HandMotionPlayground()
-            .preferredColorScheme(.dark)
-            .previewDevice(PreviewDevice(rawValue: "iPad Pro 13-inch (M5)"))
-            .previewInterfaceOrientation(.landscapeLeft)
-            .previewDisplayName("Hand Motion Lab")
     }
 }
 #endif
