@@ -146,7 +146,7 @@ Regenerate and verify committed output matches HEAD (CI / pre-push):
 ```
 
 For mid-task consistency after `./Scripts/generate.sh`, use
-`./Scripts/assert-generated-output.sh --idempotent` (what `verify-changed` runs).
+`./Scripts/assert-generated-output.sh --idempotent` (what `handoff.sh` runs).
 
 Content-only regeneration (skip XcodeGen): `./Scripts/generate.sh --skip-xcodegen`.
 

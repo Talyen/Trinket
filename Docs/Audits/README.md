@@ -103,7 +103,7 @@ Optional **Example signals** may list non-exhaustive defect *classes* (not searc
 
 ### Verification
 
-Changed paths must pass path-scoped verification; `./Scripts/verify-changed.sh --isolate --paths <changed files>` is the canonical gate. Audit-specific checks appear only when the router cannot infer them. Do not substitute bare smoke or broad suites during iteration.
+Changed paths must pass path-scoped verification; `./Scripts/handoff.sh --isolate --paths <changed files>` is the canonical gate. Audit-specific checks appear only when the router cannot infer them. Do not substitute bare smoke or broad suites during iteration.
 
 Prefer existing gates over aspirational absolute metrics. The only absolute-zero target is a failing enforced boundary gate; elsewhere use evidence, explicit allowlists, runtime history, and per-change ratchets.
 

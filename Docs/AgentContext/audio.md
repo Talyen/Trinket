@@ -13,7 +13,7 @@ state/preferences and routing/playback in `TrinketAppState`, and battle event
 interpretation in `TrinketBattleFeature`. Do not unit-test AVFoundation playback or
 real device audio output; test deterministic routing/mapping logic instead.
 
-Verify with path-scoped `./Scripts/verify-changed.sh --isolate --paths …` (routes the
+Verify with path-scoped `./Scripts/handoff.sh --isolate --paths …` (routes the
 `TrinketAppState` package suite). Policy and path-scoped tiers:
 `Docs/Platform/Testing.md` and
 `Docs/AgentContext/ci-and-project-generation.md`. Smoke only when a player-flow view

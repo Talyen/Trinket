@@ -62,7 +62,7 @@ After each worker finishes:
 2. Reject speculative growth, forwarding wrappers, duplicate paths, weakened gates, or tests that fail the repository test-addition rubric.
 3. Resolve overlaps centrally; do not have workers overwrite one another.
 4. Run focused diagnostics only when a targeted check fails. Keep successful command output quiet or summarized.
-5. Run `./Scripts/verify-changed.sh --isolate --paths <integrated changed paths...>` once from the root after integration. Do not multiply the same full gate across workers and root.
+5. Run `./Scripts/handoff.sh --isolate --paths <integrated changed paths...>` once from the root after integration. Do not multiply the same full gate across workers and root.
 6. Review `./Scripts/change-budget.sh` warnings when surfaced and record any necessary justification.
 
 Do not edit audit guides to record results. Record durable proposals and accepted non-findings in `Docs/Audits/Proposals.md` per its hygiene rules, and advance its scope baseline after a completed pass. Put shipped findings, verification, skips, and budget justification in the handoff, commit, or PR requested by the user.

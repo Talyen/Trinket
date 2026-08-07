@@ -51,7 +51,7 @@ Created worktree: $target
 Checked out detached at the current HEAD (same commit as this tree; no new branch).
 Next:
   cd "$target"
-  ./Scripts/verify-changed.sh --isolate --paths <file...>
+  ./Scripts/handoff.sh --isolate --paths <file...>
 
 Use a unique TRINKET_RUN_ID / --isolate in each worktree so DerivedData and
 simulators do not collide with peers on this Mac.

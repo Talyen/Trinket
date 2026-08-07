@@ -69,34 +69,30 @@ New user flows still need a stable `AccessibilityID` selector (or an existing ap
 
 Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Homestead/Play presentation contracts is not a style-only change:
 
-1. Run path-scoped `./Scripts/verify-changed.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
+1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
    shared-support package check plus the Homestead smoke canary locally; PR
    `smoke-full` covers the five-surface selector matrix.
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
-4. `./Scripts/test.sh style` (or the verify-changed style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
+4. `./Scripts/test.sh style` (or the handoff style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
-Pure presentation chrome is different: metrics/layout constants, SwiftUI chrome
-modifiers, SF Symbol swaps, and `Text("…")` copy-only diffs may demote local
-package tests / smoke to compile-only (`classify-presentation-only.py`, fail-closed).
-BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) also demote
-to local `--build-only`; CI `unit` owns the full package suite. Play subflows
-without a smoke owner (Mystery, Labyrinth, StagePreview, …) route compile-only
-locally — `SmokePlayTests` covers the Play mode-card shell (hub paths, or
-`PlayView` diffs that touch shell signals; subflow-only `PlayView` wiring demotes
-via `classify-play-shell-diff.py`). Local targeted canaries stay on path-scoped
-verify when routing resolves an owner; do not move them to CI-only. CI `smoke-full`
-/ exhaustive UI stay the broad net.
+Handoff routing is deterministic and does not skip tests. Metrics/layout constants,
+SwiftUI chrome modifiers, SF Symbol swaps, and `Text("…")` copy-only diffs run the
+same routed package tests / smoke as any other Swift change (they see `--build-only`
+nowhere). A feature or UI path without a smoke owner falls back to the app-compile
+gap-fill (`./Scripts/build.sh`) rather than being inferred away. `SmokePlayTests`
+covers the Play mode-card shell for any Play diff; CI `smoke-full` / exhaustive UI
+stay the broad net.
 
 Verify with the AGENTS Task→Command Router (toolchain permitting), using
    **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
 
-- **Agent handoff** → `./Scripts/verify-changed.sh --isolate --paths <files>`
+- **Agent handoff** → `./Scripts/handoff.sh --isolate --paths <files>`
 - **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
 - **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh TrinketAppState`
 - **Mid-task smoke iteration** → after one green rebuild in the isolate slot,
   `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass> --no-build` (refused when
-  build-inputs changed). Handoff still runs full `verify-changed.sh --isolate`.
+  build-inputs changed). Handoff still runs full `handoff.sh --isolate`.
 - **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
 - **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, full smoke, and exhaustive UI remain CI or explicit full-local confidence work.
 
@@ -125,7 +121,7 @@ Smoke = short shell canaries (`smoke-full` ≈ five lean methods). Exhaustive Fu
 Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`)
 as an optional local confidence check, not a generic feature check or required
 pre-push hook. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`
-(or `verify-changed --isolate`) for the affected feature. Full smoke
+(or `handoff --isolate`) for the affected feature. Full smoke
 (`smoke-full`) and exhaustive journeys are CI-owned; use `test.sh ui <Class>`
 locally only when debugging a specific journey, or `test-deploy.sh` for an
 explicit full local confidence run.

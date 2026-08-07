@@ -58,7 +58,7 @@ cd "$(dirname "$0")/.."
 REGENERATE=false
 INCLUDE_ASSETS=false
 # committed: fail when tracked generated paths differ from HEAD (CI / pre-push).
-# idempotent: regenerate once and fail if tracked outputs still change (local verify-changed).
+# idempotent: regenerate once and fail if tracked outputs still change (local handoff).
 MODE="committed"
 
 usage() {
@@ -71,7 +71,7 @@ Modes:
   (default)        Commit completeness — tracked generated paths must match HEAD.
                    Use after generate on a clean checkout (CI, pre-push, ci-gate).
   --idempotent     Consistency — run generate once more; tracked outputs must not
-                   change again. Use after generate in verify-changed (local/agent).
+                   change again. Use after generate in handoff (local/agent).
 
 Options:
   --regenerate     Run ./Scripts/generate.sh before the committed-mode check
@@ -80,7 +80,7 @@ Options:
   -h, --help       Show this help
 
 CI runs ./Scripts/generate.sh first, then this script without --regenerate.
-verify-changed runs generate, then this script with --idempotent.
+handoff runs generate, then this script with --idempotent.
 EOF
 }
 
@@ -164,7 +164,7 @@ print_tracked_diff_vs_head() {
 if [[ "$MODE" == "idempotent" ]]; then
   assert_testplan_native_target_ids
 
-  # When verify-changed just stamped a fresh generate, skip the second full
+  # When handoff just stamped a fresh generate, skip the second full
   # generate if inputs are unchanged — still prove test-plan IDs and report.
   # shellcheck source=run-env.sh
   source ./Scripts/run-env.sh

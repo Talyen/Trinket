@@ -159,7 +159,7 @@ class ScriptRegressionTests(unittest.TestCase):
     def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift",
@@ -181,10 +181,12 @@ class ScriptRegressionTests(unittest.TestCase):
             ],
         )
 
-    def test_mystery_subflow_routes_compile_not_smoke_play(self) -> None:
+    def test_mystery_subflow_runs_play_smoke(self) -> None:
+        # Deterministic routing: any Play diff runs SmokePlayTests; no demotion
+        # to compile-only for subflow-only diffs.
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Trinket/Features/Play/Mystery/MysteryChoiceCard.swift",
@@ -195,15 +197,12 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        plan = "\n".join(result.stdout.splitlines())
-        self.assertIn("./Scripts/build.sh", plan)
-        self.assertNotIn("SmokePlayTests", plan)
+        self.assertIn("SmokePlayTests", result.stdout)
 
     def test_play_shell_keeps_smoke_play(self) -> None:
-        # Hub paths always keep SmokePlayTests (PlayView may demote on subflow-only diffs).
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Trinket/Features/Play/Modes/PlayModeHubView.swift",
@@ -216,55 +215,10 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SmokePlayTests", result.stdout)
 
-    def test_play_shell_diff_classifier(self) -> None:
-        classifier = load_script("classify_play_shell_diff", "classify-play-shell-diff.py")
-        self.assertEqual(
-            classifier.classify_changed_lines(
-                [
-                    "PlayModeHubView()",
-                    "accessibilityIdentifier: AccessibilityID.Play.campaignModeCard",
-                ]
-            ),
-            "shell",
-        )
-        self.assertEqual(
-            classifier.classify_changed_lines(
-                [
-                    "PlayEncounterCoversModifier()",
-                    "onResolveChoice: { choiceID in",
-                    "encounters.resolveActiveMysteryChoice(choiceID: choiceID)",
-                ]
-            ),
-            "subflow",
-        )
-        self.assertEqual(
-            classifier.classify_changed_lines(
-                [
-                    "PlayEncounterCoversModifier()",
-                    "PlayModeHubView()",
-                ]
-            ),
-            "shell",
-        )
-        self.assertEqual(
-            classifier.classify_changed_lines(["import SwiftUI", "}"]),
-            "uncertain",
-        )
-        self.assertEqual(
-            classifier.classify_changed_lines(
-                [
-                    "onSelectItem: { itemID in",
-                    "encounters.selectActiveMysteryItem(itemID: itemID)",
-                    "},",
-                ]
-            ),
-            "subflow",
-        )
-
     def test_feature_support_generic_skips_app_build_when_package_tests_run(self) -> None:
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/HomesteadResourceArtwork.swift",
@@ -282,7 +236,7 @@ class ScriptRegressionTests(unittest.TestCase):
     def test_accessibility_id_keeps_homestead_smoke(self) -> None:
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift",
@@ -295,10 +249,12 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("SmokeHomesteadTests", result.stdout)
 
-    def test_battle_feature_lab_routes_build_only_not_full_package_tests(self) -> None:
+    def test_battle_feature_lab_runs_full_package_tests_and_smoke(self) -> None:
+        # No lab demotion: a DEBUG variant file still runs the full package
+        # suite plus the SmokeBattleTests canary.
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
@@ -310,16 +266,14 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         plan = "\n".join(result.stdout.splitlines())
-        self.assertIn(
-            "./Scripts/test-package.sh --build-only TrinketBattleFeature", plan
-        )
-        self.assertNotIn("./Scripts/test-package.sh TrinketBattleFeature\n", plan + "\n")
-        self.assertNotIn("SmokeBattleTests", plan)
+        self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
+        self.assertNotIn("--build-only", plan)
+        self.assertIn("SmokeBattleTests", plan)
 
     def test_battle_feature_shipping_keeps_package_tests_and_smoke(self) -> None:
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Battlefield/BattleCombatantPane.swift",
@@ -338,7 +292,7 @@ class ScriptRegressionTests(unittest.TestCase):
     def test_battle_feature_lab_plus_shipping_keeps_full_package_tests(self) -> None:
         result = subprocess.run(
             [
-                str(ROOT / "Scripts" / "verify-changed.sh"),
+                str(ROOT / "Scripts" / "handoff.sh"),
                 "--dry-run",
                 "--paths",
                 "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Effects/CombatantCardDeathEffectVariants.swift",
@@ -404,15 +358,6 @@ class ScriptRegressionTests(unittest.TestCase):
             test_sh,
         )
 
-    def test_verify_prefetch_helpers_exist(self) -> None:
-        text = (ROOT / "Scripts" / "verify-changed.sh").read_text(encoding="utf-8")
-        self.assertIn("should_prefetch_app_during_parallel", text)
-        self.assertIn("start_app_build_prefetch", text)
-        self.assertIn("finish_app_build_prefetch", text)
-        self.assertIn("try_reuse_warm_app_products", text)
-        self.assertIn("cleanup_app_prefetch", text)
-        self.assertIn("classify-play-shell-diff.py", (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"))
-        self.assertIn("trinket_apply_play_shell_smoke_demotion", (ROOT / "Scripts" / "change-classification.sh").read_text(encoding="utf-8"))
 
     def test_run_env_removes_shared_packages_derived_data(self) -> None:
         text = (ROOT / "Scripts" / "run-env.sh").read_text(encoding="utf-8")
@@ -422,32 +367,6 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn('Packages/.DerivedData', prune)
         self.assertIn('rm -rf "$repo_root/Packages/.DerivedData"', prune)
 
-    def test_presentation_only_line_classifier(self) -> None:
-        classifier = load_script(
-            "classify_presentation_only", "classify-presentation-only.py"
-        )
-        self.assertTrue(
-            classifier._line_is_presentation(
-                "public static let mysteryRewardArtworkSize: CGFloat = 56"
-            )
-        )
-        self.assertTrue(
-            classifier._line_is_presentation('Text("PICK A REWARD")')
-        )
-        self.assertTrue(
-            classifier._line_is_presentation('systemIcon: "gift.fill",')
-        )
-        self.assertFalse(
-            classifier._line_is_presentation(
-                "accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton"
-            )
-        )
-        self.assertFalse(
-            classifier._line_is_presentation("private func baseItemPreview(")
-        )
-        self.assertFalse(
-            classifier._line_is_presentation("playerSave.homestead.effects.adjustedGold(amount)")
-        )
 
     def test_prune_gates_bulk_wipe(self) -> None:
         text = (ROOT / "Scripts" / "prune-derived-data-cache.sh").read_text(encoding="utf-8")
@@ -496,12 +415,6 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertNotIn('name == "Trinket CI"', idle)
         self.assertIn('TRINKET_MAX_AGENT_SIMS:-1', text)
         self.assertFalse((ROOT / "Scripts" / "clean-dev-artifacts.sh").exists())
-
-    def test_verify_changed_docs_path_uses_self_clean_hygiene(self) -> None:
-        text = (ROOT / "Scripts" / "verify-changed.sh").read_text(encoding="utf-8")
-        self.assertIn("trinket_run_env_self_clean_hygiene", text)
-        self.assertNotIn("clean-dev-artifacts", text)
-        self.assertNotIn("TRINKET_CLEANUP_IDLE_POOL=1 opts", text)
 
 
 if __name__ == "__main__":

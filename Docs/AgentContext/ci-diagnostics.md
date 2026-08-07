@@ -8,7 +8,7 @@ diagnostics are the first source of evidence; raw xcodebuild logs are a last res
 Every test or package invocation writes an atomically completed
 `*-invocation.json` manifest in the run’s `RESULTS_DIR` (shared default
 `.DerivedData/TestResults/`, or `.DerivedData/runs/agent-N/TestResults/` when
-`TRINKET_ISOLATE=1` / `verify-changed --isolate`). It records the label,
+`TRINKET_ISOLATE=1` / `handoff --isolate`). It records the label,
 exit code, pass/fail status, result-bundle path, and optional diagnostics-report path.
 Failed invocations also produce bounded sibling reports:
 

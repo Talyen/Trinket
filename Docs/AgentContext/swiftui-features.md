@@ -28,6 +28,6 @@ promise of custom VoiceOver semantics; do not add accessibility labels, hints, v
 grouping, traits, or accessibility-setting branches without an explicit product
 decision. Feature views use UI coverage only when that rubric passes; a view change
 alone does not require a test. Verify with path-scoped
-`./Scripts/verify-changed.sh --isolate --paths …`. Policy and path-scoped tiers:
+`./Scripts/handoff.sh --isolate --paths …`. Policy and path-scoped tiers:
 `Docs/Platform/Testing.md` and `Docs/AgentContext/ci-and-project-generation.md`. Read
 `TrinketUITests/README.md` only for launch args, screen helpers, or test speed.

@@ -71,7 +71,7 @@ generation_inputs_are_dirty() {
 
 # All inputs that feed generate.sh (content + project.yml + assets). Used for
 # stamp-time porcelain snapshots so dirty-vs-HEAD worktrees do not defeat the
-# verify-changed idempotent-assert skip after a fresh generate.
+# handoff idempotent-assert skip after a fresh generate.
 generation_input_paths=(
   "${content_generation_inputs[@]}"
   project.yml

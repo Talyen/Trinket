@@ -56,7 +56,7 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
 ./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
-./Scripts/verify-changed.sh --isolate --paths <changed-files>
+./Scripts/handoff.sh --isolate --paths <changed-files>
                                    # fast local path-scoped verification
 ./Scripts/test-deploy.sh --mode smoke   # optional full local confidence: gate + unit + quick smoke
 ./Scripts/test-deploy.sh           # explicit release/pre-merge confidence: unit + full UI

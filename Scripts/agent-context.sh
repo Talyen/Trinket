@@ -20,7 +20,7 @@ Usage: ./Scripts/agent-context.sh [--agent|--json] [--paths <file> ...]
 
 Prints a compact task briefing: applicable AGENTS.md guides, context cards and
 skills, architecture/generated-output warnings, and the focused sequential
-verification plan. Agents should run the recommended verify-changed --isolate
+verification plan. Agents should run the recommended handoff --isolate
 command. Paths are repository-relative; --paths consumes all remaining
 arguments. Without --paths, the working tree is classified.
 USAGE
@@ -173,15 +173,15 @@ print_agent() {
   printf 'Verification (agents: always --isolate):\n'
   if [[ "$PATH_MODE" == explicit ]]; then
     if (( ${#TRINKET_CHANGED_PATHS[@]} <= 8 )); then
-      printf '  ./Scripts/verify-changed.sh --isolate --paths'
+      printf '  ./Scripts/handoff.sh --isolate --paths'
       local path
       for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %s' "$path"; done
       printf '\n'
     else
-      printf '  ./Scripts/verify-changed.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"
+      printf '  ./Scripts/handoff.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"
     fi
   else
-    printf '  ./Scripts/verify-changed.sh --isolate\n'
+    printf '  ./Scripts/handoff.sh --isolate\n'
   fi
   printf 'Plan detail (sequential under that tenant):\n'
   if (( ${#TRINKET_VERIFICATION_COMMANDS[@]} > 0 )); then

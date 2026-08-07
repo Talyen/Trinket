@@ -81,7 +81,7 @@ Pick the cheapest rung that matches the question you need answered. Higher rungs
 
 | Rung | Entry | Answers |
 |------|-------|---------|
-| Task handoff | `verify-changed.sh --isolate --paths …` | Did *these* paths stay green? (path-scoped; agents always use this) |
+| Task handoff | `handoff.sh --isolate --paths …` | Did *these* paths stay green? (path-scoped; agents always use this) |
 | Gate only | `ci-gate.sh` | Generate/assert vs HEAD + full-tree style + boundaries (no unit/UI) |
 | Local CI canary | `test-deploy.sh --mode smoke` | Gate + unit + quick smoke |
 | Deploy confidence | `test-deploy.sh` | Gate + unit + full UI |
@@ -127,7 +127,7 @@ Use `--json` for machine-readable output; large agent briefings group paths and
 leave the complete list in JSON.
 Without `--paths`, it reports the entire working tree, which is useful only when the
 tree represents one task. Agents must run
-`./Scripts/verify-changed.sh --isolate --paths <file...>` after the change stabilizes
+`./Scripts/handoff.sh --isolate --paths <file...>` after the change stabilizes
 (preview with `--dry-run`; use `--quiet` for PASS/FAIL plus bounded failure excerpts).
 `--isolate` acquires a reusable agent simulator slot (`Trinket Agent N`) and
 DerivedData under `.DerivedData/runs/agent-N/` via `Scripts/run-env.sh` so concurrent
@@ -145,53 +145,31 @@ so package builds can run in parallel. Package xcodebuild also sets `SYMROOT` /
 `Packages/.DerivedData/build.db` even when `-derivedDataPath` differs. Humans/CI may omit `--isolate` to keep
 the shared warm cache.
 
-Path-scoped verify optimizations (local gate, not a coverage reduction for CI):
+Path-scoped `handoff.sh` is deterministic and sequential:
 - Style is path-scoped to changed Swift files (full-tree style remains in `ci-gate` / CI).
-- Style and touched-package tests may run in parallel; multi-package and multi-smoke
-  targets are batched into one invocation each. Batched `test-package.sh` runs those
-  packages in parallel across per-package DerivedData tenants (wall ≈ slowest package).
-  When smoke is also scheduled, `verify-changed` prefetches `build-for-testing --app-only`
-  during that parallel window so smoke can use `--no-build`. Later handoffs in the same
-  isolate slot reuse a fresh stamp when build-inputs are unchanged.
-- Unit steps use `--app-only` (no 9-package fan-out); packages are scheduled only when
-  touched.
-- AccessibilityID renames route package tests + Homestead smoke canary locally;
-  `smoke-full` on PR covers the five-surface matrix.
-- BattleFeature DEBUG labs (`*Lab*`, `*Playground*`, `*EffectVariants*`) are local
-  `--build-only` (compile proof); CI `unit` owns the full BattleFeature package suite.
-  Shipping battle UI still routes full package tests + `SmokeBattleTests`.
-- Play smoke: `SmokePlayTests` for Play hub paths (`ExploreHub` / `SpiresHub` /
-  `PlayModeHub`) and for `PlayView.swift` when the diff touches mode-card shell
-  signals. Pure encounter/cover wiring in `PlayView` demotes via
-  `Scripts/classify-play-shell-diff.py` (fail-closed) to compile-only `build.sh`.
-  Mystery, Labyrinth, StagePreview, and other Play subflows without a smoke owner
-  stay compile-only.
-- Local targeted smoke canaries stay on path-scoped verify when routing resolves an
-  owner (AccessibilityID → Homestead canary; real Play shell → `SmokePlayTests`).
-  Do not relocate those canaries to CI-only — PR `smoke-full` / exhaustive UI remain
-  the broad net; local speedups only shrink *when* and *how* canaries run.
-- Presentation-only diffs (metrics/layout constants, SwiftUI chrome modifiers, SF Symbol
-  / `Text("…")` copy) demote package **tests** and smoke to compile-only via
-  `Scripts/classify-presentation-only.py` (fail-closed). DesignSystem-only demotions use
-  `test-package.sh --build-only`; feature demotions reuse `build.sh`. AccessibilityID /
-  action/store/control-flow edits never demote.
-- FeatureSupport package tests already compile the shared package — FeatureSupport
-  paths no longer set the feature/app-compile flag (AccessibilityID /
-  PreparedArtworkCache still route their smoke canaries).
-- After generate, verify stamps `.last-generate.stamp` and skips redundant regenerate in
-  children / fresh idempotent asserts. Stage walls append to
-  `$RESULTS_DIR/verify-timing.jsonl`.
+- Touched packages are scheduled via `test-package.sh` (multi-package runs parallel
+  across per-package DerivedData tenants, wall ≈ slowest package). Unit uses
+  `--app-only`; packages are scheduled only when touched.
+- A feature/UI path resolves to a targeted smoke canary when it has an owner
+  (Battle → `SmokeBattleTests`, Homestead → `SmokeHomesteadTests`, Collection →
+  `SmokeCollectionTests`, Play/Shop → `SmokeShopTests`/`SmokePlayTests`); otherwise
+  the app-compile gap-fill (`build.sh`) covers it. AccessibilityID /
+  PreparedArtworkCache route their Homestead smoke canaries; `smoke-full` on PR
+  covers the five-surface matrix.
+- No demotions: a diff that is only metrics/layout constants, SwiftUI chrome
+  modifiers, SF Symbol swaps, or `Text("…")` copy runs the same routed package
+  tests / smoke as any other Swift change.
+- After generate, handoff asserts idempotently (regenerate is a no-op) and stamps
+  `.last-generate.stamp` so fresh asserts skip a redundant regenerate.
 
-After generation, verify-changed runs
-`assert-generated-output.sh --idempotent` (regenerate must be a no-op, or skipped when
-the generate stamp is still fresh) — not the
+After generation, handoff runs
+`assert-generated-output.sh --idempotent` (regenerate must be a no-op) — not the
 HEAD/commit check. Before commit, review and stage only the task's authored and
 generated files after this check passes. After commit, commit completeness is
-`./Scripts/agent-push-gate.sh` (also called from pre-push),
-`verify-changed.sh --push-ready`, `ci-gate.sh`, and CI. If the post-commit gate
-regenerates files, review them, amend the commit, and rerun it.
-Push-gate is **generate/assert only** — not style or compile; path-scoped
-`verify-changed.sh` remains the pre-CI source gate (and schedules compile-only
+`./Scripts/agent-push-gate.sh` (also called from pre-push), `ci-gate.sh`, and CI.
+If the post-commit gate regenerates files, review them, amend the commit, and rerun it.
+`agent-push-gate.sh` is **generate/assert only** — not style or compile; path-scoped
+`handoff.sh` remains the pre-CI source gate (and schedules compile-only
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
 Post-push CI watching is owned by cloud agent automations.
 `./Scripts/agent-watch-ci.sh` remains available for manual use (auto-dispatches
@@ -206,14 +184,14 @@ Task-scoped verification is the routine local source gate. Full local confidence
 runs remain available for release or high-risk changes, while PR/main CI owns the
 broad smoke and exhaustive UI coverage.
 
-Every completed `verify-changed.sh` and `agent-push-gate.sh` run prints an advisory
+Every completed `handoff.sh` and `agent-push-gate.sh` run prints an advisory
 `change-budget.sh` report against HEAD: authored production/test/docs-tool LOC,
 new Swift files and types, and test declaration deltas. Generated output is excluded.
 Warnings never fail the change; agents explain the necessity and simpler rejected
 alternative. Declaration counts do not include expanded `@Test(arguments:)` cases;
 inspect runtime with `./Scripts/test-timing.sh` when deliberately hunting slow tests.
 
-Local iteration speed comes from **path-scoped verify** (touched packages, demotions,
+Local iteration speed comes from **path-scoped verify** (touched packages, targeted smoke) —
 targeted smoke)—not from reading timing reports. Full `test.sh unit`, `smoke-full`,
 and FullUI remain CI or explicit confidence runs. `test.sh` and `test-package.sh`
 append to `.DerivedData/TestResults/timing-log.jsonl` (`unit` / `smoke` / …
@@ -314,7 +292,7 @@ are none; codegen is external via `generate.sh`).
    Self-clean also removes shared `Packages/.DerivedData` (a parallel package-test
    lock hazard).
 5. **Skip local `ci-gate.sh` / push-gate during tight iteration** — they
-   `--force-xcodegen` and reindex. Use path-scoped `verify-changed.sh` instead.
+   `--force-xcodegen` and reindex. Use path-scoped `handoff.sh` instead.
    When `.DerivedData` grows large, `./Scripts/prune-derived-data-cache.sh`
    (local mode keeps Build/Intermediates).
 
@@ -368,7 +346,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/agent-context.sh [--agent\|--json] [--paths <file...>]` | Emit a compact task context briefing and verification plan |
 | `./Scripts/change-budget.sh [--paths <file...>]` | Advisory authored LOC/file/type/test-declaration delta report against HEAD |
-| `./Scripts/verify-changed.sh [--dry-run] [--quiet] [--isolate] [--push-ready] [--paths <file...>]` | Run the minimum sequential verification; `--quiet` bounds output; agents always pass `--isolate` |
+| `./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--paths <file...>]` | Deterministic sequential task gate; `--quiet` bounds output; agents always pass `--isolate` |
 | `./Scripts/agent-worktree.sh create\|list\|remove <slug>` | Sibling git worktree for parallel agent checkouts |
 | `./Scripts/ci-diagnostics.sh [--reset] [RESULTS_DIR]` | Aggregate current invocation diagnostics or clear cached status artifacts |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
