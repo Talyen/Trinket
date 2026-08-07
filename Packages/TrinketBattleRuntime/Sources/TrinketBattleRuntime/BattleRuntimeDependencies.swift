@@ -16,6 +16,18 @@ public struct BattleRuntimeDependencies {
     public let setAutoBattleEnabled: (Bool) -> Void
     public let shouldAutoSkipUltimateCinematic: (String, Set<String>) -> Bool
 
+    /// No-op presentation bundle for non-composed contexts (tests, fallback paths).
+    public static let silent = Self(
+        playSFX: { _ in },
+        warmSFX: { _, _ in },
+        hapticsEnabled: { false },
+        effectsVolume: { 0 },
+        rememberAutoBattlePreference: { false },
+        autoBattleEnabled: { false },
+        setAutoBattleEnabled: { _ in },
+        shouldAutoSkipUltimateCinematic: { _, _ in false }
+    )
+
     public init(
         playSFX: @escaping ([String]) -> Void,
         warmSFX: @escaping ([String], Int) -> Void,

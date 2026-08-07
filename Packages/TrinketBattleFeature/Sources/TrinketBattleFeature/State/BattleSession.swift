@@ -35,7 +35,7 @@ public final class BattleSession {
     let feedback = BattleFeedbackLane()
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
-    let presentationEnvironment: BattlePresentationEnvironment
+    let presentationEnvironment: BattleRuntimeDependencies
     /// Session-local Auto control. Persists across battles only when Options
     /// "Remember Auto-Battle Preference" is on.
     public var isAutoBattleEnabled: Bool {
@@ -117,7 +117,7 @@ public final class BattleSession {
         openingHandDrawStagger: TimeInterval = TrinketMotion.Battle.cardDrawStagger,
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
-        presentationEnvironment: BattlePresentationEnvironment = .silent
+        presentationEnvironment: BattleRuntimeDependencies = .silent
     ) {
         self.runtime = runtime
         initialAutoEndTurnDelay = autoEndTurnDelay
@@ -134,7 +134,7 @@ public final class BattleSession {
     }
 
     static func preferredAutoBattleEnabled(
-        from presentationEnvironment: BattlePresentationEnvironment
+        from presentationEnvironment: BattleRuntimeDependencies
     ) -> Bool {
         presentationEnvironment.rememberAutoBattlePreference()
             && presentationEnvironment.autoBattleEnabled()

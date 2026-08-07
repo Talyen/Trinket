@@ -117,7 +117,6 @@ public final class PlayerSaveStore {
 
         let openResult = try ModelContainerBootstrap.open(
             schema: schema,
-            migrationPlan: PlayerSaveMigrationPlan.self,
             primaryConfiguration: resolved.config,
             logger: logger,
             logLabel: "player save",

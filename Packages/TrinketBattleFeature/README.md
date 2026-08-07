@@ -12,7 +12,7 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 - Battle configuration, resume/outcome values, views, layout, and effects
 
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
-the closure-backed `BattlePresentationEnvironment`; this package must not import or
+the closure-backed `BattleRuntimeDependencies`; this package must not import or
 depend on `TrinketAppState`.
 
 ## Testing

@@ -17,6 +17,8 @@ struct BalanceContrastWorkItem {
 }
 
 enum BalanceContrastSupport {
+    typealias Pair = (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup)
+
     static func workItems(
         fociCount: Int,
         tiers: [SimulationPowerTier],
@@ -59,6 +61,8 @@ enum BalanceContrastSupport {
             buckets[key] = bucket
         }
 
+        // Deterministic total order: flagged first, then |lift|, then a stable
+        // key, so the report never depends on hashed Dictionary iteration order.
         return buckets.values.map { bucket in
             let focus = foci[bucket.meta]
             let entityRate = bucket.pairs == 0 ? 0 : Double(bucket.entity) / Double(bucket.pairs)
@@ -79,10 +83,21 @@ enum BalanceContrastSupport {
             )
         }
         .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged {
-                return lhs.flagged && !rhs.flagged
-            }
-            return abs(lhs.lift) > abs(rhs.lift)
+            (
+                lhs.flagged ? 0 : 1,
+                -abs(lhs.lift),
+                lhs.tier.rawValue,
+                lhs.entityID,
+                lhs.baselineID,
+                lhs.ownerID
+            ) < (
+                rhs.flagged ? 0 : 1,
+                -abs(rhs.lift),
+                rhs.tier.rawValue,
+                rhs.entityID,
+                rhs.baselineID,
+                rhs.ownerID
+            )
         }
     }
 
@@ -193,6 +208,49 @@ enum BalanceContrastSupport {
                 maxRounds: maxRounds,
                 maxActions: maxActions
             ).isVictory
+        )
+    }
+
+    /// Drives a shared "candidate vs baseline" contrast sweep so both consumers
+    /// reuse identical work-item, parallel, seeding, and aggregation glue. Only
+    /// the focus/tier sourcing and the pair factory vary.
+    static func runSweep<Focus: Sendable>(
+        context: BalanceContrastContext,
+        foci: [Focus],
+        tiers: [SimulationPowerTier],
+        summarize: @escaping @Sendable (Focus) -> (entityID: String, baselineID: String, ownerID: String),
+        primes: (tier: UInt64, pair: UInt64),
+        makePair: @escaping @Sendable (Focus, SimulationPowerTier, Int, UInt64) -> Pair?,
+        policy: GreedyHeuristicPolicy
+    ) -> [PairedContrastSummary] {
+        guard !foci.isEmpty, !tiers.isEmpty else { return [] }
+        let config = context.config
+
+        let work = workItems(
+            fociCount: foci.count,
+            tiers: tiers,
+            battlesPerTier: config.battlesPerTier
+        )
+        let pairResults = ParallelMap.map(work, jobs: config.resolvedJobs) { item -> (Int, SimulationPowerTier, Bool, Bool)? in
+            let focus = foci[item.focusIndex]
+            let seed = config.seed
+                &+ UInt64(item.tier.level) &* primes.tier
+                &+ UInt64(item.pairIndex) &* primes.pair
+                &+ stableHash64(summarize(focus).entityID)
+            guard let pair = makePair(focus, item.tier, item.pairIndex, seed) else { return nil }
+            let outcome = runEntityBaselinePair(
+                matchups: pair,
+                policy: policy,
+                maxRounds: config.maxRounds,
+                maxActions: config.maxActions
+            )
+            return (item.focusIndex, item.tier, outcome.entityWon, outcome.baselineWon)
+        }
+
+        return aggregate(
+            foci: foci.map(summarize),
+            pairResults: pairResults.compactMap(\.self),
+            threshold: config.peerDeltaFlagThreshold
         )
     }
 }

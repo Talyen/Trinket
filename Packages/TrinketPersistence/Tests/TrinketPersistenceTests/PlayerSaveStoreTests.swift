@@ -35,7 +35,7 @@ final class PlayerSaveStoreTests {
 
     @Test func versionedStoreAdoptsCurrentUnversionedSchema() throws {
         let storeURL = context.storeURL()
-        let legacySchema = Schema(PlayerSaveSchemaV1.models)
+        let legacySchema = Schema(PlayerSaveSchema.models)
         do {
             let container = try ModelContainer(
                 for: legacySchema,

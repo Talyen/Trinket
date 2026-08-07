@@ -71,7 +71,11 @@ public final class BattleRuntimeSession: BattleRuntime {
     }
 
     var outcome: BattleSimulationOutcome? {
-        BattleSimBridge.outcome(for: state)
+        guard let state else { return nil }
+        return BattleSimulationOutcome.resolve(
+            isPartyDefeated: state.isPartyDefeated,
+            isEnemyDefeated: state.isEnemyDefeated
+        )
     }
 
     var phase: BattlePhase? {
@@ -184,25 +188,49 @@ public final class BattleRuntimeSession: BattleRuntime {
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        BattleSimBridge.isCardPlayable(card, in: state)
+        state?.isCardPlayable(card) ?? false
     }
 
     @discardableResult
     func playCard(cardID: Int) throws -> [ActionEvent] {
-        try BattleSimBridge.playCard(cardID: cardID, state: &state)
+        guard var playableState = state else { throw BattlePlayError.battleOver }
+        let events = try playableState.playCard(cardID: cardID, rebuildLog: false)
+        state = playableState
+        return events
     }
 
     @discardableResult
     func endTurn() -> [ActionEvent] {
-        BattleSimBridge.endTurn(state: &state)
+        guard var playableState = state else { return [] }
+        let events = playableState.endTurn(rebuildLog: false)
+        state = playableState
+        return events
     }
 
     func syncLog() {
-        BattleSimBridge.syncLog(state: &state)
+        guard var playableState = state else { return }
+        playableState.syncLog()
+        state = playableState
     }
 
     func releaseLogProjection() {
-        BattleSimBridge.releaseLogProjection(state: &state)
+        guard var playableState = state else { return }
+        playableState.releaseLogProjection()
+        state = playableState
+    }
+
+    private func makeBattleState(from configuration: BattleRunConfiguration) -> BattleState {
+        BattleState(
+            hero: configuration.hero.combatant,
+            companion: configuration.companion.combatant,
+            enemy: configuration.enemy,
+            heroModifiers: configuration.hero.modifiers,
+            companionModifiers: configuration.companion.modifiers,
+            enemyModifiers: configuration.enemyModifiers,
+            rngSeed: configuration.rngSeed,
+            tracksLog: false,
+            dealOpeningHand: false
+        )
     }
 
     func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
@@ -233,7 +261,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         }
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
-            state: BattleSimBridge.makeBattleState(from: configuration)
+            state: makeBattleState(from: configuration)
         )
         preparedBattlePresentationRevision += 1
         lifecyclePhase = .prepared
@@ -272,7 +300,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         guard activeBattle == nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         activeBattle = configuration
-        state = BattleSimBridge.makeBattleState(from: configuration)
+        state = makeBattleState(from: configuration)
         lifecyclePhase = .active
         onChange?(.activated)
         return true
@@ -283,7 +311,7 @@ public final class BattleRuntimeSession: BattleRuntime {
         guard activeBattle != nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         activeBattle = configuration
-        state = BattleSimBridge.makeBattleState(from: configuration)
+        state = makeBattleState(from: configuration)
         lifecyclePhase = .active
         onChange?(.activated)
         return true

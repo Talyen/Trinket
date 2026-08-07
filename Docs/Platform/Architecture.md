@@ -198,7 +198,7 @@ presentation-only cases.
 ## Persistence overview
 
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, aspects, labyrinth). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, aspects, and labyrinth records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and mode progress.
-- **Save hub:** `PlayerSaveStore` opens the versioned `ModelContainer` via `PlayerSaveMigrationPlan`, `ModelContainerBootstrap`, and `PlayerSaveStoreConfiguration`. A failed canonical-store open preserves the on-disk files and uses an explicitly degraded in-memory fallback; only a player-requested reset deletes progress. Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
+- **Save hub:** `PlayerSaveStore` opens the versioned `ModelContainer` via `ModelContainerBootstrap` and `PlayerSaveStoreConfiguration`. A failed canonical-store open preserves the on-disk files and uses an explicitly degraded in-memory fallback; only a player-requested reset deletes progress. Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
 - **Write locality:** Every mutation computes a `PlayerSaveSlice` diff. Setters and batches reconcile and save only changed slices; rollback refreshes only touched slices. Stable child-row identities are preserved when values change.
 - **Options/preferences:** `TrinketAppState.OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Best-effort shell session state (in-session selected tab) remains on the local `PlayerShellSessionStore`; cold launch always lands on Play unless a UI-test launch override selects another tab/screen. Legacy battle-resume and map-scroll keys are discarded. The app is always dark mode (no appearance preference).
@@ -232,7 +232,7 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use.
-- Battle simulation lives inside `BattleRuntimeSession` via `BattleSimBridge`.
+- Battle simulation lives inside `BattleRuntimeSession`.
   `BattleRuntimeSession` owns lifecycle, simulation, and commands; `BattleSession` mirrors the
   runtime lifecycle for SwiftUI and owns `BattlePresentationState`, `BattleFeedbackLane`, and
   `BattleSpectacleState` are distinct observable read lanes. A committed engine

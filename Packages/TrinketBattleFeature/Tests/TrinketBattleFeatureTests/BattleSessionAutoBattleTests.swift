@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketBattleRuntime
 import TrinketFeatureSupport
 import TrinketTestSupport
 @testable import BattleEngine
@@ -40,7 +41,7 @@ struct BattleSessionAutoBattleTests {
         }
 
         let probe = AutoBattleProbe()
-        let environment = BattlePresentationEnvironment(
+        let environment = BattleRuntimeDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },
@@ -80,7 +81,7 @@ struct BattleSessionAutoBattleTests {
         }
 
         let probe = AutoBattleProbe()
-        let environment = BattlePresentationEnvironment(
+        let environment = BattleRuntimeDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },

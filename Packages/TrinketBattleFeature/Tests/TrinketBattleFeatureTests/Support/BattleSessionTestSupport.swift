@@ -1,4 +1,5 @@
 import Foundation
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
@@ -18,7 +19,7 @@ enum BattleSessionTestSupport {
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
-        presentationEnvironment: BattlePresentationEnvironment = .silent
+        presentationEnvironment: BattleRuntimeDependencies = .silent
     ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
@@ -61,8 +62,8 @@ enum BattleSessionTestSupport {
 
     static func presentationEnvironment(
         shouldAutoSkipUltimateCinematic: @escaping (String, Set<String>) -> Bool
-    ) -> BattlePresentationEnvironment {
-        BattlePresentationEnvironment(
+    ) -> BattleRuntimeDependencies {
+        BattleRuntimeDependencies(
             playSFX: { _ in },
             warmSFX: { _, _ in },
             hapticsEnabled: { false },

@@ -19,34 +19,27 @@ enum BalanceAffixContrastRunner {
               !context.enemies.isEmpty
         else { return [] }
 
-        let gearTiers = context.config.tiers.filter(\.includesGear)
-        guard !gearTiers.isEmpty else { return [] }
-
         let foci = makeFoci(heroes: context.heroes, companions: context.companions)
         guard !foci.isEmpty else { return [] }
 
-        let work = BalanceContrastSupport.workItems(
-            fociCount: foci.count,
-            tiers: gearTiers,
-            battlesPerTier: context.config.battlesPerTier
-        )
-
-        let pairResults = ParallelMap.map(work, jobs: context.config.resolvedJobs) { item in
-            let focus = foci[item.focusIndex]
-            let pair = runPair(
-                focus: focus,
-                tier: item.tier,
-                pairIndex: item.pairIndex,
-                context: context,
-                policy: policy
-            )
-            return (item.focusIndex, item.tier, pair.entityWon, pair.baselineWon)
-        }
-
-        return BalanceContrastSupport.aggregate(
-            foci: foci.map { ($0.definition.id, "no-\($0.definition.id)", $0.owner.id) },
-            pairResults: pairResults,
-            threshold: context.config.peerDeltaFlagThreshold
+        return BalanceContrastSupport.runSweep(
+            context: context,
+            foci: foci,
+            tiers: context.config.tiers.filter(\.includesGear),
+            summarize: {
+                (entityID: $0.definition.id, baselineID: "no-\($0.definition.id)", ownerID: $0.owner.id)
+            },
+            primes: (tier: 800021, pair: 151),
+            makePair: { focus, tier, pairIndex, seed in
+                makePairSetup(
+                    focus: focus,
+                    tier: tier,
+                    pairIndex: pairIndex,
+                    context: context,
+                    pairSeed: seed
+                )
+            },
+            policy: policy
         )
     }
 
@@ -69,61 +62,33 @@ enum BalanceAffixContrastRunner {
         }
     }
 
-    private static func runPair(
-        focus: Focus,
-        tier: SimulationPowerTier,
-        pairIndex: Int,
-        context: BalanceContrastContext,
-        policy: GreedyHeuristicPolicy
-    ) -> (entityWon: Bool, baselineWon: Bool) {
-        let pairSeed = context.config.seed
-            &+ UInt64(tier.level) &* 800021
-            &+ UInt64(pairIndex) &* 151
-            &+ BalanceContrastSupport.stableHash64(focus.definition.id)
-        var rng = SeededRandomNumberGenerator(seed: pairSeed)
-        let setup = makePairSetup(
-            focus: focus,
-            tier: tier,
-            pairIndex: pairIndex,
-            context: context,
-            pairSeed: pairSeed,
-            using: &rng
-        )
-        return BalanceContrastSupport.runEntityBaselinePair(
-            matchups: setup,
-            policy: policy,
-            maxRounds: context.config.maxRounds,
-            maxActions: context.config.maxActions
-        )
-    }
-
     private static func makePairSetup(
         focus: Focus,
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
-        pairSeed: UInt64,
-        using randomNumberGenerator: inout some RandomNumberGenerator
+        pairSeed: UInt64
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
+        var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partner = BalanceContrastSupport.pickPartner(
             for: focus.owner,
             from: context,
-            using: &randomNumberGenerator
+            using: &rng
         )
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,
             battleIndex: pairIndex,
-            using: &randomNumberGenerator
+            using: &rng
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
             level: tier.level,
-            using: &randomNumberGenerator
+            using: &rng
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
             level: tier.level,
-            using: &randomNumberGenerator
+            using: &rng
         )
         let gears = makeAffixGearPair(
             focus: focus,

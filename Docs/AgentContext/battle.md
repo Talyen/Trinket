@@ -23,7 +23,7 @@ through its composition callback; it does not implement `BattleRuntime`.
 `BattlePresentationState` owns the combat projection, `BattleFeedbackLane` owns
 bounded feedback scheduling/raster publication, and `BattleSpectacleState` owns
 cinematics and outcome timing. Views observe the narrow lane they render. App-level
-options and audio enter through `BattlePresentationEnvironment`; Battle never imports
+options and audio enter through `BattleRuntimeDependencies`; Battle never imports
 `TrinketAppState`. Victory chrome uses launch-baked awards — do not re-derive
 `StageCompletion` policy inside BattleFeature outcome math.
 

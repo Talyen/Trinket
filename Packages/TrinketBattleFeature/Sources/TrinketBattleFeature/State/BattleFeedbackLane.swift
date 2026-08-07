@@ -1,6 +1,7 @@
 import BattleEngine
 import Foundation
 import Observation
+import TrinketBattleRuntime
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -85,7 +86,7 @@ final class BattleFeedbackLane {
     func record(
         _ events: [ActionEvent],
         at date: Date = .now,
-        environment: BattlePresentationEnvironment = .silent
+        environment: BattleRuntimeDependencies = .silent
     ) {
         for event in events {
             eventRecordedAt[event.id] = date
@@ -248,7 +249,7 @@ final class BattleFeedbackLane {
 
     private func applyMultimodalPresentation(
         for due: [CombatFeedbackItem],
-        environment: BattlePresentationEnvironment
+        environment: BattleRuntimeDependencies
     ) {
         guard !due.isEmpty else { return }
 

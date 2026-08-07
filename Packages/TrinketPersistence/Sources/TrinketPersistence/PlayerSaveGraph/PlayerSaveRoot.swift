@@ -28,7 +28,7 @@ public final class PlayerSaveRoot {
     }
 }
 
-enum PlayerSaveSchemaV1: VersionedSchema {
+enum PlayerSaveSchema: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
 
     static let models: [any PersistentModel.Type] = [
@@ -54,24 +54,6 @@ enum PlayerSaveSchemaV1: VersionedSchema {
     ]
 }
 
-/// Same model graph as V1 after dropping unused `JourneyProgressModel.lastCompletedStageID`.
-enum PlayerSaveSchemaV2: VersionedSchema {
-    static let versionIdentifier = Schema.Version(2, 0, 0)
-
-    static let models: [any PersistentModel.Type] = PlayerSaveSchemaV1.models
-}
-
-enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
-    static let schemas: [any VersionedSchema.Type] = [
-        PlayerSaveSchemaV1.self,
-        PlayerSaveSchemaV2.self,
-    ]
-
-    static let stages: [MigrationStage] = [
-        .lightweight(fromVersion: PlayerSaveSchemaV1.self, toVersion: PlayerSaveSchemaV2.self),
-    ]
-}
-
 public enum PlayerSaveGraph {
-    public static let schema = Schema(versionedSchema: PlayerSaveSchemaV2.self)
+    public static let schema = Schema(versionedSchema: PlayerSaveSchema.self)
 }

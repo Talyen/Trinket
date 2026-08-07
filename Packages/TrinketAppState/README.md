@@ -17,7 +17,7 @@ Application composition and player-flow orchestration.
 Music uses `AVAudioPlayer`; SFX use a prestarted `AVAudioEngine` with decoded PCM
 buffers. Both use an ambient, mix-with-others audio session. Battle SFX mapping stays
 in `TrinketBattleFeature` and reaches playback through
-`BattlePresentationEnvironment`. The app composition root supplies that environment
+`BattleRuntimeDependencies`. The app composition root supplies that environment
 through the closure-only `TrinketBattleRuntime.BattleRuntimeDependencies` contract.
 
 Feature views should receive the narrowest owner: a mode coordinator, `PlaySession`

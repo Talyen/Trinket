@@ -22,7 +22,7 @@ struct TrinketApp: App {
         var concreteBattleSession: BattleSession?
         let makeBattleComposition: (BattleRuntimeDependencies) -> BattleRuntimeComposition = { dependencies in
             let runtime = BattleRuntimeSession()
-            let session = Self.makeBattleSession(runtime: runtime, dependencies: dependencies)
+            let session = BattleSession(runtime: runtime, presentationEnvironment: dependencies)
             concreteBattleSession = session
             return BattleRuntimeComposition(
                 runtime: runtime,
@@ -95,25 +95,6 @@ struct TrinketApp: App {
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
         return activeParty + enemyNames
-    }
-
-    private static func makeBattleSession(
-        runtime: BattleRuntimeSession,
-        dependencies: BattleRuntimeDependencies
-    ) -> BattleSession {
-        BattleSession(
-            runtime: runtime,
-            presentationEnvironment: BattlePresentationEnvironment(
-                playSFX: dependencies.playSFX,
-                warmSFX: dependencies.warmSFX,
-                hapticsEnabled: dependencies.hapticsEnabled,
-                effectsVolume: dependencies.effectsVolume,
-                rememberAutoBattlePreference: dependencies.rememberAutoBattlePreference,
-                autoBattleEnabled: dependencies.autoBattleEnabled,
-                setAutoBattleEnabled: dependencies.setAutoBattleEnabled,
-                shouldAutoSkipUltimateCinematic: dependencies.shouldAutoSkipUltimateCinematic
-            )
-        )
     }
 }
 
