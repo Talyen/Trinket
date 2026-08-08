@@ -99,10 +99,11 @@ struct ItemSalvageApplierTests {
 
         let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
 
-        guard case .success = result else {
+        guard case let .success(yields) = result else {
             Issue.record("Expected successful salvage near cap")
             return
         }
+        #expect(yields == [ResourceAmount(.iron, 2)])
         #expect(save.inventory.items.isEmpty)
         #expect(save.homestead.resources[.iron] == PlayerHomesteadState.maxMaterialBalance)
         #expect(save.homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)

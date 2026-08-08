@@ -57,6 +57,32 @@ struct MysteryEffectApplierTests {
         try #expect(save.roster.progression(for: companion) == companionProgressionBefore.addingExperience(10))
     }
 
+    @Test func rewardResultReportsOnlyAmountsAcceptedByWallets() throws {
+        var save = makeSave()
+        save.roster.gold = 995
+        save.homestead = PlayerHomesteadState(
+            resources: [.herbs: PlayerHomesteadState.maxMaterialBalance - 2],
+            nodeTiers: [:],
+            pendingProduction: [.gold: 1, .herbs: 1],
+            lastProductionAt: Date()
+        )
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
+
+        let result = MysteryEffectApplier.apply(
+            [.gainGold(10), .gainMaterial(.herbs)],
+            stageID: "chapter-1-stage-2",
+            choiceID: "harvest",
+            encounterLevel: 1,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+
+        try #expect(result.grantedGold == 3)
+        try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 1)])
+        try #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - 1)
+        try #expect(save.homestead.resources[.herbs] == PlayerHomesteadState.maxMaterialBalance - 1)
+    }
+
     @Test func materialQuantityScalesWithLevel() {
         #expect(MysteryEffectApplier.materialQuantity(forLevel: 1) == 4)
         #expect(MysteryEffectApplier.materialQuantity(forLevel: 50) == 18)

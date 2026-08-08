@@ -104,7 +104,7 @@ public enum LabyrinthCompletion {
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
             )
             let stageGold = resolvedLoot?.gold ?? 0
-            save.roster.grantGold(
+            save.grantGold(
                 save.homestead.effects.adjustedGold(stageGold + battleEarnedGold)
             )
             StageCompletion.grantBattleExperience(
@@ -121,7 +121,7 @@ public enum LabyrinthCompletion {
             )
 
             let materials = materialRewards ?? resolvedLoot?.materials ?? []
-            save.homestead.grant(materials)
+            save.grantMaterials(materials)
 
             if let rewardItem {
                 appendUniqueRewardItem(rewardItem, save: &save)
@@ -130,15 +130,15 @@ public enum LabyrinthCompletion {
             }
         } else {
             let stipend = nonCombatGoldStipend(for: node, effects: effects)
-            save.roster.grantGold(
+            save.grantGold(
                 save.homestead.effects.adjustedGold(stipend + battleEarnedGold)
             )
             if let materialRewards {
-                save.homestead.grant(materialRewards)
+                save.grantMaterials(materialRewards)
             }
             if node.type.canonical == .craft {
                 // Leave without forging: gold stipend already granted; bonus material only.
-                save.homestead.grant([ResourceAmount(.wood, 1)])
+                save.grantMaterials([ResourceAmount(.wood, 1)])
             }
             if let rewardItem {
                 appendUniqueRewardItem(rewardItem, save: &save)
@@ -171,7 +171,7 @@ public enum LabyrinthCompletion {
 
         let effects = save.labyrinth.effects(for: nodeID)
         grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
-        save.homestead.grant([ResourceAmount(.wood, 1)])
+        save.grantMaterials([ResourceAmount(.wood, 1)])
         // Craft is non-combat: complete()/forge never grant battle XP here.
         save.labyrinth.markCleared(
             nodeID: nodeID,

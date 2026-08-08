@@ -25,11 +25,18 @@ public struct HomesteadNodeTier: Hashable, Sendable {
     public let tier: Int
     public let cost: [ResourceAmount]
     public let bonus: HomesteadBonus
+    public let production: ResourceAmount?
 
-    public init(tier: Int, cost: [ResourceAmount], bonus: HomesteadBonus) {
+    public init(
+        tier: Int,
+        cost: [ResourceAmount],
+        bonus: HomesteadBonus,
+        production: ResourceAmount? = nil
+    ) {
         self.tier = tier
         self.cost = cost
         self.bonus = bonus
+        self.production = production
     }
 }
 

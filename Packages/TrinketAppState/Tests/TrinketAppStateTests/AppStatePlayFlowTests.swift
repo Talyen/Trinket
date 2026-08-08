@@ -77,6 +77,28 @@ struct AppStatePlayFlowTests {
         #expect(state.playerSave.roster.gold == initialGold + 10)
     }
 
+    @Test func completeActiveBattleWithoutStageRespectsPendingGoldReservation() throws {
+        let state = try context.makePlaySession()
+        var save = state.playerSave.currentSave
+        save.roster.gold = PlayerRosterState.maxGoldBalance - 4
+        save.homestead.pendingProduction[.gold] = 1
+        try state.playerSave.performBatchMutation { $0 = save }
+
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let configuration = try BattleRunConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: state.playerSave.roster.activeHero,
+            companion: state.playerSave.roster.activeCompanion,
+            enemy: enemy
+        )
+        _ = state.battle.activate(configuration)
+
+        state.completeActiveBattle(configuration, battleEarnedGold: 10)
+
+        #expect(state.playerSave.roster.gold == PlayerRosterState.maxGoldBalance - 1)
+        #expect(state.playerSave.homestead.pendingProduction[.gold] == 1)
+    }
+
     @Test func unknownBattleRouteFailsClosedWithoutGrantingGold() throws {
         let state = try context.makePlaySession()
         let enemy = try #require(GameContent.enemies.first?.combatant)
@@ -225,6 +247,7 @@ struct AppStatePlayFlowTests {
         let state = try context.makePlaySession()
         var homestead = state.playerSave.homestead
         homestead.nodeTiers[.wishingWell] = 2
+        homestead.lastProductionAt = Date()
         state.playerSave.homestead = homestead
 
         let stage = try #require(GameContent.chapters[0].stages.first)

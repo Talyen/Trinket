@@ -344,6 +344,14 @@ extension HomesteadModel {
             guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
             resolvedResources[resource] = PlayerHomesteadState.clampedMaterialBalance(balance.quantity)
         }
+        var resolvedPendingProduction: [HomesteadResource: Double] = [:]
+        for pending in pendingProduction ?? [] {
+            guard let resource = HomesteadResource(rawValue: pending.resourceID),
+                  pending.quantity.isFinite,
+                  pending.quantity > 0
+            else { continue }
+            resolvedPendingProduction[resource] = pending.quantity
+        }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
         for tierModel in nodeTiers ?? [] {
             guard let nodeID = HomesteadNodeID(rawValue: tierModel.nodeID),
@@ -351,10 +359,17 @@ extension HomesteadModel {
             else { continue }
             resolvedNodeTiers[nodeID] = min(max(tierModel.tier, 0), maxTier)
         }
-        return PlayerHomesteadState(resources: resolvedResources, nodeTiers: resolvedNodeTiers)
+        return PlayerHomesteadState(
+            resources: resolvedResources,
+            nodeTiers: resolvedNodeTiers,
+            pendingProduction: resolvedPendingProduction,
+            lastProductionAt: lastProductionAt
+        )
     }
 
     func update(from homestead: PlayerHomesteadState, context: ModelContext?) {
+        lastProductionAt = homestead.lastProductionAt
+
         let resourceValues = homestead.resources
             .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
             .sorted { $0.resourceID < $1.resourceID }
@@ -371,6 +386,24 @@ extension HomesteadModel {
             context: context
         )
         resources?.linkEach(to: self, parent: \.homestead)
+
+        let pendingValues = homestead.pendingProduction
+            .filter { $0.value.isFinite && $0.value > 0 }
+            .map { (resourceID: $0.key.rawValue, quantity: $0.value) }
+            .sorted { $0.resourceID < $1.resourceID }
+        pendingProduction = reconcileModels(
+            existing: pendingProduction ?? [],
+            values: pendingValues,
+            existingKey: \.resourceID,
+            valueKey: { $0.resourceID },
+            make: { HomesteadPendingProductionModel(resourceID: $0.resourceID, quantity: $0.quantity) },
+            update: { model, value in
+                model.resourceID = value.resourceID
+                model.quantity = value.quantity
+            },
+            context: context
+        )
+        pendingProduction?.linkEach(to: self, parent: \.homestead)
 
         let tierValues = homestead.nodeTiers
             .map { (nodeID: $0.key.rawValue, tier: $0.value) }

@@ -29,6 +29,9 @@ Confirm in source / CI config:
 - [ ] `INFOPLIST_KEY_UIBackgroundModes: remote-notification` absent until CloudKit sync wakeups are real (`project.yml`)
 - [ ] `PlayerSaveStore.resolveConfiguration` documents local-only vs private CloudKit paths; private path unused until entitlements + portal
 - [ ] Entitlements file exists but empty on purpose — do not invent CloudKit keys before Developer Program enrollment
+- [ ] Passive Homestead collection has an explicit CloudKit readiness gate; the local collector cannot run while private CloudKit is enabled
+- [ ] The CloudKit passive-production authority is implemented before that gate is removed; no UI path writes a local collection while cloud sync is active
+- [ ] Passive production tests cover idempotent collection, timestamp/cursor conflict behavior, retry after `serverRecordChanged`, and interrupted local application
 
 ---
 
@@ -39,6 +42,7 @@ Confirm in source / CI config:
 - [ ] CloudKit container **`iCloud.com.ryanmcintire.Trinket`** exists and matches `Trinket/Trinket.entitlements`
 - [ ] Entitlements include `com.apple.developer.icloud-services = CloudKit` and `com.apple.developer.icloud-container-identifiers = iCloud.com.ryanmcintire.Trinket`
 - [ ] SwiftData CloudKit schema validates in Development for the full player object graph (`PlayerSaveRoot`, journey, roster, inventory, homestead, aspects, labyrinth children)
+- [ ] Passive Homestead production state or claim records are present in the Development schema and have a documented canonical owner
 - [ ] Schema review: CloudKit-compatible SwiftData constraints (optional relationships, defaults/optionals on scalars, no `@Attribute(.unique)`)
 - [ ] **Production** schema deployed (promoted from Development) before App Store release
 - [ ] Re-add `UIBackgroundModes: remote-notification` in `project.yml` **only if** sync wakeups require it
@@ -56,6 +60,11 @@ Confirm in source / CI config:
 - [ ] Account status changes handled (signed out / restricted → local fallback)
 - [ ] Playable **offline**; sync resumes when connectivity returns
 - [ ] Concurrent writes to separate properties converge without custom app reconciliation
+- [ ] Two devices collecting the same Homestead interval result in one claim, not duplicate production
+- [ ] Concurrent Collect and Homestead upgrade settles the old rate exactly once before applying the new tier
+- [ ] Offline devices can view pending production but cannot claim it until the cloud authority is reachable
+- [ ] A successful cloud claim followed by app termination is replay-safe and cannot duplicate wallet materials
+- [ ] Reset removes or invalidates outstanding passive-production claims on every device
 
 ---
 

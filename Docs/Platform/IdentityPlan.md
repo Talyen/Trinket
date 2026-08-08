@@ -14,7 +14,7 @@ Canonical product + engineering guidance for Trinket identity, cross-device prog
 | 2 | Google Sign-In? | **Skip** (not required) |
 | 3 | No iCloud on device? | **Fully playable local-only** |
 | 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion--apple-guidance) |
-| 5 | Multi-device conflicts? | **Rely on CloudKit / SwiftData defaults** — no custom merge UI |
+| 5 | Multi-device conflicts? | **Rely on CloudKit / SwiftData defaults** for ordinary progression; passive Homestead production is gated until its idempotent claim authority is verified |
 | 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
 | 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |
 
@@ -107,7 +107,7 @@ Because progress is **local + optional iCloud container data**, not a developer-
 | Offline / no iCloud | Full game; progress stays on device |
 | Options (after sync) | Optional quiet status only if useful later (e.g. “iCloud sync: On/Off”) — **not** a prompt |
 | Reset | Confirmation alert; destructive; after sync must clear synced progress |
-| Conflicts | Accept CloudKit/SwiftData last-writer / merge defaults; no player-facing conflict UI in v1 |
+| Conflicts | Accept CloudKit/SwiftData last-writer / merge defaults for ordinary progression; passive Homestead production must use the dedicated pre-ship claim gate and authority |
 
 ---
 
@@ -124,7 +124,7 @@ Keep seams lightweight until Developer Program enrollment:
 
 **Do not** ship Account / Sign-In rows in Options. **Do not** add SIWA / Google capabilities.
 
-When enabling live CloudKit, run [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, custom conflict UI, hosted backend, non-Apple platforms.
+When enabling live CloudKit, run [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, player-facing conflict UI, hosted backend, non-Apple platforms. Passive Homestead production remains disabled in cloud mode until its claim authority is verified.
 
 ---
 

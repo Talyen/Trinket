@@ -169,6 +169,7 @@ class HomesteadNodeRow:
     cost: str
     bonus_title: str
     bonus_description: str
+    production: str
 
 
 def read_tsv(path: Path) -> list[list[str]]:
@@ -319,6 +320,7 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
         "cost",
         "bonus_title",
         "bonus_description",
+        "production",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -1300,14 +1302,23 @@ def parse_homestead_prerequisites(raw: str) -> str:
 
 
 def render_homestead_tier(row: HomesteadNodeRow) -> str:
+    production = parse_homestead_production(row.production)
+    production_line = f",\n                    production: {production}" if production else ""
     return f"""                HomesteadNodeTier(
                     tier: {row.tier},
                     cost: {parse_material_rewards(row.cost)},
                     bonus: HomesteadBonus(
                         title: "{swift_escape(row.bonus_title)}",
                         description: "{swift_escape(row.bonus_description)}"
-                    )
+                    ){production_line}
                 )"""
+
+
+def parse_homestead_production(raw: str) -> str | None:
+    if not raw.strip():
+        return None
+    resource, quantity = raw.split(":", 1)
+    return f"ResourceAmount(.{resource.strip()}, {quantity.strip()})"
 
 
 def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
@@ -1397,6 +1408,12 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         _require_non_empty("bonus_title", row.bonus_title, row_id)
         _require_non_empty("bonus_description", row.bonus_description, row_id)
         validate_homestead_cost(row.cost, row_id)
+        if row.production.strip():
+            resource, quantity = row.production.split(":", 1)
+            if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
+                raise ValueError(f"Unknown production resource '{resource}' for {row_id}")
+            if not quantity.strip().isdigit() or int(quantity.strip()) <= 0:
+                raise ValueError(f"Production quantity for {row_id} must be positive")
         nodes.setdefault(row.node_id, []).append(row)
 
     node_tiers = {

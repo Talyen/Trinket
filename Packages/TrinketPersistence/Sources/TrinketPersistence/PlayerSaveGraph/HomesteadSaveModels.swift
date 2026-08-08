@@ -9,8 +9,11 @@ public final class HomesteadModel {
 
     @Relationship(deleteRule: .cascade, inverse: \HomesteadResourceBalanceModel.homestead)
     public var resources: [HomesteadResourceBalanceModel]?
+    @Relationship(deleteRule: .cascade, inverse: \HomesteadPendingProductionModel.homestead)
+    public var pendingProduction: [HomesteadPendingProductionModel]?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadNodeTierModel.homestead)
     public var nodeTiers: [HomesteadNodeTierModel]?
+    public var lastProductionAt: Date = Date()
 
     public init() {}
 }
@@ -22,6 +25,18 @@ public final class HomesteadResourceBalanceModel {
     public var homestead: HomesteadModel?
 
     public init(resourceID: String = "", quantity: Int = 0) {
+        self.resourceID = resourceID
+        self.quantity = quantity
+    }
+}
+
+@Model
+public final class HomesteadPendingProductionModel {
+    public var resourceID: String = ""
+    public var quantity: Double = 0
+    public var homestead: HomesteadModel?
+
+    public init(resourceID: String = "", quantity: Double = 0) {
         self.resourceID = resourceID
         self.quantity = quantity
     }

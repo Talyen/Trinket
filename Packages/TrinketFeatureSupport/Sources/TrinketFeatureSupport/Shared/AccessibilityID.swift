@@ -213,6 +213,7 @@ public enum AccessibilityID {
 
     public enum Homestead {
         public static let resourceWallet = "Homestead Resource Wallet"
+        public static let collectButton = "Homestead Collect Button"
         public static let tierPath = "Homestead Tier Path"
 
         public static func category(_ title: String) -> String {

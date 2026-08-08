@@ -1,7 +1,8 @@
 import Foundation
+import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 12
+    public static let currentSchemaVersion = 13
     public static let corruptionAltarCooldownAfterEncounter = 6
 
     public var schemaVersion: Int
@@ -49,7 +50,7 @@ public struct PlayerSave: Equatable, Sendable {
     public static var unlockedAll: Self {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
-        roster.gold = PlayerRosterState.maxGoldBalance
+        roster.gold = 900
 
         var journey = JourneyProgressState.initial
         journey.completeChapter("chapter-1")
@@ -89,5 +90,39 @@ public struct PlayerSave: Equatable, Sendable {
         self.spires = spires
         self.labyrinth = labyrinth
         self.corruptionAltarCooldownRemaining = max(0, corruptionAltarCooldownRemaining)
+    }
+
+    @discardableResult
+    public mutating func grantGold(_ amount: Int, at date: Date = Date()) -> Int {
+        guard amount > 0 else { return 0 }
+        homestead.settleProduction(at: date, roster: roster)
+        let balanceBefore = roster.gold
+        let reserved = Int(ceil(homestead.pendingProduction[.gold, default: 0]))
+        let available = max(0, PlayerRosterState.maxGoldBalance - roster.gold - reserved)
+        roster.grantGold(min(amount, available))
+        return roster.gold - balanceBefore
+    }
+
+    /// Settles production before granting materials and returns the amounts accepted.
+    @discardableResult
+    public mutating func grantMaterials(
+        _ rewards: [ResourceAmount],
+        at date: Date = Date()
+    ) -> [ResourceAmount] {
+        guard !rewards.isEmpty else { return [] }
+        homestead.settleProduction(at: date, roster: roster)
+        let balancesBefore = homestead.resources
+        homestead.grant(rewards)
+
+        var resourceOrder: [HomesteadResource] = []
+        var seenResources = Set<HomesteadResource>()
+        for reward in rewards where reward.resource != .gold && seenResources.insert(reward.resource).inserted {
+            resourceOrder.append(reward.resource)
+        }
+        return resourceOrder.compactMap { resource in
+            let granted = homestead.resources[resource, default: 0] - balancesBefore[resource, default: 0]
+            guard granted > 0 else { return nil }
+            return ResourceAmount(resource, granted)
+        }
     }
 }

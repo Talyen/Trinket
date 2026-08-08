@@ -11,6 +11,7 @@ struct HomesteadHeroScreen<HeroArt: View, Body: View>: View {
     let title: String
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
+    var walletAnimationNamespace: Namespace.ID?
     var bottomPadding: CGFloat = TrinketDesign.Metrics.tabBarContentClearance
     @ViewBuilder let heroArt: () -> HeroArt
     @ViewBuilder let bodyContent: () -> Body
@@ -31,8 +32,12 @@ struct HomesteadHeroScreen<HeroArt: View, Body: View>: View {
             }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.homesteadBodySpacing) {
-                HomesteadResourceWallet(homestead: homestead, roster: roster)
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                HomesteadResourceWallet(
+                    homestead: homestead,
+                    roster: roster,
+                    walletAnimationNamespace: walletAnimationNamespace
+                )
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
                 bodyContent()
             }

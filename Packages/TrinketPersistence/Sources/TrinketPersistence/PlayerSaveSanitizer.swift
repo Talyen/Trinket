@@ -103,10 +103,21 @@ public enum PlayerSaveSanitizer {
 
     public static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
         var sanitized = homestead
+        sanitized.pendingProduction = Dictionary(
+            uniqueKeysWithValues: homestead.pendingProduction.compactMap { resource, quantity in
+                guard quantity.isFinite, quantity > 0 else { return nil }
+                let maximum = resource == .gold
+                    ? PlayerRosterState.maxGoldBalance
+                    : PlayerHomesteadState.maxMaterialBalance
+                return (resource, min(quantity, Double(maximum)))
+            }
+        )
         sanitized.resources = Dictionary(
             uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
                 guard resource != .gold else { return nil }
-                return (resource, PlayerHomesteadState.clampedMaterialBalance(quantity))
+                let pending = sanitized.pendingProduction[resource, default: 0]
+                let capacity = PlayerHomesteadState.maxMaterialBalance - Int(ceil(pending))
+                return (resource, min(PlayerHomesteadState.clampedMaterialBalance(quantity), max(0, capacity)))
             }
         )
         return sanitized

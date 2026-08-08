@@ -29,6 +29,10 @@ public extension HomesteadResource {
         case .gold: "dollarsign.circle.fill"
         }
     }
+
+    var walletAnimationID: String {
+        "Homestead Wallet Resource \(rawValue)"
+    }
 }
 
 public extension HomesteadNodeDefinition {

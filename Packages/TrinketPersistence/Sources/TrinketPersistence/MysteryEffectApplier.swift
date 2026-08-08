@@ -102,8 +102,7 @@ public enum MysteryEffectApplier {
         let materials = state.materialTotals.map { ResourceAmount($0.key, $0.value) }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
         if !materials.isEmpty {
-            save.homestead.grant(materials)
-            state.result.grantedMaterials = materials
+            state.result.grantedMaterials = save.grantMaterials(materials)
         }
 
         if state.result.grantedExperience > 0 {
@@ -143,8 +142,7 @@ public enum MysteryEffectApplier {
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
-            let granted = save.homestead.effects.adjustedGold(amount)
-            save.roster.grantGold(granted)
+            let granted = save.grantGold(save.homestead.effects.adjustedGold(amount))
             state.result.grantedGold += granted
 
         case let .gainMaterial(resource):

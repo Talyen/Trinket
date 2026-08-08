@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -126,5 +127,147 @@ struct HomesteadStateTests {
             nodeTiers: [:]
         )
         try #expect(full.receivableAmounts(from: rewards).isEmpty)
+    }
+
+    @Test func wheatFieldProductionAndDescriptionsMatchEachTier() throws {
+        let expected: [HomesteadNodeID: HomesteadResource] = [
+            .wheatField: .food,
+            .herbGarden: .herbs,
+            .chickenCoop: .food,
+            .pasture: .food,
+            .culinaryArts: .food,
+            .crystalGarden: .crystal,
+            .hunterLodge: .hide,
+            .wishingWell: .gold,
+        ]
+
+        for (nodeID, resource) in expected {
+            let definition = try #require(GameContent.homesteadNode(matching: nodeID))
+            try #expect(definition.tiers.compactMap { $0.production?.resource } == [resource, resource, resource, resource])
+            try #expect(definition.tiers.compactMap { $0.production?.quantity } == [1, 2, 3, 4])
+            try #expect(definition.tiers.allSatisfy { $0.bonus.description.contains("Produces") })
+        }
+    }
+
+    @Test func productionPreservesFractionalProgressBetweenSettlements() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 1],
+            lastProductionAt: start
+        )
+        let roster = PlayerRosterState.freshStart
+
+        homestead.settleProduction(
+            at: start.addingTimeInterval(12 * 60 * 60),
+            roster: roster
+        )
+        try #expect(abs(homestead.pendingProduction[.food, default: 0] - 0.5) < 0.0001)
+
+        var collectingRoster = roster
+        let collected = homestead.collectProduction(
+            at: start.addingTimeInterval(24 * 60 * 60),
+            roster: &collectingRoster
+        )
+        try #expect(collected == [ResourceAmount(.food, 1)])
+        try #expect(homestead.resources[.food] == 1)
+        try #expect(homestead.pendingProduction.isEmpty)
+    }
+
+    @Test func productionStopsAtCombinedWalletAndPendingCapacity() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var homestead = PlayerHomesteadState(
+            resources: [.food: PlayerHomesteadState.maxMaterialBalance - 1],
+            nodeTiers: [.wheatField: 1],
+            lastProductionAt: start
+        )
+        var roster = PlayerRosterState.freshStart
+
+        homestead.settleProduction(
+            at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
+            roster: roster
+        )
+        try #expect(homestead.pendingProduction[.food] == 1)
+        try #expect(
+            homestead.collectProduction(
+                at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
+                roster: &roster
+            ) == [ResourceAmount(.food, 1)]
+        )
+        try #expect(homestead.resources[.food] == PlayerHomesteadState.maxMaterialBalance)
+    }
+
+    @Test func goldProductionCollectsIntoRosterAndRespectsGoldCap() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wishingWell: 1],
+            lastProductionAt: start
+        )
+        var roster = PlayerRosterState.freshStart
+        roster.gold = PlayerRosterState.maxGoldBalance - 1
+
+        homestead.settleProduction(
+            at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
+            roster: roster
+        )
+        try #expect(homestead.pendingProduction[.gold] == 1)
+
+        let collected = homestead.collectProduction(
+            at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
+            roster: &roster
+        )
+        try #expect(collected == [ResourceAmount(.gold, 1)])
+        try #expect(roster.gold == PlayerRosterState.maxGoldBalance)
+        try #expect(homestead.pendingProduction.isEmpty)
+    }
+
+    @Test func materialGrantSettlesProductionBeforeApplyingReward() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var save = PlayerSave(
+            schemaVersion: PlayerSave.currentSchemaVersion,
+            modifiedAt: start,
+            journey: .initial,
+            roster: .freshStart,
+            inventory: .freshStart,
+            homestead: PlayerHomesteadState(
+                resources: [:],
+                nodeTiers: [.wheatField: 1],
+                lastProductionAt: start
+            )
+        )
+
+        let granted = save.grantMaterials(
+            [ResourceAmount(.food, PlayerHomesteadState.maxMaterialBalance)],
+            at: start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        )
+
+        try #expect(granted == [ResourceAmount(.food, PlayerHomesteadState.maxMaterialBalance - 1)])
+        try #expect(save.homestead.resources[.food] == PlayerHomesteadState.maxMaterialBalance - 1)
+        try #expect(save.homestead.pendingProduction[.food] == 1)
+    }
+
+    @Test func goldGrantSettlesProductionAndReturnsActualAmount() throws {
+        let start = Date(timeIntervalSince1970: 0)
+        var roster = PlayerRosterState.freshStart
+        roster.gold = 995
+        var save = PlayerSave(
+            schemaVersion: PlayerSave.currentSchemaVersion,
+            modifiedAt: start,
+            journey: .initial,
+            roster: roster,
+            inventory: .freshStart,
+            homestead: PlayerHomesteadState(
+                resources: [:],
+                nodeTiers: [.wishingWell: 1],
+                lastProductionAt: start
+            )
+        )
+
+        let granted = save.grantGold(10, at: start.addingTimeInterval(PlayerHomesteadState.secondsPerDay))
+
+        try #expect(granted == 3)
+        try #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - 1)
+        try #expect(save.homestead.pendingProduction[.gold] == 1)
     }
 }

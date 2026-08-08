@@ -8,10 +8,16 @@ import TrinketPersistence
 public struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
+    let walletAnimationNamespace: Namespace.ID?
 
-    public init(homestead: PlayerHomesteadState, roster: PlayerRosterState) {
+    public init(
+        homestead: PlayerHomesteadState,
+        roster: PlayerRosterState,
+        walletAnimationNamespace: Namespace.ID? = nil
+    ) {
         self.homestead = homestead
         self.roster = roster
+        self.walletAnimationNamespace = walletAnimationNamespace
     }
 
     public var body: some View {
@@ -21,10 +27,24 @@ public struct HomesteadResourceWallet: View {
                     title: resource.displayName,
                     amount: homestead.balance(for: resource, roster: roster)
                 ) {
-                    HomesteadResourceArtwork(resource: resource)
+                    walletArtwork(for: resource)
                 }
             }
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
+    }
+
+    @ViewBuilder
+    private func walletArtwork(for resource: HomesteadResource) -> some View {
+        let artwork = HomesteadResourceArtwork(resource: resource)
+        if let walletAnimationNamespace {
+            artwork.matchedGeometryEffect(
+                id: resource.walletAnimationID,
+                in: walletAnimationNamespace,
+                isSource: false
+            )
+        } else {
+            artwork
+        }
     }
 }

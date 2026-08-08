@@ -58,14 +58,14 @@ public enum SpireCompletion {
             for: floor,
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         )
-        save.roster.grantGold(
+        save.grantGold(
             save.homestead.effects.adjustedGold(resolvedLoot.gold + battleEarnedGold)
         )
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
         StageCompletion.grantBattleExperience(enemyLevel: encounterLevel, to: companion, roster: &save.roster)
 
         let resolvedMaterials = materialRewards ?? resolvedLoot.materials
-        save.homestead.grant(resolvedMaterials)
+        save.grantMaterials(resolvedMaterials)
 
         if let rewardItem {
             save.inventory.appendUniqueItem(rewardItem)

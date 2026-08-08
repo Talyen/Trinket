@@ -11,16 +11,13 @@
       "hidden" : false,
       "layers" : [
         {
-          "blend-mode" : "normal",
-          "glass" : true,
-          "hidden" : false,
-          "image-name" : "8.jpeg",
-          "name" : "8",
+          "image-name" : "7.jpeg",
+          "name" : "7",
           "position" : {
-            "scale" : 0.6,
+            "scale" : 0.55,
             "translation-in-points" : [
-              1.1368683772161603e-13,
-              55.593749999999886
+              0,
+              51.200000000000045
             ]
           }
         }

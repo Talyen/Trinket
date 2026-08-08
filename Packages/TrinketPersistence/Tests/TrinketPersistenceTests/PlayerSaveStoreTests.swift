@@ -137,7 +137,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
         try #expect(store.roster.highestHeroLevel == 20)
         try #expect(store.roster.highestCompanionLevel == 20)
-        try #expect(store.roster.gold == PlayerRosterState.maxGoldBalance)
+        try #expect(store.roster.gold == 900)
         try #expect(store.journey.completedStageIDs == chapter1StageIDs)
         try #expect(store.journey.activeChapterID == "chapter-2")
         try #expect(store.journey.activeStageID == "chapter-2-stage-1")
@@ -145,19 +145,28 @@ final class PlayerSaveStoreTests {
         try #expect(store.labyrinth == .freshStart)
         try #expect(store.inventory == .testSeed)
         for resource in HomesteadResource.allCases where resource != .gold {
-            try #expect(store.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
+            try #expect(store.homestead.resources[resource] == 900)
+        }
+        for nodeID in HomesteadNodeID.allCases {
+            let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID, default: 3]
+            try #expect(store.homestead.tier(for: nodeID) == maxTier - 1)
         }
         try #expect(store.currentSave.sessionGeneration == 1)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.highestHeroLevel == 20)
-        try #expect(reloaded.roster.gold == PlayerRosterState.maxGoldBalance)
+        try #expect(reloaded.roster.gold == 900)
         try #expect(reloaded.journey.activeChapterID == "chapter-2")
         try #expect(reloaded.journey.activeStageID == "chapter-2-stage-1")
         try #expect(reloaded.spires == .freshStart)
         for resource in HomesteadResource.allCases where resource != .gold {
-            try #expect(reloaded.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
+            try #expect(reloaded.homestead.resources[resource] == 900)
         }
+        try #expect(reloaded.homestead.pendingProduction[.food] == 10)
+        try #expect(reloaded.homestead.pendingProduction[.herbs] == 10)
+        try #expect(reloaded.homestead.pendingProduction[.crystal] == 10)
+        try #expect(reloaded.homestead.pendingProduction[.hide] == 10)
+        try #expect(reloaded.homestead.pendingProduction[.gold] == 10)
     }
 
     @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {

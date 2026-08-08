@@ -55,7 +55,7 @@ struct PlayBattleCompletion {
     func grantBattleEarnedGold(_ amount: Int) -> Bool {
         guard amount > 0 else { return true }
         return playerSave.persistBatch(logging: "Failed to persist battle gold") { save in
-            save.roster.grantGold(amount)
+            save.grantGold(amount)
         }
     }
 }

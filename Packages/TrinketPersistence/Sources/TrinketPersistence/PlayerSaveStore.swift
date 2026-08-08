@@ -40,6 +40,7 @@ public final class PlayerSaveStore {
 
     /// `true` when disk store failed and an in-memory fallback container is active.
     public private(set) var isPersistenceDegraded = false
+    public let isCloudSyncEnabled: Bool
 
     #if DEBUG
     public var forcesNextSaveFailure = false
@@ -103,6 +104,10 @@ public final class PlayerSaveStore {
         persistSaveImmediately: Bool = false
     ) throws {
         self.persistSaveImmediately = persistSaveImmediately
+        let requestedCloudSync = !disableCloudSync
+            && !inMemoryOnly
+            && storeName == nil
+            && storeURL == nil
         let finalURL = PlayerSaveStoreConfiguration.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
         if resetState, !inMemoryOnly {
@@ -129,6 +134,7 @@ public final class PlayerSaveStore {
             deleteStoreOnFailure: false
         )
         container = openResult.container
+        isCloudSyncEnabled = requestedCloudSync && !openResult.usedInMemoryFallback
         if openResult.usedInMemoryFallback {
             isPersistenceDegraded = true
             lastPersistenceError = .storeUnavailable(

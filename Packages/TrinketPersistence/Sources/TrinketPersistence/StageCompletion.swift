@@ -153,7 +153,7 @@ public enum StageCompletion {
         // replays / auto-complete so resourceGain loot is not silently dropped.
         guard !save.journey.hasClaimedRewards(for: stage) else {
             if battleEarnedGold > 0 {
-                save.roster.grantGold(
+                save.grantGold(
                     resolvedGoldReward(
                         stageGold: 0,
                         battleEarnedGold: battleEarnedGold,
@@ -187,7 +187,7 @@ public enum StageCompletion {
         }()
 
         let stageGold = resolvedLoot?.gold ?? stage.rewards.gold
-        save.roster.grantGold(
+        save.grantGold(
             resolvedGoldReward(
                 stageGold: stageGold,
                 battleEarnedGold: battleEarnedGold,
@@ -202,7 +202,7 @@ public enum StageCompletion {
         let resolvedMaterials = materialRewards
             ?? resolvedLoot?.materials
             ?? resolvedMaterialRewards(stageReward: stage.rewards)
-        save.homestead.grant(resolvedMaterials)
+        save.grantMaterials(resolvedMaterials)
 
         if let rewardItem {
             save.inventory.appendUniqueItem(rewardItem)

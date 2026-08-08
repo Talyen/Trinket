@@ -47,6 +47,7 @@ enum PlayerSaveSchema: VersionedSchema {
         ItemAffixModel.self,
         HomesteadModel.self,
         HomesteadResourceBalanceModel.self,
+        HomesteadPendingProductionModel.self,
         HomesteadNodeTierModel.self,
         SpiresProgressModel.self,
         SpireFloorProgressModel.self,

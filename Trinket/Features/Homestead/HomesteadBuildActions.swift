@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -32,6 +33,35 @@ struct HomesteadBuildControl {
     }
 }
 
+struct HomesteadCollectionControl {
+    var isCollecting = false
+    var error: String?
+    var collectionEventCount = 0
+
+    @MainActor
+    mutating func perform(
+        saveStore: PlayerSaveStore,
+        at date: Date,
+        onSuccess: ([ResourceAmount]) -> Void = { _ in }
+    ) {
+        guard !isCollecting else { return }
+        isCollecting = true
+        defer { isCollecting = false }
+
+        switch saveStore.homesteadStore.collectProduction(at: date) {
+        case let .success(amounts):
+            collectionEventCount += 1
+            onSuccess(amounts)
+        case .noProduction:
+            break
+        case .cloudSyncUnsupported:
+            error = "Passive collection is unavailable while cloud sync is enabled."
+        case .persistFailed:
+            error = "Couldn't save collected materials. Try again."
+        }
+    }
+}
+
 extension View {
     func homesteadBuildErrorAlert(build: Binding<HomesteadBuildControl>) -> some View {
         alert(
@@ -48,6 +78,24 @@ extension View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(build.wrappedValue.error ?? "")
+        }
+    }
+
+    func homesteadCollectionErrorAlert(collection: Binding<HomesteadCollectionControl>) -> some View {
+        alert(
+            "Collection Failed",
+            isPresented: Binding(
+                get: { collection.wrappedValue.error != nil },
+                set: {
+                    if !$0 {
+                        collection.wrappedValue.error = nil
+                    }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(collection.wrappedValue.error ?? "")
         }
     }
 }

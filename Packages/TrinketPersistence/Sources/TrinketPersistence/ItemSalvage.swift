@@ -49,8 +49,7 @@ public enum ItemSalvageApplier {
         let yields = ItemSalvage.yields(for: item)
         unequip(itemID: itemID, from: &save.roster)
         save.inventory.removeItem(id: itemID)
-        save.homestead.grant(yields)
-        return .success(yields: yields)
+        return .success(yields: save.grantMaterials(yields))
     }
 
     private static func unequip(itemID: String, from roster: inout PlayerRosterState) {
