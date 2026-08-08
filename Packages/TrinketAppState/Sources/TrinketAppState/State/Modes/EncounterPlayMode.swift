@@ -17,6 +17,13 @@ public final class EncounterPlayMode {
     public var activeMysteryEncounter: MysteryEncounterSession?
     public var activeShopEncounter: ShopEncounterSession?
 
+    /// True when no shop, mystery, or battle is already in progress.
+    var canBeginTransientEncounter: Bool {
+        activeShopEncounter == nil
+            && activeMysteryEncounter == nil
+            && battle.lifecyclePhase != .active
+    }
+
     init(
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
@@ -33,10 +40,7 @@ public final class EncounterPlayMode {
     func beginShopEncounter(
         origin: PlayEncounterOrigin
     ) -> ShopEncounterOpenResult {
-        guard activeShopEncounter == nil,
-              activeMysteryEncounter == nil,
-              battle.lifecyclePhase != .active
-        else { return .unavailable }
+        guard canBeginTransientEncounter else { return .unavailable }
 
         switch ShopEncounterSession.open(
             origin: origin,
@@ -65,19 +69,14 @@ public final class EncounterPlayMode {
 
         shopSession.markPurchaseStarted()
         var purchaseResult: ShopPurchaseResult?
-        do {
-            try playerSave.performBatchMutation { save in
-                purchaseResult = ShopPurchaseApplier.purchase(
-                    offer: offer,
-                    visitToken: shopSession.visitToken,
-                    stageID: shopSession.stage.id,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to purchase shop offer: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to purchase shop offer", { save in
+            purchaseResult = ShopPurchaseApplier.purchase(
+                offer: offer,
+                visitToken: shopSession.visitToken,
+                stageID: shopSession.stage.id,
+                save: &save
             )
+        }) else {
             shopSession.markPurchaseFailed(message: "Purchase failed. Try again.")
             return false
         }
@@ -110,21 +109,16 @@ public final class EncounterPlayMode {
         guard let shopSession = activeShopEncounter else { return false }
 
         shopSession.clearLeaveFailure()
-        do {
-            try playerSave.performBatchMutation { save in
-                StageCompletion.completeEncounter(
-                    stage: shopSession.stage,
-                    labyrinthNodeID: shopSession.labyrinthNodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    in: GameContent.chapters,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to leave shop: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to leave shop", { save in
+            StageCompletion.completeEncounter(
+                stage: shopSession.stage,
+                labyrinthNodeID: shopSession.labyrinthNodeID,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                in: GameContent.chapters,
+                save: &save
             )
+        }) else {
             shopSession.markLeaveFailed("Couldn't save progress. Stay here and try Leave Shop again.")
             return false
         }

@@ -199,6 +199,26 @@ public final class PlayerSaveStore {
         }
     }
 
+    /// Persists a batch mutation, returning `false` (with a logged message) on failure.
+    ///
+    /// Callers keep their own failure bookkeeping (mark-failed, keep the session
+    /// open, play SFX) so they never clear progress that failed to persist.
+    @discardableResult
+    public func persistBatch(
+        logging message: String,
+        _ mutation: (inout PlayerSave) -> Void
+    ) -> Bool {
+        do {
+            try performBatchMutation(mutation)
+            return true
+        } catch {
+            logger.error(
+                "\(message, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+    }
+
     /// Writes any coalesced deferred mutation immediately (no yield). Call from
     /// scene-phase teardown so progress is durable before suspension.
     public func flushPendingPersistence() {

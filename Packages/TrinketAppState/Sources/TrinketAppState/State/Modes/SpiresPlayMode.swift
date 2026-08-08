@@ -150,24 +150,16 @@ public final class SpiresPlayMode {
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil
     ) -> Bool {
-        do {
-            try playerSave.performBatchMutation { save in
-                SpireCompletion.complete(
-                    floor: floor,
-                    hero: hero,
-                    companion: companion,
-                    battleEarnedGold: battleEarnedGold,
-                    materialRewards: materialRewards,
-                    rewardItem: rewardItem,
-                    save: &save
-                )
-            }
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to persist Spire floor: \(error.localizedDescription, privacy: .public)"
+        playerSave.persistBatch(logging: "Failed to persist Spire floor") { save in
+            SpireCompletion.complete(
+                floor: floor,
+                hero: hero,
+                companion: companion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: rewardItem,
+                save: &save
             )
-            return false
         }
     }
 }

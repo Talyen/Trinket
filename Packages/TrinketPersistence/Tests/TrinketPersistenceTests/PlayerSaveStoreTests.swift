@@ -393,6 +393,20 @@ final class PlayerSaveStoreTests {
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.gold == 10)
     }
+
+    @Test func persistBatchReturnsFalseAndRollsBackWhenSaveFails() throws {
+        let store = try context.makeSaveStore()
+        store.grantGold(10)
+        store.forcesNextSaveFailure = true
+
+        let persisted = store.persistBatch(logging: "Test persist") { save in
+            save.roster.gold += 50
+        }
+
+        #expect(!persisted)
+        try #expect(store.roster.gold == 10)
+        try #expect(store.lastPersistenceError == .writeFailed)
+    }
     #endif
 }
 

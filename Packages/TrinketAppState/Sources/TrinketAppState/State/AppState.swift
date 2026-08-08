@@ -22,7 +22,6 @@ public final class AppState {
     public let shellSession: ShellSession
     let musicPlayer: MusicPlayer
     public let sfxPlayer: SFXPlayer
-    public var shellScenePhase: ScenePhase = .active
     public var options: OptionsStore
     public let play: PlaySession
 
@@ -179,13 +178,7 @@ public final class AppState {
     }
 
     public func reconcileShellState(_ trigger: ShellReconcileTrigger, scenePhase: ScenePhase) {
-        shellScenePhase = scenePhase
-
         switch trigger {
-        case .appeared:
-            break
-        case .tabChanged:
-            break
         case let .activeBattleChanged(started):
             if !started {
                 musicPlayer.clearEncounterResumePositions()
@@ -273,8 +266,6 @@ public final class AppState {
 }
 
 public enum ShellReconcileTrigger {
-    case appeared
-    case tabChanged
     case activeBattleChanged(started: Bool)
     case scenePhaseChanged
 }

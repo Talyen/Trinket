@@ -9,6 +9,16 @@ import TrinketPersistence
 
 @MainActor
 struct PlayBattleLaunchTests {
+    /// Assembles with the default empty roster/inventory state used across these tests.
+    private func makeLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
+        PlayBattleLaunch.assembleLaunch(
+            input: input,
+            rngSeed: 0,
+            rosterState: .initial,
+            inventoryState: .initial
+        )
+    }
+
     @Test func resolvedJourneyEncounterScalesEnemy() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)
@@ -51,12 +61,14 @@ struct PlayBattleLaunchTests {
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
 
         let configuration = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: skeleton.combatant
+            ),
             rngSeed: 0,
-            hero: knight,
-            companion: wolf,
             rosterState: .initial,
-            inventoryState: .initial,
-            enemy: skeleton.combatant
+            inventoryState: .initial
         ).configuration
 
         #expect(configuration.enemyModifiers.damageTakenVulnerability(for: .holy) > 0)
@@ -70,13 +82,15 @@ struct PlayBattleLaunchTests {
         let modifier = AffixModifier.damageDealt(.burn, 1)
 
         let launch = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: hero,
+                companion: companion,
+                enemy: enemy,
+                universalModifiers: [modifier]
+            ),
             rngSeed: 0,
-            hero: hero,
-            companion: companion,
             rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy,
-            universalModifiers: [modifier]
+            inventoryState: .initial
         )
 
         let configuration = launch.configuration
@@ -95,13 +109,15 @@ struct PlayBattleLaunchTests {
         ]
 
         let launch = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: hero,
+                companion: companion,
+                enemy: enemy,
+                labyrinthModifiers: modifiers
+            ),
             rngSeed: 0,
-            hero: hero,
-            companion: companion,
             rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy,
-            labyrinthModifiers: modifiers
+            inventoryState: .initial
         )
 
         #expect(launch.presentation.labyrinthModifiers == modifiers)
@@ -116,15 +132,17 @@ struct PlayBattleLaunchTests {
         let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
 
         let launch = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: enemy,
+                stageRewardsAlreadyClaimed: true
+            ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
-            hero: knight,
-            companion: wolf,
             rosterState: .initial,
             inventoryState: .initial,
             homesteadState: homestead,
-            enemy: enemy,
-            stageRewardsAlreadyClaimed: true,
             hasProgressionRewards: true,
             musicStageID: stage.id
         )
@@ -149,14 +167,16 @@ struct PlayBattleLaunchTests {
         let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
 
         let configuration = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: scaledEnemy,
+                enemyEncounterLevel: expectedLevel
+            ),
             runKey: BattleRunKey("journey|\(stage.id)"),
             rngSeed: 0,
-            hero: knight,
-            companion: wolf,
             rosterState: .initial,
             inventoryState: .initial,
-            enemy: scaledEnemy,
-            enemyEncounterLevel: expectedLevel,
             hasProgressionRewards: true,
             musicStageID: stage.id
         ).configuration
@@ -178,13 +198,15 @@ struct PlayBattleLaunchTests {
         )
 
         let launch = PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemyEncounterLevel: 2,
+                stageReward: stageReward
+            ),
             rngSeed: 0,
-            hero: knight,
-            companion: wolf,
             rosterState: .initial,
             inventoryState: .initial,
-            enemyEncounterLevel: 2,
-            stageReward: stageReward,
             hasProgressionRewards: true
         )
 
@@ -207,48 +229,40 @@ struct PlayBattleLaunchTests {
             affixes: []
         )
 
-        let withPending = PlayBattleLaunch.assembleLaunch(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy,
-            stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
-            pendingRewardItem: pendingItem
+        let withPending = makeLaunch(
+            BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: enemy,
+                stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"]),
+                pendingRewardItem: pendingItem
+            )
         )
         #expect(withPending.presentation.rewardItems == [pendingItem])
 
-        let noPendingNilStage = PlayBattleLaunch.assembleLaunch(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy
+        let noPendingNilStage = makeLaunch(
+            BattleLaunchInput(hero: knight, companion: wolf, enemy: enemy)
         )
         #expect(noPendingNilStage.presentation.rewardItems.isEmpty)
 
-        let noPendingEmptyStage = PlayBattleLaunch.assembleLaunch(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy,
-            stageReward: StageReward(gold: 0, itemTemplateIDs: [])
+        let noPendingEmptyStage = makeLaunch(
+            BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: enemy,
+                stageReward: StageReward(gold: 0, itemTemplateIDs: [])
+            )
         )
         #expect(noPendingEmptyStage.presentation.rewardItems.isEmpty)
 
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        let fromStage = PlayBattleLaunch.assembleLaunch(
-            rngSeed: 0,
-            hero: knight,
-            companion: wolf,
-            rosterState: .initial,
-            inventoryState: .initial,
-            enemy: enemy,
-            stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"])
+        let fromStage = makeLaunch(
+            BattleLaunchInput(
+                hero: knight,
+                companion: wolf,
+                enemy: enemy,
+                stageReward: StageReward(gold: 10, itemTemplateIDs: ["shortsword-basic"])
+            )
         )
         #expect(fromStage.presentation.rewardItems == [template])
     }

@@ -6,15 +6,36 @@ import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
-extension PlayBattleLaunch {
-    static func assembleLaunch(
-        runKey: BattleRunKey? = nil,
-        rngSeed: UInt64,
+/// Fully resolved battle launch: the engine configuration, the feature presentation
+/// context, and the restart-only universal modifiers.
+struct BattleLaunchAssembly {
+    let configuration: BattleRunConfiguration
+    let presentation: BattlePresentationContext
+    let universalModifiers: [AffixModifier]
+}
+
+/// Play-orchestrated inputs that feed `PlayBattleLaunch.assembleLaunch`.
+///
+/// Mode owners and the Play shell resolve the encounter, loot, and policy, then pack
+/// them here instead of threading long positional argument lists through the launch
+/// helpers.
+struct BattleLaunchInput {
+    let origin: PlayBattleOrigin?
+    let hero: Combatant
+    let companion: Combatant
+    let enemy: Combatant?
+    let enemyEncounterLevel: Int?
+    let stageReward: StageReward?
+    let experienceBonusPercent: Int
+    let pendingRewardItem: InventoryItem?
+    let stageRewardsAlreadyClaimed: Bool
+    let universalModifiers: [AffixModifier]
+    let labyrinthModifiers: [LabyrinthModifierDefinition]
+
+    init(
+        origin: PlayBattleOrigin? = nil,
         hero: Combatant,
         companion: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        homesteadState: PlayerHomesteadState = .freshStart,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
@@ -22,49 +43,68 @@ extension PlayBattleLaunch {
         pendingRewardItem: InventoryItem? = nil,
         stageRewardsAlreadyClaimed: Bool = false,
         universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = [],
+        labyrinthModifiers: [LabyrinthModifierDefinition] = []
+    ) {
+        self.origin = origin
+        self.hero = hero
+        self.companion = companion
+        self.enemy = enemy
+        self.enemyEncounterLevel = enemyEncounterLevel
+        self.stageReward = stageReward
+        self.experienceBonusPercent = experienceBonusPercent
+        self.pendingRewardItem = pendingRewardItem
+        self.stageRewardsAlreadyClaimed = stageRewardsAlreadyClaimed
+        self.universalModifiers = universalModifiers
+        self.labyrinthModifiers = labyrinthModifiers
+    }
+}
+
+extension PlayBattleLaunch {
+    static func assembleLaunch(
+        input: BattleLaunchInput,
+        runKey: BattleRunKey? = nil,
+        rngSeed: UInt64,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState = .freshStart,
         defeatPrimaryAction: BattleDefeatPrimaryAction = .restart,
         hasProgressionRewards: Bool = false,
         musicStageID: String? = nil
-    ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]) {
-        let enemyBuild = resolvedEnemyBuild(enemy: enemy)
+    ) -> BattleLaunchAssembly {
+        let enemyBuild = resolvedEnemyBuild(enemy: input.enemy)
         var enemyModifiers = enemyBuild.modifiers
-        enemyModifiers.merge(universalModifiers)
+        enemyModifiers.merge(input.universalModifiers)
         let homesteadEffects = homesteadState.effects
-        let heroMember = partyMember(
-            combatant: hero,
+        let members = makePartyMembers(
+            input: input,
+            homesteadEffects: homesteadEffects,
             rosterState: rosterState,
-            inventoryState: inventoryState,
-            additionalModifiers: homesteadEffects.heroModifiers + universalModifiers
+            inventoryState: inventoryState
         )
-        let companionMember = partyMember(
-            combatant: companion,
-            rosterState: rosterState,
-            inventoryState: inventoryState,
-            additionalModifiers: homesteadEffects.companionModifiers + universalModifiers
-        )
-        let resolvedStageReward = stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
-        let enemyLevel = enemyEncounterLevel ?? heroMember.progression.level
+        let heroMember = members.hero
+        let companionMember = members.companion
+        let resolvedStageReward = input.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
+        let enemyLevel = input.enemyEncounterLevel ?? heroMember.progression.level
         let configuration = BattleRunConfiguration(
             runKey: runKey,
             rngSeed: rngSeed,
             hero: heroMember,
             companion: companionMember,
             enemy: enemyBuild.combatant,
-            enemyEncounterLevel: enemyEncounterLevel,
+            enemyEncounterLevel: input.enemyEncounterLevel,
             enemyModifiers: enemyModifiers
         )
         let presentation = BattlePresentationContext(
             inventoryItems: inventoryState.items,
-            stageReward: stageReward,
+            stageReward: input.stageReward,
             rewardItems: resolvedRewardItems(
-                stageReward: stageReward,
-                pendingRewardItem: pendingRewardItem
+                stageReward: input.stageReward,
+                pendingRewardItem: input.pendingRewardItem
             ),
-            pendingRewardItem: pendingRewardItem,
-            experienceBonusPercent: experienceBonusPercent,
+            pendingRewardItem: input.pendingRewardItem,
+            experienceBonusPercent: input.experienceBonusPercent,
             goldFindPercent: homesteadEffects.goldFindPercent,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            stageRewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
             defeatPrimaryAction: defeatPrimaryAction,
             hasProgressionRewards: hasProgressionRewards,
             musicStageID: musicStageID,
@@ -72,18 +112,44 @@ extension PlayBattleLaunch {
                 playerLevel: heroMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestHeroLevel,
-                xpPercent: experienceBonusPercent
+                xpPercent: input.experienceBonusPercent
             ),
             companionExperienceAward: StageCompletion.battleExperienceAward(
                 playerLevel: companionMember.progression.level,
                 enemyLevel: enemyLevel,
                 highestLevel: rosterState.highestCompanionLevel,
-                xpPercent: experienceBonusPercent
+                xpPercent: input.experienceBonusPercent
             ),
             materialRewards: StageCompletion.resolvedMaterialRewards(stageReward: resolvedStageReward),
-            labyrinthModifiers: labyrinthModifiers
+            labyrinthModifiers: input.labyrinthModifiers
         )
-        return (configuration, presentation, universalModifiers)
+        return BattleLaunchAssembly(
+            configuration: configuration,
+            presentation: presentation,
+            universalModifiers: input.universalModifiers
+        )
+    }
+
+    private static func makePartyMembers(
+        input: BattleLaunchInput,
+        homesteadEffects: HomesteadEffects,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState
+    ) -> (hero: BattleRunConfiguration.PartyMember, companion: BattleRunConfiguration.PartyMember) {
+        (
+            partyMember(
+                combatant: input.hero,
+                rosterState: rosterState,
+                inventoryState: inventoryState,
+                additionalModifiers: homesteadEffects.heroModifiers + input.universalModifiers
+            ),
+            partyMember(
+                combatant: input.companion,
+                rosterState: rosterState,
+                inventoryState: inventoryState,
+                additionalModifiers: homesteadEffects.companionModifiers + input.universalModifiers
+            )
+        )
     }
 
     private static func partyMember(

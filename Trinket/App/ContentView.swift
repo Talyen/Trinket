@@ -53,14 +53,14 @@ struct ContentView: View {
             if battle.lifecyclePhase == .active {
                 appState.selectedTab = .play
             }
-            appState.reconcileShellState(.appeared, scenePhase: scenePhase)
+            appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
             guard battle.lifecyclePhase != .active || newTab == .play else {
                 appState.selectedTab = .play
                 return
             }
-            appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
+            appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
                 detail: "tab=\(newTab.rawValue)"

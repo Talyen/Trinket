@@ -177,32 +177,24 @@ public final class JourneyPlayMode {
     ) -> Bool {
         guard !stages.isEmpty else { return false }
 
-        do {
-            try playerSave.performBatchMutation { save in
-                if resetJourney {
-                    save.journey = .initial
-                }
-                for (index, stage) in stages.enumerated() {
-                    let isLast = index == stages.count - 1
-                    StageCompletion.complete(
-                        stage,
-                        hero: hero,
-                        companion: companion,
-                        battleEarnedGold: isLast ? battleEarnedGold : 0,
-                        materialRewards: isLast ? materialRewards : nil,
-                        rewardItem: isLast ? rewardItem : nil,
-                        in: GameContent.chapters,
-                        save: &save
-                    )
-                }
+        return playerSave.persistBatch(logging: "Failed to persist stage completions") { save in
+            if resetJourney {
+                save.journey = .initial
             }
-        } catch {
-            appStateLogger.error(
-                "Failed to persist stage completions: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
+            for (index, stage) in stages.enumerated() {
+                let isLast = index == stages.count - 1
+                StageCompletion.complete(
+                    stage,
+                    hero: hero,
+                    companion: companion,
+                    battleEarnedGold: isLast ? battleEarnedGold : 0,
+                    materialRewards: isLast ? materialRewards : nil,
+                    rewardItem: isLast ? rewardItem : nil,
+                    in: GameContent.chapters,
+                    save: &save
+                )
+            }
         }
-        return true
     }
 }
 

@@ -31,10 +31,7 @@ public final class LabyrinthPlayMode {
     }
 
     private var canBeginTransientEncounter: Bool {
-        battle.lifecyclePhase != .active
-            && encounters.activeShopEncounter == nil
-            && encounters.activeMysteryEncounter == nil
-            && activeNodeSession == nil
+        encounters.canBeginTransientEncounter && activeNodeSession == nil
     }
 
     @discardableResult
@@ -50,14 +47,9 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.enter(save: &save)
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to enter Labyrinth: \(error.localizedDescription, privacy: .public)"
-            )
+        guard playerSave.persistBatch(logging: "Failed to enter Labyrinth", { save in
+            LabyrinthCompletion.enter(save: &save)
+        }) else {
             return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
         }
         return nil
@@ -137,19 +129,14 @@ public final class LabyrinthPlayMode {
     public func finishActiveRest() -> Bool {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .rest else { return false }
         sessionNode.clearFailure()
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.complete(
-                    nodeID: sessionNode.nodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to finish Labyrinth rest: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to finish Labyrinth rest", { save in
+            LabyrinthCompletion.complete(
+                nodeID: sessionNode.nodeID,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save
             )
+        }) else {
             sessionNode.markFailed("Couldn't save progress. Stay here and try Rest again.")
             return false
         }
@@ -166,19 +153,14 @@ public final class LabyrinthPlayMode {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
         sessionNode.clearFailure()
         var forged = false
-        do {
-            try playerSave.performBatchMutation { save in
-                forged = LabyrinthCompletion.forgeAtAltar(
-                    nodeID: sessionNode.nodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to forge at Labyrinth altar: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to forge at Labyrinth altar", { save in
+            forged = LabyrinthCompletion.forgeAtAltar(
+                nodeID: sessionNode.nodeID,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save
             )
+        }) else {
             sessionNode.markFailed("The altar stays cold. Try again.")
             return false
         }
@@ -193,19 +175,14 @@ public final class LabyrinthPlayMode {
     @discardableResult
     public func leaveActiveCraftWithoutForging() -> Bool {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.complete(
-                    nodeID: sessionNode.nodeID,
-                    hero: save.roster.activeHero,
-                    companion: save.roster.activeCompanion,
-                    save: &save
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to leave Labyrinth craft: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to leave Labyrinth craft", { save in
+            LabyrinthCompletion.complete(
+                nodeID: sessionNode.nodeID,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save
             )
+        }) else {
             sessionNode.markFailed("The altar stays cold. Try again.")
             return false
         }
@@ -288,24 +265,16 @@ public final class LabyrinthPlayMode {
         let roster = playerSave.roster
         let resolvedHero = hero ?? roster.activeHero
         let resolvedCompanion = companion ?? roster.activeCompanion
-        do {
-            try playerSave.performBatchMutation { save in
-                LabyrinthCompletion.complete(
-                    nodeID: nodeID,
-                    hero: resolvedHero,
-                    companion: resolvedCompanion,
-                    battleEarnedGold: battleEarnedGold,
-                    materialRewards: materialRewards,
-                    rewardItem: rewardItem,
-                    save: &save
-                )
-            }
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to persist Labyrinth node: \(error.localizedDescription, privacy: .public)"
+        return playerSave.persistBatch(logging: "Failed to persist Labyrinth node") { save in
+            LabyrinthCompletion.complete(
+                nodeID: nodeID,
+                hero: resolvedHero,
+                companion: resolvedCompanion,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards,
+                rewardItem: rewardItem,
+                save: &save
             )
-            return false
         }
     }
 }

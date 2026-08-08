@@ -26,20 +26,23 @@ enum BattleRunConfigurationTestSupport {
         universalModifiers: [AffixModifier] = []
     ) throws -> BattleRunConfiguration {
         PlayBattleLaunch.assembleLaunch(
+            input: BattleLaunchInput(
+                origin: origin,
+                hero: hero,
+                companion: companion,
+                enemy: enemy,
+                enemyEncounterLevel: enemyEncounterLevel,
+                stageReward: stageReward,
+                experienceBonusPercent: experienceBonusPercent,
+                pendingRewardItem: pendingRewardItem,
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+                universalModifiers: universalModifiers
+            ),
             runKey: runKey ?? origin?.runKey,
             rngSeed: rngSeed,
-            hero: hero,
-            companion: companion,
             rosterState: roster,
             inventoryState: inventory,
             homesteadState: homestead,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
             defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
             hasProgressionRewards: runKey != nil || origin != nil,
             musicStageID: origin?.musicStageID

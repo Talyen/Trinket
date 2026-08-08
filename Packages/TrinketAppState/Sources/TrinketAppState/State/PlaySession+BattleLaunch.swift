@@ -33,17 +33,19 @@ struct PlayBattleLaunch {
     ) -> Bool {
         let roster = playerSave.roster
         return activateBattle(
-            origin: origin,
-            route: route,
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers
+            BattleLaunchInput(
+                origin: origin,
+                hero: roster.activeHero,
+                companion: roster.activeCompanion,
+                enemy: encounter.combatant,
+                enemyEncounterLevel: encounter.level,
+                stageReward: loot?.asStageReward ?? .empty,
+                pendingRewardItem: loot?.item,
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+                universalModifiers: universalModifiers,
+                labyrinthModifiers: labyrinthModifiers
+            ),
+            route: route
         )
     }
 
@@ -60,16 +62,18 @@ struct PlayBattleLaunch {
     ) -> Bool {
         let roster = playerSave.roster
         let launch = makeBattleLaunch(
-            origin: origin,
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: loot?.asStageReward ?? .empty,
-            pendingRewardItem: loot?.item,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers
+            BattleLaunchInput(
+                origin: origin,
+                hero: roster.activeHero,
+                companion: roster.activeCompanion,
+                enemy: encounter.combatant,
+                enemyEncounterLevel: encounter.level,
+                stageReward: loot?.asStageReward ?? .empty,
+                pendingRewardItem: loot?.item,
+                stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+                universalModifiers: universalModifiers,
+                labyrinthModifiers: labyrinthModifiers
+            )
         )
         guard PlayBattleRoute.matches(
             route,
@@ -88,47 +92,25 @@ struct PlayBattleLaunch {
     /// Installs a fresh battle configuration and syncs the tick loop.
     @discardableResult
     func activateBattle(
-        origin: PlayBattleOrigin? = nil,
-        route: PlayBattleRoute? = nil,
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = []
+        _ input: BattleLaunchInput,
+        route: PlayBattleRoute? = nil
     ) -> Bool {
         guard PlayBattleRoute.matches(
             route,
-            runKey: origin?.runKey,
+            runKey: input.origin?.runKey,
             missingLog: "Missing route for battle activation"
         ) else { return false }
-        if let origin,
+        if let origin = input.origin,
            battle.activatePreparedBattle(
                runKey: origin.runKey,
-               heroID: hero.id,
-               companionID: companion.id,
-               enemyID: enemy?.id
+               heroID: input.hero.id,
+               companionID: input.companion.id,
+               enemyID: input.enemy?.id
            ) {
             removePreparedRunsExcept(origin.runKey)
             return true
         }
-        let launch = makeBattleLaunch(
-            origin: origin,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers
-        )
+        let launch = makeBattleLaunch(input)
         let activated = battle.activate(launch.configuration)
         if activated {
             registerRunIfNeeded(launch, route: route)
@@ -138,46 +120,25 @@ struct PlayBattleLaunch {
         return activated
     }
 
-    func makeBattleLaunch(
-        origin: PlayBattleOrigin?,
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        experienceBonusPercent: Int = 0,
-        pendingRewardItem: InventoryItem? = nil,
-        stageRewardsAlreadyClaimed: Bool = false,
-        universalModifiers: [AffixModifier] = [],
-        labyrinthModifiers: [LabyrinthModifierDefinition] = []
-    ) -> (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]) {
+    func makeBattleLaunch(_ input: BattleLaunchInput) -> BattleLaunchAssembly {
         let rngSeed = AppEnvironment.shared.battlePerformanceScenario == nil
             ? UInt64.random(in: UInt64.min ... UInt64.max)
             : BattlePerformanceFixture.seed
         return Self.assembleLaunch(
-            runKey: origin?.runKey,
+            input: input,
+            runKey: input.origin?.runKey,
             rngSeed: rngSeed,
-            hero: hero,
-            companion: companion,
             rosterState: playerSave.roster,
             inventoryState: playerSave.inventory,
             homesteadState: playerSave.homestead,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            experienceBonusPercent: experienceBonusPercent,
-            pendingRewardItem: pendingRewardItem,
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: labyrinthModifiers,
-            defeatPrimaryAction: origin?.defeatPrimaryAction ?? .restart,
-            hasProgressionRewards: origin != nil,
-            musicStageID: origin?.musicStageID
+            defeatPrimaryAction: input.origin?.defeatPrimaryAction ?? .restart,
+            hasProgressionRewards: input.origin != nil,
+            musicStageID: input.origin?.musicStageID
         )
     }
 
     private func registerRunIfNeeded(
-        _ launch: (configuration: BattleRunConfiguration, presentation: BattlePresentationContext, universalModifiers: [AffixModifier]),
+        _ launch: BattleLaunchAssembly,
         route: PlayBattleRoute?
     ) {
         guard launch.configuration.runKey != nil, let route else { return }
@@ -202,17 +163,19 @@ struct PlayBattleLaunch {
         let companion = roster.companions.first(where: { $0.id == activeBattle.companion.combatant.id })
             ?? roster.activeCompanion
         let launch = makeBattleLaunch(
-            origin: route?.origin,
-            hero: hero,
-            companion: companion,
-            enemy: activeBattle.enemy,
-            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: presentation?.stageReward,
-            experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
-            pendingRewardItem: presentation?.pendingRewardItem,
-            stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
-            universalModifiers: universalModifiers,
-            labyrinthModifiers: presentation?.labyrinthModifiers ?? []
+            BattleLaunchInput(
+                origin: route?.origin,
+                hero: hero,
+                companion: companion,
+                enemy: activeBattle.enemy,
+                enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+                stageReward: presentation?.stageReward,
+                experienceBonusPercent: presentation?.experienceBonusPercent ?? 0,
+                pendingRewardItem: presentation?.pendingRewardItem,
+                stageRewardsAlreadyClaimed: presentation?.stageRewardsAlreadyClaimed ?? false,
+                universalModifiers: universalModifiers,
+                labyrinthModifiers: presentation?.labyrinthModifiers ?? []
+            )
         )
         guard battle.restart(launch.configuration) else { return }
         if let route {

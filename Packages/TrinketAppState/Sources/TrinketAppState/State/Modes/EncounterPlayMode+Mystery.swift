@@ -7,13 +7,11 @@ import TrinketPersistence
 
 public extension EncounterPlayMode {
     @discardableResult
-    internal func beginMysteryEncounter(
+    func beginMysteryEncounter(
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil
     ) -> StageMapMessage? {
-        guard activeMysteryEncounter == nil else { return nil }
-        guard activeShopEncounter == nil else { return nil }
-        guard battle.lifecyclePhase != .active else { return nil }
+        guard canBeginTransientEncounter else { return nil }
 
         let pickContext = mysteryEventPickContext(origin: origin)
         let pinnedLabyrinthEventID = origin.labyrinthNodeID.flatMap {
@@ -34,16 +32,10 @@ public extension EncounterPlayMode {
         if let labyrinthNodeID = origin.labyrinthNodeID,
            pinnedLabyrinthEventID == nil,
            !opened.session.event.isRecruit {
-            do {
-                try playerSave.performBatchMutation { save in
-                    guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
-                    node.mysteryEventID = opened.resolvedEventID
-                    save.labyrinth.nodes[labyrinthNodeID] = node
-                }
-            } catch {
-                appStateLogger.error(
-                    "Failed to pin labyrinth mystery event: \(error.localizedDescription, privacy: .public)"
-                )
+            playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
+                guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
+                node.mysteryEventID = opened.resolvedEventID
+                save.labyrinth.nodes[labyrinthNodeID] = node
             }
         }
 
@@ -51,14 +43,8 @@ public extension EncounterPlayMode {
            pinnedJourneyEventID == nil,
            !opened.session.event.isRecruit,
            stage.mysteryEvent == nil {
-            do {
-                try playerSave.performBatchMutation { save in
-                    save.journey.pinnedMysteryEventIDs[stage.id] = opened.resolvedEventID
-                }
-            } catch {
-                appStateLogger.error(
-                    "Failed to pin journey mystery event: \(error.localizedDescription, privacy: .public)"
-                )
+            playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
+                save.journey.pinnedMysteryEventIDs[stage.id] = opened.resolvedEventID
             }
         }
 
@@ -97,20 +83,15 @@ public extension EncounterPlayMode {
         guard mysterySession.canResolveChoice else { return false }
 
         var outcome = MysteryChoiceOutcome.failed
-        do {
-            try playerSave.performBatchMutation { save in
-                var randomNumberGenerator = SystemRandomNumberGenerator()
-                outcome = mysterySession.resolveChoice(
-                    choiceID: choiceID,
-                    save: &save,
-                    using: &randomNumberGenerator,
-                    completeProgress: Self.completeMysteryProgress
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to apply mystery effects: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to apply mystery effects", { save in
+            var randomNumberGenerator = SystemRandomNumberGenerator()
+            outcome = mysterySession.resolveChoice(
+                choiceID: choiceID,
+                save: &save,
+                using: &randomNumberGenerator,
+                completeProgress: Self.completeMysteryProgress
             )
+        }) else {
             mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
@@ -126,20 +107,15 @@ public extension EncounterPlayMode {
         guard mysterySession.showsCorruptItemChoice else { return false }
 
         var outcome = MysteryChoiceOutcome.failed
-        do {
-            try playerSave.performBatchMutation { save in
-                var randomNumberGenerator = SystemRandomNumberGenerator()
-                outcome = mysterySession.corruptSelectedItem(
-                    itemID: itemID,
-                    save: &save,
-                    using: &randomNumberGenerator,
-                    completeProgress: Self.completeMysteryProgress
-                )
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to corrupt mystery item: \(error.localizedDescription, privacy: .public)"
+        guard playerSave.persistBatch(logging: "Failed to corrupt mystery item", { save in
+            var randomNumberGenerator = SystemRandomNumberGenerator()
+            outcome = mysterySession.corruptSelectedItem(
+                itemID: itemID,
+                save: &save,
+                using: &randomNumberGenerator,
+                completeProgress: Self.completeMysteryProgress
             )
+        }) else {
             mysterySession.markPersistFailed("Couldn't save progress. Stay here and try again.")
             return false
         }
@@ -180,14 +156,9 @@ public extension EncounterPlayMode {
             activeMysteryEncounter = nil
             return true
         }
-        do {
-            try playerSave.performBatchMutation { save in
-                Self.completeMysteryProgress(mysterySession, save: &save)
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to finish mystery encounter: \(error.localizedDescription, privacy: .public)"
-            )
+        guard playerSave.persistBatch(logging: "Failed to finish mystery encounter", { save in
+            Self.completeMysteryProgress(mysterySession, save: &save)
+        }) else {
             mysterySession.markPersistFailed(
                 "Couldn't save progress. Stay here and try Recruit again."
             )
@@ -203,7 +174,7 @@ public extension EncounterPlayMode {
     }
 
     @discardableResult
-    internal func applyMysteryOutcome(
+    func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,
         session mysterySession: MysteryEncounterSession
     ) -> Bool {

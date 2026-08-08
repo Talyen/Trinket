@@ -20,16 +20,14 @@ public struct PlayerHomesteadStore {
     /// Builds or upgrades a homestead node, updating roster unlocks in the same batch.
     public func buildOrUpgradeNode(_ definition: HomesteadNodeDefinition) -> HomesteadBuildResult {
         var didUpgrade = false
-        do {
-            try save.performBatchMutation { save in
-                var homestead = save.homestead
-                var rosterState = save.roster
-                guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
-                save.homestead = homestead
-                save.roster = rosterState
-                didUpgrade = true
-            }
-        } catch {
+        guard save.persistBatch(logging: "Failed to build or upgrade homestead node", { save in
+            var homestead = save.homestead
+            var rosterState = save.roster
+            guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
+            save.homestead = homestead
+            save.roster = rosterState
+            didUpgrade = true
+        }) else {
             return .persistFailed
         }
         return didUpgrade ? .success : .insufficientResources

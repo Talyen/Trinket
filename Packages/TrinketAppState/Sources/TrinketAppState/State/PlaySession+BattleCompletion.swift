@@ -54,16 +54,8 @@ struct PlayBattleCompletion {
     @discardableResult
     func grantBattleEarnedGold(_ amount: Int) -> Bool {
         guard amount > 0 else { return true }
-        do {
-            try playerSave.performBatchMutation { save in
-                save.roster.grantGold(amount)
-            }
-            return true
-        } catch {
-            appStateLogger.error(
-                "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
+        return playerSave.persistBatch(logging: "Failed to persist battle gold") { save in
+            save.roster.grantGold(amount)
         }
     }
 }
