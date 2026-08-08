@@ -11,31 +11,25 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionPreparationTests {
-    @Test func runtimeOwnsLifecycleAndPresentationMirrorsItsTransitions() {
+    @Test func lifecycleTransitionsUpdateEngineAndPresentationAtomically() {
         let party = BattlePartyFixtures.quickWinParty()
-        let runtime = BattleRuntimeSession()
-        let session = BattleSession(
-            runtime: runtime,
-            openingHandDrawStagger: 0
-        )
+        let session = BattleSession(openingHandDrawStagger: 0)
         let (configuration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
         )
 
-        #expect(runtime.activate(configuration))
-        #expect(runtime.activeBattle?.id == configuration.id)
-        #expect(runtime.hasActiveSimulation)
+        #expect(session.activate(configuration))
         #expect(session.activeBattle?.id == configuration.id)
+        #expect(session.hasActiveSimulation)
         #expect(session.lifecyclePhase == .active)
         #expect(session.presentation.configurationID == configuration.id)
 
-        runtime.endBattle()
+        session.endBattle()
 
-        #expect(runtime.activeBattle == nil)
-        #expect(!runtime.hasActiveSimulation)
         #expect(session.activeBattle == nil)
+        #expect(!session.hasActiveSimulation)
         #expect(session.lifecyclePhase == .idle)
         #expect(session.presentation.configurationID == nil)
     }
@@ -51,11 +45,11 @@ struct BattleSessionPreparationTests {
             enemy: party.enemy
         )
 
-        #expect(session.runtime.prepareBattleRun(configuration))
+        #expect(session.prepareBattleRun(configuration))
         let initialRevision = session.preparedBattlePresentationRevision
         #expect(initialRevision == 1)
 
-        #expect(session.runtime.prepareBattleRun(configuration))
+        #expect(session.prepareBattleRun(configuration))
         #expect(session.preparedBattlePresentationRevision == initialRevision)
 
         let (replacement, _) = BattleRunConfigurationTestSupport.make(
@@ -65,7 +59,7 @@ struct BattleSessionPreparationTests {
             companion: party.companion,
             enemy: party.enemy
         )
-        #expect(session.runtime.prepareBattleRun(replacement))
+        #expect(session.prepareBattleRun(replacement))
         #expect(session.preparedBattlePresentationRevision == initialRevision + 1)
     }
 
@@ -76,11 +70,7 @@ struct BattleSessionPreparationTests {
             party.hero.abilityLoadout.abilities.count
                 + party.companion.abilityLoadout.abilities.count
         )
-        let runtime = BattleRuntimeSession()
-        let session = BattleSession(
-            runtime: runtime,
-            openingHandDrawStagger: 0.05
-        )
+        let session = BattleSession(openingHandDrawStagger: 0.05)
         let (initialConfiguration, _) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
@@ -93,8 +83,8 @@ struct BattleSessionPreparationTests {
             enemy: party.enemy
         )
 
-        #expect(runtime.activate(initialConfiguration))
-        #expect(runtime.restart(replacementConfiguration))
+        #expect(session.activate(initialConfiguration))
+        #expect(session.restart(replacementConfiguration))
 
         for _ in 0 ..< 40 where session.hand.isEmpty {
             try await Task.sleep(for: .milliseconds(5))

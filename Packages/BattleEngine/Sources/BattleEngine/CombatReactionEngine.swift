@@ -4,6 +4,10 @@ import TrinketCore
 
 /// Item-affix combat reactions that fire from shared hook sites.
 package enum CombatReactionEngine {
+    static func affixTitle(_ id: String) -> String {
+        GameContent.itemAffixDefinition(matching: id)?.title ?? id
+    }
+
     package static func afterBleedApplied(
         to target: Combatant,
         sourceActorID: String,
@@ -123,21 +127,19 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.dodgeGoldFlat > 0 {
-            events.append(grantGold(
+            events.append(context.grantGoldEvent(
                 profile.triggers.dodgeGoldFlat,
                 to: combatant,
-                abilityName: "Payday",
-                in: &context
+                abilityName: affixTitle("payday")
             ))
         }
 
         if profile.triggers.dodgeBlockFlat > 0 {
-            events.append(contentsOf: applyBlock(
-                amount: profile.triggers.dodgeBlockFlat,
+            events.append(contentsOf: context.applyBlock(
+                profile.triggers.dodgeBlockFlat,
                 to: combatant,
                 source: combatant,
-                abilityName: "Untouchable",
-                in: &context
+                abilityName: affixTitle("untouchable")
             ))
         }
 
@@ -164,12 +166,11 @@ package extension CombatReactionEngine {
         let profile = context.modifiers(for: target.id)
         guard profile.triggers.blockBrokenBlockFlat > 0 else { return [] }
 
-        return applyBlock(
-            amount: profile.triggers.blockBrokenBlockFlat,
+        return context.applyBlock(
+            profile.triggers.blockBrokenBlockFlat,
             to: target,
             source: target,
-            abilityName: "Cascading",
-            in: &context
+            abilityName: affixTitle("cascading")
         )
     }
 
@@ -198,7 +199,7 @@ package extension CombatReactionEngine {
                 to: enemy,
                 sourceActorID: hero.id,
                 actorName: hero.name,
-                abilityName: "Branding",
+                abilityName: affixTitle("branding"),
                 in: &context
             ))
         }
@@ -207,7 +208,7 @@ package extension CombatReactionEngine {
             events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: hero,
-                abilityName: "Disrupting",
+                abilityName: affixTitle("disrupting"),
                 count: profile.triggers.enemyStunnedPurgeCount,
                 purgeAll: profile.triggers.enemyStunnedPurgeAll,
                 in: &context
@@ -221,12 +222,11 @@ package extension CombatReactionEngine {
         var events: [ActionEvent] = []
 
         if profile.triggers.spendManaBlockFlat > 0 {
-            events.append(contentsOf: applyBlock(
-                amount: profile.triggers.spendManaBlockFlat,
+            events.append(contentsOf: context.applyBlock(
+                profile.triggers.spendManaBlockFlat,
                 to: actor,
                 source: actor,
-                abilityName: "Aetherward",
-                in: &context
+                abilityName: affixTitle("aetherward")
             ))
         }
 
@@ -269,12 +269,11 @@ package extension CombatReactionEngine {
     ) -> [ActionEvent] {
         let amount = context.modifiers(for: source.id).triggers.stunDamageBlockFlat
         guard amount > 0 else { return [] }
-        return applyBlock(
-            amount: amount,
+        return context.applyBlock(
+            amount,
             to: source,
             source: source,
-            abilityName: context.modifiers(for: source.id).traitDisplayName ?? "Oathbound",
-            in: &context
+            abilityName: context.modifiers(for: source.id).traitDisplayName ?? "Oathbound"
         )
     }
 
@@ -310,12 +309,11 @@ package extension CombatReactionEngine {
         var events: [ActionEvent] = []
 
         if profile.triggers.holyDamageBlockFlat > 0 {
-            events.append(contentsOf: applyBlock(
-                amount: profile.triggers.holyDamageBlockFlat,
+            events.append(contentsOf: context.applyBlock(
+                profile.triggers.holyDamageBlockFlat,
                 to: source,
                 source: source,
-                abilityName: "Sanctum",
-                in: &context
+                abilityName: affixTitle("sanctum")
             ))
         }
 
@@ -327,7 +325,7 @@ package extension CombatReactionEngine {
                     kind: .effect,
                     effectKind: .cleanseApplied,
                     actorName: source.name,
-                    abilityName: "Absolving",
+                    abilityName: affixTitle("absolving"),
                     target: source,
                     amount: 0,
                     keyword: removedKeyword
@@ -344,7 +342,7 @@ package extension CombatReactionEngine {
                     sourceActorID: source.id,
                     logAs: .instantHeal(
                         actorName: source.name,
-                        abilityName: "Beacon",
+                        abilityName: affixTitle("beacon"),
                         keyword: .health,
                         displayAmount: profile.triggers.holyDamageHealFlat
                     )
@@ -357,7 +355,7 @@ package extension CombatReactionEngine {
             events.append(contentsOf: applyPurge(
                 to: enemy,
                 source: source,
-                abilityName: "Nullifying",
+                abilityName: affixTitle("nullifying"),
                 count: profile.triggers.holyDamagePurgeCount,
                 purgeAll: false,
                 in: &context
@@ -384,7 +382,7 @@ package extension CombatReactionEngine {
                 sourceActorID: context.roster.hero.id,
                 logAs: .instantHeal(
                     actorName: context.roster.hero.name,
-                    abilityName: "Symbiosis",
+                    abilityName: affixTitle("symbiosis"),
                     keyword: .health,
                     displayAmount: share
                 ),
@@ -425,7 +423,7 @@ package extension CombatReactionEngine {
                 sourceActorID: target.id,
                 logAs: .instantHeal(
                     actorName: target.name,
-                    abilityName: "Second Wind",
+                    abilityName: affixTitle("second_wind"),
                     keyword: .health,
                     displayAmount: profile.triggers.onceBelowHealthPercentHeal
                 )
@@ -444,41 +442,25 @@ package extension CombatReactionEngine {
     ) -> [ActionEvent] {
         guard purgeAll || count > 0 else { return [] }
         var enemyEffects = context.roster.activeEffects(for: target)
-        var events: [ActionEvent] = []
-
-        if purgeAll {
-            guard EffectRemoval.removeBuffs(from: &enemyEffects, keyword: nil) else {
-                return []
-            }
-            events.append(context.nextEvent(
+        let removedKeywords = EffectRemoval.removeBuffs(
+            from: &enemyEffects,
+            count: count,
+            removeAll: purgeAll,
+            using: &context.rng
+        )
+        guard !removedKeywords.isEmpty else { return [] }
+        context.roster.setActiveEffects(enemyEffects, for: target)
+        return removedKeywords.map { keyword in
+            context.nextEvent(
                 kind: .effect,
                 effectKind: .purgeApplied,
                 actorName: source.name,
                 abilityName: abilityName,
                 target: target,
                 amount: 0,
-                keyword: .purge
-            ))
-        } else {
-            for _ in 0 ..< count {
-                guard let removedKeyword = EffectRemoval.removeRandomBuff(
-                    from: &enemyEffects,
-                    using: &context.rng
-                ) else { break }
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .purgeApplied,
-                    actorName: source.name,
-                    abilityName: abilityName,
-                    target: target,
-                    amount: 0,
-                    keyword: removedKeyword
-                ))
-            }
+                keyword: keyword
+            )
         }
-
-        context.roster.setActiveEffects(enemyEffects, for: target)
-        return events
     }
 
     private static func applyMarked(
@@ -511,32 +493,6 @@ package extension CombatReactionEngine {
             target: target,
             amount: Effect.standardMarkedBonus,
             keyword: .physical
-        )]
-    }
-
-    static func applyBlock(
-        amount: Int,
-        to target: Combatant,
-        source: Combatant,
-        abilityName: String,
-        in context: inout BattleState
-    ) -> [ActionEvent] {
-        let adjusted = context.adjustedOutgoingEffect(
-            .shield(.block, amount),
-            sourceID: source.id
-        )
-        guard case let .shield(keyword, buffer) = adjusted else { return [] }
-        let applied = DefensePoolEngine.add(
-            buffer, pool: .block, to: target, keyword: keyword, sourceActorID: source.id, in: &context
-        )
-        return [context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: abilityName,
-            target: target,
-            amount: applied,
-            keyword: keyword
         )]
     }
 }

@@ -1,0 +1,29 @@
+[
+  {
+    "testIdentifier": "BattleTests/firstFailure()",
+    "attachments": [
+      {
+        "exportedFileName": "first.png",
+        "isAssociatedWithFailure": true
+      }
+    ]
+  },
+  {
+    "testIdentifier": "BattleTests/secondFailure()",
+    "attachments": [
+      {
+        "exportedFileName": "second.png",
+        "isAssociatedWithFailure": true
+      }
+    ]
+  },
+  {
+    "testIdentifier": "xctest encountered an error",
+    "attachments": [
+      {
+        "exportedFileName": "runner.txt",
+        "isAssociatedWithFailure": true
+      }
+    ]
+  }
+]

@@ -57,7 +57,7 @@ Manifests and pipelines live outside the app folder:
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
 | Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `StageMapMessage`, and `BattlePresentationContext`; no save or view adapters |
 | Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `BattleRunConfiguration`, `BattleRunKey`, and performance scenario contracts. It contains only immutable simulation inputs and lifecycle; Play-owned reward/presentation context stays outside this boundary. |
-| Battle presentation | `TrinketBattleFeature` | `BattleRuntimeSession` owns concrete lifecycle/simulation state; `BattleSession` owns combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession` implements the runtime contract and owns lifecycle/simulation plus combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
 | App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Binary art/music committed after `--assets` codegen |
@@ -167,16 +167,14 @@ The app target is a composition root and view host. `TrinketAppState` production
 depends on `TrinketBattleRuntime` and
 `TrinketFeatureContracts`, never the concrete BattleFeature or save-backed adapters.
 The app composition root supplies
-`BattleRuntimeDependencies` as closure-only capabilities and builds one
-`BattleRuntimeComposition` containing the runtime plus the launch-victory action.
-The root explicitly retains the concrete `BattleRuntimeSession` and its separate
-`BattleSession` presentation coordinator; `PlaySession.battle` receives only the
-runtime contract, so no existential-to-feature cast is required. App views receive the narrowest
+`BattleRuntimeDependencies` as closure-only capabilities and builds one concrete
+`BattleSession`. `PlaySession.battle` receives that object only through the runtime
+contract, while the root retains it for presentation-only work. App views receive the narrowest
 available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
 `EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
 lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
-Shell battle activation routes through `PlaySession.battle`; runtime change callbacks
-keep the separately retained `BattleSession` presentation coordinator synchronized.
+Shell battle activation routes through `PlaySession.battle`; lifecycle and presentation
+transitions occur atomically on the same `BattleSession` instance.
 `PlaySession` remains in the environment for
 shell concerns (pending destination, battle victory routing via
 `PlayBattleCompletion`). Active battle route and presentation metadata are stored
@@ -191,7 +189,7 @@ Module ownership table above; package-specific routing is in
 
 Launch-only presentation work follows the same composition boundary: `AppState`
 prepares audio and requests launch state, while the app root warms concrete BattleFeature
-caches and supplies the launch-victory action through `BattleRuntimeComposition`. The
+caches and presents launch-victory chrome on its retained `BattleSession`. The
 lifecycle protocol does not grow cinematic, artwork, or chrome hooks for these
 presentation-only cases.
 
@@ -232,10 +230,9 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use.
-- Battle simulation lives inside `BattleRuntimeSession`.
-  `BattleRuntimeSession` owns lifecycle, simulation, and commands; `BattleSession` mirrors the
-  runtime lifecycle for SwiftUI and owns `BattlePresentationState`, `BattleFeedbackLane`, and
-  `BattleSpectacleState` are distinct observable read lanes. A committed engine
+- Battle simulation lives inside `BattleSession`, which implements the SwiftUI-free
+  runtime contract and owns lifecycle, simulation, and commands. `BattlePresentationState`,
+  `BattleFeedbackLane`, and `BattleSpectacleState` remain distinct observable read lanes. A committed engine
   transition publishes one combat snapshot before its feedback/outcome work.
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked

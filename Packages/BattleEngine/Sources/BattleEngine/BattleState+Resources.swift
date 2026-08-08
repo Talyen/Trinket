@@ -7,6 +7,24 @@ package extension BattleState {
         gold += goldGranted(for: amount, sourceActorID: sourceActorID)
     }
 
+    mutating func grantGoldEvent(
+        _ amount: Int,
+        to combatant: Combatant,
+        abilityName: String
+    ) -> ActionEvent {
+        let granted = goldGranted(for: amount, sourceActorID: combatant.id)
+        addGold(amount, sourceActorID: combatant.id)
+        return nextEvent(
+            kind: .effect,
+            effectKind: .resourceGain,
+            actorName: combatant.name,
+            abilityName: abilityName,
+            target: combatant,
+            amount: granted,
+            keyword: .gold
+        )
+    }
+
     /// Flat + percent bonuses applied to an outgoing gold grant (Lucky / Gilded).
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {
         let profile = modifiers(for: sourceActorID)

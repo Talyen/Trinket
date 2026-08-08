@@ -60,14 +60,14 @@ struct BattleSessionAutoBattleTests {
         #expect(session.isAutoBattleEnabled)
         #expect(probe.persistedValues.isEmpty)
 
-        session.runtime.endBattle()
+        session.endBattle()
         let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
             hero: firstConfiguration.hero.combatant,
             companion: firstConfiguration.companion.combatant,
             enemy: firstConfiguration.enemy
         )
-        #expect(session.runtime.activate(nextConfiguration))
+        #expect(session.activate(nextConfiguration))
 
         #expect(!session.isAutoBattleEnabled)
         #expect(probe.persistedValues.isEmpty)
@@ -106,7 +106,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         #expect(probe.persistedValues == [false, true])
 
-        session.runtime.endBattle()
+        session.endBattle()
         let (nextConfiguration, _) = BattleRunConfigurationTestSupport.make(
             rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 2,
             hero: CombatantFixtures.combatant(
@@ -129,7 +129,7 @@ struct BattleSessionAutoBattleTests {
                 abilities: []
             )
         )
-        #expect(session.runtime.activate(nextConfiguration))
+        #expect(session.activate(nextConfiguration))
         #expect(session.isAutoBattleEnabled)
     }
 }

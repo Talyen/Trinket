@@ -19,22 +19,22 @@ struct TrinketApp: App {
     @State private var bootstrapFailureMessage: String?
 
     init() {
+        let environment = AppEnvironment.shared
         var concreteBattleSession: BattleSession?
-        let makeBattleComposition: (BattleRuntimeDependencies) -> BattleRuntimeComposition = { dependencies in
-            let runtime = BattleRuntimeSession()
-            let session = BattleSession(runtime: runtime, presentationEnvironment: dependencies)
+        let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
+            let session = BattleSession(presentationEnvironment: dependencies)
             concreteBattleSession = session
-            return BattleRuntimeComposition(
-                runtime: runtime,
-                onLaunchBattleVictory: { session.presentLaunchVictory() }
-            )
+            return session
         }
 
         do {
             let state = try AppState(
-                environment: .shared,
-                makeBattleComposition: makeBattleComposition
+                environment: environment,
+                makeBattleRuntime: makeBattleRuntime
             )
+            if environment.launchScreen == .battleVictory {
+                concreteBattleSession?.presentLaunchVictory()
+            }
             _appState = State(initialValue: state)
             _battleSession = State(initialValue: concreteBattleSession)
         } catch {
@@ -45,10 +45,13 @@ struct TrinketApp: App {
             do {
                 let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
                 let state = try AppState(
-                    environment: .shared,
+                    environment: environment,
                     playerSave: fallbackSave,
-                    makeBattleComposition: makeBattleComposition
+                    makeBattleRuntime: makeBattleRuntime
                 )
+                if environment.launchScreen == .battleVictory {
+                    concreteBattleSession?.presentLaunchVictory()
+                }
                 _appState = State(initialValue: state)
                 _battleSession = State(initialValue: concreteBattleSession)
             } catch {

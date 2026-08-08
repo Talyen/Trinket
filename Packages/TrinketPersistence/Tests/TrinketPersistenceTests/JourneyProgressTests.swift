@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
@@ -144,5 +145,62 @@ final class JourneyProgressTests {
         try #expect(
             secondSaveStore.journey.pinnedMysteryEventIDs["chapter-1-stage-5"] == event.id
         )
+    }
+
+    @Test func startupRepairsDuplicateJourneyStageRows() throws {
+        let directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "JourneyDuplicateStageTests")
+        defer { SaveTestSupport.removeTempDirectory(directoryURL) }
+        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
+        let stageID = "chapter-1-stage-5"
+        let eventID = try #require(GameContent.mysteryEvent(matching: "mana-berries")?.id)
+
+        do {
+            _ = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        }
+        do {
+            let container = try ModelContainer(
+                for: PlayerSaveGraph.schema,
+                configurations: ModelConfiguration(
+                    schema: PlayerSaveGraph.schema,
+                    url: storeURL,
+                    cloudKitDatabase: .none
+                )
+            )
+            let context = ModelContext(container)
+            let journey = try #require(context.fetch(FetchDescriptor<JourneyProgressModel>()).first)
+            let completed = JourneyStageProgressModel(
+                stageID: stageID,
+                isCompleted: true,
+                mysteryEventID: eventID
+            )
+            let claimed = JourneyStageProgressModel(
+                stageID: stageID,
+                rewardsClaimed: true,
+                mysteryEventID: eventID
+            )
+            completed.journey = journey
+            claimed.journey = journey
+            journey.stages = [completed, claimed]
+            context.insert(completed)
+            context.insert(claimed)
+            try context.save()
+        }
+
+        let repairedStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        try #expect(repairedStore.journey.completedStageIDs.contains(stageID))
+        try #expect(repairedStore.journey.claimedRewardStageIDs.contains(stageID))
+        try #expect(repairedStore.journey.pinnedMysteryEventIDs[stageID] == eventID)
+
+        let container = try ModelContainer(
+            for: PlayerSaveGraph.schema,
+            configurations: ModelConfiguration(
+                schema: PlayerSaveGraph.schema,
+                url: storeURL,
+                cloudKitDatabase: .none
+            )
+        )
+        let context = ModelContext(container)
+        let stageRows = try context.fetch(FetchDescriptor<JourneyStageProgressModel>())
+        try #expect(stageRows.count(where: { $0.stageID == stageID }) == 1)
     }
 }

@@ -52,17 +52,13 @@ final class AppTestContext {
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
-        let runtime = BattleRuntimeSession()
-        let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
+        let battle = BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
         let state = try AppState(
             environment: parsed,
             playerSave: resolvedSave,
             userDefaults: userDefaults,
-            battleComposition: BattleRuntimeComposition(
-                runtime: runtime,
-                onLaunchBattleVictory: { battle.presentLaunchVictory() }
-            )
+            battleRuntime: battle
         )
         lastBattle = battle
         // Unit tests expect a full hand before the next statement; skip paced deal.
@@ -72,16 +68,12 @@ final class AppTestContext {
 
     @MainActor
     func makeAppState(environment: AppEnvironment) throws -> AppState {
-        let runtime = BattleRuntimeSession()
-        let battle = BattleSession(runtime: runtime, presentationEnvironment: .silent)
+        let battle = BattleSession(presentationEnvironment: .silent)
         let state = try AppState(
             environment: environment,
             playerSave: sharedPlayerSave(resetState: environment.resetState),
             userDefaults: userDefaults,
-            battleComposition: BattleRuntimeComposition(
-                runtime: runtime,
-                onLaunchBattleVictory: { battle.presentLaunchVictory() }
-            )
+            battleRuntime: battle
         )
         lastBattle = battle
         battle.openingHandDrawStagger = 0

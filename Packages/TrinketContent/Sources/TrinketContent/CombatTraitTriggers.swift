@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 
 /// Trait and affix trigger knobs authored for combat builds.
-public struct CombatTraitTriggers: Sendable, Equatable, Hashable {
+public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var restoreHealthAlsoHealHero: Int
@@ -63,7 +63,19 @@ public struct CombatTraitTriggers: Sendable, Equatable, Hashable {
     public var onHitAttackerBurn: Int
     public var turnFreezeDamageAllEnemies: Int
     public var damageIncreasesEveryOtherTurn: Bool
-    public var affixReactions: CombatAffixReactionTriggers?
+    public var enemyStunnedPurgeCount: Int
+    public var enemyStunnedPurgeAll: Bool
+    public var criticalPurgeCount: Int
+    public var criticalPurgeAll: Bool
+    public var criticalGoldFlat: Int
+    public var leechRestoreManaFlat: Int
+    public var gainManaBlockFlat: Int
+    public var defeatEnemyGoldFlat: Int
+    public var leechGoldFlat: Int
+    public var dodgeHealFlat: Int
+    public var dodgeChanceBelowHealthPercentThreshold: Double
+    public var dodgeChanceBelowHealthPercentBonus: Double
+    public var dodgeDealStunFlat: Int
 
     // swiftlint:disable:next function_body_length
     public init(
@@ -127,7 +139,19 @@ public struct CombatTraitTriggers: Sendable, Equatable, Hashable {
         onHitAttackerBurn: Int = 0,
         turnFreezeDamageAllEnemies: Int = 0,
         damageIncreasesEveryOtherTurn: Bool = false,
-        affixReactions: CombatAffixReactionTriggers? = nil
+        enemyStunnedPurgeCount: Int = 0,
+        enemyStunnedPurgeAll: Bool = false,
+        criticalPurgeCount: Int = 0,
+        criticalPurgeAll: Bool = false,
+        criticalGoldFlat: Int = 0,
+        leechRestoreManaFlat: Int = 0,
+        gainManaBlockFlat: Int = 0,
+        defeatEnemyGoldFlat: Int = 0,
+        leechGoldFlat: Int = 0,
+        dodgeHealFlat: Int = 0,
+        dodgeChanceBelowHealthPercentThreshold: Double = 0,
+        dodgeChanceBelowHealthPercentBonus: Double = 0,
+        dodgeDealStunFlat: Int = 0
     ) {
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
@@ -189,6 +213,18 @@ public struct CombatTraitTriggers: Sendable, Equatable, Hashable {
         self.onHitAttackerBurn = onHitAttackerBurn
         self.turnFreezeDamageAllEnemies = turnFreezeDamageAllEnemies
         self.damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn
-        self.affixReactions = affixReactions
+        self.enemyStunnedPurgeCount = enemyStunnedPurgeCount
+        self.enemyStunnedPurgeAll = enemyStunnedPurgeAll
+        self.criticalPurgeCount = criticalPurgeCount
+        self.criticalPurgeAll = criticalPurgeAll
+        self.criticalGoldFlat = criticalGoldFlat
+        self.leechRestoreManaFlat = leechRestoreManaFlat
+        self.gainManaBlockFlat = gainManaBlockFlat
+        self.defeatEnemyGoldFlat = defeatEnemyGoldFlat
+        self.leechGoldFlat = leechGoldFlat
+        self.dodgeHealFlat = dodgeHealFlat
+        self.dodgeChanceBelowHealthPercentThreshold = dodgeChanceBelowHealthPercentThreshold
+        self.dodgeChanceBelowHealthPercentBonus = dodgeChanceBelowHealthPercentBonus
+        self.dodgeDealStunFlat = dodgeDealStunFlat
     }
 }

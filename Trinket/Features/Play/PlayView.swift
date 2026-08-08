@@ -27,7 +27,7 @@ struct PlayView: View {
                 navigationPath: $navigationPath,
                 stageMessage: $stageMessage
             )
-            PlayBattleOverlay()
+            PlayBattleOverlay(stageMessage: $stageMessage)
         }
         .onAppear {
             restorePlayDestinationIfNeeded()
@@ -45,7 +45,7 @@ struct PlayView: View {
             }
         }
         .task(id: battlePresentationTaskKey) {
-            await battle.preparePreparedBattlePresentation(
+            await battle.prepareBattlePresentationAssets(
                 dynamicTypeSize: dynamicTypeSize,
                 displayScale: displayScale
             )
@@ -189,6 +189,8 @@ private struct BattlePresentationTaskKey: Equatable {
 private struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
+    @Binding var stageMessage: StageMapMessage?
+    @State private var claimedVictoryHandlerOwnerID = UUID()
 
     var body: some View {
         let configuration = battle.activeBattle
@@ -201,12 +203,11 @@ private struct PlayBattleOverlay: View {
                         configuration: configuration,
                         presentationContext: presentationContext,
                         battleSession: battle,
-                        completeBattle: { [weak play] configuration, earnedGold, rewards in
-                            play?.completeActiveBattle(
-                                configuration,
-                                battleEarnedGold: earnedGold,
-                                materialRewards: rewards
-                            ) ?? false
+                        completeVictory: { summary in
+                            completeVictory(
+                                configuration: configuration,
+                                summary: summary
+                            )
                         },
                         restartBattle: { [weak play] in
                             play?.restartActiveBattle()
@@ -229,6 +230,20 @@ private struct PlayBattleOverlay: View {
         .animation(TrinketMotion.Screen.crossfade, value: configuration?.id)
         .allowsHitTesting(configuration != nil)
         .accessibilityHidden(configuration == nil)
+        .onAppear(perform: installClaimedVictoryHandler)
+        .onDisappear {
+            battle.uninstallClaimedVictoryHandler(ownerID: claimedVictoryHandlerOwnerID)
+        }
+        .task(id: configuration?.id) {
+            guard let configuration,
+                  let presentationContext = battlePresentationContext(for: configuration)
+            else { return }
+            let launchVictoryWasPresented = battle.spectacle.isShowingVictory
+            battle.installPresentationContext(presentationContext)
+            if launchVictoryWasPresented {
+                battle.presentLaunchVictory()
+            }
+        }
     }
 
     private func battlePresentationContext(
@@ -237,6 +252,43 @@ private struct PlayBattleOverlay: View {
         guard let runKey = configuration.runKey else { return .empty }
         return play.battlePresentation(for: runKey)
     }
+
+    private func installClaimedVictoryHandler() {
+        let failureMessage = $stageMessage
+        battle.installClaimedVictoryHandler(
+            ownerID: claimedVictoryHandlerOwnerID
+        ) { [weak play, weak battle] configuration, earnedGold in
+            guard let play, let battle else { return }
+            let didPersist = play.completeActiveBattle(
+                configuration,
+                battleEarnedGold: earnedGold
+            )
+            if !didPersist {
+                battle.presentVictoryChromeForPersistRetry()
+                failureMessage.wrappedValue = Self.persistenceFailureMessage
+            }
+        }
+    }
+
+    private func completeVictory(
+        configuration: BattleRunConfiguration,
+        summary: BattleVictorySummary
+    ) -> Bool {
+        let didPersist = play.completeActiveBattle(
+            configuration,
+            battleEarnedGold: summary.rawBattleEarnedGold,
+            materialRewards: summary.materialRewards
+        )
+        if !didPersist {
+            stageMessage = Self.persistenceFailureMessage
+        }
+        return didPersist
+    }
+
+    private static let persistenceFailureMessage = StageMapMessage(
+        title: "Couldn't Save Progress",
+        message: "Your victory was not saved. Stay on this screen and try Continue again."
+    )
 }
 
 /// Battle/session sheets and covers — isolated `@Bindable` so overlay writes stay here.

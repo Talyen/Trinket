@@ -35,8 +35,8 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
-        battleComposition: BattleRuntimeComposition? = nil,
-        makeBattleComposition: ((BattleRuntimeDependencies) -> BattleRuntimeComposition)? = nil
+        battleRuntime: (any BattleRuntime)? = nil,
+        makeBattleRuntime: ((BattleRuntimeDependencies) -> any BattleRuntime)? = nil
     ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
@@ -54,30 +54,27 @@ public final class AppState {
         options = dependencies.options
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
 
-        let resolvedBattle = Self.resolveBattleComposition(
-            explicit: battleComposition,
-            factory: makeBattleComposition,
+        let resolvedBattle = Self.resolveBattleRuntime(
+            explicit: battleRuntime,
+            factory: makeBattleRuntime,
             dependencies: dependencies
         )
         play = PlaySession(
             playerSave: dependencies.playerSave,
             shellSession: dependencies.shellSession,
-            battle: resolvedBattle.runtime,
+            battle: resolvedBattle,
             options: dependencies.options,
             sfxPlayer: dependencies.sfxPlayer,
             pendingDestination: dependencies.pendingPlayDestination
         )
-        finishBootstrap(
-            environment: environment,
-            onLaunchBattleVictory: resolvedBattle.onLaunchBattleVictory
-        )
+        finishBootstrap(environment: environment)
     }
 
-    private static func resolveBattleComposition(
-        explicit: BattleRuntimeComposition?,
-        factory: ((BattleRuntimeDependencies) -> BattleRuntimeComposition)?,
+    private static func resolveBattleRuntime(
+        explicit: (any BattleRuntime)?,
+        factory: ((BattleRuntimeDependencies) -> any BattleRuntime)?,
         dependencies: BootstrapDependencies
-    ) -> BattleRuntimeComposition {
+    ) -> any BattleRuntime {
         explicit
             ?? factory?(BattleRuntimeDependencies(
                 playSFX: { ids in
@@ -114,10 +111,7 @@ public final class AppState {
                     )
                 }
             ))
-            ?? BattleRuntimeComposition(
-                runtime: BattleRuntimeStore(),
-                onLaunchBattleVictory: {}
-            )
+            ?? BattleRuntimeStore()
     }
 
     public func consumePendingCollectionPresentation() -> LaunchPresentation? {

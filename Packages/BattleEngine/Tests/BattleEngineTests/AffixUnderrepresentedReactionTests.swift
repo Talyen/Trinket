@@ -8,7 +8,7 @@ struct AffixUnderrepresentedReactionTests {
     @Test func disruptingPurgesWhenEnemyIsStunned() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(enemyStunnedPurgeCount: 1))
+                triggers: CombatTraitTriggers(enemyStunnedPurgeCount: 1)
             )
         )
         let enemy = context.roster.enemy.combatant
@@ -26,7 +26,7 @@ struct AffixUnderrepresentedReactionTests {
     @Test func unmakingPurgesOnCriticalHit() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(criticalPurgeCount: 1))
+                triggers: CombatTraitTriggers(criticalPurgeCount: 1)
             )
         )
         let hero = context.roster.hero.combatant
@@ -45,7 +45,7 @@ struct AffixUnderrepresentedReactionTests {
     @Test func arcaneWardGrantsBlockWhenGainingMana() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(gainManaBlockFlat: 2))
+                triggers: CombatTraitTriggers(gainManaBlockFlat: 2)
             )
         )
         let hero = context.roster.hero.combatant
@@ -79,7 +79,7 @@ struct AffixUnderrepresentedReactionTests {
             gold: 0,
             initialGold: 0,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(leechRestoreManaFlat: 2, leechGoldFlat: 1))
+                triggers: CombatTraitTriggers(leechRestoreManaFlat: 2, leechGoldFlat: 1)
             ),
             companionModifiers: .zero,
             enemyModifiers: .zero
@@ -97,7 +97,7 @@ struct AffixUnderrepresentedReactionTests {
     @Test func bountyGrantsGoldWhenEnemyIsDefeated() throws {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 4))
+                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 4)
             )
         )
 
@@ -120,7 +120,7 @@ struct AffixUnderrepresentedReactionTests {
             initialGold: context.initialGold,
             heroModifiers: .zero,
             companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 3))
+                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
             ),
             enemyModifiers: .zero
         )
@@ -147,10 +147,10 @@ struct AffixUnderrepresentedReactionTests {
             gold: context.gold,
             initialGold: context.initialGold,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 4))
+                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 4)
             ),
             companionModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(defeatEnemyGoldFlat: 3))
+                triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
             ),
             enemyModifiers: .zero
         )
@@ -179,7 +179,7 @@ struct AffixUnderrepresentedReactionTests {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 20,
             heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(affixReactions: .init(dodgeHealFlat: 3, dodgeDealStunFlat: 3))
+                triggers: CombatTraitTriggers(dodgeHealFlat: 3, dodgeDealStunFlat: 3)
             )
         )
         let hero = context.roster.hero.combatant
@@ -199,10 +199,8 @@ struct AffixUnderrepresentedReactionTests {
         var context = BattleTestFixtures.makePipelineContext(
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(
-                    affixReactions: .init(
-                        dodgeChanceBelowHealthPercentThreshold: 0.50,
-                        dodgeChanceBelowHealthPercentBonus: 0.15
-                    )
+                    dodgeChanceBelowHealthPercentThreshold: 0.50,
+                    dodgeChanceBelowHealthPercentBonus: 0.15
                 )
             )
         )

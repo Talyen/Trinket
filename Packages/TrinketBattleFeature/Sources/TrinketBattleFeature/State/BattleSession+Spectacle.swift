@@ -56,11 +56,11 @@ extension BattleSession {
     func combatantID(for participant: BattleParticipant) -> String? {
         switch participant {
         case .hero:
-            presentation.hero?.combatant.id ?? runtime.heroID
+            presentation.hero?.combatant.id ?? heroID
         case .companion:
-            presentation.companion?.combatant.id ?? runtime.companionID
+            presentation.companion?.combatant.id ?? companionID
         case .enemy:
-            presentation.enemy?.combatant.id ?? runtime.enemyID
+            presentation.enemy?.combatant.id ?? enemyID
         }
     }
 
@@ -94,7 +94,7 @@ extension BattleSession {
         case .victory:
             if presentationContext?.stageRewardsAlreadyClaimed == true {
                 publishPartyCelebrateReactions(at: date)
-                onTurnAutoEnded?(runtime.earnedGold ?? 0)
+                deliverClaimedVictoryIfNeeded()
                 return
             }
             if spectacle.victorySummary != nil, !spectacle.isShowingVictory {
@@ -123,36 +123,33 @@ extension BattleSession {
         spectacle.activeCinematic = cinematic
     }
 
-    func handleOutcomeIfNeeded(
-        at date: Date
-    ) -> Int? {
+    func handleOutcomeIfNeeded(at date: Date) {
         guard let configuration = activeBattle,
               let context = presentationContext
-        else { return nil }
+        else { return }
         switch outcome {
         case .victory:
             if context.stageRewardsAlreadyClaimed {
                 // Keep the Ultimate on screen; collapse fires claimed-stage auto-complete.
                 if spectacle.activeCinematic != nil {
-                    return nil
+                    return
                 }
                 publishPartyCelebrateReactions(at: date)
-                return runtime.earnedGold ?? 0
+                deliverClaimedVictoryIfNeeded()
+                return
             }
-            guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return nil }
+            guard let summary = makeVictorySummary(for: configuration, presentation: context) else { return }
             spectacle.victorySummary = summary
             // Defer outcome chrome until Ultimate collapse so the killing blow finishes.
             if spectacle.activeCinematic == nil {
                 scheduleVictoryPresentation(after: date)
             }
-            return nil
         case .defeat:
             if spectacle.activeCinematic == nil {
                 scheduleDefeatPresentation(after: date)
             }
-            return nil
         case .none:
-            return nil
+            break
         }
     }
 
@@ -170,7 +167,7 @@ extension BattleSession {
     /// Squish/bounce living Hero + Pet cards while the enemy dissolves.
     /// Lands on the frame after dissolve starts so KeyframeAnimator work does not
     /// share the killing-blow chip/layout commit.
-    private func publishPartyCelebrateReactions(at date: Date) {
+    func publishPartyCelebrateReactions(at date: Date) {
         spectacle.pendingPartyCelebrateTask?.cancel()
         spectacle.pendingPartyCelebrateTask = nil
         let delay = partyCelebrateDelayOverride ?? 0.032
@@ -188,20 +185,20 @@ extension BattleSession {
     }
 
     private func publishPartyCelebrateReactionsNow(at date: Date) {
-        guard let heroID = runtime.heroID,
-              let companionID = runtime.companionID
+        guard let heroID,
+              let companionID
         else { return }
         // Negative synthetic IDs stay clear of engine event / feedback item IDs.
         let baseID = -1 * max(1, Int(date.timeIntervalSinceReferenceDate * 1000))
         var didPublish = false
-        if runtime.isHeroAlive {
+        if isHeroAlive {
             feedback.hitReactionsByTargetID[heroID] = CombatantHitReaction(
                 id: baseID,
                 kind: .celebrate
             )
             didPublish = true
         }
-        if runtime.isCompanionAlive {
+        if isCompanionAlive {
             feedback.hitReactionsByTargetID[companionID] = CombatantHitReaction(
                 id: baseID &- 1,
                 kind: .celebrate
@@ -215,11 +212,11 @@ extension BattleSession {
 
     /// Surfaces victory chrome after a claimed-stage auto-complete persist failure so
     /// the player can retry via Loot All instead of remaining stuck on the battlefield.
-    func presentVictoryChromeForPersistRetry() {
+    public func presentVictoryChromeForPersistRetry() {
         guard outcome == .victory,
               let configuration = activeBattle,
               let context = presentationContext,
-              runtime.hasActiveSimulation,
+              hasActiveSimulation,
               !spectacle.isShowingVictory
         else { return }
         if spectacle.victorySummary == nil {
@@ -232,7 +229,7 @@ extension BattleSession {
     func debugSkipCombat() {
         guard let configuration = activeBattle,
               let context = presentationContext,
-              runtime.hasActiveSimulation,
+              hasActiveSimulation,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat
         else { return }
@@ -290,8 +287,8 @@ extension BattleSession {
 
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
-        guard let heroID = runtime.heroID,
-              let companionID = runtime.companionID
+        guard let heroID,
+              let companionID
         else {
             feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
             return
@@ -413,8 +410,10 @@ extension BattleSession {
     func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
+        deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
         feedback.clear()
+        resetFeedbackRasterMemory()
         clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
         if overlayCombatantDetail != nil {
@@ -436,9 +435,10 @@ extension BattleSession {
     func clearRunState() {
         cancelPendingAutoEnd()
         cancelOpeningHandDeal()
-        onTurnAutoEnded = nil
+        deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()
         feedback.clear()
+        resetFeedbackRasterMemory()
         clearSpectacle()
         clearOutcomePresentation()
         feedback.release()

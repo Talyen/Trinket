@@ -13,18 +13,17 @@ package extension CombatReactionEngine {
         var events = applyPurge(
             to: enemy,
             source: source,
-            abilityName: "Unmaking",
+            abilityName: affixTitle("unmaking"),
             count: profile.triggers.criticalPurgeCount,
             purgeAll: profile.triggers.criticalPurgeAll,
             in: &context
         )
 
         if profile.triggers.criticalGoldFlat > 0 {
-            events.append(grantGold(
+            events.append(context.grantGoldEvent(
                 profile.triggers.criticalGoldFlat,
                 to: source,
-                abilityName: profile.traitDisplayName ?? "Cutpurse",
-                in: &context
+                abilityName: profile.traitDisplayName ?? "Cutpurse"
             ))
         }
 
@@ -34,12 +33,11 @@ package extension CombatReactionEngine {
     static func afterGainMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
         let amount = context.modifiers(for: actor.id).triggers.gainManaBlockFlat
         guard amount > 0 else { return [] }
-        return applyBlock(
-            amount: amount,
+        return context.applyBlock(
+            amount,
             to: actor,
             source: actor,
-            abilityName: "Arcane Ward",
-            in: &context
+            abilityName: affixTitle("arcane_ward")
         )
     }
 
@@ -58,7 +56,7 @@ package extension CombatReactionEngine {
                     kind: .effect,
                     effectKind: .resourceGain,
                     actorName: actor.name,
-                    abilityName: "Siphoning",
+                    abilityName: affixTitle("siphoning"),
                     target: actor,
                     amount: restored,
                     keyword: .mana
@@ -68,11 +66,10 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.leechGoldFlat > 0 {
-            events.append(grantGold(
+            events.append(context.grantGoldEvent(
                 profile.triggers.leechGoldFlat,
                 to: actor,
-                abilityName: "Blood Price",
-                in: &context
+                abilityName: affixTitle("blood_price")
             ))
         }
 
@@ -86,7 +83,7 @@ package extension CombatReactionEngine {
             let hero = context.roster.hero.combatant
             let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(grantGold(amount, to: hero, abilityName: "Bounty", in: &context))
+                events.append(context.grantGoldEvent(amount, to: hero, abilityName: affixTitle("bounty")))
             }
         }
 
@@ -94,7 +91,7 @@ package extension CombatReactionEngine {
             let companion = context.roster.companion.combatant
             let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(grantGold(amount, to: companion, abilityName: "Bounty", in: &context))
+                events.append(context.grantGoldEvent(amount, to: companion, abilityName: affixTitle("bounty")))
             }
         }
 
@@ -114,7 +111,7 @@ package extension CombatReactionEngine {
                 sourceActorID: combatant.id,
                 logAs: .instantHeal(
                     actorName: combatant.name,
-                    abilityName: "Sidestep",
+                    abilityName: affixTitle("sidestep"),
                     keyword: .health,
                     displayAmount: profile.triggers.dodgeHealFlat
                 )
@@ -144,30 +141,10 @@ package extension CombatReactionEngine {
             kind: .effect,
             effectKind: nil,
             actorName: combatant.name,
-            abilityName: "Whiplash",
+            abilityName: affixTitle("whiplash"),
             target: enemy,
             amount: lost,
             keyword: .stun
         )]
-    }
-
-    /// Grants `amount` Gold to the party pool and returns the `resourceGain` event.
-    static func grantGold(
-        _ amount: Int,
-        to combatant: Combatant,
-        abilityName: String,
-        in context: inout BattleState
-    ) -> ActionEvent {
-        let granted = context.goldGranted(for: amount, sourceActorID: combatant.id)
-        context.addGold(amount, sourceActorID: combatant.id)
-        return context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
-            actorName: combatant.name,
-            abilityName: abilityName,
-            target: combatant,
-            amount: granted,
-            keyword: .gold
-        )
     }
 }

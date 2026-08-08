@@ -39,7 +39,7 @@ public final class JourneyStageProgressModel {
 extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
         let stageModels = stages ?? []
-        let pinned = Dictionary(uniqueKeysWithValues: stageModels.compactMap { model -> (String, String)? in
+        let pinned = Dictionary(lastWins: stageModels.compactMap { model -> (String, String)? in
             guard let eventID = model.mysteryEventID, !eventID.isEmpty else { return nil }
             return (model.stageID, eventID)
         })

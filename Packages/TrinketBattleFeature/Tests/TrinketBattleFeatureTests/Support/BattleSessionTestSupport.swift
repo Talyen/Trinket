@@ -55,7 +55,7 @@ enum BattleSessionTestSupport {
             companion: resolvedCompanion,
             enemy: resolvedEnemy
         )
-        _ = session.runtime.activate(configuration)
+        _ = session.activate(configuration)
         session.installPresentationContext(presentation)
         return session
     }
@@ -79,7 +79,6 @@ enum BattleSessionTestSupport {
         at date: Date = .now,
         maxActions: Int = 200
     ) -> Int? {
-        var earnedGold: Int?
         var actions = 0
         while session.outcome == nil, actions < maxActions {
             actions += 1
@@ -88,25 +87,19 @@ enum BattleSessionTestSupport {
                 continue
             }
             if let card = session.hand.first(where: { session.isCardPlayable($0) }) {
-                earnedGold = session.playCard(
+                _ = session.playCard(
                     cardID: card.id,
                     at: date
-                ).earnedGold
-                if earnedGold != nil {
-                    break
-                }
+                )
                 continue
             }
             if session.canEndTurn {
-                earnedGold = session.endTurn(at: date)
-                if earnedGold != nil {
-                    break
-                }
+                session.endTurn(at: date)
                 continue
             }
             break
         }
-        return earnedGold
+        return session.outcome == .victory ? session.readModel?.earnedGold : nil
     }
 
     /// Cycles the hand until `abilityID` is playable (does not play it).
@@ -137,7 +130,7 @@ enum BattleSessionTestSupport {
                 continue
             }
             if session.canEndTurn {
-                _ = session.endTurn(at: date)
+                session.endTurn(at: date)
                 continue
             }
             break
@@ -159,9 +152,10 @@ enum BattleSessionTestSupport {
             at: date,
             maxActions: maxActions
         ) else { return nil }
-        return session.playCard(
+        _ = session.playCard(
             cardID: card.id,
             at: date
-        ).earnedGold
+        )
+        return session.outcome == .victory ? session.readModel?.earnedGold : nil
     }
 }

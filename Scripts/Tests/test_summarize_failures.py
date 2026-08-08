@@ -8,7 +8,6 @@ the tool calls are patched at the process boundary.
 
 from __future__ import annotations
 
-import importlib.util
 import io
 import json
 import os
@@ -23,12 +22,10 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "Scripts" / "summarize-failures.py"
+CLI_SCRIPT = ROOT / "Scripts" / "summarize-failures.py"
 FIXTURES = ROOT / "Scripts" / "Tests" / "Fixtures"
-SPEC = importlib.util.spec_from_file_location("summarize_failures", SCRIPT)
-REPORTER = importlib.util.module_from_spec(SPEC)
-assert SPEC and SPEC.loader
-SPEC.loader.exec_module(REPORTER)
+sys.path.insert(0, str(ROOT / "Scripts"))
+import failure_diagnostics as REPORTER  # noqa: E402
 
 
 def fixture(name: str) -> dict:
@@ -72,18 +69,80 @@ class ReporterTests(unittest.TestCase):
                 (output / "failure.txt").write_text("failure attachment\n", encoding="utf-8")
                 return True, None
 
-            with patch.object(REPORTER, "run_xcresulttool", side_effect=query), patch.object(REPORTER, "export_failure_attachments", side_effect=export):
+            with patch.object(REPORTER.xcresult, "run_xcresulttool", side_effect=query), patch.object(REPORTER.xcresult, "export_failure_attachments", side_effect=export):
                 report = REPORTER.build_report(namespace(bundle, log, 1, prefix))
 
-            self.assertEqual(report["classification"], "test-failure")
-            self.assertEqual(len(report["issues"]), 1)
-            self.assertEqual(report["structured_sources"]["test_details"], 1)
-            self.assertTrue(report["structured_sources"]["attachments"])
-            self.assertEqual(report["issues"][0]["file"], "BattleTests.swift")
-            self.assertEqual(report["issues"][0]["line"], 42)
-            self.assertEqual(len(report["issues"][0]["attachments"]), 1)
+            self.assertEqual(report.classification, "test-failure")
+            self.assertEqual(len(report.issues), 1)
+            self.assertEqual(report.sources.test_details, 1)
+            self.assertTrue(report.sources.attachments)
+            self.assertEqual(report.issues[0].file, "BattleTests.swift")
+            self.assertEqual(report.issues[0].line, 42)
+            self.assertEqual(len(report.attachments), 1)
             self.assertIn("failure.txt", REPORTER.render_markdown(report))
-            self.assertNotIn("raw_log_path", report)
+            self.assertNotIn("raw_log_path", report.to_dict())
+
+    def test_distinct_assertions_in_one_test_remain_distinct(self) -> None:
+        accumulator = REPORTER.IssueAccumulator()
+        for observation in REPORTER.parse_summary(fixture("test-summary-multiple.json")):
+            accumulator.add(observation)
+        observations, failed_ids = REPORTER.parse_test_nodes(fixture("tests-multiple.json"))
+        for observation in observations:
+            accumulator.add(observation)
+
+        issues = accumulator.finalize()
+
+        self.assertEqual(
+            failed_ids,
+            ["test://com.apple.xcode/Trinket/TrinketTests/BattleTests/multipleFailures()"],
+        )
+        self.assertEqual(len(issues), 2)
+        self.assertEqual({issue.line for issue in issues}, {42, 57})
+        self.assertEqual(
+            {issue.message for issue in issues},
+            {
+                "Expectation failed: score == 2",
+                "Expectation failed: health == 10",
+            },
+        )
+
+    def test_attachments_are_assigned_by_test_identifier(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "manifest.json").write_text(
+                json.dumps(fixture("attachments-multiple.json")),
+                encoding="utf-8",
+            )
+            for name in ("first.png", "second.png", "runner.txt"):
+                (root / name).write_text(name, encoding="utf-8")
+            issues = [
+                REPORTER.DiagnosticIssue.from_observation(
+                    REPORTER.IssueObservation(
+                        "test-failure",
+                        "firstFailure()",
+                        "first failed",
+                        test="BattleTests/firstFailure()",
+                    )
+                ),
+                REPORTER.DiagnosticIssue.from_observation(
+                    REPORTER.IssueObservation(
+                        "test-failure",
+                        "secondFailure()",
+                        "second failed",
+                        test="BattleTests/secondFailure()",
+                    )
+                ),
+            ]
+
+            unmatched = REPORTER.assign_attachments(
+                issues,
+                root,
+                REPORTER.xcresult.read_exported_attachments(root),
+            )
+
+            self.assertEqual([Path(path).name for path in issues[0].attachments], ["first.png"])
+            self.assertEqual([Path(path).name for path in issues[1].attachments], ["second.png"])
+            self.assertEqual([Path(path).name for path in unmatched], ["runner.txt"])
 
     def test_build_failure_classification_and_location_are_structured(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -102,13 +161,13 @@ class ReporterTests(unittest.TestCase):
             def query(_bundle: Path, arguments: list[str]):
                 return responses[tuple(arguments)], None
 
-            with patch.object(REPORTER, "run_xcresulttool", side_effect=query), patch.object(REPORTER, "export_failure_attachments", return_value=(True, None)):
+            with patch.object(REPORTER.xcresult, "run_xcresulttool", side_effect=query), patch.object(REPORTER.xcresult, "export_failure_attachments", return_value=(True, None)):
                 report = REPORTER.build_report(namespace(bundle, log, 65, prefix))
 
-            self.assertEqual(report["classification"], "build-failure")
-            self.assertEqual(report["issues"][0]["kind"], "build-failure")
-            self.assertEqual(report["issues"][0]["message"], "Cannot find type 'MissingType' in scope")
-            self.assertNotIn("raw_log_path", report)
+            self.assertEqual(report.classification, "build-failure")
+            self.assertEqual(report.issues[0].kind, "build-failure")
+            self.assertEqual(report.issues[0].message, "Cannot find type 'MissingType' in scope")
+            self.assertNotIn("raw_log_path", report.to_dict())
 
     def test_log_fallback_classifies_simulator_without_exposing_raw_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -119,9 +178,9 @@ class ReporterTests(unittest.TestCase):
             prefix = root / "report"
             report = REPORTER.build_report(namespace(bundle, log, 70, prefix))
 
-            self.assertEqual(report["classification"], "simulator-infrastructure")
-            self.assertEqual(len(report["issues"]), 1)
-            self.assertNotIn("raw_log_path", report)
+            self.assertEqual(report.classification, "simulator-infrastructure")
+            self.assertEqual(len(report.issues), 1)
+            self.assertNotIn("raw_log_path", report.to_dict())
 
     def test_log_fallback_scans_past_two_megabytes_and_classifies_late_linker_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -132,9 +191,9 @@ class ReporterTests(unittest.TestCase):
                 stream.write("clang: error: linker command failed with exit code 1\n")
             report = REPORTER.build_report(namespace(root / "missing.xcresult", log, 1, root / "report"))
 
-            self.assertEqual(report["classification"], "build-failure")
-            self.assertTrue(any("linker command failed" in issue["message"] for issue in report["issues"]))
-            self.assertNotIn("raw_log_path", report)
+            self.assertEqual(report.classification, "build-failure")
+            self.assertTrue(any("linker command failed" in issue.message for issue in report.issues))
+            self.assertNotIn("raw_log_path", report.to_dict())
 
     def test_log_fallback_covers_crash_timeout_configuration_and_tooling(self) -> None:
         cases = (
@@ -157,8 +216,8 @@ class ReporterTests(unittest.TestCase):
                 log = root / f"case-{index}.log"
                 log.write_text(message + "\n", encoding="utf-8")
                 report = REPORTER.build_report(namespace(root / f"missing-{index}.xcresult", log, 1, root / f"report-{index}"))
-                self.assertEqual(report["classification"], expected, message)
-                self.assertEqual(report["issues"][0]["kind"], expected, message)
+                self.assertEqual(report.classification, expected, message)
+                self.assertEqual(report.issues[0].kind, expected, message)
 
     def test_github_annotations_and_step_summary_are_emitted(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -203,7 +262,7 @@ class ReporterTests(unittest.TestCase):
             completed = subprocess.run(
                 [
                     sys.executable,
-                    str(SCRIPT),
+                    str(CLI_SCRIPT),
                     "--result-bundle",
                     str(root / "missing.xcresult"),
                     "--log",
@@ -233,24 +292,20 @@ class ReporterTests(unittest.TestCase):
             log = root / "xcodebuild.log"
             log.write_text("opaque runner output\n", encoding="utf-8")
             report = REPORTER.build_report(namespace(root / "missing.xcresult", log, 1, root / "report"))
-            self.assertEqual(report["classification"], "unknown")
-            self.assertEqual(report["issues"][0]["kind"], "unknown")
-            self.assertEqual(report["raw_log_path"], str(log.resolve()))
+            self.assertEqual(report.classification, "unknown")
+            self.assertEqual(report.issues[0].kind, "unknown")
+            self.assertEqual(report.raw_log_path, str(log.resolve()))
 
     def test_terminal_and_markdown_are_bounded_while_json_is_complete(self) -> None:
-        issues = [
-            REPORTER._new_issue(kind="build-failure", title=f"Issue {index}", message=f"error {index}")
-            for index in range(35)
-        ]
-        report = {
-            "label": "Many",
-            "classification": "build-failure",
-            "exit_code": 1,
-            "issues": issues,
-        }
+        issues = [REPORTER.DiagnosticIssue("build-failure", f"Issue {index}", f"error {index}") for index in range(35)]
+        report = REPORTER.DiagnosticReport(
+            label="Many", result_bundle="", log="", exit_code=1,
+            classification="build-failure", issues=issues,
+            sources=REPORTER.SourceStatus(), generated_at="fixture",
+        )
         terminal = REPORTER.render_terminal(report)
         markdown = REPORTER.render_markdown(report).splitlines()
-        self.assertEqual(len(issues), 35)
+        self.assertEqual(len(report.issues), 35)
         self.assertLessEqual(len(terminal), REPORTER.MAX_LINES)
         self.assertLessEqual(len(markdown), REPORTER.MAX_LINES)
         self.assertIn("additional issues", "\n".join(terminal))
@@ -315,6 +370,40 @@ class ReporterTests(unittest.TestCase):
                 with redirect_stderr(error):
                     self.assertEqual(REPORTER.main(["--result-bundle", str(bundle)]), 2)
                 self.assertIn("reporter execution failed", error.getvalue())
+
+    def test_report_json_remains_compatible_with_ci_aggregator(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            report = REPORTER.DiagnosticReport(
+                label="compatibility",
+                result_bundle=str(root / "missing.xcresult"),
+                log="",
+                exit_code=1,
+                classification="test-failure",
+                issues=[REPORTER.DiagnosticIssue("test-failure", "Failure", "Expectation failed")],
+                sources=REPORTER.SourceStatus(test_summary=True),
+                generated_at="2026-08-08T00:00:00Z",
+                attachments=[str(root / "runner.txt")],
+            )
+            REPORTER.write_report(report, str(root / "fixture-diagnostics"))
+            aggregate_path = root / "ci-diagnostics.json"
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
+                    str(root),
+                    str(aggregate_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
+            self.assertEqual(aggregate["category"], "test-failure")
+            self.assertEqual(aggregate["issues"][0]["message"], "Expectation failed")
 
 
 if __name__ == "__main__":

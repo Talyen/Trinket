@@ -13,14 +13,17 @@ exit code, pass/fail status, result-bundle path, and optional diagnostics-report
 Failed invocations also produce bounded sibling reports:
 
 - `*-diagnostics.json` with the label, exit code, result-bundle path, classification,
-  actionable issues, structured-source availability, and terminal limits.
+  actionable issues, structured-source availability, terminal limits, and any
+  failure attachments that could not be associated with one test.
 - `*-diagnostics.md` with a human-readable summary.
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
 
 Classifications are `test-failure`, `build-failure`, `simulator-infrastructure`,
-`configuration`, `tooling`, or `unknown`. A failure report may identify source
-locations and attachments even when the underlying result bundle is incomplete.
+`configuration`, `tooling`, or `unknown`. Test-owned attachments stay on their
+matching issue; runner-level or otherwise unmatched attachments are listed once at
+report level. A failure report may identify source locations and attachments even
+when the underlying result bundle is incomplete.
 
 ## Aggregate and triage order
 

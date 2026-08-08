@@ -13,6 +13,7 @@ import TrinketPersistence
 @MainActor
 struct PlayBattleLaunch {
     let playerSave: PlayerSaveStore
+    let shellSession: ShellSession
     let battle: any BattleRuntime
     let registerRun: @MainActor @Sendable (PlayBattleRunRegistration) -> Void
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
@@ -108,12 +109,14 @@ struct PlayBattleLaunch {
                enemyID: input.enemy?.id
            ) {
             removePreparedRunsExcept(origin.runKey)
+            shellSession.selectedTab = .play
             return true
         }
         let launch = makeBattleLaunch(input)
         let activated = battle.activate(launch.configuration)
         if activated {
             registerRunIfNeeded(launch, route: route)
+            shellSession.selectedTab = .play
         } else if let runKey = launch.configuration.runKey {
             removeRun(runKey)
         }
@@ -178,6 +181,7 @@ struct PlayBattleLaunch {
             )
         )
         guard battle.restart(launch.configuration) else { return }
+        shellSession.selectedTab = .play
         if let route {
             registerRun(
                 PlayBattleRunRegistration(

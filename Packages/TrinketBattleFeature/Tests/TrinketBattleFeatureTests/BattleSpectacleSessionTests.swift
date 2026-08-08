@@ -248,7 +248,7 @@ struct BattleSpectacleSessionTests {
 
         // Enemy ultimate cadence is every 6th action.
         for _ in 0 ..< 6 {
-            _ = session.endTurn()
+            session.endTurn()
         }
 
         #expect(session.spectacle.activeCinematic == nil)

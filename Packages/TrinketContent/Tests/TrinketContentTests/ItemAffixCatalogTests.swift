@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 
@@ -5,6 +6,31 @@ struct ItemAffixCatalogTests {
     @Test func affixIDsAreUnique() throws {
         let ids = GameContent.itemAffixDefinitions.map(\.id)
         try #expect(Set(ids).count == ids.count)
+    }
+
+    @Test func combatReactionAffixIDsResolveToCatalogTitles() throws {
+        let ids = [
+            "absolving", "aetherward", "arcane_ward", "beacon", "blood_price",
+            "bounty", "branding", "cascading", "disrupting", "nullifying",
+            "payday", "sanctum", "second_wind", "sidestep", "siphoning",
+            "symbiosis", "unmaking", "untouchable", "whiplash",
+        ]
+
+        for id in ids {
+            let definition = GameContent.itemAffixDefinition(matching: id)
+            try #expect(definition?.title.isEmpty == false, "Missing combat-reaction affix \(id)")
+        }
+    }
+
+    @Test func legacyNestedAffixReactionsDecodeWithMissingKeysDefaulted() throws {
+        let data = Data(#"[{"description":"Legacy","modifiers":[],"triggers":{"affixReactions":{"gainManaBlockFlat":2}}}]"#.utf8)
+
+        let powers = try ItemAffixPowerCoding.decode(data)
+        let power = try #require(powers.first)
+
+        try #expect(power.triggers.gainManaBlockFlat == 2)
+        try #expect(power.triggers.leechHealingMultiplier == 1)
+        try #expect(power.triggers.dodgeDealStunFlat == 0)
     }
 
     @Test func eachAffixHasPositiveWeightAndKeywords() throws {

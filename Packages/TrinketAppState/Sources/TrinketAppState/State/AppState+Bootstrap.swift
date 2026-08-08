@@ -70,16 +70,13 @@ extension AppState {
         )
     }
 
-    func finishBootstrap(
-        environment: AppEnvironment,
-        onLaunchBattleVictory: @escaping () -> Void
-    ) {
+    func finishBootstrap(environment: AppEnvironment) {
         play.seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         switch environment.launchScreen {
         case .battle:
             play.startLaunchBattle()
         case .battleVictory:
-            play.startLaunchBattleVictory(onPresentVictory: onLaunchBattleVictory)
+            play.startLaunchBattle()
         case .shop:
             play.startLaunchShop()
         case .mystery:
@@ -124,13 +121,6 @@ private extension PlaySession {
     func startLaunchBattle() {
         guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
         _ = journey.startBattle(for: stage)
-    }
-
-    /// Presents stage 1-1 victory chrome without running the live tick loop (UI tests).
-    func startLaunchBattleVictory(onPresentVictory: () -> Void) {
-        guard let stage = GameContent.stage(id: AppState.launchBattleStageID) else { return }
-        _ = journey.startBattle(for: stage)
-        onPresentVictory()
     }
 
     func startLaunchShop() {

@@ -19,8 +19,8 @@ extension BattleSession {
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
               !isDealingOpeningHand,
-              runtime.hasActiveSimulation,
-              !runtime.isBattleOver
+              hasActiveSimulation,
+              !isBattleOver
         else {
             feedback.noteItemsChanged()
             return .rejected
@@ -30,9 +30,9 @@ extension BattleSession {
             let events = try measurePlayCardInterval(
                 BattleFramePacingSignposts.Name.playCardEngine
             ) {
-                try runtime.playCard(cardID: cardID)
+                try playEngineCard(cardID: cardID)
             }
-            guard runtime.hasActiveSimulation, activeBattle?.id != nil else {
+            guard hasActiveSimulation, activeBattle?.id != nil else {
                 return .rejected
             }
 
@@ -46,11 +46,9 @@ extension BattleSession {
             ) {
                 presentResolvedEvents(events, at: date)
             }
-            let earnedGold = handleOutcomeIfNeeded(at: date)
-            if earnedGold == nil {
-                scheduleAutoEndIfNeeded()
-            }
-            return .committed(earnedGold: earnedGold)
+            handleOutcomeIfNeeded(at: date)
+            scheduleAutoEndIfNeeded()
+            return .committed
         } catch {
             #if DEBUG
             BattleFramePacingSignposts.event(
@@ -63,15 +61,14 @@ extension BattleSession {
         }
     }
 
-    @discardableResult
-    func endTurn(at date: Date = .now) -> Int? {
+    func endTurn(at date: Date = .now) {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
-        guard canEndTurn, runtime.hasActiveSimulation else {
+        guard canEndTurn, hasActiveSimulation else {
             feedback.noteItemsChanged()
-            return nil
+            return
         }
 
         let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
@@ -84,31 +81,29 @@ extension BattleSession {
             )
         }
 
-        let events = runtime.endTurn()
-        if runtime.hasActiveSimulation {
+        let events = endEngineTurn()
+        if hasActiveSimulation {
             installSimulationPresentation()
-            if runtime.phase == .playerTurn {
+            if phase == .playerTurn {
                 presentationEnvironment.playSFX([SFXID.abilityDraw])
             }
         }
         presentResolvedEvents(events, at: date)
-        let earnedGold = handleOutcomeIfNeeded(at: date)
-        if earnedGold == nil {
-            scheduleAutoEndIfNeeded()
-        }
-        return earnedGold
+        handleOutcomeIfNeeded(at: date)
+        scheduleAutoEndIfNeeded()
     }
 
     func beginOpeningHandDeal(for configurationID: UUID) {
-        guard runtime.hasActiveSimulation,
-              runtime.hand.isEmpty,
+        guard hasActiveSimulation,
+              engineHand.isEmpty,
               activeBattle?.id == configurationID
         else { return }
 
         if openingHandDrawStagger <= 0 {
-            _ = runtime.drawOpeningHand()
+            _ = drawOpeningHand()
             installSimulationPresentation()
             presentationEnvironment.playSFX([SFXID.abilityDraw])
+            scheduleAutoEndIfNeeded()
             return
         }
 
@@ -134,11 +129,11 @@ extension BattleSession {
             while true {
                 guard !Task.isCancelled,
                       activeBattle?.id == configurationID,
-                      runtime.hasActiveSimulation
+                      hasActiveSimulation
                 else { return }
 
                 let drew = withAnimation(TrinketMotion.Battle.deal) {
-                    let didDraw = runtime.drawNextOpeningHandCard()
+                    let didDraw = drawNextOpeningHandCard()
                     if didDraw {
                         installSimulationPresentation()
                     }
@@ -154,10 +149,10 @@ extension BattleSession {
 
             guard !Task.isCancelled,
                   activeBattle?.id == configurationID,
-                  runtime.hasActiveSimulation
+                  hasActiveSimulation
             else { return }
 
-            runtime.finalizeOpeningHand()
+            finalizeOpeningHand()
             installSimulationPresentation()
             scheduleAutoEndIfNeeded()
         }
@@ -191,7 +186,7 @@ extension BattleSession {
                   !hasPlayableCard
             else { return }
 
-            if shouldTelegraphEnemyAttack(), let enemyID = runtime.enemyID {
+            if shouldTelegraphEnemyAttack(), let enemyID {
                 publishFullAttack(for: enemyID)
                 let impactDelay = enemyAttackImpactDelayOverride
                     ?? CombatFeedbackAttackRecipes.cardAttack(for: .attack).impactDelay
@@ -205,13 +200,8 @@ extension BattleSession {
                 }
             }
 
-            let earnedGold = endTurn()
-            onTurnAutoEnded?(earnedGold)
+            endTurn()
         }
-    }
-
-    func shouldTelegraphEnemyAttack() -> Bool {
-        runtime.shouldTelegraphEnemyAttack()
     }
 
     func driveAutoBattle(

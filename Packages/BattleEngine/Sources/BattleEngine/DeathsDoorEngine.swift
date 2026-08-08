@@ -86,12 +86,11 @@ package enum DeathsDoorEngine {
             ),
         ]
         if reviveBlock > 0 {
-            events.append(contentsOf: CombatReactionEngine.applyBlock(
-                amount: reviveBlock,
+            events.append(contentsOf: context.applyBlock(
+                reviveBlock,
                 to: combatant,
                 source: combatant,
-                abilityName: abilityName,
-                in: &context
+                abilityName: abilityName
             ))
         }
         return events
@@ -125,12 +124,11 @@ package enum DeathsDoorEngine {
         var events = [event]
         let blockAmount = context.modifiers(for: combatant.id).triggers.blockOnDeathsDoor
         if blockAmount > 0 {
-            events.append(contentsOf: CombatReactionEngine.applyBlock(
-                amount: blockAmount,
+            events.append(contentsOf: context.applyBlock(
+                blockAmount,
                 to: combatant,
                 source: combatant,
-                abilityName: "Deathgrip",
-                in: &context
+                abilityName: "Deathgrip"
             ))
         }
         return events

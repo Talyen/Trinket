@@ -1,0 +1,18 @@
+{
+  "result": "Failed",
+  "failedTests": 2,
+  "testFailures": [
+    {
+      "targetName": "TrinketTests",
+      "testIdentifierString": "BattleTests/multipleFailures()",
+      "testIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/multipleFailures()",
+      "failureText": "Expectation failed: score == 2"
+    },
+    {
+      "targetName": "TrinketTests",
+      "testIdentifierString": "BattleTests/multipleFailures()",
+      "testIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/multipleFailures()",
+      "failureText": "Expectation failed: health == 10"
+    }
+  ]
+}

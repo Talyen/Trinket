@@ -45,7 +45,7 @@ public extension ItemAffix {
     )
 }
 
-public struct ItemAffixPower: Equatable, Hashable, Sendable {
+public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
     public let triggers: CombatTraitTriggers

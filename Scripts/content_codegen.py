@@ -559,22 +559,6 @@ def triggers_swift(raw: str) -> str:
             values["damageIncreasesEveryOtherTurn"] = "true"
         else:
             raise ValueError(f"Unknown trigger token: {token}")
-    # Affix-reaction labels map to CombatTraitTriggers init args backed by affixReactions.
-    affix_reaction_labels = [
-        "enemyStunnedPurgeCount",
-        "enemyStunnedPurgeAll",
-        "criticalPurgeCount",
-        "criticalPurgeAll",
-        "criticalGoldFlat",
-        "leechRestoreManaFlat",
-        "gainManaBlockFlat",
-        "defeatEnemyGoldFlat",
-        "leechGoldFlat",
-        "dodgeHealFlat",
-        "dodgeChanceBelowHealthPercentThreshold",
-        "dodgeChanceBelowHealthPercentBonus",
-        "dodgeDealStunFlat",
-    ]
     order = [
         "cleanseBonusHeal",
         "gainGoldBonusHealSelf",
@@ -636,13 +620,21 @@ def triggers_swift(raw: str) -> str:
         "onHitAttackerBurn",
         "turnFreezeDamageAllEnemies",
         "damageIncreasesEveryOtherTurn",
+        "enemyStunnedPurgeCount",
+        "enemyStunnedPurgeAll",
+        "criticalPurgeCount",
+        "criticalPurgeAll",
+        "criticalGoldFlat",
+        "leechRestoreManaFlat",
+        "gainManaBlockFlat",
+        "defeatEnemyGoldFlat",
+        "leechGoldFlat",
+        "dodgeHealFlat",
+        "dodgeChanceBelowHealthPercentThreshold",
+        "dodgeChanceBelowHealthPercentBonus",
+        "dodgeDealStunFlat",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
-    affix_parts = [f"{label}: {values[label]}" for label in affix_reaction_labels if label in values]
-    if affix_parts:
-        parts.append(
-            "affixReactions: CombatAffixReactionTriggers(" + ", ".join(affix_parts) + ")"
-        )
     if not parts:
         return "CombatTraitTriggers()"
     return "CombatTraitTriggers(" + ", ".join(parts) + ")"

@@ -18,7 +18,7 @@ enum GameContentTraitsGenerated {
             name: "Cutpurse",
             description: "Gain 1 Gold when you Critically Hit.",
             modifiers: [],
-            triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(criticalGoldFlat: 1))
+            triggers: CombatTraitTriggers(criticalGoldFlat: 1)
         ))
         list.append(CombatantTraitDefinition(
             id: "arcane_focus",
@@ -88,7 +88,7 @@ enum GameContentTraitsGenerated {
             name: "Bounty",
             description: "Gain 3 Gold when you defeat an enemy.",
             modifiers: [],
-            triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(defeatEnemyGoldFlat: 3))
+            triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 3)
         ))
         list.append(CombatantTraitDefinition(
             id: "sly_trickery",

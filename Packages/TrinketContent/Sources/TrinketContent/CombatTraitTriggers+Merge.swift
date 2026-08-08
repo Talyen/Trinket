@@ -5,7 +5,7 @@ public extension CombatTraitTriggers {
     mutating func merge(_ other: Self) {
         mergeBaseTriggers(other)
         mergeAdvancedTriggers(other)
-        mergeNewAffixTriggers(other)
+        mergeAffixTriggers(other)
     }
 
     private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
@@ -86,12 +86,22 @@ public extension CombatTraitTriggers {
         damageIncreasesEveryOtherTurn = damageIncreasesEveryOtherTurn || other.damageIncreasesEveryOtherTurn
     }
 
-    private mutating func mergeNewAffixTriggers(_ other: CombatTraitTriggers) {
-        guard let otherAffix = other.affixReactions else { return }
-        if affixReactions == nil {
-            affixReactions = otherAffix
-        } else {
-            affixReactions?.merge(otherAffix)
-        }
+    private mutating func mergeAffixTriggers(_ other: CombatTraitTriggers) {
+        enemyStunnedPurgeCount += other.enemyStunnedPurgeCount
+        enemyStunnedPurgeAll = enemyStunnedPurgeAll || other.enemyStunnedPurgeAll
+        criticalPurgeCount += other.criticalPurgeCount
+        criticalPurgeAll = criticalPurgeAll || other.criticalPurgeAll
+        criticalGoldFlat += other.criticalGoldFlat
+        leechRestoreManaFlat += other.leechRestoreManaFlat
+        gainManaBlockFlat += other.gainManaBlockFlat
+        defeatEnemyGoldFlat += other.defeatEnemyGoldFlat
+        leechGoldFlat += other.leechGoldFlat
+        dodgeHealFlat += other.dodgeHealFlat
+        dodgeChanceBelowHealthPercentThreshold = max(
+            dodgeChanceBelowHealthPercentThreshold,
+            other.dodgeChanceBelowHealthPercentThreshold
+        )
+        dodgeChanceBelowHealthPercentBonus += other.dodgeChanceBelowHealthPercentBonus
+        dodgeDealStunFlat += other.dodgeDealStunFlat
     }
 }

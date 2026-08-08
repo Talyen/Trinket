@@ -10,12 +10,7 @@ import TrinketFeatureSupport
 
 enum BattleCardPlayResolution: Equatable, Sendable {
     case rejected
-    case committed(earnedGold: Int?)
-
-    var earnedGold: Int? {
-        guard case let .committed(earnedGold) = self else { return nil }
-        return earnedGold
-    }
+    case committed
 
     var didCommit: Bool {
         guard case .committed = self else { return false }
@@ -23,15 +18,12 @@ enum BattleCardPlayResolution: Equatable, Sendable {
     }
 }
 
-/// Presentation controller for an active battle: overlays, outcome screens, feedback,
-/// spectacle, and timing. Lifecycle and mutable engine state are owned by
-/// `BattleRuntimeSession`; this type only mirrors lifecycle values for SwiftUI and
-/// reacts to runtime changes.
+/// Production battle runtime and presentation controller for one battle session.
+/// App orchestration sees only `BattleRuntime`; BattleFeature owns the engine state,
+/// projection, feedback, spectacle, overlays, and timing on this concrete object.
 @MainActor
 @Observable
-public final class BattleSession {
-    @ObservationIgnored
-    public let runtime: BattleRuntimeSession
+public final class BattleSession: BattleRuntime {
     let feedback = BattleFeedbackLane()
     public let spectacle = BattleSpectacleState()
     @ObservationIgnored
@@ -51,13 +43,23 @@ public final class BattleSession {
     /// Presented from Play (not Options) so the log overlays the live battlefield.
     public var isShowingBattleLog = false
 
-    public private(set) var activeBattle: BattleRunConfiguration?
+    public internal(set) var activeBattle: BattleRunConfiguration?
     public internal(set) var presentationContext: BattlePresentationContext?
     public internal(set) var lifecyclePhase: BattleLifecyclePhase = .idle
 
+    @ObservationIgnored
+    var engineState: BattleState?
+    @ObservationIgnored
+    var preparedBattleRunsByKey: [BattleRunKey: PreparedBattleRun] = [:]
+
     let presentation = BattlePresentationState()
 
-    public var onTurnAutoEnded: ((Int?) -> Void)?
+    @ObservationIgnored
+    private var claimedVictoryHandlerOwnerID: UUID?
+    @ObservationIgnored
+    private var claimedVictoryHandler: ((BattleRunConfiguration, Int) -> Void)?
+    @ObservationIgnored
+    var deliveredClaimedVictoryConfigurationID: UUID?
     /// Gap between paced opening-hand draws. `<= 0` deals the hand synchronously in `resetRun`
     /// (unit tests). Production uses `TrinketMotion.Battle.cardDrawStagger`.
     public var openingHandDrawStagger: TimeInterval
@@ -83,7 +85,7 @@ public final class BattleSession {
     /// When true, delayed auto-end (and its enemy telegraph) must not advance combat.
     /// Owned by AppState scene-phase reconciliation; independent of battle lifecycle.
     @ObservationIgnored
-    public private(set) var isSuspendedForScenePhase = false
+    public internal(set) var isSuspendedForScenePhase = false
     /// Changes whenever a prepared run is replaced so the Play shell can restart
     /// presentation warmup without observing the private prepared-run dictionary.
     public internal(set) var preparedBattlePresentationRevision = 0
@@ -100,14 +102,12 @@ public final class BattleSession {
     public static let autoEndTurnDelay: TimeInterval = 0.4
 
     public init(
-        runtime: BattleRuntimeSession = BattleRuntimeSession(),
         autoEndTurnDelay: TimeInterval = BattleSession.autoEndTurnDelay,
         openingHandDrawStagger: TimeInterval = TrinketMotion.Battle.cardDrawStagger,
         enemyAttackImpactDelayOverride: TimeInterval? = nil,
         outcomePresentationDelayOverride: TimeInterval? = nil,
         presentationEnvironment: BattleRuntimeDependencies = .silent
     ) {
-        self.runtime = runtime
         self.autoEndTurnDelay = autoEndTurnDelay
         self.openingHandDrawStagger = openingHandDrawStagger
         self.enemyAttackImpactDelayOverride = enemyAttackImpactDelayOverride
@@ -116,9 +116,6 @@ public final class BattleSession {
         isAutoBattleEnabled = Self.preferredAutoBattleEnabled(
             from: presentationEnvironment
         )
-        runtime.onChange = { [weak self] change in
-            self?.handleRuntimeChange(change)
-        }
     }
 
     static func preferredAutoBattleEnabled(
@@ -128,36 +125,12 @@ public final class BattleSession {
             && presentationEnvironment.autoBattleEnabled()
     }
 
-    private func handleRuntimeChange(_ change: BattleRuntimeSession.Change) {
-        switch change {
-        case .prepared:
-            activeBattle = runtime.activeBattle
-            lifecyclePhase = runtime.lifecyclePhase
-            preparedBattlePresentationRevision = runtime.preparedBattlePresentationRevision
-        case .activated:
-            guard let configuration = runtime.activeBattle else { return }
-            activeBattle = configuration
-            lifecyclePhase = runtime.lifecyclePhase
-            preparedBattlePresentationRevision = runtime.preparedBattlePresentationRevision
-            installActiveBattle(configuration)
-        case .ended:
-            activeBattle = nil
-            lifecyclePhase = runtime.lifecyclePhase
-            clearRunState()
-        case let .suspensionChanged(suspended):
-            isSuspendedForScenePhase = suspended
-            if suspended {
-                cancelPendingAutoEnd()
-            } else {
-                scheduleAutoEndIfNeeded()
-            }
-        case .memoryTrimmed:
-            trimPresentationMemory()
-        }
-    }
-
     var outcome: BattleSimulationOutcome? {
-        runtime.outcome
+        guard let engineState else { return nil }
+        return BattleSimulationOutcome.resolve(
+            isPartyDefeated: engineState.isPartyDefeated,
+            isEnemyDefeated: engineState.isEnemyDefeated
+        )
     }
 
     var hand: [BattleCard] {
@@ -165,8 +138,8 @@ public final class BattleSession {
     }
 
     var canEndTurn: Bool {
-        runtime.phase == .playerTurn && !runtime.isBattleOver
-            && runtime.hasActiveSimulation
+        engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
+            && hasActiveSimulation
             && !isDealingOpeningHand
             && spectacle.activeCinematic == nil
             && !spectacle.isShowingVictory && !spectacle.isShowingDefeat
@@ -174,7 +147,7 @@ public final class BattleSession {
 
     /// True when a battle configuration has installed an authoritative simulation.
     public var hasActiveSimulation: Bool {
-        runtime.hasActiveSimulation
+        engineState != nil
     }
 
     /// Retreat is closed once the fight is decided, including the spectacle hold
@@ -203,7 +176,7 @@ public final class BattleSession {
         for configuration: BattleRunConfiguration,
         presentation: BattlePresentationContext
     ) -> BattleVictorySummary? {
-        guard let input = runtime.victoryInput else { return nil }
+        guard let input = victoryInput else { return nil }
         return BattleVictorySummary.make(
             configuration: configuration,
             presentation: presentation,
@@ -223,14 +196,20 @@ public final class BattleSession {
         spectacle.isShowingVictory = true
     }
 
-    func combatantReadModel(for combatant: Combatant) -> BattleRuntimeSession.CombatantReadModel? {
-        runtime.combatantReadModel(for: combatant)
+    func combatantReadModel(for combatant: Combatant) -> CombatantReadModel? {
+        guard let engineState else { return nil }
+        return CombatantReadModel(
+            combatant: combatant,
+            health: engineState.health(of: combatant),
+            maxHealth: engineState.maxHealth(of: combatant),
+            activeEffectSummaries: engineState.effectSummaries(of: combatant)
+        )
     }
 
     #if DEBUG
     func performEngineCardForPerformance(cardID: Int) -> Bool {
         do {
-            _ = try runtime.playCard(cardID: cardID)
+            _ = try playEngineCard(cardID: cardID)
             installSimulationPresentation()
             return true
         } catch {
@@ -239,9 +218,34 @@ public final class BattleSession {
     }
     #endif
 
-    /// Schedules a delayed end turn when nothing in hand is playable.
-    func considerAutoEndTurn() {
-        scheduleAutoEndIfNeeded()
+    /// Connects app-owned battle persistence without making the render tree own
+    /// simulation completion. Owner identity prevents a stale overlay teardown
+    /// from clearing a newer installation.
+    public func installClaimedVictoryHandler(
+        ownerID: UUID,
+        _ handler: @escaping (BattleRunConfiguration, Int) -> Void
+    ) {
+        claimedVictoryHandlerOwnerID = ownerID
+        claimedVictoryHandler = handler
+        deliverClaimedVictoryIfNeeded()
+    }
+
+    public func uninstallClaimedVictoryHandler(ownerID: UUID) {
+        guard claimedVictoryHandlerOwnerID == ownerID else { return }
+        claimedVictoryHandlerOwnerID = nil
+        claimedVictoryHandler = nil
+    }
+
+    func deliverClaimedVictoryIfNeeded() {
+        guard let configuration = activeBattle,
+              presentationContext?.stageRewardsAlreadyClaimed == true,
+              outcome == .victory,
+              deliveredClaimedVictoryConfigurationID != configuration.id,
+              let claimedVictoryHandler
+        else { return }
+
+        deliveredClaimedVictoryConfigurationID = configuration.id
+        claimedVictoryHandler(configuration, earnedGold ?? 0)
     }
 
     public func presentBattleLog() {
@@ -252,7 +256,7 @@ public final class BattleSession {
     /// Log projection for the app shell's sheet. The mutable simulation remains
     /// inside BattleFeature while callers receive immutable log DTOs.
     public var logEntries: [LogEntry] {
-        runtime.logEntries
+        engineState?.log ?? []
     }
 
     func clearBattleLog() {
@@ -269,6 +273,7 @@ public final class BattleSession {
 
     public func installPresentationContext(_ context: BattlePresentationContext) {
         presentationContext = context
+        deliverClaimedVictoryIfNeeded()
     }
 
     func clearOutcomePresentation() {
@@ -290,6 +295,12 @@ public final class BattleSession {
         feedback.pruneExpired(at: date)
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
+        resetFeedbackRasterMemory()
+    }
+
+    func resetFeedbackRasterMemory() {
+        CombatFeedbackRasterPool.shared.removeAll()
+        CombatFeedbackRasterPool.shared.resetDiagnostics()
     }
 
     /// Eagerly prepares battle audio before activation. Repeated calls are cheap
@@ -309,10 +320,10 @@ public final class BattleSession {
     }
 
     func syncLogForDisplay() {
-        runtime.syncLog()
+        syncEngineLog()
     }
 
     func isCardPlayable(_ card: BattleCard) -> Bool {
-        runtime.isCardPlayable(card)
+        engineState?.isCardPlayable(card) ?? false
     }
 }

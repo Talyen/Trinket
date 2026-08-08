@@ -9,6 +9,23 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleVictorySummaryTests {
+    @Test func launchPreviewPresentsVictoryFromAnActivatedConfiguration() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+        let session = BattleSession(openingHandDrawStagger: 0)
+        _ = session.activate(configuration)
+        session.installPresentationContext(context)
+
+        session.presentLaunchVictory()
+
+        #expect(session.spectacle.isShowingVictory)
+        #expect(session.spectacle.victorySummary != nil)
+    }
+
     @Test func makeVictorySummaryUsesBakedAwardsAndStageBattleRewards() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -46,7 +63,7 @@ struct BattleVictorySummaryTests {
             ]
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.runtime.activate(configuration)
+        _ = session.activate(configuration)
         session.installPresentationContext(context)
 
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -91,7 +108,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 13
         )
         let scaledSession = BattleSession(openingHandDrawStagger: 0)
-        _ = scaledSession.runtime.activate(scaledConfiguration)
+        _ = scaledSession.activate(scaledConfiguration)
         scaledSession.installPresentationContext(scaledContext)
         BattleSessionTestSupport.driveUntilOutcome(scaledSession)
         let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration, presentation: scaledContext))
@@ -140,7 +157,7 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 42
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.runtime.activate(configuration)
+        _ = session.activate(configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
@@ -173,12 +190,12 @@ struct BattleVictorySummaryTests {
             goldFindPercent: 10
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.runtime.activate(configuration)
+        _ = session.activate(configuration)
         session.installPresentationContext(context)
         BattleSessionTestSupport.driveUntilOutcome(session)
 
         let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
-        let earnedGold = try #require(session.runtime.readModel?.earnedGold)
+        let earnedGold = try #require(session.readModel?.earnedGold)
 
         let expectedTotal = HomesteadEffects(
             heroModifiers: [],

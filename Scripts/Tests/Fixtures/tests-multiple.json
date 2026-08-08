@@ -1,0 +1,21 @@
+{
+  "testNodes": [
+    {
+      "name": "multipleFailures()",
+      "nodeType": "Test Case",
+      "nodeIdentifier": "BattleTests/multipleFailures()",
+      "nodeIdentifierURL": "test://com.apple.xcode/Trinket/TrinketTests/BattleTests/multipleFailures()",
+      "result": "Failed",
+      "children": [
+        {
+          "name": "BattleTests.swift:42: Expectation failed: score == 2",
+          "nodeType": "Failure Message"
+        },
+        {
+          "name": "BattleTests.swift:57: Expectation failed: health == 10",
+          "nodeType": "Failure Message"
+        }
+      ]
+    }
+  ]
+}

@@ -534,8 +534,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(enemyStunnedPurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge all status effects when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(enemyStunnedPurgeAll: true)))
+            basic: ItemAffixPower(description: "Purge 1 status effect when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(enemyStunnedPurgeCount: 1)),
+            astral: ItemAffixPower(description: "Purge all status effects when you Stun the enemy.", modifiers: [], triggers: CombatTraitTriggers(enemyStunnedPurgeAll: true))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "unmaking",
@@ -543,8 +543,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Purge 1 status effect from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(criticalPurgeCount: 1))),
-            astral: ItemAffixPower(description: "Purge all status effects from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(criticalPurgeAll: true)))
+            basic: ItemAffixPower(description: "Purge 1 status effect from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(criticalPurgeCount: 1)),
+            astral: ItemAffixPower(description: "Purge all status effects from the enemy when you Critically Hit.", modifiers: [], triggers: CombatTraitTriggers(criticalPurgeAll: true))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "siphoning",
@@ -552,8 +552,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.mana, .leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Restore 1 Mana when you Leech.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(leechRestoreManaFlat: 1))),
-            astral: ItemAffixPower(description: "Restore 2 Mana when you Leech.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(leechRestoreManaFlat: 2)))
+            basic: ItemAffixPower(description: "Restore 1 Mana when you Leech.", modifiers: [], triggers: CombatTraitTriggers(leechRestoreManaFlat: 1)),
+            astral: ItemAffixPower(description: "Restore 2 Mana when you Leech.", modifiers: [], triggers: CombatTraitTriggers(leechRestoreManaFlat: 2))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "arcane_ward",
@@ -561,8 +561,8 @@ enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.mana, .block],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 2 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(gainManaBlockFlat: 2))),
-            astral: ItemAffixPower(description: "Gain 4 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(gainManaBlockFlat: 4)))
+            basic: ItemAffixPower(description: "Gain 2 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(gainManaBlockFlat: 2)),
+            astral: ItemAffixPower(description: "Gain 4 Block when you gain Mana.", modifiers: [], triggers: CombatTraitTriggers(gainManaBlockFlat: 4))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "gilded",
@@ -579,8 +579,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 4 Gold when you defeat an enemy.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(defeatEnemyGoldFlat: 4))),
-            astral: ItemAffixPower(description: "Gain 8 Gold when you defeat an enemy.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(defeatEnemyGoldFlat: 8)))
+            basic: ItemAffixPower(description: "Gain 4 Gold when you defeat an enemy.", modifiers: [], triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 4)),
+            astral: ItemAffixPower(description: "Gain 8 Gold when you defeat an enemy.", modifiers: [], triggers: CombatTraitTriggers(defeatEnemyGoldFlat: 8))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "blood_price",
@@ -588,8 +588,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold, .leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 1 Gold when you Leech.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(leechGoldFlat: 1))),
-            astral: ItemAffixPower(description: "Gain 2 Gold when you Leech.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(leechGoldFlat: 2)))
+            basic: ItemAffixPower(description: "Gain 1 Gold when you Leech.", modifiers: [], triggers: CombatTraitTriggers(leechGoldFlat: 1)),
+            astral: ItemAffixPower(description: "Gain 2 Gold when you Leech.", modifiers: [], triggers: CombatTraitTriggers(leechGoldFlat: 2))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "sidestep",
@@ -597,8 +597,8 @@ enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.dodge, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Restore 1 Health when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeHealFlat: 1))),
-            astral: ItemAffixPower(description: "Restore 3 Health when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeHealFlat: 3)))
+            basic: ItemAffixPower(description: "Restore 1 Health when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(dodgeHealFlat: 1)),
+            astral: ItemAffixPower(description: "Restore 3 Health when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(dodgeHealFlat: 3))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "blur",
@@ -606,8 +606,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.dodge, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 15% Dodge chance while below 50% Health.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeChanceBelowHealthPercentThreshold: 0.50, dodgeChanceBelowHealthPercentBonus: 0.15))),
-            astral: ItemAffixPower(description: "Gain 30% Dodge chance while below 50% Health.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeChanceBelowHealthPercentThreshold: 0.50, dodgeChanceBelowHealthPercentBonus: 0.30)))
+            basic: ItemAffixPower(description: "Gain 15% Dodge chance while below 50% Health.", modifiers: [], triggers: CombatTraitTriggers(dodgeChanceBelowHealthPercentThreshold: 0.50, dodgeChanceBelowHealthPercentBonus: 0.15)),
+            astral: ItemAffixPower(description: "Gain 30% Dodge chance while below 50% Health.", modifiers: [], triggers: CombatTraitTriggers(dodgeChanceBelowHealthPercentThreshold: 0.50, dodgeChanceBelowHealthPercentBonus: 0.30))
         ))
         list.append(ItemAffixCatalogSupport.affix(
             id: "whiplash",
@@ -615,8 +615,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.dodge, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 3 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeDealStunFlat: 3))),
-            astral: ItemAffixPower(description: "Deal 5 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(affixReactions: CombatAffixReactionTriggers(dodgeDealStunFlat: 5)))
+            basic: ItemAffixPower(description: "Deal 3 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(dodgeDealStunFlat: 3)),
+            astral: ItemAffixPower(description: "Deal 5 Stun damage when you Dodge.", modifiers: [], triggers: CombatTraitTriggers(dodgeDealStunFlat: 5))
         ))
         return list
     }()

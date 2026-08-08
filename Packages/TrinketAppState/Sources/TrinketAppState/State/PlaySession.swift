@@ -55,6 +55,7 @@ public final class PlaySession {
         )
         let graph = PlayModeGraph.assemble(
             playerSave: playerSave,
+            shellSession: shellSession,
             battle: battle,
             options: options,
             sfxPlayer: sfxPlayer,
@@ -192,6 +193,7 @@ enum PlayModeGraph {
 
     static func assemble(
         playerSave: PlayerSaveStore,
+        shellSession: ShellSession,
         battle: any BattleRuntime,
         options: OptionsStore,
         sfxPlayer: SFXPlayer,
@@ -199,6 +201,7 @@ enum PlayModeGraph {
     ) -> Assembled {
         let battleLaunch = PlayBattleLaunch(
             playerSave: playerSave,
+            shellSession: shellSession,
             battle: battle,
             registerRun: runCallbacks.registerRun,
             removeRun: runCallbacks.removeRun,

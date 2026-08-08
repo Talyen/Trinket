@@ -1,9 +1,9 @@
 # TrinketBattleFeature-local guide
 
-Keep rules in `BattleEngine`. `BattleRuntimeSession` owns battle lifecycle and
-simulation; `BattleSession` is the presentation coordinator. Place display state
-in the existing presentation, feedback, or spectacle lane and have views observe
-the narrowest lane. App options/audio cross only through
+Keep rules in `BattleEngine`. `BattleSession` is the production `BattleRuntime` and
+owns battle lifecycle, simulation, and presentation coordination. Place display
+state in the existing presentation, feedback, or spectacle lane and have views
+observe the narrowest lane. App options/audio cross only through
 `BattleRuntimeDependencies`. Never import `TrinketAppState` or the app module.
 
 BattleFeature follows the shared launch/DTO ownership contract in

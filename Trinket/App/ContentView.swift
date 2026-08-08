@@ -13,13 +13,15 @@ struct ContentView: View {
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
+        @Bindable var appState = appState
+
         // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
             if battle.lifecyclePhase == .active {
                 PlayView()
                     .transition(.opacity)
             } else {
-                tabRoot(selection: selectedTabBinding)
+                tabRoot(selection: $appState.selectedTab)
                     .transition(.opacity)
             }
         }
@@ -50,16 +52,9 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            if battle.lifecyclePhase == .active {
-                appState.selectedTab = .play
-            }
             appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            guard battle.lifecyclePhase != .active || newTab == .play else {
-                appState.selectedTab = .play
-                return
-            }
             appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
@@ -67,9 +62,6 @@ struct ContentView: View {
             )
         }
         .onChange(of: battle.activeBattle?.id) { _, newValue in
-            if newValue != nil {
-                appState.selectedTab = .play
-            }
             appState.reconcileShellState(
                 .activeBattleChanged(started: newValue != nil),
                 scenePhase: scenePhase
@@ -122,15 +114,5 @@ struct ContentView: View {
                 }
             }
         }
-    }
-
-    private var selectedTabBinding: Binding<AppTab> {
-        Binding(
-            get: { appState.selectedTab },
-            set: { newTab in
-                guard battle.lifecyclePhase != .active || newTab == .play else { return }
-                appState.selectedTab = newTab
-            }
-        )
     }
 }

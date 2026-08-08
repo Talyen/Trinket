@@ -9,23 +9,16 @@ import TrinketFeatureContracts
 import TrinketFeatureSupport
 
 public struct BattleView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
-    @State private var persistFailureMessage: StageMapMessage?
     @State private var castPresentation = BattleCastPresentationState()
-    /// Offscreen first-hand cast prime so production play does not cold-mount
-    /// card face + mask + particles together.
-    @State private var handCastPrewarmArtwork: String?
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
     @State private var interactionState = BattleInteractionState()
-    @State private var feedbackBridgeOwnerID = UUID()
     @Namespace private var cinematicNamespace
 
     private let configuration: BattleRunConfiguration
     private let presentationContext: BattlePresentationContext
     private let battleSession: BattleSession
-    private let completeBattle: (BattleRunConfiguration, Int, [ResourceAmount]?) -> Bool
+    private let completeVictory: (BattleVictorySummary) -> Bool
     private let restartBattle: () -> Void
     private let retreat: () -> Void
     #if DEBUG
@@ -36,7 +29,7 @@ public struct BattleView: View {
         configuration: BattleRunConfiguration,
         presentationContext: BattlePresentationContext,
         battleSession: BattleSession,
-        completeBattle: @escaping (BattleRunConfiguration, Int, [ResourceAmount]?) -> Bool,
+        completeVictory: @escaping (BattleVictorySummary) -> Bool,
         restartBattle: @escaping () -> Void,
         retreat: @escaping () -> Void,
         performanceScenario: BattlePerformanceScenario? = nil
@@ -44,7 +37,7 @@ public struct BattleView: View {
         self.configuration = configuration
         self.presentationContext = presentationContext
         self.battleSession = battleSession
-        self.completeBattle = completeBattle
+        self.completeVictory = completeVictory
         self.restartBattle = restartBattle
         self.retreat = retreat
         #if DEBUG
@@ -76,35 +69,8 @@ public struct BattleView: View {
                     }
                 }
             }
-            .alert(item: $persistFailureMessage) { message in
-                Alert(
-                    title: Text(message.title),
-                    message: Text(message.message),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .onAppear {
-                let launchVictoryWasPresented = battleSession.spectacle.isShowingVictory
-                battleSession.installPresentationContext(presentationContext)
-                if launchVictoryWasPresented {
-                    battleSession.presentLaunchVictory()
-                }
-                prewarmBattlePresentationEffects()
-                installChipBridge()
-            }
             .onChange(of: configuration.id) { _, _ in
-                battleSession.installPresentationContext(presentationContext)
-                battleSession.clearOutcomePresentation()
                 castPresentation.reset()
-                CombatFeedbackRasterPool.shared.removeAll()
-                CombatFeedbackRasterPool.shared.resetDiagnostics()
-                prewarmBattlePresentationEffects()
-                installChipBridge()
-            }
-            .onDisappear {
-                battleSession.feedback.uninstallBridge(ownerID: feedbackBridgeOwnerID)
-                CombatFeedbackRasterPool.shared.removeAll()
-                CombatFeedbackRasterPool.shared.resetDiagnostics()
             }
     }
 
@@ -189,18 +155,9 @@ public struct BattleView: View {
             restartBattle()
             return true
         }
-        let didPersist = completeBattle(
-            configuration,
-            summary.rawBattleEarnedGold,
-            summary.materialRewards
-        )
+        let didPersist = completeVictory(summary)
         if didPersist {
             battleSession.playPresentationSFX(SFXID.uiBuySell)
-        } else {
-            persistFailureMessage = StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "Your victory was not saved. Stay on this screen and try Continue again."
-            )
         }
         return didPersist
     }
@@ -231,8 +188,7 @@ public struct BattleView: View {
                     onPlay: playCard(_:request:),
                     onInteractionChanged: updateCombatantTapSuppression(_:),
                     onAttackWindUp: beginPartyAttackWindUp(for:),
-                    onAttackCancel: cancelPartyAttack(for:),
-                    onReady: { prepareAutoEndTurn(battleSession) }
+                    onAttackCancel: cancelPartyAttack(for:)
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
                 .offset(y: -BattleHandLayout.bottomRise)
@@ -241,18 +197,16 @@ public struct BattleView: View {
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
 
-                if let handCastPrewarmArtwork {
-                    CardCastEffectsPrewarmView(artworkName: handCastPrewarmArtwork) {
-                        self.handCastPrewarmArtwork = nil
-                    }
+                BattleCastPrewarmLane(presentation: battleSession.presentation)
                     .zIndex(2)
-                }
 
                 BattleCinematicLane(
                     namespace: cinematicNamespace,
                     effectsVolume: battleSession.effectsVolume
                 )
                 .zIndex(10)
+
+                BattleFeedbackBridgeLane()
 
                 #if DEBUG
                 if let scenario = performanceScenario {
@@ -287,10 +241,7 @@ public struct BattleView: View {
         let outcome = battleSession.playCard(
             cardID: card.id
         )
-        guard case let .committed(earnedGold) = outcome else { return false }
-        if let earnedGold {
-            completeClaimedStageVictoryIfNeeded(earnedGold: earnedGold)
-        }
+        guard case .committed = outcome else { return false }
         if let combatantID = battleSession.combatantID(for: card.owner) {
             battleSession.commitAttackSwing(for: combatantID)
         }
@@ -306,49 +257,6 @@ public struct BattleView: View {
     private func cancelPartyAttack(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
         battleSession.cancelAttack(for: combatantID)
-    }
-
-    private func wireAutoEndTurn(_ battleSession: BattleSession) {
-        battleSession.onTurnAutoEnded = { [weak battleSession] earnedGold in
-            guard let battleSession,
-                  let earnedGold,
-                  let configuration = battleSession.activeBattle else { return }
-            let didPersist = completeBattle(
-                configuration,
-                earnedGold,
-                nil
-            )
-            if !didPersist {
-                // Fall back to victory chrome so Loot All can retry; retreat stays locked
-                // once outcome is resolved, so silent failure would hard-stick the fight.
-                battleSession.presentVictoryChromeForPersistRetry()
-                persistFailureMessage = StageMapMessage(
-                    title: "Couldn't Save Progress",
-                    message: "Your victory was not saved. Stay on this screen and try Continue again."
-                )
-            }
-        }
-    }
-
-    private func prepareAutoEndTurn(_ battleSession: BattleSession) {
-        wireAutoEndTurn(battleSession)
-        battleSession.considerAutoEndTurn()
-    }
-
-    private func completeClaimedStageVictoryIfNeeded(earnedGold: Int) {
-        guard let configuration = battleSession.activeBattle else { return }
-        let didPersist = completeBattle(
-            configuration,
-            earnedGold,
-            nil
-        )
-        if !didPersist {
-            battleSession.presentVictoryChromeForPersistRetry()
-            persistFailureMessage = StageMapMessage(
-                title: "Couldn't Save Progress",
-                message: "Your victory was not saved. Stay on this screen and try Continue again."
-            )
-        }
     }
 
     private func projectedCombatantPane(
@@ -402,7 +310,6 @@ private struct BattleHandProjectionLane: View {
     let onInteractionChanged: (Bool) -> Void
     let onAttackWindUp: (BattleCard) -> Void
     let onAttackCancel: (BattleCard) -> Void
-    let onReady: () -> Void
 
     @State private var cardPlayFeedbackToken = 0
 
@@ -446,7 +353,6 @@ private struct BattleHandProjectionLane: View {
                 onPlay: onPlay
             )
         }
-        .onAppear(perform: onReady)
     }
 }
 
@@ -478,6 +384,74 @@ private struct BattleCinematicLane: View {
     }
 }
 
+/// Owns the imperative UIKit feedback bridge alongside the always-mounted hosts
+/// that consume it, instead of making the battle screen a global-cache manager.
+private struct BattleFeedbackBridgeLane: View {
+    @Environment(BattleSession.self) private var battleSession
+    @State private var ownerID = UUID()
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .onAppear {
+                battleSession.feedback.installBridge(
+                    ownerID: ownerID,
+                    onChange: CombatFeedbackChipBridge.publish
+                )
+                battleSession.feedback.prepareScheduler()
+                CombatFeedbackRasterUIView.prewarmMotionClock()
+            }
+            .onDisappear {
+                battleSession.feedback.uninstallBridge(ownerID: ownerID)
+            }
+    }
+}
+
+private struct BattleCastPrewarmKey: Equatable {
+    let configurationID: UUID?
+    let artworkName: String?
+}
+
+/// Primes the full cast hierarchy once the first dealt card makes a cast imminent.
+/// State stays local so hand changes do not invalidate the battlefield hierarchy.
+private struct BattleCastPrewarmLane: View {
+    let presentation: BattlePresentationState
+    @State private var artworkName: String?
+    @State private var preparedConfigurationID: UUID?
+
+    var body: some View {
+        if let artworkName {
+            CardCastEffectsPrewarmView(artworkName: artworkName) {
+                self.artworkName = nil
+            }
+        }
+        Color.clear
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+            .task(id: prewarmKey) {
+                guard let configurationID = prewarmKey.configurationID,
+                      preparedConfigurationID != configurationID,
+                      let artworkName = prewarmKey.artworkName
+                else { return }
+
+                await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
+                guard !Task.isCancelled,
+                      presentation.configurationID == configurationID
+                else { return }
+                preparedConfigurationID = configurationID
+                self.artworkName = artworkName
+            }
+    }
+
+    private var prewarmKey: BattleCastPrewarmKey {
+        BattleCastPrewarmKey(
+            configurationID: presentation.configurationID,
+            artworkName: presentation.hand.first?.ability.artReference?.imageName
+        )
+    }
+}
+
 private extension BattleView {
     func outcomePhase(for battleSession: BattleSession) -> String {
         if battleSession.spectacle.isShowingVictory {
@@ -491,30 +465,5 @@ private extension BattleView {
 
     var hasStageProgression: Bool {
         presentationContext.hasProgressionRewards
-    }
-
-    func installChipBridge() {
-        battleSession.feedback.installBridge(
-            ownerID: feedbackBridgeOwnerID,
-            onChange: CombatFeedbackChipBridge.publish
-        )
-    }
-
-    func prewarmBattlePresentationEffects() {
-        BattlePresentationWarmup.prepare(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-        // Start prune/multimodal loops and the chip motion clock before the first
-        // chip publish so that frame only bumps dates / inserts layers.
-        battleSession.feedback.prepareScheduler()
-        CombatFeedbackRasterUIView.prewarmMotionClock()
-        let handArtNames = battleSession.hand.compactMap { $0.ability.artReference?.imageName }
-        guard !handArtNames.isEmpty else { return }
-        Task { @MainActor in
-            await PreparedArtworkCache.shared.prepareAndPin(names: handArtNames)
-        }
-        // Prime the full cast stack with the lead hand card (invisible).
-        handCastPrewarmArtwork = handArtNames[0]
     }
 }

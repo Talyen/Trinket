@@ -26,6 +26,33 @@ package extension BattleState {
         }
     }
 
+    mutating func applyBlock(
+        _ amount: Int,
+        to target: Combatant,
+        source: Combatant,
+        abilityName: String
+    ) -> [ActionEvent] {
+        let adjusted = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id)
+        guard case let .shield(keyword, buffer) = adjusted else { return [] }
+        let applied = DefensePoolEngine.add(
+            buffer,
+            pool: .block,
+            to: target,
+            keyword: keyword,
+            sourceActorID: source.id,
+            in: &self
+        )
+        return [nextEvent(
+            kind: .effect,
+            effectKind: .shieldApplied,
+            actorName: source.name,
+            abilityName: abilityName,
+            target: target,
+            amount: applied,
+            keyword: keyword
+        )]
+    }
+
     mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,

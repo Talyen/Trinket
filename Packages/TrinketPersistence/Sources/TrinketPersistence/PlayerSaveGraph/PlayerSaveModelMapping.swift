@@ -537,7 +537,7 @@ func reconcileModels<Model: PersistentModel, Value, Key: Hashable>(
     return reconciled
 }
 
-private extension Dictionary {
+extension Dictionary {
     /// Builds a dictionary without trapping on duplicate keys (corrupt / synced rows).
     init(lastWins pairs: [(Key, Value)]) {
         self.init(minimumCapacity: pairs.count)

@@ -27,6 +27,24 @@ enum EffectRemoval {
         removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableBuff }
     }
 
+    static func removeBuffs(
+        from effects: inout [ActiveEffect],
+        count: Int,
+        removeAll: Bool,
+        using rng: inout SeededRandomNumberGenerator
+    ) -> [Keyword] {
+        if removeAll {
+            return removeBuffs(from: &effects, keyword: nil) ? [.purge] : []
+        }
+
+        var removed: [Keyword] = []
+        for _ in 0 ..< count {
+            guard let keyword = removeRandomBuff(from: &effects, using: &rng) else { break }
+            removed.append(keyword)
+        }
+        return removed
+    }
+
     @discardableResult
     private static func removeMatching(
         from effects: inout [ActiveEffect],
