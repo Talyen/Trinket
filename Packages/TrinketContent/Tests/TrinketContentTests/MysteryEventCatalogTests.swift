@@ -165,8 +165,8 @@ struct MysteryEventCatalogTests {
                     switch effect {
                     case let .gainGold(amount):
                         try #expect(amount > 0, "\(event.id)/\(choice.id)")
-                    case let .gainMaterial(_, amount):
-                        try #expect(amount > 0, "\(event.id)/\(choice.id)")
+                    case .gainMaterial:
+                        break
                     case let .gainExperience(amount):
                         try #expect(amount > 0, "\(event.id)/\(choice.id)")
                     case .gainGeneratedItem, .gainRandomItem, .unlockCombatant,

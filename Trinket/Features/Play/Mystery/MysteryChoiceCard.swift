@@ -11,6 +11,7 @@ struct MysteryChoiceCard: View {
     let choice: MysteryChoice
     let isSelected: Bool
     let isDisabled: Bool
+    let materialQuantity: Int
     let onSelect: () -> Void
 
     var body: some View {
@@ -100,10 +101,10 @@ struct MysteryChoiceCard: View {
                 tint: HomesteadResource.gold.tint
             )
 
-        case let .gainMaterial(resource, amount):
+        case let .gainMaterial(resource):
             rewardSummary(
                 title: resource.displayName,
-                value: "+\(amount)",
+                value: "+\(materialQuantity)",
                 resource: resource,
                 tint: resource.tint
             )

@@ -46,16 +46,35 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
 }
 
 public enum MysteryEffectApplier {
+    /// Fixed, deterministic material grant per level (L1 4 → L50 18).
+    public static func materialQuantity(forLevel level: Int) -> Int {
+        let clamped = max(1, level)
+        return 4 + (clamped * 14) / 49
+    }
+
+    /// Mystery reward level: chapter base level for journey stages, Labyrinth node depth otherwise.
+    public static func resolvedEncounterLevel(
+        stage: Stage,
+        labyrinthNodeID: String?,
+        save: PlayerSave
+    ) -> Int {
+        if let labyrinthNodeID, let node = save.labyrinth.nodes[labyrinthNodeID] {
+            return LabyrinthCompletion.enemyLevel(for: node)
+        }
+        return StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters)
+    }
+
     public static func apply(
         _ effects: [MysteryEffect],
         stageID: String,
         choiceID: String,
+        encounterLevel: Int,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         itemGenerator: ItemGenerator = ItemGenerator(),
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
     ) -> MysteryEffectApplyResult {
-        var state = ApplyState()
+        var state = ApplyState(materialQuantity: materialQuantity(forLevel: encounterLevel))
         let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
@@ -109,6 +128,7 @@ public enum MysteryEffectApplier {
         var result = MysteryEffectApplyResult()
         var materialTotals: [HomesteadResource: Int] = [:]
         var itemOrdinal = 0
+        let materialQuantity: Int
     }
 
     private static func apply(
@@ -127,9 +147,9 @@ public enum MysteryEffectApplier {
             save.roster.grantGold(granted)
             state.result.grantedGold += granted
 
-        case let .gainMaterial(resource, amount):
-            guard amount > 0, resource != .gold else { return }
-            state.materialTotals[resource, default: 0] += amount
+        case let .gainMaterial(resource):
+            guard resource != .gold else { return }
+            state.materialTotals[resource, default: 0] += state.materialQuantity
 
         case let .gainExperience(amount):
             guard amount > 0 else { return }

@@ -25,11 +25,11 @@ public enum BattleLoot {
         .wood, .stone, .iron, .food, .herbs, .hide, .crystal,
     ]
 
-    /// Shared quantity band for gold and each material (L1 8–12 → L50 12–24).
+    /// Shared quantity band for gold and each material (L1 3–4 → L50 12–24).
     public static func quantityRange(forLevel level: Int) -> ClosedRange<Int> {
         let clamped = max(1, level)
-        let minQty = 8 + clamped / 12
-        let maxQty = max(minQty, 12 + clamped / 4)
+        let minQty = 3 + (clamped * 9) / 49
+        let maxQty = max(minQty, 4 + (clamped * 20) / 49)
         return minQty ... maxQty
     }
 

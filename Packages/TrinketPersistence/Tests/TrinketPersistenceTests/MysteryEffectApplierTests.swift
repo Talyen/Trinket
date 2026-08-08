@@ -28,26 +28,42 @@ struct MysteryEffectApplierTests {
         let result = MysteryEffectApplier.apply(
             [
                 .gainGold(20),
-                .gainMaterial(.herbs, 3),
+                .gainMaterial(.herbs),
                 .gainExperience(10),
             ],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
 
         try #expect(result.grantedGold == 20)
         try #expect(result.grantedExperience == 10)
-        try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 3)])
+        try #expect(
+            result.grantedMaterials
+                == [ResourceAmount(.herbs, MysteryEffectApplier.materialQuantity(forLevel: 1))]
+        )
         try #expect(save.roster.gold == 20)
-        try #expect(save.homestead.balance(for: .herbs, roster: save.roster) >= 3)
+        try #expect(
+            save.homestead.balance(for: .herbs, roster: save.roster)
+                >= MysteryEffectApplier.materialQuantity(forLevel: 1)
+        )
         try #expect(result.heroProgressionBefore == heroProgressionBefore)
         try #expect(result.heroProgressionAfter == heroProgressionBefore.addingExperience(10))
         try #expect(result.companionProgressionBefore == companionProgressionBefore)
         try #expect(result.companionProgressionAfter == companionProgressionBefore.addingExperience(10))
         try #expect(save.roster.progression(for: hero) == heroProgressionBefore.addingExperience(10))
         try #expect(save.roster.progression(for: companion) == companionProgressionBefore.addingExperience(10))
+    }
+
+    @Test func materialQuantityScalesWithLevel() {
+        #expect(MysteryEffectApplier.materialQuantity(forLevel: 1) == 4)
+        #expect(MysteryEffectApplier.materialQuantity(forLevel: 50) == 18)
+        #expect(
+            MysteryEffectApplier.materialQuantity(forLevel: 50)
+                > MysteryEffectApplier.materialQuantity(forLevel: 1)
+        )
     }
 
     @Test func generatedItemIncludesGuaranteedAffixAndUsesRolledRarity() throws {
@@ -58,6 +74,7 @@ struct MysteryEffectApplierTests {
             [.gainGeneratedItem(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"])],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -77,6 +94,7 @@ struct MysteryEffectApplierTests {
             [.gainRandomItem],
             stageID: "chapter-1-stage-2",
             choiceID: "loot-crypt",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -95,11 +113,15 @@ struct MysteryEffectApplierTests {
             harvest.effects,
             stageID: "chapter-1-stage-2",
             choiceID: harvest.id,
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
 
-        try #expect(result.grantedMaterials.contains(ResourceAmount(.herbs, 3)))
+        try #expect(
+            result.grantedMaterials
+                .contains(ResourceAmount(.herbs, MysteryEffectApplier.materialQuantity(forLevel: 1)))
+        )
         let ring = try #require(result.grantedItems.first)
         try #expect(ring.baseType.id == "sapphire_ring")
         try #expect(ring.affixes.contains { $0.id == "manabound" })
@@ -113,6 +135,7 @@ struct MysteryEffectApplierTests {
             [.unlockCombatant("rogue")],
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -123,6 +146,7 @@ struct MysteryEffectApplierTests {
             [.unlockCombatant("rogue")],
             stageID: "chapter-1-stage-8",
             choiceID: "welcome",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )
@@ -132,6 +156,7 @@ struct MysteryEffectApplierTests {
             [.unlockCombatant("bear")],
             stageID: "chapter-1-stage-2",
             choiceID: "welcome",
+            encounterLevel: 1,
             save: &save,
             using: &randomNumberGenerator
         )

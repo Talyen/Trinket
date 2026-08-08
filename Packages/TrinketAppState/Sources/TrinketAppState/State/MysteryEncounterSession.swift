@@ -222,6 +222,11 @@ extension MysteryEncounterSession {
             choice.effects,
             stageID: stage.id,
             choiceID: choice.id,
+            encounterLevel: MysteryEffectApplier.resolvedEncounterLevel(
+                stage: stage,
+                labyrinthNodeID: labyrinthNodeID,
+                save: save
+            ),
             save: &save,
             using: &randomNumberGenerator
         )

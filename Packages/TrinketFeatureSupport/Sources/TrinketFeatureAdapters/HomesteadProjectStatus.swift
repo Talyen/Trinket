@@ -225,6 +225,7 @@ public enum HomesteadTierCopy {
         case 1: "I"
         case 2: "II"
         case 3: "III"
+        case 4: "IV"
         default: "\(tier)"
         }
         return "\(nodeTitle) \(suffix)"

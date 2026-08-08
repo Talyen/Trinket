@@ -6,9 +6,9 @@ import TrinketCore
 
 struct BattleLootTests {
     @Test func quantityRangeEndpoints() {
-        #expect(BattleLoot.quantityRange(forLevel: 1) == 8 ... 12)
-        #expect(BattleLoot.quantityRange(forLevel: 24) == 10 ... 18)
-        #expect(BattleLoot.quantityRange(forLevel: 48) == 12 ... 24)
+        #expect(BattleLoot.quantityRange(forLevel: 1) == 3 ... 4)
+        #expect(BattleLoot.quantityRange(forLevel: 24) == 7 ... 13)
+        #expect(BattleLoot.quantityRange(forLevel: 48) == 11 ... 23)
         #expect(BattleLoot.quantityRange(forLevel: 50) == 12 ... 24)
     }
 
@@ -22,12 +22,12 @@ struct BattleLootTests {
         )
         #expect(package.item.id == "test-loot")
         #expect(package.item.rarity == .basic)
-        #expect((8 ... 12).contains(package.gold))
+        #expect((3 ... 4).contains(package.gold))
         #expect(package.materials.count == 2)
         #expect(Set(package.materials.map(\.resource)).count == 2)
         for material in package.materials {
             #expect(BattleLoot.materialResources.contains(material.resource))
-            #expect((8 ... 12).contains(material.quantity))
+            #expect((3 ... 4).contains(material.quantity))
         }
     }
 
@@ -40,9 +40,9 @@ struct BattleLootTests {
             using: &rng
         )
         #expect(package.item.rarity == .astral)
-        #expect((16 ... 24).contains(package.gold))
+        #expect((6 ... 8).contains(package.gold))
         for material in package.materials {
-            #expect((16 ... 24).contains(material.quantity))
+            #expect((6 ... 8).contains(material.quantity))
         }
     }
 

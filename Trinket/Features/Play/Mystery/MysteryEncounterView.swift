@@ -6,9 +6,11 @@ import TrinketDesignSystem
 import TrinketFeatureAdapters
 import TrinketFeatureContracts
 import TrinketFeatureSupport
+import TrinketPersistence
 
 struct MysteryEncounterView: View {
     @Environment(OptionsStore.self) private var options
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let onResolveChoice: (String?) -> Bool
     let onCorruptItem: (String) -> Bool
@@ -127,7 +129,8 @@ struct MysteryEncounterView: View {
                 MysteryChoiceCard(
                     choice: choice,
                     isSelected: selectedChoiceID == choice.id,
-                    isDisabled: session.isResolvingChoice
+                    isDisabled: session.isResolvingChoice,
+                    materialQuantity: materialQuantity
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id
@@ -171,6 +174,16 @@ struct MysteryEncounterView: View {
             .offset(y: -28)
             .allowsHitTesting(false)
         }
+    }
+
+    private var materialQuantity: Int {
+        MysteryEffectApplier.materialQuantity(
+            forLevel: MysteryEffectApplier.resolvedEncounterLevel(
+                stage: session.stage,
+                labyrinthNodeID: session.labyrinthNodeID,
+                save: playerSave.currentSave
+            )
+        )
     }
 
     private var heroArtwork: some View {
