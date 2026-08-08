@@ -5,12 +5,21 @@ import XCTest
 /// refresh-normalized display-link report.
 final class AppPerformanceUITests: TrinketUITestCase {
     /// Must stay ≥ app `BattlePerformanceTiming.snapshotDelay` (10s full / 3s quick).
-    private static let measurementDuration: TimeInterval = 10.5
+    private static var measurementDuration: TimeInterval {
+        isQuick ? 3.2 : 10.5
+    }
+
     private static let samplerWarmup: TimeInterval = 0.85
     /// Extra poll after the freeze window for MainActor-delayed snapshot publication.
     private static let reportSettleTimeout: TimeInterval = 12
     /// Capture floor under loaded Simulator refresh (not a hitch budget).
-    private static let minimumCapturedSamples = 90
+    private static var minimumCapturedSamples: Int {
+        isQuick ? 60 : 90
+    }
+
+    private static var isQuick: Bool {
+        ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_QUICK"] == "1"
+    }
 
     private var repetitionCount: Int {
         let raw = ProcessInfo.processInfo.environment["TRINKET_PERFORMANCE_REPETITIONS"] ?? "1"

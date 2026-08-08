@@ -62,11 +62,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
               let sourcePosition = source.gridPosition,
               let targetPosition = target.gridPosition
         else { return false }
-        let rowDelta = targetPosition.row - sourcePosition.row
-        let columnDelta = targetPosition.column - sourcePosition.column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
+        return sourcePosition.isAdjacent(to: targetPosition)
     }
 
     public func reachableNodeIDs() -> [String] {
@@ -84,10 +80,10 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         guard !hasMap else { return }
         let resolvedSeed = seed ?? worldSeed
         let generated = LabyrinthGenerator.makeInitialMap(
-            seed: resolvedSeed == 0 ? 0x4C41_4259 : resolvedSeed,
+            seed: resolvedSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : resolvedSeed,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
-        worldSeed = resolvedSeed == 0 ? 0x4C41_4259 : resolvedSeed
+        worldSeed = resolvedSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : resolvedSeed
         clusters = generated.clusters
         nodes = generated.nodes
         mapVersion = LabyrinthGenerator.currentMapVersion

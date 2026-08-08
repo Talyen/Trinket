@@ -47,9 +47,9 @@ For content, art, music, SFX, or cinematic edits:
 ```sh
 ./Scripts/generate.sh              # validate manifests, codegen, cached XcodeGen
 ./Scripts/build.sh                 # compile into .DerivedData (shared with test.sh)
-./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build
-                                   # preferred full-unit path; validates/generates inputs first
-./Scripts/test.sh unit             # TrinketTests + all package test schemes
+./Scripts/build-for-testing.sh     # app + all package schemes for --no-build reuse
+./Scripts/test.sh unit --no-build  # re-run all package schemes without rebuilding
+./Scripts/test.sh unit             # all package test schemes in parallel
 ./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
 ./Scripts/test.sh smoke            # local UI canary (Homestead, QuickSmoke)
 ./Scripts/test.sh smoke-full       # full Smoke.xctestplan (CI / PR)

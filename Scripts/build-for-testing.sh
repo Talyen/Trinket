@@ -61,13 +61,14 @@ if [[ "$QUIET" == "true" ]]; then
 else
   app_runner_args+=(--verbose)
 fi
+# Build-only invocations do not write a result bundle; logs + manifests carry
+# the outcome and test runs produce their own xcresults.
 xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
-  -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
   -parallelizeTargets \
   -disableAutomaticPackageResolution
 
@@ -80,90 +81,13 @@ if [[ "$APP_ONLY" == "true" ]]; then
   exit 0
 fi
 
-PACKAGES=("${TRINKET_TEST_PACKAGES[@]}")
-
 # Package schemes use per-package DerivedData tenants so they can build in
-# parallel without contending on a shared build.db. App products stay in
+# parallel without contending on a shared build.db. test-package.sh owns the
+# single parallel implementation shared with test.sh. App products stay in
 # DERIVED_DATA_PATH; package test products live under packages/<name>/.
 echo "=== build-for-testing: package schemes (parallel) ==="
-package_build_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-package_output_root="$RESULTS_DIR/.deferred/package-build-$package_build_token"
-mkdir -p "$package_output_root"
-
-package_build_jobs="${#PACKAGES[@]}"
-cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
-if [[ "$package_build_jobs" -gt "$cpu_count" ]]; then
-  package_build_jobs="$cpu_count"
-fi
-
-printf '%s\n' "${PACKAGES[@]}" | xargs -P "$package_build_jobs" -I{} bash -c '
-  set -euo pipefail
-  package="$1"
-  results_dir="$2"
-  derived_data_path="$3"
-  quiet="$4"
-  output_root="$5"
-  script_dir="$6"
-  repo_root="$7"
-
-  export DERIVED_DATA_PATH="$derived_data_path"
-
-  # shellcheck source=build-stamp.sh
-  source "$script_dir/build-stamp.sh"
-  # shellcheck source=build-inputs.sh
-  source "$script_dir/build-inputs.sh"
-  # shellcheck source=xcode-runner.sh
-  source "$script_dir/xcode-runner.sh"
-
-  package_dd="$(package_derived_data_path "$package")"
-  mkdir -p "$package_dd"
-
-  xcode_runner_prepare "build-package-$package" "$results_dir"
-  package_runner_args=(
-    --label "build-package-$package"
-    --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
-    --log "$XCODE_RUNNER_LOG_PATH"
-    --report-prefix "$XCODE_RUNNER_REPORT_PREFIX"
-    --working-directory "$repo_root/Packages/$package"
-  )
-  if [[ "$quiet" == "true" ]]; then
-    package_runner_args+=(--quiet)
-  else
-    package_runner_args+=(--verbose)
-  fi
-
-  status=0
-  xcode_runner_run "${package_runner_args[@]}" -- xcodebuild build-for-testing \
-    -scheme "$(package_test_scheme "$package")" \
-    -sdk iphonesimulator \
-    -destination "generic/platform=iOS Simulator" \
-    -derivedDataPath "$package_dd" \
-    -resultBundlePath "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
-    -parallelizeTargets \
-    -disableAutomaticPackageResolution \
-    "SYMROOT=$(package_symroot "$package_dd")" \
-    "OBJROOT=$(package_objroot "$package_dd")" \
-    "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")" \
-    || status=$?
-
-  if [[ "$status" -eq 0 ]]; then
-    touch_build_stamp "$results_dir" "package_$package"
-  fi
-  printf "%s\n" "$status" >"$output_root/$package.status"
-  exit "$status"
-' _ {} "$RESULTS_DIR" "$DERIVED_DATA_PATH" "$QUIET" "$package_output_root" "$SCRIPT_DIR" "$PWD" || true
-
-package_failed=0
-for package in "${PACKAGES[@]}"; do
-  status_file="$package_output_root/$package.status"
-  if [[ ! -f "$status_file" ]] || [[ "$(cat "$status_file")" != "0" ]]; then
-    echo "Package build failed: $package" >&2
-    package_failed=1
-  else
-    echo "=== build-for-testing: $package ok ==="
-  fi
-done
-if [[ "$package_failed" -ne 0 ]]; then
+if ! ./Scripts/test-package.sh --build-for-testing "${TRINKET_TEST_PACKAGES[@]}"; then
+  echo "Package build failed." >&2
   exit 1
 fi
 

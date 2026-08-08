@@ -223,14 +223,14 @@ extension BattleTurnEngine {
             let shouldConsumeNextHolyStrike = amount > 0
                 && !isSelfHealthCost
                 && damageKeyword == .holy
-                && hasNextHolyStrike(for: actor, in: context)
+                && hasActiveEffect(for: actor, in: context) { $0 == .nextHolyStrike }
             let shouldConsumeNextStrikeDouble = amount > 0
                 && !isSelfHealthCost
-                && hasNextStrikeDouble(for: actor, in: context)
+                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeDouble }
                 && !shouldConsumeNextHolyStrike
             let shouldConsumeNextStrikeCritical = amount > 0
                 && !isSelfHealthCost
-                && hasNextStrikeCritical(for: actor, in: context)
+                && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeCritical }
             if shouldConsumeNextHolyStrike || shouldConsumeNextStrikeDouble {
                 amount *= 2
             }
@@ -280,7 +280,7 @@ extension BattleTurnEngine {
             }
 
             if shouldConsumeNextHolyStrike {
-                removeNextHolyStrike(for: actor, in: &context)
+                removeActiveEffect(for: actor, in: &context) { $0 == .nextHolyStrike }
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
                     potency: amount,
@@ -289,10 +289,10 @@ extension BattleTurnEngine {
                     dealImmediateDamage: true
                 ))
             } else if shouldConsumeNextStrikeDouble {
-                removeNextStrikeDouble(for: actor, in: &context)
+                removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeDouble }
             }
             if shouldConsumeNextStrikeCritical {
-                removeNextStrikeCritical(for: actor, in: &context)
+                removeActiveEffect(for: actor, in: &context) { $0 == .nextStrikeCritical }
             }
 
             // Pairing feeds on-hit DoT effects; self HP costs are not attack damage.
@@ -336,81 +336,20 @@ extension BattleTurnEngine {
         return nil
     }
 
-    private static func hasNextHolyStrike(
+    private static func hasActiveEffect(
         for actor: Combatant,
-        in context: BattleState
+        in context: BattleState,
+        where matches: (Effect) -> Bool
     ) -> Bool {
-        context.roster.activeEffects(for: actor).contains { active in
-            if case .nextHolyStrike = active.effect {
-                return true
-            }
-            return false
-        }
+        context.roster.activeEffects(for: actor).contains { matches($0.effect) }
     }
 
-    private static func removeNextHolyStrike(
+    private static func removeActiveEffect(
         for actor: Combatant,
-        in context: inout BattleState
+        in context: inout BattleState,
+        where matches: (Effect) -> Bool
     ) {
-        var effects = context.roster.activeEffects(for: actor)
-        effects.removeAll {
-            if case .nextHolyStrike = $0.effect {
-                return true
-            }; return false
-        }
-        context.roster.setActiveEffects(effects, for: actor)
-    }
-
-    private static func hasNextStrikeDouble(
-        for actor: Combatant,
-        in context: BattleState
-    ) -> Bool {
-        context.roster.activeEffects(for: actor).contains { active in
-            if case .nextStrikeDouble = active.effect {
-                return true
-            }
-            return false
-        }
-    }
-
-    private static func removeNextStrikeDouble(
-        for actor: Combatant,
-        in context: inout BattleState
-    ) {
-        var effects = context.roster.activeEffects(for: actor)
-        effects.removeAll {
-            if case .nextStrikeDouble = $0.effect {
-                return true
-            }
-            return false
-        }
-        context.roster.setActiveEffects(effects, for: actor)
-    }
-
-    private static func hasNextStrikeCritical(
-        for actor: Combatant,
-        in context: BattleState
-    ) -> Bool {
-        context.roster.activeEffects(for: actor).contains { active in
-            if case .nextStrikeCritical = active.effect {
-                return true
-            }
-            return false
-        }
-    }
-
-    private static func removeNextStrikeCritical(
-        for actor: Combatant,
-        in context: inout BattleState
-    ) {
-        var effects = context.roster.activeEffects(for: actor)
-        effects.removeAll {
-            if case .nextStrikeCritical = $0.effect {
-                return true
-            }
-            return false
-        }
-        context.roster.setActiveEffects(effects, for: actor)
+        ActiveEffectMutation.removeMatching(from: actor, in: &context, where: matches)
     }
 
     private static func applyTargetedEffects(

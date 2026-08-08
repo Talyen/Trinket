@@ -16,6 +16,7 @@
         "SmokeBattleTests",
         "SmokeCollectionTests",
         "SmokeHomesteadTests",
+        "SmokeOptionsTests",
         "SmokePlayTests",
         "SmokeShopTests"
       ],

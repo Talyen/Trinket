@@ -7,6 +7,9 @@ public enum LabyrinthGenerator {
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
 
+    /// Deterministic fallback seed used when an initial map is requested with seed 0.
+    public static let fallbackWorldSeed: UInt64 = 0x4C41_4259
+
     public static func makeInitialMap(
         seed: UInt64 = 0,
         eligibleRecruitEventIDs: [String] = []
@@ -14,7 +17,7 @@ public enum LabyrinthGenerator {
         clusters: [LabyrinthCluster],
         nodes: [String: LabyrinthNode]
     ) {
-        var rng = SeededRandomNumberGenerator(seed: seed == 0 ? 0x4C41_4259 : seed)
+        var rng = SeededRandomNumberGenerator(seed: seed == 0 ? fallbackWorldSeed : seed)
         let first = generateFloor(
             number: 1,
             previousBiomeID: nil,
@@ -206,7 +209,7 @@ public enum LabyrinthGenerator {
                 for middle in middleSets {
                     let positions = [LabyrinthGridPosition(row: 0, column: 0)] + middle + [boss]
                     guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }
-                    return [positions[0]] + middle.sorted(by: gridPositionOrder) + [boss]
+                    return [positions[0]] + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore) + [boss]
                 }
             }
         }
@@ -260,7 +263,7 @@ public enum LabyrinthGenerator {
     ) -> Bool {
         let degrees = positions.map { source in
             positions.count(where: { target in
-                source != target && areAdjacent(source, target)
+                source != target && source.isAdjacent(to: target)
             })
         }
         guard degrees.first == 1,
@@ -272,7 +275,7 @@ public enum LabyrinthGenerator {
         var reached: Set<LabyrinthGridPosition> = [positions[0]]
         var frontier = [positions[0]]
         while let source = frontier.popLast() {
-            for target in positions where areAdjacent(source, target) && reached.insert(target).inserted {
+            for target in positions where source.isAdjacent(to: target) && reached.insert(target).inserted {
                 frontier.append(target)
             }
         }
@@ -281,24 +284,6 @@ public enum LabyrinthGenerator {
         let edgeCount = degrees.reduce(0, +) / 2
         let cycleCount = edgeCount - positions.count + 1
         return cycleCount == (closesLoop ? 1 : 0)
-    }
-
-    private static func areAdjacent(
-        _ source: LabyrinthGridPosition,
-        _ target: LabyrinthGridPosition
-    ) -> Bool {
-        let rowDelta = target.row - source.row
-        let columnDelta = target.column - source.column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
-    }
-
-    private static func gridPositionOrder(
-        _ left: LabyrinthGridPosition,
-        _ right: LabyrinthGridPosition
-    ) -> Bool {
-        left.row == right.row ? left.column < right.column : left.row < right.row
     }
 
     private static func plannedTypes(

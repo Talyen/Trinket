@@ -28,7 +28,7 @@ DID_ENSURE_SIMULATOR=false
 
 usage() {
   cat <<'USAGE'
-Usage: ./Scripts/test-package.sh [--no-build] [--build-only] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
+Usage: ./Scripts/test-package.sh [--no-build] [--build-only] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] <Package> [Package...]
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
@@ -38,8 +38,11 @@ DerivedData tenants (same model as `test.sh unit`), with SYMROOT/OBJROOT pinned
 into each tenant so SPM schemes do not share Packages/.DerivedData/build.db.
 
 --build-only compiles the package scheme without running tests (local verify
-presentation-only demotion). BattleEngine balance-sweep tests are skipped by
-default; pass --include-balance-sweep-tests for a one-off balance-tool test run.
+presentation-only demotion). --build-for-testing compiles each package scheme
+against a generic simulator destination and stamps package_<name> so later
+--no-build runs can reuse the products. BattleEngine balance-sweep tests are
+skipped by default; pass --include-balance-sweep-tests for a one-off balance-tool
+test run.
 
 Packages:
 USAGE
@@ -54,6 +57,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --build-only|build-only)
       ACTION="build"
+      shift
+      ;;
+    --build-for-testing|build-for-testing)
+      ACTION="build-for-testing"
       shift
       ;;
     --destination)
@@ -111,13 +118,17 @@ fi
 source "$SCRIPT_DIR/ensure-simulator.sh"
 trinket_sim_slot_ensure
 
-if [[ -z "$DESTINATION" ]]; then
-  ensure_test_simulator_logged
-  DESTINATION="$SIMULATOR_DESTINATION"
-  DID_ENSURE_SIMULATOR=true
-fi
-if [[ "$DID_ENSURE_SIMULATOR" == "true" ]]; then
-  trinket_run_env_install_test_simulator_cleanup
+# build-for-testing compiles against a generic simulator destination, so no
+# concrete simulator is needed and none should be booted for it.
+if [[ "$ACTION" != "build-for-testing" ]]; then
+  if [[ -z "$DESTINATION" ]]; then
+    ensure_test_simulator_logged
+    DESTINATION="$SIMULATOR_DESTINATION"
+    DID_ENSURE_SIMULATOR=true
+  fi
+  if [[ "$DID_ENSURE_SIMULATOR" == "true" ]]; then
+    trinket_run_env_install_test_simulator_cleanup
+  fi
 fi
 
 mkdir -p "$RESULTS_DIR"
@@ -171,6 +182,8 @@ run_one_package() {
   if [[ "$defer_output" == "false" ]]; then
     if [[ "$ACTION" == "build" ]]; then
       echo "Building $package package (build-only)..."
+    elif [[ "$ACTION" == "build-for-testing" ]]; then
+      echo "Building $package package (build-for-testing)..."
     else
       echo "Running $package package tests..."
     fi
@@ -190,19 +203,40 @@ run_one_package() {
   if [[ "$defer_output" == "true" || "$DEFER_TERMINAL_OUTPUT" == "true" ]]; then
     runner_args+=(--defer-terminal-output)
   fi
-  xcodebuild_args=(
-    xcodebuild "$ACTION" \
-      -scheme "$scheme" \
-      -sdk iphonesimulator \
-      -destination "$DESTINATION" \
-      -derivedDataPath "$package_dd" \
-      -resultBundlePath "$result_bundle" \
-      "SYMROOT=$(package_symroot "$package_dd")" \
-      "OBJROOT=$(package_objroot "$package_dd")" \
-      "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
-  )
+  if [[ "$ACTION" == "build-for-testing" ]]; then
+    # Generic destination compile that --no-build test runs reuse; no result
+    # bundle is produced (build-only invocations do not need one).
+    xcodebuild_args=(
+      xcodebuild build-for-testing \
+        -scheme "$scheme" \
+        -sdk iphonesimulator \
+        -destination 'generic/platform=iOS Simulator' \
+        -derivedDataPath "$package_dd" \
+        -parallelizeTargets \
+        -disableAutomaticPackageResolution \
+        "SYMROOT=$(package_symroot "$package_dd")" \
+        "OBJROOT=$(package_objroot "$package_dd")" \
+        "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
+    )
+  else
+    xcodebuild_args=(
+      xcodebuild "$ACTION" \
+        -scheme "$scheme" \
+        -sdk iphonesimulator \
+        -destination "$DESTINATION" \
+        -derivedDataPath "$package_dd" \
+        "SYMROOT=$(package_symroot "$package_dd")" \
+        "OBJROOT=$(package_objroot "$package_dd")" \
+        "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")"
+    )
+    # Result bundles back test timing and failure diagnostics; build-only and
+    # build-for-testing runs skip them to avoid writing bulky unused xcresults.
+    if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
+      xcodebuild_args+=(-resultBundlePath "$result_bundle")
+    fi
+  fi
   # Test filters only apply to test / test-without-building.
-  if [[ "$ACTION" != "build" && ${#package_test_filters[@]} -gt 0 ]]; then
+  if [[ "$ACTION" != "build" && "$ACTION" != "build-for-testing" && ${#package_test_filters[@]} -gt 0 ]]; then
     xcodebuild_args+=("${package_test_filters[@]}")
   fi
   local package_wall=0
@@ -211,9 +245,12 @@ run_one_package() {
   package_wall=$SECONDS
 
   # Record per-package timings for on-demand hotspot mining (test-timing.sh).
-  # Build-only runs have no test cases; skip those xcresults. Soft-fail record so a
-  # corrupt/partial bundle after a hung kill cannot mask the xcodebuild status.
-  if [[ "$ACTION" != "build" && -f "$result_bundle/Info.plist" ]]; then
+  # Build-only / build-for-testing runs have no test cases; skip those
+  # xcresults. Soft-fail record so a corrupt/partial bundle after a hung kill
+  # cannot mask the xcodebuild status.
+  if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]] \
+    && [[ -f "$result_bundle/Info.plist" ]] \
+    && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       ./Scripts/test-timing.sh record \
         --mode "package:$package" \
@@ -234,7 +271,7 @@ run_one_package() {
     return "$package_status"
   fi
 
-  if [[ "$ACTION" == "test" || "$ACTION" == "build" ]]; then
+  if [[ "$ACTION" == "test" || "$ACTION" == "build" || "$ACTION" == "build-for-testing" ]]; then
     touch_build_stamp "$RESULTS_DIR" "package_$package"
   fi
   return 0
@@ -261,6 +298,8 @@ mkdir -p "$package_output_root"
 
 if [[ "$ACTION" == "build" ]]; then
   echo "Building ${#PACKAGES[@]} packages in parallel (jobs=$jobs)..."
+elif [[ "$ACTION" == "build-for-testing" ]]; then
+  echo "Building ${#PACKAGES[@]} package schemes for testing in parallel (jobs=$jobs)..."
 else
   echo "Running ${#PACKAGES[@]} package test schemes in parallel (jobs=$jobs)..."
 fi
@@ -284,10 +323,14 @@ printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
   # Children already share a prepared generate stamp / SKIP_GENERATE from parents.
   export SKIP_GENERATE=1
 
-  package_args=("$package" --destination "$destination" --defer-terminal-output)
+  package_args=("$package" --defer-terminal-output)
+  if [[ -n "$destination" ]]; then
+    package_args+=(--destination "$destination")
+  fi
   case "$action" in
     test-without-building) package_args=(--no-build "${package_args[@]}") ;;
     build) package_args=(--build-only "${package_args[@]}") ;;
+    build-for-testing) package_args=(--build-for-testing "${package_args[@]}") ;;
   esac
   if [[ "$quiet" == "true" ]]; then
     package_args+=(--quiet)
@@ -325,6 +368,13 @@ for package in "${PACKAGES[@]}"; do
   fi
   if [[ "$package_status" != "0" ]]; then
     failed=1
+    # Deferred reporter output only writes the .md; surface it now in order.
+    report="$(find "$RESULTS_DIR" -maxdepth 1 -type f -name "${package}-*-diagnostics.md" -print 2>/dev/null | sort | tail -1)"
+    if [[ -n "$report" && -s "$report" ]]; then
+      echo ""
+      echo "=== $package failure report ==="
+      cat "$report"
+    fi
   fi
 done
 

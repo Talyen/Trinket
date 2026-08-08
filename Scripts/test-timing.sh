@@ -13,6 +13,7 @@ usage() {
 Usage:
   ./Scripts/test-timing.sh [report] [--mode MODE] [--last N] [--top N] [--by-class]
   ./Scripts/test-timing.sh record --mode MODE --wall SECONDS --xcresult PATH [--no-build] [TARGET ...]
+  ./Scripts/test-timing.sh record --mode MODE --wall SECONDS --no-xcresult [--no-build]
   ./Scripts/test-timing.sh ingest MODE [--wall SECONDS]
   ./Scripts/test-timing.sh assert-budget --mode MODE --max-wall SECONDS [--skip-if-missing]
 
@@ -246,6 +247,7 @@ def cmd_record(args: list[str]) -> None:
     wall_seconds = None
     xcresult = ""
     no_build = False
+    no_xcresult = False
     targets: list[str] = []
 
     index = 0
@@ -265,6 +267,10 @@ def cmd_record(args: list[str]) -> None:
             xcresult = args[index + 1]
             index += 2
             continue
+        if token == "--no-xcresult":
+            no_xcresult = True
+            index += 1
+            continue
         if token == "--no-build":
             no_build = True
             index += 1
@@ -274,21 +280,43 @@ def cmd_record(args: list[str]) -> None:
         targets.append(token)
         index += 1
 
-    if not mode or not xcresult:
-        raise SystemExit("record requires --mode and --xcresult")
+    if not mode:
+        raise SystemExit("record requires --mode")
+    if (not xcresult and not no_xcresult) or (xcresult and no_xcresult):
+        raise SystemExit("record requires exactly one of --xcresult or --no-xcresult")
 
-    xcresult_path = Path(xcresult)
-    if not xcresult_path.exists():
-        raise SystemExit(f"xcresult not found: {xcresult_path}")
+    if no_xcresult:
+        # Wall-only row (e.g. bare `test.sh unit` runs package schemes with no
+        # app result bundle). assert-budget falls back to wall clock when
+        # xcresult_seconds is absent.
+        if wall_seconds is None:
+            raise SystemExit("--no-xcresult requires --wall")
+        parsed = {
+            "summary": {
+                "passed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "result": "wall-only",
+                "xcresult_seconds": None,
+                "measured_test_seconds": 0.0,
+            },
+            "tests": [],
+        }
+        recorded_xcresult = ""
+    else:
+        xcresult_path = Path(xcresult)
+        if not xcresult_path.exists():
+            raise SystemExit(f"xcresult not found: {xcresult_path}")
+        parsed = parse_xcresult(xcresult_path)
+        recorded_xcresult = str(xcresult_path)
 
-    parsed = parse_xcresult(xcresult_path)
     entry = {
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         "mode": mode,
         "targets": targets,
         "no_build": no_build,
         "wall_seconds": wall_seconds,
-        "xcresult": str(xcresult_path),
+        "xcresult": recorded_xcresult,
         **parsed,
     }
     append_entry(entry)

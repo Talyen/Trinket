@@ -57,6 +57,18 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedCompanionIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
+    /// Recruit event ids whose combatant is not yet unlocked. Single source of truth
+    /// for Labyrinth map generation and save sanitizing.
+    public var eligibleRecruitEventIDs: [String] {
+        GameContent.recruitEvents.compactMap { event in
+            guard let combatantID = event.unlockCombatantID,
+                  !unlockedHeroIDs.contains(combatantID),
+                  !unlockedCompanionIDs.contains(combatantID)
+            else { return nil }
+            return event.id
+        }
+    }
+
     public static let maxGoldBalance = 999
 
     public var gold: Int = 0 {

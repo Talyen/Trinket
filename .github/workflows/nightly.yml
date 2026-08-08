@@ -57,8 +57,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
       # Restore-only: PR/main build jobs own cache write-back.
-      # Sampled Nightlies already exact-hit that cache (~5–9 min incremental build);
-      # do not add save-cache here without a measured miss/rebuild regression.
+      # The restore default is app-only (package schemes are unit-job work), so
+      # integration only needs the app + UI test bundles. Do not add save-cache
+      # here without a measured miss/rebuild regression.
       - uses: ./.github/actions/restore-and-build
       - name: Run integration suite
         run: ./Scripts/test.sh all --no-build

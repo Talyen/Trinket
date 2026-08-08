@@ -119,6 +119,15 @@ if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
   exit 1
 fi
 
+# Bare `unit` mode runs the package schemes only. TrinketTests declares no test
+# cases (it only carries Swift Testing tag definitions), so building the app and
+# executing an empty plan is pure overhead. The app path stays for targeted
+# unit runs and --app-only (path-scoped verify).
+RUN_PACKAGES_ONLY=false
+if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
+  RUN_PACKAGES_ONLY=true
+fi
+
 mkdir -p "$RESULTS_DIR"
 if [[ "$NO_BUILD" == "false" ]]; then
   prepare_generated_inputs "$RESULTS_DIR"
@@ -146,19 +155,24 @@ case "$MODE" in
     ;;
 esac
 if [[ "$MODE" == "unit" ]]; then
-  TEST_TARGET_FLAG=(-testPlan Unit)
-  if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    echo "Running targeted unit tests..."
-    for target in "${TARGETS[@]}"; do
-      if [[ "$target" == TrinketTests* ]]; then
-        TEST_TARGET_FLAG+=("-only-testing:$target")
-      else
-        TEST_TARGET_FLAG+=("-only-testing:TrinketTests/$target")
-      fi
-    done
+  if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
+    # Bare unit mode runs package schemes only; no app test plan is executed.
+    : # TEST_TARGET_FLAG stays empty
   else
-    echo "Running only unit tests (TrinketTests)..."
-    TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
+    TEST_TARGET_FLAG=(-testPlan Unit)
+    if [[ ${#TARGETS[@]} -gt 0 ]]; then
+      echo "Running targeted unit tests..."
+      for target in "${TARGETS[@]}"; do
+        if [[ "$target" == TrinketTests* ]]; then
+          TEST_TARGET_FLAG+=("-only-testing:$target")
+        else
+          TEST_TARGET_FLAG+=("-only-testing:TrinketTests/$target")
+        fi
+      done
+    else
+      echo "Running only unit tests (TrinketTests)..."
+      TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
+    fi
   fi
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
@@ -255,25 +269,40 @@ if [[ ${#TARGETS[@]} -gt 0 ]]; then
   done
 fi
 BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$RUN_FINGERPRINT")"
+if [[ ! -f "$BUILD_STAMP" && "$RUN_FINGERPRINT" != "$MODE" ]]; then
+  # A targeted run reuses the prior mode-level build when its exact fingerprint
+  # was not stamped (e.g. adding a new smoke/UI class must not break --no-build).
+  BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$MODE")"
+fi
 xcode_runner_prepare "$MODE" "$RESULTS_DIR"
 RESULT_BUNDLE_PATH="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
 XCODEBUILD_LOG_PATH="$XCODE_RUNNER_LOG_PATH"
 XCODEBUILD_REPORT_PREFIX="$XCODE_RUNNER_REPORT_PREFIX"
 
 record_timing() {
-  if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    ./Scripts/test-timing.sh record \
-      --mode "$MODE" \
-      --wall "$TEST_WALL_SECONDS" \
-      --xcresult "$RESULT_BUNDLE_PATH" \
-      $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
-      "${TARGETS[@]}"
+  if [[ "${TRINKET_RECORD_TIMING:-1}" == "0" ]]; then
+    return 0
+  fi
+  local timing_args=()
+  if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+    timing_args+=(--xcresult "$RESULT_BUNDLE_PATH")
+  elif [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
+    # Package schemes record their own per-package timings; the mode row is
+    # wall-only (bare unit mode never runs the app plan, so no xcresult exists).
+    timing_args+=(--no-xcresult)
   else
-    ./Scripts/test-timing.sh record \
-      --mode "$MODE" \
-      --wall "$TEST_WALL_SECONDS" \
-      --xcresult "$RESULT_BUNDLE_PATH" \
-      $([[ "$NO_BUILD" == "true" ]] && echo --no-build)
+    echo "No result bundle to record timing for $MODE." >&2
+    return 0
+  fi
+  local record_args=(--mode "$MODE" --wall "$TEST_WALL_SECONDS" "${timing_args[@]}")
+  if [[ "$NO_BUILD" == "true" ]]; then
+    record_args+=(--no-build)
+  fi
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    record_args+=("${TARGETS[@]}")
+  fi
+  if ! ./Scripts/test-timing.sh record "${record_args[@]}"; then
+    echo "Warning: failed to record timing for $MODE" >&2
   fi
 }
 
@@ -328,7 +357,10 @@ PY
 }
 
 if [[ "$NO_BUILD" == "true" ]]; then
-  if assert_no_build_is_fresh; then
+  if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
+    # Package stamp freshness is validated inside test-package.sh --no-build.
+    ACTION="test-without-building"
+  elif assert_no_build_is_fresh; then
     :
   else
     no_build_status=$?
@@ -346,145 +378,33 @@ run_package_tests() {
   local failed=0
   local build_seconds=0
   local test_seconds=0
-  local package
-  local package_status
-  local jobs
-  local cpu_count
 
   # Package schemes use per-package DerivedData tenants so builds can run in
-  # parallel without contending on a shared build.db.
+  # parallel without contending on a shared build.db. test-package.sh owns the
+  # single parallel implementation shared with build-for-testing.sh.
   if [[ "$xcodebuild_action" != "test-without-building" ]]; then
     SECONDS=0
-    package_build_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-    package_build_output="$RESULTS_DIR/.deferred/package-build-$package_build_token"
-    mkdir -p "$package_build_output"
-    cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
-    build_jobs="$cpu_count"
-    if [[ "$build_jobs" -gt ${#packages[@]} ]]; then
-      build_jobs=${#packages[@]}
-    fi
-    if [[ "$build_jobs" -lt 1 ]]; then
-      build_jobs=1
-    fi
-    echo "Building package tests in parallel (jobs=$build_jobs)..."
-    printf '%s\n' "${packages[@]}" | xargs -P "$build_jobs" -I{} bash -c '
-      set -euo pipefail
-      package="$1"
-      results_dir="$2"
-      derived_data_path="$3"
-      output_root="$4"
-      script_dir="$5"
-      repo_root="$6"
-
-      export DERIVED_DATA_PATH="$derived_data_path"
-      # shellcheck source=build-stamp.sh
-      source "$script_dir/build-stamp.sh"
-      # shellcheck source=build-inputs.sh
-      source "$script_dir/build-inputs.sh"
-      # shellcheck source=xcode-runner.sh
-      source "$script_dir/xcode-runner.sh"
-
-      package_dd="$(package_derived_data_path "$package")"
-      mkdir -p "$package_dd"
-
-      echo "Building $package package tests..."
-      package_status=0
-      xcode_runner_prepare "package-build-$package" "$results_dir"
-      package_build_result="$XCODE_RUNNER_RESULT_BUNDLE_PATH"
-      package_build_log="$XCODE_RUNNER_LOG_PATH"
-      package_build_report="$XCODE_RUNNER_REPORT_PREFIX"
-      build_runner_args=(
-        --label "package-build-$package"
-        --result-bundle "$package_build_result"
-        --log "$package_build_log"
-        --report-prefix "$package_build_report"
-        --quiet
-        --working-directory "$repo_root/Packages/$package"
-      )
-      # Match build-for-testing.sh: generic destination for compile so package
-      # tenants stay reusable with test-without-building on a concrete sim.
-      xcode_runner_run "${build_runner_args[@]}" -- \
-        xcodebuild build-for-testing \
-          -scheme "$(package_test_scheme "$package")" \
-          -sdk iphonesimulator \
-          -destination "generic/platform=iOS Simulator" \
-          -derivedDataPath "$package_dd" \
-          -resultBundlePath "$package_build_result" \
-          "SYMROOT=$(package_symroot "$package_dd")" \
-          "OBJROOT=$(package_objroot "$package_dd")" \
-          "SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")" \
-        || package_status=$?
-      if [[ "$package_status" -eq 0 ]]; then
-        touch_build_stamp "$results_dir" "package_$package"
-      fi
-      printf "%s\n" "$package_status" >"$output_root/$package.status"
-      exit "$package_status"
-    ' _ {} "$RESULTS_DIR" "$DERIVED_DATA_PATH" "$package_build_output" "$SCRIPT_DIR" "$PWD" || failed=1
-
-    for package in "${packages[@]}"; do
-      status_file="$package_build_output/$package.status"
-      if [[ ! -f "$status_file" ]] || [[ "$(cat "$status_file")" != "0" ]]; then
-        failed=1
-      fi
-    done
-    build_seconds=$SECONDS
-    if [[ "$failed" -ne 0 ]]; then
+    echo "Building package tests in parallel..."
+    if ! ./Scripts/test-package.sh --build-for-testing "${packages[@]}"; then
+      build_seconds=$SECONDS
       TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + build_seconds))
-      return "$failed"
+      return 1
     fi
+    build_seconds=$SECONDS
   fi
 
-  cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
-  jobs="$cpu_count"
-  if [[ "$jobs" -gt ${#packages[@]} ]]; then
-    jobs=${#packages[@]}
-  fi
-  if [[ "$jobs" -lt 1 ]]; then
-    jobs=1
-  fi
-
-  echo "Running package tests in parallel (jobs=$jobs)..."
-  package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
-  package_report_root="$RESULTS_DIR/unit-packages-$package_run_token"
-  package_output_root="$RESULTS_DIR/.deferred/$package_run_token"
-  mkdir -p "$package_output_root"
   SECONDS=0
-  printf '%s\n' "${packages[@]}" | xargs -P "$jobs" -I{} bash -c '
-    set -euo pipefail
-    package="$1"
-    destination="$2"
-    quiet="$3"
-    verbose="$4"
-    report_root="$5"
-    output_root="$6"
-    package_args=(--no-build "$package" --destination "$destination" --defer-terminal-output --report-prefix "$report_root")
-    if [[ "$quiet" == "true" ]]; then
-      package_args+=(--quiet)
-    fi
-    if [[ "$verbose" == "true" ]]; then
-      package_args+=(--verbose)
-    fi
-    ./Scripts/test-package.sh "${package_args[@]}" >"$output_root/$package.stdout" 2>&1
-  ' _ {} "$SIMULATOR_DESTINATION" "$QUIET" "$VERBOSE" "$package_report_root" "$package_output_root" || failed=1
+  package_test_args=(--no-build --destination "$SIMULATOR_DESTINATION")
+  if [[ "$QUIET" == "true" ]]; then
+    package_test_args+=(--quiet)
+  else
+    package_test_args+=(--verbose)
+  fi
+  echo "Running package tests in parallel..."
+  if ! ./Scripts/test-package.sh "${package_test_args[@]}" "${packages[@]}"; then
+    failed=1
+  fi
   test_seconds=$SECONDS
-
-  # Child output is intentionally deferred while packages run in parallel.
-  # Emit one deterministic aggregate section in package declaration order.
-  for package in "${packages[@]}"; do
-    package_report="${package_report_root}-${package}"
-    package_manifest=""
-    while IFS= read -r candidate; do
-      package_manifest="$candidate"
-    done < <(find "$RESULTS_DIR" -maxdepth 1 -type f -name "${package}-*-invocation.json" | sort)
-    if [[ -f "${package_report}.md" && -n "$package_manifest" ]] \
-      && grep -q '"status":"failed"' "$package_manifest"; then
-      cat "${package_report}.md"
-    elif [[ -s "$package_output_root/$package.stdout" ]]; then
-      cat "$package_output_root/$package.stdout"
-    else
-      echo "Package $package completed without diagnostics."
-    fi
-  done
 
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + build_seconds + test_seconds))
   return "$failed"
@@ -493,59 +413,63 @@ run_package_tests() {
 TEST_WALL_SECONDS=0
 SECONDS=0
 
-XCODEBUILD_EXIT_CODE=0
-XCODEBUILD_ARGS=(
-  "$ACTION"
-  -project Trinket.xcodeproj
-  -scheme Trinket
-  -sdk iphonesimulator
-  -destination "$SIMULATOR_DESTINATION"
-  -derivedDataPath "$DERIVED_DATA_PATH"
-  -resultBundlePath "$RESULT_BUNDLE_PATH"
-)
-if [[ "$MODE" == "performance" ]]; then
-  # Keep DEBUG-only deterministic instrumentation while compiling the measured
-  # app and test bundles with release-style Swift optimization.
-  XCODEBUILD_ARGS+=(SWIFT_OPTIMIZATION_LEVEL=-O)
-fi
-if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
-  XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
-fi
-if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
-  XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
-fi
-
-runner_args=(
-  --label "$MODE"
-  --result-bundle "$RESULT_BUNDLE_PATH"
-  --log "$XCODEBUILD_LOG_PATH"
-  --report-prefix "$XCODEBUILD_REPORT_PREFIX"
-  --retry-callback retryable_xcodebuild_infrastructure_failure
-)
-if [[ "$QUIET" == "true" ]]; then
-  runner_args+=(--quiet)
+if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
+  echo "Running package schemes only (TrinketTests has no app-level unit tests)."
 else
-  runner_args+=(--verbose)
-fi
-xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
-
-TEST_WALL_SECONDS=$SECONDS
-
-if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
-  if ! assert_targeted_tests_executed; then
-    xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
-    exit 1
+  XCODEBUILD_EXIT_CODE=0
+  XCODEBUILD_ARGS=(
+    "$ACTION"
+    -project Trinket.xcodeproj
+    -scheme Trinket
+    -sdk iphonesimulator
+    -destination "$SIMULATOR_DESTINATION"
+    -derivedDataPath "$DERIVED_DATA_PATH"
+    -resultBundlePath "$RESULT_BUNDLE_PATH"
+  )
+  if [[ "$MODE" == "performance" ]]; then
+    # Keep DEBUG-only deterministic instrumentation while compiling the measured
+    # app and test bundles with release-style Swift optimization.
+    XCODEBUILD_ARGS+=(SWIFT_OPTIMIZATION_LEVEL=-O)
   fi
-  echo "Tests succeeded!"
-fi
-
-if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
-  if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
-    record_timing
-    echo ""
-    echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
+  if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
+    XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
   fi
-  exit "$XCODEBUILD_EXIT_CODE"
+  if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
+    XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
+  fi
+
+  runner_args=(
+    --label "$MODE"
+    --result-bundle "$RESULT_BUNDLE_PATH"
+    --log "$XCODEBUILD_LOG_PATH"
+    --report-prefix "$XCODEBUILD_REPORT_PREFIX"
+    --retry-callback retryable_xcodebuild_infrastructure_failure
+  )
+  if [[ "$QUIET" == "true" ]]; then
+    runner_args+=(--quiet)
+  else
+    runner_args+=(--verbose)
+  fi
+  xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
+
+  TEST_WALL_SECONDS=$SECONDS
+
+  if [[ "$XCODEBUILD_EXIT_CODE" -eq 0 ]]; then
+    if ! assert_targeted_tests_executed; then
+      xcode_runner_write_manifest "$RESULT_BUNDLE_PATH" "$XCODEBUILD_REPORT_PREFIX" 1 "$MODE"
+      exit 1
+    fi
+    echo "Tests succeeded!"
+  fi
+
+  if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
+    if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+      record_timing
+      echo ""
+      echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
+    fi
+    exit "$XCODEBUILD_EXIT_CODE"
+  fi
 fi
 
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
@@ -555,11 +479,16 @@ elif [[ "$MODE" == "unit" && "$APP_ONLY" == true ]]; then
   echo "Skipping package tests (--app-only)."
 fi
 
-if [[ "$NO_BUILD" == "false" ]]; then
+if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
   touch_build_stamp "$RESULTS_DIR" "$RUN_FINGERPRINT"
+  # A targeted run also stamps its mode so later targeted --no-build runs can
+  # fall back to the mode-level stamp (see BUILD_STAMP fallback above).
+  if [[ "$RUN_FINGERPRINT" != "$MODE" ]]; then
+    touch_build_stamp "$RESULTS_DIR" "$MODE"
+  fi
 fi
 
-if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+if [[ "$RUN_PACKAGES_ONLY" == "true" || -d "$RESULT_BUNDLE_PATH" ]]; then
   record_timing
   echo ""
   echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"

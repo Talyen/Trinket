@@ -20,16 +20,11 @@ package extension CombatReactionEngine {
         )
 
         if profile.triggers.criticalGoldFlat > 0 {
-            let granted = context.goldGranted(for: profile.triggers.criticalGoldFlat, sourceActorID: source.id)
-            context.addGold(profile.triggers.criticalGoldFlat, sourceActorID: source.id)
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
-                actorName: source.name,
+            events.append(grantGold(
+                profile.triggers.criticalGoldFlat,
+                to: source,
                 abilityName: profile.traitDisplayName ?? "Cutpurse",
-                target: source,
-                amount: granted,
-                keyword: .gold
+                in: &context
             ))
         }
 
@@ -73,16 +68,11 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.leechGoldFlat > 0 {
-            let granted = context.goldGranted(for: profile.triggers.leechGoldFlat, sourceActorID: actor.id)
-            context.addGold(profile.triggers.leechGoldFlat, sourceActorID: actor.id)
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
-                actorName: actor.name,
+            events.append(grantGold(
+                profile.triggers.leechGoldFlat,
+                to: actor,
                 abilityName: "Blood Price",
-                target: actor,
-                amount: granted,
-                keyword: .gold
+                in: &context
             ))
         }
 
@@ -96,17 +86,7 @@ package extension CombatReactionEngine {
             let hero = context.roster.hero.combatant
             let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                let granted = context.goldGranted(for: amount, sourceActorID: hero.id)
-                context.addGold(amount, sourceActorID: hero.id)
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: hero.name,
-                    abilityName: "Bounty",
-                    target: hero,
-                    amount: granted,
-                    keyword: .gold
-                ))
+                events.append(grantGold(amount, to: hero, abilityName: "Bounty", in: &context))
             }
         }
 
@@ -114,17 +94,7 @@ package extension CombatReactionEngine {
             let companion = context.roster.companion.combatant
             let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                let granted = context.goldGranted(for: amount, sourceActorID: companion.id)
-                context.addGold(amount, sourceActorID: companion.id)
-                events.append(context.nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: companion.name,
-                    abilityName: "Bounty",
-                    target: companion,
-                    amount: granted,
-                    keyword: .gold
-                ))
+                events.append(grantGold(amount, to: companion, abilityName: "Bounty", in: &context))
             }
         }
 
@@ -179,5 +149,25 @@ package extension CombatReactionEngine {
             amount: lost,
             keyword: .stun
         )]
+    }
+
+    /// Grants `amount` Gold to the party pool and returns the `resourceGain` event.
+    static func grantGold(
+        _ amount: Int,
+        to combatant: Combatant,
+        abilityName: String,
+        in context: inout BattleState
+    ) -> ActionEvent {
+        let granted = context.goldGranted(for: amount, sourceActorID: combatant.id)
+        context.addGold(amount, sourceActorID: combatant.id)
+        return context.nextEvent(
+            kind: .effect,
+            effectKind: .resourceGain,
+            actorName: combatant.name,
+            abilityName: abilityName,
+            target: combatant,
+            amount: granted,
+            keyword: .gold
+        )
     }
 }

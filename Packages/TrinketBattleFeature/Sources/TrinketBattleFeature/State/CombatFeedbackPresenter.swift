@@ -255,24 +255,7 @@ enum CombatFeedbackPresenter {
     }
 
     private static func replacingAmount(in event: ActionEvent, with amount: Int) -> ActionEvent {
-        ActionEvent(
-            id: event.id,
-            actionID: event.actionID,
-            kind: event.kind,
-            effectKind: event.effectKind,
-            actorID: event.actorID,
-            actorName: event.actorName,
-            abilityID: event.abilityID,
-            abilityName: event.abilityName,
-            abilityTier: event.abilityTier,
-            targetID: event.targetID,
-            targetName: event.targetName,
-            amount: amount,
-            keyword: event.keyword,
-            appliedEffectSummaries: event.appliedEffectSummaries,
-            milestone: event.milestone,
-            isCritical: event.isCritical
-        )
+        event.with(amount: amount)
     }
 
     private static func prepare(_ source: PreparedSource) -> PreparedEvent? {

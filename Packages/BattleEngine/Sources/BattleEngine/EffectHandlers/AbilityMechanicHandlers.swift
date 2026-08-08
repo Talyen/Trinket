@@ -2,8 +2,38 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct ConvertManaToBlockHandler: BattleEffectHandler {
-    let kind: EffectKind = .convertManaToBlock
+/// Shared handler for Block granted from a spent resource (all current Mana, flat
+/// or half Mana, or Gold). `convertManaToBlock` spends the Mana and runs spend-Mana
+/// reactions; the other modes only read their resource.
+struct ShieldFromResourceHandler: BattleEffectHandler {
+    enum Mode: Sendable {
+        case convertManaToBlock
+        case shieldFromMana
+        case shieldFromHalfMana
+        case shieldFromGold
+
+        var kind: EffectKind {
+            switch self {
+            case .convertManaToBlock: .convertManaToBlock
+            case .shieldFromMana: .shieldFromMana
+            case .shieldFromHalfMana: .shieldFromHalfMana
+            case .shieldFromGold: .shieldFromGold
+            }
+        }
+
+        var spendsMana: Bool {
+            switch self {
+            case .convertManaToBlock: true
+            case .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: false
+            }
+        }
+    }
+
+    let mode: Mode
+
+    var kind: EffectKind {
+        mode.kind
+    }
 
     func apply(
         _ effect: Effect,
@@ -13,23 +43,54 @@ struct ConvertManaToBlockHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
-        guard case .convertManaToBlock = effect else {
+        guard effect.kind == mode.kind else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let mana = context.mana(of: target)
-        guard mana > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+
+        let block: Int
+        switch mode {
+        case .convertManaToBlock:
+            let mana = context.mana(of: target)
+            guard mana > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            _ = context.spendMana(mana, for: target)
+            block = mana
+        case .shieldFromMana:
+            let mana = context.mana(of: target)
+            guard mana > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = mana
+        case .shieldFromHalfMana:
+            let half = context.mana(of: target) / 2
+            guard half > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = half
+        case .shieldFromGold:
+            guard case let .shieldFromGold(goldPerBlock) = effect, goldPerBlock > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            let fromGold = context.gold / goldPerBlock
+            guard fromGold > 0 else {
+                return EffectApplyOutcome(events: [], didApply: false)
+            }
+            block = fromGold
         }
-        _ = context.spendMana(mana, for: target)
+
         let applied = DefensePoolEngine.add(
-            mana,
+            block,
             pool: .block,
             to: target,
             keyword: .block,
             sourceActorID: source.id,
             in: &context
         )
-        var events = CombatReactionEngine.afterSpendMana(by: target, in: &context)
+        var events: [ActionEvent] = []
+        if mode.spendsMana {
+            events = CombatReactionEngine.afterSpendMana(by: target, in: &context)
+        }
         events.append(context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
@@ -40,124 +101,6 @@ struct ConvertManaToBlockHandler: BattleEffectHandler {
             keyword: .block
         ))
         return EffectApplyOutcome(events: events, didApply: true)
-    }
-}
-
-struct ShieldFromManaHandler: BattleEffectHandler {
-    let kind: EffectKind = .shieldFromMana
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .shieldFromMana = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let mana = context.mana(of: target)
-        guard mana > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let applied = DefensePoolEngine.add(
-            mana,
-            pool: .block,
-            to: target,
-            keyword: .block,
-            sourceActorID: source.id,
-            in: &context
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: applied,
-            keyword: .block
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct ShieldFromHalfManaHandler: BattleEffectHandler {
-    let kind: EffectKind = .shieldFromHalfMana
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .shieldFromHalfMana = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let mana = context.mana(of: target)
-        let block = mana / 2
-        guard block > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let applied = DefensePoolEngine.add(
-            block,
-            pool: .block,
-            to: target,
-            keyword: .block,
-            sourceActorID: source.id,
-            in: &context
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: applied,
-            keyword: .block
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct ShieldFromGoldHandler: BattleEffectHandler {
-    let kind: EffectKind = .shieldFromGold
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case let .shieldFromGold(goldPerBlock) = effect, goldPerBlock > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let block = context.gold / goldPerBlock
-        guard block > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        let applied = DefensePoolEngine.add(
-            block,
-            pool: .block,
-            to: target,
-            keyword: .block,
-            sourceActorID: source.id,
-            in: &context
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .shieldApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: applied,
-            keyword: .block
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
@@ -211,84 +154,6 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             events.append(contentsOf: CombatReactionEngine.afterGainMana(by: target, in: &context))
         }
         return EffectApplyOutcome(events: events, didApply: true)
-    }
-}
-
-struct NextStrikeCriticalHandler: BattleEffectHandler {
-    let kind: EffectKind = .nextStrikeCritical
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: "Next attack is a guaranteed Critical Hit.")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .nextStrikeCritical = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .nextStrikeCritical = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(.nextStrikeCritical, to: target, sourceID: source.id, remainingTurns: 0)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .criticalChanceApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 100,
-            keyword: .physical
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct FreezeNextAttackerHandler: BattleEffectHandler {
-    let kind: EffectKind = .freezeNextAttacker
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: "Freeze the next attacker.")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .freezeNextAttacker = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .freezeNextAttacker = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(.freezeNextAttacker, to: target, sourceID: source.id, remainingTurns: 0)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .controlApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: .freeze
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 

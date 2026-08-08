@@ -291,23 +291,11 @@ package extension DamagePipeline {
         var retaliationEvents = outcome.events
         if let lastIndex = retaliationEvents.indices.last {
             let event = retaliationEvents[lastIndex]
-            retaliationEvents[lastIndex] = ActionEvent(
-                id: event.id,
-                actionID: event.actionID,
-                kind: event.kind,
+            retaliationEvents[lastIndex] = event.with(
                 effectKind: .thornsTriggered,
                 actorID: state.combatant.id,
                 actorName: state.combatant.name,
-                abilityID: event.abilityID,
-                abilityName: abilityName,
-                abilityTier: event.abilityTier,
-                targetID: event.targetID,
-                targetName: event.targetName,
-                amount: event.amount,
-                keyword: event.keyword,
-                appliedEffectSummaries: event.appliedEffectSummaries,
-                milestone: event.milestone,
-                isCritical: event.isCritical
+                abilityName: abilityName
             )
         } else if outcome.healthLost > 0 {
             retaliationEvents.append(context.nextEvent(

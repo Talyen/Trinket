@@ -52,10 +52,12 @@ else
 fi
 
 for target in "${REMAINING[@]}"; do
+  # Mode-level stamps let targeted --no-build runs fall back to the mode stamp
+  # even when the first iteration ran in a different mode (smoke vs ui).
   if [[ "$target" == Smoke* ]]; then
-    touch_build_stamp "$ITERATION_RESULTS_DIR" "smoke_$target"
+    touch_build_stamp "$ITERATION_RESULTS_DIR" "smoke"
   else
-    touch_build_stamp "$ITERATION_RESULTS_DIR" "ui_$target"
+    touch_build_stamp "$ITERATION_RESULTS_DIR" "ui"
   fi
 done
 

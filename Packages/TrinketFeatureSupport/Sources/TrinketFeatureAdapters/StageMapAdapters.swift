@@ -151,9 +151,10 @@ public extension LabyrinthMapPresentation {
         in state: PlayerLabyrinthState
     ) -> [LabyrinthNode] {
         cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
-            let left = $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            let right = $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
-            return left.row == right.row ? left.column < right.column : left.row < right.row
+            LabyrinthGridPosition.isOrderedBefore(
+                $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1),
+                $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 1)
+            )
         }
     }
 

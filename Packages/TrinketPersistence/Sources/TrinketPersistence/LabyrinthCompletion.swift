@@ -10,7 +10,7 @@ public enum LabyrinthCompletion {
     /// Ensures a Labyrinth map exists for the current save (eligible recruits applied).
     public static func enter(save: inout PlayerSave) {
         save.labyrinth.ensureMap(
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs(in: save)
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs
         )
     }
 
@@ -89,7 +89,7 @@ public enum LabyrinthCompletion {
         loot: BattleLootPackage? = nil,
         save: inout PlayerSave
     ) {
-        let eligibleRecruitEventIDs = eligibleRecruitEventIDs(in: save)
+        let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
         save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
         guard let node = save.labyrinth.node(id: nodeID), !node.isCleared else { return }
 
@@ -159,7 +159,7 @@ public enum LabyrinthCompletion {
         companion: Combatant,
         save: inout PlayerSave
     ) -> Bool {
-        let eligibleRecruitEventIDs = eligibleRecruitEventIDs(in: save)
+        let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
         save.labyrinth.ensureMap(eligibleRecruitEventIDs: eligibleRecruitEventIDs)
         guard let node = save.labyrinth.node(id: nodeID),
               node.type.canonical == .craft,
@@ -180,16 +180,6 @@ public enum LabyrinthCompletion {
         _ = hero
         _ = companion
         return true
-    }
-
-    public static func eligibleRecruitEventIDs(in save: PlayerSave) -> [String] {
-        GameContent.recruitEvents.compactMap { event in
-            guard let combatantID = event.unlockCombatantID,
-                  !save.roster.unlockedHeroIDs.contains(combatantID),
-                  !save.roster.unlockedCompanionIDs.contains(combatantID)
-            else { return nil }
-            return event.id
-        }
     }
 
     private static func grantGeneratedItem(

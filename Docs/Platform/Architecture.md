@@ -240,9 +240,10 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
   `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
-- Semantic tests live with their package owner. `./Scripts/test.sh unit` compiles the
-  app unit target and runs all production package suites; path-scoped verify uses
-  `./Scripts/test.sh unit --app-only` (TrinketTests only) and
+- Semantic tests live with their package owner. `./Scripts/test.sh unit` builds and
+  runs all production package suites in parallel (the app unit target declares no
+  tests, so no app build/plan runs); path-scoped verify uses
+  `./Scripts/test.sh unit --app-only` (app build + TrinketTests plan) and
   `./Scripts/test-package.sh <Package>` for touched packages.
 
 ### Battle UIKit feedback island

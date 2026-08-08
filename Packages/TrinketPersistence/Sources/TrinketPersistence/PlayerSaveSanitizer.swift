@@ -12,7 +12,7 @@ public enum PlayerSaveSanitizer {
         sanitized.spires = sanitizeSpires(save.spires)
         sanitized.labyrinth = sanitizeLabyrinth(
             save.labyrinth,
-            eligibleRecruitEventIDs: eligibleRecruitEventIDs(in: sanitized.roster)
+            eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs
         )
         return sanitized
     }
@@ -242,7 +242,7 @@ public enum PlayerSaveSanitizer {
         eligibleRecruitEventIDs: [String]
     ) -> PlayerLabyrinthState {
         let floorCount = max(1, legacy.currentFloorNumber)
-        let seed = legacy.worldSeed == 0 ? 0x4C41_4259 : legacy.worldSeed
+        let seed = legacy.worldSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : legacy.worldSeed
         let generated = LabyrinthGenerator.makeMap(
             seed: seed,
             floorCount: floorCount,
@@ -338,16 +338,6 @@ public enum PlayerSaveSanitizer {
         return [applicable[0].id]
     }
 
-    private static func eligibleRecruitEventIDs(in roster: PlayerRosterState) -> [String] {
-        GameContent.recruitEvents.compactMap { event in
-            guard let combatantID = event.unlockCombatantID,
-                  !roster.unlockedHeroIDs.contains(combatantID),
-                  !roster.unlockedCompanionIDs.contains(combatantID)
-            else { return nil }
-            return event.id
-        }
-    }
-
     private static func legacyGridPosition(
         for node: LabyrinthNode,
         in cluster: LabyrinthCluster?
@@ -387,7 +377,7 @@ private extension PlayerSaveSanitizer {
             for candidateID in nodeIDs.sorted() {
                 guard !visited.contains(candidateID),
                       let candidate = nodes[candidateID],
-                      areAdjacent(source, candidate)
+                      source.isAdjacent(to: candidate)
                 else { continue }
                 visited.insert(candidateID)
                 predecessor[candidateID] = nodeID
@@ -401,16 +391,5 @@ private extension PlayerSaveSanitizer {
             path.insert(previous, at: path.startIndex)
         }
         return path.first == sourceID ? path : []
-    }
-
-    static func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
-        guard let sourcePosition = source.gridPosition,
-              let targetPosition = target.gridPosition
-        else { return false }
-        let rowDelta = targetPosition.row - sourcePosition.row
-        let columnDelta = targetPosition.column - sourcePosition.column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 }

@@ -113,12 +113,23 @@ struct LeechHandler: BattleEffectHandler {
     }
 }
 
-struct NextHolyStrikeHandler: BattleEffectHandler {
-    let kind: EffectKind = .nextHolyStrike
+/// Shared handler for one-shot "next …" flag effects: any existing stack of the
+/// same kind is dropped, the flag is reapplied with zero remaining turns, and a
+/// single "applied" event is emitted.
+struct FlagEffectHandler: BattleEffectHandler {
+    let flag: Effect
+    let appliedEffectKind: ActionEvent.EffectKind
+    let amount: Int
+    let keyword: Keyword
+    let summaryText: String
+
+    var kind: EffectKind {
+        flag.kind
+    }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: "Next Holy Strike ready.")
+        return EffectSummary(keyword: keyword, text: summaryText)
     }
 
     func apply(
@@ -129,117 +140,19 @@ struct NextHolyStrikeHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleState
     ) -> EffectApplyOutcome {
-        guard case .nextHolyStrike = effect else {
+        guard effect == flag else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .nextHolyStrike = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
-            .nextHolyStrike,
-            to: target,
-            sourceID: source.id,
-            remainingTurns: 0
-        )
+        ActiveEffectMutation.removeMatching(from: target, in: &context) { $0 == flag }
+        context.appendEffect(flag, to: target, sourceID: source.id, remainingTurns: 0)
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .nextHolyStrikeApplied,
+            effectKind: appliedEffectKind,
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: 0,
-            keyword: .holy
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct NextStrikeDoubleHandler: BattleEffectHandler {
-    let kind: EffectKind = .nextStrikeDouble
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: "Next attack deals double damage.")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .nextStrikeDouble = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .nextStrikeDouble = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
-            .nextStrikeDouble,
-            to: target,
-            sourceID: source.id,
-            remainingTurns: 0
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .nextStrikeDoubleApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: .physical
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct EvadeNextHitHandler: BattleEffectHandler {
-    let kind: EffectKind = .evadeNextHit
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        return EffectSummary(keyword: keyword, text: "Dodge the next attack.")
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case .evadeNextHit = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .evadeNextHit = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
-            .evadeNextHit,
-            to: target,
-            sourceID: source.id,
-            remainingTurns: 0
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .evadeNextHitApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: .dodge
+            amount: amount,
+            keyword: keyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

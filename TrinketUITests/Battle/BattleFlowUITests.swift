@@ -1,69 +1,51 @@
 import TrinketFeatureSupport
 import XCTest
 
+/// Mid-battle interactions share one entry via `allForMidBattle` (60s ticks),
+/// so the opening hand stays put and never races into live-tick resolution.
+/// Victory chrome is covered by its own deep-link test; hand-drag safety and
+/// retreat live here as the single UI owner.
 final class BattleFlowUITests: TrinketUITestCase {
-    func testSuccessfulCardTapRemovesOneCard() throws {
+    func testCardPlayRemovesOneCard() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
 
-        if battle.waitForMidBattleOrVictory() {
-            throw XCTSkip("Stage 1-1 already resolved; covered by the victory test")
-        }
-
         let cards = app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
         )
-        let countBefore = cards.count
-        let card = cards.firstMatch
-        XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
-        card.tap()
 
-        let deadline = Date().addingTimeInterval(3)
-        while cards.count == countBefore, Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        XCTAssertEqual(cards.count, countBefore - 1, "A successful tap must remove one card")
-    }
-
-    func testSuccessfulCardReleaseRemovesOneCard() throws {
-        launchApp(arguments: TestLaunchArg.allForMidBattle())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-
-        if battle.waitForMidBattleOrVictory() {
-            throw XCTSkip("Stage 1-1 already resolved; covered by the victory test")
-        }
-
-        let cards = app.descendants(matching: .any).matching(
-            NSPredicate(format: "identifier BEGINSWITH %@", "Battle Hand Card ")
+        // Tap-to-play is a supported input path; one card must leave the hand.
+        let tapCard = cards.firstMatch
+        XCTAssertTrue(tapCard.waitForExistence(timeout: Self.defaultTimeout))
+        let tapCountBefore = cards.count
+        tapCard.tap()
+        XCTAssertTrue(
+            waitForCardCount(cards, droppingFrom: tapCountBefore),
+            "A successful tap must remove one card"
         )
-        let countBefore = cards.count
-        let card = cards.firstMatch
-        XCTAssertTrue(card.waitForExistence(timeout: Self.defaultTimeout))
-        let origin = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+
+        // Drag-to-play is the primary gesture; one card must leave the hand.
+        let dragCard = cards.firstMatch
+        XCTAssertTrue(dragCard.waitForExistence(timeout: Self.defaultTimeout))
+        let dragCountBefore = cards.count
+        let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         origin.press(
             forDuration: 0.05,
             thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240))
         )
-
-        let deadline = Date().addingTimeInterval(3)
-        while cards.count == countBefore, Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        XCTAssertEqual(cards.count, countBefore - 1, "A successful play must remove one card")
+        XCTAssertTrue(
+            waitForCardCount(cards, droppingFrom: dragCountBefore),
+            "A successful drag play must remove one card"
+        )
     }
 
     /// Hand drag onto a combatant must not open details; tap still works after.
-    /// Single owner for this safety invariant (not in smoke).
-    func testHandDragReleaseOnCombatantDoesNotOpenDetail() throws {
+    /// Retreat then restores Play navigation. Single owner for these invariants.
+    func testHandDragSafetyAndRetreatRestoresPlayNavigation() {
         launchApp(arguments: TestLaunchArg.allForMidBattle())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
-
-        if battle.waitForMidBattleOrVictory() {
-            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
-        }
 
         battle.assertActive()
         assertExists(battle.hand)
@@ -80,12 +62,20 @@ final class BattleFlowUITests: TrinketUITestCase {
             "Releasing a hand-card drag on a combatant must not open details"
         )
 
-        if battle.victory.waitForExistence(timeout: 1) {
-            throw XCTSkip("Battle resolved during hand-drag assertions; covered by victory test")
-        }
-
         battle.openCombatantCard(named: "Knight")
         combatantDetail.assertLoaded(for: "Knight")
+        dismissSheet()
+
+        assertButtonExists(AccessibilityID.Battle.actionsMenu)
+        battle.openActions()
+        assertButtonExists(AccessibilityID.Battle.retreat)
+        battle.retreatAction.tap()
+
+        XCTAssertTrue(
+            app.tabBars.buttons["Play"].waitForExistence(timeout: Self.defaultTimeout),
+            "Tab bar should return after retreat"
+        )
+        play.assertCampaignLoaded(number: 1)
     }
 
     /// Victory remains focused on rewards; continue and reward item detail are reachable.
@@ -106,24 +96,11 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Battle.continueButton)
     }
 
-    func testRetreatRestoresPlayNavigation() throws {
-        launchApp(arguments: TestLaunchArg.allForMidBattle())
-        play.openCampaign()
-        play.startBattle(chapter: 1, stage: 1)
-
-        if battle.waitForMidBattleOrVictory() {
-            throw XCTSkip("Stage 1-1 already resolved; mid-battle chrome covered by victory test")
+    private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
+        let deadline = Date().addingTimeInterval(3)
+        while cards.count == initial, Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
-
-        battle.assertActive()
-        battle.openActions()
-        assertButtonExists(AccessibilityID.Battle.retreat)
-        battle.retreatAction.tap()
-
-        XCTAssertTrue(
-            app.tabBars.buttons["Play"].waitForExistence(timeout: Self.defaultTimeout),
-            "Tab bar should return after retreat"
-        )
-        play.assertCampaignLoaded(number: 1)
+        return cards.count == initial - 1
     }
 }

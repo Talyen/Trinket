@@ -98,17 +98,21 @@ Pick the cheapest rung that matches the question you need answered. Higher rungs
 
 CI DerivedData warmth (`.github/actions/restore-and-build`): two-tier key from
 `.github/actions/build-cache-key` (`build-<nonsource>-<full>` + nonsource prefix restore),
-then `build-for-testing`. PR/main `build` also prunes, saves on miss, and uploads a
-within-run artifact. Nightly integration restores the same key but does **not** save —
-sampled Nightly runs (2026-08) already take exact hits from PR/main write-back with
-~5–9 min incremental `build-for-testing`; adding nightly save would mostly upload cost.
-Revisit only if Nightlies start missing the warm prefix. Shared roots between local
+then `build-for-testing.sh --app-only`. The app scheme already compiles every package
+as a dependency, so the build job is app-only: package-scheme builds happen on the
+unit job (`test.sh unit` builds and runs all package schemes itself), keeping them off
+the fan-out critical path shared by smoke/exhaustive UI. PR/main `build` also prunes
+(Intermediates are stripped from the saved cache — the cache ships products for
+`--no-build` test fan-out, it does not provide incremental compile state), saves on
+miss, and uploads a within-run artifact. Nightly integration restores the same app-only
+key but does **not** save — adding nightly save would mostly upload cost. Revisit only
+if Nightlies start missing the warm prefix. Shared roots between local
 `--no-build` freshness and the cache key are guarded by `./Scripts/check-build-cache-paths.sh`
 (wired into `ci-gate.sh`).
 
 | Tier | Command | When |
 |------|---------|------|
-| Unit | `test.sh unit` | Full local/CI confidence — TrinketTests **plus all package schemes** |
+| Unit | `test.sh unit` | Full local/CI confidence — all package schemes in parallel (TrinketTests carries no app-level unit tests, so no app build/plan runs) |
 | Unit (app-only) | `test.sh unit --app-only` | Path-scoped verify — TrinketTests only (packages scheduled separately) |
 | Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
 | Package unit | `test-package.sh <Package>` | Focused package logic; BattleEngine balance-tool tests require `--include-balance-sweep-tests` |
@@ -200,6 +204,11 @@ and `package:<Name>`). Inspect on demand, e.g.
 act on timing output during normal feature work.
 
 `test.sh` runs the generation preflight, then builds and tests (unless `--no-build`).
+Bare `test.sh unit` runs the package schemes only — `TrinketTests` declares no test
+cases (only Swift Testing tag definitions), so building the app for an empty plan is
+skipped. `test.sh unit --app-only` (path-scoped verify) and `test.sh unit <Class>`
+still build the app. Set `TRINKET_RECORD_TIMING=0` to skip timing-log recording in
+tight local loops (CI keeps it on).
 Generation uses a shared lock (timeout via `TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS`,
 default 120). Isolated runs take an agent sim slot; UI/smoke modes also take a fail-fast
 UI concurrency slot (`TRINKET_MAX_CONCURRENT_UI`, default 2). XcodeGen uses its cache so

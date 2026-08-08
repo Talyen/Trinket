@@ -439,7 +439,9 @@ trinket_build_verification_plan() {
     local style_swift=()
     local authored
     for authored in "${TRINKET_AUTHORED_PATHS[@]+"${TRINKET_AUTHORED_PATHS[@]}"}"; do
-      if [[ "$authored" == *.swift ]]; then
+      # Deleted Swift files have no content to format/lint; SwiftFormat errors
+      # on a missing path, so drop them from the style target list.
+      if [[ "$authored" == *.swift && -f "$authored" ]]; then
         style_swift+=("$authored")
       fi
     done

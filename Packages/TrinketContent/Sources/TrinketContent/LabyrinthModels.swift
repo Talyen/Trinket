@@ -221,6 +221,23 @@ public struct LabyrinthGridPosition: Hashable, Codable, Sendable {
     public var projectedHalfColumn: Int {
         2 * column + row
     }
+
+    /// True when the two hexes share an edge. Single source of truth for Labyrinth
+    /// hex adjacency — generation, reachability, and save sanitizing must not
+    /// re-implement this.
+    public func isAdjacent(to other: Self) -> Bool {
+        let rowDelta = other.row - row
+        let columnDelta = other.column - column
+        return (rowDelta == 0 && abs(columnDelta) == 1)
+            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
+            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
+    }
+
+    /// Row-major ordering used for stable floor layout (single source of truth for
+    /// Labyrinth node ordering).
+    public static func isOrderedBefore(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.row == rhs.row ? lhs.column < rhs.column : lhs.row < rhs.row
+    }
 }
 
 /// Shared floor-width contract for Labyrinth generation and map UI.
@@ -295,6 +312,12 @@ public struct LabyrinthNode: Identifiable, Hashable, Codable, Sendable {
         outgoingIDs = try container.decodeIfPresent([String].self, forKey: .outgoingIDs) ?? []
         isCleared = try container.decodeIfPresent(Bool.self, forKey: .isCleared) ?? false
         isRevealed = try container.decodeIfPresent(Bool.self, forKey: .isRevealed) ?? false
+    }
+
+    /// Whether the two nodes share a hex edge (delegates to `LabyrinthGridPosition`).
+    public func isAdjacent(to other: Self) -> Bool {
+        guard let gridPosition, let otherPosition = other.gridPosition else { return false }
+        return gridPosition.isAdjacent(to: otherPosition)
     }
 }
 

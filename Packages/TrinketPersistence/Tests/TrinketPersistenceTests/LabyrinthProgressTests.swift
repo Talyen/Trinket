@@ -386,24 +386,13 @@ private extension LabyrinthProgressTests {
             for candidateID in nodeIDs where !reached.contains(candidateID) {
                 guard let candidate = state.nodes[candidateID],
                       candidate.isCleared,
-                      areAdjacent(source, candidate)
+                      source.isAdjacent(to: candidate)
                 else { continue }
                 reached.insert(candidateID)
                 frontier.append(candidateID)
             }
         }
         return reached.contains(targetID)
-    }
-
-    func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
-        guard let sourcePosition = source.gridPosition,
-              let targetPosition = target.gridPosition
-        else { return false }
-        let rowDelta = targetPosition.row - sourcePosition.row
-        let columnDelta = targetPosition.column - sourcePosition.column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 }
 
@@ -467,44 +456,6 @@ extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func legacyWireAtlasFieldsAreIgnoredAndNotResaved() throws {
-        var state = PlayerLabyrinthState.freshStart
-        state.ensureMap(seed: 91)
-        let currentData = try JSONEncoder().encode(WireLabyrinthState(state))
-        var object = try #require(
-            JSONSerialization.jsonObject(with: currentData) as? [String: Any]
-        )
-        object["deepestDepth"] = 50
-        object["discoveredBiomeIDs"] = ["scarCatacombs"]
-        object["discoveredModifierIDs"] = ["ironPressure"]
-        object["claimedMilestoneDepths"] = [5, 10, 25, 50]
-        object.removeValue(forKey: "mapVersion")
-        if var nodes = object["nodes"] as? [[String: Any]], !nodes.isEmpty {
-            nodes[0]["failCount"] = 4
-            object["nodes"] = nodes
-        }
-
-        let legacyData = try JSONSerialization.data(withJSONObject: object)
-        let decoded = try JSONDecoder().decode(WireLabyrinthState.self, from: legacyData)
-        let loaded = decoded.labyrinth()
-
-        #expect(loaded.clusters == state.clusters)
-        #expect(loaded.nodes == state.nodes)
-        #expect(loaded.mapVersion == 1)
-
-        let resaved = try JSONEncoder().encode(decoded)
-        let resavedObject = try #require(
-            JSONSerialization.jsonObject(with: resaved) as? [String: Any]
-        )
-        #expect(resavedObject["deepestDepth"] == nil)
-        #expect(resavedObject["discoveredBiomeIDs"] == nil)
-        #expect(resavedObject["discoveredModifierIDs"] == nil)
-        #expect(resavedObject["claimedMilestoneDepths"] == nil)
-        let resavedNodes = try #require(resavedObject["nodes"] as? [[String: Any]])
-        let omitsFailureCounts = resavedNodes.allSatisfy { $0["failCount"] == nil }
-        #expect(omitsFailureCounts)
-    }
-
     @Test func depthFiveCompletionGrantsNoMilestoneBonus() {
         let node = LabyrinthNode(
             id: "depth-five-rest",

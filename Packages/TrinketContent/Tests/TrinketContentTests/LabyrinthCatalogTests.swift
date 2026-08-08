@@ -82,6 +82,35 @@ struct LabyrinthCatalogTests {
         #expect(LabyrinthNodeType.event.primaryActionTitle == "Approach")
     }
 
+    @Test func gridPositionAdjacencyMatchesSixHexNeighbors() {
+        let center = LabyrinthGridPosition(row: 1, column: 0)
+        let neighbors = [
+            LabyrinthGridPosition(row: 1, column: -1),
+            LabyrinthGridPosition(row: 1, column: 1),
+            LabyrinthGridPosition(row: 0, column: 0),
+            LabyrinthGridPosition(row: 0, column: 1),
+            LabyrinthGridPosition(row: 2, column: -1),
+            LabyrinthGridPosition(row: 2, column: 0),
+        ]
+        let distant = LabyrinthGridPosition(row: 4, column: 0)
+        #expect(neighbors.allSatisfy { center.isAdjacent(to: $0) })
+        #expect(neighbors.allSatisfy { $0.isAdjacent(to: center) })
+        #expect(!center.isAdjacent(to: center))
+        #expect(!center.isAdjacent(to: distant))
+    }
+
+    @Test func gridPositionOrderingIsRowMajor() {
+        let positions = [
+            LabyrinthGridPosition(row: 2, column: 0),
+            LabyrinthGridPosition(row: 1, column: 1),
+            LabyrinthGridPosition(row: 0, column: 0),
+            LabyrinthGridPosition(row: 1, column: 0),
+        ]
+        #expect(positions.sorted(by: LabyrinthGridPosition.isOrderedBefore).map { "\($0.row):\($0.column)" } == [
+            "0:0", "1:0", "1:1", "2:0",
+        ])
+    }
+
     @Test func legacyEliteNodeTypeDecodesAsBattle() throws {
         let legacy = try JSONDecoder().decode(
             LabyrinthNodeType.self,
@@ -165,7 +194,7 @@ struct LabyrinthCatalogTests {
                 <= LabyrinthMapLayout.maxProjectedSpan
         )
         let neighborsByID = Dictionary(uniqueKeysWithValues: nodes.map { node in
-            (node.id, nodes.filter { node.id != $0.id && areAdjacent(node, $0) }.map(\.id))
+            (node.id, nodes.filter { node.id != $0.id && node.isAdjacent(to: $0) }.map(\.id))
         })
         let degrees = nodes.map { neighborsByID[$0.id]?.count ?? 0 }
         #expect(degrees.allSatisfy { $0 <= 3 })
@@ -187,17 +216,6 @@ struct LabyrinthCatalogTests {
             positions.map { "\($0.row):\($0.column)" }.joined(separator: "|"),
             cycleCount
         )
-    }
-
-    private func areAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
-        guard let sourcePosition = source.gridPosition,
-              let targetPosition = target.gridPosition
-        else { return false }
-        let rowDelta = targetPosition.row - sourcePosition.row
-        let columnDelta = targetPosition.column - sourcePosition.column
-        return (rowDelta == 0 && abs(columnDelta) == 1)
-            || (rowDelta == 1 && (columnDelta == 0 || columnDelta == -1))
-            || (rowDelta == -1 && (columnDelta == 0 || columnDelta == 1))
     }
 
     @Test func recruitNodesRequireEligibleEvent() {

@@ -217,14 +217,14 @@ extension RosterModel {
         let progressionValues = Dictionary(lastWins: (progressions ?? []).map {
             ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
         })
-        let wireAbilityValues = Dictionary(lastWins: (abilityLoadouts ?? []).map {
-            ($0.combatantID, WireAbilityLoadout(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
+        let abilityIDValues = Dictionary(lastWins: (abilityLoadouts ?? []).map {
+            ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
         })
-        let wireEquipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map {
+        let equipmentValues = Dictionary(lastWins: (equipmentLoadouts ?? []).map {
             (
                 $0.combatantID,
-                WireEquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: ($0.slots ?? []).map {
-                    ($0.slotID, $0.itemID)
+                EquipmentLoadout(itemIDsBySlot: Dictionary(lastWins: ($0.slots ?? []).compactMap { slot in
+                    ItemSlot(rawValue: slot.slotID).map { ($0, slot.itemID) }
                 }))
             )
         })
@@ -253,10 +253,10 @@ extension RosterModel {
             activeCompanionID: resolvedCompanionID,
             unlockedHeroIDs: heroIDs,
             unlockedCompanionIDs: companionIDs,
-            abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: wireAbilityValues),
+            abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: abilityIDValues),
             progressions: progressionValues,
             equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(
-                from: wireEquipmentValues,
+                from: equipmentValues,
                 inventoryItemIDs: inventoryItemIDs,
                 inventoryItems: inventory.items
             ),

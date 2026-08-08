@@ -27,16 +27,46 @@ public enum EffectHandlers {
         .criticalChanceBonus: CriticalChanceBonusHandler(),
         .restoreManaOnHit: RestoreManaOnHitHandler(),
         .damageKeywordOverride: DamageKeywordOverrideHandler(),
-        .nextHolyStrike: NextHolyStrikeHandler(),
-        .nextStrikeDouble: NextStrikeDoubleHandler(),
-        .evadeNextHit: EvadeNextHitHandler(),
-        .convertManaToBlock: ConvertManaToBlockHandler(),
-        .shieldFromMana: ShieldFromManaHandler(),
-        .shieldFromHalfMana: ShieldFromHalfManaHandler(),
-        .shieldFromGold: ShieldFromGoldHandler(),
+        .nextHolyStrike: FlagEffectHandler(
+            flag: .nextHolyStrike,
+            appliedEffectKind: .nextHolyStrikeApplied,
+            amount: 0,
+            keyword: .holy,
+            summaryText: "Next Holy Strike ready."
+        ),
+        .nextStrikeDouble: FlagEffectHandler(
+            flag: .nextStrikeDouble,
+            appliedEffectKind: .nextStrikeDoubleApplied,
+            amount: 0,
+            keyword: .physical,
+            summaryText: "Next attack deals double damage."
+        ),
+        .evadeNextHit: FlagEffectHandler(
+            flag: .evadeNextHit,
+            appliedEffectKind: .evadeNextHitApplied,
+            amount: 0,
+            keyword: .dodge,
+            summaryText: "Dodge the next attack."
+        ),
+        .convertManaToBlock: ShieldFromResourceHandler(mode: .convertManaToBlock),
+        .shieldFromMana: ShieldFromResourceHandler(mode: .shieldFromMana),
+        .shieldFromHalfMana: ShieldFromResourceHandler(mode: .shieldFromHalfMana),
+        .shieldFromGold: ShieldFromResourceHandler(mode: .shieldFromGold),
         .maximumManaBonus: MaximumManaBonusHandler(),
-        .nextStrikeCritical: NextStrikeCriticalHandler(),
-        .freezeNextAttacker: FreezeNextAttackerHandler(),
+        .nextStrikeCritical: FlagEffectHandler(
+            flag: .nextStrikeCritical,
+            appliedEffectKind: .criticalChanceApplied,
+            amount: 100,
+            keyword: .physical,
+            summaryText: "Next attack is a guaranteed Critical Hit."
+        ),
+        .freezeNextAttacker: FlagEffectHandler(
+            flag: .freezeNextAttacker,
+            appliedEffectKind: .controlApplied,
+            amount: 0,
+            keyword: .freeze,
+            summaryText: "Freeze the next attacker."
+        ),
         .freezeOnHit: FreezeOnHitHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),

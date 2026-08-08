@@ -327,6 +327,8 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("--xcresult", text)
 
     def test_test_package_parallelizes_multiple_packages(self) -> None:
+        # test-package.sh is the single owner of parallel package builds/tests:
+        # per-package DerivedData tenants with SYMROOT/OBJROOT pins.
         text = (ROOT / "Scripts" / "test-package.sh").read_text(encoding="utf-8")
         self.assertIn("xargs -P", text)
         self.assertIn("package test schemes in parallel", text)
@@ -341,22 +343,16 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("package_objroot()", stamp)
         self.assertIn("package_shared_precomps_dir()", stamp)
         self.assertIn("Packages/.DerivedData", stamp)
+        # build-for-testing.sh and test.sh delegate package work to the single
+        # parallel owner instead of re-implementing the xargs/tenant protocol.
         build_for_testing = (ROOT / "Scripts" / "build-for-testing.sh").read_text(
             encoding="utf-8"
         )
-        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', build_for_testing)
-        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', build_for_testing)
-        self.assertIn(
-            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")',
-            build_for_testing,
-        )
+        self.assertIn("test-package.sh --build-for-testing", build_for_testing)
+        self.assertIn("TRINKET_BUILD_FINGERPRINTS_APP", build_for_testing)
         test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertIn('SYMROOT=$(package_symroot "$package_dd")', test_sh)
-        self.assertIn('OBJROOT=$(package_objroot "$package_dd")', test_sh)
-        self.assertIn(
-            'SHARED_PRECOMPS_DIR=$(package_shared_precomps_dir "$package_dd")',
-            test_sh,
-        )
+        self.assertIn("test-package.sh --build-for-testing", test_sh)
+        self.assertIn("test-package.sh --no-build", test_sh)
 
 
     def test_run_env_removes_shared_packages_derived_data(self) -> None:

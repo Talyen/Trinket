@@ -20,7 +20,7 @@ public struct ActionEvent: Identifiable, Equatable {
         case partyDefeated
     }
 
-    public enum EffectKind: Equatable {
+    public enum EffectKind: Equatable, Sendable {
         case instantHeal
         case resourceGain
         case cardsDrawn
@@ -111,6 +111,39 @@ public struct ActionEvent: Identifiable, Equatable {
 
     public var damageType: Keyword {
         keyword
+    }
+
+    /// Returns a copy with the given fields replaced; omitted fields keep their
+    /// values. All fields are enumerated here so adding a field to `ActionEvent`
+    /// forces this helper (and not distant call sites) to be updated.
+    ///
+    /// `effectKind` uses nil-means-unchanged, so this helper cannot reset an
+    /// effect event back to `nil`; call sites that need that build a fresh event.
+    public func with(
+        effectKind: EffectKind? = nil,
+        actorID: String? = nil,
+        actorName: String? = nil,
+        abilityName: String? = nil,
+        amount: Int? = nil
+    ) -> Self {
+        Self(
+            id: id,
+            actionID: actionID,
+            kind: kind,
+            effectKind: effectKind ?? self.effectKind,
+            actorID: actorID ?? self.actorID,
+            actorName: actorName ?? self.actorName,
+            abilityID: abilityID,
+            abilityName: abilityName ?? self.abilityName,
+            abilityTier: abilityTier,
+            targetID: targetID,
+            targetName: targetName,
+            amount: amount ?? self.amount,
+            keyword: keyword,
+            appliedEffectSummaries: appliedEffectSummaries,
+            milestone: milestone,
+            isCritical: isCritical
+        )
     }
 }
 

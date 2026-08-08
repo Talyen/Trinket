@@ -246,6 +246,38 @@ trinket_derived_data_age_prune() {
   fi
 }
 
+# Shared lock for the simulator cleanup policies. Acquires a noclobber lock at
+# <shared_root>/.simulator-cleanup.lock, reaping a stale holder first. Returns 0
+# when this process owns the lock, 1 when a live peer owns it (the caller decides
+# whether to proceed or skip). The owner must call
+# trinket_sim_cleanup_lock_release afterwards.
+trinket_sim_cleanup_lock_try_acquire() {
+  local shared_root="$1"
+  local lock_path="$shared_root/.simulator-cleanup.lock"
+  local lock_pid=""
+  mkdir -p "$shared_root"
+
+  if [[ -e "$lock_path" ]]; then
+    read -r lock_pid _ < "$lock_path" || true
+    # Reap any non-live holder: a dead pid or a malformed/partial lock written
+    # by a crashed peer (non-numeric content would otherwise never clear).
+    if [[ ! "$lock_pid" =~ ^[0-9]+$ ]] || ! kill -0 "$lock_pid" 2>/dev/null; then
+      rm -f "$lock_path"
+    else
+      return 1
+    fi
+  fi
+
+  if ! (set -o noclobber; printf '%s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" > "$lock_path") 2>/dev/null; then
+    return 1
+  fi
+  return 0
+}
+
+trinket_sim_cleanup_lock_release() {
+  rm -f "$1/.simulator-cleanup.lock"
+}
+
 # Opt-in escape hatch only (TRINKET_CLEANUP_IDLE_POOL=1): when isolate + no agent
 # sim slots held, shut down Booted Trinket Agent N devices, then erase Agent
 # device data (keeps entries). Default off — normal hygiene never erases. Never
@@ -256,28 +288,14 @@ trinket_simulator_cleanup_idle_pool() {
   [[ "${TRINKET_ISOLATE:-}" == "1" ]] || return 0
 
   local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
-  local lock_path="$shared_root/.simulator-cleanup.lock"
-  mkdir -p "$shared_root"
-
-  if [[ -e "$lock_path" ]]; then
-    local lock_pid=""
-    read -r lock_pid _ < "$lock_path" || true
-    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
-      rm -f "$lock_path"
-    else
-      echo "Simulator cleanup already owned by pid ${lock_pid:-unknown}; leaving managed simulators running." >&2
-      return 0
-    fi
-  fi
-
-  if ! (set -o noclobber; printf '%s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" > "$lock_path") 2>/dev/null; then
-    echo "Simulator cleanup reservation is busy; leaving managed simulators running." >&2
+  if ! trinket_sim_cleanup_lock_try_acquire "$shared_root"; then
+    echo "Simulator cleanup already owned by a live peer; leaving managed simulators running." >&2
     return 0
   fi
 
   if ! trinket_sim_slot_pool_is_empty; then
     echo "Simulator cleanup: agent sim pool still held; leaving managed simulators running."
-    rm -f "$lock_path"
+    trinket_sim_cleanup_lock_release "$shared_root"
     return 0
   fi
 
@@ -334,7 +352,7 @@ for name, udid, state, runtime_identifier in records:
     xcrun simctl erase "${managed_udids[$index]}" >/dev/null 2>&1 || true
   done
 
-  rm -f "$lock_path"
+  trinket_sim_cleanup_lock_release "$shared_root"
 }
 
 # Keep exactly one Booted managed sim (Trinket CI / Trinket Agent N). Quietly
@@ -343,20 +361,7 @@ trinket_simulator_enforce_single_warm_booted() {
   [[ "${TRINKET_CLEANUP_SINGLE_WARMED:-1}" == "1" ]] || return 0
 
   local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
-  local lock_path="$shared_root/.simulator-cleanup.lock"
-  mkdir -p "$shared_root"
-
-  if [[ -e "$lock_path" ]]; then
-    local lock_pid=""
-    read -r lock_pid _ < "$lock_path" || true
-    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
-      rm -f "$lock_path"
-    else
-      return 0
-    fi
-  fi
-
-  if ! (set -o noclobber; printf '%s %s\n' "$$" "${TRINKET_RUN_ID:-shared}" > "$lock_path") 2>/dev/null; then
+  if ! trinket_sim_cleanup_lock_try_acquire "$shared_root"; then
     return 0
   fi
 
@@ -396,7 +401,7 @@ for name, udid, runtime_identifier in records:
 
   local managed_count="${#managed_udids[@]}"
   if (( managed_count <= 1 )); then
-    rm -f "$lock_path"
+    trinket_sim_cleanup_lock_release "$shared_root"
     return 0
   fi
 
@@ -437,7 +442,7 @@ for name, udid, runtime_identifier in records:
     trinket_sim_shutdown_wait "${managed_udids[$index]}"
   done
 
-  rm -f "$lock_path"
+  trinket_sim_cleanup_lock_release "$shared_root"
 }
 
 # Legacy alias: TRINKET_CLEANUP_EXCESS_SIMULATORS=1 maps to single-warm enforcement.

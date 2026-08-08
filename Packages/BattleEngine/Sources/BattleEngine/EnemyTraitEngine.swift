@@ -189,23 +189,11 @@ package enum EnemyTraitEngine {
             )
         )
         let events = outcome.events.map { event in
-            ActionEvent(
-                id: event.id,
-                actionID: event.actionID,
-                kind: event.kind,
+            event.with(
                 effectKind: .thornsTriggered,
                 actorID: defender.id,
                 actorName: defender.name,
-                abilityID: event.abilityID,
-                abilityName: traitName(for: defender, in: context),
-                abilityTier: event.abilityTier,
-                targetID: event.targetID,
-                targetName: event.targetName,
-                amount: event.amount,
-                keyword: event.keyword,
-                appliedEffectSummaries: event.appliedEffectSummaries,
-                milestone: event.milestone,
-                isCritical: event.isCritical
+                abilityName: traitName(for: defender, in: context)
             )
         }
         if events.isEmpty, outcome.healthLost > 0 {

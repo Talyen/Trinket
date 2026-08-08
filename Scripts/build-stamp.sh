@@ -59,26 +59,21 @@ package_shared_precomps_dir() {
 }
 
 # Fingerprints stamped after build-for-testing so test.sh --no-build can reuse
-# products. App-only builds omit unit/package/all (those need package schemes).
+# products. Only mode-level fingerprints are tracked: targeted runs fall back to
+# their mode stamp (test.sh BUILD_STAMP fallback), so adding a smoke/UI test
+# class no longer requires editing this list. App-only builds stamp the app/UI
+# modes; the full build additionally covers unit (package_<name> stamps come
+# from test-package.sh for both).
 # shellcheck disable=SC2034
 TRINKET_BUILD_FINGERPRINTS_APP=(
   smoke
-  smoke_SmokeHomesteadTests
-  smoke_SmokeBattleTests
-  smoke_SmokeCollectionTests
-  smoke_SmokePlayTests
-  smoke_SmokeShopTests
   smoke-full
   ui
-  ui_BattleFlowUITests
-  ui_TabNavigationUITests_CollectionSearchUITests
-  ui_PlayMapUITests_MysteryRecruitUITests
 )
 
 # shellcheck disable=SC2034
 TRINKET_BUILD_FINGERPRINTS_FULL=(
   unit
-  unit_TrinketTests
   "${TRINKET_BUILD_FINGERPRINTS_APP[@]}"
   all
 )

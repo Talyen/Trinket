@@ -123,16 +123,11 @@ package extension CombatReactionEngine {
         }
 
         if profile.triggers.dodgeGoldFlat > 0 {
-            let granted = context.goldGranted(for: profile.triggers.dodgeGoldFlat, sourceActorID: combatant.id)
-            context.addGold(profile.triggers.dodgeGoldFlat, sourceActorID: combatant.id)
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .resourceGain,
-                actorName: combatant.name,
+            events.append(grantGold(
+                profile.triggers.dodgeGoldFlat,
+                to: combatant,
                 abilityName: "Payday",
-                target: combatant,
-                amount: granted,
-                keyword: .gold
+                in: &context
             ))
         }
 

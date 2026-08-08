@@ -104,10 +104,11 @@ enum TestLaunchArg {
         allForScreen("battle-victory", reset: reset)
     }
 
-    /// Play-map mid-battle exhaustive entry. Slower ticks keep combatant chrome
-    /// reachable while XCTest opens the campaign and asserts turn-based UI.
+    /// Play-map mid-battle exhaustive entry. Very slow ticks keep the opening
+    /// hand and combatant chrome reachable while XCTest opens the campaign and
+    /// asserts card gestures without racing into live-tick resolution.
     static func allForMidBattle() -> [String] {
-        replacingBattleTickInterval("3.0", in: testLaunchArgs)
+        replacingBattleTickInterval("60", in: testLaunchArgs)
     }
 
     static func allForShop(reset: Bool = true) -> [String] {

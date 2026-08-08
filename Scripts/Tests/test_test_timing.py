@@ -107,6 +107,52 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("unknown option: --bogus", unknown_option.stderr)
             self.assertNotIn("Traceback", unknown_option.stderr)
 
+    def test_wall_only_record_without_xcresult(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results_dir = Path(directory)
+            record = self.run_script(
+                results_dir,
+                "record",
+                "--mode",
+                "unit",
+                "--wall",
+                "12.5",
+                "--no-xcresult",
+            )
+            self.assertEqual(record.returncode, 0, record.stderr)
+            self.assertNotIn("Traceback", record.stderr)
+
+            report = self.run_script(results_dir, "report", "--mode", "unit")
+            self.assertEqual(report.returncode, 0, report.stderr)
+            self.assertIn("Entries: 1 total", report.stdout)
+            self.assertIn("12.5s", report.stdout)
+
+            budget = self.run_script(
+                results_dir,
+                "assert-budget",
+                "--mode",
+                "unit",
+                "--max-wall",
+                "20",
+            )
+            self.assertEqual(budget.returncode, 0, budget.stderr)
+            self.assertIn("wall", budget.stdout)
+
+            mutually_exclusive = self.run_script(
+                results_dir,
+                "record",
+                "--mode",
+                "unit",
+                "--wall",
+                "1",
+                "--no-xcresult",
+                "--xcresult",
+                str(results_dir / "missing.xcresult"),
+            )
+            self.assertNotEqual(mutually_exclusive.returncode, 0)
+            self.assertIn("exactly one of --xcresult or --no-xcresult", mutually_exclusive.stderr)
+            self.assertNotIn("Traceback", mutually_exclusive.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
