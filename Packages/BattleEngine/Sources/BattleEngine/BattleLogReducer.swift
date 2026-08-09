@@ -6,31 +6,29 @@ import TrinketCore
 /// lines. This is the single source of truth for log formatting.
 public enum BattleLogReducer {
     public static func entries(
-        from events: [ActionEvent],
-        matchup: BattleMatchup
+        from events: [ActionEvent]
     ) -> [LogEntry] {
-        entries(from: events, startingAt: 0, matchup: matchup)
+        entries(from: events, startingAt: 0)
     }
 
     /// Appends log lines for events at and after `startIndex`. `LogEntry.id`
     /// matches the event's index in the full stream.
     public static func entries(
         from events: [ActionEvent],
-        startingAt startIndex: Int,
-        matchup: BattleMatchup
+        startingAt startIndex: Int
     ) -> [LogEntry] {
         guard startIndex < events.count else { return [] }
         return events[startIndex...].enumerated().compactMap { offset, event in
             let index = startIndex + offset
-            guard let text = line(for: event, matchup: matchup) else { return nil }
+            guard let text = line(for: event) else { return nil }
             return LogEntry(id: index, text: text)
         }
     }
 
-    public static func line(for event: ActionEvent, matchup: BattleMatchup) -> String? {
+    public static func line(for event: ActionEvent) -> String? {
         switch event.kind {
         case .milestone:
-            return milestoneLine(for: event, matchup: matchup)
+            return milestoneLine(for: event)
         case .ability:
             return lineForAction(
                 actorName: event.actorName,
@@ -61,14 +59,14 @@ public enum BattleLogReducer {
         }
     }
 
-    private static func milestoneLine(for event: ActionEvent, matchup: BattleMatchup) -> String? {
+    private static func milestoneLine(for event: ActionEvent) -> String? {
         switch event.milestone {
-        case .battleStarted:
-            "\(matchup.hero.name) and \(matchup.companion.name) face \(matchup.enemy.name)."
+        case let .battleStarted(heroName, companionName):
+            "\(heroName) and \(companionName) face \(event.targetName)."
         case .enemyDefeated:
-            "\(matchup.enemy.name) is defeated."
+            "\(event.targetName) is defeated."
         case .partyDefeated:
-            "Your party has been defeated by \(matchup.enemy.name)."
+            "Your party has been defeated by \(event.targetName)."
         case nil:
             nil
         }

@@ -52,7 +52,6 @@ public enum BattleCardCombatEngine {
     @discardableResult
     public static func playCard(
         cardID: Int,
-        matchup: BattleMatchup,
         context: inout BattleState
     ) throws -> [ActionEvent] {
         guard !context.isBattleOver else { throw BattlePlayError.battleOver }
@@ -69,16 +68,17 @@ public enum BattleCardCombatEngine {
         putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
 
         let actor = ownerRuntime.combatant
-        var events = BattleTurnEngine.performAbility(
-            card.ability,
+        let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : context.enemy
+        var events = BattleTurnEngine.performAction(
+            ability: card.ability,
             actor: actor,
-            matchup: matchup,
+            abilityTarget: abilityTarget,
             context: &context,
             spendMana: false
         )
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
         }
@@ -87,7 +87,6 @@ public enum BattleCardCombatEngine {
 
     @discardableResult
     public static func endTurn(
-        matchup: BattleMatchup,
         context: inout BattleState
     ) -> [ActionEvent] {
         guard !context.isBattleOver, context.phase == .playerTurn else {
@@ -98,7 +97,7 @@ public enum BattleCardCombatEngine {
 
         // Clear party control skips that blocked card play this turn.
         for owner in context.ownersSkippingThisPlayerTurn {
-            let combatant = matchup.combatant(for: owner)
+            let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
                 events.append(contentsOf: BattleTurnEngine.consumeActionSkip(
                     for: combatant,
@@ -109,14 +108,14 @@ public enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = []
 
         if context.isBattleOver {
-            events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+            events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
             context.phase = .ended
             return events
         }
 
         // Enemy phase
-        events.append(contentsOf: resolveEnemyTurn(matchup: matchup, context: &context))
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+        events.append(contentsOf: resolveEnemyTurn(context: &context))
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
             return events
@@ -129,11 +128,11 @@ public enum BattleCardCombatEngine {
             }
         }
         context.turnCount += 1
-        events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context, matchup: matchup))
+        events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant, context.roster.enemy.combatant] {
             DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
         }
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded())
         if context.isBattleOver {
             context.phase = .ended
             return events
@@ -205,10 +204,9 @@ public enum BattleCardCombatEngine {
     }
 
     private static func resolveEnemyTurn(
-        matchup: BattleMatchup,
         context: inout BattleState
     ) -> [ActionEvent] {
-        let enemy = matchup.enemy
+        let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return [] }
 
         if context.roster.hasPendingActionSkip(for: enemy) {
@@ -222,10 +220,10 @@ public enum BattleCardCombatEngine {
         guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
             return []
         }
-        return BattleTurnEngine.performAbility(
-            ability,
+        return BattleTurnEngine.performAction(
+            ability: ability,
             actor: enemy,
-            matchup: matchup,
+            abilityTarget: context.roster.enemyAttackTarget,
             context: &context,
             spendMana: false
         )

@@ -58,9 +58,8 @@ struct BattleLogReducerTests {
     }
 
     @Test func entriesReduceMilestonesStatusAndAbilityEvents() throws {
-        let matchup = sampleMatchup()
         let events = sampleEvents(includeDefeat: true)
-        let entries = BattleLogReducer.entries(from: events, matchup: matchup)
+        let entries = BattleLogReducer.entries(from: events)
         try #expect(entries.map(\.text) == [
             "Hero and Companion face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
@@ -70,18 +69,42 @@ struct BattleLogReducerTests {
     }
 
     @Test func incrementalEntriesAndProjectionMatchFullReduce() throws {
-        let matchup = sampleMatchup()
         let events = sampleEvents(includeDefeat: false)
 
-        let full = BattleLogReducer.entries(from: events, matchup: matchup)
-        let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0, matchup: matchup)
-        let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
+        let full = BattleLogReducer.entries(from: events)
+        let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0)
+        let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1)
         try #expect(firstBatch + secondBatch == full)
 
         var projection = BattleLogProjection()
-        projection.sync(events: [events[0]], matchup: matchup)
-        projection.sync(events: events, matchup: matchup)
-        try #expect(projection.entries == BattleLogProjection.entries(from: events, matchup: matchup))
+        projection.sync(events: [events[0]])
+        projection.sync(events: events)
+        try #expect(projection.entries == BattleLogProjection.entries(from: events))
+    }
+
+    @Test func battleStartLogUsesNamesCapturedByEvent() throws {
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
+        let replacementEnemy = Combatant(
+            id: "replacement-enemy",
+            name: "Replacement Enemy",
+            role: .enemy,
+            maxHealth: 10,
+            abilities: []
+        )
+        var battle = BattleState(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            tracksLog: false,
+            dealOpeningHand: false
+        )
+
+        battle.roster.enemy = CombatantRuntime(combatant: replacementEnemy)
+        battle.syncLog()
+
+        try #expect(battle.log.first?.text == "Hero and Companion face Enemy.")
     }
 
     @Test func deathsDoorLogLines() throws {
@@ -96,7 +119,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        try #expect(BattleLogReducer.line(for: triggered, matchup: sampleMatchup()) == "Hero is on Death's Door.")
+        try #expect(BattleLogReducer.line(for: triggered) == "Hero is on Death's Door.")
 
         let expired = ActionEvent(
             id: 2,
@@ -109,14 +132,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        try #expect(BattleLogReducer.line(for: expired, matchup: sampleMatchup()) == "Hero's Death's Door fades.")
-    }
-
-    private func sampleMatchup() -> BattleMatchup {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        return BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+        try #expect(BattleLogReducer.line(for: expired) == "Hero's Death's Door fades.")
     }
 
     private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {
@@ -131,7 +147,7 @@ struct BattleLogReducerTests {
                 targetName: "Enemy",
                 amount: 0,
                 keyword: .physical,
-                milestone: .battleStarted
+                milestone: .battleStarted(heroName: "Hero", companionName: "Companion")
             ),
             ActionEvent(
                 id: 2,

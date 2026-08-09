@@ -10,10 +10,6 @@ import TrinketCore
 /// `events` is the append-only stream for the whole battle; method return
 /// values are the delta from that call only.
 public struct BattleState {
-    public let hero: Combatant
-    public let companion: Combatant
-    public let enemy: Combatant
-
     /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
     public let rngSeed: UInt64
 
@@ -50,8 +46,6 @@ public struct BattleState {
     /// Party owners whose cards are unplayable this player turn due to control skip.
     public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
 
-    /// Matchup snapshot; module-internal so `BattleState+*.swift` can read it.
-    let cachedMatchup: BattleMatchup
     private var logProjection: BattleLogProjection?
 
     public static let defaultRNGSeed: UInt64 = 0
@@ -81,13 +75,9 @@ public struct BattleState {
         tracksLog: Bool = false,
         tracksEvents: Bool = true
     ) {
-        hero = roster.hero.combatant
-        companion = roster.companion.combatant
-        enemy = roster.enemy.combatant
         rngSeed = rng.seed
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
-        cachedMatchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         self.roster = roster
         self.rng = rng
         self.turnCount = turnCount
@@ -127,14 +117,9 @@ public struct BattleState {
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true
     ) {
-        self.hero = hero
-        self.companion = companion
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
-        self.enemy = resolvedEnemy
         self.tracksLog = tracksLog
         self.tracksEvents = tracksEvents
-        cachedMatchup = BattleMatchup(hero: hero, companion: companion, enemy: resolvedEnemy)
-
         let seed = rngSeed ?? Self.defaultRNGSeed
         self.rngSeed = seed
 
@@ -179,7 +164,7 @@ public struct BattleState {
         nextCardID = 0
         ownersSkippingThisPlayerTurn = []
 
-        _ = appendMilestone(.battleStarted, matchup: cachedMatchup)
+        _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 
         if dealOpeningHand {
             BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
@@ -189,7 +174,7 @@ public struct BattleState {
 
         if tracksLog {
             var projection = BattleLogProjection()
-            projection.sync(events: events, matchup: cachedMatchup)
+            projection.sync(events: events)
             logProjection = projection
         }
     }
@@ -222,7 +207,6 @@ public struct BattleState {
         // Events are already appended via `nextEvent` during resolution; return value is the delta.
         let events = try BattleCardCombatEngine.playCard(
             cardID: cardID,
-            matchup: cachedMatchup,
             context: &self
         )
         finishMutation(rebuildLog: rebuildLog)
@@ -232,7 +216,7 @@ public struct BattleState {
     @discardableResult
     public mutating func endTurn(rebuildLog: Bool = true) -> [ActionEvent] {
         guard !isBattleOver else { return [] }
-        let events = BattleCardCombatEngine.endTurn(matchup: cachedMatchup, context: &self)
+        let events = BattleCardCombatEngine.endTurn(context: &self)
         finishMutation(rebuildLog: rebuildLog)
         return events
     }
@@ -268,10 +252,10 @@ public struct BattleState {
     public mutating func syncLog() {
         if logProjection == nil {
             var projection = BattleLogProjection()
-            projection.rebuildFromScratch(events: events, matchup: cachedMatchup)
+            projection.rebuildFromScratch(events: events)
             logProjection = projection
         } else {
-            logProjection?.sync(events: events, matchup: cachedMatchup)
+            logProjection?.sync(events: events)
         }
     }
 
@@ -282,6 +266,6 @@ public struct BattleState {
 
     private mutating func finishMutation(rebuildLog: Bool) {
         guard rebuildLog, tracksLog else { return }
-        logProjection?.sync(events: events, matchup: cachedMatchup)
+        logProjection?.sync(events: events)
     }
 }

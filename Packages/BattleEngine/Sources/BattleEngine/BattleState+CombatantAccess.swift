@@ -2,6 +2,18 @@ import TrinketContent
 import TrinketCore
 
 public extension BattleState {
+    var hero: Combatant {
+        roster.hero.combatant
+    }
+
+    var companion: Combatant {
+        roster.companion.combatant
+    }
+
+    var enemy: Combatant {
+        roster.enemy.combatant
+    }
+
     var earnedGold: Int {
         gold - initialGold
     }
@@ -28,10 +40,6 @@ public extension BattleState {
 
     var enemyAttackTarget: Combatant {
         roster.enemyAttackTarget
-    }
-
-    var matchup: BattleMatchup {
-        cachedMatchup
     }
 
     func health(of combatant: Combatant) -> Int {

@@ -72,11 +72,7 @@ extension PlayerSaveRoot {
         apply(save, slices: .all, context: context)
     }
 
-    func apply(_ save: PlayerSave, slices: PlayerSaveSlice, context: ModelContext) {
-        apply(save, slices: slices, context: Optional(context))
-    }
-
-    private func apply(_ save: PlayerSave, slices: PlayerSaveSlice, context: ModelContext?) {
+    func apply(_ save: PlayerSave, slices: PlayerSaveSlice, context: ModelContext? = nil) {
         if slices.contains(.root) {
             schemaVersion = save.schemaVersion
             modifiedAt = save.modifiedAt
@@ -85,63 +81,45 @@ extension PlayerSaveRoot {
         }
 
         if slices.contains(.journey) {
-            syncChild(\.journey, make: JourneyProgressModel()) {
-                $0.update(from: save.journey, context: context)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = journey ?? JourneyProgressModel()
+            model.update(from: save.journey, context: context)
+            journey = model
+            model.root = self
         }
 
         if slices.contains(.roster) {
-            syncChild(\.roster, make: RosterModel()) {
-                $0.update(from: save.roster, context: context)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = roster ?? RosterModel()
+            model.update(from: save.roster, context: context)
+            roster = model
+            model.root = self
         }
 
         if slices.contains(.inventory) {
-            syncChild(\.inventory, make: InventoryModel()) {
-                $0.update(from: save.inventory, context: context)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = inventory ?? InventoryModel()
+            model.update(from: save.inventory, context: context)
+            inventory = model
+            model.root = self
         }
 
         if slices.contains(.homestead) {
-            syncChild(\.homestead, make: HomesteadModel()) {
-                $0.update(from: save.homestead, context: context)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = homestead ?? HomesteadModel()
+            model.update(from: save.homestead, context: context)
+            homestead = model
+            model.root = self
         }
 
         if slices.contains(.spires) {
-            syncChild(\.spires, make: SpiresProgressModel()) {
-                $0.update(from: save.spires, context: context)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = spires ?? SpiresProgressModel()
+            model.update(from: save.spires, context: context)
+            spires = model
+            model.root = self
         }
 
         if slices.contains(.labyrinth) {
-            syncChild(\.labyrinth, make: LabyrinthProgressModel()) {
-                $0.update(from: save.labyrinth)
-            } setRoot: {
-                $0.root = self
-            }
+            let model = labyrinth ?? LabyrinthProgressModel()
+            model.update(from: save.labyrinth)
+            labyrinth = model
+            model.root = self
         }
-    }
-
-    private func syncChild<Model: AnyObject>(
-        _ keyPath: ReferenceWritableKeyPath<PlayerSaveRoot, Model?>,
-        make: @autoclosure @escaping () -> Model,
-        update: (Model) -> Void,
-        setRoot: (Model) -> Void
-    ) {
-        let model = self[keyPath: keyPath] ?? make()
-        update(model)
-        self[keyPath: keyPath] = model
-        setRoot(model)
     }
 }

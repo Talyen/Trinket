@@ -105,8 +105,4 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
         self.enemyID = enemyID
         self.isBoss = isBoss
     }
-
-    public var matchup: BattleMatchup {
-        BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-    }
 }

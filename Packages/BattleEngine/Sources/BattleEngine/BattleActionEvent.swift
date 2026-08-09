@@ -15,7 +15,7 @@ public struct ActionEvent: Identifiable, Equatable {
     }
 
     public enum Milestone: Equatable {
-        case battleStarted
+        case battleStarted(heroName: String, companionName: String)
         case enemyDefeated
         case partyDefeated
     }

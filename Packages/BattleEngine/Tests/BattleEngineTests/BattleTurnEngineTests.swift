@@ -8,7 +8,7 @@ struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
         seed: UInt64 = 1772
-    ) -> (context: BattleState, matchup: BattleMatchup) {
+    ) -> BattleState {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -25,7 +25,7 @@ struct BattleTurnEngineTests {
             companion: CombatantRuntime(combatant: companion, initialActiveEffects: []),
             enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: actorEffects)
         )
-        let context = BattleState(
+        return BattleState(
             roster: roster,
             rng: SeededRandomNumberGenerator(seed: seed),
             nextEffectID: 1,
@@ -37,11 +37,10 @@ struct BattleTurnEngineTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        return (context, BattleMatchup(hero: hero, companion: companion, enemy: enemy))
     }
 
     @Test func consumeActionSkipEmitsEventLingersStatusAndRecordsAction() throws {
-        var (context, _) = makeContext(actorEffects: [
+        var context = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
         ])
         let enemy = context.roster.enemy.combatant
@@ -59,15 +58,15 @@ struct BattleTurnEngineTests {
         try #expect(context.actionCount == 1)
     }
 
-    @Test func performAbilityResolvesWhenNoSkipPending() throws {
-        var (context, matchup) = makeContext()
+    @Test func performActionResolvesWhenNoSkipPending() throws {
+        var context = makeContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
 
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: enemy,
-            matchup: matchup,
+            abilityTarget: context.roster.enemyAttackTarget,
             context: &context
         )
 
@@ -124,14 +123,14 @@ struct BattleTurnEngineTests {
     }
 
     @Test func abilityEventIncludesActorAbilityAndTier() throws {
-        var (context, matchup) = makeContext()
+        var context = makeContext()
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
 
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: enemy,
-            matchup: matchup,
+            abilityTarget: context.roster.enemyAttackTarget,
             context: &context
         )
         let abilityEvent = try #require(events.first { $0.kind == .ability })
@@ -171,13 +170,12 @@ struct BattleTurnEngineTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         let healthBefore = context.roster.health(for: enemy)
 
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: hero,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context
         )
 
@@ -221,12 +219,10 @@ struct BattleTurnEngineTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: hero,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context
         )
 
@@ -236,7 +232,7 @@ struct BattleTurnEngineTests {
         #expect(components.allSatisfy { $0.amount > 0 })
         #expect(Set(components.map(\.actionID)).count == 1)
         #expect(events.count { $0.kind == .ability } == 1)
-        #expect(BattleLogReducer.entries(from: events, matchup: matchup).count == 1)
+        #expect(BattleLogReducer.entries(from: events).count == 1)
     }
 
     @Test func criticalMetadataBelongsToExactDamageComponent() throws {
@@ -271,12 +267,10 @@ struct BattleTurnEngineTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: hero,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context
         )
 
@@ -286,7 +280,7 @@ struct BattleTurnEngineTests {
     }
 
     @Test(arguments: [true, false])
-    func performAbilityAfterLethalHitSkipsCorpseEffectsButStillGrantsGold(grantGold: Bool) throws {
+    func performActionAfterLethalHitSkipsCorpseEffectsButStillGrantsGold(grantGold: Bool) throws {
         let ability = Ability(
             id: grantGold ? "kill-gold" : "kill-mark",
             name: grantGold ? "Kill Gold" : "Kill Mark",
@@ -322,12 +316,10 @@ struct BattleTurnEngineTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: hero,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context
         )
 

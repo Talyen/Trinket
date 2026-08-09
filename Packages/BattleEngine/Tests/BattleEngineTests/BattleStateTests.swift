@@ -14,6 +14,22 @@ struct BattleStateTests {
         GameContent.companions.first { $0.id == "wolf" } ?? GameContent.companions[0]
     }
 
+    @Test func combatantAccessorsFollowRosterDefinitions() throws {
+        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
+        let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion)
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
+        let replacementEnemy = BattleTestFixtures.passiveCombatant(
+            id: "replacement-enemy",
+            name: "Replacement Enemy",
+            role: .enemy
+        )
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
+
+        battle.roster.enemy = CombatantRuntime(combatant: replacementEnemy)
+
+        try #expect(battle.enemy == replacementEnemy)
+    }
+
     @Test func partyNotDefeatedWhenOneMemberOnDeathsDoor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
         let companion = BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: 1)

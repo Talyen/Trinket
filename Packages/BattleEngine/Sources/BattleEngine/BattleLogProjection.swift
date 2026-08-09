@@ -12,29 +12,28 @@ public struct BattleLogProjection {
     public init() {}
 
     /// Full reduce from the event stream.
-    public static func entries(from events: [ActionEvent], matchup: BattleMatchup) -> [LogEntry] {
-        BattleLogReducer.entries(from: events, matchup: matchup)
+    public static func entries(from events: [ActionEvent]) -> [LogEntry] {
+        BattleLogReducer.entries(from: events)
     }
 
     /// Brings `entries` in sync with `events`. No-op when already current.
-    public mutating func sync(events: [ActionEvent], matchup: BattleMatchup) {
+    public mutating func sync(events: [ActionEvent]) {
         guard loggedEventCount < events.count else {
             if loggedEventCount > events.count {
-                rebuildFromScratch(events: events, matchup: matchup)
+                rebuildFromScratch(events: events)
             }
             return
         }
 
         entries.append(contentsOf: BattleLogReducer.entries(
             from: events,
-            startingAt: loggedEventCount,
-            matchup: matchup
+            startingAt: loggedEventCount
         ))
         loggedEventCount = events.count
     }
 
-    public mutating func rebuildFromScratch(events: [ActionEvent], matchup: BattleMatchup) {
-        entries = Self.entries(from: events, matchup: matchup)
+    public mutating func rebuildFromScratch(events: [ActionEvent]) {
+        entries = Self.entries(from: events)
         loggedEventCount = events.count
     }
 }

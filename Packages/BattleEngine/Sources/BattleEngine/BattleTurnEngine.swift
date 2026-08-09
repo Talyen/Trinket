@@ -9,27 +9,6 @@ public enum BattleTurnEngine {
         category: "BattleTurnEngine"
     )
 
-    /// Resolves an explicit ability for `actor` against the standard ability target.
-    public static func performAbility(
-        _ ability: Ability,
-        actor: Combatant,
-        matchup: BattleMatchup,
-        context: inout BattleState,
-        spendMana: Bool = false
-    ) -> [ActionEvent] {
-        let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
-        var events: [ActionEvent] = []
-        events.append(contentsOf: performAction(
-            ability: ability,
-            actor: actor,
-            abilityTarget: abilityTarget,
-            matchup: matchup,
-            context: &context,
-            spendMana: spendMana
-        ))
-        return events
-    }
-
     /// Consumes a pending stun/freeze skip for `actor` and records the action.
     ///
     /// The control meter stays at threshold with a linger duration so Stunned /
@@ -68,9 +47,8 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        matchup: BattleMatchup,
         context: inout BattleState,
-        spendMana: Bool
+        spendMana: Bool = false
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         var resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
@@ -87,7 +65,6 @@ public enum BattleTurnEngine {
             ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
-            matchup: matchup,
             context: &context
         )
         events.append(contentsOf: damageOutcome.events)
@@ -96,7 +73,6 @@ public enum BattleTurnEngine {
             ability: resolvedAbility,
             actor: actor,
             abilityTarget: abilityTarget,
-            matchup: matchup,
             pairedDirectDamage: damageOutcome.pairedDirectDamage,
             context: &context,
             events: &events
@@ -177,7 +153,6 @@ extension BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        matchup: BattleMatchup,
         context: inout BattleState
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
@@ -191,9 +166,6 @@ extension BattleTurnEngine {
                 component.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                hero: matchup.hero,
-                companion: matchup.companion,
-                enemy: matchup.enemy,
                 context: context
             )
 
@@ -202,9 +174,9 @@ extension BattleTurnEngine {
                BattleConditionEvaluator.isMet(
                    condition,
                    actor: actor,
-                   enemy: matchup.enemy,
-                   hero: matchup.hero,
-                   companion: matchup.companion,
+                   enemy: context.enemy,
+                   hero: context.hero,
+                   companion: context.companion,
                    context: context
                ) {
                 amount += component.bonusAmount
@@ -356,7 +328,6 @@ extension BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        matchup: BattleMatchup,
         pairedDirectDamage: [(Keyword, Int)],
         context: inout BattleState,
         events: inout [ActionEvent]
@@ -369,9 +340,9 @@ extension BattleTurnEngine {
                !BattleConditionEvaluator.isMet(
                    condition,
                    actor: actor,
-                   enemy: matchup.enemy,
-                   hero: matchup.hero,
-                   companion: matchup.companion,
+                   enemy: context.enemy,
+                   hero: context.hero,
+                   companion: context.companion,
                    context: context
                ) {
                 continue
@@ -382,9 +353,6 @@ extension BattleTurnEngine {
                 targetedEffect.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                hero: matchup.hero,
-                companion: matchup.companion,
-                enemy: matchup.enemy,
                 context: context
             )
 
@@ -446,9 +414,6 @@ extension BattleTurnEngine {
         _ target: EffectTarget,
         actor: Combatant,
         abilityTarget: Combatant,
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant,
         context: BattleState
     ) -> Combatant {
         switch target {
@@ -457,24 +422,28 @@ extension BattleTurnEngine {
         case .actor:
             return actor
         case .enemy:
-            return enemy
+            return context.enemy
         case .hero:
-            return hero
+            return context.hero
         case .companion:
-            return companion
+            return context.companion
         case .lowestHealthAlly:
             if actor.role == .enemy {
-                return enemy
+                return context.enemy
             }
-            return BattleConditionEvaluator.lowestHealthAlly(hero: hero, companion: companion, context: context)
+            return BattleConditionEvaluator.lowestHealthAlly(
+                hero: context.hero,
+                companion: context.companion,
+                context: context
+            )
         case .defeatedAlly:
-            if context.roster.health(for: companion) <= 0 {
-                return companion
+            if context.roster.health(for: context.companion) <= 0 {
+                return context.companion
             }
-            if context.roster.health(for: hero) <= 0 {
-                return hero
+            if context.roster.health(for: context.hero) <= 0 {
+                return context.hero
             }
-            return companion
+            return context.companion
         }
     }
 }

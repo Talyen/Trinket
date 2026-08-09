@@ -86,9 +86,7 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
         context.roster.mutateRuntime(for: build.combatant) { $0.currentHealth = 10 }
-        let matchup = BattleMatchup(hero: hero, companion: build.combatant, enemy: enemy)
-
-        _ = EffectTurnEngine.advanceAll(context: &context, matchup: matchup)
+        _ = EffectTurnEngine.advanceAll(context: &context)
 
         try #expect(context.roster.health(for: build.combatant) == 11)
     }
@@ -262,9 +260,7 @@ struct CompanionTraitReworkTests {
             enemy: enemy,
             companionModifiers: build.modifiers
         )
-        let matchup = BattleMatchup(hero: hero, companion: build.combatant, enemy: enemy)
-
-        _ = EffectTurnEngine.advanceAll(context: &context, matchup: matchup)
+        _ = EffectTurnEngine.advanceAll(context: &context)
 
         try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 1)
     }

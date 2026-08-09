@@ -43,28 +43,28 @@ package extension BattleState {
         return event
     }
 
-    mutating func appendMilestone(_ milestone: ActionEvent.Milestone, matchup: BattleMatchup) -> ActionEvent {
+    mutating func appendMilestone(_ milestone: ActionEvent.Milestone) -> ActionEvent {
         nextEvent(
             kind: .milestone,
             actorName: "",
             abilityName: "",
-            target: matchup.enemy,
+            target: enemy,
             amount: 0,
             keyword: .physical,
             milestone: milestone
         )
     }
 
-    mutating func appendDefeatMilestonesIfNeeded(matchup: BattleMatchup) -> [ActionEvent] {
+    mutating func appendDefeatMilestonesIfNeeded() -> [ActionEvent] {
         var milestones: [ActionEvent] = []
         if roster.isEnemyDefeated, !hasLoggedDefeat {
             hasLoggedDefeat = true
-            milestones.append(appendMilestone(.enemyDefeated, matchup: matchup))
+            milestones.append(appendMilestone(.enemyDefeated))
             milestones.append(contentsOf: CombatTriggerEngine.afterEnemyDefeated(in: &self))
         }
         if roster.isPartyDefeated, !hasLoggedPartyDefeat {
             hasLoggedPartyDefeat = true
-            milestones.append(appendMilestone(.partyDefeated, matchup: matchup))
+            milestones.append(appendMilestone(.partyDefeated))
         }
         return milestones
     }

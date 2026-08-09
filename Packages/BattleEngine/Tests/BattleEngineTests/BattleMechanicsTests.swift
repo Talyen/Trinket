@@ -77,13 +77,12 @@ struct BattleMechanicsTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, companion: wolf, enemy: enemy)
-        let matchup = BattleMatchup(hero: hero, companion: wolf, enemy: enemy)
         let ability = try #require(wolf.abilityLoadout.skill)
 
-        _ = BattleTurnEngine.performAbility(
-            ability,
+        _ = BattleTurnEngine.performAction(
+            ability: ability,
             actor: wolf,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context,
             spendMana: false
         )
@@ -127,12 +126,10 @@ struct BattleMechanicsTests {
             companionModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-
-        let events = BattleTurnEngine.performAbility(
-            ability,
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
             actor: hero,
-            matchup: matchup,
+            abilityTarget: context.enemy,
             context: &context
         )
 

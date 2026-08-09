@@ -9,11 +9,11 @@ public enum EffectTurnEngine {
         category: "EffectTurnEngine"
     )
 
-    public static func advanceAll(context: inout BattleState, matchup: BattleMatchup) -> [ActionEvent] {
+    public static func advanceAll(context: inout BattleState) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
         for participant in BattleParticipant.effectTurnOrder {
-            let combatant = matchup.combatant(for: participant)
+            let combatant = context.roster[participant].combatant
             if participant != .enemy {
                 guard context.roster[participant].isAlive else { continue }
             }

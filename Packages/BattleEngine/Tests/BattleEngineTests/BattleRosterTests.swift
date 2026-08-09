@@ -52,18 +52,10 @@ struct BattleRosterTests {
     }
 
     @Test func lookupHelpersResolveParticipantsByRoleAndID() throws {
-        let hero = combatant(id: "hero", role: .hero)
-        let companion = combatant(id: "companion", role: .companion)
-        let enemy = combatant(id: "enemy", role: .enemy)
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
         let heroRuntime = runtime(id: "hero", role: .hero)
         let companionRuntime = runtime(id: "companion", role: .companion)
         let enemyRuntime = runtime(id: "enemy", role: .enemy)
         let roster = BattleRoster(hero: heroRuntime, companion: companionRuntime, enemy: enemyRuntime)
-
-        try #expect(matchup.combatant(for: .hero).id == "hero")
-        try #expect(matchup.combatant(for: .companion).id == "companion")
-        try #expect(matchup.combatant(for: .enemy).id == "enemy")
 
         try #expect(roster.runtime(for: heroRuntime.combatant)?.id == "hero")
         try #expect(roster.runtime(for: companionRuntime.combatant)?.id == "companion")
