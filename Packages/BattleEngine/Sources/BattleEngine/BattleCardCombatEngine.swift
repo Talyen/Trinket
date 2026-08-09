@@ -171,7 +171,7 @@ public enum BattleCardCombatEngine {
                     keyword: .mana
                 )
             )
-            events.append(contentsOf: CombatReactionEngine.afterGainMana(by: combatant, in: &context))
+            events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &context))
         }
         return events
     }

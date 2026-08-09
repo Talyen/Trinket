@@ -178,6 +178,12 @@ struct AbilityEffectIntegrationTests {
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case .shield(.block, 4) = active.effect {
+                return true
+            }
+            return false
+        })
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
             if case .holyDamageBonusFromBlock(2) = active.effect {
                 return true
             }

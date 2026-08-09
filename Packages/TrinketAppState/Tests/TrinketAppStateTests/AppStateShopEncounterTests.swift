@@ -44,7 +44,7 @@ struct AppStateShopEncounterTests {
         let itemsAfterFirst = state.playerSave.inventory.items.count
         let firstVisitToken = firstSession.visitToken
 
-        state.encounters.dismissActiveShopEncounterWithoutCompleting()
+        state.encounters.activeShopEncounter = nil
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
 
         let secondSession = try #require(state.encounters.activeShopEncounter)
@@ -76,20 +76,6 @@ struct AppStateShopEncounterTests {
         #expect(state.playerSave.journey.activeStageID == "chapter-2-stage-9")
         #expect(state.playerSave.roster.gold == 0)
         #expect(state.playerSave.inventory.items.count == itemsBefore)
-    }
-
-    @Test func dismissShopEncounterDoesNotCompleteStage() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
-
-        _ = state.journey.handleStagePrimaryAction(for: stage)
-        #expect(state.encounters.activeShopEncounter != nil)
-
-        state.encounters.dismissActiveShopEncounterWithoutCompleting()
-
-        #expect(state.encounters.activeShopEncounter == nil)
-        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
-        #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-2-stage-8"))
     }
 
     @Test func mysteryEncounterDoesNotOpenWhileShopIsActive() throws {

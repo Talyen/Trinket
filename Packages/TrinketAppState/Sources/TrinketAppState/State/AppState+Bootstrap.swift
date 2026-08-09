@@ -89,7 +89,6 @@ extension AppState {
     }
 
     private static func clearResetStateDefaults(from defaults: UserDefaults) {
-        ShellSession.clearLegacyKeys(from: defaults)
         defaults.removeObject(forKey: OptionsStore.musicVolumeKey)
         defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)

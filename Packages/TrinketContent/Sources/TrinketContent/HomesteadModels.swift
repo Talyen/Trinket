@@ -45,7 +45,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
     public let title: String
     public let summary: String
     public let symbolName: String
-    public let tintStyle: HomesteadTint
     public let category: HomesteadNodeCategory
     public let prerequisites: [HomesteadNodeRequirement]
     public let tiers: [HomesteadNodeTier]
@@ -55,7 +54,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         title: String,
         summary: String,
         symbolName: String,
-        tintStyle: HomesteadTint,
         category: HomesteadNodeCategory,
         prerequisites: [HomesteadNodeRequirement],
         tiers: [HomesteadNodeTier]
@@ -64,7 +62,6 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
         self.title = title
         self.summary = summary
         self.symbolName = symbolName
-        self.tintStyle = tintStyle
         self.category = category
         self.prerequisites = prerequisites
         self.tiers = tiers

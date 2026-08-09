@@ -13,31 +13,21 @@ struct HomesteadBuildingArtwork: View {
     let definition: HomesteadNodeDefinition
     var variant: Variant = .full
 
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 36
-
     var body: some View {
-        ZStack {
-            if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
-                // Backgrounds ship full-only; row thumbs scale the same asset.
-                HomesteadFocalArtwork(
-                    art: art,
-                    interpolation: variant == .thumbnail ? .low : .medium
-                )
-            } else {
-                RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [definition.tint.opacity(0.18), TrinketDesign.Colors.surface],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                Image(systemName: definition.symbolName)
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(definition.tint)
-            }
-        }
+        // Homestead projects require authored art; the catalog invariant test
+        // fails if a node is ever added without it.
+        HomesteadFocalArtwork(
+            art: art,
+            interpolation: variant == .thumbnail ? .low : .medium
+        )
         .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
+    }
+
+    private var art: BackgroundArtReference {
+        guard let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] else {
+            preconditionFailure("Missing Homestead artwork for \(definition.id.rawValue)")
+        }
+        return art
     }
 }
 

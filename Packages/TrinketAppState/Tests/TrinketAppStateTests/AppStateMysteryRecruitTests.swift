@@ -69,21 +69,6 @@ struct AppStateMysteryRecruitTests {
         #expect(session.unlockedCombatantID == session.event.unlockCombatantID)
     }
 
-    @Test func dismissMysteryEncounterDoesNotCompleteStage() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
-
-        _ = state.journey.handleStagePrimaryAction(for: stage)
-        #expect(state.encounters.activeMysteryEncounter != nil)
-
-        state.encounters.dismissActiveMysteryEncounterWithoutCompleting()
-
-        #expect(state.encounters.activeMysteryEncounter == nil)
-        #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-1")
-        #expect(!state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
-    }
-
     @Test func journeyMysteryOpenMatchesSeededMapResolve() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))

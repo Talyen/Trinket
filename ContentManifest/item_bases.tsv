@@ -3,7 +3,7 @@ crossbow	Crossbow	weapon	physical,bleed,poison
 dagger	Dagger	weapon	physical,poison,bleed,leech
 double_axe	Double Axe	weapon	physical,bleed,leech
 flail	Flail	weapon	physical,stun,block
-greatsword	Greatsword	weapon	physical,bleed,stun
+greatsword	Greatsword	weapon	physical,bleed,stun,holy
 hatchet	Hatchet	weapon	physical,bleed,leech
 kite_shield	Kite Shield	weapon	block,stun
 longbow	Longbow	weapon	physical,bleed,poison
@@ -12,11 +12,11 @@ mace	Mace	weapon	physical,stun,holy
 maul	Maul	weapon	physical,stun,block
 recurve_bow	Recurve Bow	weapon	physical,bleed,poison
 shortbow	Shortbow	weapon	physical,bleed,poison
-shortsword	Shortsword	weapon	physical,bleed
+shortsword	Shortsword	weapon	physical,bleed,poison,gold
 spellbook	Spellbook	weapon	burn,freeze,holy,gold,mana
 staff	Staff	weapon	burn,freeze,holy,block,mana
 wand	Wand	weapon	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor	physical,block,health,poison,leech,bleed
+leather_armor	Leather Armor	armor	physical,block,health,poison,leech,bleed,gold
 plate_armor	Plate Armor	armor	block,health,holy,stun
 emerald_amulet	Emerald Amulet	trinket	poison,health
 emerald_ring	Emerald Ring	trinket	poison,health

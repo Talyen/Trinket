@@ -33,6 +33,7 @@ cat > "$TMP_DIR/fake-hang-success" <<'FAKE_HANG'
 set -euo pipefail
 echo "** TEST SUCCEEDED **"
 echo "Testing started completed."
+echo " Executed 1 test, with 0 failures (0 unexpected) in 1.0 seconds"
 # Simulate post-result xcresult/simctl hang.
 while true; do sleep 60; done
 FAKE_HANG
@@ -62,6 +63,14 @@ echo "compiling..."
 while true; do sleep 60; done
 FAKE_HANG_SILENT
 
+cat > "$TMP_DIR/fake-hang-zero-tests" <<'FAKE_HANG_ZERO'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
+echo " Executed 0 tests, with 0 failures (0 unexpected) in 0.0 seconds"
+while true; do sleep 60; done
+FAKE_HANG_ZERO
+
 cat > "$TMP_DIR/fake-reporter" <<'FAKE_REPORTER'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -70,7 +79,7 @@ exit 0
 FAKE_REPORTER
 chmod +x "$TMP_DIR/fake-xcodebuild" "$TMP_DIR/fake-reporter" \
   "$TMP_DIR/fake-hang-success" "$TMP_DIR/fake-hang-selected-suite" \
-  "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent"
+  "$TMP_DIR/fake-hang-fail" "$TMP_DIR/fake-hang-silent" "$TMP_DIR/fake-hang-zero-tests"
 
 failure_results="$TMP_DIR/failure-results"
 failure_state="$TMP_DIR/failure-state"
@@ -149,6 +158,10 @@ REPORT_CAPTURE="$TMP_DIR/idle-args" \
     fi
     [[ "$status" -eq 0 ]]
     grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH"
+    manifest="$(find "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")" -maxdepth 1 -type f -name 'idle-success-*-invocation.json' | sort | tail -1)"
+    grep -F -- "\"completion_source\":\"watchdog-log-inference\"" "$manifest"
+    grep -F -- "\"test_execution_proven\":true" "$manifest"
+    grep -F -- "\"result_bundle_complete\":false" "$manifest"
   ' _ "$RUNNER" "$idle_results" "$TMP_DIR/fake-hang-success" >"$idle_terminal" 2>&1
 grep -F -- "killing hung command" "$idle_terminal"
 grep -F -- "inferred exit 0" "$idle_terminal"
@@ -179,6 +192,29 @@ REPORT_CAPTURE="$TMP_DIR/suite-idle-args" \
   ' _ "$RUNNER" "$suite_idle_results" "$TMP_DIR/fake-hang-selected-suite" >"$suite_idle_terminal" 2>&1
 grep -F -- "killing hung command" "$suite_idle_terminal"
 grep -F -- "inferred exit 0" "$suite_idle_terminal"
+
+zero_test_results="$TMP_DIR/zero-test-results"
+zero_test_terminal="$TMP_DIR/zero-test-terminal"
+TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 \
+  TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=2 \
+  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
+  bash -c '
+    set -euo pipefail
+    source "$1"
+    xcode_runner_prepare zero-tests "$2"
+    if xcode_runner_run --label zero-tests \
+      --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+      --log "$XCODE_RUNNER_LOG_PATH" \
+      --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
+      --quiet -- "$3" test; then
+      echo "zero-test watchdog result unexpectedly succeeded" >&2
+      exit 1
+    else
+      status=$?
+    fi
+    [[ "$status" -eq 1 ]]
+  ' _ "$RUNNER" "$zero_test_results" "$TMP_DIR/fake-hang-zero-tests" >"$zero_test_terminal" 2>&1
+grep -F -- "did not prove that any tests executed" "$zero_test_terminal"
 
 fail_idle_results="$TMP_DIR/fail-idle-results"
 fail_idle_terminal="$TMP_DIR/fail-idle-terminal"

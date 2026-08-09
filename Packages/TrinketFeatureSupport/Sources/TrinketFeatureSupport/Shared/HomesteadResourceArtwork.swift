@@ -12,7 +12,7 @@ public struct HomesteadResourceArtwork: View {
 
     public var body: some View {
         if let art = ArtCatalog.resourceArtByID[resource.rawValue] {
-            Image.preparedAsset(named: art.imageName)
+            Image.preparedAsset(art, displaySize: .full)
                 .resizable()
                 .scaledToFit()
                 .decorativePreparedArtwork()

@@ -88,7 +88,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
         )
         var events = [event]
         if mode.healsAfterRemoval {
-            events.append(contentsOf: TraitReactionEngine.healAfterCleanse(
+            events.append(contentsOf: CombatTriggerEngine.healAfterCleanse(
                 source: source,
                 target: target,
                 in: &context

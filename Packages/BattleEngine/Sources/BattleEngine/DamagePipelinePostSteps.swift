@@ -32,7 +32,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID),
               source.role != .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatReactionEngine.afterHolyDamageDealt(
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
             to: state.combatant,
             source: source.combatant,
             in: &context
@@ -49,7 +49,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID),
               source.role != .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatReactionEngine.afterStunDamageDealt(
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterStunDamageDealt(
             to: state.combatant,
             source: source.combatant,
             in: &context
@@ -66,7 +66,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID),
               source.role != .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatReactionEngine.afterBurnDamageDealt(
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
             to: state.combatant,
             source: source.combatant,
             in: &context
@@ -84,7 +84,7 @@ package extension DamagePipeline {
               source.role != .enemy,
               state.combatant.role == .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatReactionEngine.afterCriticalHit(
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
             in: &context
@@ -175,7 +175,7 @@ package extension DamagePipeline {
                 amount: restored,
                 keyword: .mana
             ))
-            state.damageEvents.append(contentsOf: CombatReactionEngine.afterGainMana(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterGainMana(
                 by: state.combatant,
                 in: &context
             ))

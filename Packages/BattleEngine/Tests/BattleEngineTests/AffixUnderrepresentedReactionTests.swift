@@ -17,7 +17,7 @@ struct AffixUnderrepresentedReactionTests {
             for: enemy
         )
 
-        let events = CombatReactionEngine.afterEnemyStunned(in: &context)
+        let events = CombatTriggerEngine.afterEnemyStunned(in: &context)
 
         try #expect(events.contains { $0.abilityName == "Disrupting" && $0.effectKind == .purgeApplied })
         try #expect(!context.roster.activeEffects(for: enemy).map(\.effect).contains(where: \.isRemovableBuff))
@@ -36,7 +36,7 @@ struct AffixUnderrepresentedReactionTests {
             for: enemy
         )
 
-        let events = CombatReactionEngine.afterCriticalHit(to: enemy, source: hero, in: &context)
+        let events = CombatTriggerEngine.afterCriticalHit(to: enemy, source: hero, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Unmaking" && $0.effectKind == .purgeApplied })
         try #expect(!context.roster.activeEffects(for: enemy).map(\.effect).contains(where: \.isRemovableBuff))
@@ -50,7 +50,7 @@ struct AffixUnderrepresentedReactionTests {
         )
         let hero = context.roster.hero.combatant
 
-        let events = CombatReactionEngine.afterGainMana(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterGainMana(by: hero, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Arcane Ward" && $0.amount == 2 })
     }
@@ -86,7 +86,7 @@ struct AffixUnderrepresentedReactionTests {
         )
         let hero = context.roster.hero.combatant
 
-        let events = CombatReactionEngine.afterLeech(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterLeech(by: hero, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Siphoning" && $0.amount == 2 })
         try #expect(events.contains { $0.abilityName == "Blood Price" && $0.amount == 1 })
@@ -101,7 +101,7 @@ struct AffixUnderrepresentedReactionTests {
             )
         )
 
-        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+        let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
 
         try #expect(context.gold == 4)
         try #expect(events.contains { $0.abilityName == "Bounty" && $0.amount == 4 })
@@ -125,7 +125,7 @@ struct AffixUnderrepresentedReactionTests {
             enemyModifiers: .zero
         )
 
-        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+        let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
 
         try #expect(context.gold == 3)
         try #expect(events.contains {
@@ -155,7 +155,7 @@ struct AffixUnderrepresentedReactionTests {
             enemyModifiers: .zero
         )
 
-        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+        let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
 
         try #expect(context.gold == 3)
         try #expect(events.count == 1)
@@ -187,7 +187,7 @@ struct AffixUnderrepresentedReactionTests {
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
 
         let expectedHeal = context.paced(3, sourceActorID: hero.id)
-        let events = CombatReactionEngine.afterDodge(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterDodge(by: hero, in: &context)
 
         try #expect(context.roster.health(for: hero) == 5 + expectedHeal)
         try #expect(events.contains { $0.abilityName == "Sidestep" && $0.amount == expectedHeal })

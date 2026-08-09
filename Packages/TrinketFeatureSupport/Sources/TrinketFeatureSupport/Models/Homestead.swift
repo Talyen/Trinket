@@ -1,7 +1,4 @@
-import SwiftUI
-import TrinketContent
 import TrinketCore
-import TrinketDesignSystem
 
 public extension HomesteadResource {
     var displayName: String {
@@ -32,11 +29,5 @@ public extension HomesteadResource {
 
     var walletAnimationID: String {
         "Homestead Wallet Resource \(rawValue)"
-    }
-}
-
-public extension HomesteadNodeDefinition {
-    var tint: Color {
-        tintStyle.color
     }
 }

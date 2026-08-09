@@ -169,10 +169,6 @@ public extension EncounterPlayMode {
         return true
     }
 
-    func dismissActiveMysteryEncounterWithoutCompleting() {
-        activeMysteryEncounter = nil
-    }
-
     @discardableResult
     func applyMysteryOutcome(
         _ outcome: MysteryChoiceOutcome,

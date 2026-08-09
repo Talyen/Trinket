@@ -4,7 +4,8 @@ import TrinketCore
 enum AbilityCatalogUltimate {
     static let avatarOfJustice = AbilityBuilder.buffOnly(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
-        effects: [.holyDamageBonusFromBlock(2)]
+        effects: [.shield(.block, 4), .holyDamageBonusFromBlock(2)],
+        description: "Gain 4 Block. Your attacks deal Holy damage equal to your Block for 2 turns."
     )
 
     static let blessedAegis = Ability(

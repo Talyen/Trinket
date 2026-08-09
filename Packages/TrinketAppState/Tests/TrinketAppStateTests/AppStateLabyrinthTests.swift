@@ -249,20 +249,6 @@ struct AppStateLabyrinthTests {
         #expect(unlockedCountAfterRelaunch == unlockedCountAfterFirst)
     }
 
-    @Test func labyrinthShopDismissDoesNotClearNode() throws {
-        let state = try context.makePlaySession(arguments: ["-reset-state"])
-        _ = state.labyrinth.enter()
-        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
-
-        #expect(state.labyrinth.handleNodeAction(nodeID: shopNodeID) == nil)
-        #expect(state.encounters.activeShopEncounter != nil)
-
-        state.encounters.dismissActiveShopEncounterWithoutCompleting()
-
-        #expect(state.encounters.activeShopEncounter == nil)
-        #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == false)
-    }
-
     @Test func labyrinthRestGoldCrumbMatchesHomesteadAdjustedGrant() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         var homestead = state.playerSave.homestead

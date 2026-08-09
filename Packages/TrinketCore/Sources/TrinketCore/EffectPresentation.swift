@@ -228,7 +228,7 @@ public enum EffectPresentation {
         case let .damageKeywordOverride(keyword, bonus, durationTurns):
             "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(turns: durationTurns))"
         case let .holyDamageBonusFromBlock(durationTurns):
-            "gain Holy damage equal to your Block \(durationPhrase(turns: durationTurns))"
+            "your attacks deal Holy damage equal to your Block \(durationPhrase(turns: durationTurns))"
         default:
             nil
         }

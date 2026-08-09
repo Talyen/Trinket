@@ -41,7 +41,7 @@ package extension DamagePipeline {
                 }
             }
             if state.applyItemBonus {
-                state.itemBonus += CombatReactionEngine.affixDamageBonus(for: state, in: &context)
+                state.itemBonus += CombatTriggerEngine.damageBonus(for: state, in: &context)
             }
         }
         state.remaining = state.amount + state.statBonus + state.itemBonus
@@ -234,7 +234,7 @@ package extension DamagePipeline {
         context.roster.setActiveEffects(effects, for: state.combatant)
         state.activeEffects = effects
         if blockBroken {
-            state.damageEvents.append(contentsOf: CombatReactionEngine.afterBlockBroken(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBlockBroken(
                 on: state.combatant,
                 in: &context
             ))
@@ -251,7 +251,7 @@ package extension DamagePipeline {
         context.roster.mutateRuntime(for: state.combatant) { lost = $0.takeRawDamage(state.remaining) }
         state.healthLost = lost
         if lost > 0 {
-            state.damageEvents.append(contentsOf: CombatReactionEngine.afterHealthDropped(
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHealthDropped(
                 target: state.combatant,
                 in: &context
             ))

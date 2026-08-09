@@ -9,12 +9,11 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome |
 | `ThemePalette.swift` | Internal mapping from `Theme*` assets to role colors |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
-| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, homestead, resource, chapter color sets |
+| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, resource, chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
 | `HeroScrim.swift` | Hero art scrims and on-art text styling |
 | `ArtworkBlend.swift` | Optional semantic perimeter and bottom-edge artwork blending |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
-| `HomesteadTint+Color.swift` | Homestead node tint resolution |
 | `HomesteadResource+Color.swift` | Homestead resource tint resolution |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
 | `ExperienceBar.swift` | XP/level progress bar |
@@ -32,7 +31,6 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 | Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
 | Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
 | Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
-| Homestead tints | `HomesteadTint.color` | `HomesteadTintOrange` … |
 | Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceHide` / `ResourceCrystal` (+ gold via KeywordGold) |
 | Chapter | `TrinketDesign.Colors.chapterForest` / `.chapterDungeon` / `.chapterDesert` / `.chapterTundra` | `ChapterForest` … `ChapterTundra` |
 

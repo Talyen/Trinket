@@ -244,6 +244,28 @@ struct PreparedArtwork: @unchecked Sendable {
 }
 
 public extension Image {
+    /// Semantic render size for catalog references that may provide a thumbnail.
+    enum PreparedArtworkDisplaySize: Sendable {
+        case compact
+        case full
+    }
+
+    /// Loads catalog artwork with an explicit display-size choice. Compact use
+    /// prefers the generated thumbnail and safely falls back when none exists.
+    @MainActor
+    static func preparedAsset(
+        _ reference: some PreparedArtworkReference,
+        displaySize: PreparedArtworkDisplaySize
+    ) -> Image {
+        let name = switch displaySize {
+        case .compact:
+            reference.preparedThumbnailImageName ?? reference.imageName
+        case .full:
+            reference.imageName
+        }
+        return preparedAsset(named: name)
+    }
+
     /// Catalog artwork that prefers the launch-prepared bitmap cache.
     ///
     /// UIImage-backed prepared images become VoiceOver / XCUITest hits unless marked
@@ -256,6 +278,53 @@ public extension Image {
         } else {
             Image(name)
         }
+    }
+}
+
+public protocol PreparedArtworkReference {
+    var imageName: String { get }
+    var preparedThumbnailImageName: String? { get }
+}
+
+extension CombatantArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        thumbnailImageName
+    }
+}
+
+extension AbilityArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        thumbnailImageName
+    }
+}
+
+extension ItemArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        thumbnailImageName
+    }
+}
+
+extension EncounterArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        thumbnailImageName
+    }
+}
+
+extension BackgroundArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        nil
+    }
+}
+
+extension SlotBackgroundArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        nil
+    }
+}
+
+extension ResourceArtReference: PreparedArtworkReference {
+    public var preparedThumbnailImageName: String? {
+        nil
     }
 }
 

@@ -91,8 +91,12 @@ struct SpireClimbView: View {
                                 floorMessage = message
                             }
                         },
-                        artwork: { floor in
-                            SpireFloorArtwork(floor: floor, tint: spire.keyword.visualStyle.color)
+                        artwork: { floor, isActive in
+                            SpireFloorArtwork(
+                                floor: floor,
+                                tint: spire.keyword.visualStyle.color,
+                                prefersThumbnail: !isActive
+                            )
                         },
                         partyPickerSheet: { _ in
                             StageBattlePartyPickerSheet(spire: spire)
@@ -107,7 +111,7 @@ struct SpireClimbView: View {
     @ViewBuilder
     private func spireHeroArtwork(for spire: SpireDefinition) -> some View {
         if let art = ArtCatalog.backgroundArtByID["spire-\(spire.id.rawValue)"] {
-            Image.preparedAsset(named: art.imageName)
+            Image.preparedAsset(art, displaySize: .full)
                 .resizable()
                 .scaledToFill()
                 .decorativePreparedArtwork()
@@ -167,6 +171,7 @@ struct SpireClimbView: View {
 private struct SpireFloorArtwork: View {
     let floor: SpireFloor
     let tint: Color
+    let prefersThumbnail: Bool
 
     @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
 
@@ -174,10 +179,13 @@ private struct SpireFloorArtwork: View {
         ZStack {
             if let combatant = GameContent.enemy(matching: floor.enemyID)?.combatant,
                let art = combatant.artReference {
-                Image.preparedAsset(named: art.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .decorativePreparedArtwork()
+                Image.preparedAsset(
+                    art,
+                    displaySize: prefersThumbnail ? .compact : .full
+                )
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
             } else {
                 tint.opacity(0.14)
                 Image(systemName: "flag.2.crossed")

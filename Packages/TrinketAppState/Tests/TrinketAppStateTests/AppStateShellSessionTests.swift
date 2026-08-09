@@ -22,17 +22,6 @@ struct AppStateShellSessionTests {
         #expect(state.selectedTab == .play)
     }
 
-    @Test func ignoresLegacyShellUserDefaultsKeys() throws {
-        context.userDefaults.set(AppTab.homestead.rawValue, forKey: ShellSession.legacySessionTabKey)
-
-        let state = try makeState()
-
-        // Shell session is never persisted; legacy UserDefaults keys are not migrated.
-        #expect(state.selectedTab == .play)
-        #expect(state.play.battle.activeBattle == nil)
-        #expect(context.userDefaults.string(forKey: ShellSession.legacySessionTabKey) == AppTab.homestead.rawValue)
-    }
-
     @Test func freshStateLandsOnPlayAfterTabChange() throws {
         let state = try makeState()
         state.selectedTab = .options

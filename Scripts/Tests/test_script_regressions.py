@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -48,6 +49,36 @@ class ScriptRegressionTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Unknown command", result.stderr)
+
+    def test_ui_style_requires_explicit_catalog_artwork_display_size(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "ArtworkFixture.swift"
+            fixture.write_text(
+                "Image.preparedAsset(named: art.imageName)\n",
+                encoding="utf-8",
+            )
+            rejected = subprocess.run(
+                [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("catalog artwork without explicit display size", rejected.stdout)
+
+            fixture.write_text(
+                "Image.preparedAsset(art, displaySize: .compact)\n",
+                encoding="utf-8",
+            )
+            accepted = subprocess.run(
+                [str(ROOT / "Scripts" / "check-ui-style.sh"), str(fixture)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
 
     def test_prepare_asset_scripts_use_c_locale_header_preserving_sort(self) -> None:
         scripts = (

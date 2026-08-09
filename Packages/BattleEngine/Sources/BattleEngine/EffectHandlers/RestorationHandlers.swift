@@ -67,7 +67,7 @@ struct ResourceGainHandler: BattleEffectHandler {
             )
             var events = [event]
             if restored > 0 {
-                events.append(contentsOf: CombatReactionEngine.afterGainMana(by: target, in: &context))
+                events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
             }
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
@@ -87,7 +87,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         )
         var events = [event]
         if keyword == .gold {
-            events.append(contentsOf: TraitReactionEngine.healSelfAfterGoldGain(source: source, in: &context).events)
+            events.append(contentsOf: CombatTriggerEngine.healSelfAfterGoldGain(source: source, in: &context).events)
         }
         return EffectApplyOutcome(events: events, didApply: true)
     }

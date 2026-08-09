@@ -61,7 +61,7 @@ public struct AbilityDetailView: View {
     @ViewBuilder
     private var abilityArtwork: some View {
         if let artReference = ability.artReference {
-            Image.preparedAsset(named: artReference.imageName)
+            Image.preparedAsset(artReference, displaySize: .full)
                 .resizable()
                 .interpolation(.medium)
                 .aspectRatio(contentMode: .fill)

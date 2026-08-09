@@ -123,7 +123,8 @@ struct HomesteadTierNode: View {
 
     private var connectorStyle: PathConnectorStyle {
         PathConnectorStyle(
-            progressedColor: definition.tint.opacity(0.7),
+            progressedColor: TrinketDesign.Colors.accent.opacity(0.7),
+            completedColor: TrinketDesign.Colors.success.opacity(0.7),
             futureColor: Color.secondary.opacity(0.28),
             progressedWidth: 2.5,
             futureWidth: 2
@@ -199,7 +200,7 @@ struct HomesteadTierNode: View {
         case .action:
             Image(systemName: "arrowshape.up.fill")
                 .font(glyphFont)
-                .foregroundStyle(definition.tint)
+                .foregroundStyle(TrinketDesign.Colors.accent)
                 .symbolRenderingMode(.hierarchical)
                 .symbolEffect(
                     .bounce.up,
@@ -209,7 +210,7 @@ struct HomesteadTierNode: View {
         case .completed:
             Image(systemName: "checkmark")
                 .font(glyphFont)
-                .foregroundStyle(definition.tint)
+                .foregroundStyle(TrinketDesign.Colors.success)
         case .locked:
             Image(systemName: "lock.fill")
                 .font(glyphFont)
@@ -242,8 +243,8 @@ struct HomesteadTierNode: View {
 
     private var nodeForeground: Color {
         switch state {
-        case .completed: definition.tint
-        case let .next(affordable): affordable ? definition.tint : .primary
+        case .completed: .primary
+        case let .next(affordable): affordable ? TrinketDesign.Colors.accent : .primary
         case .future, .locked: .secondary
         }
     }
@@ -257,9 +258,9 @@ struct HomesteadTierNode: View {
 
     private var nodeStroke: Color {
         switch state {
-        case .completed: definition.tint.opacity(0.48)
+        case .completed: TrinketDesign.Colors.success.opacity(0.48)
         case let .next(affordable):
-            affordable ? definition.tint : definition.tint.opacity(0.55)
+            affordable ? TrinketDesign.Colors.accent : TrinketDesign.Colors.subtleStroke
         case .future, .locked: Color.secondary.opacity(0.2)
         }
     }
@@ -272,11 +273,14 @@ struct HomesteadTierCostLabel: View {
     var body: some View {
         HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             ForEach(cost) { amount in
-                HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
+                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     HomesteadResourceArtwork(resource: amount.resource)
-                        .frame(width: 20, height: 20)
+                        .frame(
+                            width: TrinketDesign.Metrics.walletResourceArtworkSize,
+                            height: TrinketDesign.Metrics.walletResourceArtworkSize
+                        )
                     Text("\(amount.quantity)")
-                        .trinketTypography(.badge)
+                        .trinketTypography(.statValue)
                         .monospacedDigit()
                         .foregroundStyle(
                             status.hasEnough(amount)

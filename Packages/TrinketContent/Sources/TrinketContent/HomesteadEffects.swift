@@ -46,22 +46,36 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     private static func apply(nodeID: HomesteadNodeID, tier: Int, to effects: inout Self) {
         switch nodeID {
         case .wheatField:
-            effects.companionModifiers.append(.maximumHealth(tierValue(tier, values: [4, 8, 12, 16])))
+            appendUniversal(
+                .maximumHealth(tierValue(tier, values: [4, 8, 12, 16])),
+                to: &effects
+            )
         case .herbGarden:
-            effects.heroModifiers.append(.healthRestored(tierValue(tier, values: [1, 2, 3, 4])))
+            appendUniversal(
+                .healthRestored(tierValue(tier, values: [1, 2, 3, 4])),
+                to: &effects
+            )
         case .chickenCoop:
-            effects.heroModifiers.append(.strength(tierValue(tier, values: [2, 4, 6, 8])))
+            appendUniversal(
+                .strength(tierValue(tier, values: [2, 4, 6, 8])),
+                to: &effects
+            )
         case .pasture:
-            effects.companionModifiers.append(.toughness(tierValue(tier, values: [2, 4, 6, 8])))
+            appendUniversal(
+                .toughness(tierValue(tier, values: [2, 4, 6, 8])),
+                to: &effects
+            )
         case .culinaryArts:
-            effects.heroModifiers.append(.maximumHealth(tierValue(tier, values: [4, 8, 12, 16])))
+            let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
+            appendUniversal(.damageTakenPercent(.burn, percent), to: &effects)
         case .blacksmithForge:
-            effects.heroModifiers.append(
-                .damageDealt(.physical, tierValue(tier, values: [1, 2, 3, 4]))
+            appendUniversal(
+                .damageDealt(.physical, tierValue(tier, values: [1, 2, 3, 4])),
+                to: &effects
             )
         case .woolTailoring:
-            let percent = Double(tierValue(tier, values: [10, 20, 30, 40])) / 100
-            effects.heroModifiers.append(.damageTakenPercent(.freeze, percent))
+            let percent = Double(tierValue(tier, values: [15, 30, 40, 50])) / 100
+            appendUniversal(.damageTakenPercent(.freeze, percent), to: &effects)
         case .alchemyLab:
             let dealtPercent = Double(tierValue(tier, values: [5, 10, 15, 20])) / 100
             let dealtModifier = AffixModifier.poisonDamageDealtPercent(dealtPercent)
@@ -73,14 +87,15 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
             effects.heroModifiers.append(takenModifier)
             effects.companionModifiers.append(takenModifier)
         case .crystalGarden:
-            effects.heroModifiers.append(.intellect(tierValue(tier, values: [2, 4, 6, 8])))
+            appendUniversal(
+                .maximumMana(tierValue(tier, values: [2, 4, 6, 8])),
+                to: &effects
+            )
         case .runesmithWorkshop:
             let amount = tierValue(tier, values: [1, 2, 3, 4])
-            effects.heroModifiers.append(contentsOf: [
-                .damageDealt(.burn, amount),
-                .damageDealt(.freeze, amount),
-                .damageDealt(.holy, amount),
-            ])
+            for keyword in [Keyword.burn, .freeze, .holy] {
+                appendUniversal(.damageDealt(keyword, amount), to: &effects)
+            }
         case .hunterLodge:
             effects.heroModifiers.append(.companionDamageDealt(tierValue(tier, values: [1, 2, 3, 4])))
         case .agilityTraining:
@@ -95,5 +110,10 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     private static func tierValue(_ tier: Int, values: [Int]) -> Int {
         let index = min(max(tier, 1), values.count) - 1
         return values[index]
+    }
+
+    private static func appendUniversal(_ modifier: AffixModifier, to effects: inout Self) {
+        effects.heroModifiers.append(modifier)
+        effects.companionModifiers.append(modifier)
     }
 }

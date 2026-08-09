@@ -43,7 +43,7 @@ package enum DoTApplicator {
         }
         context.roster.setActiveEffects(currentEffects, for: effectTarget)
         if !suppressAffixReactions {
-            collected.append(contentsOf: CombatReactionEngine.afterDecayingDoTApplied(
+            collected.append(contentsOf: CombatTriggerEngine.afterDecayingDoTApplied(
                 keyword: keyword,
                 to: effectTarget,
                 sourceActorID: sourceActorID,
@@ -81,7 +81,7 @@ package enum DoTApplicator {
             remainingTurns: Effect.bleedDoTTurnCount + context.modifiers(for: sourceActorID).bleedDurationBonus
         )
         if !suppressAffixReactions {
-            collected.append(contentsOf: CombatReactionEngine.afterBleedApplied(
+            collected.append(contentsOf: CombatTriggerEngine.afterBleedApplied(
                 to: effectTarget,
                 sourceActorID: sourceActorID,
                 in: &context

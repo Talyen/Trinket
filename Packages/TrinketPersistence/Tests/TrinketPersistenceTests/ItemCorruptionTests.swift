@@ -111,6 +111,45 @@ struct ItemCorruptionTests {
         #expect(result.item.isCorrupted)
         #expect(!result.item.affixes.isEmpty)
     }
+
+    @Test func bumpChangesOnlyTheSelectedStandaloneDescriptionValue() throws {
+        let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
+        var powers = [executioners.basic]
+        var rng = SeededRandomNumberGenerator(seed: 0)
+
+        let title = AffixPowerBump.apply(
+            direction: .up,
+            to: &powers,
+            affixIDs: [executioners.id],
+            using: &rng
+        )
+
+        #expect(title == executioners.title)
+        #expect(powers[0].triggers == CombatTraitTriggers(
+            damageBelowHealthPercentThreshold: 0.30,
+            damageBelowHealthPercentBonus: 4
+        ))
+        #expect(powers[0].description == "Deal 4 additional damage if the enemy is below 30% Health.")
+    }
+
+    @Test func minimumIntegerAndPercentValuesCannotBumpDown() {
+        var powers = [
+            ItemAffixPower(description: "Gain 1 Strength.", modifiers: [.strength(1)]),
+            ItemAffixPower(description: "Gain 1% more Gold.", modifiers: [.goldGainedPercent(0.01)]),
+        ]
+        let original = powers
+        var rng = SeededRandomNumberGenerator(seed: 0)
+
+        let title = AffixPowerBump.apply(
+            direction: .down,
+            to: &powers,
+            affixIDs: ["strength", "gold"],
+            using: &rng
+        )
+
+        #expect(title == nil)
+        #expect(powers == original)
+    }
 }
 
 private func makeItem(

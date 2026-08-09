@@ -71,6 +71,6 @@ public extension BattleTurnEngine {
         let spent = context.spendMana(manaEmpowermentCost, for: actor)
         guard spent >= manaEmpowermentCost else { return [] }
         ability = ability.empoweredByMana(amount: manaEmpowermentBonus)
-        return CombatReactionEngine.afterSpendMana(by: actor, in: &context)
+        return CombatTriggerEngine.afterSpendMana(by: actor, in: &context)
     }
 }

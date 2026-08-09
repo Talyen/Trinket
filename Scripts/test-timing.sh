@@ -307,6 +307,8 @@ def cmd_record(args: list[str]) -> None:
         xcresult_path = Path(xcresult)
         if not xcresult_path.exists():
             raise SystemExit(f"xcresult not found: {xcresult_path}")
+        if not (xcresult_path / "Info.plist").is_file():
+            raise SystemExit(f"xcresult is incomplete: {xcresult_path}")
         parsed = parse_xcresult(xcresult_path)
         recorded_xcresult = str(xcresult_path)
 
@@ -340,6 +342,8 @@ def cmd_ingest(args: list[str]) -> None:
     xcresult_path = results_dir / f"{mode}.xcresult"
     if not xcresult_path.exists():
         raise SystemExit(f"xcresult not found: {xcresult_path}")
+    if not (xcresult_path / "Info.plist").is_file():
+        raise SystemExit(f"xcresult is incomplete: {xcresult_path}")
 
     parsed = parse_xcresult(xcresult_path)
     entry = {

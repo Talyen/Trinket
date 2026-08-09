@@ -109,7 +109,7 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
 
-        _ = CombatReactionEngine.afterDodge(by: build.combatant, in: &context)
+        _ = CombatTriggerEngine.afterDodge(by: build.combatant, in: &context)
 
         try #expect(HeroCompanionTraitTestSupport.poisonPotency(on: enemy, in: context) == 2)
     }
@@ -220,7 +220,7 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
 
-        let events = CombatReactionEngine.afterEnemyDefeated(in: &context)
+        let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
 
         try #expect(context.gold == 3)
         try #expect(events.contains { $0.abilityName == "Bounty" && $0.amount == 3 })
@@ -242,7 +242,7 @@ struct CompanionTraitReworkTests {
             companionModifiers: build.modifiers
         )
 
-        _ = CombatReactionEngine.afterSpendMana(by: build.combatant, in: &context)
+        _ = CombatTriggerEngine.afterSpendMana(by: build.combatant, in: &context)
 
         try #expect(HeroCompanionTraitTestSupport.shieldPoints(for: build.combatant, in: context) == 1)
     }

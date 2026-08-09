@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Segment state for a vertical path connector between circular nodes.
 public enum PathConnectorState: Equatable, Sendable {
+    case completed
     case progressed
     case future
 
@@ -14,18 +15,29 @@ public enum PathConnectorState: Equatable, Sendable {
         count: Int,
         isFuture: (Int) -> Bool
     ) -> (before: Self?, after: Self?) {
+        pair(at: index, count: count) { isFuture($0) ? .future : .progressed }
+    }
+
+    /// Before/after connectors for a vertical path when each segment's state
+    /// is derived from the node it leads into.
+    public static func pair(
+        at index: Int,
+        count: Int,
+        state: (Int) -> Self
+    ) -> (before: Self?, after: Self?) {
         let before: Self? = index == 0
             ? nil
-            : (isFuture(index) ? .future : .progressed)
+            : state(index)
         let after: Self? = index >= count - 1
             ? nil
-            : (isFuture(index + 1) ? .future : .progressed)
+            : state(index + 1)
         return (before, after)
     }
 }
 
-/// Colors and widths for progressed vs future connector segments.
+/// Colors and widths for completed, progressed, and future connector segments.
 public struct PathConnectorStyle: Equatable, Sendable {
+    public var completedColor: Color
     public var progressedColor: Color
     public var futureColor: Color
     public var progressedWidth: CGFloat
@@ -33,10 +45,12 @@ public struct PathConnectorStyle: Equatable, Sendable {
 
     public init(
         progressedColor: Color,
+        completedColor: Color? = nil,
         futureColor: Color = Color.secondary.opacity(0.38),
         progressedWidth: CGFloat = 3,
         futureWidth: CGFloat = 2
     ) {
+        self.completedColor = completedColor ?? progressedColor
         self.progressedColor = progressedColor
         self.futureColor = futureColor
         self.progressedWidth = progressedWidth
@@ -44,7 +58,8 @@ public struct PathConnectorStyle: Equatable, Sendable {
     }
 
     public static let homesteadAccent = Self(
-        progressedColor: HomesteadPalette.accent
+        progressedColor: HomesteadPalette.accent,
+        completedColor: HomesteadPalette.success
     )
 }
 
@@ -171,12 +186,24 @@ public struct VerticalPathRail<Node: View>: View {
     }
 
     private func connector(_ state: PathConnectorState) -> some View {
-        let progressed = state == .progressed
+        let color: Color
+        let width: CGFloat
+        switch state {
+        case .completed:
+            color = style.completedColor
+            width = style.progressedWidth
+        case .progressed:
+            color = style.progressedColor
+            width = style.progressedWidth
+        case .future:
+            color = style.futureColor
+            width = style.futureWidth
+        }
         // Square ends let the before/after segments meet flush at adjacent row
         // boundaries instead of leaving a gap between their rounded caps.
         return Rectangle()
-            .fill(progressed ? style.progressedColor : style.futureColor)
-            .frame(width: progressed ? style.progressedWidth : style.futureWidth)
+            .fill(color)
+            .frame(width: width)
             .frame(maxWidth: .infinity)
     }
 }

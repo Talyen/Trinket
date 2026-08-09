@@ -24,26 +24,20 @@ public struct CombatantArtwork: View {
     public var body: some View {
         Group {
             if let artReference = combatant.artReference {
-                Image.preparedAsset(named: imageName(for: artReference))
-                    .resizable()
-                    .interpolation(interpolation)
-                    .modifier(ArtFillModifier(variant: variant))
-                    .decorativePreparedArtwork()
+                Image.preparedAsset(
+                    artReference,
+                    displaySize: variant == .card ? .compact : .full
+                )
+                .resizable()
+                .interpolation(interpolation)
+                .modifier(ArtFillModifier(variant: variant))
+                .decorativePreparedArtwork()
 
             } else {
                 placeholderArt
             }
         }
         .modifier(BattleFrameModifier(variant: variant))
-    }
-
-    private func imageName(for artReference: CombatantArtReference) -> String {
-        switch variant {
-        case .card:
-            artReference.thumbnailImageName ?? artReference.imageName
-        case .hero, .battle:
-            artReference.imageName
-        }
     }
 
     private var interpolation: Image.Interpolation {

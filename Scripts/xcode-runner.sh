@@ -68,10 +68,23 @@ xcode_runner_prepare() {
 
 xcode_runner_result_failed() {
   local result_path="${1:-}"
-  [[ -d "$result_path" ]] || return 1
+  xcode_runner_result_bundle_complete "$result_path" || return 1
   command -v xcrun >/dev/null 2>&1 || return 1
   xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null \
     | grep -Eq '"result"[[:space:]]*:[[:space:]]*"Failed"'
+}
+
+xcode_runner_result_bundle_complete() {
+  local result_path="${1:-}"
+  [[ -f "$result_path/Info.plist" ]]
+}
+
+xcode_runner_log_proves_test_execution() {
+  local log_file="${1:-}"
+  [[ -f "$log_file" ]] || return 1
+  grep -Eq \
+    "Executed [1-9][0-9]* tests?|Test Case '.+' (passed|failed)|[✔✘] Test run with [1-9][0-9]* tests?" \
+    "$log_file"
 }
 
 xcode_runner_call_reporter() {
@@ -153,6 +166,9 @@ payload = {
     "result_bundle": result_bundle,
     "diagnostics_json": diagnostics_json,
     "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    "completion_source": os.environ.get("XCODE_RUNNER_COMPLETION_SOURCE", "process-exit"),
+    "test_execution_proven": os.environ.get("XCODE_RUNNER_TEST_EXECUTION_PROVEN", "false") == "true",
+    "result_bundle_complete": Path(result_bundle, "Info.plist").is_file(),
 }
 session_id = os.environ.get("TRINKET_DIAGNOSTICS_SESSION_ID", "").strip()
 if session_id:
@@ -265,6 +281,9 @@ xcode_runner_execute_watched() {
   local wait_status=0
   local inferred=124
 
+  XCODE_RUNNER_COMPLETION_SOURCE="process-exit"
+  export XCODE_RUNNER_COMPLETION_SOURCE
+
   wall="$(xcode_runner_wall_timeout_seconds)"
   idle="$(xcode_runner_idle_timeout_seconds)"
   [[ "$wall" =~ ^[0-9]+$ ]] || wall=0
@@ -324,6 +343,8 @@ xcode_runner_execute_watched() {
       echo "xcode-runner: no TEST/BUILD result in log; treating as timeout (exit 124)." >&2
     else
       echo "xcode-runner: inferred exit $inferred from log after hang kill." >&2
+      XCODE_RUNNER_COMPLETION_SOURCE="watchdog-log-inference"
+      export XCODE_RUNNER_COMPLETION_SOURCE
     fi
     return "$inferred"
   fi
@@ -349,6 +370,10 @@ xcode_runner_run() {
   local result_failed=false
   local restore_errexit=false
   local prepare_results_dir
+
+  XCODE_RUNNER_COMPLETION_SOURCE="process-exit"
+  XCODE_RUNNER_TEST_EXECUTION_PROVEN="false"
+  export XCODE_RUNNER_COMPLETION_SOURCE XCODE_RUNNER_TEST_EXECUTION_PROVEN
 
   [[ "$-" == *e* ]] && restore_errexit=true
 
@@ -486,6 +511,18 @@ xcode_runner_run() {
     fi
     if [[ "$xcode_exit" -eq 0 && "$result_failed" == "true" ]]; then
       xcode_exit=1
+    fi
+    if xcode_runner_log_proves_test_execution "$log_file"; then
+      XCODE_RUNNER_TEST_EXECUTION_PROVEN="true"
+      export XCODE_RUNNER_TEST_EXECUTION_PROVEN
+    fi
+    if [[ "$xcode_exit" -eq 0 && "$XCODE_RUNNER_COMPLETION_SOURCE" == "watchdog-log-inference" ]]; then
+      local command_action="${command_args[1]:-}"
+      if [[ "$command_action" == "test" || "$command_action" == "test-without-building" ]] \
+        && [[ "$XCODE_RUNNER_TEST_EXECUTION_PROVEN" != "true" ]]; then
+        echo "xcode-runner: terminal suite marker did not prove that any tests executed." >&2
+        xcode_exit=1
+      fi
     fi
     if [[ "$xcode_exit" -eq 0 ]]; then
       # Keep a structured invocation record for CI aggregation. Diagnostics

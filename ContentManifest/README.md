@@ -111,11 +111,10 @@ id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness
 Tab-separated columns:
 
 ```text
-node_id	title	summary	symbol_name	tint	category	prerequisites	tier	cost	bonus_title	bonus_description
+node_id	title	summary	symbol_name	category	prerequisites	tier	cost	bonus_title	bonus_description	production
 ```
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
-- `tint`: `orange`, `green`, `yellow`, `mint`, `cyan`, `indigo`, or `blue`.
 - `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).

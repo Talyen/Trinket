@@ -350,13 +350,11 @@ private struct PlayEncounterCoversModifier: ViewModifier {
     @Environment(LabyrinthPlayMode.self) private var labyrinth
 
     func body(content: Content) -> some View {
+        @Bindable var encounters = encounters
+        @Bindable var labyrinth = labyrinth
+
         content
-            .fullScreenCover(
-                item: dismissibleSessionBinding(
-                    get: { encounters.activeMysteryEncounter },
-                    dismissWithoutCompleting: { encounters.dismissActiveMysteryEncounterWithoutCompleting() }
-                )
-            ) { session in
+            .fullScreenCover(item: $encounters.activeMysteryEncounter) { session in
                 MysteryEncounterView(
                     session: session,
                     onResolveChoice: { choiceID in
@@ -377,12 +375,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 )
                 .interactiveDismissDisabled()
             }
-            .fullScreenCover(
-                item: dismissibleSessionBinding(
-                    get: { encounters.activeShopEncounter },
-                    dismissWithoutCompleting: { encounters.dismissActiveShopEncounterWithoutCompleting() }
-                )
-            ) { session in
+            .fullScreenCover(item: $encounters.activeShopEncounter) { session in
                 ShopEncounterView(
                     session: session,
                     onLeave: {
@@ -391,12 +384,7 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                 )
                 .interactiveDismissDisabled()
             }
-            .sheet(
-                item: dismissibleSessionBinding(
-                    get: { labyrinth.activeNodeSession },
-                    dismissWithoutCompleting: { labyrinth.dismissActiveNodeSessionWithoutCompleting() }
-                )
-            ) { session in
+            .sheet(item: $labyrinth.activeNodeSession) { session in
                 switch session.kind {
                 case .rest:
                     LabyrinthRestView(session: session)
@@ -404,38 +392,5 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     LabyrinthCraftView(session: session)
                 }
             }
-    }
-
-    /// Sheet/cover dismiss sets `nil`; route that through the incomplete-dismiss path
-    /// instead of dropping the session without cleanup.
-    private func dismissibleSessionBinding<Session>(
-        get: @escaping () -> Session?,
-        dismissWithoutCompleting: @escaping () -> Void
-    ) -> Binding<Session?> {
-        // Binding get/set are @Sendable; these closures only run on the MainActor UI path.
-        let get = UncheckedSendableBox(get)
-        let dismissWithoutCompleting = UncheckedSendableBox(dismissWithoutCompleting)
-        return Binding(
-            get: { get.value() },
-            set: { newValue in
-                if newValue == nil, get.value() != nil {
-                    dismissWithoutCompleting.value()
-                }
-            }
-        )
-    }
-}
-
-/// Bridges MainActor UI closures into Binding's `@Sendable` get/set without requiring
-/// session types to be `Sendable`.
-///
-/// Concurrency-Safety: `@unchecked Sendable` — the boxed closures capture
-/// MainActor UI/session state and are only invoked from Binding get/set on the
-/// MainActor presentation path; they are never called from a concurrent executor.
-private struct UncheckedSendableBox<Value>: @unchecked Sendable {
-    let value: Value
-
-    init(_ value: Value) {
-        self.value = value
     }
 }

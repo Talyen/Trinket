@@ -37,52 +37,59 @@ enum AffixPowerBump {
             ?? affixIDs[pick.powerIndex]
     }
 
-    private enum Target: Equatable {
+    private enum Target {
         case modifier(Int)
-        case trigger(TriggerField)
+        case intTrigger(WritableKeyPath<CombatTraitTriggers, Int>)
+        case percentTrigger(WritableKeyPath<CombatTraitTriggers, Double>)
     }
 
-    private enum TriggerField: Equatable {
-        case onBleedApplyPoison
-        case onBurnApplyPoison
-        case onBleedDealBurnDamage
-        case poisonDecayIncreaseChance
-        case damageWhileTargetFrozenBonus
-        case damageBelowHealthPercentBonus
-        case damageAfterDodgeBonus
-        case blockBrokenBlockFlat
-        case companionLeechSharePercent
-        case onceBelowHealthPercentHeal
-        case blockOnDeathsDoor
-        case spendManaBlockFlat
-        case freezeDamageWhileBurningBonus
+    private enum NumericChange {
+        case int(from: Int, to: Int)
+        case percent(from: Double, to: Double)
     }
 
     private static func bumpTargets(in power: ItemAffixPower, direction: Direction) -> [Target] {
         var targets: [Target] = []
-        for (index, modifier) in power.modifiers.enumerated() where canBump(modifier, direction: direction) {
+        for (index, modifier) in power.modifiers.enumerated() where bumped(modifier, direction: direction) != nil {
             targets.append(.modifier(index))
         }
         let triggers = power.triggers
-        let triggerFields: [(TriggerField, Bool)] = [
-            (.onBleedApplyPoison, canBumpInt(triggers.onBleedApplyPoison, direction: direction)),
-            (.onBurnApplyPoison, canBumpInt(triggers.onBurnApplyPoison, direction: direction)),
-            (.onBleedDealBurnDamage, canBumpInt(triggers.onBleedDealBurnDamage, direction: direction)),
-            (.poisonDecayIncreaseChance, canBumpPercent(triggers.poisonDecayIncreaseChance, direction: direction)),
-            (.damageWhileTargetFrozenBonus, canBumpInt(triggers.damageWhileTargetFrozenBonus, direction: direction)),
-            (.damageBelowHealthPercentBonus, canBumpInt(triggers.damageBelowHealthPercentBonus, direction: direction)),
-            (.damageAfterDodgeBonus, canBumpInt(triggers.damageAfterDodgeBonus, direction: direction)),
-            (.blockBrokenBlockFlat, canBumpInt(triggers.blockBrokenBlockFlat, direction: direction)),
-            (.companionLeechSharePercent, canBumpPercent(triggers.companionLeechSharePercent, direction: direction)),
-            (.onceBelowHealthPercentHeal, canBumpInt(triggers.onceBelowHealthPercentHeal, direction: direction)),
-            (.blockOnDeathsDoor, canBumpInt(triggers.blockOnDeathsDoor, direction: direction)),
-            (.spendManaBlockFlat, canBumpInt(triggers.spendManaBlockFlat, direction: direction)),
-            (.freezeDamageWhileBurningBonus, canBumpInt(triggers.freezeDamageWhileBurningBonus, direction: direction)),
+        let triggerTargets: [Target] = [
+            .intTrigger(\.onBleedApplyPoison),
+            .intTrigger(\.onBurnApplyPoison),
+            .intTrigger(\.onBleedDealBurnDamage),
+            .percentTrigger(\.poisonDecayIncreaseChance),
+            .intTrigger(\.damageWhileTargetFrozenBonus),
+            .intTrigger(\.damageBelowHealthPercentBonus),
+            .intTrigger(\.damageAfterDodgeBonus),
+            .intTrigger(\.blockBrokenBlockFlat),
+            .percentTrigger(\.companionLeechSharePercent),
+            .intTrigger(\.onceBelowHealthPercentHeal),
+            .intTrigger(\.blockOnDeathsDoor),
+            .intTrigger(\.spendManaBlockFlat),
+            .intTrigger(\.freezeDamageWhileBurningBonus),
         ]
-        for (field, ok) in triggerFields where ok {
-            targets.append(.trigger(field))
-        }
+        targets.append(contentsOf: triggerTargets.filter {
+            canBump($0, in: triggers, direction: direction)
+        })
         return targets
+    }
+
+    private static func canBump(
+        _ target: Target,
+        in triggers: CombatTraitTriggers,
+        direction: Direction
+    ) -> Bool {
+        switch target {
+        case .modifier:
+            return false
+        case let .intTrigger(keyPath):
+            let value = triggers[keyPath: keyPath]
+            return value > 0 && canBump(value, direction: direction)
+        case let .percentTrigger(keyPath):
+            let value = triggers[keyPath: keyPath]
+            return value > 0 && canBump(value, direction: direction)
+        }
     }
 
     private static func apply(target: Target, to power: ItemAffixPower, direction: Direction) -> ItemAffixPower {
@@ -92,205 +99,94 @@ enum AffixPowerBump {
 
         switch target {
         case let .modifier(index):
-            let old = modifiers[index]
-            let new = bump(old, direction: direction)
-            modifiers[index] = new
-            description = rewrittenDescription(description, from: old, to: new)
-        case let .trigger(field):
-            description = bumpTrigger(field, triggers: &triggers, direction: direction, description: description)
+            guard let (modifier, change) = bumped(modifiers[index], direction: direction) else {
+                return power
+            }
+            modifiers[index] = modifier
+            description = rewrittenDescription(description, for: change)
+        case let .intTrigger(keyPath):
+            let old = triggers[keyPath: keyPath]
+            let new = old + direction.intDelta
+            triggers[keyPath: keyPath] = new
+            description = rewriteStandaloneNumber(description, from: old, to: new)
+        case let .percentTrigger(keyPath):
+            let old = triggers[keyPath: keyPath]
+            let new = old + direction.percentDelta
+            triggers[keyPath: keyPath] = new
+            description = rewritePercent(description, from: old, to: new)
         }
 
         return ItemAffixPower(description: description, modifiers: modifiers, triggers: triggers)
     }
 
-    private static func canBump(_ modifier: AffixModifier, direction: Direction) -> Bool {
-        switch numericKind(of: modifier) {
-        case let .int(value):
-            canBumpInt(value, direction: direction)
-        case let .percent(value):
-            canBumpPercent(value, direction: direction)
-        }
-    }
-
-    private enum NumericKind {
-        case int(Int)
-        case percent(Double)
-    }
-
-    private static func numericKind(of modifier: AffixModifier) -> NumericKind {
-        switch modifier {
-        case let .strength(v), let .agility(v), let .toughness(v), let .intellect(v), let .wisdom(v),
-             let .maximumHealth(v), let .maximumMana(v), let .healthRestored(v), let .leechHealing(v),
-             let .goldGained(v), let .blockGained(v), let .leechDuration(v), let .bleedDuration(v),
-             let .companionDamageDealt(v):
-            .int(v)
-        case let .damageDealt(_, v), let .damageTakenFlat(_, v):
-            .int(v)
-        case let .poisonDamageDealtPercent(v), let .leechGainedPercent(v), let .goldGainedPercent(v),
-             let .manaCostReductionPercent(v):
-            .percent(v)
-        case let .damageTakenPercent(_, v), let .damageTakenVulnerability(_, v):
-            .percent(v)
-        }
-    }
-
-    private static func bump(_ modifier: AffixModifier, direction: Direction) -> AffixModifier {
-        let delta = direction == .up ? 1 : -1
-        let percentDelta = direction == .up ? 0.01 : -0.01
-        return mapNumeric(modifier, intDelta: delta, percentDelta: percentDelta)
-    }
-
     // swiftlint:disable:next cyclomatic_complexity
-    private static func mapNumeric(
+    private static func bumped(
         _ modifier: AffixModifier,
-        intDelta: Int,
-        percentDelta: Double
-    ) -> AffixModifier {
+        direction: Direction
+    ) -> (AffixModifier, NumericChange)? {
         switch modifier {
-        case let .strength(v): .strength(v + intDelta)
-        case let .agility(v): .agility(v + intDelta)
-        case let .toughness(v): .toughness(v + intDelta)
-        case let .intellect(v): .intellect(v + intDelta)
-        case let .wisdom(v): .wisdom(v + intDelta)
-        case let .maximumHealth(v): .maximumHealth(v + intDelta)
-        case let .maximumMana(v): .maximumMana(v + intDelta)
-        case let .damageDealt(k, v): .damageDealt(k, v + intDelta)
-        case let .poisonDamageDealtPercent(v): .poisonDamageDealtPercent(v + percentDelta)
-        case let .healthRestored(v): .healthRestored(v + intDelta)
-        case let .leechGainedPercent(v): .leechGainedPercent(v + percentDelta)
-        case let .leechHealing(v): .leechHealing(v + intDelta)
-        case let .goldGained(v): .goldGained(v + intDelta)
-        case let .goldGainedPercent(v): .goldGainedPercent(v + percentDelta)
-        case let .blockGained(v): .blockGained(v + intDelta)
-        case let .leechDuration(v): .leechDuration(v + intDelta)
-        case let .bleedDuration(v): .bleedDuration(v + intDelta)
-        case let .damageTakenPercent(k, v): .damageTakenPercent(k, v + percentDelta)
-        case let .damageTakenFlat(k, v): .damageTakenFlat(k, v + intDelta)
-        case let .damageTakenVulnerability(k, v): .damageTakenVulnerability(k, v + percentDelta)
-        case let .companionDamageDealt(v): .companionDamageDealt(v + intDelta)
-        case let .manaCostReductionPercent(v): .manaCostReductionPercent(v + percentDelta)
+        case let .strength(value): bumpedInt(value, direction: direction, make: AffixModifier.strength)
+        case let .agility(value): bumpedInt(value, direction: direction, make: AffixModifier.agility)
+        case let .toughness(value): bumpedInt(value, direction: direction, make: AffixModifier.toughness)
+        case let .intellect(value): bumpedInt(value, direction: direction, make: AffixModifier.intellect)
+        case let .wisdom(value): bumpedInt(value, direction: direction, make: AffixModifier.wisdom)
+        case let .maximumHealth(value): bumpedInt(value, direction: direction, make: AffixModifier.maximumHealth)
+        case let .maximumMana(value): bumpedInt(value, direction: direction, make: AffixModifier.maximumMana)
+        case let .damageDealt(keyword, value):
+            bumpedInt(value, direction: direction) { .damageDealt(keyword, $0) }
+        case let .poisonDamageDealtPercent(value):
+            bumpedPercent(value, direction: direction, make: AffixModifier.poisonDamageDealtPercent)
+        case let .healthRestored(value): bumpedInt(value, direction: direction, make: AffixModifier.healthRestored)
+        case let .leechGainedPercent(value):
+            bumpedPercent(value, direction: direction, make: AffixModifier.leechGainedPercent)
+        case let .leechHealing(value): bumpedInt(value, direction: direction, make: AffixModifier.leechHealing)
+        case let .goldGained(value): bumpedInt(value, direction: direction, make: AffixModifier.goldGained)
+        case let .goldGainedPercent(value):
+            bumpedPercent(value, direction: direction, make: AffixModifier.goldGainedPercent)
+        case let .blockGained(value): bumpedInt(value, direction: direction, make: AffixModifier.blockGained)
+        case let .leechDuration(value): bumpedInt(value, direction: direction, make: AffixModifier.leechDuration)
+        case let .bleedDuration(value): bumpedInt(value, direction: direction, make: AffixModifier.bleedDuration)
+        case let .damageTakenPercent(keyword, value):
+            bumpedPercent(value, direction: direction) { .damageTakenPercent(keyword, $0) }
+        case let .damageTakenFlat(keyword, value):
+            bumpedInt(value, direction: direction) { .damageTakenFlat(keyword, $0) }
+        case let .damageTakenVulnerability(keyword, value):
+            bumpedPercent(value, direction: direction) { .damageTakenVulnerability(keyword, $0) }
+        case let .companionDamageDealt(value):
+            bumpedInt(value, direction: direction, make: AffixModifier.companionDamageDealt)
+        case let .manaCostReductionPercent(value):
+            bumpedPercent(value, direction: direction, make: AffixModifier.manaCostReductionPercent)
         }
     }
 
-    // swiftlint:disable:next function_body_length
-    private static func bumpTrigger(
-        _ field: TriggerField,
-        triggers: inout CombatTraitTriggers,
+    private static func bumpedInt(
+        _ value: Int,
         direction: Direction,
-        description: String
-    ) -> String {
-        let delta = direction == .up ? 1 : -1
-        let percentDelta = direction == .up ? 0.01 : -0.01
-        switch field {
-        case .onBleedApplyPoison:
-            return bumpIntField(
-                &triggers.onBleedApplyPoison,
-                delta: delta,
-                description: description
-            )
-        case .onBurnApplyPoison:
-            return bumpIntField(
-                &triggers.onBurnApplyPoison,
-                delta: delta,
-                description: description
-            )
-        case .onBleedDealBurnDamage:
-            return bumpIntField(
-                &triggers.onBleedDealBurnDamage,
-                delta: delta,
-                description: description
-            )
-        case .poisonDecayIncreaseChance:
-            return bumpPercentField(
-                &triggers.poisonDecayIncreaseChance,
-                delta: percentDelta,
-                description: description
-            )
-        case .damageWhileTargetFrozenBonus:
-            return bumpIntField(
-                &triggers.damageWhileTargetFrozenBonus,
-                delta: delta,
-                description: description
-            )
-        case .damageBelowHealthPercentBonus:
-            return bumpIntField(
-                &triggers.damageBelowHealthPercentBonus,
-                delta: delta,
-                description: description
-            )
-        case .damageAfterDodgeBonus:
-            return bumpIntField(
-                &triggers.damageAfterDodgeBonus,
-                delta: delta,
-                description: description
-            )
-        case .blockBrokenBlockFlat:
-            return bumpIntField(
-                &triggers.blockBrokenBlockFlat,
-                delta: delta,
-                description: description
-            )
-        case .companionLeechSharePercent:
-            return bumpPercentField(
-                &triggers.companionLeechSharePercent,
-                delta: percentDelta,
-                description: description
-            )
-        case .onceBelowHealthPercentHeal:
-            return bumpIntField(
-                &triggers.onceBelowHealthPercentHeal,
-                delta: delta,
-                description: description
-            )
-        case .blockOnDeathsDoor:
-            return bumpIntField(
-                &triggers.blockOnDeathsDoor,
-                delta: delta,
-                description: description
-            )
-        case .spendManaBlockFlat:
-            return bumpIntField(
-                &triggers.spendManaBlockFlat,
-                delta: delta,
-                description: description
-            )
-        case .freezeDamageWhileBurningBonus:
-            return bumpIntField(
-                &triggers.freezeDamageWhileBurningBonus,
-                delta: delta,
-                description: description
-            )
-        }
+        make: (Int) -> AffixModifier
+    ) -> (AffixModifier, NumericChange)? {
+        guard canBump(value, direction: direction) else { return nil }
+        let new = value + direction.intDelta
+        return (make(new), .int(from: value, to: new))
     }
 
-    private static func bumpIntField(
-        _ value: inout Int,
-        delta: Int,
-        description: String
-    ) -> String {
-        let old = value
-        value = old + delta
-        return rewriteInt(description, from: old, to: old + delta)
+    private static func bumpedPercent(
+        _ value: Double,
+        direction: Direction,
+        make: (Double) -> AffixModifier
+    ) -> (AffixModifier, NumericChange)? {
+        guard canBump(value, direction: direction) else { return nil }
+        let new = value + direction.percentDelta
+        return (make(new), .percent(from: value, to: new))
     }
 
-    private static func bumpPercentField(
-        _ value: inout Double,
-        delta: Double,
-        description: String
-    ) -> String {
-        let old = value
-        value = old + delta
-        return rewritePercent(description, from: old, to: old + delta)
-    }
-
-    private static func canBumpInt(_ value: Int, direction: Direction) -> Bool {
+    private static func canBump(_ value: Int, direction: Direction) -> Bool {
         switch direction {
         case .up: true
         case .down: value > 1
         }
     }
 
-    private static func canBumpPercent(_ value: Double, direction: Direction) -> Bool {
+    private static func canBump(_ value: Double, direction: Direction) -> Bool {
         switch direction {
         case .up: true
         case .down: value > 0.01 + 1e-9
@@ -299,31 +195,51 @@ enum AffixPowerBump {
 
     private static func rewrittenDescription(
         _ description: String,
-        from old: AffixModifier,
-        to new: AffixModifier
+        for change: NumericChange
     ) -> String {
-        switch (numericKind(of: old), numericKind(of: new)) {
-        case let (.int(o), .int(n)):
-            rewriteInt(description, from: o, to: n)
-        case let (.percent(o), .percent(n)):
-            rewritePercent(description, from: o, to: n)
-        default:
-            description
+        switch change {
+        case let .int(old, new):
+            rewriteStandaloneNumber(description, from: old, to: new)
+        case let .percent(old, new):
+            rewritePercent(description, from: old, to: new)
         }
     }
 
-    private static func rewriteInt(_ description: String, from old: Int, to new: Int) -> String {
+    private static func rewriteStandaloneNumber(_ description: String, from old: Int, to new: Int) -> String {
         guard old != new else { return description }
-        return description.replacingOccurrences(of: "\(old)", with: "\(new)")
+        let token = String(old)
+        var searchStart = description.startIndex
+        while let range = description.range(of: token, range: searchStart ..< description.endIndex) {
+            let hasDigitBefore = range.lowerBound > description.startIndex
+                && description[description.index(before: range.lowerBound)].isNumber
+            let hasDigitAfter = range.upperBound < description.endIndex
+                && description[range.upperBound].isNumber
+            if !hasDigitBefore, !hasDigitAfter {
+                return description.replacingCharacters(in: range, with: String(new))
+            }
+            searchStart = range.upperBound
+        }
+        return description
     }
 
     private static func rewritePercent(_ description: String, from old: Double, to new: Double) -> String {
         let oldPct = Int((old * 100).rounded())
         let newPct = Int((new * 100).rounded())
-        if description.contains("\(oldPct)%") {
-            return description.replacingOccurrences(of: "\(oldPct)%", with: "\(newPct)%")
+        let token = "\(oldPct)%"
+        if let range = description.range(of: token) {
+            return description.replacingCharacters(in: range, with: "\(newPct)%")
         }
-        return rewriteInt(description, from: oldPct, to: newPct)
+        return rewriteStandaloneNumber(description, from: oldPct, to: newPct)
+    }
+}
+
+private extension AffixPowerBump.Direction {
+    var intDelta: Int {
+        self == .up ? 1 : -1
+    }
+
+    var percentDelta: Double {
+        self == .up ? 0.01 : -0.01
     }
 }
 

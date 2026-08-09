@@ -287,7 +287,7 @@ struct AffixReactionBattleTests {
         )
         let hero = context.roster.hero.combatant
 
-        let events = CombatReactionEngine.afterSpendMana(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterSpendMana(by: hero, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Aetherward" && $0.amount == 2 })
         let block = context.roster.activeEffects(for: hero).contains { active in
@@ -321,7 +321,7 @@ struct AffixReactionBattleTests {
             for: enemy
         )
 
-        let events = CombatReactionEngine.afterHolyDamageDealt(to: enemy, source: hero, in: &context)
+        let events = CombatTriggerEngine.afterHolyDamageDealt(to: enemy, source: hero, in: &context)
 
         try #expect(events.contains { $0.abilityName == "Sanctum" })
         try #expect(events.contains { $0.abilityName == "Absolving" })
@@ -338,7 +338,7 @@ struct AffixReactionBattleTests {
         )
         let hero = context.roster.hero.combatant
 
-        let events = CombatReactionEngine.afterDodge(by: hero, in: &context)
+        let events = CombatTriggerEngine.afterDodge(by: hero, in: &context)
 
         try #expect(context.gold == 2)
         try #expect(events.contains { $0.abilityName == "Payday" && $0.amount == 2 })
@@ -352,7 +352,7 @@ struct AffixReactionBattleTests {
         )
         let enemy = context.roster.enemy.combatant
 
-        let events = CombatReactionEngine.afterEnemyStunned(in: &context)
+        let events = CombatTriggerEngine.afterEnemyStunned(in: &context)
 
         try #expect(context.roster.health(for: enemy) == 17)
         try #expect(events.contains { $0.effectKind == .markedApplied })

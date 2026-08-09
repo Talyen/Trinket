@@ -45,7 +45,7 @@ struct SkillCalloutView: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     if let artRef = ability?.artReference {
-                        Image.preparedAsset(named: artRef.imageName)
+                        Image.preparedAsset(artRef, displaySize: .compact)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .clipShape(TrinketDesign.cardShape)

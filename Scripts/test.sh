@@ -284,15 +284,15 @@ record_timing() {
     return 0
   fi
   local timing_args=()
-  if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+  if xcode_runner_result_bundle_complete "$RESULT_BUNDLE_PATH"; then
     timing_args+=(--xcresult "$RESULT_BUNDLE_PATH")
-  elif [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-    # Package schemes record their own per-package timings; the mode row is
-    # wall-only (bare unit mode never runs the app plan, so no xcresult exists).
-    timing_args+=(--no-xcresult)
   else
-    echo "No result bundle to record timing for $MODE." >&2
-    return 0
+    # Package-only modes have no app result. A watchdog kill can also leave an
+    # unfinalized xcresult directory; retain useful wall timing without parsing it.
+    if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+      echo "Result bundle did not finalize; recording wall-only timing for $MODE." >&2
+    fi
+    timing_args+=(--no-xcresult)
   fi
   local record_args=(--mode "$MODE" --wall "$TEST_WALL_SECONDS" "${timing_args[@]}")
   if [[ "$NO_BUILD" == "true" ]]; then
@@ -320,12 +320,21 @@ assert_no_build_is_fresh() {
 
 assert_targeted_tests_executed() {
   [[ ${#TARGETS[@]} -gt 0 ]] || return 0
-  [[ -d "$RESULT_BUNDLE_PATH" ]] || return 0
-  command -v xcrun >/dev/null 2>&1 || return 0
+  if ! xcode_runner_result_bundle_complete "$RESULT_BUNDLE_PATH"; then
+    if xcode_runner_log_proves_test_execution "$XCODEBUILD_LOG_PATH"; then
+      return 0
+    fi
+    echo "Targeted test result bundle is incomplete and the log proves no test execution." >&2
+    return 1
+  fi
+  command -v xcrun >/dev/null 2>&1 || return 1
 
   local summary_json
   summary_json="$(xcrun xcresulttool get test-results summary --path "$RESULT_BUNDLE_PATH" --compact 2>/dev/null || true)"
-  [[ -n "$summary_json" ]] || return 0
+  if [[ -z "$summary_json" ]]; then
+    echo "Targeted test result bundle could not be read; refusing a false-green result." >&2
+    return 1
+  fi
   if ! python3 - "$summary_json" <<'PY'
 import json
 import sys
@@ -343,7 +352,7 @@ def number(value):
 try:
     payload = json.loads(sys.argv[1])
 except json.JSONDecodeError:
-    raise SystemExit(0)
+    raise SystemExit(1)
 
 total = sum(number(payload.get(key)) for key in ("passedTests", "failedTests", "skippedTests"))
 if total == 0:
@@ -463,11 +472,9 @@ else
   fi
 
   if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
-    if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
-      record_timing
-      echo ""
-      echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
-    fi
+    record_timing
+    echo ""
+    echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
     exit "$XCODEBUILD_EXIT_CODE"
   fi
 fi
@@ -488,8 +495,6 @@ if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then
   fi
 fi
 
-if [[ "$RUN_PACKAGES_ONLY" == "true" || -d "$RESULT_BUNDLE_PATH" ]]; then
-  record_timing
-  echo ""
-  echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
-fi
+record_timing
+echo ""
+echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"

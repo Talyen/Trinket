@@ -19,7 +19,7 @@ struct LabyrinthRestView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthRestFailure,
             onLeave: {
-                labyrinth.dismissActiveNodeSessionWithoutCompleting()
+                labyrinth.activeNodeSession = nil
                 dismiss()
             },
             facts: {

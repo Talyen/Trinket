@@ -53,7 +53,7 @@ package extension DamagePipeline {
             milestone: nil
         ))
         state.isDodged = true
-        state.damageEvents.append(contentsOf: CombatReactionEngine.afterDodge(by: state.combatant, in: &context))
+        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterDodge(by: state.combatant, in: &context))
     }
 
     static func dodgeChance(

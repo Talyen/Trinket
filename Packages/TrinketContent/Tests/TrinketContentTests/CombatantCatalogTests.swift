@@ -31,14 +31,16 @@ struct CombatantCatalogTests {
         )
 
         try #expect(effects.heroModifiers == [
+            .maximumHealth(16),
             .healthRestored(4),
             .strength(8),
-            .maximumHealth(16),
+            .toughness(8),
+            .damageTakenPercent(.burn, 0.4),
             .damageDealt(.physical, 4),
-            .damageTakenPercent(.freeze, 0.4),
+            .damageTakenPercent(.freeze, 0.5),
             .poisonDamageDealtPercent(0.2),
             .damageTakenPercent(.poison, 0.4),
-            .intellect(8),
+            .maximumMana(8),
             .damageDealt(.burn, 4),
             .damageDealt(.freeze, 4),
             .damageDealt(.holy, 4),
@@ -46,9 +48,18 @@ struct CombatantCatalogTests {
         ])
         try #expect(effects.companionModifiers == [
             .maximumHealth(16),
+            .healthRestored(4),
+            .strength(8),
             .toughness(8),
+            .damageTakenPercent(.burn, 0.4),
+            .damageDealt(.physical, 4),
+            .damageTakenPercent(.freeze, 0.5),
             .poisonDamageDealtPercent(0.2),
             .damageTakenPercent(.poison, 0.4),
+            .maximumMana(8),
+            .damageDealt(.burn, 4),
+            .damageDealt(.freeze, 4),
+            .damageDealt(.holy, 4),
             .agility(8),
         ])
         try #expect(effects.astralChanceBonusPercent == 20)

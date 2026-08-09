@@ -20,7 +20,7 @@ struct LabyrinthCraftView: View {
             failureMessage: session.failureMessage,
             failureAccessibilityIdentifier: AccessibilityID.Play.labyrinthCraftFailure,
             onLeave: {
-                labyrinth.dismissActiveNodeSessionWithoutCompleting()
+                labyrinth.activeNodeSession = nil
                 dismiss()
             },
             facts: {

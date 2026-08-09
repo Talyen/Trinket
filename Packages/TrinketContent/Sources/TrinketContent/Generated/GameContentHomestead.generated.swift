@@ -11,7 +11,6 @@ enum GameContentHomesteadGenerated {
             title: "Wheat Field",
             summary: "A first field that turns quiet earth into dependable stores.",
             symbolName: "leaf.fill",
-            tintStyle: .orange,
             category: .farming,
             prerequisites: [],
             tiers: [
@@ -19,8 +18,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
-                        title: "Companion Health",
-                        description: "Increase Companion Health by 4\nProduces 1 Food per day"
+                        title: "Health",
+                        description: "Increase Health by 4\nProduces 1 Food per day"
                     ),
                     production: ResourceAmount(.food, 1)
                 ),
@@ -28,8 +27,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
-                        title: "Companion Health",
-                        description: "Increase Companion Health by 8\nProduces 2 Food per day"
+                        title: "Health",
+                        description: "Increase Health by 8\nProduces 2 Food per day"
                     ),
                     production: ResourceAmount(.food, 2)
                 ),
@@ -37,8 +36,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
-                        title: "Companion Health",
-                        description: "Increase Companion Health by 12\nProduces 3 Food per day"
+                        title: "Health",
+                        description: "Increase Health by 12\nProduces 3 Food per day"
                     ),
                     production: ResourceAmount(.food, 3)
                 ),
@@ -46,8 +45,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
-                        title: "Companion Health",
-                        description: "Increase Companion Health by 16\nProduces 4 Food per day"
+                        title: "Health",
+                        description: "Increase Health by 16\nProduces 4 Food per day"
                     ),
                     production: ResourceAmount(.food, 4)
                 )
@@ -58,7 +57,6 @@ enum GameContentHomesteadGenerated {
             title: "Herb Garden",
             summary: "A small medicinal garden for tonics, reagents, and green magic.",
             symbolName: "leaf.fill",
-            tintStyle: .green,
             category: .farming,
             prerequisites: [],
             tiers: [
@@ -66,8 +64,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 5), ResourceAmount(.herbs, 5)],
                     bonus: HomesteadBonus(
-                        title: "Health Restored",
-                        description: "Increase Health restored by 1\nProduces 1 Herbs per day"
+                        title: "Healing",
+                        description: "Increase Healing by 1\nProduces 1 Herbs per day"
                     ),
                     production: ResourceAmount(.herbs, 1)
                 ),
@@ -75,8 +73,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.herbs, 10)],
                     bonus: HomesteadBonus(
-                        title: "Health Restored",
-                        description: "Increase Health restored by 2\nProduces 2 Herbs per day"
+                        title: "Healing",
+                        description: "Increase Healing by 2\nProduces 2 Herbs per day"
                     ),
                     production: ResourceAmount(.herbs, 2)
                 ),
@@ -84,8 +82,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.herbs, 20)],
                     bonus: HomesteadBonus(
-                        title: "Health Restored",
-                        description: "Increase Health restored by 3\nProduces 3 Herbs per day"
+                        title: "Healing",
+                        description: "Increase Healing by 3\nProduces 3 Herbs per day"
                     ),
                     production: ResourceAmount(.herbs, 3)
                 ),
@@ -93,8 +91,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.herbs, 40)],
                     bonus: HomesteadBonus(
-                        title: "Health Restored",
-                        description: "Increase Health restored by 4\nProduces 4 Herbs per day"
+                        title: "Healing",
+                        description: "Increase Healing by 4\nProduces 4 Herbs per day"
                     ),
                     production: ResourceAmount(.herbs, 4)
                 )
@@ -105,7 +103,6 @@ enum GameContentHomesteadGenerated {
             title: "Chicken Coop",
             summary: "A lively coop that keeps simple supplies moving between runs.",
             symbolName: "bird.fill",
-            tintStyle: .yellow,
             category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
@@ -113,8 +110,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Hero Strength",
-                        description: "Increase Hero Strength by 2\nProduces 1 Food per day"
+                        title: "Strength",
+                        description: "Increase Strength by 2\nProduces 1 Food per day"
                     ),
                     production: ResourceAmount(.food, 1)
                 ),
@@ -122,8 +119,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Hero Strength",
-                        description: "Increase Hero Strength by 4\nProduces 2 Food per day"
+                        title: "Strength",
+                        description: "Increase Strength by 4\nProduces 2 Food per day"
                     ),
                     production: ResourceAmount(.food, 2)
                 ),
@@ -131,8 +128,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Hero Strength",
-                        description: "Increase Hero Strength by 6\nProduces 3 Food per day"
+                        title: "Strength",
+                        description: "Increase Strength by 6\nProduces 3 Food per day"
                     ),
                     production: ResourceAmount(.food, 3)
                 ),
@@ -140,8 +137,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Hero Strength",
-                        description: "Increase Hero Strength by 8\nProduces 4 Food per day"
+                        title: "Strength",
+                        description: "Increase Strength by 8\nProduces 4 Food per day"
                     ),
                     production: ResourceAmount(.food, 4)
                 )
@@ -152,7 +149,6 @@ enum GameContentHomesteadGenerated {
             title: "Pasture",
             summary: "Open grazing land for larger stores and slower, stronger support.",
             symbolName: "mountain.2.fill",
-            tintStyle: .mint,
             category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
@@ -160,8 +156,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 4), ResourceAmount(.food, 6)],
                     bonus: HomesteadBonus(
-                        title: "Companion Toughness",
-                        description: "Increase Companion Toughness by 2\nProduces 1 Food per day"
+                        title: "Toughness",
+                        description: "Increase Toughness by 2\nProduces 1 Food per day"
                     ),
                     production: ResourceAmount(.food, 1)
                 ),
@@ -169,8 +165,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.wood, 8), ResourceAmount(.food, 12)],
                     bonus: HomesteadBonus(
-                        title: "Companion Toughness",
-                        description: "Increase Companion Toughness by 4\nProduces 2 Food per day"
+                        title: "Toughness",
+                        description: "Increase Toughness by 4\nProduces 2 Food per day"
                     ),
                     production: ResourceAmount(.food, 2)
                 ),
@@ -178,8 +174,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 24)],
                     bonus: HomesteadBonus(
-                        title: "Companion Toughness",
-                        description: "Increase Companion Toughness by 6\nProduces 3 Food per day"
+                        title: "Toughness",
+                        description: "Increase Toughness by 6\nProduces 3 Food per day"
                     ),
                     production: ResourceAmount(.food, 3)
                 ),
@@ -187,8 +183,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.wood, 32), ResourceAmount(.food, 48)],
                     bonus: HomesteadBonus(
-                        title: "Companion Toughness",
-                        description: "Increase Companion Toughness by 8\nProduces 4 Food per day"
+                        title: "Toughness",
+                        description: "Increase Toughness by 8\nProduces 4 Food per day"
                     ),
                     production: ResourceAmount(.food, 4)
                 )
@@ -199,7 +195,6 @@ enum GameContentHomesteadGenerated {
             title: "Culinary Arts",
             summary: "A warm kitchen that turns the harvest into lasting strength.",
             symbolName: "frying.pan.fill",
-            tintStyle: .orange,
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.wheatField), HomesteadNodeRequirement(.herbGarden)],
             tiers: [
@@ -207,8 +202,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.food, 6), ResourceAmount(.herbs, 4)],
                     bonus: HomesteadBonus(
-                        title: "Hero Health",
-                        description: "Increase Hero Health by 4\nProduces 1 Food per day"
+                        title: "Burn Ward",
+                        description: "Reduce Burn damage taken by 10%\nProduces 1 Food per day"
                     ),
                     production: ResourceAmount(.food, 1)
                 ),
@@ -216,8 +211,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.food, 12), ResourceAmount(.herbs, 8)],
                     bonus: HomesteadBonus(
-                        title: "Hero Health",
-                        description: "Increase Hero Health by 8\nProduces 2 Food per day"
+                        title: "Burn Ward",
+                        description: "Reduce Burn damage taken by 20%\nProduces 2 Food per day"
                     ),
                     production: ResourceAmount(.food, 2)
                 ),
@@ -225,8 +220,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.food, 24), ResourceAmount(.herbs, 16)],
                     bonus: HomesteadBonus(
-                        title: "Hero Health",
-                        description: "Increase Hero Health by 12\nProduces 3 Food per day"
+                        title: "Burn Ward",
+                        description: "Reduce Burn damage taken by 30%\nProduces 3 Food per day"
                     ),
                     production: ResourceAmount(.food, 3)
                 ),
@@ -234,8 +229,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.food, 48), ResourceAmount(.herbs, 32)],
                     bonus: HomesteadBonus(
-                        title: "Hero Health",
-                        description: "Increase Hero Health by 16\nProduces 4 Food per day"
+                        title: "Burn Ward",
+                        description: "Reduce Burn damage taken by 40%\nProduces 4 Food per day"
                     ),
                     production: ResourceAmount(.food, 4)
                 )
@@ -246,7 +241,6 @@ enum GameContentHomesteadGenerated {
             title: "Blacksmith's Forge",
             summary: "A working forge for hardware, weapons, and stronger construction.",
             symbolName: "hammer.fill",
-            tintStyle: .orange,
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.pasture), HomesteadNodeRequirement(.culinaryArts)],
             tiers: [
@@ -255,7 +249,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 4), ResourceAmount(.iron, 6)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
-                        description: "Increase Hero Physical damage dealt by 1"
+                        description: "Increase Physical damage dealt by 1"
                     )
                 ),
                 HomesteadNodeTier(
@@ -263,7 +257,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 8), ResourceAmount(.iron, 12)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
-                        description: "Increase Hero Physical damage dealt by 2"
+                        description: "Increase Physical damage dealt by 2"
                     )
                 ),
                 HomesteadNodeTier(
@@ -271,7 +265,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 16), ResourceAmount(.iron, 24)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
-                        description: "Increase Hero Physical damage dealt by 3"
+                        description: "Increase Physical damage dealt by 3"
                     )
                 ),
                 HomesteadNodeTier(
@@ -279,7 +273,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 48)],
                     bonus: HomesteadBonus(
                         title: "Physical Damage",
-                        description: "Increase Hero Physical damage dealt by 4"
+                        description: "Increase Physical damage dealt by 4"
                     )
                 )
             ]
@@ -289,7 +283,6 @@ enum GameContentHomesteadGenerated {
             title: "Wool Tailoring",
             summary: "A loom shop that weaves padded wraps against winter chill.",
             symbolName: "scissors",
-            tintStyle: .yellow,
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge)],
             tiers: [
@@ -298,7 +291,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.wood, 3), ResourceAmount(.hide, 7)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
-                        description: "Reduce Freeze damage taken by 10%"
+                        description: "Reduces Freeze damage taken by 15%"
                     )
                 ),
                 HomesteadNodeTier(
@@ -306,7 +299,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.wood, 6), ResourceAmount(.hide, 14)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
-                        description: "Reduce Freeze damage taken by 20%"
+                        description: "Reduces Freeze damage taken by 30%"
                     )
                 ),
                 HomesteadNodeTier(
@@ -314,7 +307,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.hide, 28)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
-                        description: "Reduce Freeze damage taken by 30%"
+                        description: "Reduces Freeze damage taken by 40%"
                     )
                 ),
                 HomesteadNodeTier(
@@ -322,7 +315,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.hide, 56)],
                     bonus: HomesteadBonus(
                         title: "Freeze Ward",
-                        description: "Reduce Freeze damage taken by 40%"
+                        description: "Reduces Freeze damage taken by 50%"
                     )
                 )
             ]
@@ -332,7 +325,6 @@ enum GameContentHomesteadGenerated {
             title: "Alchemy Lab",
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
             symbolName: "testtube.2",
-            tintStyle: .mint,
             category: .alchemy,
             prerequisites: [HomesteadNodeRequirement(.herbGarden, tier: 2)],
             tiers: [
@@ -375,7 +367,6 @@ enum GameContentHomesteadGenerated {
             title: "Crystal Garden",
             summary: "A luminous garden where rare formations grow around quiet magic.",
             symbolName: "sparkles",
-            tintStyle: .cyan,
             category: .alchemy,
             prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
             tiers: [
@@ -383,8 +374,8 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.stone, 6), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
-                        title: "Hero Intellect",
-                        description: "Increase Hero Intellect by 2\nProduces 1 Crystal per day"
+                        title: "Mana",
+                        description: "Increase Mana by 2\nProduces 1 Crystal per day"
                     ),
                     production: ResourceAmount(.crystal, 1)
                 ),
@@ -392,8 +383,8 @@ enum GameContentHomesteadGenerated {
                     tier: 2,
                     cost: [ResourceAmount(.stone, 12), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
-                        title: "Hero Intellect",
-                        description: "Increase Hero Intellect by 4\nProduces 2 Crystal per day"
+                        title: "Mana",
+                        description: "Increase Mana by 4\nProduces 2 Crystal per day"
                     ),
                     production: ResourceAmount(.crystal, 2)
                 ),
@@ -401,8 +392,8 @@ enum GameContentHomesteadGenerated {
                     tier: 3,
                     cost: [ResourceAmount(.stone, 24), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
-                        title: "Hero Intellect",
-                        description: "Increase Hero Intellect by 6\nProduces 3 Crystal per day"
+                        title: "Mana",
+                        description: "Increase Mana by 6\nProduces 3 Crystal per day"
                     ),
                     production: ResourceAmount(.crystal, 3)
                 ),
@@ -410,8 +401,8 @@ enum GameContentHomesteadGenerated {
                     tier: 4,
                     cost: [ResourceAmount(.stone, 48), ResourceAmount(.crystal, 32)],
                     bonus: HomesteadBonus(
-                        title: "Hero Intellect",
-                        description: "Increase Hero Intellect by 8\nProduces 4 Crystal per day"
+                        title: "Mana",
+                        description: "Increase Mana by 8\nProduces 4 Crystal per day"
                     ),
                     production: ResourceAmount(.crystal, 4)
                 )
@@ -422,7 +413,6 @@ enum GameContentHomesteadGenerated {
             title: "Runesmith's Workshop",
             summary: "A careful workshop where metalwork and crystal study meet.",
             symbolName: "wand.and.sparkles",
-            tintStyle: .indigo,
             category: .crafting,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge, tier: 2), HomesteadNodeRequirement(.crystalGarden)],
             tiers: [
@@ -431,7 +421,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 2)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
-                        description: "Increase Hero Burn, Freeze, and Holy damage dealt by 1"
+                        description: "Increase Burn, Freeze, and Holy damage dealt by 1"
                     )
                 ),
                 HomesteadNodeTier(
@@ -439,7 +429,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.iron, 16), ResourceAmount(.crystal, 4)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
-                        description: "Increase Hero Burn, Freeze, and Holy damage dealt by 2"
+                        description: "Increase Burn, Freeze, and Holy damage dealt by 2"
                     )
                 ),
                 HomesteadNodeTier(
@@ -447,7 +437,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.iron, 32), ResourceAmount(.crystal, 8)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
-                        description: "Increase Hero Burn, Freeze, and Holy damage dealt by 3"
+                        description: "Increase Burn, Freeze, and Holy damage dealt by 3"
                     )
                 ),
                 HomesteadNodeTier(
@@ -455,7 +445,7 @@ enum GameContentHomesteadGenerated {
                     cost: [ResourceAmount(.iron, 64), ResourceAmount(.crystal, 16)],
                     bonus: HomesteadBonus(
                         title: "Elemental Etching",
-                        description: "Increase Hero Burn, Freeze, and Holy damage dealt by 4"
+                        description: "Increase Burn, Freeze, and Holy damage dealt by 4"
                     )
                 )
             ]
@@ -465,7 +455,6 @@ enum GameContentHomesteadGenerated {
             title: "Hunter's Lodge",
             summary: "A trail lodge for companion drills and field craft.",
             symbolName: "scope",
-            tintStyle: .orange,
             category: .training,
             prerequisites: [HomesteadNodeRequirement(.blacksmithForge), HomesteadNodeRequirement(.pasture)],
             tiers: [
@@ -512,7 +501,6 @@ enum GameContentHomesteadGenerated {
             title: "Agility Training",
             summary: "A practice yard that sharpens companion footwork and reflexes.",
             symbolName: "figure.run",
-            tintStyle: .yellow,
             category: .training,
             prerequisites: [HomesteadNodeRequirement(.hunterLodge)],
             tiers: [
@@ -555,7 +543,6 @@ enum GameContentHomesteadGenerated {
             title: "Moonlit Sanctum",
             summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
             symbolName: "sparkle.magnifyingglass",
-            tintStyle: .cyan,
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.crystalGarden)],
             tiers: [
@@ -598,7 +585,6 @@ enum GameContentHomesteadGenerated {
             title: "Wishing Well",
             summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
             symbolName: "drop.circle.fill",
-            tintStyle: .blue,
             category: .arcana,
             prerequisites: [HomesteadNodeRequirement(.runesmithWorkshop), HomesteadNodeRequirement(.moonlitSanctum), HomesteadNodeRequirement(.agilityTraining)],
             tiers: [

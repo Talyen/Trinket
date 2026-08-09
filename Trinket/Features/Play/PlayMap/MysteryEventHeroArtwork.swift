@@ -12,30 +12,25 @@ struct MysteryEventHeroArtwork: View {
 
     var body: some View {
         if let artID = event.artID, let art = ArtCatalog.encounterArtByID[artID] {
-            Image.preparedAsset(named: encounterImageName(art))
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
+            Image.preparedAsset(
+                art,
+                displaySize: preferThumbnail ? .compact : .full
+            )
+            .resizable()
+            .scaledToFill()
+            .decorativePreparedArtwork()
         } else if let artID = event.artID, let art = ArtCatalog.backgroundArtByID[artID] {
-            Image.preparedAsset(named: art.imageName)
+            Image.preparedAsset(art, displaySize: .full)
                 .resizable()
                 .scaledToFill()
                 .decorativePreparedArtwork()
         } else if let art = ArtCatalog.backgroundArtByID[chapterID] {
-            Image.preparedAsset(named: art.imageName)
+            Image.preparedAsset(art, displaySize: .full)
                 .resizable()
                 .scaledToFill()
                 .decorativePreparedArtwork()
         } else {
             TrinketDesign.Colors.encounterEvent
-        }
-    }
-
-    private func encounterImageName(_ art: EncounterArtReference) -> String {
-        if preferThumbnail {
-            art.thumbnailImageName ?? art.imageName
-        } else {
-            art.imageName
         }
     }
 }

@@ -405,6 +405,62 @@ class ReporterTests(unittest.TestCase):
             self.assertEqual(aggregate["category"], "test-failure")
             self.assertEqual(aggregate["issues"][0]["message"], "Expectation failed")
 
+    def test_ci_aggregator_distinguishes_watchdog_proof_from_partial_xcresult(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "partial.xcresult"
+            (bundle / "Data").mkdir(parents=True)
+            manifest_path = root / "watchdog-invocation.json"
+            manifest = {
+                "schema_version": 1,
+                "label": "smoke",
+                "exit_code": 0,
+                "status": "passed",
+                "result_bundle": str(bundle),
+                "diagnostics_json": "",
+                "completion_source": "watchdog-log-inference",
+                "test_execution_proven": True,
+                "result_bundle_complete": False,
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            aggregate_path = root / "ci-diagnostics.json"
+
+            accepted = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
+                    str(root),
+                    str(aggregate_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(accepted.returncode, 0, accepted.stderr)
+            aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
+            self.assertEqual(aggregate["category"], "passed")
+            self.assertEqual(aggregate["incomplete_result_invocations"], 1)
+            self.assertIn("watchdog log proof", aggregate["detail"])
+
+            manifest["completion_source"] = "process-exit"
+            manifest["test_execution_proven"] = False
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            rejected = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
+                    str(root),
+                    str(aggregate_path),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(rejected.returncode, 0, rejected.stderr)
+            aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
+            self.assertEqual(aggregate["category"], "unknown")
+            self.assertEqual(aggregate["failed_invocations"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -125,8 +125,4 @@ public final class EncounterPlayMode {
         clearActiveShopEncounter()
         return true
     }
-
-    public func dismissActiveShopEncounterWithoutCompleting() {
-        activeShopEncounter = nil
-    }
 }

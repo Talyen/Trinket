@@ -92,6 +92,13 @@ struct ArtCatalogIntegrationTests {
                 "Missing Homestead resource art for \(resource.rawValue)"
             )
         }
+
+        for node in GameContent.homesteadNodes {
+            _ = try #require(
+                ArtCatalog.backgroundArtByID[node.id.rawValue],
+                "Missing Homestead project art for \(node.id.rawValue)"
+            )
+        }
     }
 
     // swiftlint:enable function_body_length

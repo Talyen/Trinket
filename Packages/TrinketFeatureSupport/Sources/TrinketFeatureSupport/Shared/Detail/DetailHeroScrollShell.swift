@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import TrinketDesignSystem
 
@@ -11,7 +12,8 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
 
-    @State private var presentation = ScrollPresentation.initial
+    @State private var scrollPresentation = DetailScrollPresentationModel()
+    @State private var showsPinnedScrollEdgeEffect = false
 
     public init(
         title: String,
@@ -35,7 +37,10 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
-                    header(presentation.headerBaseHeight, presentation.heroOverscroll)
+                    DetailScrollPresentationHeader(
+                        presentation: scrollPresentation,
+                        header: header
+                    )
 
                     VStack(alignment: .leading, spacing: 0) {
                         bodyContent()
@@ -62,17 +67,16 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     titleOpacity: min(max((offsetY - threshold) / 32, 0), 1)
                 )
             } action: { _, newPresentation in
-                // Scroll geometry fires every frame; skip no-op writes so hero
-                // chrome does not invalidate when values are unchanged.
-                guard presentation != newPresentation else { return }
-                presentation = newPresentation
+                // Scroll geometry fires every frame; skip redundant observer publications.
+                guard scrollPresentation.value != newPresentation else { return }
+                scrollPresentation.value = newPresentation
+
+                let isPinned = newPresentation.titleOpacity >= 0.5
+                if showsPinnedScrollEdgeEffect != isPinned {
+                    showsPinnedScrollEdgeEffect = isPinned
+                }
             }
         }
-    }
-
-    /// Matches the inline title fade so edge blur arrives with pinned chrome, not over hero art.
-    private var showsPinnedScrollEdgeEffect: Bool {
-        presentation.titleOpacity >= 0.5
     }
 
     @ViewBuilder
@@ -95,27 +99,54 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                         }
                     }
                     ToolbarItem(placement: .principal) {
-                        Text(title)
-                            .trinketTypography(.navigation)
-                            .opacity(presentation.titleOpacity)
+                        DetailScrollNavigationTitle(
+                            title: title,
+                            presentation: scrollPresentation
+                        )
                     }
                     .sharedBackgroundVisibility(.hidden)
                 }
         }
     }
+}
 
-    private struct ScrollPresentation: Equatable {
-        static var initial: Self {
-            Self(
-                headerBaseHeight: HeroHeaderLayout.minimumHeaderHeight,
-                heroOverscroll: 0,
-                titleOpacity: 0
-            )
-        }
+private struct ScrollPresentation: Equatable {
+    static var initial: Self {
+        Self(
+            headerBaseHeight: HeroHeaderLayout.minimumHeaderHeight,
+            heroOverscroll: 0,
+            titleOpacity: 0
+        )
+    }
 
-        var headerBaseHeight: CGFloat
-        var heroOverscroll: CGFloat
-        var titleOpacity: CGFloat
+    var headerBaseHeight: CGFloat
+    var heroOverscroll: CGFloat
+    var titleOpacity: CGFloat
+}
+
+@MainActor
+@Observable
+private final class DetailScrollPresentationModel {
+    var value = ScrollPresentation.initial
+}
+
+private struct DetailScrollPresentationHeader<Header: View>: View {
+    let presentation: DetailScrollPresentationModel
+    @ViewBuilder let header: (_ baseHeight: CGFloat, _ overscroll: CGFloat) -> Header
+
+    var body: some View {
+        header(presentation.value.headerBaseHeight, presentation.value.heroOverscroll)
+    }
+}
+
+private struct DetailScrollNavigationTitle: View {
+    let title: String
+    let presentation: DetailScrollPresentationModel
+
+    var body: some View {
+        Text(title)
+            .trinketTypography(.navigation)
+            .opacity(presentation.value.titleOpacity)
     }
 }
 

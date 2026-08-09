@@ -11,7 +11,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
     let isPrimaryActionDisabled: (Item) -> Bool
     let onArtworkTap: (Item) -> Void
     let onPrimaryAction: (Item) -> Void
-    @ViewBuilder let artwork: (Item) -> Artwork
+    @ViewBuilder let artwork: (Item, _ isActive: Bool) -> Artwork
     @ViewBuilder let partyPickerSheet: (Item) -> PartyPickerSheet
 
     var body: some View {
@@ -22,7 +22,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
                     isPrimaryActionDisabled: isPrimaryActionDisabled(presentation.item),
                     onArtworkTap: { onArtworkTap(presentation.item) },
                     onPrimaryAction: { onPrimaryAction(presentation.item) },
-                    artwork: { artwork(presentation.item) },
+                    artwork: { artwork(presentation.item, presentation.isActive) },
                     partyPickerSheet: { partyPickerSheet(presentation.item) }
                 )
             }

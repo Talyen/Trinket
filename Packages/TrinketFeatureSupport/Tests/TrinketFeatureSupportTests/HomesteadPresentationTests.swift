@@ -189,6 +189,16 @@ struct HomesteadPresentationTests {
         #expect(third.after == .future)
         #expect(fourth.before == .future)
         #expect(fourth.after == nil)
+
+        let advanced = makeStatus(
+            definition: definition,
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 2])
+        )
+        let completed = advanced.tierPathConnectors(for: 1)
+        let frontier = advanced.tierPathConnectors(for: 2)
+        #expect(completed.before == .completed)
+        #expect(completed.after == .progressed)
+        #expect(frontier.before == .progressed)
     }
 
     private func makeStatus(

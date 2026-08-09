@@ -111,7 +111,7 @@ struct ChapterStageSelectView: View {
         ) {
             if let art = ArtCatalog.backgroundArtByID[chapter.id]
                 ?? ArtCatalog.backgroundArtByID["chapter-1"] {
-                Image.preparedAsset(named: art.imageName)
+                Image.preparedAsset(art, displaySize: .full)
                     .resizable()
                     .scaledToFill()
                     .decorativePreparedArtwork()
@@ -128,10 +128,11 @@ struct ChapterStageSelectView: View {
                         isPrimaryActionDisabled: { _ in false },
                         onArtworkTap: onEnemyTap,
                         onPrimaryAction: handlePrimaryAction,
-                        artwork: { stage in
+                        artwork: { stage, isActive in
                             EncounterArtwork(
                                 stage: stage,
-                                resolvedMysteryEvent: resolvedMysteryEvent(for: stage)
+                                resolvedMysteryEvent: resolvedMysteryEvent(for: stage),
+                                prefersThumbnail: !isActive
                             )
                         },
                         partyPickerSheet: { _ in

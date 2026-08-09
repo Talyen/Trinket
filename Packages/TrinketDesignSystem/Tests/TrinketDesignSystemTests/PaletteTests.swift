@@ -16,12 +16,9 @@ struct PaletteTests {
         try #expect(Keyword.health.visualStyle.color != .clear)
     }
 
-    @Test func homesteadResourceAndTintColorsResolve() throws {
+    @Test func homesteadResourceColorsResolve() throws {
         for resource in HomesteadResource.allCases {
             try #expect(resource.tint != .clear, "\(resource.rawValue) tint")
-        }
-        for tint in HomesteadTint.allCases {
-            try #expect(tint.color != .clear, "\(tint.rawValue) color")
         }
         try #expect(HomesteadPalette.background == ThemePalette.trinket.appBackground)
         try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)

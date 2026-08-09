@@ -6,6 +6,7 @@ struct VerticalPathRailTests {
     @Test func pathConnectorStyleHomesteadAccentUsesPalette() {
         let style = PathConnectorStyle.homesteadAccent
         #expect(style.progressedColor == HomesteadPalette.accent)
+        #expect(style.completedColor == HomesteadPalette.success)
         #expect(style.progressedWidth == 3)
         #expect(style.futureWidth == 2)
     }

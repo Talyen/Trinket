@@ -135,8 +135,8 @@ item	topaz_ring-basic	item_topaz_ring_basic	Raw Assets/Gear/Topaz Ring - Basic.j
 item	wand-astral	item_wand_astral	Raw Assets/Gear/Wand - Astral.jpeg	0.50	0.50
 item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50
-slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50
-slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50
+slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Trinket Slot.jpeg	0.50	0.50
+slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Weapon Slot.jpeg	0.50	0.50
 combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50
 combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpeg	0.50	0.50
 combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpeg	0.50	0.50

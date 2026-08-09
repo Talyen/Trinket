@@ -45,6 +45,27 @@ def result_bundle_exists(value: object) -> bool:
     return any(path.is_dir() for path in candidates)
 
 
+def result_bundle_complete(value: object) -> bool:
+    """A finalized xcresult has a root Info.plist; partial watchdog output does not."""
+    if not isinstance(value, str) or not value.strip():
+        return False
+
+    candidate = Path(value)
+    candidates = [candidate]
+    if not candidate.is_absolute():
+        candidates.extend((results_dir / candidate, Path.cwd() / candidate))
+    return any((path / "Info.plist").is_file() for path in candidates)
+
+
+def watchdog_log_proves_pass(manifest: dict, status: str, exit_code: int) -> bool:
+    return (
+        status == "passed"
+        and exit_code == 0
+        and manifest.get("completion_source") == "watchdog-log-inference"
+        and manifest.get("test_execution_proven") is True
+    )
+
+
 def normalized_issue(issue: object) -> dict:
     # Reporter issues have a fixed schema. Keep malformed values bounded so
     # an accidental producer change cannot make the aggregate unreadable.
@@ -135,12 +156,18 @@ def normalise_report(
             status = "failed" if exit_code != 0 else "unknown"
     result_bundle = manifest.get("result_bundle", payload.get("result_bundle", ""))
     has_result_bundle = result_bundle_exists(result_bundle)
+    has_complete_result_bundle = result_bundle_complete(result_bundle)
+    has_watchdog_proof = watchdog_log_proves_pass(manifest, status, exit_code)
     report_exists = path is not None and path.is_file()
-    manifest_passed = status == "passed" and exit_code == 0 and has_result_bundle
+    manifest_passed = (
+        status == "passed"
+        and exit_code == 0
+        and (has_complete_result_bundle or has_watchdog_proof)
+    )
     failed = (
         status != "passed"
         or exit_code != 0
-        or not has_result_bundle
+        or not (has_complete_result_bundle or has_watchdog_proof)
         or (not report_exists and not manifest_passed)
         or classification in KNOWN_CLASSIFICATIONS - {"unknown"}
     )
@@ -161,6 +188,9 @@ def normalise_report(
             "status": status,
             "result_bundle": str(result_bundle or ""),
             "result_bundle_exists": has_result_bundle,
+            "result_bundle_complete": has_complete_result_bundle,
+            "completion_source": str(manifest.get("completion_source", "")),
+            "test_execution_proven": manifest.get("test_execution_proven") is True,
             "failed": failed,
             "diagnostics_exists": report_exists,
             "diagnostic_path": str(path) if path else "",
@@ -206,7 +236,10 @@ def load_reports() -> tuple[list[dict], int, bool, int]:
             manifest_passed = (
                 str(manifest.get("status", "")).strip().lower() == "passed"
                 and as_exit_code(manifest.get("exit_code", 1)) == 0
-                and result_bundle_exists(manifest.get("result_bundle", ""))
+                and (
+                    result_bundle_complete(manifest.get("result_bundle", ""))
+                    or watchdog_log_proves_pass(manifest, "passed", 0)
+                )
             )
             if diagnostics_path and diagnostics_path.is_file():
                 payload, valid_report = read_json(diagnostics_path)
@@ -247,6 +280,9 @@ reports, parse_errors, manifests_present, missing_diagnostics_invocations = load
 recorded_invocations = len(reports)
 failed_reports = [report for report in reports if report["failed"]]
 missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"])
+incomplete_result_invocations = sum(
+    1 for report in reports if not report["result_bundle_complete"]
+)
 
 by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
 for report in reports:
@@ -270,9 +306,13 @@ else:
 
 if category == "passed":
     detail = (
-        f"All {recorded_invocations} recorded invocation(s) completed successfully "
-        "with result bundles."
+        f"All {recorded_invocations} recorded invocation(s) completed successfully."
     )
+    if incomplete_result_invocations:
+        detail += (
+            f" {incomplete_result_invocations} invocation(s) used watchdog log proof "
+            "because Xcode did not finalize the xcresult bundle."
+        )
 elif failed_reports:
     labels = ", ".join(report["label"] for report in failed_reports)
     detail = (
@@ -315,12 +355,14 @@ aggregate = {
     "recorded_invocations": recorded_invocations,
     "failed_invocations": len(failed_reports),
     "missing_result_invocations": missing_result_invocations,
+    "incomplete_result_invocations": incomplete_result_invocations,
     "missing_diagnostics_invocations": missing_diagnostics_invocations,
     "status_manifests_present": manifests_present,
     "counts": {
         "total": recorded_invocations,
         "failed": len(failed_reports),
         "missing_result": missing_result_invocations,
+        "incomplete_result": incomplete_result_invocations,
         "missing_diagnostics": missing_diagnostics_invocations,
         "by_classification": by_classification,
     },
@@ -343,6 +385,7 @@ if os.environ.get("GITHUB_STEP_SUMMARY"):
         summary.write(
             f"- **Invocations:** {recorded_invocations} recorded, "
             f"{len(failed_reports)} failed, {missing_result_invocations} missing xcresult, "
+            f"{incomplete_result_invocations} incomplete xcresult, "
             f"{missing_diagnostics_invocations} missing diagnostics\n"
         )
         if aggregate_issues:

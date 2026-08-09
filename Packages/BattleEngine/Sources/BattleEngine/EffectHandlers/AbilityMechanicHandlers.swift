@@ -89,7 +89,7 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
         )
         var events: [ActionEvent] = []
         if mode.spendsMana {
-            events = CombatReactionEngine.afterSpendMana(by: target, in: &context)
+            events = CombatTriggerEngine.afterSpendMana(by: target, in: &context)
         }
         events.append(context.nextEvent(
             kind: .effect,
@@ -151,7 +151,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         )
         var events = [event]
         if restored > 0 {
-            events.append(contentsOf: CombatReactionEngine.afterGainMana(by: target, in: &context))
+            events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: target, in: &context))
         }
         return EffectApplyOutcome(events: events, didApply: true)
     }

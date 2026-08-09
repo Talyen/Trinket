@@ -8,6 +8,7 @@ struct EncounterArtwork: View {
     let stage: Stage
     /// Seeded/pinned non-recruit mystery for unpinned journey stages.
     var resolvedMysteryEvent: MysteryEvent?
+    var prefersThumbnail = false
 
     @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
 
@@ -22,19 +23,29 @@ struct EncounterArtwork: View {
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference {
-                Image.preparedAsset(named: combatantArt.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .decorativePreparedArtwork()
+                Image.preparedAsset(
+                    combatantArt,
+                    displaySize: prefersThumbnail ? .compact : .full
+                )
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
 
             } else if let event = nonRecruitMysteryEvent {
-                MysteryEventHeroArtwork(event: event, chapterID: stage.chapterID)
+                MysteryEventHeroArtwork(
+                    event: event,
+                    chapterID: stage.chapterID,
+                    preferThumbnail: prefersThumbnail
+                )
 
             } else if let art = stage.encounterArtReference {
-                Image.preparedAsset(named: art.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .decorativePreparedArtwork()
+                Image.preparedAsset(
+                    art,
+                    displaySize: prefersThumbnail ? .compact : .full
+                )
+                .resizable()
+                .scaledToFill()
+                .decorativePreparedArtwork()
 
             } else {
                 stage.encounter.mapTint.opacity(0.14)

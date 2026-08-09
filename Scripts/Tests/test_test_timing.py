@@ -153,6 +153,26 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn("exactly one of --xcresult or --no-xcresult", mutually_exclusive.stderr)
             self.assertNotIn("Traceback", mutually_exclusive.stderr)
 
+    def test_incomplete_xcresult_fails_without_traceback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            results_dir = Path(directory)
+            partial = results_dir / "partial.xcresult"
+            (partial / "Data").mkdir(parents=True)
+
+            record = self.run_script(
+                results_dir,
+                "record",
+                "--mode",
+                "smoke",
+                "--wall",
+                "5",
+                "--xcresult",
+                str(partial),
+            )
+            self.assertNotEqual(record.returncode, 0)
+            self.assertIn("xcresult is incomplete", record.stderr)
+            self.assertNotIn("Traceback", record.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

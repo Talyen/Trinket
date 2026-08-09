@@ -105,14 +105,15 @@ public struct HomesteadProjectStatus {
         return PathConnectorState.pair(
             at: tierIndex,
             count: definition.tiers.count,
-            isFuture: { isFuturePathState(states[$0]) }
+            state: { connectorState(for: states[$0]) }
         )
     }
 
-    private func isFuturePathState(_ state: HomesteadTierPathState) -> Bool {
+    private func connectorState(for state: HomesteadTierPathState) -> PathConnectorState {
         switch state {
-        case .future, .locked: true
-        case .completed, .next: false
+        case .completed: .completed
+        case .next: .progressed
+        case .future, .locked: .future
         }
     }
 
@@ -161,9 +162,9 @@ public struct HomesteadProjectStatus {
     public var statusColor: Color {
         switch rowState {
         case .prerequisiteLocked: .secondary
-        case let .unbuilt(affordable): affordable ? definition.tint : .secondary
+        case let .unbuilt(affordable): affordable ? TrinketDesign.Colors.accent : .secondary
         case .built: .secondary
-        case .upgradeReady: definition.tint
+        case .upgradeReady: TrinketDesign.Colors.accent
         case .completed: TrinketDesign.Colors.success
         }
     }

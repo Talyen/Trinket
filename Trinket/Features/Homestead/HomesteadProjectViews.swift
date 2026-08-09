@@ -48,7 +48,7 @@ struct HomesteadProjectRow: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .center, spacing: HomesteadProjectRowMetrics.artworkTextSpacing) {
+        HStack(alignment: .center, spacing: 0) {
             HomesteadBuildingArtwork(definition: definition, variant: .thumbnail)
                 .frame(
                     width: HomesteadProjectRowMetrics.artworkWidth,
@@ -56,6 +56,7 @@ struct HomesteadProjectRow: View {
                 )
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
+                .padding(.trailing, HomesteadProjectRowMetrics.artworkTextSpacing)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.tightSpacing) {
                 Text(definition.title)
@@ -67,16 +68,15 @@ struct HomesteadProjectRow: View {
                     .trinketTypography(.caption)
                     .foregroundStyle(isLocked ? .tertiary : .secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .lineLimit(2)
             }
-
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if showsNavigationChevron {
                 Image(systemName: "chevron.right")
                     .trinketTypography(.footnote)
                     .foregroundStyle(status.statusColor)
                     .symbolRenderingMode(.hierarchical)
+                    .padding(.leading, TrinketDesign.Metrics.tightSpacing)
             } else {
                 Image(systemName: status.statusSymbolName)
                     .trinketTypography(.button)
@@ -88,6 +88,7 @@ struct HomesteadProjectRow: View {
                         isActive: status.canBuildOrUpgrade
                     )
                     .frame(width: 22, height: 22)
+                    .padding(.leading, TrinketDesign.Metrics.tightSpacing)
             }
         }
         .padding(.vertical, TrinketDesign.Metrics.denseSpacing)

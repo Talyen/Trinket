@@ -26,9 +26,6 @@ RANDOM_COMPANION_RECRUIT_ID = "random-companion"
 VALID_HOMESTEAD_RESOURCES = frozenset(
     {"wood", "stone", "iron", "food", "herbs", "hide", "crystal", "gold"}
 )
-VALID_HOMESTEAD_TINTS = frozenset(
-    {"orange", "green", "yellow", "mint", "cyan", "indigo", "blue"}
-)
 VALID_HOMESTEAD_CATEGORIES = frozenset(
     {"farming", "crafting", "alchemy", "training", "arcana"}
 )
@@ -162,7 +159,6 @@ class HomesteadNodeRow:
     title: str
     summary: str
     symbol_name: str
-    tint: str
     category: str
     prerequisites: str
     tier: str
@@ -313,7 +309,6 @@ def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
         "title",
         "summary",
         "symbol_name",
-        "tint",
         "category",
         "prerequisites",
         "tier",
@@ -1321,7 +1316,6 @@ def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
             title: "{swift_escape(meta.title)}",
             summary: "{swift_escape(meta.summary)}",
             symbolName: "{swift_escape(meta.symbol_name)}",
-            tintStyle: .{meta.tint},
             category: .{meta.category},
             prerequisites: {parse_homestead_prerequisites(meta.prerequisites)},
             tiers: [
@@ -1381,8 +1375,6 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         row_id = f"{row.node_id}-tier-{row.tier}"
         if row.node_id not in VALID_HOMESTEAD_NODE_IDS:
             raise ValueError(f"Unknown homestead node id '{row.node_id}'")
-        if row.tint not in VALID_HOMESTEAD_TINTS:
-            raise ValueError(f"Unknown homestead tint '{row.tint}' for {row_id}")
         if row.category not in VALID_HOMESTEAD_CATEGORIES:
             raise ValueError(f"Unknown homestead category '{row.category}' for {row_id}")
         if not row.tier.isdigit():
@@ -1421,14 +1413,12 @@ def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
         titles = {row.title for row in node_rows}
         summaries = {row.summary for row in node_rows}
         symbols = {row.symbol_name for row in node_rows}
-        tints = {row.tint for row in node_rows}
         categories = {row.category for row in node_rows}
         prerequisite_sets = {row.prerequisites for row in node_rows}
         if (
             len(titles) != 1
             or len(summaries) != 1
             or len(symbols) != 1
-            or len(tints) != 1
             or len(categories) != 1
             or len(prerequisite_sets) != 1
         ):

@@ -144,10 +144,6 @@ public final class LabyrinthPlayMode {
         return true
     }
 
-    public func dismissActiveNodeSessionWithoutCompleting() {
-        activeNodeSession = nil
-    }
-
     @discardableResult
     public func forgeActiveCraft() -> Bool {
         guard let sessionNode = activeNodeSession, sessionNode.kind == .craft else { return false }

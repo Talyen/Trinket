@@ -41,6 +41,13 @@ SYSTEM_COLORS = (
 
 # Ordered: first matching pattern wins (matches legacy bash case order).
 PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    (
+        "catalog artwork without explicit display size",
+        re.compile(
+            r"(?:Image\.preparedAsset\(\s*named:|^\s*named:)\s*"
+            r"[A-Za-z_][A-Za-z0-9_]*\.(?:imageName|thumbnailImageName)"
+        ),
+    ),
     ("direct accentColor modifier", re.compile(r"\.accentColor\(")),
     ("raw glass button style", re.compile(r"\.buttonStyle\(\.glass(Prominent)?")),
     ("raw glass effect", re.compile(r"\.glassEffect\(")),
@@ -96,6 +103,7 @@ RG_PATTERN = (
     r"\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|"
     r"cyan|gray|grey|accentColor)\.opacity\(|"
     r'Color\s*\(\s*"[^"]+"|'
+    r"Image\.preparedAsset\(\s*named:|^\s*named:\s*[A-Za-z_][A-Za-z0-9_]*\.|"
     r"\.frame\((width|height|minWidth|minHeight):"
 )
 
@@ -126,6 +134,7 @@ def candidate_hits(scan_paths: list[str]) -> dict[Path, set[int]] | None:
         "rg",
         "-n",
         "--no-heading",
+        "--with-filename",
         "-g",
         "*.swift",
         RG_PATTERN,
@@ -232,10 +241,16 @@ def scan_file(path: Path) -> list[str]:
         if pattern and not is_allowed(
             rel, line, previous_line, previous_context, pattern
         ):
-            violations.append(
-                f"{rel}:{line_number}: {pattern} should route through "
-                "TrinketDesign semantic roles or include UIStyleCheck: allow"
-            )
+            if pattern == "catalog artwork without explicit display size":
+                guidance = (
+                    "should use Image.preparedAsset(reference, displaySize: .compact/.full)"
+                )
+            else:
+                guidance = (
+                    "should route through TrinketDesign semantic roles or include "
+                    "UIStyleCheck: allow"
+                )
+            violations.append(f"{rel}:{line_number}: {pattern} {guidance}")
 
         if BUTTON_RE.search(line):
             recent_button_window = 24
@@ -296,7 +311,7 @@ def main(argv: list[str]) -> int:
     # else: rg ran cleanly with zero candidates — pass without a full read.
 
     if violations:
-        print("UI style guardrail found ad hoc native styling:")
+        print("UI style guardrail found styling or artwork-sizing violations:")
         for violation in violations:
             print(f"  {violation}")
         if os.environ.get("GITHUB_ACTIONS") == "true":

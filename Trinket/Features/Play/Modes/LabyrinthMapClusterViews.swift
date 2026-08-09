@@ -446,10 +446,13 @@ private struct LabyrinthNodeArtwork: View {
             )
         } else if let artID = LabyrinthMapPresentation.destinationEncounterArtID(for: type),
                   let art = ArtCatalog.encounterArtByID[artID] {
-            Image.preparedAsset(named: encounterImageName(art))
-                .resizable()
-                .scaledToFill()
-                .decorativePreparedArtwork()
+            Image.preparedAsset(
+                art,
+                displaySize: prefersThumbnail ? .compact : .full
+            )
+            .resizable()
+            .scaledToFill()
+            .decorativePreparedArtwork()
         } else {
             ZStack {
                 LabyrinthMapPresentation.tint(for: type).opacity(0.16)
@@ -458,14 +461,6 @@ private struct LabyrinthNodeArtwork: View {
                     .foregroundStyle(LabyrinthMapPresentation.tint(for: type))
                     .symbolRenderingMode(.hierarchical)
             }
-        }
-    }
-
-    private func encounterImageName(_ art: EncounterArtReference) -> String {
-        if prefersThumbnail {
-            art.thumbnailImageName ?? art.imageName
-        } else {
-            art.imageName
         }
     }
 }

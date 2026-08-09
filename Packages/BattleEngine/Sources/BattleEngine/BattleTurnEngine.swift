@@ -148,7 +148,7 @@ public enum BattleTurnEngine {
         guard cost > 0 else { return [] }
         let spent = context.spendMana(cost, for: actor)
         guard spent > 0 else { return [] }
-        return CombatReactionEngine.afterSpendMana(by: actor, in: &context)
+        return CombatTriggerEngine.afterSpendMana(by: actor, in: &context)
     }
 }
 

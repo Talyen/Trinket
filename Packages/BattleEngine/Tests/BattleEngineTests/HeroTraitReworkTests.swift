@@ -115,7 +115,7 @@ struct HeroTraitReworkTests {
                 seed: seed
             )
             let beforeHP = context.roster.health(for: enemy)
-            _ = CombatReactionEngine.afterSpendMana(by: build.combatant, in: &context)
+            _ = CombatTriggerEngine.afterSpendMana(by: build.combatant, in: &context)
             let effects = context.roster.activeEffects(for: enemy)
             let hasBurn = effects.contains { active in
                 if case .burn = active.effect {

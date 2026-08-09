@@ -49,12 +49,12 @@ package enum HealingEngine {
            let sourceActorID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceActorID)?.combatant,
            restored > 0 {
-            events.append(contentsOf: TraitReactionEngine.healHeroAfterRestore(
+            events.append(contentsOf: CombatTriggerEngine.healHeroAfterRestore(
                 source: source,
                 hero: context.roster.hero.combatant,
                 in: &context
             ).events)
-            events.append(contentsOf: TraitReactionEngine.cleanseAfterHeal(
+            events.append(contentsOf: CombatTriggerEngine.cleanseAfterHeal(
                 source: source,
                 target: request.target,
                 in: &context
@@ -124,12 +124,12 @@ package enum HealingEngine {
             isCritical: healOutcome.isCritical
         )]
         if actorCombatant.id == context.roster.hero.id {
-            events.append(contentsOf: CombatReactionEngine.shareHeroLeechWithCompanion(
+            events.append(contentsOf: CombatTriggerEngine.shareHeroLeechWithCompanion(
                 restored: healOutcome.healthRestored,
                 in: &context
             ))
         }
-        events.append(contentsOf: CombatReactionEngine.afterLeech(by: actorCombatant, in: &context))
+        events.append(contentsOf: CombatTriggerEngine.afterLeech(by: actorCombatant, in: &context))
         var flags = healOutcome.flags
         flags.insert(.leeched)
         return CombatOutcome(healthDelta: healOutcome.healthRestored, events: events, flags: flags)

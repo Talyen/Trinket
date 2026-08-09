@@ -60,7 +60,7 @@ package extension BattleState {
         if roster.isEnemyDefeated, !hasLoggedDefeat {
             hasLoggedDefeat = true
             milestones.append(appendMilestone(.enemyDefeated, matchup: matchup))
-            milestones.append(contentsOf: CombatReactionEngine.afterEnemyDefeated(in: &self))
+            milestones.append(contentsOf: CombatTriggerEngine.afterEnemyDefeated(in: &self))
         }
         if roster.isPartyDefeated, !hasLoggedPartyDefeat {
             hasLoggedPartyDefeat = true
