@@ -150,6 +150,85 @@ struct ItemCorruptionTests {
         #expect(title == nil)
         #expect(powers == original)
     }
+
+    @Test func bumpModifierUpAndDownUpdatesBothPowerAndDescription() {
+        var powers = [
+            ItemAffixPower(description: "Gain 5 Strength.", modifiers: [.strength(5)]),
+            ItemAffixPower(description: "Gain 10% more Gold.", modifiers: [.goldGainedPercent(0.10)]),
+        ]
+        var rng = SeededRandomNumberGenerator(seed: 12)
+
+        let titleUp = AffixPowerBump.apply(
+            direction: .up,
+            to: &powers,
+            affixIDs: ["strength", "gold"],
+            using: &rng
+        )
+        #expect(titleUp != nil)
+
+        let titleDown = AffixPowerBump.apply(
+            direction: .down,
+            to: &powers,
+            affixIDs: ["strength", "gold"],
+            using: &rng
+        )
+        #expect(titleDown != nil)
+    }
+
+    @Test func bumpDoesNotReplacePercentageTokenWhenIntegerMatches() {
+        var powers = [
+            ItemAffixPower(
+                description: "Gain 20 Strength when below 20% Health.",
+                modifiers: [.strength(20)]
+            ),
+        ]
+        var rng = SeededRandomNumberGenerator(seed: 0)
+
+        let title = AffixPowerBump.apply(
+            direction: .up,
+            to: &powers,
+            affixIDs: ["strength"],
+            using: &rng
+        )
+
+        #expect(title != nil)
+        #expect(powers[0].modifiers == [.strength(21)])
+        #expect(powers[0].description == "Gain 21 Strength when below 20% Health.")
+    }
+
+    @Test func bumpTriggerTargetIncrementsAndUpdatesDescription() {
+        var powers = [
+            ItemAffixPower(
+                description: "Apply 2 Poison when target Bleeds.",
+                modifiers: [],
+                triggers: CombatTraitTriggers(onBleedApplyPoison: 2)
+            ),
+        ]
+        var rng = SeededRandomNumberGenerator(seed: 0)
+
+        let title = AffixPowerBump.apply(
+            direction: .up,
+            to: &powers,
+            affixIDs: ["bleed_poison"],
+            using: &rng
+        )
+
+        #expect(title == "bleed_poison")
+        #expect(powers[0].triggers.onBleedApplyPoison == 3)
+        #expect(powers[0].description == "Apply 3 Poison when target Bleeds.")
+    }
+
+    @Test func rewriteStandaloneNumberIgnoresEmbeddedDigitsAndPercentages() {
+        let text = "Gain 5 Strength for 50 seconds when below 5% Health."
+        let updated = AffixPowerBump.rewriteStandaloneNumber(text, from: 5, to: 6)
+        #expect(updated == "Gain 6 Strength for 50 seconds when below 5% Health.")
+    }
+
+    @Test func rewritePercentIgnoresEmbeddedDigits() {
+        let text = "Gain 25% Poison damage when below 5% Health."
+        let updated = AffixPowerBump.rewritePercent(text, from: 0.05, to: 0.06)
+        #expect(updated == "Gain 25% Poison damage when below 6% Health.")
+    }
 }
 
 private func makeItem(

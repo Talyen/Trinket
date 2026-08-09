@@ -79,11 +79,9 @@ public enum SpireCompletion {
     /// Generates a Spire floor item (same seed path as `resolveLoot`).
     public static func makeSpireFloorItem(
         for floor: SpireFloor,
-        astralChanceBonusPercent: Int = 0,
-        using randomNumberGenerator: inout some RandomNumberGenerator
-    ) -> InventoryItem? {
-        _ = randomNumberGenerator
-        return resolveLoot(
+        astralChanceBonusPercent: Int = 0
+    ) -> InventoryItem {
+        resolveLoot(
             for: floor,
             astralChanceBonusPercent: astralChanceBonusPercent
         ).item

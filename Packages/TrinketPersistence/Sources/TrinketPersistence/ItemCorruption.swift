@@ -141,7 +141,7 @@ public enum ItemCorruption {
         }
 
         var powers: [ItemAffixPower] = affixIDs.compactMap { id in
-            GameContent.itemAffixDefinition(matching: id)?.power(for: rarity).copyForMutation()
+            GameContent.itemAffixDefinition(matching: id)?.power(for: rarity)
         }
         applyBumpEffects(
             kinds: kinds,
