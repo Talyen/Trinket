@@ -47,7 +47,7 @@ Mirror the Nightly open-or-update pattern (label + single sticky issue). GitHub 
 
 1. Derive a stable **fingerprint** from failing job names + primary error signature (file + message class), e.g. `ci-fail-build` + `actool AppIcon.icon`.
 2. Search open issues with label `ci-autofix-failed` whose title/body match that fingerprint.
-3. **If found:** comment with the new Actions run URL, commit SHA, and any new notes — then **stop**.
+3. **If found:** you **MUST** post a new comment with `gh issue comment <n> --body "..."` containing the new Actions run URL, commit SHA, and any new notes — then **stop**. Silent stop without that comment is a failure.
 4. **If not found:** create one issue with `gh issue create --label ci-autofix-failed` (always attach that label on create), including run URL, SHA, failing jobs, why it is Tier B, and suggested human/agent follow-up. If an unlabeled duplicate already exists for the same fingerprint, label/reuse it instead of opening another.
 
 Do not open a new issue per SHA for the same fingerprint. Do not stop after pushing a `cursor/ci-fix-*` branch with no PR.
@@ -63,7 +63,7 @@ When CI fails on main:
 1. Read the failing run logs and classify Tier A vs Tier B using Docs/CI-FIXER.md (checked in).
 2. Tier A: branch from the failing main SHA, apply the minimal fix, open a squash PR (required — do not leave a branch-only fix), enable auto-merge only (`gh pr merge --auto --squash`). Never --admin or force-merge. Wait for required check "tests / CI OK".
 3. Tier A includes SwiftFormat/SwiftLint, XcodeGen/generated drift, asset codegen, toolchain pins in Scripts/tool-versions.env, and tooling-only timeouts (never skip tests).
-4. Tier B: do not open a fix PR. Deduplicate: search open issues with label ci-autofix-failed matching the failure fingerprint; if one exists, comment the new run URL and stop; else create one issue with `gh issue create --label ci-autofix-failed` (always attach that label on create). If you find an unlabeled duplicate for the same fingerprint, label/reuse it instead of opening another. Issues are enabled on this repo.
+4. Tier B: do not open a fix PR. Deduplicate: search open issues with label ci-autofix-failed matching the failure fingerprint; if one exists, you MUST post a new comment with `gh issue comment <n> --body "..."` containing the new Actions run URL and SHA, then stop (silent stop without that comment is a failure); else create one issue with `gh issue create --label ci-autofix-failed` (always attach that label on create). If you find an unlabeled duplicate for the same fingerprint, label/reuse it instead of opening another. Issues are enabled on this repo.
 5. Never skip tests, weaken assertions, or change game/save/battle logic to greenwash.
 6. PR body: summary, verification commands (e.g. ./Scripts/test.sh style, path-scoped handoff), link to the failing Actions run. Mention Tier A auto-merge when applicable.
 7. If both Tier A and Tier B fail on the same run: land the Tier A PR for the mechanical part and escalate the Tier B fingerprint separately (deduped).
