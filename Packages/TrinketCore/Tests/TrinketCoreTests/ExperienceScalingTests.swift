@@ -57,6 +57,28 @@ struct ExperienceScalingTests {
         )
     }
 
+    @Test func equalBattleAwardMatchesEqualLevelCatchUpAward() throws {
+        let award = ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18)
+        try #expect(
+            award == ExperienceScaling.battleAwardWithCatchUp(
+                playerLevel: 12,
+                enemyLevel: 12,
+                highestLevel: 18
+            )
+        )
+    }
+
+    @Test func cappedAwardClipsAtThreeTimesRequiredXP() throws {
+        let progression = CombatantProgression.at(level: 1)
+        let ceiling = progression.requiredXP * ExperienceScaling.maxGrantLevelsEquivalent
+        try #expect(ceiling == 300)
+        try #expect(ExperienceScaling.cappedAward(50, for: progression) == 50)
+        try #expect(ExperienceScaling.cappedAward(300, for: progression) == 300)
+        try #expect(ExperienceScaling.cappedAward(10000, for: progression) == 300)
+        try #expect(ExperienceScaling.cappedAward(0, for: progression) == 0)
+        try #expect(ExperienceScaling.cappedAward(-5, for: progression) == 0)
+    }
+
     // MARK: - Catch-up multiplier
 
     @Test func catchUpMultiplierCoversBaselineGrowthAndCaps() throws {

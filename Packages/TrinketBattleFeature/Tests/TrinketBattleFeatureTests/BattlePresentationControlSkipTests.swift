@@ -95,4 +95,47 @@ struct BattlePresentationControlSkipTests {
         #expect(snapshot.ownerControlSkipKeywords[.hero] == .stun)
         #expect(snapshot.hero.borderAccentKeyword == .stun)
     }
+
+    @Test func projectsShadowstepBuffAuraForEitherFlag() {
+        let doubleOnly = BattleState(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0),
+            ],
+            dealOpeningHand: false
+        )
+        let evadeOnly = BattleState(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            activeCompanionEffects: [
+                ActiveEffect(id: 2, effect: .evadeNextHit, remainingTurns: 0),
+            ],
+            dealOpeningHand: false
+        )
+        let doubleSnapshot = BattlePresentationSnapshot(configurationID: UUID(), state: doubleOnly)
+        let evadeSnapshot = BattlePresentationSnapshot(configurationID: UUID(), state: evadeOnly)
+
+        #expect(doubleSnapshot.hero.buffAuraKind == .shadowstep)
+        #expect(doubleSnapshot.companion.buffAuraKind == nil)
+        #expect(evadeSnapshot.companion.buffAuraKind == .shadowstep)
+        #expect(evadeSnapshot.hero.buffAuraKind == nil)
+    }
+
+    @Test func shadowstepAuraCoexistsWithDeathsDoorBorderAccent() {
+        let state = BattleState(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .evadeNextHit, remainingTurns: 0),
+                ActiveEffect(id: 3, effect: .deathsDoor, remainingTurns: 4),
+            ],
+            dealOpeningHand: false
+        )
+        let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
+
+        #expect(snapshot.hero.borderAccentKeyword == .deathsDoor)
+        #expect(snapshot.hero.buffAuraKind == .shadowstep)
+    }
 }

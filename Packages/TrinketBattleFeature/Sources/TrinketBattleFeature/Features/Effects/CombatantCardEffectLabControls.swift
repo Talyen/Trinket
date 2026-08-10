@@ -24,14 +24,26 @@ struct CombatantCardEffectLabControls: View {
         category == .death
     }
 
+    private var isShadowstepCategory: Bool {
+        category == .shadowstep
+    }
+
+    private var isStatusCategory: Bool {
+        category == .stunned || category == .frozen
+    }
+
     var body: some View {
         Form {
             subjectSection
             categorySection
             playbackSection
-            sharedParametersSection
-            variantParametersSection
-            presetsSection
+            if !isShadowstepCategory {
+                sharedParametersSection
+                variantParametersSection
+            }
+            if isStatusCategory || isDeathCategory {
+                presetsSection
+            }
         }
     }
 
@@ -77,12 +89,15 @@ struct CombatantCardEffectLabControls: View {
                         Text(kind.title).tag(kind)
                     }
                 }
-            } else {
+            } else if isStatusCategory {
                 Picker("Variant", selection: $statusKind) {
                     ForEach(CombatantStatusEffectKind.kinds(for: category)) { kind in
                         Text(kind.title).tag(kind)
                     }
                 }
+            } else if isShadowstepCategory {
+                Text("Shimmer Border")
+                    .foregroundStyle(.secondary)
             }
         }
     }

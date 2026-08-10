@@ -2,7 +2,7 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-public struct ItemCard: View {
+public struct ItemCard<Art: View>: View {
     let item: InventoryItem
     var showsAffixCount: Bool
     var showsName: Bool = true
@@ -10,6 +10,11 @@ public struct ItemCard: View {
     /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
     var appliesCardSurface: Bool = true
     var isSelected = false
+    /// Fades the label out over the battle dissolve window (salvage removal).
+    var fadesLabel = false
+    @ViewBuilder private var art: () -> Art
+
+    @State private var labelOpacity = 1.0
 
     public init(
         item: InventoryItem,
@@ -17,7 +22,9 @@ public struct ItemCard: View {
         showsName: Bool = true,
         reservesLabelSpace: Bool = true,
         appliesCardSurface: Bool = true,
-        isSelected: Bool = false
+        isSelected: Bool = false,
+        fadesLabel: Bool = false,
+        @ViewBuilder art: @escaping () -> Art
     ) {
         self.item = item
         self.showsAffixCount = showsAffixCount
@@ -25,6 +32,8 @@ public struct ItemCard: View {
         self.reservesLabelSpace = reservesLabelSpace
         self.appliesCardSurface = appliesCardSurface
         self.isSelected = isSelected
+        self.fadesLabel = fadesLabel
+        self.art = art
     }
 
     public var body: some View {
@@ -33,9 +42,7 @@ public struct ItemCard: View {
             appliesCardSurface: appliesCardSurface,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
-            art: {
-                ItemArtwork(item: item, variant: .thumbnail)
-            },
+            art: art,
             label: {
                 VStack(spacing: TrinketDesign.Metrics.tightSpacing) {
                     HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
@@ -62,8 +69,39 @@ public struct ItemCard: View {
                             .lineLimit(1)
                     }
                 }
+                .opacity(labelOpacity)
             }
         )
+        .onAppear {
+            guard fadesLabel else { return }
+            withAnimation(.easeOut(duration: TrinketMotion.Battle.cardActivationDuration)) {
+                labelOpacity = 0
+            }
+        }
+    }
+}
+
+public extension ItemCard where Art == ItemArtwork {
+    init(
+        item: InventoryItem,
+        showsAffixCount: Bool,
+        showsName: Bool = true,
+        reservesLabelSpace: Bool = true,
+        appliesCardSurface: Bool = true,
+        isSelected: Bool = false,
+        fadesLabel: Bool = false
+    ) {
+        self.init(
+            item: item,
+            showsAffixCount: showsAffixCount,
+            showsName: showsName,
+            reservesLabelSpace: reservesLabelSpace,
+            appliesCardSurface: appliesCardSurface,
+            isSelected: isSelected,
+            fadesLabel: fadesLabel
+        ) {
+            ItemArtwork(item: item, variant: .thumbnail)
+        }
     }
 }
 

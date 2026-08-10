@@ -443,39 +443,4 @@ extension CombatFeedbackPresenterTests {
         #expect(blockDown.leadingSymbolName == "arrowshape.down.fill")
         #expect(blockDown.trailingSymbolName == "shield.fill")
     }
-
-    @Test func avatarOfJusticeConsolidatesItsEffectChips() {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(
-                    id: 10,
-                    kind: .effect,
-                    effectKind: .shieldApplied,
-                    amount: 5,
-                    keyword: .block,
-                    actionID: 99,
-                    abilityID: "avatar-of-justice",
-                    abilityName: "Avatar"
-                ),
-                makeEvent(
-                    id: 12,
-                    kind: .effect,
-                    effectKind: .damageKeywordOverrideApplied,
-                    amount: 3,
-                    keyword: .holy,
-                    actionID: 99,
-                    abilityID: "avatar-of-justice",
-                    abilityName: "Avatar"
-                ),
-            ],
-            at: .now
-        )
-
-        #expect(items.count == 1)
-        #expect(items[0].label == .word(.status(.avatarOfJustice)))
-        #expect(items[0].visualRole == .beneficialStatus)
-        #expect(items[0].chipPresentation.leadingSymbolName == "arrowshape.up.fill")
-        #expect(items[0].chipPresentation.trailingSymbolName == "sun.max.fill")
-        #expect(items[0].sourceEventIDs == [10, 12])
-    }
 }

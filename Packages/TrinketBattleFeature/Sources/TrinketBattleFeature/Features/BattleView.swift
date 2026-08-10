@@ -378,7 +378,6 @@ private struct BattleCinematicLane: View {
                 }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.opacity)
         }
     }
 }

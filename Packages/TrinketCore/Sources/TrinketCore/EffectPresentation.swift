@@ -83,7 +83,7 @@ public enum EffectPresentation {
             "Focused"
         case .restoreManaOnHit:
             "Mana Shield"
-        case .damageKeywordOverride, .holyDamageBonusFromBlock:
+        case .damageKeywordOverride:
             "Consecrated"
         case .nextHolyStrike:
             "Next Holy Strike"
@@ -227,8 +227,6 @@ public enum EffectPresentation {
             "restore \(amount) Mana when you take damage"
         case let .damageKeywordOverride(keyword, bonus, durationTurns):
             "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(turns: durationTurns))"
-        case let .holyDamageBonusFromBlock(durationTurns):
-            "your attacks deal Holy damage equal to your Block \(durationPhrase(turns: durationTurns))"
         default:
             nil
         }

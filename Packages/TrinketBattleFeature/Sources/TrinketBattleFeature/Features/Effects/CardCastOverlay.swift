@@ -331,8 +331,9 @@ struct BattleDissolveEffect<Content: View>: View {
     }
 }
 
-struct BattleDissolveArtwork<Content: View>: View {
+public struct BattleDissolveArtwork<Content: View>: View {
     let celebratesDefeat: Bool
+    let onFinished: (() -> Void)?
     let content: Content
 
     @State private var startDate = Date()
@@ -341,11 +342,13 @@ struct BattleDissolveArtwork<Content: View>: View {
     private let keywords: [Keyword]
     private let configuration: CardCastEffectConfiguration
 
-    init(
+    public init(
         celebratesDefeat: Bool = false,
+        onFinished: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.celebratesDefeat = celebratesDefeat
+        self.onFinished = onFinished
         self.content = content()
         if celebratesDefeat {
             particles = CardActivationParticle.make(count: 28, spread: .fireworks)
@@ -358,7 +361,7 @@ struct BattleDissolveArtwork<Content: View>: View {
         }
     }
 
-    var body: some View {
+    public var body: some View {
         // Once dissolve finishes the art is fully gone — tear down the display
         // clock so defeated panes do not tick for the rest of the fight.
         Group {
@@ -390,6 +393,7 @@ struct BattleDissolveArtwork<Content: View>: View {
                     try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
                     guard !Task.isCancelled else { return }
                     isComplete = true
+                    onFinished?()
                 }
             }
         }

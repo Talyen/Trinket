@@ -5,7 +5,8 @@ import TrinketCore
 public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var grantedGold: Int
     public var grantedMaterials: [ResourceAmount]
-    public var grantedExperience: Int
+    public var heroGrantedExperience: Int
+    public var companionGrantedExperience: Int
     public var heroProgressionBefore: CombatantProgression?
     public var heroProgressionAfter: CombatantProgression?
     public var companionProgressionBefore: CombatantProgression?
@@ -17,7 +18,8 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public init(
         grantedGold: Int = 0,
         grantedMaterials: [ResourceAmount] = [],
-        grantedExperience: Int = 0,
+        heroGrantedExperience: Int = 0,
+        companionGrantedExperience: Int = 0,
         heroProgressionBefore: CombatantProgression? = nil,
         heroProgressionAfter: CombatantProgression? = nil,
         companionProgressionBefore: CombatantProgression? = nil,
@@ -27,7 +29,8 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     ) {
         self.grantedGold = grantedGold
         self.grantedMaterials = grantedMaterials
-        self.grantedExperience = grantedExperience
+        self.heroGrantedExperience = heroGrantedExperience
+        self.companionGrantedExperience = companionGrantedExperience
         self.heroProgressionBefore = heroProgressionBefore
         self.heroProgressionAfter = heroProgressionAfter
         self.companionProgressionBefore = companionProgressionBefore
@@ -36,10 +39,14 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
         self.unlockedCombatantIDs = unlockedCombatantIDs
     }
 
+    public var hasGrantedExperience: Bool {
+        heroGrantedExperience > 0 || companionGrantedExperience > 0
+    }
+
     public var isEmpty: Bool {
         grantedGold == 0
             && grantedMaterials.isEmpty
-            && grantedExperience == 0
+            && !hasGrantedExperience
             && grantedItems.isEmpty
             && unlockedCombatantIDs.isEmpty
     }
@@ -105,7 +112,7 @@ public enum MysteryEffectApplier {
             state.result.grantedMaterials = save.grantMaterials(materials)
         }
 
-        if state.result.grantedExperience > 0 {
+        if state.result.hasGrantedExperience {
             state.result.heroProgressionBefore = heroProgressionBefore
             state.result.heroProgressionAfter = save.roster.progression(for: hero)
             state.result.companionProgressionBefore = companionProgressionBefore
@@ -149,11 +156,22 @@ public enum MysteryEffectApplier {
             guard resource != .gold else { return }
             state.materialTotals[resource, default: 0] += state.materialQuantity
 
-        case let .gainExperience(amount):
-            guard amount > 0 else { return }
-            save.roster.grantExperience(amount, to: hero)
-            save.roster.grantExperience(amount, to: companion)
-            state.result.grantedExperience += amount
+        case .gainExperience:
+            let heroProgression = save.roster.progression(for: hero)
+            let companionProgression = save.roster.progression(for: companion)
+            let heroAward = ExperienceScaling.equalBattleAward(
+                playerLevel: heroProgression.level,
+                highestLevel: save.roster.highestHeroLevel
+            )
+            let companionAward = ExperienceScaling.equalBattleAward(
+                playerLevel: companionProgression.level,
+                highestLevel: save.roster.highestCompanionLevel
+            )
+            state.result.heroGrantedExperience += save.roster.grantExperience(heroAward, to: hero)
+            state.result.companionGrantedExperience += save.roster.grantExperience(
+                companionAward,
+                to: companion
+            )
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
             guard let item = makeGeneratedItem(

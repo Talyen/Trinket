@@ -13,6 +13,8 @@ struct BattleCombatantPresentation: Equatable {
     let maxMana: Int
     /// Keyword for the single status border pulse, or `nil` for the neutral stroke.
     let borderAccentKeyword: Keyword?
+    /// Persistent buff aura (e.g. Shadowstep shimmer), independent of border accent.
+    let buffAuraKind: CombatantBuffAuraKind?
 }
 
 struct BattlePresentationSnapshot: Equatable {
@@ -46,6 +48,7 @@ struct BattlePresentationSnapshot: Equatable {
         in state: BattleState
     ) -> BattleCombatantPresentation {
         let isParty = combatant.role != .enemy
+        let effects = state.activeEffects(of: combatant)
         return BattleCombatantPresentation(
             combatant: combatant,
             health: state.health(of: combatant),
@@ -53,9 +56,10 @@ struct BattlePresentationSnapshot: Equatable {
             mana: state.mana(of: combatant),
             maxMana: state.maxMana(of: combatant),
             borderAccentKeyword: CombatantBorderAccent.keyword(
-                from: state.activeEffects(of: combatant),
+                from: effects,
                 controlAccentRequiresPendingSkip: isParty
-            )
+            ),
+            buffAuraKind: CombatantBuffAura.kind(from: effects)
         )
     }
 

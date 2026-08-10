@@ -61,7 +61,7 @@ struct MysteryRewardContent: View {
             .trinketDetailSheet()
         }
         .onAppear {
-            if result.grantedExperience == 0 {
+            if !result.hasGrantedExperience {
                 revealSequence.start(
                     itemCount: result.grantedItems.count,
                     walletCount: walletRewardCount
@@ -75,7 +75,7 @@ struct MysteryRewardContent: View {
 
     @ViewBuilder
     private var experiencePanel: some View {
-        if result.grantedExperience > 0 {
+        if result.hasGrantedExperience {
             let hero = playerSave.roster.activeHero
             let companion = playerSave.roster.activeCompanion
             if let heroProgressionBefore = result.heroProgressionBefore,
@@ -96,7 +96,7 @@ struct MysteryRewardContent: View {
                         pre: heroProgressionBefore,
                         post: heroProgressionAfter,
                         fillColor: TrinketDesign.Colors.accentEmphasized,
-                        experienceAward: result.grantedExperience,
+                        experienceAward: result.heroGrantedExperience,
                         snapToFinal: false,
                         onAnimationCompleted: onExperienceBarCompleted
                     )
@@ -107,7 +107,7 @@ struct MysteryRewardContent: View {
                         pre: companionProgressionBefore,
                         post: companionProgressionAfter,
                         fillColor: TrinketDesign.Colors.accentEmphasized,
-                        experienceAward: result.grantedExperience,
+                        experienceAward: result.companionGrantedExperience,
                         snapToFinal: false,
                         onAnimationCompleted: onExperienceBarCompleted
                     )

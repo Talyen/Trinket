@@ -12,6 +12,7 @@ struct BattleCombatantPane: View {
     let mana: Int
     let maxMana: Int
     let borderAccentKeyword: Keyword?
+    let buffAuraKind: CombatantBuffAuraKind?
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
     let onCombatantTap: () -> Void
@@ -34,7 +35,8 @@ struct BattleCombatantPane: View {
                         hapticsEnabled: hapticsEnabled,
                         recoilDirection: recoilDirection,
                         borderVisible: !isDefeated,
-                        borderAccentKeyword: borderAccentKeyword
+                        borderAccentKeyword: borderAccentKeyword,
+                        buffAuraKind: buffAuraKind
                     ) {
                         ZStack(alignment: .bottom) {
                             artworkPresentation
@@ -118,6 +120,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     let recoilDirection: CombatantHitRecoilDirection
     let borderVisible: Bool
     let borderAccentKeyword: Keyword?
+    let buffAuraKind: CombatantBuffAuraKind?
     @ViewBuilder let artwork: () -> Artwork
 
     /// Local trigger so KeyframeAnimator always sees a change, even when reaction
@@ -134,8 +137,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         let _ = battleSession.feedback.hitReactionEpoch
         let layout = ReactionLayoutState(
             activeKind: activeKind,
-            recoilDirection: recoilDirection,
-            borderColor: borderStrokeColor
+            recoilDirection: recoilDirection
         )
 
         KeyframeAnimator(
@@ -149,11 +151,8 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 // Border after clip so the stroke is not half-masked, and rides
                 // the same scale/offset as art + bars (whole-card hop).
                 .overlay {
-                    TrinketDesign.cardShape.strokeBorder(
-                        layout.borderColor,
-                        lineWidth: 1
-                    )
-                    .opacity(borderVisible ? 1 : 0)
+                    cardBorder
+                        .opacity(borderVisible ? 1 : 0)
                 }
                 .scaleEffect(x: state.scaleX, y: state.scaleY)
                 .rotationEffect(.degrees(state.rotation))
@@ -248,6 +247,23 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         }
         .onChange(of: borderAccentKeyword) { _, _ in
             syncStatusBorderPulse(isActive: usesStatusBorderPulse)
+        }
+    }
+
+    @ViewBuilder
+    private var cardBorder: some View {
+        if usesStatusBorderPulse {
+            TrinketDesign.cardShape.strokeBorder(
+                borderStrokeColor,
+                lineWidth: 1
+            )
+        } else if let buffAuraKind {
+            CombatantBuffAuraBorder(kind: buffAuraKind)
+        } else {
+            TrinketDesign.cardShape.strokeBorder(
+                TrinketDesign.Colors.subtleStroke,
+                lineWidth: 1
+            )
         }
     }
 
@@ -350,9 +366,8 @@ private struct ReactionLayoutState {
     let impactOffsetY: Double
     let recoverOffsetX: Double
     let recoverOffsetY: Double
-    let borderColor: Color
 
-    init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection, borderColor: Color) {
+    init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection) {
         let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
             width: CGFloat(reactionRecipe.offsetX[safe: 0]?.value ?? 0),
@@ -377,7 +392,6 @@ private struct ReactionLayoutState {
         impactOffsetY = Double(resolvedOffset.height)
         recoverOffsetX = reactionRecipe.offsetX[safe: 1]?.value ?? 0
         recoverOffsetY = reactionRecipe.offsetY[safe: 1]?.value ?? 0
-        self.borderColor = borderColor
     }
 }
 

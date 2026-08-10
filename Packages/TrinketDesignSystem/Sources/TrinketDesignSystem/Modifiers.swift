@@ -110,6 +110,22 @@ struct PrimaryActionButtonModifier: ViewModifier {
     }
 }
 
+struct SecondaryActionButtonModifier: ViewModifier {
+    let controlSize: ControlSize
+    let tint: Color
+    let accessibilityIdentifier: String?
+
+    func body(content: Content) -> some View {
+        // Same identifier ordering rule as primary: apply after the glass style.
+        content
+            .buttonStyle(.glass)
+            .tint(tint)
+            .controlSize(controlSize)
+            .buttonBorderShape(.roundedRectangle)
+            .modifier(OptionalAccessibilityIdentifierModifier(identifier: accessibilityIdentifier))
+    }
+}
+
 private struct OptionalAccessibilityIdentifierModifier: ViewModifier {
     let identifier: String?
 
@@ -175,6 +191,19 @@ public extension View {
             controlSize: controlSize,
             tint: tint,
             labelColor: labelColor,
+            accessibilityIdentifier: accessibilityIdentifier
+        ))
+    }
+
+    /// Quieter glass chrome for secondary actions (not the screen's primary CTA).
+    func trinketSecondaryActionButton(
+        controlSize: ControlSize = .large,
+        tint: Color = TrinketDesign.Colors.accent,
+        accessibilityIdentifier: String? = nil
+    ) -> some View {
+        modifier(SecondaryActionButtonModifier(
+            controlSize: controlSize,
+            tint: tint,
             accessibilityIdentifier: accessibilityIdentifier
         ))
     }

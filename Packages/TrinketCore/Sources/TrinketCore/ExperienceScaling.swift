@@ -27,6 +27,8 @@ enum ProgressionBracket: Equatable {
 
 public enum ExperienceScaling {
     public static let underlevelCutoff = 10
+    /// Soft ceiling on a single XP grant, as multiples of the recipient's current `requiredXP`.
+    public static let maxGrantLevelsEquivalent = 3
 
     /// Returns a multiplier in `0...1` for how much of the base experience award applies.
     /// Enemies 10+ levels below the player grant no experience; equal or higher-level enemies grant full experience.
@@ -63,6 +65,27 @@ public enum ExperienceScaling {
         guard award > 0 else { return 0 }
         let catchUp = catchUpMultiplier(for: playerLevel, highestLevel: highestLevel)
         return max(1, Int((Double(award) * catchUp).rounded()))
+    }
+
+    /// Equal-level battle XP for `playerLevel`, including same-role catch-up.
+    public static func equalBattleAward(playerLevel: Int, highestLevel: Int) -> Int {
+        battleAwardWithCatchUp(
+            playerLevel: playerLevel,
+            enemyLevel: playerLevel,
+            highestLevel: highestLevel
+        )
+    }
+
+    /// Clips a raw award to `maxGrantLevelsEquivalent` times the recipient's current required XP.
+    public static func cappedAward(_ amount: Int, for progression: CombatantProgression) -> Int {
+        cappedAward(amount, requiredXP: progression.requiredXP)
+    }
+
+    /// Clips a raw award to `maxGrantLevelsEquivalent` times `requiredXP`.
+    public static func cappedAward(_ amount: Int, requiredXP: Int) -> Int {
+        guard amount > 0 else { return 0 }
+        let ceiling = max(0, requiredXP) * maxGrantLevelsEquivalent
+        return min(amount, ceiling)
     }
 
     public static func adjustedAward(

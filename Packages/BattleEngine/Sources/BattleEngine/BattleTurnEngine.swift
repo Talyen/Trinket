@@ -297,13 +297,6 @@ extension BattleTurnEngine {
             if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
                 return (keyword, bonus)
             }
-            if case .holyDamageBonusFromBlock = active.effect {
-                let block = DefensePoolEngine.points(
-                    in: context.roster.activeEffects(for: actor),
-                    pool: .block
-                )
-                return (.holy, block)
-            }
         }
         return nil
     }

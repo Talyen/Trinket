@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 import TrinketContent
 import TrinketCore
@@ -58,6 +59,10 @@ private struct CombatantCardEffectLab: View {
         category == .death
     }
 
+    private var isShadowstepCategory: Bool {
+        category == .shadowstep
+    }
+
     /// Effects only run while auto-playing or scrubbing above rest.
     private var showsEffect: Bool {
         playsAutomatically || scrubProgress > 0
@@ -97,6 +102,8 @@ private struct CombatantCardEffectLab: View {
                 statusKind = .iceCrystals
                 statusConfig = .defaults(for: .iceCrystals)
                 duration = CombatantCardEffectLabDuration.defaults(category: .frozen)
+            case .shadowstep:
+                duration = CombatantCardEffectLabDuration.defaults(category: .shadowstep)
             case .death:
                 deathKind = .slice
                 deathConfig = .defaults(for: .slice)
@@ -226,8 +233,12 @@ private struct CombatantCardEffectLab: View {
                 }
             }
             .overlay {
-                TrinketDesign.cardShape
-                    .strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+                if isFocused, showsEffect, isShadowstepCategory {
+                    CombatantBuffAuraBorder(kind: .shadowstep, progress: progress)
+                } else {
+                    TrinketDesign.cardShape
+                        .strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+                }
             }
         }
         .buttonStyle(.plain)
@@ -249,6 +260,8 @@ private struct CombatantCardEffectLab: View {
                 LabCombatantPortrait(combatant: combatant, size: size)
             }
             .frame(width: size.width, height: size.height)
+        } else if isShadowstepCategory {
+            LabCombatantPortrait(combatant: combatant, size: size)
         } else {
             LabCombatantPortrait(combatant: combatant, size: size)
                 .modifier(
@@ -279,6 +292,9 @@ private struct CombatantCardEffectLab: View {
     }
 
     private var parameterSummary: String {
+        if isShadowstepCategory {
+            return "\(focusSlot.title) · \(category.title) · Shimmer Border"
+        }
         let variantTitle = isDeathCategory ? deathKind.title : statusKind.title
         let intensity = isDeathCategory ? deathConfig.intensity : statusConfig.intensity
         return "\(focusSlot.title) · \(category.title) · \(variantTitle) · "

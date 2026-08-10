@@ -109,10 +109,10 @@ struct MysteryChoiceCard: View {
                 tint: resource.tint
             )
 
-        case let .gainExperience(amount):
+        case .gainExperience:
             rewardSummary(
-                title: "XP",
-                value: "+\(amount)",
+                title: "Combat XP",
+                value: nil,
                 systemIcon: "star.fill",
                 tint: TrinketDesign.Colors.warning
             )

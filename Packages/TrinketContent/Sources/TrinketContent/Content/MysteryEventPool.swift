@@ -36,7 +36,7 @@ enum MysteryEventPool {
                     .gainMaterial(.herbs),
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("study-glow", "Study the Glow", [.gainExperience(10)]),
+                ("study-glow", "Study the Glow", [.gainExperience]),
             ]
         ),
         ev(
@@ -45,7 +45,7 @@ enum MysteryEventPool {
             narrative: "A pool of iridescent water steams gently in the cool air. Its surface shimmers with an inviting warmth, promising restoration.",
             artID: "mystery-pool-of-water-steams",
             choices: [
-                ("bathe", "Bathe", [.gainExperience(12), .gainMaterial(.herbs)]),
+                ("bathe", "Bathe", [.gainExperience, .gainMaterial(.herbs)]),
                 ("bottle", "Bottle the Essence", [.gainMaterial(.crystal), .gainMaterial(.herbs)]),
             ]
         ),
@@ -59,7 +59,7 @@ enum MysteryEventPool {
                     .gainMaterial(.herbs),
                     generatedItem("emerald_ring"),
                 ]),
-                ("breathe-spores", "Breathe the Spores", [.gainExperience(10)]),
+                ("breathe-spores", "Breathe the Spores", [.gainExperience]),
             ]
         ),
         ev(
@@ -68,8 +68,8 @@ enum MysteryEventPool {
             narrative: "An immense oak with a weathered face carved into its bark speaks in rustling leaves. Ancient wisdom emanates from its gnarled branches.",
             artID: "mystery-oak-tree-with-face",
             choices: [
-                ("ask-knowledge", "Ask for Knowledge", [.gainExperience(12)]),
-                ("rest-shade", "Rest in its Shade", [.gainExperience(6), .gainMaterial(.herbs)]),
+                ("ask-knowledge", "Ask for Knowledge", [.gainExperience]),
+                ("rest-shade", "Rest in its Shade", [.gainExperience, .gainMaterial(.herbs)]),
             ]
         ),
         ev(
@@ -88,7 +88,7 @@ enum MysteryEventPool {
             narrative: "A weathered stone altar stands beneath a shaft of light piercing the canopy. A rusted offering bowl rests before it, etched with forgotten symbols.",
             artID: "mystery-weathered-stone-altar",
             choices: [
-                ("pray", "Pray", [.gainExperience(8)]),
+                ("pray", "Pray", [.gainExperience]),
                 ("take-relic", "Take the Relic", [generatedItem("topaz_amulet")]),
             ]
         ),
@@ -109,7 +109,7 @@ enum MysteryEventPool {
             artID: "mystery-vines-carpet-mosaic-floors",
             choices: [
                 ("loot-crypt", "Loot the Crypt", [.gainRandomItem]),
-                ("read-inscriptions", "Read the Inscriptions", [.gainExperience(10), .gainMaterial(.crystal)]),
+                ("read-inscriptions", "Read the Inscriptions", [.gainExperience, .gainMaterial(.crystal)]),
             ]
         ),
         ev(
@@ -119,7 +119,7 @@ enum MysteryEventPool {
             artID: "mystery-dusty-shelves-in-tower",
             choices: [
                 ("search-scrolls", "Search the Scrolls", [generatedItem("spellbook")]),
-                ("catalog-library", "Catalog the Library", [.gainExperience(8), .gainMaterial(.crystal)]),
+                ("catalog-library", "Catalog the Library", [.gainExperience, .gainMaterial(.crystal)]),
             ]
         ),
         ev(
@@ -128,7 +128,7 @@ enum MysteryEventPool {
             narrative: "A leather-bound book floats above a pedestal, pages turning on their own. Arcane energy crackles around it as if it has been waiting for a reader.",
             artID: "mystery-leather-book-floats",
             choices: [
-                ("read", "Read Carefully", [.gainExperience(10)]),
+                ("read", "Read Carefully", [.gainExperience]),
                 ("bind-pages", "Bind the Torn Pages", [generatedItem("spellbook")]),
             ]
         ),
@@ -142,7 +142,7 @@ enum MysteryEventPool {
                     .gainMaterial(.crystal),
                     generatedItem("sapphire_ring", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("meditate", "Meditate in the Resonance", [.gainExperience(8)]),
+                ("meditate", "Meditate in the Resonance", [.gainExperience]),
             ]
         ),
         ev(
@@ -155,7 +155,7 @@ enum MysteryEventPool {
                     .gainMaterial(.iron),
                     generatedItem("ruby_amulet"),
                 ]),
-                ("study-impact", "Study the Impact", [.gainExperience(8)]),
+                ("study-impact", "Study the Impact", [.gainExperience]),
             ]
         ),
         ev(
@@ -174,7 +174,7 @@ enum MysteryEventPool {
             narrative: "Sunlight breaks through the canopy in golden rays. The air is thick with peace, and the ground hums with quiet vitality.",
             artID: "mystery-sunlight-breaks-canopy",
             choices: [
-                ("bask", "Bask", [.gainExperience(15), .gainMaterial(.herbs)]),
+                ("bask", "Bask", [.gainExperience, .gainMaterial(.herbs)]),
                 ("forage", "Forage the Undergrowth", [
                     .gainMaterial(.herbs),
                     .gainMaterial(.wood),
@@ -192,7 +192,7 @@ enum MysteryEventPool {
                     .gainMaterial(.iron),
                     .gainMaterial(.crystal),
                 ]),
-                ("gather-herbs", "Gather Alpine Herbs", [.gainExperience(8), .gainMaterial(.herbs)]),
+                ("gather-herbs", "Gather Alpine Herbs", [.gainExperience, .gainMaterial(.herbs)]),
             ]
         ),
         ev(
@@ -205,7 +205,7 @@ enum MysteryEventPool {
                 ("pull-reeds", "Pull Medicinal Reeds", [
                     .gainMaterial(.herbs),
                     .gainMaterial(.wood),
-                    .gainExperience(4),
+                    .gainExperience,
                 ]),
             ]
         ),
@@ -215,7 +215,7 @@ enum MysteryEventPool {
             narrative: "A robed figure tends a circle of salt and bone. Without looking up, they extend a skeletal hand, offering forbidden power.",
             artID: nil,
             choices: [
-                ("accept-rite", "Accept the Rite", [.gainExperience(8), generatedItem("staff")]),
+                ("accept-rite", "Accept the Rite", [.gainExperience, generatedItem("staff")]),
                 ("steal-salts", "Steal the Salts", [
                     .gainMaterial(.crystal),
                     generatedItem("ruby_ring"),
@@ -228,9 +228,9 @@ enum MysteryEventPool {
             narrative: "Cultivated beds have run wild as medicinal herbs grow through cracked paving, rich with scent and curative promise.",
             artID: nil,
             choices: [
-                ("harvest-remedies", "Harvest Remedies", [.gainMaterial(.herbs), .gainExperience(4)]),
+                ("harvest-remedies", "Harvest Remedies", [.gainMaterial(.herbs), .gainExperience]),
                 ("copy-notes", "Copy the Herbalist's Notes", [
-                    .gainExperience(8),
+                    .gainExperience,
                     generatedItem("emerald_amulet"),
                 ]),
             ]
@@ -245,7 +245,7 @@ enum MysteryEventPool {
                     .gainMaterial(.crystal),
                     generatedItem("sapphire_amulet", guaranteedAffixIDs: ["manabound"]),
                 ]),
-                ("attune", "Attune to the Chime", [.gainExperience(8)]),
+                ("attune", "Attune to the Chime", [.gainExperience]),
             ]
         ),
         ev(
@@ -264,7 +264,7 @@ enum MysteryEventPool {
             narrative: "Incense smoke coils from a hanging brass censer at a fork in the path. The air tastes of sanctified ash and old vows.",
             artID: nil,
             choices: [
-                ("breathe-smoke", "Breathe the Smoke", [.gainExperience(8)]),
+                ("breathe-smoke", "Breathe the Smoke", [.gainExperience]),
                 ("claim-censer", "Claim the Censer", [generatedItem("topaz_amulet")]),
             ]
         ),
@@ -284,7 +284,7 @@ enum MysteryEventPool {
             narrative: "A grey wolf steps from the treeline, watching you with amber eyes. It does not flee — only waits, as if deciding whether you are worth knowing.",
             artID: nil,
             choices: [
-                ("study-pack", "Study the Pack", [.gainExperience(8)]),
+                ("study-pack", "Study the Pack", [.gainExperience]),
                 ("follow-cache", "Follow to its Cache", [generatedItem("recurve_bow")]),
             ]
         ),

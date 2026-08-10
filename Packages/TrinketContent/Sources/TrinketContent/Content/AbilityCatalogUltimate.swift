@@ -2,10 +2,13 @@ import Foundation
 import TrinketCore
 
 enum AbilityCatalogUltimate {
-    static let avatarOfJustice = AbilityBuilder.buffOnly(
+    static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
-        effects: [.shield(.block, 4), .holyDamageBonusFromBlock(2)],
-        description: "Gain 4 Block. Your attacks deal Holy damage equal to your Block for 2 turns."
+        description: "Deal 6 Holy damage each turn for 2 turns. Gain 6 Block.",
+        targetedEffects: [
+            TargetedEffect(.recurringDamage(.holy, 6, 1)),
+            TargetedEffect(.shield(.block, 6)),
+        ]
     )
 
     static let blessedAegis = Ability(

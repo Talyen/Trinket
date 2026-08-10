@@ -37,7 +37,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case freezeOnHit
     case multiplyDoT
     case recurringDamage
-    case holyDamageBonusFromBlock
     case revive
 }
 
@@ -79,7 +78,6 @@ public extension Effect {
         case .freezeOnHit: .freezeOnHit
         case .multiplyDoT: .multiplyDoT
         case .recurringDamage: .recurringDamage
-        case .holyDamageBonusFromBlock: .holyDamageBonusFromBlock
         case .revive: .revive
         }
     }
@@ -101,7 +99,7 @@ public extension Effect {
         switch self {
         case .shield, .leech, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
-             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .holyDamageBonusFromBlock:
+             .maximumManaBonus, .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit:
             true
         default:
             false
@@ -115,7 +113,7 @@ public extension Effect {
         case .burn, .poison, .bleed, .controlMeter,
              .leech, .deathsDoor,
              .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
-             .recurringDamage, .holyDamageBonusFromBlock:
+             .recurringDamage:
             true
         default:
             false

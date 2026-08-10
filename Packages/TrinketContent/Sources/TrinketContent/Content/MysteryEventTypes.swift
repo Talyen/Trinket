@@ -4,7 +4,8 @@ import TrinketCore
 public enum MysteryEffect: Hashable, Sendable {
     case gainGold(Int)
     case gainMaterial(HomesteadResource)
-    case gainExperience(Int)
+    /// Grants ~1 equal-level battle of XP to the active hero and companion.
+    case gainExperience
     /// Procedural item: rarity is rolled 80% basic / 20% astral at grant time.
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem

@@ -30,10 +30,6 @@ struct EffectPresentationTests {
             .damageKeywordOverride(.holy, 3, 6),
             "your attacks become Holy damage and deal +3 for 6 turns"
         ),
-        (
-            .holyDamageBonusFromBlock(2),
-            "your attacks deal Holy damage equal to your Block for 2 turns"
-        ),
         (.nextStrikeDouble, "your next attack deals double damage"),
         (.evadeNextHit, "dodge the next attack"),
     ])

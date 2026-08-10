@@ -155,7 +155,7 @@ Prefer this script over calling prepare-* asset scripts or content_codegen.py di
 Env:
   TRINKET_FORCE_XCODEGEN=1       Same as --force-xcodegen
   TRINKET_REQUIRE_PINNED_TOOLS=1 Require .tools/xcodegen on PATH (agent push gate)
-  FORCE_ASSET_REENCODE=1         Force art/SFX/music/app-icon re-encode even when up to date
+  FORCE_ASSET_REENCODE=1         Force art/SFX/music/cinematic/app-icon re-encode even when up to date
   DEVELOPER_DIR / SDKROOT        Optional overrides; otherwise Xcode (not CLT) is selected
 EOF
 }

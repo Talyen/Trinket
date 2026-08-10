@@ -350,6 +350,7 @@ enum CombatantCardEffectNoise {
 enum CombatantCardEffectCategory: String, CaseIterable, Identifiable {
     case stunned
     case frozen
+    case shadowstep
     case death
 
     var id: Self {
@@ -360,6 +361,7 @@ enum CombatantCardEffectCategory: String, CaseIterable, Identifiable {
         switch self {
         case .stunned: "Stunned"
         case .frozen: "Frozen"
+        case .shadowstep: "Shadowstep"
         case .death: "Death"
         }
     }
@@ -398,6 +400,8 @@ enum CombatantCardEffectLabDuration {
             4.0
         case .frozen:
             4.0
+        case .shadowstep:
+            TrinketMotion.Battle.buffAuraShimmerPeriod
         case .death:
             switch deathKind {
             case .slice: TrinketMotion.Battle.combatantSliceDuration

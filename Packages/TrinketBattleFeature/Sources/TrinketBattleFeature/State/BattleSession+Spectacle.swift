@@ -305,7 +305,12 @@ extension BattleSession {
                 ultimate.actorID,
                 spectacle.actorsWhoPresentedUltimateThisBattle
             )
-            if autoSkip {
+            let hasVideo = BattleCinematicPlayer.shared.hasVideo(
+                for: ultimate.actorID,
+                abilityID: ultimate.abilityID
+            )
+            // Unmapped casts skip the overlay entirely — never full-screen ability art.
+            if autoSkip || !hasVideo {
                 feedback.record(nonMilestone, at: date, environment: presentationEnvironment)
                 return
             }

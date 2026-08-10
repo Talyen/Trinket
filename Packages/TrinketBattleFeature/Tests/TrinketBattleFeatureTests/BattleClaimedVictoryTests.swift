@@ -67,7 +67,7 @@ struct BattleClaimedVictoryTests {
         #expect(deliveredConfigurationIDs == [first.configuration.id, second.configuration.id])
     }
 
-    @Test func claimedVictoryWaitsForUltimateCinematicCollapse() {
+    @Test func claimedVictoryDeliversImmediatelyWhenUltimateHasNoCinematicVideo() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -108,13 +108,7 @@ struct BattleClaimedVictoryTests {
         )
 
         #expect(session.outcome == .victory)
-        #expect(session.spectacle.activeCinematic != nil)
-        #expect(deliveryCount == 0)
-
-        session.markCinematicPlaying()
-        session.beginCinematicCollapse()
-        session.completeCinematicCollapse(at: now.addingTimeInterval(1))
-
+        #expect(session.spectacle.activeCinematic == nil)
         #expect(deliveryCount == 1)
     }
 }

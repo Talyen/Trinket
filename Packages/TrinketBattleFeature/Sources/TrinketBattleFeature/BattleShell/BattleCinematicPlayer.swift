@@ -13,7 +13,7 @@ struct CinematicCastKey: Hashable {
 
 /// Session-scoped Ultimate cinematic player cache.
 /// Keeps AVPlayers warm so cast transitions never hitch on cold load.
-/// Video assets are optional; until they exist, callers use ability-art fallback.
+/// Video assets are optional; unmapped casts skip the cinematic overlay entirely.
 @MainActor
 @Observable
 final class BattleCinematicPlayer {

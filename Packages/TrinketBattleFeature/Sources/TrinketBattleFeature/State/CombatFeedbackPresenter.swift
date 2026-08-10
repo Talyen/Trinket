@@ -13,7 +13,7 @@ enum CombatFeedbackPresenter {
         let filteredSources = filterDisplayable(events).enumerated().map { order, event in
             PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
         }
-        let sources = consolidate(collapseAvatarOfJustice(in: filteredSources))
+        let sources = consolidate(filteredSources)
         let prepared = sources.compactMap(prepare)
         var targetOrder: [String] = []
         var grouped: [String: [PreparedEvent]] = [:]
@@ -125,12 +125,6 @@ enum CombatFeedbackPresenter {
         let isCritical: Bool
     }
 
-    private struct NamedAbilityGroupKey: Hashable {
-        let actionID: Int
-        let targetID: String
-        let abilityID: String
-    }
-
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
         events.filter { event in
             guard event.kind != .milestone else { return false }
@@ -171,53 +165,6 @@ enum CombatFeedbackPresenter {
             }
         }
         return result
-    }
-
-    private static func collapseAvatarOfJustice(in sources: [PreparedSource]) -> [PreparedSource] {
-        var collapsed: [PreparedSource] = []
-        var emittedGroups = Set<NamedAbilityGroupKey>()
-
-        for source in sources {
-            let event = source.event
-            guard event.abilityID == "avatar-of-justice", isAvatarPresentationEffect(event.effectKind) else {
-                collapsed.append(source)
-                continue
-            }
-            let key = NamedAbilityGroupKey(
-                actionID: event.actionID,
-                targetID: event.targetID,
-                abilityID: event.abilityID
-            )
-            let matching = sources.filter {
-                $0.event.actionID == key.actionID
-                    && $0.event.targetID == key.targetID
-                    && $0.event.abilityID == key.abilityID
-                    && isAvatarPresentationEffect($0.event.effectKind)
-            }
-            guard let representative = matching.first(where: {
-                $0.event.effectKind == .damageKeywordOverrideApplied
-            }) else {
-                collapsed.append(source)
-                continue
-            }
-            guard emittedGroups.insert(key).inserted else { continue }
-            collapsed.append(PreparedSource(
-                event: representative.event,
-                sourceEventIDs: matching.flatMap(\.sourceEventIDs),
-                originalOrder: matching.map(\.originalOrder).min() ?? representative.originalOrder
-            ))
-        }
-        return collapsed.sorted { $0.originalOrder < $1.originalOrder }
-    }
-
-    private static func isAvatarPresentationEffect(_ effectKind: ActionEvent.EffectKind?) -> Bool {
-        guard let effectKind else { return false }
-        return switch effectKind {
-        case .shieldApplied, .damageKeywordOverrideApplied:
-            true
-        default:
-            false
-        }
     }
 
     private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
@@ -298,10 +245,7 @@ enum CombatFeedbackPresenter {
         case .manaShieldApplied:
             StatusPresentation(label: .manaShield, role: .beneficialStatus)
         case .damageKeywordOverrideApplied:
-            StatusPresentation(
-                label: event.abilityID == "avatar-of-justice" ? .avatarOfJustice : .consecrated,
-                role: .beneficialStatus
-            )
+            StatusPresentation(label: .consecrated, role: .beneficialStatus)
         case .nextHolyStrikeApplied:
             StatusPresentation(label: .nextHolyStrike, role: .beneficialStatus)
         case .nextStrikeDoubleApplied:

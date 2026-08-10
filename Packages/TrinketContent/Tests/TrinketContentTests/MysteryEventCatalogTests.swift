@@ -167,8 +167,8 @@ struct MysteryEventCatalogTests {
                         try #expect(amount > 0, "\(event.id)/\(choice.id)")
                     case .gainMaterial:
                         break
-                    case let .gainExperience(amount):
-                        try #expect(amount > 0, "\(event.id)/\(choice.id)")
+                    case .gainExperience:
+                        break
                     case .gainGeneratedItem, .gainRandomItem, .unlockCombatant,
                          .corruptItem, .leave:
                         break

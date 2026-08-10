@@ -23,13 +23,27 @@ struct MysteryEffectApplierTests {
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
+        let expectedHeroXP = ExperienceScaling.cappedAward(
+            ExperienceScaling.equalBattleAward(
+                playerLevel: heroProgressionBefore.level,
+                highestLevel: save.roster.highestHeroLevel
+            ),
+            for: heroProgressionBefore
+        )
+        let expectedCompanionXP = ExperienceScaling.cappedAward(
+            ExperienceScaling.equalBattleAward(
+                playerLevel: companionProgressionBefore.level,
+                highestLevel: save.roster.highestCompanionLevel
+            ),
+            for: companionProgressionBefore
+        )
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
             [
                 .gainGold(20),
                 .gainMaterial(.herbs),
-                .gainExperience(10),
+                .gainExperience,
             ],
             stageID: "chapter-1-stage-2",
             choiceID: "harvest",
@@ -39,7 +53,9 @@ struct MysteryEffectApplierTests {
         )
 
         try #expect(result.grantedGold == 20)
-        try #expect(result.grantedExperience == 10)
+        try #expect(result.heroGrantedExperience == expectedHeroXP)
+        try #expect(result.companionGrantedExperience == expectedCompanionXP)
+        try #expect(result.hasGrantedExperience)
         try #expect(
             result.grantedMaterials
                 == [ResourceAmount(.herbs, MysteryEffectApplier.materialQuantity(forLevel: 1))]
@@ -50,11 +66,74 @@ struct MysteryEffectApplierTests {
                 >= MysteryEffectApplier.materialQuantity(forLevel: 1)
         )
         try #expect(result.heroProgressionBefore == heroProgressionBefore)
-        try #expect(result.heroProgressionAfter == heroProgressionBefore.addingExperience(10))
+        try #expect(result.heroProgressionAfter == heroProgressionBefore.addingExperience(expectedHeroXP))
         try #expect(result.companionProgressionBefore == companionProgressionBefore)
-        try #expect(result.companionProgressionAfter == companionProgressionBefore.addingExperience(10))
-        try #expect(save.roster.progression(for: hero) == heroProgressionBefore.addingExperience(10))
-        try #expect(save.roster.progression(for: companion) == companionProgressionBefore.addingExperience(10))
+        try #expect(
+            result.companionProgressionAfter
+                == companionProgressionBefore.addingExperience(expectedCompanionXP)
+        )
+        try #expect(
+            save.roster.progression(for: hero) == heroProgressionBefore.addingExperience(expectedHeroXP)
+        )
+        try #expect(
+            save.roster.progression(for: companion)
+                == companionProgressionBefore.addingExperience(expectedCompanionXP)
+        )
+    }
+
+    @Test func gainExperienceScalesPerRecipientLevel() throws {
+        var save = makeSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let companion = save.roster.activeCompanion
+        save.roster.progressions[hero.id] = .at(level: 20)
+        save.roster.progressions[companion.id] = .at(level: 5)
+        let heroBefore = save.roster.progression(for: hero)
+        let companionBefore = save.roster.progression(for: companion)
+        let expectedHeroXP = ExperienceScaling.cappedAward(
+            ExperienceScaling.equalBattleAward(
+                playerLevel: heroBefore.level,
+                highestLevel: save.roster.highestHeroLevel
+            ),
+            for: heroBefore
+        )
+        let expectedCompanionXP = ExperienceScaling.cappedAward(
+            ExperienceScaling.equalBattleAward(
+                playerLevel: companionBefore.level,
+                highestLevel: save.roster.highestCompanionLevel
+            ),
+            for: companionBefore
+        )
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
+
+        let result = MysteryEffectApplier.apply(
+            [.gainExperience],
+            stageID: "chapter-1-stage-2",
+            choiceID: "study",
+            encounterLevel: 1,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+
+        try #expect(result.heroGrantedExperience == expectedHeroXP)
+        try #expect(result.companionGrantedExperience == expectedCompanionXP)
+        try #expect(expectedHeroXP != expectedCompanionXP)
+        try #expect(result.heroProgressionAfter == heroBefore.addingExperience(expectedHeroXP))
+        try #expect(result.companionProgressionAfter == companionBefore.addingExperience(expectedCompanionXP))
+    }
+
+    @Test func grantExperienceCapsAtThreeTimesRequiredXP() throws {
+        var save = makeSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        save.roster.progressions[hero.id] = .at(level: 1)
+        let before = save.roster.progression(for: hero)
+        let ceiling = before.requiredXP * ExperienceScaling.maxGrantLevelsEquivalent
+
+        let granted = save.roster.grantExperience(10000, to: hero)
+
+        try #expect(granted == ceiling)
+        try #expect(save.roster.progression(for: hero) == before.addingExperience(ceiling))
+        try #expect(save.roster.progression(for: hero).level > before.level)
+        try #expect(save.roster.progression(for: hero).level < before.level + 10)
     }
 
     @Test func rewardResultReportsOnlyAmountsAcceptedByWallets() throws {

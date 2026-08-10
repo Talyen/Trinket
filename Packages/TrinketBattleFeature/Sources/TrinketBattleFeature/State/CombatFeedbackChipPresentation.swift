@@ -101,7 +101,7 @@ struct CombatFeedbackChipPresentation {
         let beneficial = Keyword.VisualStyle.beneficialStatus
         let negative = Keyword.VisualStyle.negativeStatus
         switch status {
-        case .avatarOfJustice, .consecrated, .nextHolyStrike:
+        case .consecrated, .nextHolyStrike:
             return dualAction(leading: beneficial, trailing: Keyword.holy.visualStyle)
         case .nextStrikeDouble:
             return dualAction(leading: beneficial, trailing: Keyword.physical.visualStyle)

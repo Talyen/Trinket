@@ -17,7 +17,6 @@ public struct ItemDetailView: View {
     var primaryActionAccessibilityID: String?
     var dismissAfterPrimaryAction = false
     var onPrimaryAction: (() -> Void)?
-    var salvageYields: [ResourceAmount]?
     var salvageReceivableYields: [ResourceAmount]?
     var equippedByName: String?
     /// Persistence maps its result to this small presentation contract.
@@ -38,7 +37,6 @@ public struct ItemDetailView: View {
         primaryActionAccessibilityID: String? = nil,
         dismissAfterPrimaryAction: Bool = false,
         onPrimaryAction: (() -> Void)? = nil,
-        salvageYields: [ResourceAmount]? = nil,
         salvageReceivableYields: [ResourceAmount]? = nil,
         equippedByName: String? = nil,
         onSalvage: (() -> Bool?)? = nil,
@@ -54,7 +52,6 @@ public struct ItemDetailView: View {
         self.primaryActionAccessibilityID = primaryActionAccessibilityID
         self.dismissAfterPrimaryAction = dismissAfterPrimaryAction
         self.onPrimaryAction = onPrimaryAction
-        self.salvageYields = salvageYields
         self.salvageReceivableYields = salvageReceivableYields
         self.equippedByName = equippedByName
         self.onSalvage = onSalvage
@@ -70,7 +67,7 @@ public struct ItemDetailView: View {
     }
 
     private var showsSalvageAction: Bool {
-        salvageYields != nil && onSalvage != nil
+        onSalvage != nil
             && primaryActionTitle == nil
             && purchasePrice == nil
     }
@@ -100,10 +97,16 @@ public struct ItemDetailView: View {
                     }
                 }
 
-                if let salvageYields, showsSalvageAction {
-                    DetailSection("Salvage Value") {
-                        ItemSalvageYieldRow(yields: salvageYields)
+                if showsSalvageAction {
+                    Button("Salvage") {
+                        isSalvageConfirmationPresented = true
                     }
+                    .frame(maxWidth: .infinity)
+                    .trinketSecondaryActionButton(
+                        tint: TrinketDesign.Colors.destructive,
+                        accessibilityIdentifier: AccessibilityID.Collection.salvageButton
+                    )
+                    .padding(.top, TrinketDesign.Metrics.sectionSpacing)
                 }
             }
         )
@@ -133,17 +136,6 @@ public struct ItemDetailView: View {
                     accessibilityIdentifier: AccessibilityID.Shop.detailBuyButton
                 )
                 .disabled(!canAfford || isPurchaseDisabled)
-                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
-            } else if showsSalvageAction {
-                Button("Salvage") {
-                    isSalvageConfirmationPresented = true
-                }
-                .frame(maxWidth: .infinity)
-                .trinketPrimaryActionButton(
-                    tint: TrinketDesign.Colors.destructive,
-                    accessibilityIdentifier: AccessibilityID.Collection.salvageButton
-                )
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
             }
@@ -216,25 +208,6 @@ public struct ItemDetailView: View {
         default:
             let head = parts.dropLast().joined(separator: ", ")
             return "\(head), and \(parts[parts.count - 1])"
-        }
-    }
-}
-
-struct ItemSalvageYieldRow: View {
-    let yields: [ResourceAmount]
-
-    var body: some View {
-        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            ForEach(yields) { amount in
-                HStack(spacing: TrinketDesign.Metrics.tightSpacing) {
-                    HomesteadResourceArtwork(resource: amount.resource)
-                        .frame(width: 24, height: 24)
-                    Text("\(amount.quantity) \(amount.resource.displayName)")
-                        .trinketTypography(.body)
-                        .monospacedDigit()
-                }
-            }
-            Spacer(minLength: 0)
         }
     }
 }

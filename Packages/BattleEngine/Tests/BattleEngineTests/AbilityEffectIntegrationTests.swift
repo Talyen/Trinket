@@ -160,7 +160,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.enemy) <= 95)
     }
 
-    @Test func avatarOfJusticeAppliesManifestDefensiveEffects() throws {
+    @Test func avatarOfJusticeAppliesRecurringHolyAndBlock() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -172,23 +172,33 @@ struct AbilityEffectIntegrationTests {
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, companion: companion, enemy: enemy)
 
-        let events = try #require(
+        _ = try #require(
             try BattleTestFixtures.playUntilAbility("Avatar", on: &battle),
             "Expected Avatar to resolve in battle"
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .shield(.block, 4) = active.effect {
+            if case .shield(.block, 6) = active.effect {
                 return true
             }
             return false
         })
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .holyDamageBonusFromBlock(2) = active.effect {
+        try #expect(battle.activeEffects(of: battle.enemy).contains { active in
+            if case .recurringDamage(.holy, 6, 1) = active.effect {
+                return active.remainingTurns == 1
+            }
+            return false
+        })
+        let healthAfterCast = battle.health(of: battle.enemy)
+        try #expect(healthAfterCast < 100)
+
+        _ = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(battle.health(of: battle.enemy) < healthAfterCast)
+        try #expect(!battle.activeEffects(of: battle.enemy).contains { active in
+            if case .recurringDamage(.holy, _, _) = active.effect {
                 return true
             }
             return false
         })
-        try #expect(events.contains { $0.effectKind == .damageKeywordOverrideApplied })
     }
 }

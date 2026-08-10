@@ -286,59 +286,6 @@ struct RecurringDamageHandler: BattleEffectHandler {
     }
 }
 
-struct HolyDamageBonusFromBlockHandler: BattleEffectHandler {
-    let kind: EffectKind = .holyDamageBonusFromBlock
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        let minTurns = TimedBuffSummary.minRemainingTurns(in: stacks) { effect in
-            if case let .holyDamageBonusFromBlock(duration) = effect {
-                return duration
-            }
-            return nil
-        }
-        return EffectSummary(
-            keyword: keyword,
-            text: "Consecrated: Holy damage equal to Block, \(BattleTiming.remainingDurationLabel(turns: minTurns))."
-        )
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleState
-    ) -> EffectApplyOutcome {
-        guard case let .holyDamageBonusFromBlock(durationTurns) = effect, durationTurns > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        ActiveEffectMutation.removeMatching(from: target, in: &context) {
-            if case .holyDamageBonusFromBlock = $0 {
-                return true
-            }
-            return false
-        }
-        context.appendEffect(
-            .holyDamageBonusFromBlock(durationTurns),
-            to: target,
-            sourceID: source.id,
-            remainingTurns: durationTurns
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .damageKeywordOverrideApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: .holy
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
 struct ReviveHandler: BattleEffectHandler {
     let kind: EffectKind = .revive
 

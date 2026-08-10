@@ -9,13 +9,17 @@ public enum StageCompletion {
         highestLevel: Int,
         xpPercent: Int = 0
     ) -> Int {
-        adjustedExperienceAward(
+        let raw = adjustedExperienceAward(
             ExperienceScaling.battleAwardWithCatchUp(
                 playerLevel: playerLevel,
                 enemyLevel: enemyLevel,
                 highestLevel: highestLevel
             ),
             xpPercent: xpPercent
+        )
+        return ExperienceScaling.cappedAward(
+            raw,
+            requiredXP: CombatantProgression.requiredXP(forLevel: playerLevel)
         )
     }
 

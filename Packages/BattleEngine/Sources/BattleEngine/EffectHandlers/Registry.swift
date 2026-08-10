@@ -70,7 +70,6 @@ public enum EffectHandlers {
         .freezeOnHit: FreezeOnHitHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
-        .holyDamageBonusFromBlock: HolyDamageBonusFromBlockHandler(),
         .revive: ReviveHandler(),
     ]
 

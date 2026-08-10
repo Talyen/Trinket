@@ -41,7 +41,7 @@ struct BattleSpectacleSessionTests {
         #expect(callout.expiresAt > now)
     }
 
-    @Test func ultimateKillingBlowDefersVictoryUntilCinematicCollapse() throws {
+    @Test func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic() throws {
         // Only Bloodthorn in the deck so draw cycling cannot kill before the Ultimate.
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -66,21 +66,13 @@ struct BattleSpectacleSessionTests {
         )
 
         #expect(session.outcome == .victory)
-        #expect(session.spectacle.activeCinematic != nil)
-        #expect(session.spectacle.victorySummary != nil)
-        #expect(!session.spectacle.isShowingVictory)
-        #expect(!session.canRetreat)
-
-        session.markCinematicPlaying()
-        session.beginCinematicCollapse()
-        session.completeCinematicCollapse(at: now.addingTimeInterval(1))
-
         #expect(session.spectacle.activeCinematic == nil)
+        #expect(session.spectacle.victorySummary != nil)
         #expect(session.spectacle.isShowingVictory)
         #expect(!session.canRetreat)
     }
 
-    @Test func playingHeroUltimateDefersFeedbackUntilCinematicCompletes() throws {
+    @Test func unmappedUltimateSkipsCinematicAndRecordsFeedback() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -110,9 +102,43 @@ struct BattleSpectacleSessionTests {
             at: now
         )
 
+        #expect(session.spectacle.activeCinematic == nil)
+        #expect(session.feedback.activeItems.count > beforeFeedbackCount)
+    }
+
+    @Test func playingMappedHeroUltimateDefersFeedbackUntilCinematicCompletes() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "knight",
+            role: .hero,
+            abilities: [.slash, .fireball, .avatarOfJustice]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 500,
+                abilities: []
+            )
+        )
+        let now = Date()
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.avatarOfJustice.id,
+                on: session,
+                at: now
+            )
+        )
+        let beforeFeedbackCount = session.feedback.activeItems.count
+        _ = session.playCard(
+            cardID: ultimate.id,
+            at: now
+        )
+
         let cinematic = try #require(session.spectacle.activeCinematic)
-        #expect(cinematic.abilityID == Ability.bloodthorn.id)
-        #expect(cinematic.actorID == "hero")
+        #expect(cinematic.abilityID == Ability.avatarOfJustice.id)
+        #expect(cinematic.actorID == "knight")
         #expect(session.feedback.activeItems.count == beforeFeedbackCount)
         #expect(session.canEndTurn == false)
 
@@ -137,9 +163,9 @@ struct BattleSpectacleSessionTests {
 
     @Test func alwaysPolicyAutoSkipsUltimateCinematic() throws {
         let hero = CombatantFixtures.combatant(
-            id: "hero",
+            id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .bloodthorn]
+            abilities: [.slash, .fireball, .avatarOfJustice]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -158,7 +184,7 @@ struct BattleSpectacleSessionTests {
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
-                Ability.bloodthorn.id,
+                Ability.avatarOfJustice.id,
                 on: session,
                 at: now
             )
@@ -175,9 +201,9 @@ struct BattleSpectacleSessionTests {
 
     @Test func oncePerBattleShowsHeroUltimateOnceThenAutoSkips() throws {
         let hero = CombatantFixtures.combatant(
-            id: "hero",
+            id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .bloodthorn]
+            abilities: [.slash, .fireball, .avatarOfJustice]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -197,11 +223,11 @@ struct BattleSpectacleSessionTests {
 
         let firstUltimateAt = Date()
         _ = BattleSessionTestSupport.playAbility(
-            Ability.bloodthorn.id,
+            Ability.avatarOfJustice.id,
             on: session,
             at: firstUltimateAt
         )
-        #expect(session.spectacle.activeCinematic?.actorID == "hero")
+        #expect(session.spectacle.activeCinematic?.actorID == "knight")
         session.markCinematicPlaying()
         session.beginCinematicCollapse()
         session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
@@ -209,7 +235,7 @@ struct BattleSpectacleSessionTests {
         let secondUltimateAt = Date()
         let secondUltimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
-                Ability.bloodthorn.id,
+                Ability.avatarOfJustice.id,
                 on: session,
                 at: secondUltimateAt
             )
@@ -259,9 +285,9 @@ struct BattleSpectacleSessionTests {
 
     @Test func beginCinematicCollapseIgnoresStaleExpectedID() throws {
         let hero = CombatantFixtures.combatant(
-            id: "hero",
+            id: "knight",
             role: .hero,
-            abilities: [.slash, .fireball, .bloodthorn]
+            abilities: [.slash, .fireball, .avatarOfJustice]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
@@ -276,7 +302,7 @@ struct BattleSpectacleSessionTests {
         let now = Date()
         let ultimate = try #require(
             BattleSessionTestSupport.drawUntilPlayable(
-                Ability.bloodthorn.id,
+                Ability.avatarOfJustice.id,
                 on: session,
                 at: now
             )

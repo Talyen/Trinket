@@ -101,7 +101,12 @@ public enum TrinketMotion: Sendable {
         }
 
         public static let scrimFade: TimeInterval = 0.2
-        public static let ultimateCollapse: TimeInterval = 0.28
+
+        /// Diagonal split open for Ultimate cinematic cover panels.
+        public static let ultimateSplitOpen: TimeInterval = 0.38
+
+        /// Diagonal split close for Ultimate cinematic cover panels.
+        public static let ultimateSplitClose: TimeInterval = 0.28
 
         /// Production float recipe while Alchemy Pop is under evaluation.
         public static let activeFloatRecipe: CombatFeedbackFloatRecipe = .alchemyPop
@@ -170,12 +175,12 @@ public enum TrinketMotion: Sendable {
         /// Default particle count for a played-card activation burst.
         public static let cardCastParticleCount = 8
 
-        public static var ultimateExpand: Animation {
-            .spring(response: 0.42, dampingFraction: 0.9)
+        public static var ultimateSplitOpenAnimation: Animation {
+            .easeInOut(duration: ultimateSplitOpen)
         }
 
-        public static var ultimateCollapseAnimation: Animation {
-            .spring(response: 0.32, dampingFraction: 0.92)
+        public static var ultimateSplitCloseAnimation: Animation {
+            .easeInOut(duration: ultimateSplitClose)
         }
 
         public static var scrim: Animation {
@@ -191,6 +196,9 @@ public enum TrinketMotion: Sendable {
 
         /// Dim end of the status border pulse (full keyword color is `1`).
         public static let statusBorderPulseDimOpacity = 0.45
+
+        /// One full lap of a traveling buff-aura border shimmer (Shadowstep, etc.).
+        public static let buffAuraShimmerPeriod: TimeInterval = 1.6
 
         public static func displayDuration(for recipe: CombatFeedbackFloatRecipe) -> TimeInterval {
             switch recipe {

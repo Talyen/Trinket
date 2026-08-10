@@ -36,25 +36,43 @@ struct InventoryGridView: View {
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var selectedItem: InventoryItem?
+    @State private var selectedItemIndex: Int?
+    @State private var dissolvingTombstone: SalvageDissolveTombstone?
     @State private var salvageSuccessCount = 0
     @Namespace private var zoomNamespace
 
     var body: some View {
         let inventoryState = playerSave.inventory
-        let items = filteredItems(from: inventoryState)
+        let items = SalvageDissolvePresentation.displayedItems(
+            filteredItems(from: inventoryState),
+            tombstone: dissolvingTombstone
+        )
 
         CollectionGridShell(items: items) { item in
-            Button {
-                selectedItem = item
-            } label: {
-                ItemCard(
+            let isDissolving = dissolvingTombstone?.item.id == item.id
+            if isDissolving {
+                SalvageAwareItemCard(
                     item: item,
-                    showsAffixCount: false
+                    showsAffixCount: false,
+                    isDissolving: true,
+                    onDissolveFinished: finishSalvageDissolve
                 )
+                .accessibilityIdentifier("\(item.displayName) item card")
+            } else {
+                Button {
+                    selectedItem = item
+                    selectedItemIndex = items.firstIndex(where: { $0.id == item.id })
+                } label: {
+                    SalvageAwareItemCard(
+                        item: item,
+                        showsAffixCount: false,
+                        isDissolving: false
+                    )
+                }
+                .trinketQuietTapButtonStyle()
+                .matchedTransitionSource(id: item.id, in: zoomNamespace)
+                .accessibilityIdentifier("\(item.displayName) item card")
             }
-            .trinketQuietTapButtonStyle()
-            .matchedTransitionSource(id: item.id, in: zoomNamespace)
-            .accessibilityIdentifier("\(item.displayName) item card")
         } emptyView: {
             inventoryEmptyState(inventoryState: inventoryState)
         }
@@ -82,9 +100,14 @@ struct InventoryGridView: View {
             NavigationStack {
                 ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
                     if didSucceed {
+                        let index = selectedItemIndex
+                            ?? filteredItems(from: playerSave.inventory).firstIndex(where: { $0.id == item.id })
+                            ?? 0
+                        dissolvingTombstone = SalvageDissolveTombstone(item: item, index: index)
                         salvageSuccessCount += 1
                     }
                     selectedItem = nil
+                    selectedItemIndex = nil
                 }
             }
             .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
@@ -95,6 +118,12 @@ struct InventoryGridView: View {
             trigger: salvageSuccessCount,
             enabled: options.hapticsEnabled
         )
+    }
+
+    private func finishSalvageDissolve() {
+        withAnimation(TrinketMotion.Reward.stateChange) {
+            dissolvingTombstone = nil
+        }
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
@@ -140,7 +169,6 @@ extension ItemDetailView {
         let yields = ItemSalvage.yields(for: item)
         return Self(
             item: item,
-            salvageYields: yields,
             salvageReceivableYields: saveStore.homestead.receivableAmounts(from: yields),
             equippedByName: saveStore.equippedCombatantName(for: item.id),
             onSalvage: {

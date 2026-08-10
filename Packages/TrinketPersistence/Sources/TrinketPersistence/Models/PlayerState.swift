@@ -311,8 +311,15 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedHeroIDs.contains(combatantID) || unlockedCompanionIDs.contains(combatantID)
     }
 
-    public mutating func grantExperience(_ amount: Int, to combatant: Combatant) {
-        progressions[combatant.id] = progression(for: combatant).addingExperience(amount)
+    /// Grants XP after applying the shared soft cap (`3 ×` current `requiredXP`).
+    /// Returns the amount actually applied.
+    @discardableResult
+    public mutating func grantExperience(_ amount: Int, to combatant: Combatant) -> Int {
+        let current = progression(for: combatant)
+        let granted = ExperienceScaling.cappedAward(amount, for: current)
+        guard granted > 0 else { return 0 }
+        progressions[combatant.id] = current.addingExperience(granted)
+        return granted
     }
 
     public mutating func grantGold(_ amount: Int) {

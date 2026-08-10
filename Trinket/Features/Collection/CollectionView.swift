@@ -11,6 +11,8 @@ struct CollectionView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedItem: InventoryItem?
+    @State private var selectedItemIndex: Int?
+    @State private var dissolvingTombstone: SalvageDissolveTombstone?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
     @State private var salvageSuccessCount = 0
@@ -39,9 +41,14 @@ struct CollectionView: View {
                 NavigationStack {
                     ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
                         if didSucceed {
+                            let index = selectedItemIndex
+                                ?? playerSave.inventory.items.firstIndex(where: { $0.id == item.id })
+                                ?? 0
+                            dissolvingTombstone = SalvageDissolveTombstone(item: item, index: index)
                             salvageSuccessCount += 1
                         }
                         selectedItem = nil
+                        selectedItemIndex = nil
                     }
                 }
                 .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
@@ -89,7 +96,11 @@ struct CollectionView: View {
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
         let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
-        let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
+        let shelfItems = SalvageDissolvePresentation.displayedItems(
+            Array(inventoryState.items.prefix(shelfLimit)),
+            tombstone: dissolvingTombstone
+        )
+        let showsInventoryShelf = !inventoryState.items.isEmpty || dissolvingTombstone != nil
 
         return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
@@ -111,33 +122,56 @@ struct CollectionView: View {
                     )
                 )
 
-                if !inventoryState.items.isEmpty {
+                if showsInventoryShelf {
                     CategoryBrowseShelf(
                         title: "Inventory",
                         linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory
                     ) {
                         InventoryGridView()
                     } content: {
-                        ForEach(shelfItems) { item in
-                            Button {
-                                selectedItem = item
-                            } label: {
-                                ItemCard(
-                                    item: item,
-                                    showsAffixCount: false,
-                                    showsName: false
-                                )
-                                .collectionShelfCardWidth()
+                        ForEach(Array(shelfItems.enumerated()), id: \.element.id) { index, item in
+                            let isDissolving = dissolvingTombstone?.item.id == item.id
+                            Group {
+                                if isDissolving {
+                                    SalvageAwareItemCard(
+                                        item: item,
+                                        showsAffixCount: false,
+                                        showsName: false,
+                                        isDissolving: true,
+                                        onDissolveFinished: finishSalvageDissolve
+                                    )
+                                    .collectionShelfCardWidth()
+                                    .accessibilityIdentifier("\(item.displayName) item card")
+                                } else {
+                                    Button {
+                                        selectedItem = item
+                                        selectedItemIndex = index
+                                    } label: {
+                                        SalvageAwareItemCard(
+                                            item: item,
+                                            showsAffixCount: false,
+                                            showsName: false,
+                                            isDissolving: false
+                                        )
+                                        .collectionShelfCardWidth()
+                                    }
+                                    .trinketQuietTapButtonStyle()
+                                    .matchedTransitionSource(id: item.id, in: zoomNamespace)
+                                    .accessibilityIdentifier("\(item.displayName) item card")
+                                }
                             }
-                            .trinketQuietTapButtonStyle()
-                            .matchedTransitionSource(id: item.id, in: zoomNamespace)
-                            .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
                 }
             }
             .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
+        }
+    }
+
+    private func finishSalvageDissolve() {
+        withAnimation(TrinketMotion.Reward.stateChange) {
+            dissolvingTombstone = nil
         }
     }
 
@@ -151,8 +185,10 @@ struct CollectionView: View {
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
                     selectedItem = owned
+                    selectedItemIndex = playerSave.inventory.items.firstIndex(where: { $0.id == itemID })
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
                     selectedItem = template
+                    selectedItemIndex = nil
                 } else {
                     showMissingItem = true
                 }

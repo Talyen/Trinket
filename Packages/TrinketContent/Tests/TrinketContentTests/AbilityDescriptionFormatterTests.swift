@@ -24,7 +24,7 @@ struct AbilityDescriptionFormatterTests {
         )
         try #expect(
             Ability.avatarOfJustice.summary
-                == "Gain 4 Block. Your attacks deal Holy damage equal to your Block for 2 turns."
+                == "Deal 6 Holy damage each turn for 2 turns. Gain 6 Block."
         )
         try #expect(
             AbilityDescriptionFormatter.format(.manaBerries) == "Restore 2 Mana."

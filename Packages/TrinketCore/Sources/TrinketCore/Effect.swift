@@ -114,8 +114,6 @@ public enum Effect: Hashable, Sendable {
     case multiplyDoT(Keyword, Int)
     /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
     case recurringDamage(Keyword, Int, Int)
-    /// Outgoing damage becomes Holy and gains bonus equal to current Block at hit time, for `durationTurns`.
-    case holyDamageBonusFromBlock(Int)
     /// Revive a defeated ally to the given Health.
     case revive(Int)
 
@@ -172,7 +170,6 @@ public enum Effect: Hashable, Sendable {
         case .freezeOnHit: .freeze
         case let .multiplyDoT(k, _): k
         case let .recurringDamage(k, _, _): k
-        case .holyDamageBonusFromBlock: .holy
         case .revive: .health
         }
     }
@@ -221,7 +218,6 @@ public enum Effect: Hashable, Sendable {
         case let .restoreManaOnHit(_, d): d
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
-        case let .holyDamageBonusFromBlock(d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
@@ -263,7 +259,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .holyDamageBonusFromBlock:
+             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit:
             .actor
         }
     }

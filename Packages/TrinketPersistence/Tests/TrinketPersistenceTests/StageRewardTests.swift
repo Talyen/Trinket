@@ -56,14 +56,14 @@ struct StageRewardTests {
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let companionLevel = PlayerRosterState.initial.progression(for: companion).level
         let expectedHeroProgression = PlayerRosterState.initial.progression(for: hero).addingExperience(
-            ExperienceScaling.battleAwardWithCatchUp(
+            StageCompletion.battleExperienceAward(
                 playerLevel: heroLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.initial.highestHeroLevel
             )
         )
         let expectedCompanionProgression = PlayerRosterState.initial.progression(for: companion).addingExperience(
-            ExperienceScaling.battleAwardWithCatchUp(
+            StageCompletion.battleExperienceAward(
                 playerLevel: companionLevel,
                 enemyLevel: encounterLevel,
                 highestLevel: PlayerRosterState.initial.highestCompanionLevel
