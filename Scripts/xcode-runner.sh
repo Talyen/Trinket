@@ -128,6 +128,15 @@ xcode_runner_call_reporter() {
 
   # Diagnostics are advisory. Never replace the Xcode status with a reporter
   # process status, even if a local toolchain cannot parse an xcresult.
+  if [[ "$exit_code" -ne 0 && -f "$log_file" ]]; then
+    echo "=== xcode-runner: raw log excerpt ($log_file) ===" >&2
+    # Prefer actionable lines; fall back to the end of the quiet log so CI is
+    # not blind when diagnostics misclassify benign setup noise.
+    if ! grep -n -E -i 'error:|fatal error:|exception|actool|ibtoold|nil object|BUILD FAILED|\*\* BUILD|\*\* TEST FAILED' "$log_file" >&2; then
+      tail -n 80 "$log_file" >&2 || true
+    fi
+    echo "=== end raw log excerpt ===" >&2
+  fi
   return "$reporter_status"
 }
 

@@ -64,10 +64,21 @@ runs:
       run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 
     - name: Build for testing
+      id: build
       shell: bash
       env:
         SKIP_GENERATE: 1
       run: ${{ inputs.build-command }}
+
+    - name: Upload build failure diagnostics
+      if: failure() && steps.build.outcome == 'failure'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ steps.ids.outputs.artifact-name }}-failure-diagnostics
+        path: .DerivedData/TestResults
+        include-hidden-files: true
+        retention-days: 7
+        if-no-files-found: ignore
 
     - name: Prune DerivedData before cache/artifact save
       if: inputs.prune == 'true'
