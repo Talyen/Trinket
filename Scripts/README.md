@@ -179,7 +179,7 @@ Post-push CI watching is owned by cloud agent automations; red-`main` recovery
 policy for **CI Autofix — Trinket** and the Actions sticky **CI failing on main**
 lives in [`Docs/CI-FIXER.md`](../Docs/CI-FIXER.md)
 (Cursor: Tier A squash PR + auto-merge when no user-facing design judgment;
-Actions: deterministic sticky issue).
+Actions: deterministic sticky **CI failing on main**).
 `./Scripts/agent-watch-ci.sh` remains available for manual use (auto-dispatches
 full CI when path filters skipped substantive jobs; on failure prints check
 annotations plus a short log excerpt; simulator/XCUITest launch flakes get one
