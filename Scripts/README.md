@@ -175,7 +175,8 @@ If the post-commit gate regenerates files, review them, amend the commit, and re
 `agent-push-gate.sh` is **generate/assert only** — not style or compile; path-scoped
 `handoff.sh` remains the pre-CI source gate (and schedules compile-only
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
-Post-push CI watching is owned by cloud agent automations.
+Post-push CI watching is owned by cloud agent automations; red-`main` recovery
+policy for **CI Autofix — Trinket** lives in [`Docs/CI-FIXER.md`](../Docs/CI-FIXER.md).
 `./Scripts/agent-watch-ci.sh` remains available for manual use (auto-dispatches
 full CI when path filters skipped substantive jobs; on failure prints check
 annotations plus a short log excerpt; simulator/XCUITest launch flakes get one
