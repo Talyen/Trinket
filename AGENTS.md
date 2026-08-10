@@ -40,3 +40,4 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 
 - Commits include only task-related authored and generated files and must pass repository hooks. Path-scoped verification should be green before commit.
 - Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: `Scripts/README.md`.
+- Do **not** require `tests / CI OK` as a GitHub **push** gate on `main` (chicken-and-egg). Merging a **PR** into `main` does require that check (ruleset + Admin bypass for direct trunk pushes). CI fixer policy: [Docs/CI-FIXER.md](Docs/CI-FIXER.md).

@@ -132,3 +132,24 @@ jobs:
           artifact-name: ${{ inputs.artifact-prefix }}exhaustive-ui-${{ matrix.name }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
+
+  # Aggregate status for dashboards / PR merges (not a required push gate on main).
+  # Check name appears as "tests / CI OK" to callers of this reusable workflow.
+  ci-ok:
+    name: CI OK
+    needs: [changes, gate, assets-gate, build, unit, smoke, exhaustive-ui]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify all jobs succeeded or were skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::error::A required job failed or was cancelled."
+              exit 1
+            fi
+          done
