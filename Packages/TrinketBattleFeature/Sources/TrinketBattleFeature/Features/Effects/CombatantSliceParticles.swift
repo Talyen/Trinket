@@ -152,20 +152,27 @@ struct SliceBorderParticles: View {
     var configuration = CardCastEffectConfiguration()
 
     var body: some View {
-        GeometryReader { geometry in
+        Canvas { context, size in
             let origin = CGPoint(
-                x: (geometry.size.width - cardSize.width) * 0.5,
-                y: (geometry.size.height - cardSize.height) * 0.5
+                x: (size.width - cardSize.width) * 0.5,
+                y: (size.height - cardSize.height) * 0.5
             )
-            ZStack {
-                ForEach(particles) { particle in
-                    let sample = sample(for: particle, cardOrigin: origin)
-                    Circle()
-                        .fill(Keyword.bleed.visualStyle.color)
-                        .frame(width: sample.diameter, height: sample.diameter)
-                        .position(sample.center)
-                        .opacity(sample.opacity)
-                }
+            let color = Keyword.bleed.visualStyle.color
+            for particle in particles {
+                let sample = sample(for: particle, cardOrigin: origin)
+                guard sample.opacity > 0, sample.diameter > 0 else { continue }
+                let rect = CGRect(
+                    x: sample.center.x - sample.diameter / 2,
+                    y: sample.center.y - sample.diameter / 2,
+                    width: sample.diameter,
+                    height: sample.diameter
+                )
+                var particleContext = context
+                particleContext.opacity = sample.opacity
+                particleContext.fill(
+                    Path(ellipseIn: rect),
+                    with: .color(color)
+                )
             }
         }
         .allowsHitTesting(false)
@@ -244,34 +251,42 @@ struct SliceCutParticles: View {
     let particles: [SliceCutParticle]
 
     var body: some View {
-        GeometryReader { geometry in
-            let center = CGPoint(x: geometry.size.width * 0.5, y: geometry.size.height * 0.5)
+        Canvas { context, size in
+            let center = CGPoint(x: size.width * 0.5, y: size.height * 0.5)
             let angle = CombatantSliceGeometry.angleRadians
             let along = CGVector(dx: sin(angle), dy: cos(angle))
             let normal = CGVector(dx: cos(angle), dy: -sin(angle))
             let diagLen = hypot(cardSize.width, cardSize.height)
+            let color = Keyword.bleed.visualStyle.color
 
-            ZStack {
-                ForEach(particles) { particle in
-                    let age = (rawSplitProgress - particle.delay) / particle.lifetime
-                    if age > 0, age < 1 {
-                        let easedAge = 1 - pow(1 - age, 2)
-                        let originX = center.x + along.dx * particle.linePosition * diagLen * 0.5
-                        let originY = center.y + along.dy * particle.linePosition * diagLen * 0.5
-                        let sprayDx = normal.dx * particle.side + along.dx * particle.sprayAngle
-                        let sprayDy = normal.dy * particle.side + along.dy * particle.sprayAngle
-                        let dist = particle.speed * easedAge
+            for particle in particles {
+                let age = (rawSplitProgress - particle.delay) / particle.lifetime
+                guard age > 0, age < 1 else { continue }
+                let easedAge = 1 - pow(1 - age, 2)
+                let originX = center.x + along.dx * particle.linePosition * diagLen * 0.5
+                let originY = center.y + along.dy * particle.linePosition * diagLen * 0.5
+                let sprayDx = normal.dx * particle.side + along.dx * particle.sprayAngle
+                let sprayDy = normal.dy * particle.side + along.dy * particle.sprayAngle
+                let dist = particle.speed * easedAge
+                let diameter = particle.size * (1 - 0.3 * age)
+                guard diameter > 0 else { continue }
+                let opacity = Double(pow(1 - age, 1.4))
+                guard opacity > 0 else { continue }
 
-                        Circle()
-                            .fill(Keyword.bleed.visualStyle.color)
-                            .frame(
-                                width: particle.size * (1 - 0.3 * age),
-                                height: particle.size * (1 - 0.3 * age)
-                            )
-                            .position(x: originX + sprayDx * dist, y: originY + sprayDy * dist)
-                            .opacity(Double(pow(1 - age, 1.4)))
-                    }
-                }
+                let posX = originX + sprayDx * dist
+                let posY = originY + sprayDy * dist
+                let rect = CGRect(
+                    x: posX - diameter / 2,
+                    y: posY - diameter / 2,
+                    width: diameter,
+                    height: diameter
+                )
+                var particleContext = context
+                particleContext.opacity = opacity
+                particleContext.fill(
+                    Path(ellipseIn: rect),
+                    with: .color(color)
+                )
             }
         }
         .allowsHitTesting(false)

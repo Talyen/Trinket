@@ -46,37 +46,13 @@ struct BattleHandView: View {
                 cardCount: cards.count,
                 configuration: configuration
             )
-            let poses = cards.indices.map { index in
-                HeldCardLayoutSnapshot(
-                    width: layout.cardWidth,
-                    height: layout.cardHeight,
-                    restingRotation: BattleHandLayout.rotation(
-                        index: index,
-                        cardCount: cards.count,
-                        fanAngleStep: configuration.fanAngleStep
-                    ),
-                    restingOffsetY: BattleHandLayout.restingOffsetY(
-                        index: index,
-                        cardCount: cards.count,
-                        fanLiftStep: configuration.fanLiftStep
-                    ),
-                    restingCenter: BattleHandLayout.restingCenter(
-                        index: index,
-                        metrics: layout,
-                        cardCount: cards.count,
-                        containerFrame: battleFrame,
-                        configuration: configuration
-                    ),
-                    fanOffsetX: BattleHandLayout.cardOffsetX(
-                        index: index,
-                        metrics: layout,
-                        containerWidth: geometry.size.width
-                    )
-                )
-            }
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
-                    let liveSnapshot = poses[index]
+                    let liveSnapshot = liveSnapshot(
+                        index: index,
+                        layout: layout,
+                        containerWidth: geometry.size.width
+                    )
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
 
@@ -197,5 +173,38 @@ struct BattleHandView: View {
         self.onCardInteractionChanged = onCardInteractionChanged
         self.onAttackWindUp = onAttackWindUp
         self.onAttackCancel = onAttackCancel
+    }
+
+    private func liveSnapshot(
+        index: Int,
+        layout: BattleHandLayout.Metrics,
+        containerWidth: CGFloat
+    ) -> HeldCardLayoutSnapshot {
+        HeldCardLayoutSnapshot(
+            width: layout.cardWidth,
+            height: layout.cardHeight,
+            restingRotation: BattleHandLayout.rotation(
+                index: index,
+                cardCount: cards.count,
+                fanAngleStep: configuration.fanAngleStep
+            ),
+            restingOffsetY: BattleHandLayout.restingOffsetY(
+                index: index,
+                cardCount: cards.count,
+                fanLiftStep: configuration.fanLiftStep
+            ),
+            restingCenter: BattleHandLayout.restingCenter(
+                index: index,
+                metrics: layout,
+                cardCount: cards.count,
+                containerFrame: battleFrame,
+                configuration: configuration
+            ),
+            fanOffsetX: BattleHandLayout.cardOffsetX(
+                index: index,
+                metrics: layout,
+                containerWidth: containerWidth
+            )
+        )
     }
 }

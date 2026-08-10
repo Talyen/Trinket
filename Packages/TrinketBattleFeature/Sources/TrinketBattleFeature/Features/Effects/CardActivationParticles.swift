@@ -11,17 +11,23 @@ struct CardActivationParticles: View {
     var configuration = CardCastEffectConfiguration()
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(particles.indices, id: \.self) { index in
-                    let particle = particles[index]
-                    let sample = sample(for: particle, size: geometry.size)
-                    Circle()
-                        .fill(keywordColor(for: particle))
-                        .frame(width: sample.diameter, height: sample.diameter)
-                        .position(sample.center)
-                        .opacity(sample.opacity)
-                }
+        Canvas { context, size in
+            guard !keywords.isEmpty else { return }
+            for particle in particles {
+                let sample = sample(for: particle, size: size)
+                guard sample.opacity > 0, sample.diameter > 0 else { continue }
+                let rect = CGRect(
+                    x: sample.center.x - sample.diameter / 2,
+                    y: sample.center.y - sample.diameter / 2,
+                    width: sample.diameter,
+                    height: sample.diameter
+                )
+                var particleContext = context
+                particleContext.opacity = sample.opacity
+                particleContext.fill(
+                    Path(ellipseIn: rect),
+                    with: .color(keywordColor(for: particle))
+                )
             }
         }
         .allowsHitTesting(false)
