@@ -1,18 +1,13 @@
 {
-  "features" : [
-    "refractivity"
-  ],
   "fill" : {
-    "solid" : "extended-srgb:1.00000,0.55294,0.15686,1.00000"
+    "automatic-gradient" : "extended-gray:0.26159,1.00000"
   },
   "groups" : [
     {
-      "blur-material" : null,
-      "hidden" : false,
       "layers" : [
         {
           "image-name" : "8.jpeg",
-          "name" : "7",
+          "name" : "Art",
           "position" : {
             "scale" : 0.55,
             "translation-in-points" : [
@@ -22,27 +17,13 @@
           }
         }
       ],
-      "lighting" : "individual",
-      "position" : {
-        "scale" : 1,
-        "translation-in-points" : [
-          0,
-          0
-        ]
-      },
-      "refractivity" : {
-        "depth" : 0,
-        "enabled" : true,
-        "strength" : 0.5
-      },
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
       },
-      "specular" : true,
       "translucency" : {
         "enabled" : true,
-        "value" : 0.2
+        "value" : 0.5
       }
     }
   ],

@@ -87,14 +87,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1"
-        # Xcode 26.6 actool crashes compiling AppIcon.icon + Assets.xcassets for the
-        # thinned assetcatalog_output pass (nil object in
-        # selectCatalogIconComposerItemsFromCollection / FB20183399-class). Unthinned
-        # compile succeeds. Keep icon content unchanged; skip App Store thinning
-        # behaviors and ODR until Apple fixes the thinned .icon path on 26.6.
-        ENABLE_ON_DEMAND_RESOURCES: NO
-        SUPPORTS_ON_DEMAND_RESOURCES: NO
-        ASSETCATALOG_COMPILER_SKIP_APP_STORE_DEPLOYMENT: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES

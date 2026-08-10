@@ -28,8 +28,6 @@ runs:
         fi
         echo "Selecting Xcode: $xcode_path"
         sudo xcode-select -s "$xcode_path/Contents/Developer"
-        # Prime first-launch components / ibtoold XPC agents used by Icon Composer .icon.
-        sudo xcodebuild -runFirstLaunch
         xcodebuild -version
         echo "XCODE_PATH=$xcode_path" >> "$GITHUB_ENV"
 
