@@ -87,6 +87,11 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1"
+        # Xcode 26.6 actool crashes compiling AppIcon.icon + Assets.xcassets for the
+        # thinned ODR pass (nil object in selectCatalogIconComposerItemsFromCollection).
+        # Unthinned compile succeeds; DesignColors thins fine with ODR off. Keep icon
+        # content unchanged; disable ODR until Apple fixes the thinned .icon path.
+        ENABLE_ON_DEMAND_RESOURCES: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
