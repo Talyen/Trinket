@@ -65,7 +65,7 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)
 ```
 
-Agent workflow: `AGENTS.md`. Test conventions: `Docs/Platform/Testing.md`.
+Agent workflow: `AGENTS.md`. Test conventions: `Docs/Platform/Testing.md`. CI fixer bot: `Docs/CI-FIXER.md`.
 
 ## Docs
 
@@ -73,6 +73,7 @@ Start with **`Docs/Platform/Architecture.md`** for the repo map, module ownershi
 
 - Agent workflow: `AGENTS.md`
 - Testing conventions: `Docs/Platform/Testing.md`
+- CI fixer bot: `Docs/CI-FIXER.md`
 - UI test launch args / speed: `TrinketUITests/README.md`
 - Product tabs / repo map: `Docs/Platform/Architecture.md`
 - Content pipeline: `ContentManifest/README.md`
