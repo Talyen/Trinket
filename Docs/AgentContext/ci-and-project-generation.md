@@ -19,7 +19,7 @@ For complete gate composition, test tier inventory, isolation mechanics, and IDE
 - **Environment & pinning**: `generate.sh` exports `LC_ALL=C` and pins `DEVELOPER_DIR` + `SDKROOT` to Xcode's macOS SDK. `--force-xcodegen` bypasses cache. Pinned tools require `TRINKET_REQUIRE_PINNED_TOOLS=1`. CI selects Xcode from `Scripts/tool-versions.env` (`XCODE_VERSION`).
 - **Diagnostics**: When a test or CI invocation fails, load [`ci-diagnostics.md`](ci-diagnostics.md) before inspecting raw logs.
 - **Linux style builds**: SourceKit `custom_rules` are skipped on Linux — treat Linux style PASS as provisional.
-- **CI fixer**: Cursor **CI Autofix — Trinket** recovers red `main` per [CI-FIXER.md](../CI-FIXER.md) (Tier A PR + auto-merge; Tier B sticky `ci-autofix-failed` issues).
+- **CI fixer**: Actions sticky **CI failing on main** on red `Trinket CI`; Cursor **CI Autofix — Trinket** may land Tier A PRs only (no design judgment) per [CI-FIXER.md](../CI-FIXER.md).
 
 ## Style gate (fail closed)
 

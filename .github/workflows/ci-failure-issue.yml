@@ -1,0 +1,57 @@
+name: CI failure issue
+
+# Deterministic sticky issue when Trinket CI fails on main. Mirrors the
+# Nightly open-or-update pattern so red main is visible without relying on
+# the Cursor autofix prompt for escalation.
+on:
+  workflow_run:
+    workflows: ["Trinket CI"]
+    types: [completed]
+
+concurrency:
+  group: ci-failure-issue-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    name: Create or update CI failure issue
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create or update sticky issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          title="CI failing on main"
+          body="Trinket CI failed for ${HEAD_SHA} (attempt ${RUN_ATTEMPT}): ${RUN_URL}"
+          has_issues="$(gh api "repos/$REPO" --jq '.has_issues')"
+          if [ "$has_issues" != "true" ]; then
+            {
+              echo "## CI failure (Issues disabled)"
+              echo
+              echo "$body"
+              echo
+              echo "GitHub Issues are disabled on \`$REPO\`; skipping issue create/comment."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Issues disabled on $REPO; recorded failure in step summary."
+            exit 0
+          fi
+          existing="$(gh issue list --repo "$REPO" --state open \
+            --search "in:title \"$title\"" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body "$body"
+          else
+            gh issue create --repo "$REPO" --title "$title" --body "$body"
+          fi

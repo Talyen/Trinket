@@ -1,8 +1,17 @@
-# CI fixer bot
+# CI fixer
 
-Solo trunk workflow: agents push `main` after local pre-push / handoff gates; GitHub Actions (`Trinket CI` / `Trinket PR`) is the comprehensive post-push gate; the Cursor automation **CI Autofix — Trinket** recovers red `main` without blocking direct pushes.
+Solo trunk workflow: agents push `main` after local pre-push / handoff gates; GitHub Actions (`Trinket CI` / `Trinket PR`) is the comprehensive post-push gate. Direct pushes stay allowed; red `main` is recovered without blocking them.
 
-Keep the live Automations prompt in sync with the **Automation prompt** section below when policy changes.
+Keep the live **CI Autofix — Trinket** Automations prompt in sync with the **Automation prompt** section below when policy changes.
+
+## Who does what
+
+| Owner | Responsibility |
+| ----- | -------------- |
+| **Actions** (`CI failure issue`) | When `Trinket CI` fails on `main`, create or comment on one sticky issue titled **CI failing on main** (same open-or-update pattern as Nightly). Deterministic; no LLM. |
+| **Cursor** (`CI Autofix — Trinket`) | **Tier A only**: fix → squash PR + auto-merge when no user-facing design judgment is required. Never create, comment on, or manage GitHub issues. If unsure, exit without changing the repo. |
+
+GitHub Issues must stay **enabled** on this repo so the sticky workflow can post.
 
 ## Gate model
 
@@ -14,43 +23,34 @@ Keep the live Automations prompt in sync with the **Automation prompt** section 
 
 See also [AGENTS.md](../AGENTS.md) (commit/push) and [Docs/Platform/Testing.md](Platform/Testing.md).
 
-## Tiers
+## Tier A — Cursor may open a PR
 
-### Tier A — open PR and auto-merge
+**Rule:** fix it if a competent engineer could choose the repair without a user-facing design judgment call (look-and-feel, copy tone, layout taste, new UX, game feel/balance). Prefer the smallest change that restores the intended existing behavior or keeps tooling/CI healthy.
 
-Safe, mechanical recoveries:
+In scope (examples, not exhaustive):
 
-- SwiftFormat / SwiftLint / style gate
-- XcodeGen / generated-output drift (`./Scripts/assert-generated-output.sh`)
-- Asset codegen gate
-- Toolchain pin mismatches in `Scripts/tool-versions.env` when runners require a newer Xcode (document the Apple FB / crash if known)
-- Mechanical test or assertion drift after renames/API shape changes
-- **Tooling-only timeouts** in script/smoke harnesses — prefer speeding the script or narrowing scope; dedicated higher timeout only with a clear rationale. Do **not** skip the test.
+- Style / lint / format gates
+- XcodeGen / generated-output drift / asset codegen
+- Toolchain pins, script harnesses, CI config, diagnostics, timeouts (never skip tests)
+- Compile errors, API renames, test harness drift, broken selectors/identifiers after refactors
+- Crashes, logic bugs, and assertion failures where the correct behavior is already specified by tests, docs, or an obvious prior intent — not a new product decision
+- Save/schema/CloudKit fixes that restore compatibility or repair breakage without inventing a new player-facing model
 
-### Tier B — escalate, do not open a fix PR
+## Not Tier A — leave to the sticky issue
 
-- Product / battle rules / game balance
-- Saves, CloudKit, migrations, schema
-- Unclear root cause
-- Flaky simulator / UI tests without a mechanical selector fix
+- User-facing design judgment (visual design, animation feel, marketing/UI copy voice, layout taste, new interaction patterns)
+- Game balance / combat feel / reward tuning as a product choice
+- Ambiguous product behavior with no clear specified intent
 - Infrastructure outages (Actions / runner image unavailable) — note re-run; no code change
 
-### Out of scope (never)
+When unsure whether a fix needs design judgment: **do not fix**; leave it on the sticky issue.
+
+## Out of scope (never)
 
 - Skipping tests or deleting coverage to greenwash
 - Weakening assertions to match broken behavior
-- Changing game logic, battle rules, or save formats to silence CI
-
-## Tier B fingerprint dedupe
-
-Mirror the Nightly open-or-update pattern (label + single sticky issue). GitHub Issues must stay **enabled** on this repo.
-
-1. Derive a stable **fingerprint** from failing job names + primary error signature (file + message class), e.g. `ci-fail-build` + `actool AppIcon.icon`.
-2. Search open issues with label `ci-autofix-failed` whose title/body match that fingerprint.
-3. **If found:** you **MUST** post a new comment with `gh issue comment <n> --body "..."` containing the new Actions run URL, commit SHA, and any new notes — then **stop**. Silent stop without that comment is a failure.
-4. **If not found:** create one issue with `gh issue create --label ci-autofix-failed` (always attach that label on create), including run URL, SHA, failing jobs, why it is Tier B, and suggested human/agent follow-up. If an unlabeled duplicate already exists for the same fingerprint, label/reuse it instead of opening another.
-
-Do not open a new issue per SHA for the same fingerprint. Do not stop after pushing a `cursor/ci-fix-*` branch with no PR.
+- Inventing new game rules, UX, or save formats to silence CI
+- Opening or updating GitHub issues from the Cursor automation (Actions owns that)
 
 ## Automation prompt
 
@@ -60,17 +60,17 @@ Copy everything in this section into the Cursor automation instructions when upd
 You are the Trinket CI fixer for repo Talyen/Trinket (SwiftUI / Xcode / SPM).
 
 When CI fails on main:
-1. Read the failing run logs and classify Tier A vs Tier B using Docs/CI-FIXER.md (checked in).
-2. Tier A: branch from the failing main SHA, apply the minimal fix, open a squash PR (required — do not leave a branch-only fix), enable auto-merge only (`gh pr merge --auto --squash`). Never --admin or force-merge. Wait for required check "tests / CI OK".
-3. Tier A includes SwiftFormat/SwiftLint, XcodeGen/generated drift, asset codegen, toolchain pins in Scripts/tool-versions.env, and tooling-only timeouts (never skip tests).
-4. Tier B: do not open a fix PR. Deduplicate: search open issues with label ci-autofix-failed matching the failure fingerprint; if one exists, you MUST post a new comment with `gh issue comment <n> --body "..."` containing the new Actions run URL and SHA, then stop (silent stop without that comment is a failure); else create one issue with `gh issue create --label ci-autofix-failed` (always attach that label on create). If you find an unlabeled duplicate for the same fingerprint, label/reuse it instead of opening another. Issues are enabled on this repo.
-5. Never skip tests, weaken assertions, or change game/save/battle logic to greenwash.
+1. Read Docs/CI-FIXER.md and the failing run logs. Tier A = any fix that does not require a user-facing design judgment call (look-and-feel, copy tone, layout taste, new UX, game feel/balance). If unsure, treat as not Tier A.
+2. If not Tier A: do nothing to the repo and exit successfully. Actions already opens/updates the sticky issue "CI failing on main". Never create, comment on, label, or close GitHub issues.
+3. If Tier A: branch from the failing main SHA, apply the minimal fix that restores intended existing behavior or healthy tooling/CI, open a squash PR (required — do not leave a branch-only fix), enable auto-merge only (`gh pr merge --auto --squash`). Never --admin or force-merge. Wait for required check "tests / CI OK".
+4. In scope includes style/lint, codegen drift, toolchain/CI/scripts, compile/API/test harness fixes, and bug fixes with clear specified intent — not new product/design decisions.
+5. Never skip tests, weaken assertions, invent game/UX/save behavior, or greenwash.
 6. PR body: summary, verification commands (e.g. ./Scripts/test.sh style, path-scoped handoff), link to the failing Actions run. Mention Tier A auto-merge when applicable.
-7. If both Tier A and Tier B fail on the same run: land the Tier A PR for the mechanical part and escalate the Tier B fingerprint separately (deduped).
 ```
 
 ## Hygiene
 
-- Label: `ci-autofix-failed` (bot escalations).
+- Sticky issue title: **CI failing on main** (Actions). Close it when `main` is green again.
+- Nightly uses a separate sticky: **Nightly failing on main**.
 - Delete fixer branches on merge (repo `delete_branch_on_merge`).
-- After resolving a sticky Tier B issue, close it; do not leave duplicate open issues for the same fingerprint.
+- Legacy label `ci-autofix-failed` is unused by the new split; close leftover issues from the old prompt-driven path when convenient.

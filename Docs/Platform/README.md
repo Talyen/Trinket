@@ -6,7 +6,7 @@ Standing Apple platform guidance for Trinket. Prefer durable policy here over mi
 |----------|---------|
 | [Architecture.md](Architecture.md) | Module layout, dependencies, persistence, stack rules |
 | [Testing.md](Testing.md) | Unit / smoke / UI ownership and verification habits |
-| [../CI-FIXER.md](../CI-FIXER.md) | CI fixer bot Tier A/B, PR auto-merge, fingerprint dedupe |
+| [../CI-FIXER.md](../CI-FIXER.md) | Actions sticky on red main; Cursor Tier A autofix (no design judgment) |
 | [iOS26AppleReference.md](iOS26AppleReference.md) | Curated WWDC and Apple documentation links |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Pre-ship CloudKit / App Store checklist (local prep vs live enablement) |
 | [IdentityPlan.md](IdentityPlan.md) | Guest-first identity: iCloud = cross-device progress; no login splash / SIWA / Google |

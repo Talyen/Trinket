@@ -176,9 +176,10 @@ If the post-commit gate regenerates files, review them, amend the commit, and re
 `handoff.sh` remains the pre-CI source gate (and schedules compile-only
 `build.sh` for feature/shared/model Swift when no unit/smoke owner resolves).
 Post-push CI watching is owned by cloud agent automations; red-`main` recovery
-policy for **CI Autofix — Trinket** lives in [`Docs/CI-FIXER.md`](../Docs/CI-FIXER.md)
-(Tier A squash PR + auto-merge; Tier B sticky `ci-autofix-failed` issues with a
-required comment on each new failing run).
+policy for **CI Autofix — Trinket** and the Actions sticky **CI failing on main**
+lives in [`Docs/CI-FIXER.md`](../Docs/CI-FIXER.md)
+(Cursor: Tier A squash PR + auto-merge when no user-facing design judgment;
+Actions: deterministic sticky issue).
 `./Scripts/agent-watch-ci.sh` remains available for manual use (auto-dispatches
 full CI when path filters skipped substantive jobs; on failure prints check
 annotations plus a short log excerpt; simulator/XCUITest launch flakes get one
