@@ -5,6 +5,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Ability catalog invariants | `AbilityCatalogTests` | IDs, validator, DoT pairing, builder smoke |
+| Ultimate cinematic catalog | `UltimateCinematicCatalogTests` | Actor-scoped resolve + fallback |
 | Ability prose examples | `AbilityDescriptionFormatterTests` | Focused examples only; no full-catalog loop |
 | Combatant / homestead graph | `CombatantCatalogTests` | ID uniqueness, stage→enemy links, hero/companion loadouts |
 | Enemy balance classification | `EnemyCatalogTests` | Normal/boss bands, kits, HP bands |

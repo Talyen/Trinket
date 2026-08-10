@@ -5,7 +5,6 @@ import TrinketDesignSystem
 
 public struct AbilitySummaryGrid: View {
     let combatant: Combatant
-    let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     let allowsEditing: Bool
     /// Called by the parent when the user taps an editable ability slot. The parent owns
@@ -16,14 +15,12 @@ public struct AbilitySummaryGrid: View {
 
     public init(
         combatant: Combatant,
-        progression: CombatantProgression,
         loadout: Binding<AbilityLoadout>,
         allowsEditing: Bool,
         onSelectTier: ((AbilityTier) -> Void)? = nil,
         onViewAbility: ((Ability) -> Void)? = nil
     ) {
         self.combatant = combatant
-        self.progression = progression
         _loadout = loadout
         self.allowsEditing = allowsEditing
         self.onSelectTier = onSelectTier
@@ -33,7 +30,7 @@ public struct AbilitySummaryGrid: View {
     public var body: some View {
         SlotSummaryGrid(
             slots: AbilityTier.allCases,
-            isLocked: isLocked,
+            isLocked: { _ in false },
             hasItem: { selectedAbility(for: $0) != nil },
             onSelect: allowsEditing ? onSelectTier : nil,
             onView: !allowsEditing ? { tier in
@@ -44,10 +41,7 @@ public struct AbilitySummaryGrid: View {
             accessibilityIdentifier: { "\($0.rawValue) ability slot" },
             card: { tier in
                 if let ability = selectedAbility(for: tier) {
-                    AbilityChoiceCard(
-                        ability: ability,
-                        lockLabel: lockLabel(for: tier)
-                    )
+                    AbilityChoiceCard(ability: ability)
                 } else {
                     EmptyAbilitySlotCard(tier: tier)
                 }
@@ -61,13 +55,5 @@ public struct AbilitySummaryGrid: View {
         }
 
         return combatant.abilityChoices.abilities(for: tier).first
-    }
-
-    private func isLocked(_ tier: AbilityTier) -> Bool {
-        combatant.role != .enemy && !progression.unlocks(tier)
-    }
-
-    private func lockLabel(for tier: AbilityTier) -> String? {
-        isLocked(tier) ? tier.unlockLabel : nil
     }
 }

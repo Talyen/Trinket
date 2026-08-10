@@ -85,7 +85,7 @@ struct TraitBattleTests {
         try #expect(outcome.healthLost == 1 + strengthBonus + packBonus)
     }
 
-    @Test func purifyingWisdomHealsAfterCleanse() throws {
+    @Test func purifyingWisdomDrawsCardAfterCleanse() throws {
         let owl = try #require(GameContent.companions.first { $0.id == "library_owl" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -100,7 +100,10 @@ struct TraitBattleTests {
             enemy: enemy,
             companionModifiers: owlBuild.modifiers
         )
-        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+        context.companionDeck.putOnBottom(.heal)
+        while !context.hand.isEmpty {
+            _ = context.hand.remove(id: context.hand.cards[0].id)
+        }
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 6, sourceActorID: enemy.id)],
             for: hero
@@ -115,7 +118,7 @@ struct TraitBattleTests {
         )
 
         try #expect(outcome.didApply)
-        try #expect(context.roster.health(for: hero) == 11)
+        try #expect(context.hand.count == 1)
     }
 
     @Test func loyalComfortHealsHeroWhenCompanionRestoresHealth() throws {

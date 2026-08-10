@@ -165,25 +165,12 @@ public final class InterleavingPlayerController {
 
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
 
-        let heroProg = CombatantProgression(
-            level: state.heroLevel,
-            currentXP: state.heroXP,
-            requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel)
-        )
-        let companionProg = CombatantProgression(
-            level: state.companionLevel,
-            currentXP: state.companionXP,
-            requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel)
-        )
-
         let heroLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: hero,
-            level: heroProg.level,
             using: &rng
         )
         let companionLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: companion,
-            level: companionProg.level,
             using: &rng
         )
 

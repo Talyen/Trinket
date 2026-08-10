@@ -155,6 +155,28 @@ package extension CombatTriggerEngine {
         )
     }
 
+    static func drawAfterCleanse(
+        source: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let count = context.modifiers(for: source.id).triggers.cleanseBonusDraw
+        guard count > 0 else { return [] }
+        guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
+            return []
+        }
+        let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
+        guard drawn > 0 else { return [] }
+        return [context.nextEvent(
+            kind: .effect,
+            effectKind: .cardsDrawn,
+            actorName: source.name,
+            abilityName: traitName(for: source, in: context),
+            target: source,
+            amount: drawn,
+            keyword: .physical
+        )]
+    }
+
     static func healSelfAfterGoldGain(
         source: Combatant,
         in context: inout BattleState
@@ -180,34 +202,6 @@ package extension CombatTriggerEngine {
             in: &context,
             suppressTraitReactions: true
         )
-    }
-
-    static func cleanseAfterHeal(
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState
-    ) -> [ActionEvent] {
-        let count = context.modifiers(for: source.id).triggers.healCleanseCount
-        guard count > 0 else { return [] }
-
-        var events: [ActionEvent] = []
-        var effects = context.roster.activeEffects(for: target)
-        for _ in 0 ..< count {
-            guard let removedKeyword = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) else {
-                break
-            }
-            events.append(context.nextEvent(
-                kind: .effect,
-                effectKind: .cleanseApplied,
-                actorName: source.name,
-                abilityName: traitName(for: source, in: context),
-                target: target,
-                amount: 0,
-                keyword: removedKeyword
-            ))
-        }
-        context.roster.setActiveEffects(effects, for: target)
-        return events
     }
 
     private static func resolveBonusHeal(

@@ -82,12 +82,10 @@ enum BalanceAffixContrastRunner {
         )
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
-            level: tier.level,
             using: &rng
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
-            level: tier.level,
             using: &rng
         )
         let gears = makeAffixGearPair(

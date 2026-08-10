@@ -13,33 +13,45 @@ struct EquipmentSlotSummaryGrid: View {
     var onViewItem: ((InventoryItem) -> Void)?
 
     var body: some View {
-        SlotSummaryGrid(
-            slots: role.equipmentSlots,
-            isLocked: { _ in false },
-            hasItem: { equippedItem(for: $0) != nil },
-            onSelect: onSelect,
-            onView: onViewItem != nil ? { slot in
-                if let item = equippedItem(for: slot) {
-                    onViewItem?(item)
-                }
-            } : nil,
-            accessibilityIdentifier: { $0.accessibilityIdentifier },
-            combinesAccessibilityChildren: true,
-            card: { slot in
-                if let item = equippedItem(for: slot) {
-                    ItemCard(
-                        item: item,
-                        showsAffixCount: false,
-                        reservesLabelSpace: false
-                    )
-                } else {
-                    EmptyItemSlotCard(
-                        slot: slot,
-                        reservesLabelSpace: false
-                    )
-                }
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+            ForEach(slotRows, id: \.self) { row in
+                SlotSummaryGrid(
+                    slots: row,
+                    isLocked: { _ in false },
+                    hasItem: { equippedItem(for: $0) != nil },
+                    onSelect: onSelect,
+                    onView: onViewItem != nil ? { slot in
+                        if let item = equippedItem(for: slot) {
+                            onViewItem?(item)
+                        }
+                    } : nil,
+                    accessibilityIdentifier: { $0.accessibilityIdentifier },
+                    combinesAccessibilityChildren: true,
+                    card: { slot in
+                        if let item = equippedItem(for: slot) {
+                            ItemCard(
+                                item: item,
+                                showsAffixCount: false,
+                                reservesLabelSpace: false
+                            )
+                        } else {
+                            EmptyItemSlotCard(
+                                slot: slot,
+                                reservesLabelSpace: false
+                            )
+                        }
+                    }
+                )
             }
-        )
+        }
+    }
+
+    /// Rows of three slots so heroes render a second row instead of overflowing.
+    private var slotRows: [[ItemSlot]] {
+        let slots = role.equipmentSlots
+        return stride(from: 0, to: slots.count, by: 3).map { start in
+            Array(slots[start ..< min(start + 3, slots.count)])
+        }
     }
 
     private func equippedItem(for slot: ItemSlot) -> InventoryItem? {

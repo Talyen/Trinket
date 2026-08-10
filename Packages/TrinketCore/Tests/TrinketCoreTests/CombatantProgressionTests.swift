@@ -43,16 +43,6 @@ struct CombatantProgressionTests {
         try #expect(abs((zeroRequired.progressFraction) - 0) < 0.001)
     }
 
-    @Test func unlocksRespectsAbilityTierLevels() throws {
-        let early = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
-        try #expect(early.unlocks(.basic))
-        try #expect(early.unlocks(.skill))
-        try #expect(!(early.unlocks(.ultimate)))
-
-        let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
-        try #expect(late.unlocks(.ultimate))
-    }
-
     @Test func atLevelBuildsEmptyProgressTowardNextLevel() throws {
         let mid = CombatantProgression.at(level: 20)
         try #expect(mid.level == 20)

@@ -202,6 +202,7 @@ public final class BattleSession: BattleRuntime {
             combatant: combatant,
             health: engineState.health(of: combatant),
             maxHealth: engineState.maxHealth(of: combatant),
+            mana: engineState.mana(of: combatant),
             activeEffectSummaries: engineState.effectSummaries(of: combatant)
         )
     }
@@ -305,17 +306,27 @@ public final class BattleSession: BattleRuntime {
 
     /// Eagerly prepares battle audio before activation. Repeated calls are cheap
     /// because both caches skip already-prepared resources.
-    public func prepareBattlePresentation(heroUltimateID: String?, companionUltimateID: String?) {
+    public func prepareBattlePresentation(
+        heroActorID: String?,
+        heroUltimateID: String?,
+        companionActorID: String?,
+        companionUltimateID: String?
+    ) {
         presentationEnvironment.warmSFX(SFXID.battlePrewarmIDs, 2)
         BattleCinematicPlayer.shared.warmLoadout(
+            heroActorID: heroActorID,
             heroUltimateID: heroUltimateID,
+            companionActorID: companionActorID,
             companionUltimateID: companionUltimateID
         )
     }
 
     public func prepareAllBattleCinematics() {
-        for abilityID in UltimateCinematicCatalog.referencesByAbilityID.keys {
-            BattleCinematicPlayer.shared.warm(abilityID: abilityID)
+        for reference in UltimateCinematicCatalog.allReferences {
+            BattleCinematicPlayer.shared.warm(
+                actorID: reference.actorID,
+                abilityID: reference.abilityID
+            )
         }
     }
 

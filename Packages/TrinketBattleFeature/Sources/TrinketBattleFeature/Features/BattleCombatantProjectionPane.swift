@@ -26,7 +26,6 @@ struct BattleCombatantProjectionPane: View {
     let presentation: BattlePresentationState
     let role: Role
     let hapticsEnabled: Bool
-    let cinematicNamespace: Namespace.ID
     let onCombatantTap: (Combatant) -> Void
 
     private var snapshot: BattleCombatantPresentation? {
@@ -50,7 +49,6 @@ struct BattleCombatantProjectionPane: View {
                 maxMana: snapshot.maxMana,
                 borderAccentKeyword: snapshot.borderAccentKeyword,
                 hapticsEnabled: hapticsEnabled,
-                cinematicNamespace: cinematicNamespace,
                 recoilDirection: role == .enemy ? .up : .down,
                 onCombatantTap: { onCombatantTap(snapshot.combatant) }
             )

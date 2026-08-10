@@ -197,9 +197,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     public func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
         let configured = configuredCombatant(combatant)
         guard combatant.role != .enemy else { return configured }
-
-        let unlockedLoadout = configured.abilityLoadout.unlocked(for: progression(for: combatant))
-        return configured.withAbilityLoadoutPreservingEmptyTiers(unlockedLoadout)
+        return configured.withAbilityLoadoutPreservingEmptyTiers(configured.abilityLoadout)
     }
 
     public func battleConfiguredCombatants(_ combatants: [Combatant]) -> [Combatant] {

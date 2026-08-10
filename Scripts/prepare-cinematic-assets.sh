@@ -8,6 +8,7 @@ resources_dir="Trinket/Media/Cinematics"
 generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 generated_swift="$generated_dir/UltimateCinematicCatalog.generated.swift"
 state_file="$generated_dir/UltimateCinematicSourceHashes.generated.tsv"
+combatants_tsv="ContentManifest/combatants.tsv"
 
 if [[ ! -f "$manifest" ]]; then
   echo "Missing manifest: $manifest" >&2
@@ -50,22 +51,44 @@ validate_identifier() {
   fi
 }
 
-while IFS=$'\t' read -r ability_id asset_name source_path has_audio display_aspect_w display_aspect_h || [[ -n "${ability_id:-}" ]]; do
-  [[ -z "${ability_id:-}" || "$ability_id" == \#* || "$ability_id" == "ability_id" ]] && continue
+# Catalog ability ids are kebab-case; combatant ultimates columns use Swift symbols.
+kebab_to_camel() {
+  local kebab="$1"
+  local result=""
+  local part
+  local first=1
+  local IFS='-'
+  # shellcheck disable=SC2086
+  for part in $kebab; do
+    if [[ $first -eq 1 ]]; then
+      result="$part"
+      first=0
+    else
+      result+="$(printf '%s' "${part:0:1}" | tr '[:lower:]' '[:upper:]')${part:1}"
+    fi
+  done
+  printf '%s' "$result"
+}
 
-  if [[ -z "$asset_name" || -z "$source_path" || -z "$has_audio" || -z "$display_aspect_w" || -z "$display_aspect_h" ]]; then
-    echo "Manifest row is missing required fields for ability_id '$ability_id'." >&2
+while IFS=$'\t' read -r actor_id ability_id asset_name source_path has_audio || [[ -n "${actor_id:-}" ]]; do
+  [[ -z "${actor_id:-}" || "$actor_id" == \#* || "$actor_id" == "actor_id" ]] && continue
+
+  if [[ -z "$asset_name" || -z "$source_path" || -z "$has_audio" ]]; then
+    echo "Manifest row is missing required fields for actor_id '$actor_id' / ability_id '$ability_id'." >&2
     exit 1
   fi
 
+  validate_identifier "Actor id" "$actor_id"
   validate_identifier "Ability id" "$ability_id"
   validate_identifier "Asset name" "$asset_name"
 
-  if grep -qx "$ability_id" "$seen_ids_temp"; then
-    echo "Duplicate cinematic ability id '$ability_id'." >&2
+  cast_key="$actor_id|$ability_id"
+
+  if grep -qx "$cast_key" "$seen_ids_temp"; then
+    echo "Duplicate cinematic cast key '$cast_key'." >&2
     exit 1
   fi
-  printf '%s\n' "$ability_id" >> "$seen_ids_temp"
+  printf '%s\n' "$cast_key" >> "$seen_ids_temp"
 
   if grep -qx "$asset_name" "$seen_assets_temp"; then
     echo "Duplicate cinematic asset name '$asset_name'." >&2
@@ -73,35 +96,43 @@ while IFS=$'\t' read -r ability_id asset_name source_path has_audio display_aspe
   fi
   printf '%s\n' "$asset_name" >> "$seen_assets_temp"
 
+  if ! awk -F$'\t' -v id="$actor_id" 'NR > 1 && $1 == id && ($3 == "hero" || $3 == "companion") { found=1 } END { exit found ? 0 : 1 }' "$combatants_tsv"; then
+    echo "Cinematic actor id '$actor_id' must match a Hero or Companion combatant." >&2
+    exit 1
+  fi
+
+  if ! rg -Fq "id: \"$ability_id\"" \
+    Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift; then
+    echo "Cinematic ability id '$ability_id' is not an Ultimate in the authored ability catalog." >&2
+    exit 1
+  fi
+
+  ability_symbol="$(kebab_to_camel "$ability_id")"
+  actor_ultimates="$(awk -F$'\t' -v id="$actor_id" 'NR > 1 && $1 == id { print $9; exit }' "$combatants_tsv")"
+  if [[ -z "$actor_ultimates" ]]; then
+    echo "Cinematic actor id '$actor_id' has no Ultimates column in $combatants_tsv." >&2
+    exit 1
+  fi
+  case ",${actor_ultimates}," in
+    *,"${ability_symbol}",*) ;;
+    *)
+      echo "Cinematic ability id '$ability_id' ($ability_symbol) is not an Ultimate for actor '$actor_id' (has: $actor_ultimates)." >&2
+      exit 1
+      ;;
+  esac
+
   if [[ ! -f "$source_path" ]]; then
-    echo "Missing source file for '$ability_id': $source_path" >&2
+    echo "Missing source file for '$actor_id' / '$ability_id': $source_path" >&2
     exit 1
   fi
 
   case "$has_audio" in
     true|false) ;;
     *)
-      echo "has_audio for '$ability_id' must be true or false." >&2
+      echo "has_audio for '$actor_id' / '$ability_id' must be true or false." >&2
       exit 1
       ;;
   esac
-
-  if [[ ! "$display_aspect_w" =~ ^[0-9]+$ || ! "$display_aspect_h" =~ ^[0-9]+$ ]]; then
-    echo "Display aspect for '$ability_id' must be integer width and height." >&2
-    exit 1
-  fi
-  if (( display_aspect_w <= 0 || display_aspect_h <= 0 )); then
-    echo "Display aspect for '$ability_id' must be greater than zero." >&2
-    exit 1
-  fi
-
-  if ! rg -Fq "id: \"$ability_id\"" \
-    Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogBasic.swift \
-    Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogSkill.swift \
-    Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalogUltimate.swift; then
-    echo "Cinematic ability id '$ability_id' is not present in an authored ability catalog." >&2
-    exit 1
-  fi
 
   dest="$resources_dir/${asset_name}.mp4"
   source_hash="$(shasum -a 256 "$source_path" | awk '{print $1}')"
@@ -113,7 +144,7 @@ while IFS=$'\t' read -r ability_id asset_name source_path has_audio display_aspe
     rm -f "$tmp_dest"
     if ! cp "$source_path" "$tmp_dest" || [[ ! -s "$tmp_dest" ]]; then
       rm -f "$tmp_dest"
-      echo "Failed to stage cinematic asset for '$ability_id'." >&2
+      echo "Failed to stage cinematic asset for '$actor_id' / '$ability_id'." >&2
       exit 1
     fi
     mv -f "$tmp_dest" "$dest"
@@ -123,16 +154,17 @@ while IFS=$'\t' read -r ability_id asset_name source_path has_audio display_aspe
   mv -f "$state_temp.next" "$state_temp"
   printf '%s\n' "${asset_name}.mp4" >> "$active_assets_temp"
 
-  escaped_id="$(escape_swift_string "$ability_id")"
+  escaped_cast_key="$(escape_swift_string "$cast_key")"
+  escaped_actor="$(escape_swift_string "$actor_id")"
+  escaped_ability="$(escape_swift_string "$ability_id")"
   escaped_asset="$(escape_swift_string "$asset_name")"
 
   cat >> "$entries_temp" <<SWIFT
-        "$escaped_id": UltimateCinematicReference(
-            abilityID: "$escaped_id",
+        "$escaped_cast_key": UltimateCinematicReference(
+            actorID: "$escaped_actor",
+            abilityID: "$escaped_ability",
             videoName: "$escaped_asset",
-            hasAudio: $has_audio,
-            displayAspectWidth: $display_aspect_w,
-            displayAspectHeight: $display_aspect_h
+            hasAudio: $has_audio
         ),
 SWIFT
   processed_count=$((processed_count + 1))
@@ -154,26 +186,23 @@ cat > "$generated_temp" <<'SWIFT'
 import Foundation
 
 public struct UltimateCinematicReference: Equatable, Sendable {
+    public let actorID: String
     public let abilityID: String
     public let videoName: String?
     public let hasAudio: Bool
-    /// Battle always presents cinematics in 9:16; sources may differ and are cropped.
-    public let displayAspectWidth: Int
-    public let displayAspectHeight: Int
 
-    public static func fallback(abilityID: String) -> UltimateCinematicReference {
+    public static func fallback(actorID: String, abilityID: String) -> UltimateCinematicReference {
         UltimateCinematicReference(
+            actorID: actorID,
             abilityID: abilityID,
             videoName: nil,
-            hasAudio: false,
-            displayAspectWidth: 9,
-            displayAspectHeight: 16
+            hasAudio: false
         )
     }
 }
 
 public enum UltimateCinematicCatalog {
-    public static let referencesByAbilityID: [String: UltimateCinematicReference] = [
+    public static let referencesByCastKey: [String: UltimateCinematicReference] = [
 SWIFT
 
 if [[ -s "$entries_temp" ]]; then
@@ -185,17 +214,32 @@ fi
 cat >> "$generated_temp" <<'SWIFT'
     ]
 
-    public static func reference(for abilityID: String) -> UltimateCinematicReference {
-        referencesByAbilityID[abilityID] ?? .fallback(abilityID: abilityID)
+    public static func reference(for actorID: String, abilityID: String) -> UltimateCinematicReference {
+        referencesByCastKey[castKey(actorID: actorID, abilityID: abilityID)]
+            ?? .fallback(actorID: actorID, abilityID: abilityID)
     }
 
-    public static func videoURL(for abilityID: String) -> URL? {
-        let reference = reference(for: abilityID)
+    public static func videoURL(for actorID: String, abilityID: String) -> URL? {
+        let reference = reference(for: actorID, abilityID: abilityID)
         guard let videoName = reference.videoName else { return nil }
         return Bundle.main.url(forResource: videoName, withExtension: "mp4")
             ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
             ?? Bundle.main.url(forResource: videoName, withExtension: nil)
             ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
+    }
+
+    public static let allReferences: [UltimateCinematicReference] = Array(
+        referencesByCastKey.values.sorted { $0.castKey < $1.castKey }
+    )
+
+    static func castKey(actorID: String, abilityID: String) -> String {
+        "\(actorID)|\(abilityID)"
+    }
+}
+
+private extension UltimateCinematicReference {
+    var castKey: String {
+        "\(actorID)|\(abilityID)"
     }
 }
 SWIFT

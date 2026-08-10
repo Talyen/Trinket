@@ -13,7 +13,6 @@ public struct BattleView: View {
     /// Blocks combatant detail Buttons while a hand card is held, and briefly after
     /// release so the same finger-up cannot open details.
     @State private var interactionState = BattleInteractionState()
-    @Namespace private var cinematicNamespace
 
     private let configuration: BattleRunConfiguration
     private let presentationContext: BattlePresentationContext
@@ -62,13 +61,16 @@ public struct BattleView: View {
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbar {
-                if !battleSession.spectacle.isShowingVictory, !battleSession.spectacle.isShowingDefeat {
+                if !battleSession.spectacle.isShowingVictory,
+                   !battleSession.spectacle.isShowingDefeat,
+                   battleSession.spectacle.activeCinematic == nil {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
                     }
                 }
             }
+            .statusBarHidden(battleSession.spectacle.activeCinematic != nil)
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
             }
@@ -201,7 +203,6 @@ public struct BattleView: View {
                     .zIndex(2)
 
                 BattleCinematicLane(
-                    namespace: cinematicNamespace,
                     effectsVolume: battleSession.effectsVolume
                 )
                 .zIndex(10)
@@ -266,7 +267,6 @@ public struct BattleView: View {
             presentation: battleSession.presentation,
             role: role,
             hapticsEnabled: battleSession.hapticsEnabled,
-            cinematicNamespace: cinematicNamespace,
             onCombatantTap: showDetails(for:)
         )
     }
@@ -283,6 +283,7 @@ public struct BattleView: View {
                 equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
                 inventoryItems: presentationContext.inventoryItems,
                 health: combatantReadModel.health,
+                mana: combatantReadModel.mana,
                 activeEffectSummaries: combatantReadModel.activeEffectSummaries,
                 labyrinthModifiers: combatant.role == .enemy
                     ? presentationContext.labyrinthModifiers
@@ -361,7 +362,6 @@ private struct BattleHandProjectionLane: View {
 /// toolbar, and always-mounted feedback hosts behind it.
 private struct BattleCinematicLane: View {
     @Environment(BattleSession.self) private var battleSession
-    let namespace: Namespace.ID
     let effectsVolume: Double
 
     var body: some View {
@@ -369,7 +369,6 @@ private struct BattleCinematicLane: View {
             UltimateCinematicOverlay(
                 cinematic: cinematic,
                 effectsVolume: effectsVolume,
-                namespace: namespace,
                 onPlaying: { battleSession.markCinematicPlaying() },
                 onAutoFinish: { cinematicID in
                     battleSession.beginCinematicCollapse(expectedID: cinematicID)

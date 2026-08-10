@@ -45,6 +45,22 @@ public extension PrimaryStats {
         )
     }
 
+    /// Rational falloff constant for enemy dodge. Each point of contested dodge is
+    /// divided by `1 + falloff * base`, so high dodge compresses harder while low
+    /// dodge is barely affected, and the curve self-saturates at `1/falloff`.
+    static let enemyDodgeFalloffConstant: Double = 4.0
+
+    /// Contested dodge for an enemy defender: same agility contest as
+    /// `contestedDodgeChance`, then compressed with the enemy falloff so steeper
+    /// diminishing returns apply as the chance grows.
+    func contestedEnemyDodgeChance(againstAttackerAgility attackerAgility: Int) -> Double {
+        let base = max(
+            0,
+            diminishingReturnsPercent(for: agility) - diminishingReturnsPercent(for: attackerAgility)
+        )
+        return max(0, base / (1.0 + Self.enemyDodgeFalloffConstant * base))
+    }
+
     /// Percentage damage reduction from Toughness using the diminishing returns curve.
     var toughnessMitigationPercent: Double {
         diminishingReturnsPercent(for: toughness)

@@ -85,4 +85,14 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     public mutating func unequip(_ slot: ItemSlot) {
         itemIDsBySlot[slot] = nil
     }
+
+    /// Item IDs equipped in every slot of the same family as `slot` (same
+    /// `baseItemSlot`), including `slot` itself. Lets the item picker surface
+    /// items already worn in sibling slots so players know equipping one moves it.
+    public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {
+        Set(ItemSlot.allCases.compactMap { candidate in
+            guard candidate.baseItemSlot == slot.baseItemSlot else { return nil }
+            return itemIDsBySlot[candidate]
+        })
+    }
 }

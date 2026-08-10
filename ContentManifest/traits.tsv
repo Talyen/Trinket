@@ -1,21 +1,21 @@
 id	name	description	modifiers	triggers
-oathbound	Oathbound	When you deal Holy or Stun damage, gain 1 Block.		on_holy_damage_block:1|on_stun_damage_block:1
+oathbound	Oathbound	Gain 1 Block when you deal Stun or Holy damage.		on_holy_damage_block:1|on_stun_damage_block:1
 cutpurse	Cutpurse	Gain 1 Gold when you Critically Hit.		on_critical_gold:1
-arcane_focus	Arcane Focus	Deal 1 Burn or Freeze when you spend Mana.		on_spend_mana_random_dot:1
+arcane_focus	Arcane Focus	Deal 1 Burn or Freeze when you use Mana.		on_spend_mana_random_dot:1
 pack_leader	Pack Leader	Increase Companion damage dealt by 1.	companion_damage_dealt:1	
 soul_siphon	Bloodfire	When you deal Burn damage, restore 1 Health.		on_burn_damage_heal:1
-thick_hide	Thick Hide	Restores 1 Health each turn.		regeneration:1:1
+thick_hide	Thick Hide	Reduces damage taken by 1.		passive_mitigation:1
 permafrost	Permafrost	Increase Freeze damage dealt by 1.	damage_dealt:freeze:1	
-cold_blood	Cold Blood	When you Dodge, apply 2 Poison.		on_dodge_apply_poison:2
+cold_blood	Cold Blood	Deal 2 Poison when you Dodge.		on_dodge_apply_poison:2
 razor_claws	Razor Claws	Increase Bleed damage dealt by 1.	damage_dealt:bleed:1	
 immortal_ember	Rebirth	Revives and restores 10 Health the first time it dies each battle.		once_death_revive_health:10
 pack_ferocity	Pack Ferocity	Increase Bleed duration by 1.	bleed_duration:1	
 gold_retriever	Bounty	Gain 3 Gold when you defeat an enemy.		on_defeat_enemy_gold:3
 sly_trickery	Sly Trickery	Gain 1 Gold when you Dodge.		on_dodge_gold:1
-purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_cleanse_heal:1
+purifying_wisdom	Purifying Wisdom	Draw a Card when you Cleanse.		on_cleanse_draw:1
 unliving_frame	Deathrattle	Revives and restores 10 Block the first time it dies each battle.		once_death_revive_health:1|once_death_revive_block:10
 arcane_reservoir	Arcane Reservoir	Gain 1 Block when you spend Mana.		on_spend_mana_block:1
-fae_fortune	Fae Fortune	When you Heal, also Cleanse 1 debuff.		on_heal_cleanse:1
+fae_fortune	Fae Fortune	Restore 1 Health when you Cleanse.		on_cleanse_heal:1
 iron_carapace	Carapace	Gain 1 Block each turn.		block_per_turn:1
 living_armor_trait	Living Armor	Gains 1 Block each turn. Reduce Bleed damage taken by 30%.	damage_taken_percent:bleed:0.30	block_per_turn:1
 mimic_trait	Mimic	Deals double damage on the first attack.		first_hit_double_damage:1

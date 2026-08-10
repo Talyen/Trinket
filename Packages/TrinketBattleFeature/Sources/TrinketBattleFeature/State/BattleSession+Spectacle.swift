@@ -333,7 +333,7 @@ extension BattleSession {
             phase: .expanding,
             startedAt: date
         )
-        BattleCinematicPlayer.shared.warm(abilityID: event.abilityID)
+        BattleCinematicPlayer.shared.warm(actorID: event.actorID, abilityID: event.abilityID)
     }
 
     func presentCallouts(

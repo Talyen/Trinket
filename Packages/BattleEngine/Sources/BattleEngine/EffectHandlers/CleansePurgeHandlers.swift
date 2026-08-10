@@ -93,6 +93,10 @@ struct CleansePurgeHandler: BattleEffectHandler {
                 target: target,
                 in: &context
             ).events)
+            events.append(contentsOf: CombatTriggerEngine.drawAfterCleanse(
+                source: source,
+                in: &context
+            ))
         }
         return EffectApplyOutcome(events: events, didApply: true)
     }

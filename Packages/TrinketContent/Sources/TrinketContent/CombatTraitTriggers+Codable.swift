@@ -122,6 +122,7 @@ public extension CombatTraitTriggers {
         )
 
         try self.init(
+            cleanseBonusDraw: values.decode(Int.self, "cleanseBonusDraw", default: 0),
             cleanseBonusHeal: values.decode(Int.self, "cleanseBonusHeal", default: 0),
             gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
             restoreHealthAlsoHealHero: values.decode(Int.self, "restoreHealthAlsoHealHero", default: 0),
@@ -193,7 +194,6 @@ public extension CombatTraitTriggers {
             dodgeBlockFlat: values.decode(Int.self, "dodgeBlockFlat", default: 0),
             dodgeApplyPoison: values.decode(Int.self, "dodgeApplyPoison", default: 0),
             holyDamagePurgeCount: values.decode(Int.self, "holyDamagePurgeCount", default: 0),
-            healCleanseCount: values.decode(Int.self, "healCleanseCount", default: 0),
             onceDeathReviveHealth: values.decode(Int.self, "onceDeathReviveHealth", default: 0),
             onceDeathReviveBlock: values.decode(Int.self, "onceDeathReviveBlock", default: 0),
             blockPerTurn: values.decode(Int.self, "blockPerTurn", default: 0),

@@ -54,11 +54,6 @@ package enum HealingEngine {
                 hero: context.roster.hero.combatant,
                 in: &context
             ).events)
-            events.append(contentsOf: CombatTriggerEngine.cleanseAfterHeal(
-                source: source,
-                target: request.target,
-                in: &context
-            ))
         }
 
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)

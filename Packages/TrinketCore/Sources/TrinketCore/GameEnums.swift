@@ -110,33 +110,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
             "Death's Door survives a fatal blow at 1 HP — heal before it ends or the next fatal hit kills"
         }
     }
-
-    /// URL scheme for in-app keyword glossary links (`trinket-keyword://burn`).
-    public static let glossaryURLScheme = "trinket-keyword"
-
-    public var glossaryURL: URL {
-        var components = URLComponents()
-        components.scheme = Self.glossaryURLScheme
-        components.host = glossaryHost
-        if let url = components.url {
-            return url
-        }
-        preconditionFailure("Keyword glossary URL must form for host \(glossaryHost)")
-    }
-
-    public init?(glossaryURL url: URL) {
-        guard url.scheme == Self.glossaryURLScheme,
-              let host = url.host,
-              let keyword = Self.allCases.first(where: { $0.glossaryHost == host })
-        else {
-            return nil
-        }
-        self = keyword
-    }
-
-    private var glossaryHost: String {
-        String(describing: self)
-    }
 }
 
 public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
@@ -174,21 +147,6 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable,
             6
         }
     }
-
-    public var unlockLevel: Int {
-        switch self {
-        case .basic:
-            1
-        case .skill:
-            1
-        case .ultimate:
-            6
-        }
-    }
-
-    public var unlockLabel: String {
-        "Unlocks at Level \(unlockLevel)"
-    }
 }
 
 public extension AbilityTier {
@@ -206,9 +164,11 @@ public extension AbilityTier {
 
 public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     case weapon = "Weapon"
+    case secondaryWeapon = "Secondary Weapon"
     case armor = "Armor"
     case trinket = "Trinket"
     case secondaryTrinket = "Secondary Trinket"
+    case tertiaryTrinket = "Tertiary Trinket"
 
     public var id: String {
         rawValue
@@ -217,7 +177,9 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     /// The item catalog slot used to populate this equipment slot.
     public var baseItemSlot: Self {
         switch self {
-        case .secondaryTrinket:
+        case .secondaryWeapon:
+            .weapon
+        case .secondaryTrinket, .tertiaryTrinket:
             .trinket
         default:
             self
@@ -226,7 +188,9 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .secondaryTrinket:
+        case .secondaryWeapon:
+            Self.weapon.rawValue
+        case .secondaryTrinket, .tertiaryTrinket:
             Self.trinket.rawValue
         default:
             rawValue
@@ -239,11 +203,11 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     public var symbolName: String {
         switch self {
-        case .weapon:
+        case .weapon, .secondaryWeapon:
             "wand.and.sparkles"
         case .armor:
             "shield.fill"
-        case .trinket, .secondaryTrinket:
+        case .trinket, .secondaryTrinket, .tertiaryTrinket:
             "diamond.fill"
         }
     }

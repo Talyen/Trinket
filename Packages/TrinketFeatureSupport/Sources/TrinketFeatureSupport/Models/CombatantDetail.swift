@@ -10,6 +10,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
     public let equipmentLoadout: EquipmentLoadout
     public let inventoryItems: [InventoryItem]
     public let health: Int?
+    public let mana: Int?
     public let activeEffectSummaries: [EffectSummary]
     public let labyrinthModifiers: [LabyrinthModifierDefinition]
 
@@ -23,6 +24,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         equipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryItems: [InventoryItem] = [],
         health: Int? = nil,
+        mana: Int? = nil,
         activeEffectSummaries: [EffectSummary] = [],
         labyrinthModifiers: [LabyrinthModifierDefinition] = []
     ) {
@@ -31,6 +33,7 @@ public struct CombatantCardDetail: Hashable, Identifiable {
         self.equipmentLoadout = equipmentLoadout
         self.inventoryItems = inventoryItems
         self.health = health
+        self.mana = mana
         self.activeEffectSummaries = activeEffectSummaries
         self.labyrinthModifiers = labyrinthModifiers
     }

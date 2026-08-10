@@ -1,2 +1,3 @@
-# ability_id	asset_name	source_path	has_audio	display_aspect_w	display_aspect_h
-avatar-of-justice	cinematic_avatar_of_justice	Raw Assets/Animations/Knight Ultimate.mp4	true	9	16
+# actor_id	ability_id	asset_name	source_path	has_audio
+knight	avatar-of-justice	cinematic_avatar_of_justice	Raw Assets/Animations/Knight Avatar Animation.mp4	true
+rogue	shadowstep	cinematic_rogue_shadowstep	Raw Assets/Animations/Rogue Shadowstep Animation.mp4	true

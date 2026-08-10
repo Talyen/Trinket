@@ -20,11 +20,11 @@ public enum ItemSalvage {
 
     private static func materials(for slot: ItemSlot) -> (HomesteadResource, HomesteadResource) {
         switch slot.baseItemSlot {
-        case .weapon:
+        case .weapon, .secondaryWeapon:
             (.iron, .wood)
         case .armor:
             (.hide, .stone)
-        case .trinket, .secondaryTrinket:
+        case .trinket, .secondaryTrinket, .tertiaryTrinket:
             (.herbs, .crystal)
         }
     }

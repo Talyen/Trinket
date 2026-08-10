@@ -13,7 +13,6 @@ struct BattleCombatantPane: View {
     let maxMana: Int
     let borderAccentKeyword: Keyword?
     let hapticsEnabled: Bool
-    let cinematicNamespace: Namespace.ID
     let recoilDirection: CombatantHitRecoilDirection
     let onCombatantTap: () -> Void
 
@@ -51,15 +50,6 @@ struct BattleCombatantPane: View {
                         // updates must not rebuild static pane chrome or BattleView.
                         CombatantKeywordBurstLane(combatantID: combatant.id)
                         CombatantSkillCalloutLane(combatantID: combatant.id)
-
-                        // Invisible source for Ultimate matched-geometry expand from this card.
-                        Color.clear
-                            .frame(width: 1, height: 1)
-                            .matchedGeometryEffect(
-                                id: "ultimate-source-\(combatant.id)",
-                                in: cinematicNamespace,
-                                isSource: true
-                            )
                     }
                     .clipShape(TrinketDesign.cardShape)
                 }

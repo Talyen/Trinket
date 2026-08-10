@@ -9,7 +9,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "oathbound",
             name: "Oathbound",
-            description: "When you deal Holy or Stun damage, gain 1 Block.",
+            description: "Gain 1 Block when you deal Stun or Holy damage.",
             modifiers: [],
             triggers: CombatTraitTriggers(holyDamageBlockFlat: 1, stunDamageBlockFlat: 1)
         ))
@@ -23,7 +23,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "arcane_focus",
             name: "Arcane Focus",
-            description: "Deal 1 Burn or Freeze when you spend Mana.",
+            description: "Deal 1 Burn or Freeze when you use Mana.",
             modifiers: [],
             triggers: CombatTraitTriggers(spendManaRandomDoTFlat: 1)
         ))
@@ -44,9 +44,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "thick_hide",
             name: "Thick Hide",
-            description: "Restores 1 Health each turn.",
+            description: "Reduces damage taken by 1.",
             modifiers: [],
-            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTurns: 1)
+            triggers: CombatTraitTriggers(passiveMitigationFlat: 1)
         ))
         list.append(CombatantTraitDefinition(
             id: "permafrost",
@@ -58,7 +58,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "cold_blood",
             name: "Cold Blood",
-            description: "When you Dodge, apply 2 Poison.",
+            description: "Deal 2 Poison when you Dodge.",
             modifiers: [],
             triggers: CombatTraitTriggers(dodgeApplyPoison: 2)
         ))
@@ -100,9 +100,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "purifying_wisdom",
             name: "Purifying Wisdom",
-            description: "Restore 1 Health when Cleansing a debuff.",
+            description: "Draw a Card when you Cleanse.",
             modifiers: [],
-            triggers: CombatTraitTriggers(cleanseBonusHeal: 1)
+            triggers: CombatTraitTriggers(cleanseBonusDraw: 1)
         ))
         list.append(CombatantTraitDefinition(
             id: "unliving_frame",
@@ -121,9 +121,9 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "fae_fortune",
             name: "Fae Fortune",
-            description: "When you Heal, also Cleanse 1 debuff.",
+            description: "Restore 1 Health when you Cleanse.",
             modifiers: [],
-            triggers: CombatTraitTriggers(healCleanseCount: 1)
+            triggers: CombatTraitTriggers(cleanseBonusHeal: 1)
         ))
         list.append(CombatantTraitDefinition(
             id: "iron_carapace",

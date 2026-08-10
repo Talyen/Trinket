@@ -29,8 +29,7 @@ enum BalanceAbilityContrastRunner {
             summarize: { (entityID: $0.focus.id, baselineID: $0.sibling.id, ownerID: $0.owner.id) },
             primes: (tier: 900011, pair: 131),
             makePair: { focus, tier, pairIndex, seed in
-                guard focus.focus.tier.unlockLevel <= tier.level else { return nil }
-                return makePairSetup(
+                makePairSetup(
                     focus: focus,
                     tier: tier,
                     pairIndex: pairIndex,
@@ -73,19 +72,16 @@ enum BalanceAbilityContrastRunner {
             battleIndex: pairIndex,
             using: &rng
         )
-        let progression = SimulationMatchupBuilder.progression(level: tier.level)
         let ownerBase = SimulationMatchupBuilder.sampleLoadout(
             for: focus.owner,
-            level: tier.level,
             using: &rng
         )
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: partner,
-            level: tier.level,
             using: &rng
         )
-        let focusLoadout = ownerBase.selecting(focus.focus).unlocked(for: progression)
-        let siblingLoadout = ownerBase.selecting(focus.sibling).unlocked(for: progression)
+        let focusLoadout = ownerBase.selecting(focus.focus)
+        let siblingLoadout = ownerBase.selecting(focus.sibling)
         let gears = sharedGear(
             owner: focus.owner,
             partner: partner,

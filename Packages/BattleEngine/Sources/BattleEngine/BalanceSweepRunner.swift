@@ -137,12 +137,10 @@ public enum BalanceSweepRunner {
 
         let heroLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: hero,
-            level: tier.level,
             using: &rng
         )
         let companionLoadout = SimulationMatchupBuilder.sampleLoadout(
             for: companion,
-            level: tier.level,
             using: &rng
         )
 

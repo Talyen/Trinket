@@ -47,7 +47,7 @@ public struct EmptyItemSlotCard: View {
             showsLabel: true,
             reservesLabelSpace: reservesLabelSpace,
             art: {
-                if let imageName = (slot.slotBackgroundReference ?? ItemSlot.trinket.slotBackgroundReference)?.imageName {
+                if let imageName = (slot.slotBackgroundReference ?? slot.baseItemSlot.slotBackgroundReference)?.imageName {
                     Image.preparedAsset(named: imageName)
                         .resizable()
                         .scaledToFill()

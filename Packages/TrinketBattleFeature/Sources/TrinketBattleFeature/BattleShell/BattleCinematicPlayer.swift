@@ -4,6 +4,13 @@ import Observation
 import TrinketContent
 import TrinketFeatureSupport
 
+/// Key for a Hero/Companion-specific Ultimate cinematic. Same ability cast by a
+/// different actor resolves to a distinct video (or none).
+struct CinematicCastKey: Hashable {
+    let actorID: String
+    let abilityID: String
+}
+
 /// Session-scoped Ultimate cinematic player cache.
 /// Keeps AVPlayers warm so cast transitions never hitch on cold load.
 /// Video assets are optional; until they exist, callers use ability-art fallback.
@@ -12,60 +19,68 @@ import TrinketFeatureSupport
 final class BattleCinematicPlayer {
     static let shared = BattleCinematicPlayer()
 
-    private var playersByAbilityID: [String: AVPlayer] = [:]
-    private var warmedAbilityIDs: Set<String> = []
-    private var endObserversByAbilityID: [String: NSObjectProtocol] = [:]
-    private var failureObserversByAbilityID: [String: NSObjectProtocol] = [:]
+    private var playersByCastKey: [CinematicCastKey: AVPlayer] = [:]
+    private var warmedCastKeys: Set<CinematicCastKey> = []
+    private var endObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
+    private var failureObserversByCastKey: [CinematicCastKey: NSObjectProtocol] = [:]
 
     private init() {}
 
-    func warmLoadout(heroUltimateID: String?, companionUltimateID: String?) {
-        if let heroUltimateID {
-            warm(abilityID: heroUltimateID)
+    func warmLoadout(
+        heroActorID: String?,
+        heroUltimateID: String?,
+        companionActorID: String?,
+        companionUltimateID: String?
+    ) {
+        if let heroActorID, let heroUltimateID {
+            warm(actorID: heroActorID, abilityID: heroUltimateID)
         }
-        if let companionUltimateID {
-            warm(abilityID: companionUltimateID)
+        if let companionActorID, let companionUltimateID {
+            warm(actorID: companionActorID, abilityID: companionUltimateID)
         }
     }
 
-    func warm(abilityID: String) {
-        guard !abilityID.isEmpty else { return }
-        warmedAbilityIDs.insert(abilityID)
-        guard playersByAbilityID[abilityID] == nil else { return }
-        guard let url = UltimateCinematicCatalog.videoURL(for: abilityID) else { return }
+    func warm(actorID: String, abilityID: String) {
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        warmedCastKeys.insert(key)
+        guard playersByCastKey[key] == nil else { return }
+        guard let url = UltimateCinematicCatalog.videoURL(for: actorID, abilityID: abilityID) else { return }
 
         let item = AVPlayerItem(url: url)
         item.preferredForwardBufferDuration = 2
         let player = AVPlayer(playerItem: item)
         player.automaticallyWaitsToMinimizeStalling = false
-        applyVolume(effectsVolume: 0, to: player, abilityID: abilityID)
-        playersByAbilityID[abilityID] = player
+        applyVolume(effectsVolume: 0, to: player, actorID: actorID, abilityID: abilityID)
+        playersByCastKey[key] = player
         // Do not preroll here — AVPlayer throws if status is not ReadyToPlay yet.
         // Creating the item is enough to start buffering; play() seeks when cast begins.
     }
 
-    func player(for abilityID: String) -> AVPlayer? {
-        if let existing = playersByAbilityID[abilityID] {
+    func player(for actorID: String, abilityID: String) -> AVPlayer? {
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        if let existing = playersByCastKey[key] {
             return existing
         }
-        warm(abilityID: abilityID)
-        return playersByAbilityID[abilityID]
+        warm(actorID: actorID, abilityID: abilityID)
+        return playersByCastKey[key]
     }
 
-    func hasVideo(for abilityID: String) -> Bool {
-        UltimateCinematicCatalog.reference(for: abilityID).videoName != nil
+    func hasVideo(for actorID: String, abilityID: String) -> Bool {
+        UltimateCinematicCatalog.reference(for: actorID, abilityID: abilityID).videoName != nil
     }
 
-    func isReady(for abilityID: String) -> Bool {
-        guard let player = playersByAbilityID[abilityID],
+    func isReady(for actorID: String, abilityID: String) -> Bool {
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let player = playersByCastKey[key],
               let item = player.currentItem else { return false }
         return item.status == .readyToPlay
     }
 
     /// Waits until the warmed item is `.readyToPlay`, or returns `false` on failure / missing asset.
-    func whenReady(abilityID: String) async -> Bool {
-        warm(abilityID: abilityID)
-        guard playersByAbilityID[abilityID]?.currentItem != nil else { return false }
+    func whenReady(actorID: String, abilityID: String) async -> Bool {
+        warm(actorID: actorID, abilityID: abilityID)
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard playersByCastKey[key]?.currentItem != nil else { return false }
 
         let clock = SuspendingClock()
         let deadline = clock.now.advanced(by: .seconds(8))
@@ -73,7 +88,7 @@ final class BattleCinematicPlayer {
             if Task.isCancelled {
                 return false
             }
-            if let item = playersByAbilityID[abilityID]?.currentItem {
+            if let item = playersByCastKey[key]?.currentItem {
                 switch item.status {
                 case .readyToPlay:
                     return true
@@ -89,17 +104,19 @@ final class BattleCinematicPlayer {
             }
             try? await clock.sleep(for: .milliseconds(40), tolerance: .milliseconds(20))
         }
-        return isReady(for: abilityID)
+        return isReady(for: actorID, abilityID: abilityID)
     }
 
     func play(
+        actorID: String,
         abilityID: String,
         effectsVolume: Double,
         onEnded: @escaping @MainActor () -> Void
     ) {
-        guard let player = player(for: abilityID) else { return }
-        applyVolume(effectsVolume: effectsVolume, to: player, abilityID: abilityID)
-        clearEndObserver(for: abilityID)
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        guard let player = player(for: actorID, abilityID: abilityID) else { return }
+        applyVolume(effectsVolume: effectsVolume, to: player, actorID: actorID, abilityID: abilityID)
+        clearEndObserver(for: actorID, abilityID: abilityID)
         if let item = player.currentItem {
             let endObserver = NotificationCenter.default.addObserver(
                 forName: .AVPlayerItemDidPlayToEndTime,
@@ -107,7 +124,7 @@ final class BattleCinematicPlayer {
                 queue: .main
             ) { [weak self] _ in
                 Task { @MainActor in
-                    self?.clearEndObserver(for: abilityID)
+                    self?.clearEndObserver(for: actorID, abilityID: abilityID)
                     onEnded()
                 }
             }
@@ -117,37 +134,37 @@ final class BattleCinematicPlayer {
                 queue: .main
             ) { [weak self] _ in
                 Task { @MainActor in
-                    self?.clearEndObserver(for: abilityID)
+                    self?.clearEndObserver(for: actorID, abilityID: abilityID)
                     onEnded()
                 }
             }
-            endObserversByAbilityID[abilityID] = endObserver
-            failureObserversByAbilityID[abilityID] = failObserver
+            endObserversByCastKey[key] = endObserver
+            failureObserversByCastKey[key] = failObserver
         }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
     }
 
-    func pause(abilityID: String) {
-        clearEndObserver(for: abilityID)
-        playersByAbilityID[abilityID]?.pause()
+    func pause(actorID: String, abilityID: String) {
+        clearEndObserver(for: actorID, abilityID: abilityID)
+        playersByCastKey[CinematicCastKey(actorID: actorID, abilityID: abilityID)]?.pause()
     }
 
     func releaseAll() {
-        let observerIDs = Set(endObserversByAbilityID.keys).union(failureObserversByAbilityID.keys)
-        for abilityID in observerIDs {
-            clearEndObserver(for: abilityID)
+        let observerKeys = Set(endObserversByCastKey.keys).union(failureObserversByCastKey.keys)
+        for key in observerKeys {
+            clearEndObserver(for: key.actorID, abilityID: key.abilityID)
         }
-        for player in playersByAbilityID.values {
+        for player in playersByCastKey.values {
             player.pause()
             player.replaceCurrentItem(with: nil)
         }
-        playersByAbilityID.removeAll()
-        warmedAbilityIDs.removeAll()
+        playersByCastKey.removeAll()
+        warmedCastKeys.removeAll()
     }
 
-    private func applyVolume(effectsVolume: Double, to player: AVPlayer, abilityID: String) {
-        let reference = UltimateCinematicCatalog.reference(for: abilityID)
+    private func applyVolume(effectsVolume: Double, to player: AVPlayer, actorID: String, abilityID: String) {
+        let reference = UltimateCinematicCatalog.reference(for: actorID, abilityID: abilityID)
         let clamped = max(0, min(effectsVolume, 1))
         if reference.hasAudio, clamped > 0 {
             player.isMuted = false
@@ -158,11 +175,12 @@ final class BattleCinematicPlayer {
         }
     }
 
-    private func clearEndObserver(for abilityID: String) {
-        if let observer = endObserversByAbilityID.removeValue(forKey: abilityID) {
+    private func clearEndObserver(for actorID: String, abilityID: String) {
+        let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
+        if let observer = endObserversByCastKey.removeValue(forKey: key) {
             NotificationCenter.default.removeObserver(observer)
         }
-        if let observer = failureObserversByAbilityID.removeValue(forKey: abilityID) {
+        if let observer = failureObserversByCastKey.removeValue(forKey: key) {
             NotificationCenter.default.removeObserver(observer)
         }
     }

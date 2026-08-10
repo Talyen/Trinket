@@ -5,7 +5,7 @@ public extension Combatant.Role {
     var equipmentSlots: [ItemSlot] {
         switch self {
         case .hero:
-            [.weapon, .armor, .trinket]
+            [.weapon, .secondaryWeapon, .armor, .trinket, .secondaryTrinket, .tertiaryTrinket]
         case .companion:
             [.trinket, .armor, .secondaryTrinket]
         case .enemy:

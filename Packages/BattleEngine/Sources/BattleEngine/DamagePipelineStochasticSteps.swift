@@ -64,9 +64,16 @@ package extension DamagePipeline {
             .flatMap { context.roster.combatant(for: $0) }?
             .primaryStats.agility ?? 0
 
-        var chance = state.combatant.primaryStats.contestedDodgeChance(
-            againstAttackerAgility: attackerAgility
-        )
+        let baseChance: Double = if state.combatant.role == .enemy {
+            state.combatant.primaryStats.contestedEnemyDodgeChance(
+                againstAttackerAgility: attackerAgility
+            )
+        } else {
+            state.combatant.primaryStats.contestedDodgeChance(
+                againstAttackerAgility: attackerAgility
+            )
+        }
+        var chance = baseChance
         let profile = context.modifiers(for: state.combatant.id)
         chance += profile.triggers.dodgeChanceBonus
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,

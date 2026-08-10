@@ -3,6 +3,7 @@ import TrinketCore
 
 /// Trait and affix trigger knobs authored for combat builds.
 public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
+    public var cleanseBonusDraw: Int
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var restoreHealthAlsoHealHero: Int
@@ -54,7 +55,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var dodgeBlockFlat: Int
     public var dodgeApplyPoison: Int
     public var holyDamagePurgeCount: Int
-    public var healCleanseCount: Int
     public var onceDeathReviveHealth: Int
     public var onceDeathReviveBlock: Int
     public var blockPerTurn: Int
@@ -79,6 +79,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
 
     // swiftlint:disable:next function_body_length
     public init(
+        cleanseBonusDraw: Int = 0,
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
         restoreHealthAlsoHealHero: Int = 0,
@@ -130,7 +131,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         dodgeBlockFlat: Int = 0,
         dodgeApplyPoison: Int = 0,
         holyDamagePurgeCount: Int = 0,
-        healCleanseCount: Int = 0,
         onceDeathReviveHealth: Int = 0,
         onceDeathReviveBlock: Int = 0,
         blockPerTurn: Int = 0,
@@ -153,6 +153,7 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         dodgeChanceBelowHealthPercentBonus: Double = 0,
         dodgeDealStunFlat: Int = 0
     ) {
+        self.cleanseBonusDraw = cleanseBonusDraw
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.restoreHealthAlsoHealHero = restoreHealthAlsoHealHero
@@ -204,7 +205,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         self.dodgeBlockFlat = dodgeBlockFlat
         self.dodgeApplyPoison = dodgeApplyPoison
         self.holyDamagePurgeCount = holyDamagePurgeCount
-        self.healCleanseCount = healCleanseCount
         self.onceDeathReviveHealth = onceDeathReviveHealth
         self.onceDeathReviveBlock = onceDeathReviveBlock
         self.blockPerTurn = blockPerTurn

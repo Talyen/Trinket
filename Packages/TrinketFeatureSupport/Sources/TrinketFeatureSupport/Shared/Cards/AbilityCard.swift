@@ -4,7 +4,6 @@ import TrinketDesignSystem
 
 struct AbilityChoiceCard: View {
     let ability: Ability
-    var lockLabel: String?
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
     var isSelected = false
@@ -12,14 +11,8 @@ struct AbilityChoiceCard: View {
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize =
         TrinketDesign.Metrics.cardPlaceholderIconPointSize
 
-    private var isLocked: Bool {
-        lockLabel != nil
-    }
-
     var body: some View {
         ProductCardShell(
-            isLocked: isLocked,
-            lockedText: lockLabel,
             isSelected: isSelected,
             showsLabel: showsName,
             reservesLabelSpace: reservesLabelSpace,
@@ -48,7 +41,7 @@ struct AbilityChoiceCard: View {
 
                     Text(ability.name)
                         .trinketTypography(.cardLabel)
-                        .foregroundStyle(isLocked ? .secondary : .primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                 }

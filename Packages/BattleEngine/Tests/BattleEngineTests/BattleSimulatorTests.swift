@@ -75,11 +75,11 @@ struct BattleSimulatorTests {
         #expect(!(matchup.context.heroAffixIDs.isEmpty))
     }
 
-    @Test func earlyTierOmitsUltimateWhenLocked() throws {
+    @Test func sampleLoadoutIncludesAllTiersByDefault() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 5)
-        let loadout = SimulationMatchupBuilder.sampleLoadout(for: hero, level: 1, using: &rng)
-        #expect(loadout.ultimate == nil)
+        let loadout = SimulationMatchupBuilder.sampleLoadout(for: hero, using: &rng)
+        #expect(loadout.ultimate != nil)
         #expect(loadout.basic != nil)
         #expect(loadout.skill != nil)
     }

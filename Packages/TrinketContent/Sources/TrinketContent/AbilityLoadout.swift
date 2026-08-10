@@ -41,14 +41,6 @@ public struct AbilityLoadout: Hashable, Sendable {
             Self(basic: basic, skill: skill, ultimate: ability)
         }
     }
-
-    public func unlocked(for progression: CombatantProgression) -> Self {
-        Self(
-            basic: progression.unlocks(.basic) ? basic : nil,
-            skill: progression.unlocks(.skill) ? skill : nil,
-            ultimate: progression.unlocks(.ultimate) ? ultimate : nil
-        )
-    }
 }
 
 public struct AbilityChoices: Hashable, Sendable {

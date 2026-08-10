@@ -30,6 +30,29 @@ struct PrimaryStatsRulesTests {
         try #expect(PrimaryStats(agility: 20).contestedDodgeChance(againstAttackerAgility: 80) == 0.0)
     }
 
+    @Test func contestedEnemyDodgeCompressesHighDodgeWithFalloff() throws {
+        let falloff = PrimaryStats.enemyDodgeFalloffConstant
+        try #expect(falloff == 4.0)
+
+        let defender = PrimaryStats(agility: 80)
+        // High contested dodge compresses hard: 0.50 -> 0.5/(1 + 4*0.5) = 0.16667.
+        try #expect(abs(
+            defender.contestedEnemyDodgeChance(againstAttackerAgility: 0) - 0.5 / (1 + falloff * 0.5)
+        ) < 0.0001)
+        // 0.30 -> 0.3/(1 + 4*0.3) = 0.13636.
+        try #expect(abs(
+            defender.contestedEnemyDodgeChance(againstAttackerAgility: 20) - 0.3 / (1 + falloff * 0.3)
+        ) < 0.0001)
+        // Low contested dodge is barely affected: 17 vs 12 -> ~0.0448 -> ~0.0380.
+        let low = PrimaryStats(agility: 17)
+        let base = 17.0 / 97.0 - 12.0 / 92.0
+        try #expect(abs(
+            low.contestedEnemyDodgeChance(againstAttackerAgility: 12) - base / (1 + falloff * base)
+        ) < 0.0001)
+        // Attacker higher agi still cannot produce negative dodge.
+        try #expect(PrimaryStats(agility: 20).contestedEnemyDodgeChance(againstAttackerAgility: 80) == 0.0)
+    }
+
     @Test func toughnessMitigationMatchesFormula() throws {
         try #expect(PrimaryStats(toughness: 0).toughnessMitigationPercent == 0.0)
         try #expect(abs(PrimaryStats(toughness: 20).toughnessMitigationPercent - 0.20) < 0.0001)

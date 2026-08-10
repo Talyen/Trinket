@@ -37,10 +37,6 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         return min(max(Double(currentXP) / Double(requiredXP), 0), 1)
     }
 
-    public func unlocks(_ tier: AbilityTier) -> Bool {
-        level >= tier.unlockLevel
-    }
-
     public func addingExperience(_ amount: Int) -> Self {
         guard amount > 0 else { return self }
 

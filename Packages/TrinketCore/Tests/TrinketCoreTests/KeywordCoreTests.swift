@@ -15,18 +15,6 @@ struct KeywordCoreTests {
         try #expect(!keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
     }
 
-    @Test(arguments: Keyword.allCases)
-    func glossaryURLRoundTrips(keyword: Keyword) throws {
-        let url = keyword.glossaryURL
-        try #expect(url.scheme == Keyword.glossaryURLScheme)
-        try #expect(Keyword(glossaryURL: url) == keyword)
-    }
-
-    @Test func glossaryURLRejectsForeignSchemes() throws {
-        let url = try #require(URL(string: "https://example.com/burn"))
-        try #expect(Keyword(glossaryURL: url) == nil)
-    }
-
     @Test(arguments: [
         (Keyword.physical, Keyword.Category.damageType),
         (.burn, .damageType),

@@ -3,45 +3,62 @@
 import Foundation
 
 public struct UltimateCinematicReference: Equatable, Sendable {
+    public let actorID: String
     public let abilityID: String
     public let videoName: String?
     public let hasAudio: Bool
-    /// Battle always presents cinematics in 9:16; sources may differ and are cropped.
-    public let displayAspectWidth: Int
-    public let displayAspectHeight: Int
 
-    public static func fallback(abilityID: String) -> UltimateCinematicReference {
+    public static func fallback(actorID: String, abilityID: String) -> UltimateCinematicReference {
         UltimateCinematicReference(
+            actorID: actorID,
             abilityID: abilityID,
             videoName: nil,
-            hasAudio: false,
-            displayAspectWidth: 9,
-            displayAspectHeight: 16
+            hasAudio: false
         )
     }
 }
 
 public enum UltimateCinematicCatalog {
-    public static let referencesByAbilityID: [String: UltimateCinematicReference] = [
-        "avatar-of-justice": UltimateCinematicReference(
+    public static let referencesByCastKey: [String: UltimateCinematicReference] = [
+        "knight|avatar-of-justice": UltimateCinematicReference(
+            actorID: "knight",
             abilityID: "avatar-of-justice",
             videoName: "cinematic_avatar_of_justice",
-            hasAudio: true,
-            displayAspectWidth: 9,
-            displayAspectHeight: 16
+            hasAudio: true
+        ),
+        "rogue|shadowstep": UltimateCinematicReference(
+            actorID: "rogue",
+            abilityID: "shadowstep",
+            videoName: "cinematic_rogue_shadowstep",
+            hasAudio: true
         ),
     ]
 
-    public static func reference(for abilityID: String) -> UltimateCinematicReference {
-        referencesByAbilityID[abilityID] ?? .fallback(abilityID: abilityID)
+    public static func reference(for actorID: String, abilityID: String) -> UltimateCinematicReference {
+        referencesByCastKey[castKey(actorID: actorID, abilityID: abilityID)]
+            ?? .fallback(actorID: actorID, abilityID: abilityID)
     }
 
-    public static func videoURL(for abilityID: String) -> URL? {
-        let reference = reference(for: abilityID)
+    public static func videoURL(for actorID: String, abilityID: String) -> URL? {
+        let reference = reference(for: actorID, abilityID: abilityID)
         guard let videoName = reference.videoName else { return nil }
         return Bundle.main.url(forResource: videoName, withExtension: "mp4")
             ?? Bundle.main.url(forResource: videoName, withExtension: "mp4", subdirectory: "Media/Cinematics")
             ?? Bundle.main.url(forResource: videoName, withExtension: nil)
             ?? Bundle.main.url(forResource: videoName, withExtension: nil, subdirectory: "Media/Cinematics")
+    }
+
+    public static let allReferences: [UltimateCinematicReference] = Array(
+        referencesByCastKey.values.sorted { $0.castKey < $1.castKey }
+    )
+
+    static func castKey(actorID: String, abilityID: String) -> String {
+        "\(actorID)|\(abilityID)"
+    }
+}
+
+private extension UltimateCinematicReference {
+    var castKey: String {
+        "\(actorID)|\(abilityID)"
     }
 }

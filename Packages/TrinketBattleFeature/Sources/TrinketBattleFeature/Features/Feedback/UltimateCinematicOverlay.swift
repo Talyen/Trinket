@@ -11,13 +11,13 @@ import UIKit
 struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
     let effectsVolume: Double
-    let namespace: Namespace.ID
     let onPlaying: () -> Void
     let onAutoFinish: (Int) -> Void
     let onCollapseFinished: (Int) -> Void
 
     @State private var scrimOpacity = 0.0
     @State private var contentOpacity = 0.0
+    @State private var contentScale = 0.9
     @State private var showVideo = false
     @State private var didFinish = false
     @State private var collapseTask: Task<Void, Never>?
@@ -33,18 +33,14 @@ struct UltimateCinematicOverlay: View {
         ZStack {
             TrinketDesign.Colors.Overlay.cinematicDim
                 .opacity(scrimOpacity * 0.72)
-                .ignoresSafeArea()
                 .allowsHitTesting(cinematic.phase != .collapsing)
 
             cinematicContent
-                .opacity(contentOpacity)
-                .matchedGeometryEffect(
-                    id: "ultimate-source-\(cinematic.actorID)",
-                    in: namespace,
-                    isSource: false
-                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scaleEffect(contentScale)
+                .opacity(contentOpacity)
         }
+        .ignoresSafeArea()
         .accessibilityIdentifier("Ultimate Cinematic \(cinematic.abilityName)")
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.ultimateCinematic,
@@ -71,35 +67,19 @@ struct UltimateCinematicOverlay: View {
 
     private var cinematicContent: some View {
         GeometryReader { geometry in
-            let frame = Self.portraitFrame(in: geometry.size)
             ZStack {
                 artLayer
-                    .frame(width: frame.width, height: frame.height)
-                    .clipShape(RoundedRectangle(
-                        cornerRadius: 0,
-                        style: .continuous
-                    ))
 
-                if showVideo, let player = BattleCinematicPlayer.shared.player(for: cinematic.abilityID) {
+                if showVideo, let player = BattleCinematicPlayer.shared.player(
+                    for: cinematic.actorID,
+                    abilityID: cinematic.abilityID
+                ) {
                     CinematicVideoView(player: player)
-                        .frame(width: frame.width, height: frame.height)
-                        .clipShape(RoundedRectangle(
-                            cornerRadius: 0,
-                            style: .continuous
-                        ))
                         .transition(.opacity)
                 }
-
-                VStack {
-                    Spacer()
-                    Text(cinematic.abilityName)
-                        .trinketTypography(.sectionDisplay)
-                        .trinketOnArtText(.title)
-                        .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
-                }
-                .frame(width: frame.width, height: frame.height)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
         }
     }
 
@@ -126,6 +106,7 @@ struct UltimateCinematicOverlay: View {
         }
         withAnimation(TrinketMotion.Battle.ultimateExpand) {
             contentOpacity = 1
+            contentScale = 1
         }
         onPlaying()
         // Art-hold watchdog first; extend to video watchdog once playback starts.
@@ -140,10 +121,14 @@ struct UltimateCinematicOverlay: View {
         fallbackHoldTask = nil
         videoRevealTask?.cancel()
         videoRevealTask = nil
-        BattleCinematicPlayer.shared.pause(abilityID: cinematic.abilityID)
+        BattleCinematicPlayer.shared.pause(
+            actorID: cinematic.actorID,
+            abilityID: cinematic.abilityID
+        )
         withAnimation(TrinketMotion.Battle.ultimateCollapseAnimation) {
             scrimOpacity = 0
             contentOpacity = 0
+            contentScale = 0.9
             showVideo = false
         }
         let collapseID = cinematic.id
@@ -158,17 +143,25 @@ struct UltimateCinematicOverlay: View {
     }
 
     private func startVideoRevealIfNeeded() {
-        guard BattleCinematicPlayer.shared.hasVideo(for: cinematic.abilityID) else { return }
+        guard BattleCinematicPlayer.shared.hasVideo(
+            for: cinematic.actorID,
+            abilityID: cinematic.abilityID
+        ) else { return }
         videoRevealTask?.cancel()
+        let actorID = cinematic.actorID
         let abilityID = cinematic.abilityID
         let cinematicID = cinematic.id
         videoRevealTask = Task { @MainActor in
-            let ready = await BattleCinematicPlayer.shared.whenReady(abilityID: abilityID)
+            let ready = await BattleCinematicPlayer.shared.whenReady(
+                actorID: actorID,
+                abilityID: abilityID
+            )
             guard !Task.isCancelled, !didFinish, ready else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
                 showVideo = true
             }
             BattleCinematicPlayer.shared.play(
+                actorID: actorID,
                 abilityID: abilityID,
                 effectsVolume: effectsVolume
             ) {
@@ -203,17 +196,6 @@ struct UltimateCinematicOverlay: View {
         fallbackHoldTask = nil
         videoRevealTask?.cancel()
         videoRevealTask = nil
-    }
-
-    private static func portraitFrame(in size: CGSize) -> CGSize {
-        let targetAspect = 9.0 / 16.0
-        let screenAspect = size.width / max(size.height, 1)
-        if screenAspect > targetAspect {
-            let height = size.height
-            return CGSize(width: height * targetAspect, height: height)
-        }
-        let width = size.width
-        return CGSize(width: width, height: width / targetAspect)
     }
 }
 

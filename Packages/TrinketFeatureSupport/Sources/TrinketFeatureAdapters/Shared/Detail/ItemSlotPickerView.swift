@@ -33,6 +33,17 @@ struct ItemSlotPickerView: View {
                             showsAffixCount: false,
                             isSelected: isSelected
                         )
+                        .overlay(alignment: .topTrailing) {
+                            if equippedInSiblingSlotIDs.contains(item.id) {
+                                Text("Equipped")
+                                    .trinketTypography(.caption)
+                                    .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
+                                    .padding(.horizontal, TrinketDesign.Metrics.tightSpacing)
+                                    .padding(.vertical, 2)
+                                    .background(TrinketDesign.Colors.accent, in: Capsule())
+                                    .padding(TrinketDesign.Metrics.tightSpacing)
+                            }
+                        }
                     }
                 )
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemGrid(slot.displayName))
@@ -80,5 +91,12 @@ struct ItemSlotPickerView: View {
         }
 
         return [equippedItem] + items.filter { $0.id != equippedID }
+    }
+
+    /// Item IDs worn in sibling slots of the same family, so the picker can mark
+    /// them as equipped elsewhere (selecting one moves it between slots).
+    private var equippedInSiblingSlotIDs: Set<String> {
+        equipmentLoadout.itemIDs(inFamilyOf: slot)
+            .subtracting([equipmentLoadout.itemID(for: slot)].compactMap(\.self))
     }
 }

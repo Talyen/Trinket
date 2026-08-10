@@ -14,6 +14,7 @@ extension BattleSession {
         public let combatant: Combatant
         public let health: Int
         public let maxHealth: Int
+        public let mana: Int
         public let activeEffectSummaries: [TrinketCore.EffectSummary]
     }
 

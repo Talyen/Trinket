@@ -402,7 +402,9 @@ def parse_trigger_tokens(raw: str) -> list[str]:
 def triggers_swift(raw: str) -> str:
     values: dict[str, str] = {}
     for token in parse_trigger_tokens(raw):
-        if token.startswith("on_cleanse_heal:"):
+        if token.startswith("on_cleanse_draw:"):
+            values["cleanseBonusDraw"] = token.split(":", 1)[1]
+        elif token.startswith("on_cleanse_heal:"):
             values["cleanseBonusHeal"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_gold_heal:"):
             values["gainGoldBonusHealSelf"] = token.split(":", 1)[1]
@@ -508,8 +510,6 @@ def triggers_swift(raw: str) -> str:
             values["dodgeApplyPoison"] = token.split(":", 1)[1]
         elif token.startswith("on_holy_damage_purge:"):
             values["holyDamagePurgeCount"] = token.split(":", 1)[1]
-        elif token.startswith("on_heal_cleanse:"):
-            values["healCleanseCount"] = token.split(":", 1)[1]
         elif token.startswith("once_death_revive_health:"):
             values["onceDeathReviveHealth"] = token.split(":", 1)[1]
         elif token.startswith("once_death_revive_block:"):
@@ -555,6 +555,7 @@ def triggers_swift(raw: str) -> str:
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     order = [
+        "cleanseBonusDraw",
         "cleanseBonusHeal",
         "gainGoldBonusHealSelf",
         "restoreHealthAlsoHealHero",
@@ -606,7 +607,6 @@ def triggers_swift(raw: str) -> str:
         "dodgeBlockFlat",
         "dodgeApplyPoison",
         "holyDamagePurgeCount",
-        "healCleanseCount",
         "onceDeathReviveHealth",
         "onceDeathReviveBlock",
         "blockPerTurn",

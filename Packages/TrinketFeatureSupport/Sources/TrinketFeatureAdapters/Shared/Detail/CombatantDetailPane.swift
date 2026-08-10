@@ -17,6 +17,7 @@ public struct CombatantDetailPane: View {
     let hapticsEnabled: Bool
     let effectsVolume: Double
     var battleHealth: Int?
+    var battleMana: Int?
     var activeEffectSummaries: [EffectSummary] = []
     var labyrinthModifiers: [LabyrinthModifierDefinition] = []
     var hidesNavigationBar = false
@@ -151,7 +152,6 @@ public struct CombatantDetailPane: View {
         DetailSection("Abilities") {
             AbilitySummaryGrid(
                 combatant: combatant,
-                progression: progression,
                 loadout: $loadout,
                 allowsEditing: allowsEditing,
                 onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil,
@@ -183,12 +183,15 @@ public struct CombatantDetailPane: View {
                         value: "\(currentHealth(for: combatBuild))/\(combatBuild.effectiveMaxHealth)",
                         accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
                     )
+                    if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
+                        statRow(
+                            "Mana",
+                            value: "\(currentMana(for: combatBuild))/\(combatBuild.effectiveMaxMana)"
+                        )
+                    }
                 }
 
                 statCard {
-                    if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
-                        statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
-                    }
                     statRow("Strength", value: "\(combatBuild.combatant.primaryStats.strength)")
                     statRow("Agility", value: "\(combatBuild.combatant.primaryStats.agility)")
                     statRow("Toughness", value: "\(combatBuild.combatant.primaryStats.toughness)")
@@ -247,6 +250,10 @@ public struct CombatantDetailPane: View {
 
     private func currentHealth(for combatBuild: CombatBuild) -> Int {
         battleHealth ?? combatBuild.effectiveMaxHealth
+    }
+
+    private func currentMana(for combatBuild: CombatBuild) -> Int {
+        battleMana ?? combatBuild.effectiveMaxMana
     }
 
     private func select(_ ability: Ability) {
@@ -317,6 +324,7 @@ public extension CombatantDetailPane {
             hapticsEnabled: false,
             effectsVolume: 0,
             battleHealth: snapshot.health,
+            battleMana: snapshot.mana,
             activeEffectSummaries: snapshot.activeEffectSummaries,
             labyrinthModifiers: snapshot.labyrinthModifiers,
             hidesNavigationBar: hidesNavigationBar

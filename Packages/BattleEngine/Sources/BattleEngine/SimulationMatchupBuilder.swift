@@ -98,19 +98,16 @@ public enum SimulationMatchupBuilder {
         )
     }
 
-    /// Random legal loadout from a combatant's choice pools, respecting unlock level.
+    /// Random legal loadout from a combatant's choice pools.
     public static func sampleLoadout(
         for combatant: Combatant,
-        level: Int,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> AbilityLoadout {
-        let progression = Self.progression(level: level)
         let choices = combatant.abilityChoices
         let basic = choices.basics.randomElement(using: &randomNumberGenerator)
         let skill = choices.skills.randomElement(using: &randomNumberGenerator)
         let ultimate = choices.ultimates.randomElement(using: &randomNumberGenerator)
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
-            .unlocked(for: progression)
     }
 
     public static func generateAlignedGear(
@@ -175,8 +172,7 @@ public enum SimulationMatchupBuilder {
         request: PartyPrepareRequest,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> PreparedPartyMember {
-        let unlocked = loadout.unlocked(for: request.progression)
-        let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(unlocked)
+        let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.progression.level)
 
         if let gearOverride = request.gearOverride {
@@ -187,7 +183,7 @@ public enum SimulationMatchupBuilder {
                 inventory: gearOverride.inventory
             )
             let affixIDs = gearOverride.inventory.flatMap { $0.affixes.map(\.id) }
-            return PreparedPartyMember(build: build, loadout: unlocked, affixIDs: affixIDs)
+            return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
         }
 
         guard request.tier.includesGear,
@@ -199,7 +195,7 @@ public enum SimulationMatchupBuilder {
                 equipmentLoadout: EquipmentLoadout(),
                 inventory: []
             )
-            return PreparedPartyMember(build: build, loadout: unlocked, affixIDs: [])
+            return PreparedPartyMember(build: build, loadout: loadout, affixIDs: [])
         }
 
         let buildKeywords = request.gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
@@ -219,6 +215,6 @@ public enum SimulationMatchupBuilder {
             inventory: gear.inventory
         )
         let affixIDs = gear.inventory.flatMap { $0.affixes.map(\.id) }
-        return PreparedPartyMember(build: build, loadout: unlocked, affixIDs: affixIDs)
+        return PreparedPartyMember(build: build, loadout: loadout, affixIDs: affixIDs)
     }
 }

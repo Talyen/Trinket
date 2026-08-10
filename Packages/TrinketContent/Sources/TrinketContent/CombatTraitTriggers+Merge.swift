@@ -9,6 +9,7 @@ public extension CombatTraitTriggers {
     }
 
     private mutating func mergeBaseTriggers(_ other: CombatTraitTriggers) {
+        cleanseBonusDraw += other.cleanseBonusDraw
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
@@ -75,7 +76,6 @@ public extension CombatTraitTriggers {
         dodgeBlockFlat += other.dodgeBlockFlat
         dodgeApplyPoison += other.dodgeApplyPoison
         holyDamagePurgeCount += other.holyDamagePurgeCount
-        healCleanseCount += other.healCleanseCount
         onceDeathReviveHealth = max(onceDeathReviveHealth, other.onceDeathReviveHealth)
         onceDeathReviveBlock += other.onceDeathReviveBlock
         blockPerTurn += other.blockPerTurn
