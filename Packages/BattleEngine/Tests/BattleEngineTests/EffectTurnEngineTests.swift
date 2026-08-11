@@ -13,23 +13,15 @@ struct EffectTurnEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
-            companion: CombatantRuntime(combatant: companion),
-            enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP, initialActiveEffects: enemyEffects)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: enemyEffects
         )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
-            nextEffectID: 10,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
+        battle.roster.hero.currentHealth = heroHP
+        battle.roster.enemy.currentHealth = enemyHP
+        return battle
     }
 
     @Test func doTTickPreservesShieldDepletionThroughTickAll() throws {

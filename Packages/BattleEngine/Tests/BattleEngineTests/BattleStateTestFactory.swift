@@ -25,7 +25,12 @@ enum BattleStateTestFactory {
         activeCompanionEffects: [ActiveEffect] = [],
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
-        companionModifiers: CombatModifierProfile = .zero
+        companionModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
+        rngSeed: UInt64 = deterministicNonCriticalSeed,
+        tracksLog: Bool = false,
+        tracksEvents: Bool = true,
+        dealOpeningHand: Bool = true
     ) -> BattleState {
         BattleState(
             hero: hero,
@@ -37,7 +42,11 @@ enum BattleStateTestFactory {
             initialGold: initialGold,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,
-            rngSeed: deterministicNonCriticalSeed
+            enemyModifiers: enemyModifiers,
+            rngSeed: rngSeed,
+            tracksLog: tracksLog,
+            tracksEvents: tracksEvents,
+            dealOpeningHand: dealOpeningHand
         )
     }
 
@@ -48,5 +57,53 @@ enum BattleStateTestFactory {
         on battle: inout BattleState
     ) {
         battle.seedActiveEffects(effects, for: combatant)
+    }
+
+    /// Convenient helper for card & turn tests requiring custom ability loadouts and initial mana.
+    static func makeBattleWithAbilities(
+        heroAbilities: [Ability] = [],
+        companionAbilities: [Ability] = [],
+        enemyAbilities: [Ability] = [],
+        heroMaxHealth: Int = 50,
+        companionMaxHealth: Int = 50,
+        enemyMaxHealth: Int = 100,
+        heroMaxMana: Int = 0,
+        heroMana: Int? = nil,
+        dealOpeningHand: Bool = true
+    ) -> BattleState {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: heroMaxHealth,
+            maxMana: heroMaxMana,
+            abilities: heroAbilities
+        )
+        let companion = Combatant(
+            id: "companion",
+            name: "Companion",
+            role: .companion,
+            maxHealth: companionMaxHealth,
+            abilities: companionAbilities
+        )
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: enemyMaxHealth,
+            abilities: enemyAbilities
+        )
+        var battle = makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            dealOpeningHand: dealOpeningHand
+        )
+        if let heroMana {
+            battle.withEngineContext { context in
+                context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
+            }
+        }
+        return battle
     }
 }

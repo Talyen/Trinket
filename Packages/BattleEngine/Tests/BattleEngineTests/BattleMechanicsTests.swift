@@ -12,31 +12,16 @@ struct BattleMechanicsTests {
         heroMana: Int? = nil,
         enemyEffects: [ActiveEffect] = []
     ) -> BattleState {
-        let heroRuntime = CombatantRuntime(
-            combatant: hero,
-            initialMana: heroMana
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: enemyEffects
         )
-        let enemyRuntime = CombatantRuntime(
-            combatant: enemy,
-            initialActiveEffects: enemyEffects
-        )
-        let roster = BattleRoster(
-            hero: heroRuntime,
-            companion: CombatantRuntime(combatant: companion),
-            enemy: enemyRuntime
-        )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
-            nextEffectID: 1,
-            nextEventID: 1,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
+        if let heroMana {
+            battle.roster.hero.currentMana = heroMana
+        }
+        return battle
     }
 
     @Test func markedBonusAddsDamageAndConsumesMark() throws {

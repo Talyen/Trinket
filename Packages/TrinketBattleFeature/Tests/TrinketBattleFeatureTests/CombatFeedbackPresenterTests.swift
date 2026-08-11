@@ -241,14 +241,35 @@ struct CombatFeedbackPresenterTests {
                     keyword: .stun
                 ),
                 makeEvent(id: 5, kind: .abilityDamage, amount: 8, keyword: .physical),
+                makeEvent(
+                    id: 6,
+                    kind: .effect,
+                    effectKind: .shieldApplied,
+                    amount: 3,
+                    keyword: .block
+                ),
+                makeEvent(
+                    id: 7,
+                    kind: .effect,
+                    effectKind: .dodgeApplied,
+                    amount: 0,
+                    keyword: .dodge
+                ),
+                makeEvent(
+                    id: 8,
+                    kind: .effect,
+                    effectKind: .resourceGain,
+                    amount: 2,
+                    keyword: .mana
+                ),
             ],
             at: .now
         )
-        #expect(items.count == 4)
+        #expect(items.count == 7)
         #expect(items[0].feedbackClass == .directDamage)
         #expect(items[0].presentationIndex == 0)
-        #expect(items.allSatisfy { $0.groupResultCount == 4 })
-        #expect(items.map(\.presentationIndex) == [0, 1, 2, 3])
+        #expect(items.allSatisfy { $0.groupResultCount == 7 })
+        #expect(items.map(\.presentationIndex) == Array(0 ..< 7))
         #expect(items[0].presentationRole == .headline)
         #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }

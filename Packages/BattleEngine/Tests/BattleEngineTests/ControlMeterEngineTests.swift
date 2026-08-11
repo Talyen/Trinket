@@ -7,34 +7,23 @@ import TrinketTestSupport
 struct ControlMeterEngineTests {
     private func makeContext(
         targetMaxHealth: Int = 50,
-        targetEffects: [ActiveEffect] = [],
-        seed: UInt64 = 1772
+        targetEffects: [ActiveEffect] = []
     ) -> BattleState {
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: targetMaxHealth
         )
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
-        )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        return BattleStateTestFactory.makeBattle(
+            hero: source,
+            companion: companion,
+            enemy: target,
+            activeEnemyEffects: targetEffects
         )
     }
 
     @Test func applyBuildupTriggersControlAtThreshold() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext()
         let events = ControlMeterEngine.applyMeterCharge(
             15,
             keyword: .stun,
@@ -49,8 +38,7 @@ struct ControlMeterEngineTests {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
-            ],
-            seed: 1772
+            ]
         )
         let events = ControlMeterEngine.applyMeterCharge(
             15,
@@ -70,8 +58,7 @@ struct ControlMeterEngineTests {
                     effect: .controlMeter(.stun, 10, 10),
                     remainingTurns: BattleTiming.controlStatusLingerTurns
                 ),
-            ],
-            seed: 1772
+            ]
         )
         let target = context.roster.enemy.combatant
         try #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .stun)))
@@ -91,8 +78,7 @@ struct ControlMeterEngineTests {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
-            ],
-            seed: 1772
+            ]
         )
         let target = context.roster.enemy.combatant
 
@@ -119,8 +105,7 @@ struct ControlMeterEngineTests {
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTurns: 0),
-            ],
-            seed: 1772
+            ]
         )
         let target = context.roster.enemy.combatant
         let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
@@ -128,7 +113,7 @@ struct ControlMeterEngineTests {
     }
 
     @Test func overflowChargeIsConsumedOnTrigger() throws {
-        var context = makeContext(targetMaxHealth: 100, seed: 1772)
+        var context = makeContext(targetMaxHealth: 100)
         let target = context.roster.enemy.combatant
 
         let events = ControlMeterEngine.applyMeterCharge(

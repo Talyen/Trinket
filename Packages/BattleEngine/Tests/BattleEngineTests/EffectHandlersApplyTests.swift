@@ -5,6 +5,15 @@ import TrinketCore
 import TrinketTestSupport
 
 struct EffectHandlersApplyTests {
+    @Test func registryCoversEveryEffectKind() throws {
+        try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
+        for kind in EffectKind.allCases {
+            let handler = try #require(EffectHandlers.all[kind], "Missing handler for \(kind)")
+            try #expect(handler.kind == kind)
+            try #expect(EffectHandlers.handler(for: kind)?.kind == kind)
+        }
+    }
+
     // MARK: - DoT handlers
 
     @Test func burnHandlerAppliesBurnEffect() throws {

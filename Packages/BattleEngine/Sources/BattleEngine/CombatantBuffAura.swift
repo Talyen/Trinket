@@ -29,7 +29,7 @@ public enum CombatantBuffAura: Sendable {
         for combatant: Combatant,
         in state: BattleState
     ) -> CombatantBuffAuraKind? {
-        let causesRecurringHolyDamage = state.roster.allRuntimes.contains { runtime in
+        let causesRecurringHolyDamage = state.roster.containsRuntime { runtime in
             runtime.activeEffects.contains { active in
                 active.sourceActorID == combatant.id
                     && active.effect.isRecurringHolyDamage

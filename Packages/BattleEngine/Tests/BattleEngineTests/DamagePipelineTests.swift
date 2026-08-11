@@ -8,22 +8,12 @@ struct DamagePipelineTests {
     private func makeContext(seed: UInt64 = 1772) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
-        )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        return BattleStateTestFactory.makeBattle(
+            hero: source,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: target,
+            rngSeed: seed,
+            dealOpeningHand: false
         )
     }
 

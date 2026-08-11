@@ -11,10 +11,18 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class LabyrinthPlayMode {
+    private struct PreparationInputs: Equatable {
+        let labyrinth: PlayerLabyrinthState
+        let roster: PlayerRosterState
+        let inventory: PlayerInventoryState
+        let homestead: PlayerHomesteadState
+    }
+
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
+    private var preparedInputs: PreparationInputs?
 
     public var activeNodeSession: LabyrinthNodeSession?
 
@@ -203,7 +211,7 @@ public final class LabyrinthPlayMode {
         }
 
         let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        battleLaunch.activateCombat(
+        let activated = battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
             route: battleRoute(nodeID: nodeID),
@@ -211,27 +219,47 @@ public final class LabyrinthPlayMode {
             universalModifiers: Self.combatModifiers(from: effects),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
+        if activated {
+            preparedInputs = nil
+        }
         return nil
     }
 
     public func prepareReachableBattles() {
         guard battle.lifecyclePhase != .active else { return }
-        for nodeID in playerSave.labyrinth.reachableNodeIDs() {
-            prepareBattle(nodeID: nodeID)
+        let labyrinth = playerSave.labyrinth
+        let inputs = PreparationInputs(
+            labyrinth: labyrinth,
+            roster: playerSave.roster,
+            inventory: playerSave.inventory,
+            homestead: playerSave.homestead
+        )
+        guard inputs != preparedInputs || battle.lifecyclePhase == .idle else { return }
+
+        var preparedAll = true
+        for nodeID in labyrinth.reachableNodeIDs() {
+            guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { continue }
+            if !prepareBattle(node: node, labyrinth: labyrinth) {
+                preparedAll = false
+            }
+        }
+        if preparedAll {
+            preparedInputs = inputs
         }
     }
 
-    private func prepareBattle(nodeID: String) {
-        let labyrinth = playerSave.labyrinth
-        guard let node = labyrinth.node(id: nodeID), node.type.isCombat else { return }
-        let effects = labyrinth.effects(for: nodeID)
-        guard let encounter = resolvedEncounter(for: node) else { return }
+    private func prepareBattle(
+        node: LabyrinthNode,
+        labyrinth: PlayerLabyrinthState
+    ) -> Bool {
+        let effects = labyrinth.effects(for: node.id)
+        guard let encounter = resolvedEncounter(for: node) else { return false }
 
-        let origin = PlayBattleOrigin.labyrinth(nodeID: nodeID)
-        battleLaunch.prepareCombat(
+        let origin = PlayBattleOrigin.labyrinth(nodeID: node.id)
+        return battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
-            route: battleRoute(nodeID: nodeID),
+            route: battleRoute(nodeID: node.id),
             loot: battleLoot(for: node, labyrinth: labyrinth),
             universalModifiers: Self.combatModifiers(from: effects),
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)

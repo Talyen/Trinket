@@ -331,6 +331,11 @@ struct BattleDissolveEffect<Content: View>: View {
     }
 }
 
+private enum BattleDissolveParticles {
+    static let standard = CardActivationParticle.make(count: 20)
+    static let defeat = CardActivationParticle.make(count: 28, spread: .fireworks)
+}
+
 public struct BattleDissolveArtwork<Content: View>: View {
     let celebratesDefeat: Bool
     let onFinished: (() -> Void)?
@@ -351,11 +356,11 @@ public struct BattleDissolveArtwork<Content: View>: View {
         self.onFinished = onFinished
         self.content = content()
         if celebratesDefeat {
-            particles = CardActivationParticle.make(count: 28, spread: .fireworks)
+            particles = BattleDissolveParticles.defeat
             keywords = [.gold, .holy]
             configuration = .defeatCelebration
         } else {
-            particles = CardActivationParticle.make(count: 20)
+            particles = BattleDissolveParticles.standard
             keywords = [.physical]
             configuration = CardCastEffectConfiguration()
         }
@@ -405,13 +410,18 @@ public struct BattleDissolveArtwork<Content: View>: View {
 /// once, then tears down. Uses a real ability card face so production first-cast
 /// does not pay card-surface + artwork + mask + particles together cold.
 public struct CardCastEffectsPrewarmView: View {
+    private static let prewarmParticles = CardActivationParticle.make(
+        count: TrinketMotion.Battle.cardCastParticleCount
+    )
+
     public var artworkName: String? = "ability_bash"
     let onComplete: () -> Void
 
     private let cardSize = CGSize(width: 168, height: 224)
-    private let particles = CardActivationParticle.make(
-        count: TrinketMotion.Battle.cardCastParticleCount
-    )
+    private var particles: [CardActivationParticle] {
+        Self.prewarmParticles
+    }
+
     @State private var startDate = Date()
 
     public init(

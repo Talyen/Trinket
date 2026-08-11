@@ -35,6 +35,7 @@ public final class PlayerSaveStore {
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
     private var pendingRollbackSlices: PlayerSaveSlice = []
+    private var cachedSave: PlayerSave?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -50,36 +51,37 @@ public final class PlayerSaveStore {
     public var forcesNextSaveFailure = false
     #endif
 
+    private func invalidateCache() {
+        cachedSave = nil
+    }
+
     public var journey: JourneyProgressState {
-        get { root.journey?.toJourneyProgressState() ?? .initial }
+        get { currentSave.journey }
         set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
     }
 
     public var roster: PlayerRosterState {
-        get {
-            let inventory = root.inventory?.toPlayerInventoryState() ?? .freshStart
-            return root.roster?.toPlayerRosterState(inventory: inventory) ?? .freshStart
-        }
+        get { currentSave.roster }
         set { mutate { $0.roster = newValue } }
     }
 
     public var inventory: PlayerInventoryState {
-        get { root.inventory?.toPlayerInventoryState() ?? .freshStart }
+        get { currentSave.inventory }
         set { mutate { $0.inventory = newValue } }
     }
 
     public var homestead: PlayerHomesteadState {
-        get { root.homestead?.toPlayerHomesteadState() ?? .freshStart }
+        get { currentSave.homestead }
         set { mutate { $0.homestead = newValue } }
     }
 
     public var spires: PlayerSpiresState {
-        get { root.spires?.toPlayerSpiresState() ?? .freshStart }
+        get { currentSave.spires }
         set { mutate { $0.spires = PlayerSaveSanitizer.sanitizeSpires(newValue) } }
     }
 
     public var labyrinth: PlayerLabyrinthState {
-        get { root.labyrinth?.toPlayerLabyrinthState() ?? .freshStart }
+        get { currentSave.labyrinth }
         set { mutate { $0.labyrinth = PlayerSaveSanitizer.sanitizeLabyrinth(newValue) } }
     }
 
@@ -89,7 +91,12 @@ public final class PlayerSaveStore {
     }
 
     public var currentSave: PlayerSave {
-        root.toPlayerSave()
+        if let cachedSave {
+            return cachedSave
+        }
+        let save = root.toPlayerSave()
+        cachedSave = save
+        return save
     }
 
     /// Cross-slice homestead actions — prefer over growing this hub.
@@ -189,6 +196,7 @@ public final class PlayerSaveStore {
         let changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
         measured("GraphApply") {
             root.apply(candidate, slices: changedSlices, context: context)
+            cachedSave = candidate
         }
 
         if persistImmediately {
@@ -197,6 +205,7 @@ public final class PlayerSaveStore {
                 lastPersistenceError = nil
             } catch {
                 root.apply(snapshot, slices: changedSlices, context: context)
+                cachedSave = snapshot
                 lastPersistenceError = .writeFailed
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
@@ -271,6 +280,7 @@ public final class PlayerSaveStore {
     private func rollbackPendingMutationIfNeeded() {
         guard let pendingRollbackSnapshot else { return }
         root.apply(pendingRollbackSnapshot, slices: pendingRollbackSlices, context: context)
+        cachedSave = pendingRollbackSnapshot
         self.pendingRollbackSnapshot = nil
         pendingRollbackSlices = []
     }
@@ -280,13 +290,16 @@ public final class PlayerSaveStore {
         // clear failure left duplicate `id == "primary"` rows so a later cold start
         // could reload stale progress instead of the reset snapshot.
         let snapshot = currentSave
-        root.update(from: PlayerSaveSanitizer.sanitize(save), context: context)
+        let sanitized = PlayerSaveSanitizer.sanitize(save)
+        root.update(from: sanitized, context: context)
+        cachedSave = sanitized
         do {
             try saveGraph()
             pendingRollbackSnapshot = nil
             pendingRollbackSlices = []
         } catch {
             root.update(from: snapshot, context: context)
+            cachedSave = snapshot
             throw error
         }
     }
@@ -347,6 +360,7 @@ public final class PlayerSaveStore {
         var save = currentSave
         save = PlayerSaveSanitizer.sanitize(save)
         root.update(from: save, context: context)
+        cachedSave = save
         do {
             try context.save()
         } catch {

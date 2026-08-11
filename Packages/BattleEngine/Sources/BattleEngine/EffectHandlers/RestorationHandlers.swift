@@ -217,8 +217,11 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             guard context.hand.card(id: card.id) != nil,
                   BattleCardCombatEngine.isCardPlayable(card, in: context)
             else { continue }
-            if let played = try? BattleCardCombatEngine.playCard(cardID: card.id, context: &context) {
+            do {
+                let played = try BattleCardCombatEngine.playCard(cardID: card.id, context: &context)
                 events.append(contentsOf: played)
+            } catch {
+                // Card play failed due to state mutation or turn constraints
             }
         }
         return events

@@ -60,7 +60,8 @@ public enum PlayerSaveSanitizer {
         chapters: [Chapter] = GameContent.chapters
     ) -> JourneyProgressState {
         let validChapterIDs = Set(chapters.map(\.id))
-        let validStageIDs = Set(chapters.flatMap { $0.stages.map(\.id) })
+        let allStages = chapters.flatMap(\.stages)
+        let validStageIDs = Set(allStages.map(\.id))
 
         var sanitized = journey
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
@@ -84,12 +85,10 @@ public enum PlayerSaveSanitizer {
            validStageIDs.contains(activeStageID),
            !sanitized.completedStageIDs.contains(activeStageID) {
             sanitized.activeStageID = activeStageID
-            if let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID }) {
+            if let stage = allStages.first(where: { $0.id == activeStageID }) {
                 sanitized.activeChapterID = stage.chapterID
             }
-        } else if let firstIncomplete = chapters
-            .flatMap(\.stages)
-            .first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
+        } else if let firstIncomplete = allStages.first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
             sanitized.activeStageID = firstIncomplete.id
             sanitized.activeChapterID = firstIncomplete.chapterID
         } else {

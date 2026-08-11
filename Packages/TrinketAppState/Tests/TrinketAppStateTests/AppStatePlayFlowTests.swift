@@ -265,7 +265,7 @@ struct AppStatePlayFlowTests {
         case "labyrinth":
             let state = try context.makePlaySession(arguments: ["-reset-state"])
             _ = state.labyrinth.enter()
-            let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
+            let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
             #expect(state.labyrinth.startBattle(nodeID: combatNodeID) == nil)
             state.shellSession.selectedTab = .options
 
@@ -355,18 +355,5 @@ struct AppStatePlayFlowTests {
         roster.setActiveHero(rogue)
         roster.setActiveCompanion(lizard)
         state.playerSave.roster = roster
-    }
-
-    private func firstReachableCombatNodeIDForReturnTests(in state: PlaySession) -> String? {
-        for _ in 0 ..< 24 {
-            if let matchID = state.playerSave.labyrinth.reachableNodeIDs().first(where: { id in
-                state.playerSave.labyrinth.node(id: id)?.type.isCombat == true
-            }) {
-                return matchID
-            }
-            guard let next = state.playerSave.labyrinth.reachableNodeIDs().first else { return nil }
-            state.labyrinth.completeNode(nodeID: next)
-        }
-        return nil
     }
 }

@@ -66,7 +66,31 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     }
 
     public func reachableNodeIDs() -> [String] {
-        nodes.keys.filter { isNodeReachable($0) }.sorted()
+        var explicitOutgoingIDs: Set<String> = []
+        var clearedPositionsByCluster: [String: [LabyrinthGridPosition]] = [:]
+
+        for node in nodes.values where node.isCleared {
+            explicitOutgoingIDs.formUnion(node.outgoingIDs)
+            if let position = node.gridPosition {
+                clearedPositionsByCluster[node.clusterID, default: []].append(position)
+            }
+        }
+
+        return nodes.values.compactMap { node in
+            guard node.isRevealed,
+                  !node.isCleared,
+                  node.id != LabyrinthGenerator.entranceNodeID
+            else { return nil }
+            if explicitOutgoingIDs.contains(node.id) {
+                return node.id
+            }
+            guard let position = node.gridPosition,
+                  clearedPositionsByCluster[node.clusterID]?.contains(where: {
+                      $0.isAdjacent(to: position)
+                  }) == true
+            else { return nil }
+            return node.id
+        }.sorted()
     }
 
     public var currentFloorNumber: Int {

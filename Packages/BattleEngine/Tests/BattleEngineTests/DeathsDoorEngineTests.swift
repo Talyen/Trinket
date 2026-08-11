@@ -14,23 +14,16 @@ struct DeathsDoorEngineTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyHP)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
-            companion: CombatantRuntime(combatant: companion, initialHealth: companionHP),
-            enemy: CombatantRuntime(combatant: enemy)
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            heroModifiers: heroModifiers
         )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: heroModifiers,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
+        battle.roster.hero.currentHealth = heroHP
+        battle.roster.companion.currentHealth = companionHP
+        battle.roster.enemy.currentHealth = enemyHP
+        return battle
     }
 
     @Test func triggerOnFirstLethalHit() throws {

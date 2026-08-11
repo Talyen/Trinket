@@ -84,30 +84,89 @@ public enum BalanceStatsAggregator {
         }
     }
 
+    private struct TierMetrics {
+        let totalBattles: Int
+        let winCount: Int
+        let timeoutCount: Int
+        let avgRounds: Double
+        let avgPartyHPWin: Double
+        let avgEnemyHPLoss: Double
+        let overallRate: Double
+        let trashRecords: [BalanceBattleRecord]
+        let bossRecords: [BalanceBattleRecord]
+    }
+
+    private static func computeTierMetrics(_ records: [BalanceBattleRecord]) -> TierMetrics {
+        let totalBattles = records.count
+        var winCount = 0
+        var timeoutCount = 0
+        var totalRoundsSum = 0.0
+        var partyHPWinSum = 0.0
+        var enemyHPLossSum = 0.0
+        var lossCount = 0
+        var trashRecords: [BalanceBattleRecord] = []
+        var bossRecords: [BalanceBattleRecord] = []
+
+        for record in records {
+            if record.isBoss {
+                bossRecords.append(record)
+            } else {
+                trashRecords.append(record)
+            }
+            totalRoundsSum += Double(record.result.rounds)
+            if record.result.timedOut {
+                timeoutCount += 1
+            }
+            if record.result.isVictory {
+                winCount += 1
+                partyHPWinSum += record.result.partyHPRemainingFraction
+            } else {
+                lossCount += 1
+                enemyHPLossSum += record.result.enemyHPRemainingFraction
+            }
+        }
+
+        let overallRate = totalBattles == 0 ? 0.0 : Double(winCount) / Double(totalBattles)
+        let avgRounds = totalBattles == 0 ? 0.0 : totalRoundsSum / Double(totalBattles)
+        let avgPartyHPWin = winCount == 0 ? 0.0 : partyHPWinSum / Double(winCount)
+        let avgEnemyHPLoss = lossCount == 0 ? 0.0 : enemyHPLossSum / Double(lossCount)
+
+        return TierMetrics(
+            totalBattles: totalBattles,
+            winCount: winCount,
+            timeoutCount: timeoutCount,
+            avgRounds: avgRounds,
+            avgPartyHPWin: avgPartyHPWin,
+            avgEnemyHPLoss: avgEnemyHPLoss,
+            overallRate: overallRate,
+            trashRecords: trashRecords,
+            bossRecords: bossRecords
+        )
+    }
+
     private static func summarizeTier(
         tier: SimulationPowerTier,
         records: [BalanceBattleRecord],
         threshold: Double
     ) -> BalanceTierStats {
-        let overallRate = winRate(records)
-        let wins = records.filter(\.result.isVictory)
+        let metrics = computeTierMetrics(records)
+        let overallRate = metrics.overallRate
+
         return BalanceTierStats(
             tier: tier,
-            battles: records.count,
-            wins: wins.count,
-            timeouts: records.filter(\.result.timedOut).count,
-            averageRounds: average(records.map { Double($0.result.rounds) }),
-            averagePartyHPOnWin: average(wins.map(\.result.partyHPRemainingFraction)),
-            averageEnemyHPOnLoss: average(
-                records.filter { !$0.result.isVictory }.map(\.result.enemyHPRemainingFraction)
-            ),
+            battles: metrics.totalBattles,
+            wins: metrics.winCount,
+            timeouts: metrics.timeoutCount,
+            averageRounds: metrics.avgRounds,
+            averagePartyHPOnWin: metrics.avgPartyHPWin,
+            averageEnemyHPOnLoss: metrics.avgEnemyHPLoss,
             trashDuration: durationStats(
-                records.filter { !$0.isBoss },
+                metrics.trashRecords,
                 minRounds: BalanceDurationThresholds.trashMinRounds,
                 maxRounds: BalanceDurationThresholds.trashMaxRounds
             ),
             bossDuration: durationStats(
-                records.filter(\.isBoss),
+                metrics.bossRecords,
                 minRounds: BalanceDurationThresholds.bossMinRounds,
                 maxRounds: BalanceDurationThresholds.bossMaxRounds
             ),
@@ -163,18 +222,40 @@ public enum BalanceStatsAggregator {
                 worstEnemyID: nil
             )
         }
-        let short = records.filter { $0.result.rounds < minRounds }
-        let long = records.filter { $0.result.rounds > maxRounds }
-        let worst = records.max(by: { $0.result.rounds < $1.result.rounds })
+        var shortBattles = 0
+        var longBattles = 0
+        var totalRounds = 0.0
+        var shortRoundsSum = 0.0
+        var longRoundsSum = 0.0
+        var maxRoundsValue = 0
+        var worstEnemyID: String?
+
+        for record in records {
+            let rounds = record.result.rounds
+            totalRounds += Double(rounds)
+            if rounds > maxRoundsValue {
+                maxRoundsValue = rounds
+                worstEnemyID = record.enemyID
+            }
+            if rounds < minRounds {
+                shortBattles += 1
+                shortRoundsSum += Double(rounds)
+            } else if rounds > maxRounds {
+                longBattles += 1
+                longRoundsSum += Double(rounds)
+            }
+        }
+
+        let totalCount = Double(records.count)
         return BalanceDurationBucketStats(
             battles: records.count,
-            shortBattles: short.count,
-            longBattles: long.count,
-            averageRounds: average(records.map { Double($0.result.rounds) }),
-            averageRoundsWhenShort: average(short.map { Double($0.result.rounds) }),
-            averageRoundsWhenLong: average(long.map { Double($0.result.rounds) }),
-            maxRounds: worst?.result.rounds ?? 0,
-            worstEnemyID: worst?.enemyID
+            shortBattles: shortBattles,
+            longBattles: longBattles,
+            averageRounds: totalCount > 0 ? totalRounds / totalCount : 0,
+            averageRoundsWhenShort: shortBattles > 0 ? shortRoundsSum / Double(shortBattles) : 0,
+            averageRoundsWhenLong: longBattles > 0 ? longRoundsSum / Double(longBattles) : 0,
+            maxRounds: maxRoundsValue,
+            worstEnemyID: worstEnemyID
         )
     }
 

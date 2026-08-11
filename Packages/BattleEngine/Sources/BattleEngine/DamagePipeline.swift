@@ -42,9 +42,7 @@ package enum DamagePipeline {
         if !state.isRetaliation {
             applyControlMeter(to: &state, in: &context)
             applyReactiveOnHit(to: &state, in: &context)
-            applyHolyReaction(to: &state, in: &context)
-            applyStunReaction(to: &state, in: &context)
-            applyBurnReaction(to: &state, in: &context)
+            applyKeywordReactions(to: &state, in: &context)
             applyCriticalReaction(to: &state, in: &context)
         }
     }

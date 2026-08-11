@@ -76,7 +76,24 @@ final class CombatFeedbackGlyphAtlas {
 
     private var symbols: [SymbolKey: Glyph] = [:]
     private var fragments: [FragmentKey: Glyph] = [:]
-    private var pendingPrewarmTask: Task<Void, Never>?
+    private var preparedPresentationKeys: Set<PresentationKey> = []
+    private var pendingPrewarm: PendingPrewarm?
+    private var prewarmGeneration = 0
+
+    struct PresentationKey: Hashable {
+        let dynamicTypeSize: DynamicTypeSize
+        let displayScaleHundredths: Int
+
+        init(dynamicTypeSize: DynamicTypeSize, displayScale: CGFloat) {
+            self.dynamicTypeSize = dynamicTypeSize
+            displayScaleHundredths = Int((max(1, displayScale) * 100).rounded())
+        }
+    }
+
+    private struct PendingPrewarm {
+        let generation: Int
+        let task: Task<PresentationKey?, Never>
+    }
 
     struct SymbolKey: Hashable {
         let face: Face
@@ -102,8 +119,10 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     func removeAll() {
-        pendingPrewarmTask?.cancel()
-        pendingPrewarmTask = nil
+        prewarmGeneration &+= 1
+        pendingPrewarm?.task.cancel()
+        pendingPrewarm = nil
+        preparedPresentationKeys.removeAll(keepingCapacity: true)
         symbols.removeAll(keepingCapacity: true)
         fragments.removeAll(keepingCapacity: true)
     }
@@ -140,50 +159,64 @@ final class CombatFeedbackGlyphAtlas {
         return glyph
     }
 
-    /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
-    /// image renderers are safe for background bitmap construction; only the final
-    /// dictionary publication returns to the actor that owns the battle-scoped cache.
-    func prepareBattlePresentation(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) {
-        _ = startBattlePresentationPreparation(
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
-    }
-
     func prepareBattlePresentationAndWait(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) async {
-        let task = startBattlePresentationPreparation(
+        let key = PresentationKey(
             dynamicTypeSize: dynamicTypeSize,
             displayScale: displayScale
         )
-        await task.value
+        while !preparedPresentationKeys.contains(key) {
+            let completedKey = if let pendingPrewarm {
+                await pendingPrewarm.task.value
+            } else {
+                await startBattlePresentationPreparation(for: key).value
+            }
+            guard !Task.isCancelled, completedKey != nil else { return }
+        }
     }
 
-    private func startBattlePresentationPreparation(
+    func isBattlePresentationPrepared(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
-    ) -> Task<Void, Never> {
-        if let pendingPrewarmTask {
-            return pendingPrewarmTask
-        }
-        let scale = max(1, displayScale)
-        let task = Task { @MainActor [weak self] in
-            guard let self else { return }
+    ) -> Bool {
+        preparedPresentationKeys.contains(PresentationKey(
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        ))
+    }
+
+    /// Builds immutable atlas entries away from the main actor. UIKit/Core Graphics
+    /// image renderers are safe for background bitmap construction; only the final
+    /// dictionary publication returns to the actor that owns the battle-scoped cache.
+    private func startBattlePresentationPreparation(
+        for key: PresentationKey
+    ) -> Task<PresentationKey?, Never> {
+        prewarmGeneration &+= 1
+        let generation = prewarmGeneration
+        let task: Task<PresentationKey?, Never> = Task { @MainActor [weak self] in
+            guard let self else { return nil }
+            defer {
+                if pendingPrewarm?.generation == generation {
+                    pendingPrewarm = nil
+                }
+            }
             let requests = prewarmRequests(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: scale
+                dynamicTypeSize: key.dynamicTypeSize,
+                displayScaleHundredths: key.displayScaleHundredths
             )
             // Concurrency-Safety: detached CPU rasterization must not block
             // MainActor; results are immutable PreparedGlyph values merged here.
-            let prepared = await Task.detached(priority: .utility) {
+            let worker = Task.detached(priority: .utility) {
                 Self.bake(requests)
-            }.value
-            guard !Task.isCancelled else { return }
+            }
+            let prepared = await withTaskCancellationHandler {
+                await worker.value
+            } onCancel: {
+                worker.cancel()
+            }
+            guard !Task.isCancelled, prewarmGeneration == generation else { return nil }
             for glyph in prepared {
                 switch glyph {
                 case let .symbol(key, value):
@@ -192,17 +225,17 @@ final class CombatFeedbackGlyphAtlas {
                     fragments[key] = value
                 }
             }
-            pendingPrewarmTask = nil
+            preparedPresentationKeys.insert(key)
+            return key
         }
-        pendingPrewarmTask = task
+        pendingPrewarm = PendingPrewarm(generation: generation, task: task)
         return task
     }
 
     private func prewarmRequests(
         dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
+        displayScaleHundredths: Int
     ) -> [PrewarmRequest] {
-        let scaleHundredths = Int((displayScale * 100).rounded())
         let symbolNames = Set(Keyword.allCases.map(\.visualStyle.symbolName)).union([
             Keyword.VisualStyle.beneficialStatus.symbolName,
             Keyword.VisualStyle.negativeStatus.symbolName,
@@ -220,7 +253,7 @@ final class CombatFeedbackGlyphAtlas {
                     typography: typography,
                     presentationRole: role,
                     dynamicTypeSize: dynamicTypeSize,
-                    displayScaleHundredths: scaleHundredths
+                    displayScaleHundredths: displayScaleHundredths
                 )
                 for symbolName in symbolNames {
                     let key = SymbolKey(face: face, symbolName: symbolName)

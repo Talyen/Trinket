@@ -355,8 +355,8 @@ trinket_classify_path() {
 trinket_classify_paths() {
   trinket_reset_classification
   local path
-  if (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
-    for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+  if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
+    for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
       trinket_classify_path "$path"
     done
   fi
@@ -371,8 +371,8 @@ trinket_classify_paths() {
   if [[ "$TRINKET_HAS_CONTENT" == true || "$TRINKET_HAS_ASSETS" == true ]]; then
     trinket_add_context_card Docs/AgentContext/content-and-manifests.md
   fi
-  if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
-    for package in "${TRINKET_PACKAGES[@]}"; do
+  if [[ ${#TRINKET_PACKAGES[@]+x} ]] && (( ${#TRINKET_PACKAGES[@]} > 0 )); then
+    for package in ${TRINKET_PACKAGES[@]+"${TRINKET_PACKAGES[@]}"}; do
       case "$package" in
         BattleEngine) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketPersistence) trinket_add_context_card Docs/AgentContext/persistence.md ;;
@@ -394,7 +394,7 @@ trinket_classify_paths() {
   if [[ "$TRINKET_HAS_PROJECT" == true ]]; then
     trinket_add_context_card Docs/AgentContext/ci-and-project-generation.md
   else
-    for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+    for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
       case "$path" in
         Scripts/*|.github/*)
           trinket_add_context_card Docs/AgentContext/ci-and-project-generation.md
@@ -404,8 +404,8 @@ trinket_classify_paths() {
     done
   fi
 
-  if (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
-    for path in "${TRINKET_CHANGED_PATHS[@]}"; do
+  if [[ ${#TRINKET_CHANGED_PATHS[@]+x} ]] && (( ${#TRINKET_CHANGED_PATHS[@]} > 0 )); then
+    for path in ${TRINKET_CHANGED_PATHS[@]+"${TRINKET_CHANGED_PATHS[@]}"}; do
       trinket_add_agent_guides_for_path "$path"
     done
   fi

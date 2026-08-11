@@ -18,11 +18,15 @@ public enum BattleLogReducer {
         startingAt startIndex: Int
     ) -> [LogEntry] {
         guard startIndex < events.count else { return [] }
-        return events[startIndex...].enumerated().compactMap { offset, event in
-            let index = startIndex + offset
-            guard let text = line(for: event) else { return nil }
-            return LogEntry(id: index, text: text)
+        var result: [LogEntry] = []
+        result.reserveCapacity(events.count - startIndex)
+        for index in startIndex ..< events.count {
+            let event = events[index]
+            if let text = line(for: event) {
+                result.append(LogEntry(id: index, text: text))
+            }
         }
+        return result
     }
 
     public static func line(for event: ActionEvent) -> String? {
@@ -94,15 +98,16 @@ public enum BattleLogReducer {
             return "\(actorName) uses \(abilityName)."
         }
 
-        let prefix = if hadDamage {
+        let mainAction = if hadDamage {
             "\(actorName) uses \(abilityName) for \(dealt) \(damageKeyword.rawValue) damage to \(targetName)"
         } else {
             "\(actorName) uses \(abilityName) on \(targetName)"
         }
 
         if hadEffects {
-            return prefix + " and " + appliedEffectSummaries.joined(separator: ", ") + "."
+            let effectsText = appliedEffectSummaries.joined(separator: ", ")
+            return "\(mainAction) and \(effectsText)."
         }
-        return prefix + "."
+        return "\(mainAction)."
     }
 }

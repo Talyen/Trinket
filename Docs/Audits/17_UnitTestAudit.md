@@ -30,7 +30,7 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 
 | Helper | Location |
 |--------|----------|
-| `AppTestContext` / `AppTestSupport` | `Packages/TrinketAppState/Tests/TrinketAppStateTests/Support/` |
+| `AppTestContext` | `Packages/TrinketAppState/Tests/TrinketAppStateTests/Support/` |
 | `PersistenceTestContext` | `TrinketPersistenceTests/Support/` |
 | `CombatantFixtures`, battle parties | `Packages/TrinketTestSupport/` |
 | `SaveTestSupport` | PersistenceTests + TrinketAppStateTests support (not TrinketTestSupport) |

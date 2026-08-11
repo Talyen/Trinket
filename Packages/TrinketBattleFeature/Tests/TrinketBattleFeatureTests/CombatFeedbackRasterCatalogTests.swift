@@ -141,6 +141,27 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(pool.snapshot().hitCount == catalog.count)
     }
 
+    @Test @MainActor func concurrentCatalogPrewarmsShareOneBuildPass() async {
+        let pool = CombatFeedbackRasterPool(capacity: CombatFeedbackRasterPool.defaultCapacity)
+        let catalogCount = CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().count
+
+        async let first: Void = pool.prewarmInfrastructureAndWait(
+            dynamicTypeSize: .large,
+            displayScale: 2
+        )
+        async let second: Void = pool.prewarmInfrastructureAndWait(
+            dynamicTypeSize: .large,
+            displayScale: 2
+        )
+        _ = await (first, second)
+
+        let snapshot = pool.snapshot()
+        #expect(snapshot.entryCount == catalogCount)
+        #expect(snapshot.buildCount == catalogCount)
+        #expect(snapshot.hitCount == 0)
+        #expect(snapshot.evictionCount == 0)
+    }
+
     @Test @MainActor func warmHostApplyUsesPreallocatedLayersAndParksItsIdleClock() async throws {
         await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
             dynamicTypeSize: .large,

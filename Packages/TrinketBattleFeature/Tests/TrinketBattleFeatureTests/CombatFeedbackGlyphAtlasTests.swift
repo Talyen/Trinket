@@ -6,7 +6,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
-@testable import BattleEngine
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackGlyphAtlasTests {
@@ -48,14 +47,54 @@ struct CombatFeedbackGlyphAtlasTests {
         }
     }
 
-    @Test @MainActor func chipComposerWarmPathStaysUnderBudget() throws {
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [makeEvent(id: 42, kind: .abilityDamage, amount: 12, keyword: .burn)],
-            at: Date(timeIntervalSince1970: 10)
+    @Test @MainActor func concurrentPrewarmsPrepareEachRequestedConfiguration() async {
+        let atlas = CombatFeedbackGlyphAtlas()
+
+        async let standard: Void = atlas.prepareBattlePresentationAndWait(
+            dynamicTypeSize: .large,
+            displayScale: 2
         )
-        let canvasItem = try #require(CombatFeedbackOverlayPolicy.canvasItems(
-            from: CombatFeedbackOverlayPolicy.visibleActionGroups(from: items)
-        ).first)
+        async let accessible: Void = atlas.prepareBattlePresentationAndWait(
+            dynamicTypeSize: .accessibility3,
+            displayScale: 3
+        )
+        _ = await (standard, accessible)
+
+        #expect(atlas.isBattlePresentationPrepared(
+            dynamicTypeSize: .large,
+            displayScale: 2
+        ))
+        #expect(atlas.isBattlePresentationPrepared(
+            dynamicTypeSize: .accessibility3,
+            displayScale: 3
+        ))
+    }
+
+    @Test @MainActor func clearingAtlasCancelsPendingPreparation() async {
+        let atlas = CombatFeedbackGlyphAtlas()
+        let warmup = Task { @MainActor in
+            await atlas.prepareBattlePresentationAndWait(
+                dynamicTypeSize: .accessibility5,
+                displayScale: 3
+            )
+        }
+        await Task.yield()
+
+        atlas.removeAll()
+        await warmup.value
+
+        #expect(!atlas.isBattlePresentationPrepared(
+            dynamicTypeSize: .accessibility5,
+            displayScale: 3
+        ))
+    }
+
+    @Test @MainActor func chipComposerWarmPathStaysUnderBudget() throws {
+        let canvasItem = try #require(
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems(
+                at: Date(timeIntervalSince1970: 10)
+            ).first
+        )
         let presentation = canvasItem.item.chipPresentation
 
         _ = CombatFeedbackChipComposer.compose(
@@ -188,29 +227,6 @@ struct CombatFeedbackGlyphAtlasTests {
             displayScale: 2
         ))
         #expect(deathsDoor.pointSize.width > 0)
-    }
-
-    private func makeEvent(
-        id: Int,
-        kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectKind? = nil,
-        amount: Int,
-        keyword: Keyword,
-        targetID: String = "enemy"
-    ) -> ActionEvent {
-        ActionEvent(
-            id: id,
-            kind: kind,
-            effectKind: effectKind,
-            actorID: "hero",
-            actorName: "Hero",
-            abilityID: "slash",
-            abilityName: "Slash",
-            targetID: targetID,
-            targetName: targetID.capitalized,
-            amount: amount,
-            keyword: keyword
-        )
     }
 }
 

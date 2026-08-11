@@ -73,7 +73,14 @@ final class CombatFeedbackRasterPool {
     private var unexpectedClosedVocabularyBuildCount = 0
     private var numericMissCount = 0
     private var rasterAllocationCount = 0
-    private var preparedCatalogKey: String?
+    private var preparedCatalogKey: CombatFeedbackGlyphAtlas.PresentationKey?
+    private var pendingCatalogWarmup: PendingCatalogWarmup?
+    private var catalogWarmupGeneration = 0
+
+    private struct PendingCatalogWarmup {
+        let generation: Int
+        let task: Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never>
+    }
 
     init(capacity: Int = defaultCapacity) {
         self.capacity = max(1, capacity)
@@ -162,51 +169,82 @@ final class CombatFeedbackRasterPool {
         return raster
     }
 
-    /// Starts glyph-atlas + closed-catalog prewarm for the current Dynamic Type / scale.
-    func prewarmInfrastructure(
-        dynamicTypeSize: DynamicTypeSize,
-        displayScale: CGFloat
-    ) {
-        Task { @MainActor in
-            await prewarmInfrastructureAndWait(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-        }
-    }
-
     func prewarmInfrastructureAndWait(
         dynamicTypeSize: DynamicTypeSize,
         displayScale: CGFloat
     ) async {
         let scale = max(1, displayScale)
-        let catalogKey = "\(dynamicTypeSize)|\(Int((scale * 100).rounded()))"
-        await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
+        let key = CombatFeedbackGlyphAtlas.PresentationKey(
             dynamicTypeSize: dynamicTypeSize,
             displayScale: scale
         )
-        guard preparedCatalogKey != catalogKey else { return }
-        let catalog = CombatFeedbackRasterCatalog.closedVocabularyCanvasItems()
-        // Yield between small batches so Stage Select / Battle appear stay responsive
-        // while still finishing before the typical first card play.
-        let batchSize = 8
-        var index = 0
-        while index < catalog.count {
-            let end = min(index + batchSize, catalog.count)
-            for canvasItem in catalog[index ..< end] {
-                _ = prepare(
-                    for: canvasItem,
-                    dynamicTypeSize: dynamicTypeSize,
-                    displayScale: scale
-                )
+        while true {
+            if let pendingCatalogWarmup {
+                let completedKey = await pendingCatalogWarmup.task.value
+                guard !Task.isCancelled, completedKey != nil else { return }
+                continue
             }
-            index = end
-            await Task.yield()
+            guard preparedCatalogKey != key else { return }
+            let completedKey = await startCatalogWarmup(
+                for: key,
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: scale
+            ).value
+            guard !Task.isCancelled, completedKey != nil else { return }
         }
-        preparedCatalogKey = catalogKey
+    }
+
+    private func startCatalogWarmup(
+        for key: CombatFeedbackGlyphAtlas.PresentationKey,
+        dynamicTypeSize: DynamicTypeSize,
+        displayScale: CGFloat
+    ) -> Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never> {
+        catalogWarmupGeneration &+= 1
+        let generation = catalogWarmupGeneration
+        let task: Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never> = Task { @MainActor [weak self] in
+            guard let self else { return nil }
+            defer {
+                if pendingCatalogWarmup?.generation == generation {
+                    pendingCatalogWarmup = nil
+                }
+            }
+            await CombatFeedbackGlyphAtlas.shared.prepareBattlePresentationAndWait(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+            guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
+            let catalog = CombatFeedbackRasterCatalog.closedVocabularyCanvasItems()
+            // Yield between small batches so Stage Select / Battle appear stay responsive
+            // while still finishing before the typical first card play.
+            let batchSize = 8
+            var index = 0
+            while index < catalog.count {
+                let end = min(index + batchSize, catalog.count)
+                for canvasItem in catalog[index ..< end] {
+                    _ = prepare(
+                        for: canvasItem,
+                        dynamicTypeSize: dynamicTypeSize,
+                        displayScale: displayScale
+                    )
+                }
+                index = end
+                await Task.yield()
+                guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
+            }
+            preparedCatalogKey = key
+            return key
+        }
+        pendingCatalogWarmup = PendingCatalogWarmup(
+            generation: generation,
+            task: task
+        )
+        return task
     }
 
     func removeAll() {
+        catalogWarmupGeneration &+= 1
+        pendingCatalogWarmup?.task.cancel()
+        pendingCatalogWarmup = nil
         rasters.removeAll(keepingCapacity: true)
         recency.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil

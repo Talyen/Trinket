@@ -12,35 +12,14 @@ struct BattleCardCombatTests {
         heroMaxMana: Int = 0,
         heroMana: Int? = nil
     ) -> BattleState {
-        let hero = Combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: 50,
-            maxMana: heroMaxMana,
-            abilities: heroAbilities
+        BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: heroAbilities,
+            companionAbilities: companionAbilities,
+            enemyAbilities: enemyAbilities,
+            enemyMaxHealth: enemyMaxHealth,
+            heroMaxMana: heroMaxMana,
+            heroMana: heroMana
         )
-        let companion = Combatant(
-            id: "companion",
-            name: "Companion",
-            role: .companion,
-            maxHealth: 50,
-            abilities: companionAbilities
-        )
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: enemyMaxHealth,
-            abilities: enemyAbilities
-        )
-        var battle = BattleStateTestFactory.makeBattle(hero: hero, companion: companion, enemy: enemy)
-        if let heroMana {
-            battle.withEngineContext { context in
-                context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
-            }
-        }
-        return battle
     }
 
     @Test func openingHandDrawsThreeCardsFromRandomOwners() throws {

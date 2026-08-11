@@ -27,7 +27,7 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 
 Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses live
 beside Persistence and AppState tests—not in `TrinketTestSupport`—so TestSupport stays
-Persistence-free. App suites use `AppTestContext` / `AppTestSupport`; Persistence uses
+Persistence-free. App suites use `AppTestContext`; Persistence uses
 `PersistenceTestContext`. Battle RNG: always
 `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via
 `EffectHandlers.all`.

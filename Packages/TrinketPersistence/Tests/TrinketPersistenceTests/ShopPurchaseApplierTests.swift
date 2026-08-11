@@ -50,6 +50,21 @@ struct ShopPurchaseApplierTests {
         #expect(save.inventory.items == initialItems)
     }
 
+    @Test func purchaseFailsWhenOfferPriceIsNegative() throws {
+        var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 50)
+        let offer = try makeOffer(price: -20)
+
+        let result = ShopPurchaseApplier.purchase(
+            offer: offer,
+            visitToken: "visit-a",
+            stageID: "chapter-2-stage-8",
+            save: &save
+        )
+
+        #expect(result == .insufficientGold)
+        #expect(save.roster.gold == 50)
+    }
+
     @Test func repeatedPurchaseOfSameOfferInSameVisitIsAlreadyOwned() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
         let offer = try makeOffer(price: 20)

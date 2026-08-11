@@ -40,6 +40,18 @@ public struct BattleRoster {
         [hero, companion, enemy]
     }
 
+    /// Checks if any combatant runtime matches a predicate without allocating an array.
+    public func containsRuntime(where predicate: (CombatantRuntime) throws -> Bool) rethrows -> Bool {
+        try predicate(hero) || predicate(companion) || predicate(enemy)
+    }
+
+    /// Iterates over all combatant runtimes without allocating an array.
+    public func forEachRuntime(_ body: (CombatantRuntime) throws -> Void) rethrows {
+        try body(hero)
+        try body(companion)
+        try body(enemy)
+    }
+
     public subscript(participant: BattleParticipant) -> CombatantRuntime {
         get {
             switch participant {
@@ -74,7 +86,16 @@ public struct BattleRoster {
 
     /// Returns the runtime with the given `id`, if any.
     public func combatant(for id: String) -> CombatantRuntime? {
-        allRuntimes.first { $0.id == id }
+        if hero.id == id {
+            return hero
+        }
+        if companion.id == id {
+            return companion
+        }
+        if enemy.id == id {
+            return enemy
+        }
+        return nil
     }
 
     /// Replaces the runtime whose `id` matches `runtime.id`.

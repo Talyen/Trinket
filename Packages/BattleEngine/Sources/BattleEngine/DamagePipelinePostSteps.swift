@@ -22,55 +22,39 @@ package extension DamagePipeline {
         state.damageEvents.append(contentsOf: leechOutcome.events)
     }
 
-    static func applyHolyReaction(
+    static func applyKeywordReactions(
         to state: inout DamageResolutionState,
         in context: inout BattleState
     ) {
         guard state.healthLost > 0,
-              state.damageKeyword == .holy,
+              let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role != .enemy
         else { return }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
-            to: state.combatant,
-            source: source.combatant,
-            in: &context
-        ))
-    }
 
-    static func applyStunReaction(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState
-    ) {
-        guard state.healthLost > 0,
-              state.damageKeyword == .stun,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy
-        else { return }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterStunDamageDealt(
-            to: state.combatant,
-            source: source.combatant,
-            in: &context
-        ))
-    }
-
-    static func applyBurnReaction(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState
-    ) {
-        guard state.healthLost > 0,
-              state.damageKeyword == .burn,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy
-        else { return }
-        state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
-            to: state.combatant,
-            source: source.combatant,
-            in: &context
-        ))
+        switch keyword {
+        case .holy:
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterHolyDamageDealt(
+                to: state.combatant,
+                source: source.combatant,
+                in: &context
+            ))
+        case .stun:
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterStunDamageDealt(
+                to: state.combatant,
+                source: source.combatant,
+                in: &context
+            ))
+        case .burn:
+            state.damageEvents.append(contentsOf: CombatTriggerEngine.afterBurnDamageDealt(
+                to: state.combatant,
+                source: source.combatant,
+                in: &context
+            ))
+        default:
+            break
+        }
     }
 
     static func applyCriticalReaction(

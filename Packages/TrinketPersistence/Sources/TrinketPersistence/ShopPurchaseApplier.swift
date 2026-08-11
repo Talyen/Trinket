@@ -44,6 +44,9 @@ public enum ShopPurchaseApplier {
             offerID: offer.id,
             visitToken: visitToken
         )
+        guard offer.price >= 0 else {
+            return .insufficientGold
+        }
         guard !save.inventory.items.contains(where: { $0.id == instanceID }) else {
             return .alreadyOwned
         }

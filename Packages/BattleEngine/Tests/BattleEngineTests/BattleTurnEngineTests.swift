@@ -20,22 +20,13 @@ struct BattleTurnEngineTests {
             role: .enemy,
             abilities: [.slash]
         )
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: hero, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: companion, initialActiveEffects: []),
-            enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: actorEffects)
-        )
-        return BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: seed),
-            nextEffectID: 1,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
+        return BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            activeEnemyEffects: actorEffects,
+            rngSeed: seed,
+            dealOpeningHand: false
         )
     }
 

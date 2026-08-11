@@ -103,8 +103,8 @@ public enum HotspotAnalyzer {
             let winRate = total == 0 ? 0.0 : Double(wins) / Double(total)
             let wilson = BalanceStatsAggregator.wilson(wins: wins, battles: total)
 
-            let avgPlayer = total == 0 ? 0.0 : Double(recs.map(\.playerLevel).reduce(0, +)) / Double(total)
-            let avgEnemy = total == 0 ? 0.0 : Double(recs.map(\.enemyLevel).reduce(0, +)) / Double(total)
+            let avgPlayer = total == 0 ? 0.0 : Double(recs.reduce(0) { $0 + $1.playerLevel }) / Double(total)
+            let avgEnemy = total == 0 ? 0.0 : Double(recs.reduce(0) { $0 + $1.enemyLevel }) / Double(total)
             let avgPowerRating = averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
             let levelGap = avgEnemy - avgPlayer
 

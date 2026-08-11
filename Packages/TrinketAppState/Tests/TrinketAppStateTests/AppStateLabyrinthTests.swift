@@ -30,10 +30,56 @@ struct AppStateLabyrinthTests {
         #expect(state.playerSave.labyrinth == firstMap)
     }
 
+    @Test func unchangedLabyrinthInputsReusePreparedBattles() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let battle = try #require(context.lastBattle)
+
+        state.labyrinth.prepareReachableBattles()
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        state.labyrinth.prepareReachableBattles()
+
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
+    }
+
+    @Test func relevantLabyrinthInputChangeReplacesPreparedBattles() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        _ = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let battle = try #require(context.lastBattle)
+        state.labyrinth.prepareReachableBattles()
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        var homestead = state.playerSave.homestead
+        homestead.nodeTiers[.agilityTraining] = 1
+        state.playerSave.homestead = homestead
+        state.labyrinth.prepareReachableBattles()
+
+        #expect(battle.preparedBattlePresentationRevision > preparedRevision)
+    }
+
+    @Test func returningFromBattlePreparesUnchangedLabyrinthInputsAgain() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+        let battle = try #require(context.lastBattle)
+        state.labyrinth.prepareReachableBattles()
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        _ = state.labyrinth.startBattle(nodeID: combatNodeID)
+        state.endBattleReturningToOrigin()
+        state.labyrinth.prepareReachableBattles()
+
+        #expect(battle.lifecyclePhase == .prepared)
+        #expect(battle.preparedBattlePresentationRevision > preparedRevision)
+    }
+
     @Test func startLabyrinthBattleSetsConfigurationAndInMemoryOrigin() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
         let node = try #require(state.playerSave.labyrinth.nodes[combatNodeID])
         let expectedModifiers = LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         let message = state.labyrinth.startBattle(nodeID: combatNodeID)
@@ -50,7 +96,7 @@ struct AppStateLabyrinthTests {
     @Test func completeActiveBattleClearsLabyrinthNode() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
+        let combatNodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
         _ = state.labyrinth.startBattle(nodeID: combatNodeID)
         let configuration = try #require(state.battle.activeBattle)
         state.completeActiveBattle(configuration, battleEarnedGold: 3)
@@ -62,7 +108,7 @@ struct AppStateLabyrinthTests {
     func labyrinthEncounterFinishClearsNode(nodeType: LabyrinthNodeType) throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let nodeID = try #require(firstReachableNodeID(of: nodeType, in: state))
+        let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: nodeType, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
         switch nodeType {
@@ -163,7 +209,7 @@ struct AppStateLabyrinthTests {
 
         switch kind {
         case "shop":
-            let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+            let shopNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .shop, in: state))
             #expect(state.labyrinth.handleNodeAction(nodeID: shopNodeID) == nil)
             #expect(state.encounters.activeShopEncounter != nil)
 
@@ -177,7 +223,7 @@ struct AppStateLabyrinthTests {
             #expect(state.encounters.activeShopEncounter == nil)
             #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == true)
         case "rest":
-            let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+            let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
             #expect(state.labyrinth.handleNodeAction(nodeID: restNodeID) == nil)
             #expect(state.labyrinth.activeNodeSession?.kind == .rest)
 
@@ -191,7 +237,7 @@ struct AppStateLabyrinthTests {
             #expect(state.labyrinth.activeNodeSession == nil)
             #expect(state.playerSave.labyrinth.nodes[restNodeID]?.isCleared == true)
         case "craft":
-            let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
+            let craftNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .craft, in: state))
             #expect(state.labyrinth.handleNodeAction(nodeID: craftNodeID) == nil)
             let session = try #require(state.labyrinth.activeNodeSession)
             #expect(session.kind == .craft)
@@ -215,7 +261,7 @@ struct AppStateLabyrinthTests {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
         _ = state.labyrinth.enter()
-        let mysteryNodeID = try #require(firstReachableNodeID(of: .mystery, in: state))
+        let mysteryNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
 
         #expect(state.labyrinth.handleNodeAction(nodeID: mysteryNodeID) == nil)
         let session = try #require(state.encounters.activeMysteryEncounter)
@@ -255,7 +301,7 @@ struct AppStateLabyrinthTests {
         homestead.nodeTiers[.wishingWell] = 2
         state.playerSave.homestead = homestead
         _ = state.labyrinth.enter()
-        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+        let restNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .rest, in: state))
         let node = try #require(state.playerSave.labyrinth.node(id: restNodeID))
         let rawGold = LabyrinthCompletion.nonCombatGoldStipend(
             for: node,
@@ -272,7 +318,7 @@ struct AppStateLabyrinthTests {
     @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
-        let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
+        let craftNodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .craft, in: state))
 
         var roster = state.playerSave.roster
         roster.grantGold(200)
@@ -306,34 +352,5 @@ struct AppStateLabyrinthTests {
 
         #expect(state.labyrinth.handleNodeAction(nodeID: reachableID) == nil)
         #expect(state.encounters.activeMysteryEncounter?.labyrinthNodeID == reachableID)
-    }
-
-    private func firstReachableCombatNodeID(in state: PlaySession) -> String? {
-        firstReachableNodeID(where: { $0.type.isCombat }, in: state)
-    }
-
-    private func firstReachableNodeID(
-        of type: LabyrinthNodeType,
-        in state: PlaySession
-    ) -> String? {
-        firstReachableNodeID(where: { $0.type == type }, in: state)
-    }
-
-    private func firstReachableNodeID(
-        where matches: (LabyrinthNode) -> Bool,
-        in state: PlaySession
-    ) -> String? {
-        // Clear non-matching reachable nodes until a matching node is available.
-        for _ in 0 ..< 24 {
-            if let matchID = state.playerSave.labyrinth.reachableNodeIDs().first(where: { id in
-                guard let node = state.playerSave.labyrinth.node(id: id) else { return false }
-                return matches(node)
-            }) {
-                return matchID
-            }
-            guard let next = state.playerSave.labyrinth.reachableNodeIDs().first else { return nil }
-            state.labyrinth.completeNode(nodeID: next)
-        }
-        return nil
     }
 }

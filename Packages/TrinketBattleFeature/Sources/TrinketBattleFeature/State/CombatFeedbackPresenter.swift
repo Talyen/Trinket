@@ -112,8 +112,8 @@ enum CombatFeedbackPresenter {
         let reactionKind: CombatantHitReactionKind
     }
 
-    private struct AggregationKey: Equatable {
-        enum Family: Equatable {
+    private struct AggregationKey: Hashable {
+        enum Family: Hashable {
             case abilityDamage
             case status
             case effect(ActionEvent.EffectKind)
@@ -143,14 +143,13 @@ enum CombatFeedbackPresenter {
 
     private static func consolidate(_ sources: [PreparedSource]) -> [PreparedSource] {
         var result: [PreparedSource] = []
+        var keyIndices: [AggregationKey: Int] = [:]
         for source in sources {
             guard let key = aggregationKey(for: source.event) else {
                 result.append(source)
                 continue
             }
-            if let index = result.firstIndex(where: {
-                aggregationKey(for: $0.event) == key
-            }) {
+            if let index = keyIndices[key] {
                 let existing = result[index]
                 result[index] = PreparedSource(
                     event: replacingAmount(
@@ -161,6 +160,7 @@ enum CombatFeedbackPresenter {
                     originalOrder: min(existing.originalOrder, source.originalOrder)
                 )
             } else {
+                keyIndices[key] = result.count
                 result.append(source)
             }
         }
