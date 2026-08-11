@@ -195,6 +195,7 @@ extension BattleSession {
         if preparedBattleRunsByKey[runKey]?.configuration.id == configuration.id {
             return true
         }
+        releasePreparedArtworkPins()
         preparedBattleRunsByKey[runKey] = PreparedBattleRun(
             configuration: configuration,
             state: makeBattleState(from: configuration)
@@ -217,6 +218,7 @@ extension BattleSession {
         else { return false }
 
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        releasePreparedArtworkPins()
         engineState = preparedBattleRun.state
         activatePresentation(for: preparedBattleRun.configuration)
         return true
@@ -226,6 +228,7 @@ extension BattleSession {
     public func activate(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle == nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
         activatePresentation(for: configuration)
         return true
@@ -235,6 +238,7 @@ extension BattleSession {
     public func restart(_ configuration: BattleRunConfiguration) -> Bool {
         guard activeBattle != nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
         activatePresentation(for: configuration)
         return true
@@ -243,6 +247,7 @@ extension BattleSession {
     public func endBattle() {
         activeBattle = nil
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
+        releasePreparedArtworkPins()
         engineState = nil
         lifecyclePhase = .idle
         clearRunState()
@@ -259,6 +264,7 @@ extension BattleSession {
     }
 
     public func trimMemoryFootprint(releaseBattleLog: Bool) {
+        releasePreparedArtworkPins()
         if releaseBattleLog {
             releaseEngineLogProjection()
         }

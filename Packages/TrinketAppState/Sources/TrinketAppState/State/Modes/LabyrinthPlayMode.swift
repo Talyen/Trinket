@@ -222,7 +222,7 @@ public final class LabyrinthPlayMode {
         if activated {
             preparedInputs = nil
         }
-        return nil
+        return activated ? nil : PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareReachableBattles() {

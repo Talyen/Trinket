@@ -179,7 +179,7 @@ public struct PreviewLabView: View {
             guard let reference = combatant.artReference else { return [] }
             return [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         }
-        await PreparedArtworkCache.shared.prepareAndPin(names: names)
+        await PreparedArtworkCache.shared.prepare(names: names)
     }
 
     private static var defaultEnemyID: String {

@@ -3,6 +3,7 @@ import Testing
 import TrinketBattleFeature
 import TrinketBattleRuntime
 import TrinketContent
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketTestSupport
 @testable import TrinketAppState
@@ -75,6 +76,57 @@ struct AppStatePlayFlowTests {
 
         #expect(state.battle.activeBattle != nil)
         #expect(state.shellSession.selectedTab == .play)
+    }
+
+    @Test(arguments: ["journey", "spire", "labyrinth"] as [String])
+    func battleActivationFailureReturnsRetryableMessage(mode: String) throws {
+        let runtime = RejectingBattleRuntime()
+        let arguments = mode == "labyrinth" ? ["-reset-state"] : []
+        let state = try context.makePlaySession(
+            arguments: arguments,
+            battleRuntime: runtime
+        )
+
+        let message: StageMapMessage?
+        switch mode {
+        case "journey":
+            let stage = try #require(GameContent.chapters[0].stages.first)
+            message = state.journey.startBattle(for: stage)
+        case "spire":
+            let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+            message = state.spires.startBattle(for: floor)
+        case "labyrinth":
+            _ = state.labyrinth.enter()
+            let nodeID = try #require(LabyrinthTestSupport.firstReachableCombatNodeID(in: state))
+            message = state.labyrinth.startBattle(nodeID: nodeID)
+        default:
+            Issue.record("Unexpected mode \(mode)")
+            return
+        }
+
+        #expect(message?.title == "Battle Unavailable")
+        #expect(message?.message == "Could not start this battle. Try again.")
+        #expect(state.battle.activeBattle == nil)
+    }
+
+    @Test func failedPreparedJourneyActivationRetainsPreparedInputs() throws {
+        let runtime = PreparedThenRejectingBattleRuntime()
+        let state = try context.makePlaySession(battleRuntime: runtime)
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+
+        state.journey.prepareBattle(for: stage)
+        #expect(runtime.prepareCount == 1)
+        #expect(state.battlePresentation(for: runKey) != nil)
+        #expect(state.journey.startBattle(for: stage)?.title == "Battle Unavailable")
+        #expect(state.battlePresentation(for: runKey) != nil)
+
+        runtime.shouldRejectActivation = false
+        #expect(state.journey.startBattle(for: stage) == nil)
+
+        #expect(runtime.prepareCount == 1)
+        #expect(state.battle.activeBattle?.runKey == runKey)
+        #expect(state.battlePresentation(for: runKey) != nil)
     }
 
     @Test func completeActiveBattleWithStageCompletesJourneyIdempotently() throws {
@@ -355,5 +407,74 @@ struct AppStatePlayFlowTests {
         roster.setActiveHero(rogue)
         roster.setActiveCompanion(lizard)
         state.playerSave.roster = roster
+    }
+}
+
+@MainActor
+private class RejectingBattleRuntime: BattleRuntime {
+    var activeBattle: BattleRunConfiguration?
+    var lifecyclePhase: BattleLifecyclePhase = .idle
+    var isSuspendedForScenePhase = false
+
+    func prepareBattleRun(_: BattleRunConfiguration) -> Bool {
+        false
+    }
+
+    func activatePreparedBattle(
+        runKey _: BattleRunKey,
+        heroID _: String,
+        companionID _: String,
+        enemyID _: String?
+    ) -> Bool {
+        false
+    }
+
+    func activate(_: BattleRunConfiguration) -> Bool {
+        false
+    }
+
+    func restart(_: BattleRunConfiguration) -> Bool {
+        false
+    }
+
+    func endBattle() {}
+
+    func setSuspendedForScenePhase(_ suspended: Bool) {
+        isSuspendedForScenePhase = suspended
+    }
+
+    func trimMemoryFootprint(releaseBattleLog _: Bool) {}
+}
+
+@MainActor
+private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
+    private(set) var prepareCount = 0
+    var shouldRejectActivation = true
+    private var preparedConfiguration: BattleRunConfiguration?
+
+    override func prepareBattleRun(_ configuration: BattleRunConfiguration) -> Bool {
+        prepareCount += 1
+        preparedConfiguration = configuration
+        lifecyclePhase = .prepared
+        return true
+    }
+
+    override func activatePreparedBattle(
+        runKey _: BattleRunKey,
+        heroID _: String,
+        companionID _: String,
+        enemyID _: String?
+    ) -> Bool {
+        guard !shouldRejectActivation, let preparedConfiguration else { return false }
+        activeBattle = preparedConfiguration
+        lifecyclePhase = .active
+        return true
+    }
+
+    override func activate(_ configuration: BattleRunConfiguration) -> Bool {
+        guard !shouldRejectActivation else { return false }
+        activeBattle = configuration
+        lifecyclePhase = .active
+        return true
     }
 }

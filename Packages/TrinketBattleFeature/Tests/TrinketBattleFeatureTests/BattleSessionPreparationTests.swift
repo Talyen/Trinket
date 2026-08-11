@@ -86,16 +86,12 @@ struct BattleSessionPreparationTests {
         #expect(session.activate(initialConfiguration))
         #expect(session.restart(replacementConfiguration))
 
-        for _ in 0 ..< 40 where session.hand.isEmpty {
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        #expect(try await BattleSessionTestSupport.waitUntil { !session.hand.isEmpty })
 
         #expect(!session.hand.isEmpty)
         #expect(session.isDealingOpeningHand)
 
-        for _ in 0 ..< 100 where session.isDealingOpeningHand {
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        #expect(try await BattleSessionTestSupport.waitUntil { !session.isDealingOpeningHand })
 
         #expect(session.hand.count == expectedOpeningHandCount)
         #expect(!session.isDealingOpeningHand)

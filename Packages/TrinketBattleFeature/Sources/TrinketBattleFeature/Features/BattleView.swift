@@ -453,6 +453,9 @@ private struct BattleCastPrewarmLane: View {
                       let artworkName = prewarmKey.artworkName
                 else { return }
 
+                defer {
+                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
+                }
                 await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
                 guard !Task.isCancelled,
                       presentation.configurationID == configurationID

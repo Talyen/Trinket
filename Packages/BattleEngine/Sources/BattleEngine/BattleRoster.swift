@@ -35,21 +35,9 @@ public struct BattleRoster {
         self.enemy = enemy
     }
 
-    /// All three runtimes, in role order (hero, companion, enemy).
-    public var allRuntimes: [CombatantRuntime] {
-        [hero, companion, enemy]
-    }
-
     /// Checks if any combatant runtime matches a predicate without allocating an array.
     public func containsRuntime(where predicate: (CombatantRuntime) throws -> Bool) rethrows -> Bool {
         try predicate(hero) || predicate(companion) || predicate(enemy)
-    }
-
-    /// Iterates over all combatant runtimes without allocating an array.
-    public func forEachRuntime(_ body: (CombatantRuntime) throws -> Void) rethrows {
-        try body(hero)
-        try body(companion)
-        try body(enemy)
     }
 
     public subscript(participant: BattleParticipant) -> CombatantRuntime {

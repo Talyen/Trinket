@@ -75,6 +75,8 @@ public final class BattleSession: BattleRuntime {
     var pendingOpeningHandDealTask: Task<Void, Never>?
     @ObservationIgnored
     var openingHandDealGeneration = 0
+    @ObservationIgnored
+    var preparedArtworkNames: Set<String> = []
 
     public internal(set) var isDealingOpeningHand = false
 

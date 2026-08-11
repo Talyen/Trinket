@@ -15,7 +15,7 @@ struct PreparedArtworkCacheTests {
         #expect(plan.deferredNames == ["a", "b", "c"])
     }
 
-    @Test func prepareAllReleasesLaunchBeforeDeferredCatalogFinishes() async throws {
+    @Test func prepareAllReleasesLaunchBeforeDeferredCatalogFinishes() async {
         let deferredGate = DeferredDecodeGate()
         let cache = PreparedArtworkCache.makeForTesting(
             catalogNames: ["priority-a", "priority-b", "deferred-a", "deferred-b"]
@@ -37,9 +37,7 @@ struct PreparedArtworkCacheTests {
         #expect(cache.completedCount == 2)
 
         await deferredGate.open()
-        for _ in 0 ..< 400 where !cache.isDeferredWarmupComplete {
-            try await Task.sleep(for: .milliseconds(5))
-        }
+        await cache.waitForDeferredWarmup()
 
         #expect(cache.isDeferredWarmupComplete)
         #expect(cache.completedCount == 4)
@@ -71,9 +69,7 @@ struct PreparedArtworkCacheTests {
         }
 
         await cache.prepareAll(priorityImageNames: ["priority"])
-        for _ in 0 ..< 400 where !cache.isDeferredWarmupComplete {
-            try? await Task.sleep(for: .milliseconds(5))
-        }
+        await cache.waitForDeferredWarmup()
         let snapshot = cache.launchWarmupSnapshot()
 
         #expect(snapshot.requestedCount == 2)
@@ -100,6 +96,38 @@ struct PreparedArtworkCacheTests {
         let attemptCount = await source.attemptCount
         #expect(attemptCount == 2)
         #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+
+        cache.releasePins(names: ["art"])
+
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.image(named: "art") != nil)
+
+        cache.releasePins(names: ["art"])
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
+    }
+
+    @Test func overlappingPinsRemainResidentUntilEveryOwnerReleases() async {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.red.setFill()
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["art"]) { name in
+            PreparedArtwork(name: name, image: image)
+        }
+
+        await cache.prepareAll(priorityImageNames: ["art"])
+        await cache.prepareAndPin(names: ["art"])
+        await cache.prepareAndPin(names: ["art"])
+        cache.releasePins(names: ["art"])
+
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+        #expect(cache.image(named: "art") != nil)
+
+        cache.releasePins(names: ["art"])
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 1)
+
+        cache.releasePins(names: ["art"])
+        #expect(cache.launchWarmupSnapshot().pinnedCount == 0)
     }
 }
 

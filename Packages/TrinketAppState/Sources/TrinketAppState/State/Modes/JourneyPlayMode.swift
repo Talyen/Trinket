@@ -74,7 +74,7 @@ public final class JourneyPlayMode {
         }
 
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        battleLaunch.activateCombat(
+        let activated = battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
             route: battleRoute(stageID: stage.id),
@@ -84,6 +84,9 @@ public final class JourneyPlayMode {
                 journey: playerSave.journey
             )
         )
+        guard activated else {
+            return PlayBattleLaunch.activationFailureMessage
+        }
         preparedInputs = nil
         return nil
     }

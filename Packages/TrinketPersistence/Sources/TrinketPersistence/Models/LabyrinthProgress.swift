@@ -4,6 +4,11 @@ import TrinketCore
 
 /// Persistent The Labyrinth map.
 public struct PlayerLabyrinthState: Equatable, Sendable {
+    private struct ReachabilityIndex {
+        var explicitOutgoingIDs: Set<String> = []
+        var clearedPositionsByCluster: [String: Set<LabyrinthGridPosition>] = [:]
+    }
+
     public var worldSeed: UInt64
     public var mapVersion: Int
     public var hasEntered: Bool
@@ -51,46 +56,55 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         if node.id == LabyrinthGenerator.entranceNodeID {
             return false
         }
-        return nodes.values.contains { source in
-            source.isCleared
-                && (source.outgoingIDs.contains(nodeID) || isAdjacent(source, node))
+        let index = reachabilityIndex()
+        if index.explicitOutgoingIDs.contains(nodeID) {
+            return true
         }
-    }
-
-    private func isAdjacent(_ source: LabyrinthNode, _ target: LabyrinthNode) -> Bool {
-        guard source.clusterID == target.clusterID,
-              let sourcePosition = source.gridPosition,
-              let targetPosition = target.gridPosition
+        guard let position = node.gridPosition,
+              let clearedPositions = index.clearedPositionsByCluster[node.clusterID]
         else { return false }
-        return sourcePosition.isAdjacent(to: targetPosition)
+        return Self.adjacentPositions(to: position).contains { clearedPositions.contains($0) }
     }
 
     public func reachableNodeIDs() -> [String] {
-        var explicitOutgoingIDs: Set<String> = []
-        var clearedPositionsByCluster: [String: [LabyrinthGridPosition]] = [:]
-
-        for node in nodes.values where node.isCleared {
-            explicitOutgoingIDs.formUnion(node.outgoingIDs)
-            if let position = node.gridPosition {
-                clearedPositionsByCluster[node.clusterID, default: []].append(position)
-            }
-        }
+        let index = reachabilityIndex()
 
         return nodes.values.compactMap { node in
             guard node.isRevealed,
                   !node.isCleared,
                   node.id != LabyrinthGenerator.entranceNodeID
             else { return nil }
-            if explicitOutgoingIDs.contains(node.id) {
+            if index.explicitOutgoingIDs.contains(node.id) {
                 return node.id
             }
             guard let position = node.gridPosition,
-                  clearedPositionsByCluster[node.clusterID]?.contains(where: {
-                      $0.isAdjacent(to: position)
-                  }) == true
+                  let clearedPositions = index.clearedPositionsByCluster[node.clusterID],
+                  Self.adjacentPositions(to: position).contains(where: clearedPositions.contains)
             else { return nil }
             return node.id
         }.sorted()
+    }
+
+    private func reachabilityIndex() -> ReachabilityIndex {
+        var index = ReachabilityIndex()
+        for node in nodes.values where node.isCleared {
+            index.explicitOutgoingIDs.formUnion(node.outgoingIDs)
+            if let position = node.gridPosition {
+                index.clearedPositionsByCluster[node.clusterID, default: []].insert(position)
+            }
+        }
+        return index
+    }
+
+    private static func adjacentPositions(to position: LabyrinthGridPosition) -> [LabyrinthGridPosition] {
+        [
+            LabyrinthGridPosition(row: position.row, column: position.column - 1),
+            LabyrinthGridPosition(row: position.row, column: position.column + 1),
+            LabyrinthGridPosition(row: position.row - 1, column: position.column),
+            LabyrinthGridPosition(row: position.row - 1, column: position.column + 1),
+            LabyrinthGridPosition(row: position.row + 1, column: position.column - 1),
+            LabyrinthGridPosition(row: position.row + 1, column: position.column),
+        ].filter { position.isAdjacent(to: $0) }
     }
 
     public var currentFloorNumber: Int {

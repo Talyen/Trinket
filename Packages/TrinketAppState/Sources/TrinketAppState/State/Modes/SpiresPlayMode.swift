@@ -109,13 +109,13 @@ public final class SpiresPlayMode {
         }
 
         let origin = PlayBattleOrigin.spire(spireID: floor.spireID, floor: floor.floor)
-        battleLaunch.activateCombat(
+        let activated = battleLaunch.activateCombat(
             origin: origin,
             encounter: encounter,
             route: battleRoute(spireID: floor.spireID, floor: floor.floor),
             loot: battleLoot(for: floor)
         )
-        return nil
+        return activated ? nil : PlayBattleLaunch.activationFailureMessage
     }
 
     public func prepareBattle(for floor: SpireFloor) {

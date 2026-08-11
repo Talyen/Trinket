@@ -98,10 +98,27 @@ public final class SFXPlayer {
             }
         }
         preparedVoicesArePlaying = false
-        // Release engine resources on background / memory pressure. The next play
-        // path restarts it via ensureEngineRunning.
+        // Pause the engine while retaining the prepared overlap pool for normal
+        // scene transitions. Memory-pressure callers use releaseResources().
         engine.pause()
         engineIsRunning = false
+    }
+
+    /// Stops playback and releases decoded buffers and attached player nodes.
+    /// The next play lazily rebuilds the requested overlap pool.
+    public func releaseResources() {
+        stopAll()
+        for voices in preparedVoicesByID.values {
+            for voice in voices {
+                engine.disconnectNodeOutput(voice.node)
+                engine.detach(voice.node)
+            }
+        }
+        preparedVoicesByID.removeAll(keepingCapacity: false)
+        buffersByID.removeAll(keepingCapacity: false)
+        nextVoiceIndexByID.removeAll(keepingCapacity: false)
+        engine.stop()
+        engine.reset()
     }
 
     private func ensureReady(for ids: [String]) -> Bool {

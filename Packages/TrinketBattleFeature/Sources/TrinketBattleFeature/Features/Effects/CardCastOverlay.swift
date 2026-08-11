@@ -454,6 +454,11 @@ public struct CardCastEffectsPrewarmView: View {
         .allowsHitTesting(false)
         .task {
             startDate = Date()
+            defer {
+                if let artworkName {
+                    PreparedArtworkCache.shared.releasePins(names: [artworkName])
+                }
+            }
             if let artworkName {
                 await PreparedArtworkCache.shared.prepareAndPin(names: [artworkName])
             }

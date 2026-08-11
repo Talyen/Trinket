@@ -53,11 +53,11 @@ public final class PreparedArtworkCache {
     public private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
-    /// Launch-critical bitmaps are a deliberately small strong set. Keeping them
-    /// outside NSCache prevents the full-catalog warmup from evicting the exact
-    /// images needed by the first interactive transitions.
+    /// Launch-critical bitmaps are a deliberately small strong set while their
+    /// owning warmup is active. Callers release their pins at the end of that
+    /// lifecycle so transient preparation cannot grow without bound.
     @ObservationIgnored private var pinnedImages: [String: UIImage] = [:]
-    @ObservationIgnored private var pinnedNames: Set<String> = []
+    @ObservationIgnored private var pinCountsByName: [String: Int] = [:]
     @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var decodeTasksByName: [String: Task<PreparedArtwork, Never>] = [:]
@@ -112,12 +112,24 @@ public final class PreparedArtworkCache {
         pinnedImages[name] ?? images.object(forKey: name as NSString)
     }
 
-    /// Decode and pin images that must survive NSCache pressure until first use
-    /// (for example, opening-hand ability art for an imminent battle).
+    /// Decodes artwork into the cache without retaining a strong pin. Use this
+    /// for previews whose view owns the immediate presentation lifetime.
+    public func prepare(names: [String]) async {
+        let unique = Array(Set(names)).sorted()
+        guard !unique.isEmpty else { return }
+        await decode(unique, maximumConcurrency: 2, countsTowardLaunch: false)
+    }
+
+    /// Decode and pin images that must survive NSCache pressure during a short
+    /// preparation lifecycle (for example, opening-hand ability art for an
+    /// imminent battle). The owner must call `releasePins(names:)` when that
+    /// lifecycle ends.
     public func prepareAndPin(names: [String]) async {
         let unique = Array(Set(names)).sorted()
         guard !unique.isEmpty else { return }
-        pinnedNames.formUnion(unique)
+        for name in unique {
+            pinCountsByName[name, default: 0] += 1
+        }
         for name in unique {
             if let image = images.object(forKey: name as NSString) {
                 pinnedImages[name] = image
@@ -128,6 +140,21 @@ public final class PreparedArtworkCache {
             if pinnedImages[name] == nil,
                let image = images.object(forKey: name as NSString) {
                 pinnedImages[name] = image
+            }
+        }
+    }
+
+    /// Releases strong references held for a completed or cancelled preparation.
+    /// The decoded bitmap remains eligible in `NSCache` and can be reloaded if
+    /// memory pressure evicts it.
+    public func releasePins(names: [String]) {
+        for name in Set(names) {
+            guard let count = pinCountsByName[name] else { continue }
+            if count > 1 {
+                pinCountsByName[name] = count - 1
+            } else {
+                pinCountsByName.removeValue(forKey: name)
+                pinnedImages.removeValue(forKey: name)
             }
         }
     }
@@ -149,7 +176,9 @@ public final class PreparedArtworkCache {
         totalCount = max(plan.priorityNames.count + plan.deferredNames.count, 1)
         completedCount = 0
         isDeferredWarmupComplete = false
-        pinnedNames.formUnion(plan.priorityNames)
+        for name in Set(plan.priorityNames) {
+            pinCountsByName[name, default: 0] += 1
+        }
 
         let task = Task(priority: .userInitiated) { @MainActor [weak self] in
             guard let self else { return }
@@ -167,6 +196,14 @@ public final class PreparedArtworkCache {
             completedCount = totalCount
             reportMemorySnapshot(label: "deferredWarmup")
         }
+    }
+
+    /// Test seam for awaiting the intentionally detached deferred warmup task.
+    /// Production launch still releases after priority preparation and does not
+    /// block on the full catalog.
+    func waitForDeferredWarmup() async {
+        guard let deferredWarmupTask else { return }
+        await deferredWarmupTask.value
     }
 
     private func decode(
@@ -203,7 +240,7 @@ public final class PreparedArtworkCache {
                         cost: decodedCost
                     )
                     decodedCostsByName[prepared.name] = decodedCost
-                    if pinnedNames.contains(prepared.name) {
+                    if pinCountsByName[prepared.name] != nil {
                         pinnedImages[prepared.name] = image
                     }
                 }

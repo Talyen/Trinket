@@ -11,6 +11,7 @@ public extension BattleSession {
         displayScale: CGFloat
     ) async {
         guard lifecyclePhase == .prepared || lifecyclePhase == .active else { return }
+        releasePreparedArtworkPins()
 
         // Let the navigation transition commit before doing the first expensive
         // raster work. The task owner in PlayView cancels this work when the
@@ -56,6 +57,20 @@ public extension BattleSession {
         }
         guard !Task.isCancelled else { return }
         await PreparedArtworkCache.shared.prepareAndPin(names: artworkNames)
+        guard !Task.isCancelled else {
+            PreparedArtworkCache.shared.releasePins(names: artworkNames)
+            return
+        }
+        releasePreparedArtworkPins()
+        preparedArtworkNames = Set(artworkNames)
+    }
+
+    /// Releases artwork retained for the current prepared/active run.
+    /// Preparation owns these pins until the run is activated, replaced, or ended.
+    func releasePreparedArtworkPins() {
+        guard !preparedArtworkNames.isEmpty else { return }
+        PreparedArtworkCache.shared.releasePins(names: Array(preparedArtworkNames))
+        preparedArtworkNames.removeAll()
     }
 
     /// Opening-hand ability art names for a prepared run (cast faces on first play).

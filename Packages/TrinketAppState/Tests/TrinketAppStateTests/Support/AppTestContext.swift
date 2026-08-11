@@ -46,13 +46,14 @@ final class AppTestContext {
     func makeAppState(
         arguments: [String] = [],
         environment: [String: String] = [:],
-        playerSave: PlayerSaveStore? = nil
+        playerSave: PlayerSaveStore? = nil,
+        battleRuntime: (any BattleRuntime)? = nil
     ) throws -> AppState {
         let parsed = AppEnvironment.parse(
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
-        let battle = BattleSession(presentationEnvironment: .silent)
+        let battle: any BattleRuntime = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
         let state = try AppState(
             environment: parsed,
@@ -60,9 +61,9 @@ final class AppTestContext {
             userDefaults: userDefaults,
             battleRuntime: battle
         )
-        lastBattle = battle
+        lastBattle = battle as? BattleSession
         // Unit tests expect a full hand before the next statement; skip paced deal.
-        battle.openingHandDrawStagger = 0
+        lastBattle?.openingHandDrawStagger = 0
         return state
     }
 
@@ -84,12 +85,14 @@ final class AppTestContext {
     func makePlaySession(
         arguments: [String] = [],
         environment: [String: String] = [:],
-        playerSave: PlayerSaveStore? = nil
+        playerSave: PlayerSaveStore? = nil,
+        battleRuntime: (any BattleRuntime)? = nil
     ) throws -> PlaySession {
         try makeAppState(
             arguments: arguments,
             environment: environment,
-            playerSave: playerSave
+            playerSave: playerSave,
+            battleRuntime: battleRuntime
         ).play
     }
 

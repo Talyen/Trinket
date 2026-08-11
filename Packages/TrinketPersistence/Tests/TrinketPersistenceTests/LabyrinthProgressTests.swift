@@ -450,6 +450,7 @@ extension LabyrinthProgressTests {
         for neighbor in neighbors {
             #expect(state.isNodeReachable(neighbor.id))
         }
+        #expect(Set(state.reachableNodeIDs()) == Set(neighbors.map(\.id)))
         #expect(!state.isNodeReachable(distant.id))
         #expect(!state.isNodeReachable(otherFloor.id))
     }

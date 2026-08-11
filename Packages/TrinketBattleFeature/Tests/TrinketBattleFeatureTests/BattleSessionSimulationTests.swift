@@ -412,13 +412,12 @@ struct BattleSessionSimulationTests {
 
 @MainActor
 private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async throws {
-    for _ in 0 ..< 40 {
-        if session.readModel?.turnCount == tickBefore + 1 {
-            return
-        }
-        try await Task.sleep(for: .milliseconds(5))
+    guard try await BattleSessionTestSupport.waitUntil(condition: {
+        session.readModel?.turnCount == tickBefore + 1
+    }) else {
+        Issue.record("Auto-end turn did not resolve within the test timeout")
+        return
     }
-    Issue.record("Auto-end turn did not resolve within the test timeout")
 }
 
 @MainActor

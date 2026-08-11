@@ -19,6 +19,11 @@ struct PlayBattleLaunch {
     let removeRun: @MainActor @Sendable (BattleRunKey) -> Void
     let removePreparedRunsExcept: @MainActor @Sendable (BattleRunKey) -> Void
 
+    static let activationFailureMessage = StageMapMessage(
+        title: "Battle Unavailable",
+        message: "Could not start this battle. Try again."
+    )
+
     // MARK: Activate / prepare
 
     /// Shared activate after mode-specific gates. Modes resolve loot and policy.
@@ -101,6 +106,7 @@ struct PlayBattleLaunch {
             runKey: input.origin?.runKey,
             missingLog: "Missing route for battle activation"
         ) else { return false }
+        let hadPreparedBattle = battle.lifecyclePhase == .prepared
         if let origin = input.origin,
            battle.activatePreparedBattle(
                runKey: origin.runKey,
@@ -117,7 +123,7 @@ struct PlayBattleLaunch {
         if activated {
             registerRunIfNeeded(launch, route: route)
             shellSession.selectedTab = .play
-        } else if let runKey = launch.configuration.runKey {
+        } else if !hadPreparedBattle, let runKey = launch.configuration.runKey {
             removeRun(runKey)
         }
         return activated

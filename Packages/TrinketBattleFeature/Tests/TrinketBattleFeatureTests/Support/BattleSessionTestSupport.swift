@@ -72,6 +72,18 @@ enum BattleSessionTestSupport {
         )
     }
 
+    static func waitUntil(
+        timeout: Duration = .seconds(2),
+        condition: @escaping @MainActor () -> Bool
+    ) async throws -> Bool {
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        while !condition() {
+            guard ContinuousClock.now < deadline else { return false }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        return true
+    }
+
     /// Plays playable cards, then ends the turn, until the battle resolves or the cap is hit.
     @discardableResult
     static func driveUntilOutcome(

@@ -193,6 +193,9 @@ private struct PreparedAppRoot: View {
         .task {
             MetricKitSubscriber.shared.start()
             guard !isResourcePreparationComplete else { return }
+            defer {
+                artworkCache.releasePins(names: priorityImageNames)
+            }
             appState.prepareLaunchPerformanceResources()
             battleSession.prepareAllBattleCinematics()
             // Align the minimum hold with first paint (same yield as the
