@@ -11,6 +11,21 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateSplitOpen > 0)
         #expect(TrinketMotion.Battle.ultimateSplitClose > 0)
         #expect(TrinketMotion.Battle.ultimateSplitClose <= TrinketMotion.Battle.ultimateSplitOpen)
+        #expect(TrinketMotion.Battle.ultimateCinematicPlaybackSpeed > 0)
+        #expect(
+            TrinketMotion.Battle.ultimateSplitOpenAtPlayback
+                == TrinketMotion.Battle.ultimateSplitOpen
+                / TrinketMotion.Battle.ultimateCinematicPlaybackSpeed
+        )
+        #expect(
+            TrinketMotion.Battle.ultimateSplitCloseAtPlayback
+                == TrinketMotion.Battle.ultimateSplitClose
+                / TrinketMotion.Battle.ultimateCinematicPlaybackSpeed
+        )
+        #expect(
+            TrinketMotion.Battle.ultimateSplitCloseAtPlayback
+                <= TrinketMotion.Battle.ultimateSplitOpenAtPlayback
+        )
         #expect(TrinketMotion.Battle.feedbackStreamStagger > 0)
         #expect(TrinketMotion.Battle.feedbackStreamStagger < TrinketMotion.Battle.chipDisplayDuration)
         #expect(CombatFeedbackLayout.streamGap > 0)

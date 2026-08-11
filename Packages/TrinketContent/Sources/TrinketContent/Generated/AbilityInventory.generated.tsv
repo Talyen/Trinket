@@ -58,7 +58,7 @@ hemorrhage	Hemorrhage	ultimate	Deal 5 Bleed damage.
 luck-potion	Luck Potion	ultimate	Restore 7 Mana, Steal 7 Gold, or gain 7 Block.
 meteor	Meteor	ultimate	Deal 6 Burn damage.
 molten-bulwark	Molten Bulwark	ultimate	Deal 4 Burn damage and Gain 4 Block.
-pack-tactics	Pack Tactics	ultimate	Draw 1 card, Draw 1 card and Restore 3 Health.
+pack-tactics	Pack Tactics	ultimate	Draw and play 2 cards.
 panacea-potion	Panacea Potion	ultimate	Cleanse all debuffs.
 phoenix-feather	Phoenix Feather	ultimate	Restore 3 Health and Revive an Ally to 3 Health.
 shadowstep	Shadowstep	ultimate	Your next attack deals double damage. Dodge the next attack.

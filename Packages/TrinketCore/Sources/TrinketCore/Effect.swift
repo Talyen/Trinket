@@ -74,6 +74,8 @@ public enum Effect: Hashable, Sendable {
     case resourceGain(Keyword, Int)
     /// Draw `Int` cards for the resolved effect target's deck (hero or companion).
     case drawCards(Int)
+    /// Draw and automatically play `Int` cards.
+    case drawAndPlayCards(Int)
     case cleanse(Keyword?)
     case cleanseRandom
     case purge(Keyword?)
@@ -148,7 +150,7 @@ public enum Effect: Hashable, Sendable {
         case let .instantHeal(k, _): k
         case let .leech(k, _, _): k
         case let .resourceGain(k, _): k
-        case .drawCards: .physical
+        case .drawCards, .drawAndPlayCards: .physical
         case let .cleanse(k?): k
         case .cleanse(nil), .cleanseRandom: .health
         case let .purge(k?): k
@@ -218,7 +220,7 @@ public enum Effect: Hashable, Sendable {
         case let .restoreManaOnHit(_, d): d
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
-        case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
@@ -255,7 +257,7 @@ public enum Effect: Hashable, Sendable {
             .lowestHealthAlly
         case .revive:
             .defeatedAlly
-        case .shield, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .shield, .leech, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,

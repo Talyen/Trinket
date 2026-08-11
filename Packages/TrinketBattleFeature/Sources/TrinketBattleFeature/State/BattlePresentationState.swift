@@ -59,7 +59,7 @@ struct BattlePresentationSnapshot: Equatable {
                 from: effects,
                 controlAccentRequiresPendingSkip: isParty
             ),
-            buffAuraKind: CombatantBuffAura.kind(from: effects)
+            buffAuraKind: CombatantBuffAura.kind(for: combatant, in: state)
         )
     }
 

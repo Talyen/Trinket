@@ -132,6 +132,50 @@ struct EffectHandlersApplyTests {
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 
+    @Test func drawAndPlayCardsHandlerDrawsAndPlaysHeroAndCompanionCards() throws {
+        var battle = EffectHandlersTestSupport.makeBattle(
+            hero: Combatant(
+                id: "hero",
+                name: "Hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [.slash, .heal]
+            ),
+            companion: Combatant(
+                id: "companion",
+                name: "Companion",
+                role: .companion,
+                maxHealth: 50,
+                abilities: [.smite]
+            )
+        )
+        // Leave room in hand so drawn cards land in hand (not buffer)
+        while battle.hand.count > 1 {
+            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        }
+        battle.heroDeck = CombatDeck(abilities: [.slash])
+        battle.companionDeck = CombatDeck(abilities: [.smite])
+
+        let packTactics = Ability(
+            id: "pack-tactics",
+            name: "Pack Tactics",
+            tier: .ultimate,
+            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))]
+        )
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawAndPlayCards(2),
+            ability: packTactics,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+
+        try #expect(outcome.didApply)
+        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
+        try #expect(outcome.events.contains { $0.kind == .abilityDamage })
+    }
+
     @Test func drawCardsHandlerOverflowGoesToBuffer() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
             hero: Combatant(

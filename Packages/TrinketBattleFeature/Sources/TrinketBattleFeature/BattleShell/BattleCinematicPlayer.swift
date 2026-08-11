@@ -111,6 +111,7 @@ final class BattleCinematicPlayer {
         actorID: String,
         abilityID: String,
         effectsVolume: Double,
+        rate: Float = 1,
         onEnded: @escaping @MainActor () -> Void
     ) {
         let key = CinematicCastKey(actorID: actorID, abilityID: abilityID)
@@ -143,6 +144,7 @@ final class BattleCinematicPlayer {
         }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
+        player.rate = rate
     }
 
     func pause(actorID: String, abilityID: String) {

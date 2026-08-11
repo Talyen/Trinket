@@ -61,7 +61,7 @@ public enum EffectPresentation {
 
     private static func activeRecoveryPhrase(for effect: Effect) -> String? {
         switch effect {
-        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom,
+        case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom, .purge, .purgeRandom,
              .halveShield, .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .multiplyDoT, .revive:
             ""
         default:
@@ -184,6 +184,8 @@ public enum EffectPresentation {
             "restore \(amount) Mana"
         case let .drawCards(count):
             count == 1 ? "draw 1 card" : "draw \(count) cards"
+        case let .drawAndPlayCards(count):
+            count == 1 ? "draw and play 1 card" : "draw and play \(count) cards"
         case let .maximumManaBonus(amount):
             "increase Maximum Mana by \(amount)"
         case let .revive(amount):

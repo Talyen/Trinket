@@ -189,6 +189,8 @@ struct AbilityEffectIntegrationTests {
             }
             return false
         })
+        #expect(CombatantBuffAura.kind(for: battle.hero, in: battle) == .avatar)
+        #expect(CombatantBuffAura.kind(for: battle.enemy, in: battle) == nil)
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
 

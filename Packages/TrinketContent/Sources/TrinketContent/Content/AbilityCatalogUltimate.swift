@@ -96,9 +96,7 @@ enum AbilityCatalogUltimate {
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.drawCards(1), target: .hero),
-            TargetedEffect(.drawCards(1), target: .companion),
-            TargetedEffect(.instantHeal(.health, 3)),
+            TargetedEffect(.drawAndPlayCards(2)),
         ]
     )
 

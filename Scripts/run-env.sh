@@ -113,10 +113,26 @@ except Exception:
 }
 
 # Reclaim Xcode Preview simulator devices when the Preview set has entries.
-# Skip simctl shutdown/delete when empty (avoids needless CrashReporter sheets).
 # Always prune leftover device dirs under literal and URL-encoded Previews paths.
+# simctl shutdown/delete only runs in CI (or when TRINKET_CLEANUP_PREVIEW_SIMS=1):
+# local simctl teardown can trigger needless CrashReporter sheets.
 trinket_preview_sims_reclaim() {
-  [[ "${TRINKET_CLEANUP_PREVIEW_SIMS:-1}" == "1" ]] || return 0
+  local previews_root="${HOME}/Library/Developer/Xcode/UserData/Previews"
+  local dir
+  for dir in \
+    "${previews_root}/Simulator Devices" \
+    "${previews_root}/Simulator%20Devices"
+  do
+    [[ -d "$dir" ]] || continue
+    find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + >/dev/null 2>&1 || true
+  done
+
+  local default_cleanup="0"
+  if [[ "${CI:-}" == "true" || "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    default_cleanup="1"
+  fi
+  local enabled="${TRINKET_CLEANUP_PREVIEW_SIMS:-$default_cleanup}"
+  [[ "$enabled" == "1" ]] || return 0
 
   local preview_counts=""
   # simctl --set previews may print a device-set banner before JSON; keep from '{'.
@@ -161,16 +177,6 @@ print(f"{total}\t{booted}")
     fi
     xcrun simctl --set previews delete all >/dev/null 2>&1 || true
   fi
-
-  local previews_root="${HOME}/Library/Developer/Xcode/UserData/Previews"
-  local dir
-  for dir in \
-    "${previews_root}/Simulator Devices" \
-    "${previews_root}/Simulator%20Devices"
-  do
-    [[ -d "$dir" ]] || continue
-    find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + >/dev/null 2>&1 || true
-  done
 }
 
 trinket_sim_slot_pool_is_empty() {

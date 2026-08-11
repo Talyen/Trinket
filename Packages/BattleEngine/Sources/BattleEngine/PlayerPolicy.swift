@@ -60,6 +60,8 @@ public struct GreedyHeuristicPolicy: Sendable {
             switch targeted.effect {
             case let .drawCards(count):
                 value += count * 3
+            case let .drawAndPlayCards(count):
+                value += count * 5
             case let .shield(_, amount):
                 value += amount
             case let .instantHeal(_, amount):

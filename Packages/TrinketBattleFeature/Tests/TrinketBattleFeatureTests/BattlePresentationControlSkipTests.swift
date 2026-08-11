@@ -138,4 +138,24 @@ struct BattlePresentationControlSkipTests {
         #expect(snapshot.hero.borderAccentKeyword == .deathsDoor)
         #expect(snapshot.hero.buffAuraKind == .shadowstep)
     }
+
+    @Test func projectsAvatarBuffAuraWhileHolyRecurringDamageIsActive() {
+        let state = BattleState(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .recurringDamage(.holy, 6, 1),
+                    remainingTurns: 1,
+                    sourceActorID: "hero"
+                ),
+            ],
+            dealOpeningHand: false
+        )
+        let snapshot = BattlePresentationSnapshot(configurationID: UUID(), state: state)
+
+        #expect(snapshot.hero.buffAuraKind == CombatantBuffAuraKind.avatar)
+        #expect(snapshot.enemy.buffAuraKind == nil)
+    }
 }

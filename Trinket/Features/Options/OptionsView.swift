@@ -3,6 +3,9 @@ import TrinketAppState
 import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
+#if DEBUG
+import TrinketBattleFeature
+#endif
 
 struct OptionsView: View {
     @Environment(OptionsStore.self) private var optionsStore
@@ -89,6 +92,10 @@ struct OptionsView: View {
 
             #if DEBUG
             Section {
+                NavigationLink("Preview Lab") {
+                    PreviewLabView()
+                }
+
                 Button("Unlock All") {
                     if !unlockAllContent() {
                         actionErrorMessage = "Couldn't unlock content. Try again."
@@ -97,10 +104,6 @@ struct OptionsView: View {
                 .accessibilityIdentifier("Unlock All Button")
             } header: {
                 Text("Developer")
-            } footer: {
-                Text(
-                    "Unlock All is Debug-only. Launch with -enable-frame-metrics for the Simulator soak gate. Unlock All grants all heroes and companions at level 20 and clears Chapter 1."
-                )
             }
             #endif
         }

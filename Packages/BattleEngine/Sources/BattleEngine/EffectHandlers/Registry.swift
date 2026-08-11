@@ -16,6 +16,7 @@ public enum EffectHandlers {
         .leech: LeechHandler(),
         .resourceGain: ResourceGainHandler(),
         .drawCards: DrawCardsHandler(),
+        .drawAndPlayCards: DrawAndPlayCardsHandler(),
         .cleanse: CleansePurgeHandler(mode: .cleanse),
         .cleanseRandom: CleansePurgeHandler(mode: .cleanseRandom),
         .purge: CleansePurgeHandler(mode: .purge),

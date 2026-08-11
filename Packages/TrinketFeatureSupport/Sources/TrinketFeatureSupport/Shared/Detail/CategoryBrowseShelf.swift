@@ -10,6 +10,9 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     var sectionAccessibilityIdentifier: String?
     var shelfContentIdentity: String = ""
     var shelfAnimation: Animation?
+    var totalCount: Int?
+    var previewLimit: Int
+
     @ViewBuilder let destination: () -> Destination
     @ViewBuilder let content: () -> Content
 
@@ -19,6 +22,8 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         sectionAccessibilityIdentifier: String? = nil,
         shelfContentIdentity: String = "",
         shelfAnimation: Animation? = nil,
+        totalCount: Int? = nil,
+        previewLimit: Int = TrinketDesign.Metrics.collectionShelfPreviewLimit,
         @ViewBuilder destination: @escaping () -> Destination,
         @ViewBuilder content: @escaping () -> Content
     ) {
@@ -27,6 +32,8 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         self.sectionAccessibilityIdentifier = sectionAccessibilityIdentifier
         self.shelfContentIdentity = shelfContentIdentity
         self.shelfAnimation = shelfAnimation
+        self.totalCount = totalCount
+        self.previewLimit = previewLimit
         self.destination = destination
         self.content = content
     }
@@ -64,6 +71,18 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
                 content()
+
+                if let totalCount, totalCount > previewLimit {
+                    NavigationLink {
+                        destination()
+                    } label: {
+                        ViewAllShelfCard(
+                            remainingCount: totalCount - previewLimit,
+                            accessibilityIdentifier: AccessibilityID.Collection.viewAllCard(category: title)
+                        )
+                    }
+                    .trinketQuietTapButtonStyle()
+                }
             }
             .scrollTargetLayout()
             .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)

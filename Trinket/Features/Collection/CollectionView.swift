@@ -110,7 +110,8 @@ struct CollectionView: View {
                     kind: .hero,
                     combatants: Array(
                         playerSave.roster.collectionHeroes.prefix(shelfLimit)
-                    )
+                    ),
+                    totalCount: playerSave.roster.collectionHeroes.count
                 )
 
                 combatantCategorySection(
@@ -119,13 +120,15 @@ struct CollectionView: View {
                     kind: .companion,
                     combatants: Array(
                         playerSave.roster.collectionCompanions.prefix(shelfLimit)
-                    )
+                    ),
+                    totalCount: playerSave.roster.collectionCompanions.count
                 )
 
                 if showsInventoryShelf {
                     CategoryBrowseShelf(
                         title: "Inventory",
-                        linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory
+                        linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
+                        totalCount: inventoryState.items.count
                     ) {
                         InventoryGridView()
                     } content: {
@@ -200,11 +203,13 @@ struct CollectionView: View {
         title: String,
         accessibilityIdentifier: String,
         kind: CombatantDetailContext.Kind,
-        combatants: [Combatant]
+        combatants: [Combatant],
+        totalCount: Int
     ) -> some View {
         CategoryBrowseShelf(
             title: title,
-            linkAccessibilityIdentifier: accessibilityIdentifier
+            linkAccessibilityIdentifier: accessibilityIdentifier,
+            totalCount: totalCount
         ) {
             CollectionCombatantGridView(kind: kind)
         } content: {

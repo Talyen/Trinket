@@ -209,6 +209,10 @@ public enum AccessibilityID {
         public static let inventoryFilter = "Inventory filter"
         public static let salvageButton = "Salvage Item Button"
         public static let salvageConfirmButton = "Confirm Salvage Button"
+
+        public static func viewAllCard(category: String) -> String {
+            "\(category) view all card"
+        }
     }
 
     public enum Homestead {

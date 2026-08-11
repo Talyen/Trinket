@@ -13,6 +13,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case leech
     case resourceGain
     case drawCards
+    case drawAndPlayCards
     case cleanse
     case cleanseRandom
     case purge
@@ -54,6 +55,7 @@ public extension Effect {
         case .leech: .leech
         case .resourceGain: .resourceGain
         case .drawCards: .drawCards
+        case .drawAndPlayCards: .drawAndPlayCards
         case .cleanse: .cleanse
         case .cleanseRandom: .cleanseRandom
         case .purge: .purge
@@ -124,7 +126,7 @@ public extension Effect {
     /// on the combatant.
     var isInstant: Bool {
         switch self {
-        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .convertManaToBlock, .shieldFromMana,
              .shieldFromGold, .shieldFromHalfMana, .multiplyDoT, .revive:
             true

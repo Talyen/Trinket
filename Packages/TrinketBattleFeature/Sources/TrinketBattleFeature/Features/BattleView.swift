@@ -243,9 +243,13 @@ public struct BattleView: View {
             cardID: card.id
         )
         guard case .committed = outcome else { return false }
-        if let combatantID = battleSession.combatantID(for: card.owner) {
-            battleSession.commitAttackSwing(for: combatantID)
+        let actorID = battleSession.combatantID(for: card.owner)
+        if let actorID {
+            battleSession.commitAttackSwing(for: actorID)
         }
+        // The card cast dissolve always plays for a committed play. Only the
+        // Ultimate cinematic is gated: unmapped or auto-skipped casts never
+        // present it (handled by the session's presentation lane).
         castPresentation.append(request)
         return true
     }
@@ -369,6 +373,8 @@ private struct BattleCinematicLane: View {
             UltimateCinematicOverlay(
                 cinematic: cinematic,
                 effectsVolume: effectsVolume,
+                openingStyle: openingStyle,
+                exitStyle: closingStyle,
                 onPlaying: { battleSession.markCinematicPlaying() },
                 onAutoFinish: { cinematicID in
                     battleSession.beginCinematicCollapse(expectedID: cinematicID)
@@ -379,6 +385,22 @@ private struct BattleCinematicLane: View {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    private var openingStyle: UltimateCinematicEnterStyle {
+        #if DEBUG
+        battleSession.previewLabConfig?.openingStyle ?? .fade
+        #else
+        .fade
+        #endif
+    }
+
+    private var closingStyle: UltimateCinematicExitStyle {
+        #if DEBUG
+        battleSession.previewLabConfig?.closingStyle ?? .fade
+        #else
+        .fade
+        #endif
     }
 }
 

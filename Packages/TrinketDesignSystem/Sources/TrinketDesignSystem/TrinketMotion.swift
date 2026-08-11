@@ -103,10 +103,31 @@ public enum TrinketMotion: Sendable {
         public static let scrimFade: TimeInterval = 0.2
 
         /// Diagonal split open for Ultimate cinematic cover panels.
-        public static let ultimateSplitOpen: TimeInterval = 0.38
+        public static let ultimateSplitOpen: TimeInterval = 0.5
 
         /// Diagonal split close for Ultimate cinematic cover panels.
-        public static let ultimateSplitClose: TimeInterval = 0.28
+        public static let ultimateSplitClose: TimeInterval = 0.38
+
+        /// Code-only playback multiplier for the whole Ultimate cinematic (video
+        /// rate + open/close cover durations). Not exposed in the UI; tweak here.
+        public static let ultimateCinematicPlaybackSpeed: Double = 1.2
+
+        /// Open/close durations scaled by `ultimateCinematicPlaybackSpeed`.
+        public static var ultimateSplitOpenAtPlayback: TimeInterval {
+            ultimateSplitOpen / ultimateCinematicPlaybackSpeed
+        }
+
+        public static var ultimateSplitCloseAtPlayback: TimeInterval {
+            ultimateSplitClose / ultimateCinematicPlaybackSpeed
+        }
+
+        public static var ultimateSplitOpenPlaybackAnimation: Animation {
+            .easeInOut(duration: ultimateSplitOpenAtPlayback)
+        }
+
+        public static var ultimateSplitClosePlaybackAnimation: Animation {
+            .easeInOut(duration: ultimateSplitCloseAtPlayback)
+        }
 
         /// Production float recipe while Alchemy Pop is under evaluation.
         public static let activeFloatRecipe: CombatFeedbackFloatRecipe = .alchemyPop
@@ -174,14 +195,6 @@ public enum TrinketMotion: Sendable {
 
         /// Default particle count for a played-card activation burst.
         public static let cardCastParticleCount = 8
-
-        public static var ultimateSplitOpenAnimation: Animation {
-            .easeInOut(duration: ultimateSplitOpen)
-        }
-
-        public static var ultimateSplitCloseAnimation: Animation {
-            .easeInOut(duration: ultimateSplitClose)
-        }
 
         public static var scrim: Animation {
             .easeOut(duration: scrimFade)

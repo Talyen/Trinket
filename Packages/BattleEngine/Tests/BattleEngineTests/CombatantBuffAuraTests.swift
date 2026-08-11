@@ -1,6 +1,7 @@
 import BattleEngine
 import Testing
 import TrinketCore
+import TrinketTestSupport
 
 struct CombatantBuffAuraTests {
     @Test func emptyEffectsYieldNoAura() {
@@ -37,5 +38,67 @@ struct CombatantBuffAuraTests {
             ActiveEffect(id: 2, effect: .evadeNextHit, remainingTurns: 0),
         ]
         #expect(CombatantBuffAura.kind(from: both) == .shadowstep)
+    }
+
+    @Test func nextHolyStrikeYieldsAvatar() {
+        let effects = [
+            ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0),
+        ]
+        #expect(CombatantBuffAura.kind(from: effects) == .avatar)
+    }
+
+    @Test func holyKeywordOverrideYieldsAvatar() {
+        let effects = [
+            ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 2), remainingTurns: 2),
+        ]
+        #expect(CombatantBuffAura.kind(from: effects) == .avatar)
+    }
+
+    @Test func holyRecurringDamageOwnEffectsDoNotYieldAvatar() {
+        let effects = [
+            ActiveEffect(id: 1, effect: .recurringDamage(.holy, 6, 1), remainingTurns: 1),
+        ]
+        #expect(CombatantBuffAura.kind(from: effects) == nil)
+    }
+
+    @Test func sourceOfRecurringHolyDamageYieldsAvatar() {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        let state = BattleState(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .recurringDamage(.holy, 6, 1),
+                    remainingTurns: 1,
+                    sourceActorID: "hero"
+                ),
+            ],
+            dealOpeningHand: false
+        )
+        #expect(CombatantBuffAura.kind(for: hero, in: state) == .avatar)
+        #expect(CombatantBuffAura.kind(for: enemy, in: state) == nil)
+    }
+
+    @Test func nonHolyRecurringDamageSourceDoesNotYieldAvatar() {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        let state = BattleState(
+            hero: hero,
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(
+                    id: 1,
+                    effect: .recurringDamage(.physical, 6, 1),
+                    remainingTurns: 1,
+                    sourceActorID: "hero"
+                ),
+            ],
+            dealOpeningHand: false
+        )
+        #expect(CombatantBuffAura.kind(for: hero, in: state) == nil)
     }
 }

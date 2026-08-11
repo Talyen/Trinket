@@ -109,15 +109,17 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func partyShelf(for slot: BattlePartySlot) -> some View {
+        let allCombatants = orderedCombatants(for: slot)
         let shelfCombatants = Array(
-            orderedCombatants(for: slot).prefix(TrinketDesign.Metrics.collectionShelfPreviewLimit)
+            allCombatants.prefix(TrinketDesign.Metrics.collectionShelfPreviewLimit)
         )
 
         return CategoryBrowseShelf(
             title: slot.sectionTitle,
             sectionAccessibilityIdentifier: AccessibilityID.Play.battlePartyShelf(for: slot.title),
             shelfContentIdentity: shelfCombatants.map(\.id).joined(separator: ","),
-            shelfAnimation: .spring(response: 0.35, dampingFraction: 1)
+            shelfAnimation: .spring(response: 0.35, dampingFraction: 1),
+            totalCount: allCombatants.count
         ) {
             BattlePartySlotGridView(slot: slot, spire: spire)
         } content: {

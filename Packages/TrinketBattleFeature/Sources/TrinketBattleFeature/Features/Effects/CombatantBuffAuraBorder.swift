@@ -6,25 +6,18 @@ import TrinketDesignSystem
 /// Traveling card-border shine for persistent buff auras (e.g. Shadowstep).
 struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
-    /// When set, drives the shimmer phase directly (Effect Lab scrub / auto-play).
-    /// When `nil`, the border self-drives from wall-clock time.
-    var progress: CGFloat?
 
     @State private var startDate = Date()
 
     var body: some View {
-        if let progress {
-            stroke(progress: progress)
-        } else {
-            TimelineView(.animation) { timeline in
-                let elapsed = timeline.date.timeIntervalSince(startDate)
-                let period = TrinketMotion.Battle.buffAuraShimmerPeriod
-                let unit = period > 0 ? elapsed / period : 0
-                stroke(progress: CGFloat(unit))
-            }
-            .onChange(of: kind) { _, _ in
-                startDate = Date()
-            }
+        TimelineView(.animation) { timeline in
+            let elapsed = timeline.date.timeIntervalSince(startDate)
+            let period = TrinketMotion.Battle.buffAuraShimmerPeriod
+            let unit = period > 0 ? elapsed / period : 0
+            stroke(progress: CGFloat(unit))
+        }
+        .onChange(of: kind) { _, _ in
+            startDate = Date()
         }
     }
 
@@ -63,6 +56,14 @@ struct CombatantBuffAuraBorder: View {
             return (
                 style.color,
                 TrinketDesign.Colors.Overlay.paper.opacity(0.92),
+                style.glowColor
+            )
+        case .avatar:
+            // Gold keyword gold is the Avatar shimmer palette.
+            let style = Keyword.gold.visualStyle
+            return (
+                style.color,
+                TrinketDesign.Colors.Overlay.paper.opacity(0.95),
                 style.glowColor
             )
         }

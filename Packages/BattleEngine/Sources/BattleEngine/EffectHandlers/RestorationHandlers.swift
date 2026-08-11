@@ -127,3 +127,100 @@ struct DrawCardsHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
+
+struct DrawAndPlayCardsHandler: BattleEffectHandler {
+    let kind: EffectKind = .drawAndPlayCards
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleState
+    ) -> EffectApplyOutcome {
+        guard case let .drawAndPlayCards(count) = effect, count > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+
+        let drawnCards = collectDrawnCards(targetCount: count, in: &context)
+        guard !drawnCards.isEmpty else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+
+        var events = [
+            context.nextEvent(
+                kind: .effect,
+                effectKind: .cardsDrawn,
+                actorName: source.name,
+                abilityName: ability.name,
+                target: target,
+                amount: drawnCards.count,
+                keyword: .physical
+            ),
+        ]
+        events.append(contentsOf: autoPlayDrawnCards(drawnCards, in: &context))
+        return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    private func collectDrawnCards(targetCount: Int, in context: inout BattleState) -> [BattleCard] {
+        var drawnCards: [BattleCard] = []
+
+        if context.roster.hero.isAlive, !context.heroDeck.isEmpty,
+           BattleCardCombatEngine.drawCards(count: 1, for: .hero, context: &context) > 0,
+           let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+            drawnCards.append(card)
+        }
+
+        if context.roster.companion.isAlive, !context.companionDeck.isEmpty, drawnCards.count < targetCount,
+           BattleCardCombatEngine.drawCards(count: 1, for: .companion, context: &context) > 0,
+           let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+            drawnCards.append(card)
+        }
+
+        while drawnCards.count < targetCount {
+            let drewAny = fillFallbackDraw(targetCount: targetCount, drawnCards: &drawnCards, in: &context)
+            if !drewAny {
+                break
+            }
+        }
+
+        return drawnCards
+    }
+
+    private func fillFallbackDraw(
+        targetCount: Int,
+        drawnCards: inout [BattleCard],
+        in context: inout BattleState
+    ) -> Bool {
+        var drewAny = false
+        for owner in [BattleParticipant.hero, .companion] {
+            guard drawnCards.count < targetCount else { break }
+            guard context.roster[owner].isAlive else { continue }
+            let deckCount = owner == .hero ? context.heroDeck.count : context.companionDeck.count
+            guard deckCount > 0 else { continue }
+            if BattleCardCombatEngine.drawCards(count: 1, for: owner, context: &context) > 0,
+               let card = context.hand.cards.last ?? context.handBuffer.cards.last {
+                drawnCards.append(card)
+                drewAny = true
+            }
+        }
+        return drewAny
+    }
+
+    private func autoPlayDrawnCards(
+        _ drawnCards: [BattleCard],
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        for card in drawnCards {
+            guard context.hand.card(id: card.id) != nil,
+                  BattleCardCombatEngine.isCardPlayable(card, in: context)
+            else { continue }
+            if let played = try? BattleCardCombatEngine.playCard(cardID: card.id, context: &context) {
+                events.append(contentsOf: played)
+            }
+        }
+        return events
+    }
+}

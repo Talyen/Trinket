@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-/// Tunables for the enemy Slice death effect (production recipe + lab scrubber).
+/// Tunables for the enemy Slice death effect.
 struct CombatantSliceEffectConfig: Equatable {
     var intensity: CGFloat = 0.5
     var particleCount: Int = 48
@@ -16,7 +16,6 @@ struct CombatantSliceEffectConfig: Equatable {
     /// Fraction of clip spent drawing the cut stroke — kept short for a snap cut.
     var cutDrawDuration: CGFloat = 0.04
 
-    /// Finalized production recipe from CombatantCardEffectLab.
     static let production = Self()
 }
 

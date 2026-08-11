@@ -217,6 +217,10 @@ public final class BattleSession: BattleRuntime {
             return false
         }
     }
+
+    /// DEBUG-only config the Preview Lab uses to preview Ultimate transition
+    /// styles. Production battles leave this `nil` and use the diagonal split defaults.
+    var previewLabConfig: PreviewLabConfig?
     #endif
 
     /// Connects app-owned battle persistence without making the render tree own

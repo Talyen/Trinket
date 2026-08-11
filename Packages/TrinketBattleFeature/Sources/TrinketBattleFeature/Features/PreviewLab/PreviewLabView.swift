@@ -1,0 +1,306 @@
+import BattleEngine
+import SwiftUI
+import TrinketBattleRuntime
+import TrinketContent
+import TrinketCore
+import TrinketFeatureContracts
+import TrinketFeatureSupport
+
+#if DEBUG
+// DEBUG playground only — do not ship lab UI.
+
+/// Options > Developer Preview Lab. Hosts a real, fully playable battle stage
+/// (production `BattleView` + a lab-owned `BattleSession`) so effects can be
+/// previewed with all real battle behaviors — floating feedback, combatant art,
+/// buff aura borders, hit reactions, outcomes. Effect controls stay behind a
+/// toolbar icon so the stage is never obstructed.
+public struct PreviewLabView: View {
+    public init() {
+        let enemyID = Self.defaultEnemyID
+        let heroID = Self.defaultHeroID
+        let companionID = Self.defaultCompanionID
+        let configuration = PreviewLab.makeConfiguration(
+            enemyID: enemyID,
+            heroID: heroID,
+            companionID: companionID
+        )
+        let session = BattleSession(
+            openingHandDrawStagger: 0,
+            presentationEnvironment: PreviewLab.dependencies
+        )
+        _ = session.activate(configuration)
+        _labSession = State(initialValue: session)
+        _configuration = State(initialValue: configuration)
+        _selectedEnemyID = State(initialValue: enemyID)
+        _selectedHeroID = State(initialValue: heroID)
+        _selectedCompanionID = State(initialValue: companionID)
+        _config = State(initialValue: PreviewLabConfig())
+    }
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var labSession: BattleSession
+    @State private var config: PreviewLabConfig
+    @State private var configuration: BattleRunConfiguration
+    @State private var selectedEnemyID: String
+    @State private var selectedHeroID: String
+    @State private var selectedCompanionID: String
+    @State private var isControlsPresented = false
+
+    public var body: some View {
+        BattleView(
+            configuration: configuration,
+            presentationContext: .empty,
+            battleSession: labSession,
+            completeVictory: { _ in false },
+            restartBattle: restart,
+            retreat: { dismiss() }
+        )
+        .toolbar {
+            if isCinematicClear {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isControlsPresented = true
+                    } label: {
+                        Label("Preview Lab Controls", systemImage: "slider.horizontal.3")
+                    }
+                    .accessibilityIdentifier("Preview Lab Controls")
+                }
+            }
+        }
+        .sheet(isPresented: $isControlsPresented) {
+            NavigationStack {
+                Form {
+                    UltimateTransitionsControls(config: config)
+                    subjectSection
+                }
+                .navigationTitle("Preview Lab")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            isControlsPresented = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .preferredColorScheme(.dark)
+        }
+        .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .tabBar)
+        .onAppear(perform: prepare)
+        .onDisappear(perform: teardown)
+    }
+
+    // MARK: - Subject
+
+    private var subjectSection: some View {
+        Section("Subject") {
+            Picker("Hero", selection: $selectedHeroID) {
+                ForEach(GameContent.heroes, id: \.id) { hero in
+                    Text(hero.name).tag(hero.id)
+                }
+            }
+            .onChange(of: selectedHeroID) { _, _ in
+                restart()
+            }
+
+            Picker("Companion", selection: $selectedCompanionID) {
+                ForEach(PreviewLab.companionOptions, id: \.id) { combatant in
+                    Text(combatant.name).tag(combatant.id)
+                }
+            }
+            .onChange(of: selectedCompanionID) { _, _ in
+                restart()
+            }
+
+            Picker("Enemy", selection: $selectedEnemyID) {
+                ForEach(GameContent.enemies, id: \.id) { enemy in
+                    Text(enemy.name).tag(enemy.id)
+                }
+            }
+            .onChange(of: selectedEnemyID) { _, _ in
+                restart()
+            }
+        }
+    }
+
+    // MARK: - Behavior
+
+    private var isCinematicClear: Bool {
+        !labSession.spectacle.isShowingVictory
+            && !labSession.spectacle.isShowingDefeat
+            && labSession.spectacle.activeCinematic == nil
+    }
+
+    private func prepare() {
+        labSession.previewLabConfig = config
+        warmSelectedCinematics()
+        Task { @MainActor in
+            await warmArtwork()
+        }
+    }
+
+    private func teardown() {
+        isControlsPresented = false
+        labSession.endBattle()
+    }
+
+    private func restart() {
+        configuration = PreviewLab.makeConfiguration(
+            enemyID: selectedEnemyID,
+            heroID: selectedHeroID,
+            companionID: selectedCompanionID
+        )
+        _ = labSession.restart(configuration)
+        warmSelectedCinematics()
+        Task { @MainActor in
+            await warmArtwork()
+        }
+    }
+
+    /// Pre-warm the selected party's mapped cinematics (Rogue Shadowstep, Knight Avatar).
+    private func warmSelectedCinematics() {
+        if let ultimate = PreviewLab.cinematicUltimate(for: selectedHeroID) {
+            BattleCinematicPlayer.shared.warm(actorID: selectedHeroID, abilityID: ultimate.id)
+        }
+        if let ultimate = PreviewLab.cinematicUltimate(for: selectedCompanionID) {
+            BattleCinematicPlayer.shared.warm(actorID: selectedCompanionID, abilityID: ultimate.id)
+        }
+    }
+
+    private func warmArtwork() async {
+        let hero = GameContent.heroes.first { $0.id == selectedHeroID }
+        let companion = PreviewLab.companionOptions.first { $0.id == selectedCompanionID }
+        let enemy = GameContent.enemy(matching: selectedEnemyID)?.combatant
+        let combatants = [hero, companion, enemy].compactMap(\.self)
+        let names = combatants.flatMap { combatant -> [String] in
+            guard let reference = combatant.artReference else { return [] }
+            return [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
+        }
+        await PreparedArtworkCache.shared.prepareAndPin(names: names)
+    }
+
+    private static var defaultEnemyID: String {
+        GameContent.enemies.first?.id ?? ""
+    }
+
+    private static var defaultHeroID: String {
+        GameContent.heroes.first { $0.id == "rogue" }?.id ?? GameContent.heroes.first?.id ?? ""
+    }
+
+    private static var defaultCompanionID: String {
+        PreviewLab.companionOptions.first { $0.id == "knight" }?.id
+            ?? PreviewLab.companionOptions.first?.id ?? ""
+    }
+}
+
+private enum PreviewLab {
+    @MainActor
+    static var dependencies: BattleRuntimeDependencies {
+        BattleRuntimeDependencies(
+            playSFX: { _ in },
+            warmSFX: { _, _ in },
+            hapticsEnabled: { false },
+            effectsVolume: { 1 },
+            shouldAutoSkipUltimateCinematic: { _, _ in false }
+        )
+    }
+
+    /// Combatants the lab lets you place in the companion slot. Heroes are included
+    /// so the Knight (a hero) can be previewed as the Avatar companion.
+    static var companionOptions: [Combatant] {
+        GameContent.heroes + GameContent.companions
+    }
+
+    /// Lab loadout override: force the mapped cinematic ultimate so transition
+    /// previews are reachable regardless of which slot the combatant fills.
+    static func cinematicUltimate(for combatantID: String) -> Ability? {
+        switch combatantID {
+        case "rogue": .shadowstep
+        case "knight": .avatarOfJustice
+        default: nil
+        }
+    }
+
+    static func makeConfiguration(
+        enemyID: String,
+        heroID: String,
+        companionID: String
+    ) -> BattleRunConfiguration {
+        let hero = GameContent.heroes.first { $0.id == heroID } ?? GameContent.heroes.first
+        let companion = companionOptions.first { $0.id == companionID } ?? GameContent.companions.first
+        let enemy = GameContent.enemy(matching: enemyID) ?? GameContent.enemies.first
+        return BattleRunConfiguration(
+            runKey: nil,
+            rngSeed: 1772,
+            hero: BattleRunConfiguration.PartyMember(
+                combatant: hero.map { labCombatant($0, ultimate: cinematicUltimate(for: heroID)) }
+                    ?? Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: []),
+                progression: .initial,
+                equipmentLoadout: .init(),
+                modifiers: .zero
+            ),
+            companion: BattleRunConfiguration.PartyMember(
+                combatant: companion.map { labCombatant($0, ultimate: cinematicUltimate(for: companionID)) }
+                    ?? Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 20, abilities: []),
+                progression: .initial,
+                equipmentLoadout: .init(),
+                modifiers: .zero
+            ),
+            enemy: enemy.map { labCombatant($0.combatant) },
+            enemyEncounterLevel: nil,
+            enemyModifiers: .zero
+        )
+    }
+
+    /// Lab subject: inflated health for extended testing time, with an optional
+    /// loadout ultimate (Rogue picks Shadowstep so its cinematic is in play).
+    static func labCombatant(_ combatant: Combatant, ultimate: Ability? = nil) -> Combatant {
+        let choices = ultimate.map {
+            combatant.abilityChoices.withSelectedLoadout(AbilityLoadout(ultimate: $0))
+        } ?? combatant.abilityChoices
+        return Combatant(
+            id: combatant.id,
+            name: combatant.name,
+            role: combatant.role,
+            maxHealth: 999,
+            maxMana: combatant.maxMana,
+            actionIntervalTurns: combatant.actionIntervalTurns,
+            abilityChoices: choices,
+            primaryStats: combatant.primaryStats,
+            growthArchetype: combatant.growthArchetype
+        )
+    }
+}
+
+/// "Ultimate Transitions" effect controls — opening and closing styles selected
+/// independently. Lives in the Preview Lab controls sheet, never on the stage.
+private struct UltimateTransitionsControls: View {
+    @Bindable var config: PreviewLabConfig
+
+    var body: some View {
+        Section {
+            Text("Ultimate Transitions")
+                .fontWeight(.semibold)
+
+            Picker("Opening", selection: $config.openingStyle) {
+                ForEach(UltimateCinematicEnterStyle.allCases) { style in
+                    Text(style.title).tag(style)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Picker("Closing", selection: $config.closingStyle) {
+                ForEach(UltimateCinematicExitStyle.allCases) { style in
+                    Text(style.title).tag(style)
+                }
+            }
+            .pickerStyle(.segmented)
+        } header: {
+            Text("Effects")
+        }
+    }
+}
+#endif
