@@ -6,6 +6,8 @@ final class SmokeCollectionTests: SeededSmokeUITestCase {
         [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
+            "-disable-audio",
+            "-persist-save-immediately",
             "-selectedTab",
             "collection",
         ]

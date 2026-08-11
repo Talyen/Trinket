@@ -23,11 +23,12 @@ parallel `AppState.battle` handle.
 New player flows need a stable `AccessibilityID` from `TrinketFeatureSupport` (or an
 existing appropriate one) for UI automation. Add or extend a smoke/exhaustive UI test
 only when the keep/drop rubric in `Docs/Platform/Testing.md` applies (shell/entry,
-state-changing journey, or one-owner safety invariant). IDs are test selectors, not a
-promise of custom VoiceOver semantics; do not add accessibility labels, hints, values,
-grouping, traits, or accessibility-setting branches without an explicit product
-decision. Feature views use UI coverage only when that rubric passes; a view change
-alone does not require a test. Verify with path-scoped
+state-changing journey, or one-owner safety invariant). IDs are test selectors, not
+substitutes for player-facing semantics: preserve native control labels and add a
+concise accessibility label/value when a custom control is otherwise ambiguous.
+Handle reduced motion/transparency and contrast through shared DesignSystem or motion
+components instead of per-screen branches. Feature views use UI coverage only when
+the rubric passes; a view change alone does not require a test. Verify with path-scoped
 `./Scripts/handoff.sh --isolate --paths …`. Policy and path-scoped tiers:
 `Docs/Platform/Testing.md` and `Docs/AgentContext/ci-and-project-generation.md`. Read
 `TrinketUITests/README.md` only for launch args, screen helpers, or test speed.

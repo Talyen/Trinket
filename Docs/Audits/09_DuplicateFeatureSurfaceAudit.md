@@ -4,7 +4,7 @@
 
 ## Intent
 
-Collapse confirmed copy-paste feature surfaces under their existing owners. Require three ordinary structural twins, or two substantial twins with demonstrated drift, duplicate maintenance, a shared bug, or enough repeated behavior that a dominant-owner extraction is plainly smaller. A successful collapse removes the old paths and reduces net LOC/declarations or material repeated maintenance; do not build a generic configuration framework for two callers. Planning and phasing: [README.md](README.md).
+Collapse confirmed copy-paste feature surfaces under their existing owners. Require three ordinary structural twins, or two substantial twins with demonstrated drift, duplicate maintenance, a shared bug, or enough repeated behavior that a dominant-owner extraction is plainly smaller. A successful collapse removes the old paths and reduces net LOC/declarations or material repeated maintenance; do not build a generic configuration framework for two callers.
 
 ## What counts as a duplicate surface
 

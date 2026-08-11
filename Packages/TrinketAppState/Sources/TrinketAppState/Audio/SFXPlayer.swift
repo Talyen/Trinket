@@ -87,6 +87,10 @@ public final class SFXPlayer {
         }
     }
 
+    public func warmAllCatalog(concurrentPlayerCount: Int = 2) {
+        warm(SFXCatalog.clips.map(\.id), concurrentPlayerCount: concurrentPlayerCount)
+    }
+
     public func stopAll() {
         for voices in preparedVoicesByID.values {
             for voice in voices {

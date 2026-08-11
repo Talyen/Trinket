@@ -8,12 +8,13 @@ import TrinketFeatureSupport
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @Environment(ShellSession.self) private var shellSession
     @Environment(BattleSession.self) private var battle
     @Environment(\.scenePhase) private var scenePhase
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
-        @Bindable var appState = appState
+        @Bindable var shellSession = shellSession
 
         // Bare PlayView during battle removes the tab bar from the hierarchy.
         Group {
@@ -21,7 +22,7 @@ struct ContentView: View {
                 PlayView()
                     .transition(.opacity)
             } else {
-                tabRoot(selection: $appState.selectedTab)
+                tabRoot(selection: $shellSession.selectedTab)
                     .transition(.opacity)
             }
         }
@@ -54,7 +55,7 @@ struct ContentView: View {
         .onAppear {
             appState.refreshMusic(scenePhase: scenePhase)
         }
-        .onChange(of: appState.selectedTab) { _, newTab in
+        .onChange(of: shellSession.selectedTab) { _, newTab in
             appState.refreshMusic(scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,

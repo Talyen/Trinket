@@ -82,7 +82,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         options.assertLoaded()
 
         let toggle = app.descendants(matching: .any)[
-            "Remember Auto-Battle Preference Toggle"
+            AccessibilityID.Options.rememberAutoBattleToggle
         ]
         XCTAssertTrue(
             toggle.waitForExistence(timeout: Self.defaultTimeout),
@@ -91,13 +91,11 @@ final class TabNavigationUITests: TrinketUITestCase {
         let initialValue = toggle.value as? String
         // Toggle knob sits at the row's trailing edge; tap it, not the row label.
         toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)).tap()
-        let deadline = Date().addingTimeInterval(3)
-        while (toggle.value as? String) == initialValue, Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        XCTAssertNotEqual(
-            toggle.value as? String,
-            initialValue,
+        let valueFlipped = NSPredicate(format: "value != %@", initialValue ?? "")
+        let expectation = XCTNSPredicateExpectation(predicate: valueFlipped, object: toggle)
+        XCTAssertEqual(
+            XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout),
+            .completed,
             "Toggle value should flip when tapped"
         )
     }

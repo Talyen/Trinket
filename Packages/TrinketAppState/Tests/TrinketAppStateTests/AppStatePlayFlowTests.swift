@@ -34,6 +34,38 @@ struct AppStatePlayFlowTests {
         #expect(battle.hasActiveSimulation)
     }
 
+    @Test func unchangedJourneyInputsReuseLaunchPreparedBattle() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let battle = try #require(context.lastBattle)
+
+        state.journey.prepareBattle(for: stage)
+        let preparedRevision = battle.preparedBattlePresentationRevision
+
+        state.journey.prepareBattle(for: stage)
+
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
+    }
+
+    @Test func journeyRewardClaimChangeReplacesLaunchPreparedBattle() throws {
+        let state = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let battle = try #require(context.lastBattle)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+
+        state.journey.prepareBattle(for: stage)
+        let preparedRevision = battle.preparedBattlePresentationRevision
+        #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == false)
+
+        try state.playerSave.performBatchMutation { save in
+            save.journey.markRewardsClaimed(for: stage)
+        }
+        state.journey.prepareBattle(for: stage)
+
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
+        #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == true)
+    }
+
     @Test func freshJourneyBattleActivationSelectsPlayTab() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)

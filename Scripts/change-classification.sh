@@ -43,6 +43,7 @@ TRINKET_NEEDS_PROJECT_GENERATION=false
 TRINKET_NEEDS_STYLE=false
 TRINKET_NEEDS_UNIT=false
 TRINKET_NEEDS_SMOKE=false
+TRINKET_NEEDS_SCRIPT_TESTS=false
 # True when feature/shared/model Swift would need app compile but xcodebuild is absent.
 TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
 TRINKET_SMOKE_TARGET_UNRESOLVED=false
@@ -131,6 +132,7 @@ trinket_reset_classification() {
   TRINKET_NEEDS_STYLE=false
   TRINKET_NEEDS_UNIT=false
   TRINKET_NEEDS_SMOKE=false
+  TRINKET_NEEDS_SCRIPT_TESTS=false
   TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
   TRINKET_SMOKE_TARGET_UNRESOLVED=false
 }
@@ -214,6 +216,7 @@ trinket_classify_path() {
       TRINKET_HAS_ASSETS=true
       TRINKET_NEEDS_ASSET_GENERATION=true
       TRINKET_HAS_DOCS_OR_TOOLS=true
+      TRINKET_NEEDS_SCRIPT_TESTS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
     project.yml)
@@ -300,7 +303,12 @@ trinket_classify_path() {
       TRINKET_HAS_APP_STATE=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Docs/*|*.md|Scripts/*|.github/*)
+    Scripts/*|.github/*)
+      TRINKET_HAS_DOCS_OR_TOOLS=true
+      TRINKET_NEEDS_SCRIPT_TESTS=true
+      TRINKET_AUTHORED_PATHS+=("$path")
+      ;;
+    Docs/*|*.md)
       TRINKET_HAS_DOCS_OR_TOOLS=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
@@ -450,6 +458,9 @@ trinket_build_verification_plan() {
     else
       trinket_add_verification test style "./Scripts/test.sh style"
     fi
+  fi
+  if [[ "$TRINKET_NEEDS_SCRIPT_TESTS" == true ]]; then
+    trinket_add_verification scripts all "./Scripts/test-scripts.sh"
   fi
   if (( ${#TRINKET_PACKAGES[@]} > 0 )); then
     trinket_add_verification package "${TRINKET_PACKAGES[*]}" "./Scripts/test-package.sh ${TRINKET_PACKAGES[*]}"

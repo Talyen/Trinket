@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "bg_game_mode_labyrinth_thumb.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

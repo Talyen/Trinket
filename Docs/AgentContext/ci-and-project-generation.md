@@ -9,7 +9,8 @@ expensive route with `./Scripts/handoff.sh --dry-run --isolate --paths <same fil
 then run it by omitting `--dry-run`. A preview does not count as verification.
 Agents **always** pass `--isolate`.
 
-For complete gate composition, test tier inventory, isolation mechanics, and IDE workflows, see [Scripts/README.md#verification-gates--test-tiers](../../Scripts/README.md#verification-gates--test-tiers).
+For gate composition and test tiers, see [Verification.md](../Platform/Verification.md).
+For isolation and IDE workflows, see [SimulatorOperations.md](../Platform/SimulatorOperations.md).
 
 ## Key exceptions & operational details
 

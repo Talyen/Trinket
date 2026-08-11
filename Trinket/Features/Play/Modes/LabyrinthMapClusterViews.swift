@@ -28,17 +28,6 @@ struct LabyrinthFloorMap: View {
         LabyrinthMapPresentation.floorNodes(for: cluster, in: state)
     }
 
-    private var mapHeight: CGFloat {
-        let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
-        return CGFloat(lastRow) * metrics.verticalStep + metrics.height + metrics.hitExpansion * 2
-    }
-
-    private var displayNodes: [LabyrinthNode] {
-        nodes.sorted {
-            renderPriority(for: $0) < renderPriority(for: $1)
-        }
-    }
-
     /// Built once for the floor so seals do not rematerialize inventory / save.
     private var pickContext: MysteryEventPickContext {
         MysteryEventPickContext.labyrinth(
@@ -48,79 +37,109 @@ struct LabyrinthFloorMap: View {
     }
 
     var body: some View {
+        let metrics = metrics
+        let nodes = nodes
+        let projectedXs = nodes.map { projectedX(for: $0, metrics: metrics) }
+        let horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
+        let lastRow = nodes.compactMap(\.gridPosition?.row).max() ?? 0
+        let mapHeight = CGFloat(lastRow) * metrics.verticalStep
+            + metrics.height
+            + metrics.hitExpansion * 2
+        let roster = playerSave.roster
+        let displayNodes = nodes.map { node in
+            let visualState = LabyrinthMapPresentation.state(for: node, in: state)
+            return LabyrinthMapNodePresentation(
+                node: node,
+                visualState: visualState,
+                type: LabyrinthMapPresentation.effectiveType(
+                    for: node,
+                    unlockedHeroIDs: roster.unlockedHeroIDs,
+                    unlockedCompanionIDs: roster.unlockedCompanionIDs
+                ),
+                position: point(
+                    for: node,
+                    horizontalCenter: horizontalCenter,
+                    metrics: metrics
+                ),
+                renderPriority: node.id == selectedNodeID ? 2 : visualState == .reachable ? 1 : 0
+            )
+        }.sorted {
+            $0.renderPriority < $1.renderPriority
+        }
+
         ZStack {
             Rectangle()
                 .fill(.clear)
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onDismissSelection)
 
-            ForEach(displayNodes) { node in
+            ForEach(displayNodes) { presentation in
                 LabyrinthMapNodeSeal(
-                    node: node,
-                    state: state,
-                    isSelected: selectedNodeID == node.id,
+                    node: presentation.node,
+                    visualState: presentation.visualState,
+                    type: presentation.type,
+                    isSelected: selectedNodeID == presentation.id,
                     metrics: metrics,
                     pickContext: pickContext,
                     onActivate: {
-                        if LabyrinthMapPresentation.state(for: node, in: state) == .reachable {
-                            onSelectNode(node.id)
+                        if presentation.visualState == .reachable {
+                            onSelectNode(presentation.id)
                         } else {
                             onDismissSelection()
                         }
                     }
                 )
-                .position(point(for: node))
+                .position(presentation.position)
             }
         }
         .frame(width: availableWidth, height: mapHeight)
     }
 
-    private func projectedX(for node: LabyrinthNode) -> CGFloat {
+    private func projectedX(
+        for node: LabyrinthNode,
+        metrics: LabyrinthHexMetrics
+    ) -> CGFloat {
         let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
         return metrics.radius * sqrt(3) * (
             CGFloat(position.column) + CGFloat(position.row) / 2
         )
     }
 
-    private func renderPriority(for node: LabyrinthNode) -> Int {
-        if node.id == selectedNodeID {
-            return 2
-        }
-        return LabyrinthMapPresentation.state(for: node, in: state) == .reachable ? 1 : 0
-    }
-
-    private func point(for node: LabyrinthNode) -> CGPoint {
+    private func point(
+        for node: LabyrinthNode,
+        horizontalCenter: CGFloat,
+        metrics: LabyrinthHexMetrics
+    ) -> CGPoint {
         let position = node.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0)
-        let projectedXs = nodes.map { projectedX(for: $0) }
-        let horizontalCenter = ((projectedXs.min() ?? 0) + (projectedXs.max() ?? 0)) / 2
         return CGPoint(
-            x: availableWidth / 2 + (projectedX(for: node) - horizontalCenter),
+            x: availableWidth / 2 + (
+                projectedX(for: node, metrics: metrics) - horizontalCenter
+            ),
             y: CGFloat(position.row) * metrics.verticalStep + metrics.height / 2 + metrics.hitExpansion
         )
     }
 }
 
-private struct LabyrinthMapNodeSeal: View {
-    @Environment(PlayerSaveStore.self) private var playerSave
-
+private struct LabyrinthMapNodePresentation: Identifiable {
     let node: LabyrinthNode
-    let state: PlayerLabyrinthState
+    let visualState: LabyrinthMapNodeState
+    let type: LabyrinthNodeType
+    let position: CGPoint
+    let renderPriority: Int
+
+    var id: String {
+        node.id
+    }
+}
+
+private struct LabyrinthMapNodeSeal: View {
+    let node: LabyrinthNode
+    let visualState: LabyrinthMapNodeState
+    let type: LabyrinthNodeType
     let isSelected: Bool
     let metrics: LabyrinthHexMetrics
     let pickContext: MysteryEventPickContext
     let onActivate: () -> Void
-
-    private var visualState: LabyrinthMapNodeState {
-        LabyrinthMapPresentation.state(for: node, in: state)
-    }
-
-    private var type: LabyrinthNodeType {
-        LabyrinthMapPresentation.effectiveType(
-            for: node,
-            unlockedHeroIDs: playerSave.roster.unlockedHeroIDs,
-            unlockedCompanionIDs: playerSave.roster.unlockedCompanionIDs
-        )
-    }
 
     private var tint: Color {
         LabyrinthMapPresentation.tint(for: type)
@@ -316,7 +335,6 @@ struct LabyrinthNodeInspector: View {
         }
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryItems: playerSave.inventory.items,
             labyrinthModifiers: LabyrinthCatalog.modifiers(ids: node.modifierIDs)
         )
     }

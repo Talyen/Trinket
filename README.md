@@ -5,7 +5,7 @@ Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). 
 ## Requirements
 
 - Xcode 26+ with iOS 26 simulator runtime
-- Swift 6.0
+- Swift 6 language mode (SwiftPM manifests use tools version 6.2)
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 - SwiftLint and SwiftFormat (pinned via `./Scripts/ensure-ci-tools.sh`; versions in `Scripts/tool-versions.env`)
 - Ripgrep (`brew install ripgrep`) for `./Scripts/check-module-boundaries.sh`
@@ -50,12 +50,12 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/build-for-testing.sh     # app + all package schemes for --no-build reuse
 ./Scripts/test.sh unit --no-build  # re-run all package schemes without rebuilding
 ./Scripts/test.sh unit             # all package test schemes in parallel
-./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
+./Scripts/test-package.sh TrinketDesignSystem  # one package scheme, run from the repo root
 ./Scripts/test.sh smoke            # local UI canary (Homestead, QuickSmoke)
 ./Scripts/test.sh smoke-full       # full Smoke.xctestplan (CI / PR)
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
-./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
+./Scripts/ci-gate.sh               # generate/assert, boundaries, style, script regressions
 ./Scripts/handoff.sh --isolate --paths <changed-files>
                                    # fast local path-scoped verification
 ./Scripts/test-deploy.sh --mode smoke   # optional full local confidence: gate + unit + quick smoke
@@ -65,24 +65,21 @@ For content, art, music, SFX, or cinematic edits:
 ./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)
 ```
 
-Agent workflow: `AGENTS.md`. Test conventions: `Docs/Platform/Testing.md`. CI fixer bot: `Docs/CI-FIXER.md`.
+Agent workflow: [AGENTS.md](AGENTS.md). Test conventions:
+[Testing.md](Docs/Platform/Testing.md). CI fixer bot:
+[CI-FIXER.md](Docs/CI-FIXER.md).
 
 ## Docs
 
-Start with **`Docs/Platform/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
+Start with [Architecture.md](Docs/Platform/Architecture.md) for the repo map,
+module ownership, and tab/code mapping.
 
-- Agent workflow: `AGENTS.md`
-- Testing conventions: `Docs/Platform/Testing.md`
-- CI fixer bot: `Docs/CI-FIXER.md`
-- UI test launch args / speed: `TrinketUITests/README.md`
-- Product tabs / repo map: `Docs/Platform/Architecture.md`
-- Content pipeline: `ContentManifest/README.md`
-- Art pipeline: `ArtManifest/README.md`
-- Music pipeline: `MusicManifest/README.md`
-- Sound pipeline: `SoundManifest/README.md`
-- Cinematic pipeline: `CinematicManifest/README.md`
-- Design system / chrome: `Packages/TrinketDesignSystem/README.md`
-- Apple platform notes: `Docs/Platform/iOS26AppleReference.md`
-- Fluid motion (SwiftUI): `Packages/TrinketDesignSystem/` (`TrinketMotion`)
-- CloudKit pre-ship checklist: `Docs/Platform/CloudKitPreShipChecklist.md`
-- Release pipeline: `Scripts/README.md`
+- Product decisions: [Decisions.md](Docs/Product/Decisions.md)
+- Verification and testing: [Verification.md](Docs/Platform/Verification.md) and [Testing.md](Docs/Platform/Testing.md)
+- Product tabs and module map: [Architecture.md](Docs/Platform/Architecture.md)
+- Content and media: [content](ContentManifest/README.md), [art](ArtManifest/README.md), [music](MusicManifest/README.md), [sound](SoundManifest/README.md), and [cinematics](CinematicManifest/README.md)
+- Design system and motion: [TrinketDesignSystem](Packages/TrinketDesignSystem/README.md)
+- Apple platform guidance: [iOS reference](Docs/Platform/iOS26AppleReference.md), [CloudKit checklist](Docs/Platform/CloudKitPreShipChecklist.md), and [identity plan](Docs/Platform/IdentityPlan.md)
+- Performance: [frame pacing](Docs/Platform/PerformanceInvestigationPlaybook.md) and [memory/energy](Docs/Platform/MemoryAndEnergyInvestigation.md)
+- Release process: [Release.md](Docs/Platform/Release.md)
+- Re-runnable audits: [Audits](Docs/Audits/README.md)

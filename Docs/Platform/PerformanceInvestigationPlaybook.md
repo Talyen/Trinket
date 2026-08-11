@@ -1,6 +1,9 @@
-# Performance Investigation Playbook
+# Frame-Pacing Investigation Playbook
 
-Use this for measured frame-pacing, memory, battery, or lifecycle regressions. Static review can identify leads; it cannot prove that a SwiftUI surface is slow or that a change improved it.
+Use this for measured frame-pacing regressions. Static review can identify leads; it
+cannot prove that a SwiftUI surface is slow or that a change improved it. Memory and
+energy investigation are summarized separately in
+[MemoryAndEnergyInvestigation.md](MemoryAndEnergyInvestigation.md).
 
 ## Frame-pacing contract
 

@@ -11,10 +11,19 @@ import TrinketPersistence
 @MainActor
 @Observable
 public final class JourneyPlayMode {
+    private struct PreparationInputs: Equatable {
+        let stageID: String
+        let roster: PlayerRosterState
+        let inventory: PlayerInventoryState
+        let homestead: PlayerHomesteadState
+        let stageRewardsAlreadyClaimed: Bool
+    }
+
     public let playerSave: PlayerSaveStore
     public let battle: any BattleRuntime
     private let battleLaunch: PlayBattleLaunch
     private let encounters: EncounterPlayMode
+    private var preparedInputs: PreparationInputs?
 
     init(
         playerSave: PlayerSaveStore,
@@ -75,6 +84,7 @@ public final class JourneyPlayMode {
                 journey: playerSave.journey
             )
         )
+        preparedInputs = nil
         return nil
     }
 
@@ -82,17 +92,28 @@ public final class JourneyPlayMode {
         guard battle.lifecyclePhase != .active,
               let encounter = resolvedEncounter(for: stage)
         else { return }
+        let stageRewardsAlreadyClaimed = Self.stageRewardsAlreadyClaimed(
+            for: stage,
+            journey: playerSave.journey
+        )
+        let inputs = PreparationInputs(
+            stageID: stage.id,
+            roster: playerSave.roster,
+            inventory: playerSave.inventory,
+            homestead: playerSave.homestead,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
+        )
+        guard inputs != preparedInputs else { return }
         let origin = PlayBattleOrigin.journey(stageID: stage.id)
-        battleLaunch.prepareCombat(
+        if battleLaunch.prepareCombat(
             origin: origin,
             encounter: encounter,
             route: battleRoute(stageID: stage.id),
             loot: battleLoot(for: stage, encounter: encounter),
-            stageRewardsAlreadyClaimed: Self.stageRewardsAlreadyClaimed(
-                for: stage,
-                journey: playerSave.journey
-            )
-        )
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
+        ) {
+            preparedInputs = inputs
+        }
     }
 
     @discardableResult

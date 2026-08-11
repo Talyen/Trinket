@@ -3,14 +3,7 @@ import XCTest
 
 final class SmokePlayTests: SeededSmokeUITestCase {
     override var launchArguments: [String] {
-        [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync,
-            "-disable-audio",
-            "-persist-save-immediately",
-            "-battle-tick-interval",
-            "1.0",
-        ]
+        TestLaunchArg.allForTab("play")
     }
 
     func testPlayScreenLoadsWithCampaignAndExploreChoices() {

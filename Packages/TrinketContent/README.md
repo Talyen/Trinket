@@ -1,6 +1,8 @@
 # TrinketContent
 
-Game content catalogs — heroes, companions, enemies, abilities, items, stages, homestead nodes, and art/music/SFX references. Most data content is manifest-driven (TSV → generated Swift). Abilities are authored in Swift.
+Game content catalogs — heroes, companions, enemies, abilities, items, stages,
+homestead nodes, and art/music/SFX/cinematic references. Most data content is
+manifest-driven (TSV → generated Swift). Abilities are authored in Swift.
 
 ## Structure
 
@@ -21,6 +23,7 @@ Game content catalogs — heroes, companions, enemies, abilities, items, stages,
 | `ArtManifest/curated-assets.tsv` | `ArtCatalog.generated.swift` |
 | `MusicManifest/music.tsv` | `MusicCatalog.generated.swift` |
 | `SoundManifest/sfx.tsv` | `SFXCatalog.generated.swift` + `Trinket/Media/SFX` |
+| `CinematicManifest/cinematics.tsv` | `UltimateCinematicCatalog.generated.swift` + `Trinket/Media/Cinematics` |
 
 ## Adding content
 

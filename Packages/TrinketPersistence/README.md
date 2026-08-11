@@ -1,6 +1,7 @@
 # TrinketPersistence
 
-Player save model, SwiftData stores, and CloudKit sync.
+Player save model and SwiftData stores. The schema is CloudKit-ready; shipping builds
+remain local-only until the pre-ship enablement checklist is complete.
 
 ## Architecture
 
@@ -21,7 +22,9 @@ Player save model, SwiftData stores, and CloudKit sync.
 
 ## CloudKit
 
-Configured with container `iCloud.com.ryanmcintire.Trinket`. OS-managed SwiftData + CloudKit sync. See `Docs/Platform/CloudKitPreShipChecklist.md`.
+The planned private container is `iCloud.com.ryanmcintire.Trinket`. Live sync is
+disabled until entitlements, schema promotion, device conflict testing, and the rest
+of `Docs/Platform/CloudKitPreShipChecklist.md` are complete.
 
 ## Testing
 

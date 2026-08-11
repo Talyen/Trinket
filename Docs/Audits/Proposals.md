@@ -16,7 +16,7 @@ Routine passes inventory candidates from changes since this commit (see README r
 
 | Baseline commit | Set after |
 |-----------------|-----------|
-| `d9eeb924` | dual-path + inelegant-slop simplification pass 2026-08-05; residual pass implemented open proposals (lastPlayMode / lastCompletedStageID / AppTab unify / cold-launch always-Play) plus ghost/slop cleanup (uncommitted until landed) |
+| `d9eeb924` | Dual-path and inelegant-slop baseline after the residual proposal and ghost cleanup pass |
 
 ## Open proposals
 

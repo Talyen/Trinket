@@ -4,7 +4,7 @@
 
 ## Intent
 
-Find P1/P2 contradictions, omissions, and drift between docs and their sources of truth. Once one fact or workflow is confirmed stale, inspect and update every material authored reference to that same fact within the evidence cone. A pass with no consequential mismatch is valid. Planning and phasing: [README.md](README.md).
+Find P1/P2 contradictions, omissions, and drift between docs and their sources of truth. Once one fact or workflow is confirmed stale, inspect and update every material authored reference to that same fact within the evidence cone.
 
 ## Hard stops
 
@@ -13,8 +13,6 @@ Find P1/P2 contradictions, omissions, and drift between docs and their sources o
 - Do not rewrite design prose for style-only preferences or turn this into an unbounded prose cleanup. Cohesive terminology or workflow corrections may span documents when inconsistency would otherwise remain.
 
 ## Severity
-
-Shared scale: [README.md](README.md).
 
 | Sev | Criteria |
 |-----|----------|

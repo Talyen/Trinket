@@ -44,7 +44,7 @@ if ! printf '%s\n' "$MSG" | sed -n '2,$p' | grep -qE '^$|^[-*]|^User-Facing:|^Br
 fi
 
 if [[ "$WARN" -ne 0 ]]; then
-  echo "commit-msg: advisory warnings only (commit allowed). See Scripts/README.md Commit message contract." >&2
+  echo "commit-msg: advisory warnings only (commit allowed). See Docs/Platform/Release.md." >&2
 fi
 
 exit 0

@@ -5,7 +5,7 @@ Feature work belongs in the matching `Features/<flow>/` folder. Feature UI and s
 - Use shared state through the environment; feature views may own transient local `@State` but not app or session stores. Scope observability to the smallest subtree that needs it. Name `@Environment(PlayerSaveStore.self)` bindings `playerSave` — never `appState`.
 - Visual chrome and colors come from `TrinketDesignSystem` and shared game views in `Packages/TrinketFeatureSupport`. Never introduce one-off `Color` / system palette literals — extend the design system instead.
 - `@ViewBuilder` helpers must compile under Swift 6 strict concurrency (file-level helpers that call DesignSystem / view modifiers need `@MainActor`, or live as methods on a `View`).
-- New player flows need stable accessibility identifiers suitable for smoke tests. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies. Do not add custom accessibility semantics or accessibility-setting branches; follow PD-007.
+- New player flows need stable accessibility identifiers suitable for smoke tests. Add or extend UI smoke only when the keep/drop rubric in `Docs/Platform/Testing.md` applies. Preserve native semantics, label custom interactive controls, and use shared DesignSystem/motion handling for accessibility settings per PD-007.
 - Feature changes must pass path-scoped verification before handoff.
 
 ## Homestead UX contract

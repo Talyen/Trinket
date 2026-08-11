@@ -26,7 +26,7 @@ Confirm in source / CI config:
 - [ ] SwiftData persistence tests cover root creation, reset, test seed, relaunch from the same URL, and graph mutations
 - [ ] User-facing reset copy does **not** claim live iCloud sync (`OptionsView` — this device only)
 - [ ] `PrivacyInfo.xcprivacy` present (`Trinket/PrivacyInfo.xcprivacy`; no tracking; collected-data empty until sync ships)
-- [ ] `INFOPLIST_KEY_UIBackgroundModes: remote-notification` absent until CloudKit sync wakeups are real (`project.yml`)
+- [ ] `INFOPLIST_KEY_UIBackgroundModes: remote-notification` remains absent while sync is disabled (`project.yml`)
 - [ ] `PlayerSaveStore.resolveConfiguration` documents local-only vs private CloudKit paths; private path unused until entitlements + portal
 - [ ] Entitlements file exists but empty on purpose — do not invent CloudKit keys before Developer Program enrollment
 - [ ] Passive Homestead collection has an explicit CloudKit readiness gate; the local collector cannot run while private CloudKit is enabled
@@ -45,7 +45,9 @@ Confirm in source / CI config:
 - [ ] Passive Homestead production state or claim records are present in the Development schema and have a documented canonical owner
 - [ ] Schema review: CloudKit-compatible SwiftData constraints (optional relationships, defaults/optionals on scalars, no `@Attribute(.unique)`)
 - [ ] **Production** schema deployed (promoted from Development) before App Store release
-- [ ] Re-add `UIBackgroundModes: remote-notification` in `project.yml` **only if** sync wakeups require it
+- [ ] Add Background Modes → Remote notifications
+  (`INFOPLIST_KEY_UIBackgroundModes: remote-notification`) before enabling automatic
+  SwiftData/CloudKit sync; Apple requires it for background change delivery
 - [ ] Device builds can open `cloudKitDatabase: .private(...)` without signing errors
 
 ---
@@ -59,7 +61,9 @@ Confirm in source / CI config:
 - [ ] Playable when **not** signed into iCloud (local-only)
 - [ ] Account status changes handled (signed out / restricted → local fallback)
 - [ ] Playable **offline**; sync resumes when connectivity returns
-- [ ] Concurrent writes to separate properties converge without custom app reconciliation
+- [ ] The documented conflict policy is verified for concurrent updates to currency,
+  progression, inventory, and relationships; do not assume framework defaults preserve
+  game-level invariants
 - [ ] Two devices collecting the same Homestead interval result in one claim, not duplicate production
 - [ ] Concurrent Collect and Homestead upgrade settles the old rate exactly once before applying the new tier
 - [ ] Offline devices can view pending production but cannot claim it until the cloud authority is reachable

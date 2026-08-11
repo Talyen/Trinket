@@ -19,8 +19,6 @@ Confirm candidate defects and fix confirmed ones. Follow a candidate's control/d
 
 ## Severity
 
-Shared scale: [README.md](README.md).
-
 | Sev | Criteria | Default disposition |
 |-----|----------|---------------------|
 | P0 | Crash / data loss / double reward / save corruption | Fix now |

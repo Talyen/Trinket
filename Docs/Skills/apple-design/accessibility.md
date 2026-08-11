@@ -8,19 +8,17 @@ Respond to each signal independently and bake the behavior into components:
 
 - **Reduced motion:** replace slides, springs, parallax, elastic effects, and overshoot with short opacity cross-fades or static transitions. Keep opacity and color changes that aid comprehension.
 - **Reduced transparency:** make translucent surfaces frostier or solid by raising background opacity and dropping blur.
-- **Increased contrast (`prefers-contrast: more`):** use near-solid backgrounds with a defined, contrasting border.
+- **Increased contrast:** use stronger foreground/background separation and a
+  defined border where material edges would otherwise disappear.
 
-```css
-@media (prefers-reduced-motion: reduce) {
-  .sheet { transition: opacity 200ms ease; transform: none !important; }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .toolbar { background: white; backdrop-filter: none; }
-}
+```swift
+@Environment(\.accessibilityReduceMotion) private var reduceMotion
+@Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+@Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 ```
 
-In SwiftUI, map these outcomes to the platform’s accessibility environment values and the project’s design-system variants; do not add a web-only compatibility layer to the app.
+Consume these values in shared DesignSystem and `TrinketMotion` components. Feature
+views should select semantic variants rather than reimplement the same branches.
 
 ## Vestibular and visual safety
 
@@ -35,3 +33,7 @@ In SwiftUI, map these outcomes to the platform’s accessibility environment val
 - Ensure controls have generous hit areas and cancellation paths, and do not depend on color, motion, sound, or haptics alone.
 - Keep focus/wayfinding and the escape path clear when a panel or modal appears.
 - Test larger text, increased contrast, reduced motion, reduced transparency, light/dark appearances, and real device input.
+
+Apple references: [Accessibility HIG](https://developer.apple.com/design/human-interface-guidelines/accessibility/),
+[`accessibilityReduceMotion`](https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityreducemotion),
+and [`accessibilityReduceTransparency`](https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityreducetransparency).

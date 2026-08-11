@@ -15,7 +15,7 @@ Fix confirmed concurrency violations and source-proven lifetime/isolation hazard
 
 ## Severity
 
-Shared scale: [README.md](README.md). Because `SWIFT_STRICT_CONCURRENCY=complete` already fails the build on most isolation errors, this audit's value concentrates in P1–P2 — what the compiler accepts but should not be trusted.
+Because `SWIFT_STRICT_CONCURRENCY=complete` already fails the build on most isolation errors, this audit's value concentrates in P1–P2 — what the compiler accepts but should not be trusted.
 
 | Sev | Description | Action |
 |-----|-------------|--------|

@@ -67,6 +67,27 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(snapshot.evictionCount == 1)
     }
 
+    @Test @MainActor func resettingDiagnosticsPreservesPreparedRasters() throws {
+        let pool = CombatFeedbackRasterPool(capacity: 2)
+        let canvasItem = try #require(
+            CombatFeedbackRasterCatalog.closedVocabularyCanvasItems().first
+        )
+        let stub = try #require(Self.stubRasterImage())
+        _ = pool.seedForTesting(
+            for: canvasItem,
+            dynamicTypeSize: .large,
+            displayScale: 2,
+            image: stub
+        )
+
+        pool.resetDiagnostics()
+
+        let snapshot = pool.snapshot()
+        #expect(snapshot.entryCount == 1)
+        #expect(snapshot.hitCount == 0)
+        #expect(snapshot.buildCount == 0)
+    }
+
     private static func stubRasterImage() -> CGImage? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(

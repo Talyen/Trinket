@@ -97,10 +97,8 @@ final class BattleFlowUITests: TrinketUITestCase {
     }
 
     private func waitForCardCount(_ cards: XCUIElementQuery, droppingFrom initial: Int) -> Bool {
-        let deadline = Date().addingTimeInterval(3)
-        while cards.count == initial, Date() < deadline {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        }
-        return cards.count == initial - 1
+        let predicate = NSPredicate(format: "count == %d", initial - 1)
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: cards)
+        return XCTWaiter().wait(for: [expectation], timeout: Self.defaultTimeout) == .completed
     }
 }

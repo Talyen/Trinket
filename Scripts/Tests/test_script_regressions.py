@@ -92,7 +92,8 @@ class ScriptRegressionTests(unittest.TestCase):
             text = (ROOT / "Scripts" / name).read_text(encoding="utf-8")
             self.assertIn("LC_ALL=C sort", text, name)
             self.assertTrue(
-                ("head -n 2" in text and "tail -n +3" in text) or ("tail -n +3" in text),
+                ("head -n 2" in text and "tail -n +3" in text)
+                or ("grep -v '^#'" in text and "# asset_name" in text),
                 f"{name} should preserve hash TSV headers before sorting",
             )
             self.assertIn(
@@ -211,6 +212,38 @@ class ScriptRegressionTests(unittest.TestCase):
                 "./Scripts/test-package.sh TrinketContent",
             ],
         )
+
+    def test_build_script_routes_script_gate(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "handoff.sh"),
+                "--dry-run",
+                "--paths",
+                "Scripts/build.sh",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("./Scripts/test-scripts.sh", result.stdout)
+
+    def test_agent_context_shell_quotes_paths_with_spaces(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Raw Assets/Art/example.png",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(r"Raw\ Assets/Art/example.png", result.stdout)
 
     def test_mystery_subflow_runs_play_smoke(self) -> None:
         # Deterministic routing: any Play diff runs SmokePlayTests; no demotion

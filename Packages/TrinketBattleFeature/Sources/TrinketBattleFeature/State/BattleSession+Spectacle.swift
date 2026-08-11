@@ -418,7 +418,7 @@ extension BattleSession {
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
         feedback.clear()
-        resetFeedbackRasterMemory()
+        resetFeedbackRasterDiagnostics()
         clearSpectacle(releaseCinematicPlayers: false)
         clearOutcomePresentation()
         if overlayCombatantDetail != nil {
@@ -443,7 +443,7 @@ extension BattleSession {
         deliveredClaimedVictoryConfigurationID = nil
         presentation.clear()
         feedback.clear()
-        resetFeedbackRasterMemory()
+        resetFeedbackRasterDiagnostics()
         clearSpectacle()
         clearOutcomePresentation()
         feedback.release()

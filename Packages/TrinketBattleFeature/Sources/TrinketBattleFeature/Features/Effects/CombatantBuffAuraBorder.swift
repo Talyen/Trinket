@@ -7,23 +7,30 @@ import TrinketDesignSystem
 struct CombatantBuffAuraBorder: View {
     let kind: CombatantBuffAuraKind
 
-    @State private var startDate = Date()
+    @State private var shimmerAngle = 0.0
 
     var body: some View {
-        TimelineView(.animation) { timeline in
-            let elapsed = timeline.date.timeIntervalSince(startDate)
-            let period = TrinketMotion.Battle.buffAuraShimmerPeriod
-            let unit = period > 0 ? elapsed / period : 0
-            stroke(progress: CGFloat(unit))
-        }
-        .onChange(of: kind) { _, _ in
-            startDate = Date()
-        }
+        CombatantBuffAuraStroke(kind: kind, angle: shimmerAngle)
+            .onAppear {
+                withAnimation(.linear(duration: TrinketMotion.Battle.buffAuraShimmerPeriod).repeatForever(autoreverses: false)) {
+                    shimmerAngle = 360
+                }
+            }
+            .allowsHitTesting(false)
+    }
+}
+
+private struct CombatantBuffAuraStroke: View, Animatable {
+    let kind: CombatantBuffAuraKind
+    var angle: Double
+
+    nonisolated var animatableData: Double {
+        get { angle }
+        set { angle = newValue }
     }
 
-    private func stroke(progress: CGFloat) -> some View {
+    var body: some View {
         let style = palette(for: kind)
-        let angle = Angle.degrees(Double(progress) * 360)
         return TrinketDesign.cardShape
             .strokeBorder(
                 AngularGradient(
@@ -36,12 +43,11 @@ struct CombatantBuffAuraBorder: View {
                         .init(color: style.base.opacity(0.22), location: 1),
                     ]),
                     center: .center,
-                    angle: angle
+                    angle: .degrees(angle)
                 ),
                 lineWidth: 2
             )
             .shadow(color: style.glow.opacity(0.55), radius: 3, x: 0, y: 0)
-            .allowsHitTesting(false)
     }
 
     private func palette(for kind: CombatantBuffAuraKind) -> (

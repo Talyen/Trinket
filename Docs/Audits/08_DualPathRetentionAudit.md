@@ -4,7 +4,7 @@
 
 ## Intent
 
-Confirm two reachable paths for one behavior (or a reachable shim that only forwards to the surviving owner) and remove one path plus its retained compatibility envelope. Equivalent behavior may use different API shapes; an obvious forwarding wrapper is not required. A successful fix reports authored LOC, declarations, configuration, tests, documentation, or exported API removed by deleting the superseded path — not by wrapping it again. A clean pass is valid. Planning and phasing: [README.md](README.md).
+Confirm two reachable paths for one behavior (or a reachable shim that only forwards to the surviving owner) and remove one path plus its retained compatibility envelope. Equivalent behavior may use different API shapes; an obvious forwarding wrapper is not required. A successful fix reports authored LOC, declarations, configuration, tests, documentation, or exported API removed by deleting the superseded path — not by wrapping it again.
 
 ## What counts as dual-path retention
 

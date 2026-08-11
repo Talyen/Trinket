@@ -1,4 +1,6 @@
+import Darwin
 import Observation
+import os
 import SwiftUI
 import TrinketContent
 import UIKit
@@ -19,8 +21,25 @@ struct LaunchArtworkWarmupPlan: Equatable {
     }
 }
 
-/// App-wide artwork preparation. Priority assets decode first so interactive UI can
-/// appear; deferred catalog decode continues in the background without gating launch.
+public struct PreparedArtworkCacheSnapshot: Equatable, Sendable {
+    public let requestedCount: Int
+    public let residentCount: Int
+    public let residentByteCount: Int
+    public let pinnedCount: Int
+    public let pinnedByteCount: Int
+
+    public var nonresidentCount: Int {
+        max(requestedCount - residentCount, 0)
+    }
+}
+
+public enum PreparedArtworkMemoryBudget {
+    public static let residentArtworkByteCount = 240 * 1024 * 1024
+    public static let steadyStateProcessByteCount = 400 * 1024 * 1024
+}
+
+/// App-wide artwork preparation. Priority assets decode before launch releases the
+/// interactive UI; remaining catalog work continues opportunistically afterward.
 @MainActor
 @Observable
 public final class PreparedArtworkCache {
@@ -30,7 +49,7 @@ public final class PreparedArtworkCache {
     public private(set) var totalCount = 1
     public private(set) var isLaunchWarmupComplete = false
 
-    /// True once deferred catalog decode has finished (or there was nothing deferred).
+    /// True once the non-priority catalog decode has finished (or there was none).
     public private(set) var isDeferredWarmupComplete = false
 
     @ObservationIgnored private let images = NSCache<NSString, UIImage>()
@@ -41,9 +60,15 @@ public final class PreparedArtworkCache {
     @ObservationIgnored private var pinnedNames: Set<String> = []
     @ObservationIgnored private var priorityWarmupTask: Task<Void, Never>?
     @ObservationIgnored private var deferredWarmupTask: Task<Void, Never>?
-    @ObservationIgnored private var decodedNames: Set<String> = []
+    @ObservationIgnored private var decodeTasksByName: [String: Task<PreparedArtwork, Never>] = [:]
+    @ObservationIgnored private var decodedCostsByName: [String: Int] = [:]
+    @ObservationIgnored private var launchWarmupNames: [String] = []
     @ObservationIgnored private let catalogNamesProvider: () -> [String]
     @ObservationIgnored private let decodeHandler: @Sendable (String) async -> PreparedArtwork
+    @ObservationIgnored private let logger = Logger(
+        subsystem: "com.trinket.diagnostics",
+        category: "ArtworkCache"
+    )
 
     private init() {
         catalogNamesProvider = { Self.defaultPresentationImageNames }
@@ -63,7 +88,9 @@ public final class PreparedArtworkCache {
     private func configureImageBudget() {
         let physicalMemory = Int(ProcessInfo.processInfo.physicalMemory)
         let adaptiveBudget = physicalMemory / 24
-        images.totalCostLimit = min(max(adaptiveBudget, 96 * 1024 * 1024), 256 * 1024 * 1024)
+        // Leave room below the 240 MiB artwork target for the small strong pin
+        // set and temporary decoder surfaces that NSCache does not cost-account.
+        images.totalCostLimit = min(max(adaptiveBudget, 96 * 1024 * 1024), 160 * 1024 * 1024)
     }
 
     /// Isolated cache for unit tests (does not touch `shared`).
@@ -118,6 +145,7 @@ public final class PreparedArtworkCache {
             priorityImageNames: priorityImageNames,
             catalogNames: catalogNamesProvider()
         )
+        launchWarmupNames = plan.priorityNames + plan.deferredNames
         totalCount = max(plan.priorityNames.count + plan.deferredNames.count, 1)
         completedCount = 0
         isDeferredWarmupComplete = false
@@ -127,6 +155,7 @@ public final class PreparedArtworkCache {
             guard let self else { return }
             await decode(plan.priorityNames, maximumConcurrency: 2, countsTowardLaunch: true)
             isLaunchWarmupComplete = true
+            reportMemorySnapshot(label: "priorityWarmup")
         }
         priorityWarmupTask = task
         await task.value
@@ -136,6 +165,7 @@ public final class PreparedArtworkCache {
             await decode(plan.deferredNames, maximumConcurrency: 2, countsTowardLaunch: true)
             isDeferredWarmupComplete = true
             completedCount = totalCount
+            reportMemorySnapshot(label: "deferredWarmup")
         }
     }
 
@@ -144,13 +174,20 @@ public final class PreparedArtworkCache {
         maximumConcurrency: Int,
         countsTowardLaunch: Bool
     ) async {
-        let decode = decodeHandler
+        let namesToDecode = imageNames.filter { name in
+            pinnedImages[name] == nil && images.object(forKey: name as NSString) == nil
+        }
+        if countsTowardLaunch {
+            completedCount += imageNames.count - namesToDecode.count
+        }
+
         await withTaskGroup(of: PreparedArtwork.self) { group in
-            var iterator = imageNames.filter { !decodedNames.contains($0) }.makeIterator()
+            var iterator = namesToDecode.makeIterator()
 
             for _ in 0 ..< maximumConcurrency {
                 guard let name = iterator.next() else { break }
-                group.addTask { await decode(name) }
+                let task = decodeTask(for: name)
+                group.addTask { await task.value }
             }
 
             while let prepared = await group.next() {
@@ -159,26 +196,108 @@ public final class PreparedArtworkCache {
                     return
                 }
                 if let image = prepared.image {
+                    let decodedCost = Self.decodedCost(of: image)
                     images.setObject(
                         image,
                         forKey: prepared.name as NSString,
-                        cost: Self.decodedCost(of: image)
+                        cost: decodedCost
                     )
+                    decodedCostsByName[prepared.name] = decodedCost
                     if pinnedNames.contains(prepared.name) {
                         pinnedImages[prepared.name] = image
                     }
                 }
-                decodedNames.insert(prepared.name)
+                decodeTasksByName[prepared.name] = nil
                 if countsTowardLaunch {
                     completedCount += 1
                 }
 
                 if let name = iterator.next() {
-                    group.addTask { await decode(name) }
+                    let task = decodeTask(for: name)
+                    group.addTask { await task.value }
                 }
                 await Task.yield()
             }
         }
+    }
+
+    private func decodeTask(for name: String) -> Task<PreparedArtwork, Never> {
+        if let task = decodeTasksByName[name] {
+            return task
+        }
+        let decode = decodeHandler
+        let task = Task { await decode(name) }
+        decodeTasksByName[name] = task
+        return task
+    }
+
+    public func launchWarmupSnapshot() -> PreparedArtworkCacheSnapshot {
+        var residentCount = 0
+        var residentByteCount = 0
+        var pinnedCount = 0
+        var pinnedByteCount = 0
+
+        for name in launchWarmupNames {
+            let cost = decodedCostsByName[name] ?? 0
+            if pinnedImages[name] != nil {
+                residentCount += 1
+                residentByteCount += cost
+                pinnedCount += 1
+                pinnedByteCount += cost
+            } else if images.object(forKey: name as NSString) != nil {
+                residentCount += 1
+                residentByteCount += cost
+            }
+        }
+
+        return PreparedArtworkCacheSnapshot(
+            requestedCount: launchWarmupNames.count,
+            residentCount: residentCount,
+            residentByteCount: residentByteCount,
+            pinnedCount: pinnedCount,
+            pinnedByteCount: pinnedByteCount
+        )
+    }
+
+    public func reportMemorySnapshot(label: String) {
+        let snapshot = launchWarmupSnapshot()
+        let processFootprintBytes = Self.processPhysicalFootprintByteCount()
+        let artworkStatus = snapshot.residentByteCount
+            <= PreparedArtworkMemoryBudget.residentArtworkByteCount ? "within" : "over"
+        let processStatus = processFootprintBytes == 0
+            || processFootprintBytes <= PreparedArtworkMemoryBudget.steadyStateProcessByteCount ? "within" : "over"
+        let message = """
+        \(label) requested=\(snapshot.requestedCount) resident=\(snapshot.residentCount) \
+        nonresident=\(snapshot.nonresidentCount) residentBytes=\(snapshot.residentByteCount) \
+        artworkBudgetBytes=\(PreparedArtworkMemoryBudget.residentArtworkByteCount) artworkStatus=\(artworkStatus) \
+        pinned=\(snapshot.pinnedCount) pinnedBytes=\(snapshot.pinnedByteCount) \
+        processFootprintBytes=\(processFootprintBytes) \
+        processBudgetBytes=\(PreparedArtworkMemoryBudget.steadyStateProcessByteCount) processStatus=\(processStatus)
+        """
+        if artworkStatus == "over" || processStatus == "over" {
+            logger.notice("\(message, privacy: .public)")
+        } else {
+            logger.info("\(message, privacy: .public)")
+        }
+    }
+
+    private static func processPhysicalFootprintByteCount() -> Int {
+        var information = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size
+        )
+        let result = withUnsafeMutablePointer(to: &information) { pointer in
+            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                task_info(
+                    mach_task_self_,
+                    task_flavor_t(TASK_VM_INFO),
+                    rebound,
+                    &count
+                )
+            }
+        }
+        guard result == KERN_SUCCESS else { return 0 }
+        return Int(information.phys_footprint)
     }
 
     nonisolated static func decodeImage(named name: String) async -> PreparedArtwork {
@@ -194,7 +313,7 @@ public final class PreparedArtworkCache {
         return image.bytesPerRow * image.height
     }
 
-    private static var defaultPresentationImageNames: [String] {
+    static var defaultPresentationImageNames: [String] {
         var names = Set<String>()
 
         for reference in ArtCatalog.combatantArtByID.values {
@@ -220,6 +339,9 @@ public final class PreparedArtworkCache {
         }
         for reference in ArtCatalog.backgroundArtByID.values {
             names.insert(reference.imageName)
+            if let thumbnailImageName = reference.thumbnailImageName {
+                names.insert(thumbnailImageName)
+            }
         }
         for reference in ArtCatalog.encounterArtByID.values {
             names.insert(reference.imageName)
@@ -312,7 +434,7 @@ extension EncounterArtReference: PreparedArtworkReference {
 
 extension BackgroundArtReference: PreparedArtworkReference {
     public var preparedThumbnailImageName: String? {
-        nil
+        thumbnailImageName
     }
 }
 

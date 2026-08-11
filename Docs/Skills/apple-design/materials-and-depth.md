@@ -4,7 +4,8 @@ Use this reference for translucent surfaces, glass, blur, toolbars, sheets, scri
 
 ## Material hierarchy
 
-- Build nav bars, toolbars, and sheets as translucent layers with content scrolling underneath, not opaque bars that consume a fixed strip. On the web this is commonly `backdrop-filter: blur()` plus a semi-transparent background; in Trinket use the matching `TrinketDesignSystem` surface primitives.
+- Build nav bars, toolbars, and sheets as system or DesignSystem layers with content
+  scrolling underneath when that hierarchy suits the screen.
 - Encode hierarchy with material weight: darker/heavier materials separate structural regions such as sidebars; lighter materials draw attention to interactive elements such as buttons.
 - Never stack a light translucent surface on another light translucent surface; legibility collapses.
 - Make larger surfaces read as thicker with stronger blur and deeper shadow than small chips. Use a heavier shadow over busy or text-heavy content and a lighter one over a plain background.
@@ -18,15 +19,9 @@ Use this reference for translucent surfaces, glass, blur, toolbars, sheets, scri
 - Replace a hard divider under sticky floating chrome with a small blur or gradient mask where content meets the surface; use this only where floating UI actually overlaps content.
 - Materialize rather than merely fade. On entry/exit, animate blur radius and scale together so the surface reads as a real material arriving.
 
-```css
-.toolbar {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.4); /* light catching the material */
-}
-```
-
-The snippet illustrates the visual idea only. In SwiftUI, do not introduce one-off materials or product colors in feature views; use `TrinketDesignSystem`, `.trinketSurface`, and `TrinketHeroScrim` as appropriate.
+Do not introduce one-off materials or product colors in feature views; use
+`TrinketDesignSystem`, `.trinketMaterial`, `.trinketSurface`, and
+`TrinketHeroScrim` as appropriate. Respect the shared reduced-transparency variant.
 
 ## Review questions
 
@@ -34,3 +29,5 @@ The snippet illustrates the visual idea only. In SwiftUI, do not introduce one-o
 - Can text and controls remain legible over the background at every scroll position and appearance?
 - Is a scrim present only when the task should block or focus attention?
 - Do blur, scale, shadow, and offset communicate physical depth without decorative excess?
+
+Apple reference: [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass).

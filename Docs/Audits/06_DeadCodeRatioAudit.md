@@ -4,7 +4,7 @@
 
 ## Intent
 
-Remove confirmed unused internal symbols, unreachable constant-gated paths, unnecessary APIs, and dead authored support surface. Prefer demoting `public` → `internal` when the API remains useful inside its package. Once an unused root is confirmed, remove its dead dependency cone across source, tests, resources, configuration, manifests, generated inputs, and documentation. A successful fix must report authored LOC, declarations, files, resources, dependencies, configuration, or exported API removed; moving the same surface is not dead-code reduction. A clean pass is valid. Planning and phasing: [README.md](README.md).
+Remove confirmed unused internal symbols, unreachable constant-gated paths, unnecessary APIs, and dead authored support surface. Prefer demoting `public` → `internal` when the API remains useful inside its package. Once an unused root is confirmed, remove its dead dependency cone across source, tests, resources, configuration, manifests, generated inputs, and documentation. A successful fix must report authored LOC, declarations, files, resources, dependencies, configuration, or exported API removed; moving the same surface is not dead-code reduction.
 
 ## Hard stops
 

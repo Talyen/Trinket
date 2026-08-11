@@ -153,8 +153,7 @@ struct SpireClimbView: View {
         guard let encounter = spires.resolvedEncounter(for: floor) else { return }
         battle.presentCombatantDetail(
             CombatantCardDetail(
-                combatant: encounter.combatant,
-                inventoryItems: playerSave.inventory.items
+                combatant: encounter.combatant
             )
         )
     }

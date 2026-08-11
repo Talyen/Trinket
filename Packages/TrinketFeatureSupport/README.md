@@ -3,17 +3,16 @@
 Shared, game-specific presentation support used by Battle and the non-Battle app
 features.
 
-## Ownership
+## Products and ownership
 
-- Reusable cards, detail panes, encounter/reward components, and resource views
-- Journey, stage, labyrinth, homestead, and combatant presentation models
-- `AccessibilityID`, prepared artwork, and frame-pacing analysis contracts
+| Product | Ownership | Allowed dependencies |
+|---|---|---|
+| `TrinketFeatureContracts` | SwiftUI-free navigation, deep-link, user-message, and battle presentation/reward values | Core, Content |
+| `TrinketFeatureSupport` | Reusable cards/detail panes, encounter and reward UI, presentation models, `AccessibilityID`, prepared artwork, frame analysis | Core, Content, DesignSystem |
+| `TrinketFeatureAdapters` | Save-backed map/detail adapters, equipment editing, and combat build resolution | Support/Contracts plus Core, Content, BattleEngine, Persistence, DesignSystem |
 
-This package may depend on the lower-level domain, content, engine, persistence, and
-design-system packages. It must not import or depend on `TrinketBattleFeature`,
-`TrinketAppState`, or the app module. Shared detail presentation is allowed to use
-read-only `BattleEngine` build/resolution types; combat lifecycle and mutation remain
-outside this package.
+None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or the
+app module. Combat lifecycle and mutation stay outside this package.
 
 ## Testing
 

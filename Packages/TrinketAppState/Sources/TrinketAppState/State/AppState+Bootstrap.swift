@@ -8,7 +8,7 @@ extension AppState {
     /// Completes fixed audio setup while the launch preparation screen is visible.
     /// Presentation-feature warmup stays at the app composition root.
     public func prepareLaunchPerformanceResources() {
-        sfxPlayer.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
+        sfxPlayer.warmAllCatalog(concurrentPlayerCount: 2)
     }
 
     struct BootstrapDependencies {

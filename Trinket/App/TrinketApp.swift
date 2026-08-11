@@ -4,6 +4,8 @@ import TrinketAppState
 import TrinketBattleFeature
 import TrinketBattleRuntime
 import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -95,7 +97,51 @@ struct TrinketApp: App {
         let enemyNames = activeEnemy.map { reference in
             [reference.imageName, reference.thumbnailImageName].compactMap(\.self)
         } ?? []
-        return activeParty + enemyNames
+        return Array(Set(activeParty + enemyNames + rootTabImageNames(for: appState))).sorted()
+    }
+
+    /// One centralized strong working set for the first interactive surfaces.
+    /// Each surface uses the smallest variant that remains sharp at its rendered size.
+    private func rootTabImageNames(for appState: AppState) -> [String] {
+        let roster = appState.playerSave.roster
+        let inventory = appState.playerSave.inventory
+        let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
+
+        let collectionCombatants = (
+            Array(roster.collectionHeroes.prefix(shelfLimit))
+                + Array(roster.collectionCompanions.prefix(shelfLimit))
+        ).compactMap { $0.artReference?.thumbnailImageName }
+        let collectionItems = inventory.items.prefix(shelfLimit).compactMap {
+            $0.artReference?.thumbnailImageName
+        }
+        let playModeCards = ["gameModeCampaign", "gameModeExplore"].compactMap {
+            ArtCatalog.backgroundArtByID[$0]?.imageName
+        }
+        let homesteadCards = HomesteadNodeCategory.allCases.compactMap {
+            ArtCatalog.backgroundArtByID[$0.artID]?.imageName
+        }
+        let homesteadHero = ArtCatalog.backgroundArtByID["homestead"]?.imageName
+        let resourceIcons = ArtCatalog.resourceArtByID.values.map(\.imageName)
+
+        let chapter = appState.play.journey.playChapter
+        let campaignHero = (
+            ArtCatalog.backgroundArtByID[chapter.id]
+                ?? ArtCatalog.backgroundArtByID["chapter-1"]
+        )?.imageName
+        let campaignRows = chapter.stages.compactMap { stage -> String? in
+            if let combatant = stage.encounterCombatantArtReference {
+                return combatant.thumbnailImageName
+            }
+            return stage.encounterArtReference?.thumbnailImageName
+        }
+
+        return collectionCombatants
+            + collectionItems
+            + playModeCards
+            + homesteadCards
+            + resourceIcons
+            + campaignRows
+            + [homesteadHero, campaignHero].compactMap(\.self)
     }
 }
 
@@ -130,6 +176,7 @@ private struct PreparedAppRoot: View {
             }
         }
         .environment(appState)
+        .environment(appState.shellSession)
         .environment(appState.play)
         .environment(appState.play.journey)
         .environment(appState.play.labyrinth)
@@ -169,6 +216,11 @@ private struct PreparedAppRoot: View {
             }
             guard !Task.isCancelled else { return }
             isResourcePreparationComplete = true
+            // Capture the first interactive root separately from the decode peak.
+            // Two yields let ContentView install its initial hierarchy first.
+            await Task.yield()
+            await Task.yield()
+            artworkCache.reportMemorySnapshot(label: "interactiveRoot")
         }
     }
 

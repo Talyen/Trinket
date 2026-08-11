@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Intent
 
-Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players. Planning and phasing: [README.md](README.md).
+Confirm P0–P2 reliability, signal, tier-fit, isolation, and testability issues across UI tests, launch/reset seams, authored harnesses, and CI routing. Prefer delete → merge → move to a cheaper tier → shorten. Add page-object or harness surface only when at least three current uses become shorter or one enforced test boundary requires it. A minimal production seam may ship when it establishes that boundary and does not expose test-only behavior to players.
 
 ## Hard stops
 
@@ -27,8 +27,6 @@ Do not re-add layout/chrome, copy catalogs, or smoke+FullUI duplicates. Prefer t
 
 ## Scoring
 
-Shared scale: [README.md](README.md).
-
 | Score | Criteria |
 |-------|----------|
 | P0 | Flaky CI failure, crash in test harness |
@@ -38,7 +36,7 @@ Shared scale: [README.md](README.md).
 
 ## Domain rules
 
-UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Do not add accessibility audits; product accessibility scope is defined by PD-007 and 16_UIInteractionFeedbackAudit.md.
+UI tests run **serially** on one simulator. Reuse existing page objects; do not extract a new one for one or two call sites. Deterministic launch state, reset/isolation behavior, stable entry routes, identifiers required by owned journeys, and harness/CI state leakage are in scope. Focused Accessibility Inspector review belongs to UI Interaction; add an accessibility-setting UI test only for a distinct reproduced regression.
 
 E2E owns an identifier change only when it is required to stabilize an existing owned journey; UIInteractionFeedback owns the broader shipping-control inventory and visible/native interaction behavior.
 

@@ -28,7 +28,7 @@ struct OptionsView: View {
                     Label(message, systemImage: "externaldrive.badge.exclamationmark")
                         .trinketTypography(.secondaryBody)
                         .foregroundStyle(TrinketDesign.Colors.destructive)
-                        .accessibilityIdentifier("Progress Status Message")
+                        .accessibilityIdentifier(AccessibilityID.Options.progressStatusMessage)
                 }
             }
 
@@ -55,7 +55,7 @@ struct OptionsView: View {
                             .contentTransition(.symbolEffect(.replace))
                     }
                 }
-                .accessibilityIdentifier("Haptics Toggle")
+                .accessibilityIdentifier(AccessibilityID.Options.hapticsToggle)
                 .onChange(of: options.hapticsEnabled) { _, isEnabled in
                     playToggleSFX(isEnabled, options.effectsVolume)
                 }
@@ -67,7 +67,7 @@ struct OptionsView: View {
                         Text(policy.displayName).tag(policy)
                     }
                 }
-                .accessibilityIdentifier("Show Animations Picker")
+                .accessibilityIdentifier(AccessibilityID.Options.showAnimationsPicker)
 
                 Toggle(isOn: $options.rememberAutoBattlePreference) {
                     Label {
@@ -77,7 +77,7 @@ struct OptionsView: View {
                         Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
                     }
                 }
-                .accessibilityIdentifier("Remember Auto-Battle Preference Toggle")
+                .accessibilityIdentifier(AccessibilityID.Options.rememberAutoBattleToggle)
                 .onChange(of: options.rememberAutoBattlePreference) { _, isEnabled in
                     playToggleSFX(isEnabled, options.effectsVolume)
                 }
@@ -87,7 +87,7 @@ struct OptionsView: View {
                 Button("Reset Game Progress", role: .destructive) {
                     isResetConfirmationPresented = true
                 }
-                .accessibilityIdentifier("Reset Game Progress Button")
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
             }
 
             #if DEBUG
@@ -101,7 +101,7 @@ struct OptionsView: View {
                         actionErrorMessage = "Couldn't unlock content. Try again."
                     }
                 }
-                .accessibilityIdentifier("Unlock All Button")
+                .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)
             } header: {
                 Text("Developer")
             }

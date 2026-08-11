@@ -28,15 +28,16 @@ if ! ./Scripts/assert-generated-output.sh; then
   exit 1
 fi
 
-# Order: style → boundaries → swift-testing → release-notes (CI gate.yml calls this script).
+# Order: style → boundaries → script checks → Swift Testing → release notes
+# (CI gate.yml calls this script).
 echo "=== Style check ==="
 ./Scripts/test.sh style
 
 echo "=== Module boundary check ==="
 ./Scripts/check-module-boundaries.sh
 
-echo "=== Build input / cache-key path alignment ==="
-./Scripts/check-build-cache-paths.sh
+echo "=== Script checks ==="
+./Scripts/test-scripts.sh
 
 echo "=== Swift Testing migration gate ==="
 ./Scripts/check-swift-testing-migration.sh

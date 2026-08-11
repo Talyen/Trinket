@@ -45,10 +45,8 @@ public struct BattleView: View {
     }
 
     public var body: some View {
-        @Bindable var observedSession = battleSession
-        let presentation = observedSession.presentation
-        if presentation.configurationID == configuration.id {
-            bodyContent(battleSession: observedSession)
+        if battleSession.presentation.configurationID == configuration.id {
+            bodyContent(battleSession: battleSession)
         }
     }
 

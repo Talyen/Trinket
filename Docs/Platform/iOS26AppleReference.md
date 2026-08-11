@@ -47,7 +47,9 @@ From [Adopting Liquid Glass](https://developer.apple.com/documentation/technolog
 
 1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle and detail-hero screens by product choice.
 2. **Use glass sparingly on custom controls** — limit `.glassEffect` to high-value functional elements (combat feedback chips, wallet pills), not every card surface.
-3. **Follow the product accessibility baseline** — native SwiftUI controls remain available, while custom accessibility-setting branches and comprehensive accessibility permutations are out of scope per PD-007.
+3. **Follow the product accessibility baseline** — preserve native semantics, label
+   custom interactive controls, and centralize reduced-motion/transparency behavior.
+   Focused inspection is required; combinatorial UI-test permutations are not.
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
 Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem`); glass belongs on navigation chrome and selective overlays.
@@ -68,7 +70,7 @@ Trinket already targets iOS 26 only, so these are **current APIs**, not migratio
 | Materials | `.glassEffect` for custom chrome | Raw `.background(.thinMaterial)` on feature views |
 | Buttons | `.buttonStyle(.glass)` via design system | Raw `.buttonStyle(.bordered)` outside `TrinketDesignSystem` |
 
-### WWDC26 SwiftUI (forward-looking)
+### Next-SDK watchlist (WWDC26 / 2027 releases)
 
 These ship in the 2027 SDK cycle; not required for Trinket's current iOS 26 target but worth tracking:
 
@@ -83,7 +85,7 @@ These ship in the 2027 SDK cycle; not required for Trinket's current iOS 26 targ
 Trinket enables **Swift 6 strict concurrency** on all targets. Relevant Apple guidance:
 
 - [Swift 6 migration](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/) — `@MainActor`, `Sendable`, actor isolation
-- [What's new in Swift (WWDC26-262)](https://wwdcnotes.com/documentation/wwdc26-262-whats-new-in-swift/) — `@diagnose`, ownership improvements, `Subprocess` package
+- [What's new in Swift (WWDC26-262)](https://developer.apple.com/videos/play/wwdc2026/262/) — `@diagnose`, ownership improvements, `Subprocess` package
 
 Project audit: [14_SwiftConcurrencyDataRaceAudit.md](../Audits/14_SwiftConcurrencyDataRaceAudit.md).
 
@@ -93,10 +95,10 @@ Project audit: [14_SwiftConcurrencyDataRaceAudit.md](../Audits/14_SwiftConcurren
 
 | Framework | iOS 26 status | Trinket today |
 |-----------|---------------|---------------|
-| **StoreKit 2** | StoreKit 1 (`SKPayment*`) is deprecated / removed in Xcode 26 SDK | Not implemented; use StoreKit 2 when adding IAP |
+| **StoreKit 2** | StoreKit 1 (`SKPayment*`) is deprecated and unsupported for new work | Not implemented; use StoreKit 2 when adding IAP |
 | **GameKit** | Current APIs | Not implemented |
 | **Foundation Models** | On-device Apple Intelligence framework (iOS 26) | Not used; evaluate only if product needs on-device LLM |
-| **SceneKit** | Deprecated in Xcode 26; migrate to RealityKit | Not used (2D SwiftUI battle presentation) |
+| **SceneKit** | Soft-deprecated; existing apps continue to work, but new 3D work should use RealityKit | Not used (2D SwiftUI battle presentation) |
 
 ### StoreKit 2 starting points (when needed)
 
@@ -110,7 +112,7 @@ Project audit: [14_SwiftConcurrencyDataRaceAudit.md](../Audits/14_SwiftConcurren
 
 As of **April 28, 2026**, App Store submissions require **Xcode 26** and an SDK for iOS 26 or later ([Upcoming Requirements](https://developer.apple.com/news/upcoming-requirements/)).
 
-Hard-removed APIs to avoid (none found in Trinket production code):
+Deprecated or unsupported APIs to avoid (none found in Trinket production code):
 
 - `UIWebView` → `WKWebView`
 - `NSURLConnection` → `URLSession`

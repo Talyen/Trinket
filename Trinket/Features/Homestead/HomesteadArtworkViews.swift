@@ -18,6 +18,7 @@ struct HomesteadBuildingArtwork: View {
         // fails if a node is ever added without it.
         HomesteadFocalArtwork(
             art: art,
+            displaySize: variant == .thumbnail ? .compact : .full,
             interpolation: variant == .thumbnail ? .low : .medium
         )
         .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
@@ -33,7 +34,7 @@ struct HomesteadBuildingArtwork: View {
 
 struct HomesteadFocalArtwork: View {
     let art: BackgroundArtReference
-    var imageName: String?
+    var displaySize: Image.PreparedArtworkDisplaySize = .full
     var interpolation: Image.Interpolation = .medium
 
     /// Mode, chapter, and homestead art share a 4:3 source crop. Catalog focal
@@ -42,11 +43,11 @@ struct HomesteadFocalArtwork: View {
 
     init(
         art: BackgroundArtReference,
-        imageName: String? = nil,
+        displaySize: Image.PreparedArtworkDisplaySize = .full,
         interpolation: Image.Interpolation = .medium
     ) {
         self.art = art
-        self.imageName = imageName
+        self.displaySize = displaySize
         self.interpolation = interpolation
     }
 
@@ -61,7 +62,7 @@ struct HomesteadFocalArtwork: View {
             let offsetX = (0.5 - art.focalPoint.x) * overflowX
             let offsetY = (0.5 - art.focalPoint.y) * overflowY
 
-            Image.preparedAsset(named: imageName ?? art.imageName)
+            Image.preparedAsset(art, displaySize: displaySize)
                 .resizable()
                 .interpolation(interpolation)
                 .scaledToFill()

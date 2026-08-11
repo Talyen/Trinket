@@ -24,6 +24,10 @@ import TrinketContent
 @Observable
 public final class PlayerSaveStore {
     public static let cloudKitContainerIdentifier = "iCloud.com.ryanmcintire.Trinket"
+    private static let performanceSignposter = OSSignposter(
+        subsystem: PlayerSaveDefaults.loggingSubsystem,
+        category: "PersistencePerformance"
+    )
 
     private let container: ModelContainer
     private let context: ModelContext
@@ -103,6 +107,10 @@ public final class PlayerSaveStore {
         inMemoryOnly: Bool = false,
         persistSaveImmediately: Bool = false
     ) throws {
+        let bootstrapInterval = Self.performanceSignposter.beginInterval("PlayerSaveBootstrap")
+        defer {
+            Self.performanceSignposter.endInterval("PlayerSaveBootstrap", bootstrapInterval)
+        }
         self.persistSaveImmediately = persistSaveImmediately
         let requestedCloudSync = !disableCloudSync
             && !inMemoryOnly
@@ -125,13 +133,11 @@ public final class PlayerSaveStore {
             cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier
         )
 
-        let openResult = try ModelContainerBootstrap.open(
+        let openResult = try Self.openContainer(
             schema: schema,
-            primaryConfiguration: resolved.config,
-            logger: logger,
-            logLabel: "player save",
-            storeURLForRecovery: resolved.recoveryURL,
-            deleteStoreOnFailure: false
+            configuration: resolved.config,
+            recoveryURL: resolved.recoveryURL,
+            logger: logger
         )
         container = openResult.container
         isCloudSyncEnabled = requestedCloudSync && !openResult.usedInMemoryFallback
@@ -148,21 +154,12 @@ public final class PlayerSaveStore {
             try PlayerSaveStoreConfiguration.clearSaveRoot(in: context, logger: logger)
         }
 
-        if let existingRoot = try PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
-            root = existingRoot
+        let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
+        root = loadedRoot.root
+        if loadedRoot.wasExisting {
             ensureRequiredGraph()
-        } else {
-            let newRoot = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
-            context.insert(newRoot)
-            root = newRoot
-            do {
-                try context.save()
-            } catch {
-                lastPersistenceError = .writeFailed
-                logger.error(
-                    "Failed to save initial player save root: \(error.localizedDescription, privacy: .public)"
-                )
-            }
+        } else if loadedRoot.initialSaveFailed {
+            lastPersistenceError = .writeFailed
         }
     }
 
@@ -176,14 +173,23 @@ public final class PlayerSaveStore {
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true
     ) throws {
-        let snapshot = currentSave
-        var candidate = snapshot
-        update(&candidate)
-        candidate.modifiedAt = Date()
-        candidate = PlayerSaveSanitizer.sanitize(candidate)
-        try PlayerSaveSanitizer.validate(candidate)
+        let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
+        defer {
+            Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
+        }
+        let snapshot = measured("SnapshotProjection") { currentSave }
+        let candidate = try measured("MutationPreparation") {
+            var candidate = snapshot
+            update(&candidate)
+            candidate.modifiedAt = Date()
+            candidate = PlayerSaveSanitizer.sanitize(candidate)
+            try PlayerSaveSanitizer.validate(candidate)
+            return candidate
+        }
         let changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
-        root.apply(candidate, slices: changedSlices, context: context)
+        measured("GraphApply") {
+            root.apply(candidate, slices: changedSlices, context: context)
+        }
 
         if persistImmediately {
             do {
@@ -318,6 +324,10 @@ public final class PlayerSaveStore {
     }
 
     private func saveGraph() throws {
+        let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
+        defer {
+            Self.performanceSignposter.endInterval("ModelContextSave", interval)
+        }
         do {
             #if DEBUG
             if forcesNextSaveFailure {
@@ -345,5 +355,60 @@ public final class PlayerSaveStore {
                 "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)"
             )
         }
+    }
+
+    private static func openContainer(
+        schema: Schema,
+        configuration: ModelConfiguration,
+        recoveryURL: URL?,
+        logger: Logger
+    ) throws -> ModelContainerBootstrap.OpenResult {
+        let interval = performanceSignposter.beginInterval("ModelContainerOpen")
+        defer {
+            performanceSignposter.endInterval("ModelContainerOpen", interval)
+        }
+        return try ModelContainerBootstrap.open(
+            schema: schema,
+            primaryConfiguration: configuration,
+            logger: logger,
+            logLabel: "player save",
+            storeURLForRecovery: recoveryURL,
+            deleteStoreOnFailure: false
+        )
+    }
+
+    private static func loadOrCreateRoot(
+        in context: ModelContext,
+        logger: Logger
+    ) throws -> (root: PlayerSaveRoot, wasExisting: Bool, initialSaveFailed: Bool) {
+        let interval = performanceSignposter.beginInterval("PlayerSaveRootLoad")
+        defer {
+            performanceSignposter.endInterval("PlayerSaveRootLoad", interval)
+        }
+        if let root = try PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
+            return (root, true, false)
+        }
+        let root = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        context.insert(root)
+        do {
+            try context.save()
+            return (root, false, false)
+        } catch {
+            logger.error(
+                "Failed to save initial player save root: \(error.localizedDescription, privacy: .public)"
+            )
+            return (root, false, true)
+        }
+    }
+
+    private func measured<Result>(
+        _ name: StaticString,
+        operation: () throws -> Result
+    ) rethrows -> Result {
+        let interval = Self.performanceSignposter.beginInterval(name)
+        defer {
+            Self.performanceSignposter.endInterval(name, interval)
+        }
+        return try operation()
     }
 }

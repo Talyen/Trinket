@@ -14,7 +14,7 @@ Canonical product + engineering guidance for Trinket identity, cross-device prog
 | 2 | Google Sign-In? | **Skip** (not required) |
 | 3 | No iCloud on device? | **Fully playable local-only** |
 | 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion--apple-guidance) |
-| 5 | Multi-device conflicts? | **Rely on CloudKit / SwiftData defaults** for ordinary progression; passive Homestead production is gated until its idempotent claim authority is verified |
+| 5 | Multi-device conflicts? | Verify an explicit per-domain conflict policy before launch; passive Homestead production remains gated until its idempotent claim authority is verified |
 | 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
 | 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |
 
@@ -107,7 +107,7 @@ Because progress is **local + optional iCloud container data**, not a developer-
 | Offline / no iCloud | Full game; progress stays on device |
 | Options (after sync) | Optional quiet status only if useful later (e.g. “iCloud sync: On/Off”) — **not** a prompt |
 | Reset | Confirmation alert; destructive; after sync must clear synced progress |
-| Conflicts | Accept CloudKit/SwiftData last-writer / merge defaults for ordinary progression; passive Homestead production must use the dedicated pre-ship claim gate and authority |
+| Conflicts | Define and verify acceptable outcomes per save domain; passive Homestead production must use the dedicated pre-ship claim gate and authority |
 
 ---
 

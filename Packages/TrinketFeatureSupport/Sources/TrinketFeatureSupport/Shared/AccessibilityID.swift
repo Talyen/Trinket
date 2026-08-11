@@ -8,6 +8,15 @@ public enum AccessibilityID {
         public static let options = "Options Screen"
     }
 
+    public enum Options {
+        public static let hapticsToggle = "Haptics Toggle"
+        public static let rememberAutoBattleToggle = "Remember Auto-Battle Preference Toggle"
+        public static let resetProgressButton = "Reset Game Progress Button"
+        public static let progressStatusMessage = "Progress Status Message"
+        public static let showAnimationsPicker = "Show Animations Picker"
+        public static let unlockAllButton = "Unlock All Button"
+    }
+
     public enum Debug {
         /// Machine-readable frame-pacing report for performance scenarios (`-enable-frame-metrics`).
         public static let frameMetrics = "Frame Metrics"

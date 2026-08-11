@@ -9,8 +9,8 @@ final class SmokeOptionsTests: SeededSmokeUITestCase {
     /// Canary: Options shell entry — core settings controls are reachable.
     func testOptionsLoadsCoreSettingsControls() {
         options.assertLoaded()
-        assertExists("Haptics Toggle")
-        assertExists("Remember Auto-Battle Preference Toggle")
-        assertExists("Reset Game Progress Button")
+        assertExists(AccessibilityID.Options.hapticsToggle)
+        assertExists(AccessibilityID.Options.rememberAutoBattleToggle)
+        assertExists(AccessibilityID.Options.resetProgressButton)
     }
 }

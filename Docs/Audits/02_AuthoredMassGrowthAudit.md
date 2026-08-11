@@ -6,7 +6,7 @@
 
 ## Intent
 
-Confirm authored hotspots whose size or mixed jobs cost more to read, edit, or verify than the behavior warrants, then reduce that cost through an existing owner. Growth means accumulated live surface relative to peers / shipping behavior — not `git log` LOC rates and not per-diff `change-budget.sh` deltas. Historical churn may be a candidate signal only; it is not required evidence. A successful fix reports a net reduction in authored LOC/declarations/files or a measured reduction in mixed-job prereads, change fan-out, or verification cost. A split may be LOC-neutral when it establishes ownership already required by Architecture and materially reduces unrelated context; moving mass without either removal or a measured locality win is not success. A clean pass is valid. Planning and phasing: [README.md](README.md).
+Confirm authored hotspots whose size or mixed jobs cost more to read, edit, or verify than the behavior warrants, then reduce that cost through an existing owner. Growth means accumulated live surface relative to peers / shipping behavior — not `git log` LOC rates and not per-diff `change-budget.sh` deltas. Historical churn may be a candidate signal only; it is not required evidence. A successful fix reports a net reduction in authored LOC/declarations/files or a measured reduction in mixed-job prereads, change fan-out, or verification cost. A split may be LOC-neutral when it establishes ownership already required by Architecture and materially reduces unrelated context; moving mass without either removal or a measured locality win is not success.
 
 ## What counts as a mass or growth hotspot
 

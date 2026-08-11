@@ -308,6 +308,10 @@ public final class BattleSession: BattleRuntime {
         CombatFeedbackRasterPool.shared.resetDiagnostics()
     }
 
+    func resetFeedbackRasterDiagnostics() {
+        CombatFeedbackRasterPool.shared.resetDiagnostics()
+    }
+
     /// Eagerly prepares battle audio before activation. Repeated calls are cheap
     /// because both caches skip already-prepared resources.
     public func prepareBattlePresentation(

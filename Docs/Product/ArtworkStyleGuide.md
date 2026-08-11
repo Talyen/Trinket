@@ -1,42 +1,93 @@
-# Trinket Global Artwork Style Guide
+# Artwork production guide
 
-This document defines the global artwork aesthetic and prompt templates for generating game assets, hero/companion art, items, and mystery event headers using image generation.
+This guide defines the visual language and production constraints for authored
+and generated artwork. `ArtManifest/art.json` remains the source of truth for
+asset IDs, kinds, source files, focal points, and processing settings.
 
----
+## Art direction
 
-## Global Aesthetic Principles
+Trinket uses painterly, cinematic fantasy illustration with clear silhouettes,
+tactile materials, atmospheric depth, and restrained magical effects. The
+world should feel dangerous but inviting: lived-in rather than grim, elegant
+rather than ornate, and colorful without becoming glossy or cartoonish.
 
-- **Genre**: Dark/High Fantasy, rich, cinematic, atmospheric.
-- **Lighting & Atmosphere**: Golden hour, mist/fog, rim lighting, dynamic volumetric sunbeams through canopy or stone arches, natural depth-of-field.
-- **Composition**: Focused subject in three-quarter or dynamic action stance, grounded environment extending to all edges of the frame.
-- **Color & Texture**: Curated, harmonious dark fantasy palette (forest greens, umbers, gold, arcane blues/purples), detailed leather/metal/fabric textures.
+Use lighting and palette to distinguish locations instead of forcing every
+image into the same golden-hour forest treatment:
 
----
+| Setting | Palette and light |
+|---|---|
+| Forest | Moss, umber, muted gold; broken canopy light and mist |
+| Dungeon or crypt | Slate, oxidized bronze, cold blue; narrow practical light |
+| Desert or ruins | Sand, terracotta, indigo; hard sun and cool shadow |
+| Tundra | Blue-gray, bone, desaturated violet; diffuse snow light |
+| Arcane space | Near-black, mineral color, one controlled luminous accent |
 
-## Core Master Prompt Template (Hero / Character Art)
+## Non-negotiable delivery constraints
+
+- Do not include words, lettering, UI frames, logos, signatures, or watermarks.
+- Keep the important subject inside the crop-safe region. Do not clip faces,
+  hands, weapons, or identifying equipment unless the composition calls for a
+  deliberate close-up.
+- Make the silhouette and primary action readable at card size. Detail should
+  reward enlargement, not carry the meaning by itself.
+- Preserve visual room for UI overlays. Avoid bright high-frequency detail
+  beneath expected titles, resource labels, and bottom scrims.
+- Use one dominant focal point and a clear foreground/midground/background
+  hierarchy. Magical effects support the subject rather than obscure it.
+- Record provenance and usage rights before adding a source. Never treat an AI
+  provider's output or a discovered image as automatically cleared for use.
+- Deliver the uncropped source at the highest practical resolution. Let the
+  asset pipeline produce shipping crops and renditions.
+
+## Composition by asset kind
+
+| Kind | Composition |
+|---|---|
+| Combatant or companion | Three-quarter or action pose, readable face and hands, complete weapon silhouette, environmental context to every edge |
+| Enemy | Strong species/class silhouette and attack intent; leave enough surrounding environment for alternate crops |
+| Ability | One decisive action, spell, or object; immediate value contrast; avoid a generic standing portrait |
+| Item or equipment | One centered, identifiable object on a subdued physical surface; rarity comes from material and controlled light, not a colored halo alone |
+| Encounter or event | Environmental mystery with a discoverable focal object; reserve a quiet overlay region identified by the consuming screen |
+| Background | Layered depth, broad value masses, no single face-sized focal subject; tolerate fill crops across device sizes |
+| Resource or icon-like art | Simple centered silhouette, limited internal detail, transparent or quiet background as required by the manifest kind |
+
+Focal-point metadata should identify the semantic subject, not compensate for a
+poor source composition. Preview every generated crop in its real UI before
+accepting it.
+
+## Prompt construction
+
+Prompts should specify the subject, action, setting, lighting, palette,
+composition, and exclusions. Describe what matters visually; avoid long prose
+about unseen lore.
 
 ```text
-An athletic, keen-eyed [CHARACTER ROLE/RACE] in [AGE/DESCRIPTOR], [PHYSICAL FEATURES: hair, skin tone, ears, eye color], with a focused, alert expression. 
-[HE/SHE/THEY] wear [DETAILED ARMOR / CLOTHING / APPAREL] with [VAMBRACES / ACCENTS / WEAPONS ON BACK]. 
-[HE/SHE/THEY] hold [PRIMARY WEAPON / ITEM] in [HAND], [READY / DRAWN / DYNAMIC POSE], body turned in a three-quarter stance with front foot planted and back heel lifted, weight forward, eyes fixed on an unseen target beyond the frame. 
-Stands at the edge of a [ENVIRONMENT: misty pine forest / ancient crypt / stone shrine] at golden hour with sun pouring through fog and canopy illuminating [HER/HIS/THEIR] silhouette from behind, in a clearing that extends fully to all four edges of the frame, background fading into soft fog, with subtle environmental particles mid-air near their feet.
+Painterly cinematic fantasy illustration of [SUBJECT] [ACTION].
+[DISTINCTIVE SHAPE, MATERIAL, AND COLOR DETAILS].
+Set in [LOCATION], lit by [LIGHT SOURCE], using [PALETTE].
+[SHOT AND COMPOSITION], clear silhouette, layered atmospheric depth,
+tactile materials, restrained magical effects, environment to every edge.
+No text, lettering, logo, watermark, border, UI, or cropped identifying features.
 ```
 
-### Reference Example (Ranger Hero)
+For character art, add only the anatomy, expression, equipment, and pose needed
+to preserve identity. For event art, describe the clue or choice the player must
+notice. For items, describe construction and wear rather than requesting a
+generic rarity glow.
 
-> "An athletic, keen-eyed elven Ranger in her mid thirties, fair lightly-tanned skin, waist-length silver-blonde hair braided back from her face with a few loose strands framing it, elegant pointed ears, large, clearly-defined forest-green eyes with sharp, visible irises and dark pupils giving her a focused, alert expression. She wears fitted forest-green and umber leather armor with a hooded cloak thrown back off her shoulders, leather vambraces, and a quiver of fletched arrows on her back with a dark green cloak. She holds a recurve bow in her left hand, an arrow already nocked and drawn back to her cheek as if about to fire, body turned in a three-quarter stance with her front foot planted and back heel lifted, weight forward, eyes fixed on an unseen target beyond the frame. She stands at the edge of a misty pine forest at golden hour with sun pouring through the fog and canopy illuminating her silhouette from behind, in a clearing that extends fully to all four edges of the frame, tall trees fading into soft fog behind her, a few fallen leaves caught mid-air near her feet."
+## Review checklist
 
----
+Before adding or replacing a source:
 
-## Adaptation Guidelines
+1. Confirm the image fits its chapter, asset kind, and gameplay meaning.
+2. Inspect anatomy, perspective, repeated details, illegible pseudo-text, and
+   accidental signatures at full resolution.
+3. Check silhouette and contrast at the smallest shipping presentation.
+4. Preview all pipeline crops and adjust manifest focal points if necessary.
+5. Record provenance and license evidence outside generated output.
+6. Run `./Scripts/generate.sh --assets`, review the diff and memory report, then
+   use the path-scoped handoff route from `Scripts/README.md`.
 
-### 1. Mystery Event Header Art (Hero Art)
-- Focus on environmental mystery and intrigue (e.g. glowing altar in crypt, ancient chest beneath roots, floating arcane tome).
-- Keep composition centered or weighted slightly to top-center to leave room for the bottom-left text vignette.
-
-### 2. Item & Equipment Artwork
-- Centered isolated item resting on dark atmospheric pedestal or stone surface.
-- Subdued glowing aura corresponding to rarity or item magic type (e.g. golden glow for gold/coins, purple/blue for astral items).
-
-### 3. Companions & Enemies
-- Maintain the same three-quarter dynamic stance, atmospheric fog depth, and rich rim lighting.
+Intentional variation is desirable. Repetition of the same pose, rim light,
+fog, pedestal, or glow across a set is a defect even when each image is
+individually attractive.

@@ -4,12 +4,12 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 
 ## Ownership
 
-- `BattleRuntimeSession`: presentation-free lifecycle and simulation owner (`BattleRuntime`)
-- `BattleSession`: presentation coordinator (mirrors runtime; command facade for views)
+- `BattleSession`: production `BattleRuntime`; owns lifecycle, simulation, commands,
+  and presentation coordination for one battle
 - `BattlePresentationState`: observable combat projection
 - `BattleFeedbackLane`: feedback scheduling and bounded raster publication
 - `BattleSpectacleState`: skill callouts, cinematics, and outcome timing
-- Battle configuration, resume/outcome values, views, layout, and effects
+- Battle views, layout, effects, and outcome presentation
 
 Battle simulation rules remain in `BattleEngine`. App options and audio enter through
 the closure-backed `BattleRuntimeDependencies`; this package must not import or

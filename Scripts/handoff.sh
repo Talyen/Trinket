@@ -85,6 +85,10 @@ run_check() {
       [[ "$argument" == app ]] || { echo "Unknown build check: $argument" >&2; return 2; }
       SKIP_GENERATE=1 ./Scripts/build.sh
       ;;
+    scripts)
+      [[ "$argument" == all ]] || { echo "Unknown script check: $argument" >&2; return 2; }
+      ./Scripts/test-scripts.sh
+      ;;
     *)
       echo "Unknown verification kind: $kind" >&2; return 2
       ;;

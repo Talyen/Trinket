@@ -27,3 +27,5 @@ These names come from Apple’s *Principles of Great Design* (WWDC 2026); use th
 - Prototype interactively; a working demo is worth a million static designs because playing reveals the interface and sets a concrete bar for implementation.
 - Design interaction and visuals together. You should not be able to tell where one ends and the other begins.
 - Test with real people in real context. Review motion with fresh eyes at normal speed, slow motion, and frame-by-frame to catch issues hidden at full speed.
+
+Apple reference: [Principles of great design](https://developer.apple.com/videos/play/wwdc2026/250/).

@@ -1,6 +1,8 @@
 # 16. UI Interaction & Accessibility Audit
 
-> Trinket follows the visual-first baseline in PD-007. This audit checks native control interaction and visible UI clarity; it does not require comprehensive accessibility support or platform accessibility audits.
+> Trinket follows the practical native accessibility baseline in PD-007. This audit
+> includes focused semantic, Dynamic Type, contrast, motion, and interaction review;
+> it does not require a combinatorial accessibility UI-test matrix.
 
 **Goal:** Find confirmed interaction, feedback, and accessibility defects that static types do not catch.
 
@@ -25,7 +27,13 @@ Fix confirmed navigation/feedback/accessibility defects across flows. When a sha
 
 **Control states:** primary actions have coherent enabled, disabled, loading, success, error/retry, and cancellation behavior where applicable; focus and keyboard presentation do not hide required actions; interruptions/backgrounding return the flow to a usable state.
 
-**Accessibility baseline:** retain visible control labels and native SwiftUI control behavior, plus stable `accessibilityIdentifier` values for UI tests. Do not add custom labels, hints, values, grouping, traits, accessibility-setting branches, or audit requirements unless PD-007 is revisited.
+**Accessibility baseline:** retain visible labels and native SwiftUI behavior, plus
+stable `accessibilityIdentifier` values for UI tests. Label/value custom controls when
+their native representation is ambiguous; keep reading/navigation text usable at
+larger Dynamic Type sizes; do not convey essential state through color, sound, or
+motion alone; and centralize reduced-motion/transparency handling in shared owners.
+Use Accessibility Inspector on the affected major surface. Add traits, grouping, or
+hints only when they materially clarify the control.
 
 **Edge cases:** rapid-tap debounce on stage start / craft / reward claim; battle pauses on `scenePhase` background; keyboard dismissal where applicable; empty states for empty collection/inventory/homestead.
 

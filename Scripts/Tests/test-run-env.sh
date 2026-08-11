@@ -293,6 +293,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export FAKE_PREVIEW_DEVICES=empty
+  export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-empty"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
@@ -318,6 +319,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export FAKE_PREVIEW_DEVICES=shutdown
+  export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-shutdown-only"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
@@ -344,6 +346,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export FAKE_PREVIEW_DEVICES=booted
+  export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="preview-reclaim"
   # Isolate Preview reclaim from single-warm / idle-pool side effects.
   export TRINKET_CLEANUP_SINGLE_WARMED=0
@@ -371,6 +374,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export FAKE_PREVIEW_DEVICES=booted
+  export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="start-hygiene"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0
@@ -399,6 +403,7 @@ bash -c '
   export FAKE_SHUTDOWN_LOG="$4"
   export FAKE_ERASE_LOG="$5"
   export FAKE_PREVIEW_DEVICES=booted
+  export TRINKET_CLEANUP_PREVIEW_SIMS=1
   export TRINKET_ISOLATE=1 TRINKET_RUN_ID="child-no-self-clean"
   export TRINKET_CLEANUP_SINGLE_WARMED=0
   export TRINKET_CLEANUP_IDLE_POOL=0

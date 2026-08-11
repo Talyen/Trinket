@@ -72,6 +72,7 @@ struct LockedCardEffectModifier: ViewModifier {
             .shadow(color: ink.opacity(0.9), radius: 0, x: 1, y: 0)
             .shadow(color: ink.opacity(0.9), radius: 0, x: -1, y: 0)
             .shadow(color: ink.opacity(0.55), radius: 3, x: 0, y: 1.5)
+            .drawingGroup()
     }
 }
 

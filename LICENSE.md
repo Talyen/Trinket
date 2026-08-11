@@ -1,21 +1,32 @@
-# Creative Commons Attribution-NonCommercial 4.0 International
+# Licensing
 
-This repository is authored and owned by: **Ryan McIntire** (talyen42@gmail.com)
+Copyright © Ryan McIntire. Rights are granted separately for source code and
+creative material; third-party material is excluded.
 
-## You are free to:
+## Source code
 
-1. **Share** — copy and redistribute the material in any medium or format
-2. **Adapt** — remix, transform, and build upon the material
-3. The licensor cannot revoke these freedoms as long as you follow the license terms.
+Source code in this repository is licensed under the
+[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
+Use is permitted only as described by the complete terms at that canonical
+link. Commercial use requires separate written permission from the copyright
+owner.
 
-## Under the following terms:
+## Documentation and original creative assets
 
-1. **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-2. **NonCommercial** — You may not use the material for commercial purposes.
-3. **No additional restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+Documentation and art, audio, and other creative assets that are original to
+this project are licensed under
+[Creative Commons Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/legalcode).
 
-## Notices:
+This grant applies only to material owned by the repository copyright holder.
+It does not relicense source code, third-party material, trademarks, names, or
+material used under another license.
 
-You do not have to comply with the license for elements of the material in the public domain or where your use is permitted by an applicable exception or limitation.
+## Third-party and generated material
 
-No warranties are given. The license may not give you all of the permissions necessary for your intended use. For example, other rights such as publicity, privacy, or moral rights may limit how you use the material.
+Third-party inputs and generated outputs retain any rights, restrictions, and
+attribution requirements imposed by their creators, providers, or source
+licenses. Their presence in the repository, a manifest, or a generated asset
+catalog is not evidence that they are covered by either license above.
+
+No warranty is provided. Contact the repository owner for commercial licensing
+or when a file's ownership or license is unclear.

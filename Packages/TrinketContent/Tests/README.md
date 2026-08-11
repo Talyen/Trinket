@@ -6,6 +6,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 |---------|-------|-------|
 | Ability catalog invariants | `AbilityCatalogTests` | IDs, validator, DoT pairing, builder smoke |
 | Ultimate cinematic catalog | `UltimateCinematicCatalogTests` | Actor-scoped resolve + fallback |
+| Art catalog cross-references | `ArtCatalogIntegrationTests` | Manifest IDs resolve to expected content owners |
 | Ability prose examples | `AbilityDescriptionFormatterTests` | Focused examples only; no full-catalog loop |
 | Combatant / homestead graph | `CombatantCatalogTests` | ID uniqueness, stage→enemy links, hero/companion loadouts |
 | Enemy balance classification | `EnemyCatalogTests` | Normal/boss bands, kits, HP bands |
@@ -16,4 +17,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Combatant equipment rules | `CombatantEquipmentTests` | Hero vs companion slots |
 | Encounter level scaling | `EncounterLevelResolverTests` | Chapter span |
 
-**Not here:** `ArtCatalog` cross-refs (`Packages/TrinketContent/Tests/TrinketContentTests/ArtCatalogIntegrationTests.swift`). Encounter art presentation wiring (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`). `PlayerRosterState` battle-config logic (`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/PlayerRosterStateTests.swift`).
+**Not here:** Encounter art presentation wiring
+(`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`)
+or `PlayerRosterState` battle-config logic
+(`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/PlayerRosterStateTests.swift`).

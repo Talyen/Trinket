@@ -6,7 +6,7 @@ Prereads: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleRef
 
 ## Intent
 
-Reduce unjustified custom layout/typography and confirmed non-adaptive UI while preserving intentional game UI. Prefer existing DesignSystem tokens. Add a shared token/helper only for at least three current uses or one existing DesignSystem boundary, and only when removing call-site surface outweighs the new API; otherwise simplify locally. After confirming a problem in a shared component or component family, inventory its affected call sites and migrate the confirmed cluster together. Planning and phasing: [README.md](README.md).
+Reduce unjustified custom layout/typography and confirmed non-adaptive UI while preserving intentional game UI. Prefer existing DesignSystem tokens. Add a shared token/helper only for at least three current uses or one existing DesignSystem boundary, and only when removing call-site surface outweighs the new API; otherwise simplify locally. After confirming a problem in a shared component or component family, inventory its affected call sites and migrate the confirmed cluster together.
 
 **Principles:** one spacing scale (`TrinketDesign.Metrics`); delete parallel systems; typography that scales (`Font.TextStyle` / `.trinketTypography` / `@ScaledMetric`); don’t invent a second platform — prefer `containerRelativeFrame`, adaptive grids, `Layout`, and DesignSystem glass/button styles.
 
@@ -17,8 +17,6 @@ Reduce unjustified custom layout/typography and confirmed non-adaptive UI while 
 - Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
 
 ## Severity
-
-Shared scale: [README.md](README.md).
 
 | Sev | Cluster | Typical signal |
 |-----|---------|----------------|
@@ -34,7 +32,7 @@ Shared scale: [README.md](README.md).
 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
 
-**Tie-breakers:** repair visible adaptation and native control behavior before cosmetic token consistency; adopt existing tokens over new APIs; duplicated constants over one-off sizes; extract/document justified custom over rewriting it. Comprehensive accessibility work follows PD-007 rather than this audit.
+**Tie-breakers:** repair visible adaptation and native control behavior before cosmetic token consistency; adopt existing tokens over new APIs; duplicated constants over one-off sizes; extract/document justified custom over rewriting it. Shared accessibility behavior follows PD-007 and the UI Interaction audit.
 
 ## Domain rules
 

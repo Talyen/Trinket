@@ -58,7 +58,7 @@ Manifests and pipelines live outside the app folder:
 | Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `StageMapMessage`, and `BattlePresentationContext`; no save or view adapters |
 | Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `BattleRunConfiguration`, `BattleRunKey`, and performance scenario contracts. It contains only immutable simulation inputs and lifecycle; Play-owned reward/presentation context stays outside this boundary. |
 | Battle presentation | `TrinketBattleFeature` | `BattleSession` implements the runtime contract and owns lifecycle/simulation plus combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
-| App and Play orchestration | `TrinketAppState` | `AppState` composition/wiring only — battle handle lives on `PlaySession.battle`; `PlaySession` shell/registry via `PlayModeGraph`; `PlayBattleOrigin` (mode passport); `PlayBattleLaunch` (encounter/loot resolution + party/reward bake + configure/activate) + `PlayBattleCompletion` (origin resolve → mode write → dismiss); mode owners `JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`, `EncounterPlayMode` for navigation/session and mode-unique writes; encounter sessions; preferences; audio routing |
+| App and Play orchestration | `TrinketAppState` | Composition/wiring, Play shell and mode owners, battle launch/completion orchestration, encounter sessions, preferences, and audio routing. Detailed symbol ownership lives in the package README and Battle context card. |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Binary art/music committed after `--assets` codegen |
 
@@ -107,9 +107,12 @@ After editing art, music, SFX, or cinematic manifests:
 
 ## Dependency rules
 
-### Package and target graph
+### Package and target policy graph
 
-Arrows mean “may depend on.” Every edge points downward; reverse edges are forbidden.
+This is the enforced package-policy graph, not an exhaustive list of every direct app
+target dependency. Arrows mean “may depend on.” Every edge points downward; reverse
+edges are forbidden. `project.yml` and each `Package.swift` remain the executable
+dependency sources of truth.
 `TrinketFeatureSupport`, `TrinketFeatureContracts`, and
 `TrinketFeatureAdapters` below are products/targets hosted by the single
 `Packages/TrinketFeatureSupport` package.
@@ -261,7 +264,9 @@ Do not rewrite the host for purity unless Instruments shows SwiftUI can match hi
 - Route custom glass and prominent buttons through `TrinketDesignSystem`; feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)`. Glass belongs on functional chrome; dense Collection / Inventory / Options content stays on solid themed surfaces.
 - Keep the root tab bar fully expanded (do not adopt tab-bar minimize-on-scroll). Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
 - Options/haptics stay on `AppStorage`-compatible local keys — not part of `PlayerSave` / CloudKit. Gate sensory feedback with `.trinketSensoryFeedback`.
-- Accessibility stays visual-first per PD-007: stable UI-test identifiers and native controls; no custom VoiceOver semantics or accessibility-setting branches without an explicit product decision.
+- Accessibility stays visual-first per PD-007: preserve native semantics, label custom
+  interactive controls, support Dynamic Type on reading/navigation surfaces, and
+  centralize reduced-motion/transparency behavior in DesignSystem/motion owners.
 - When adopting new frameworks later: StoreKit 2, modern GameKit, RealityKit — not StoreKit 1, legacy GameKit, or SceneKit.
 
 ## Deferred improvements

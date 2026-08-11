@@ -15,6 +15,7 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 | Concern | Owner |
 |---------|-------|
 | Battle rules / handlers / golden paths | `Packages/BattleEngine/Tests/` (see that package’s README) |
+| Battle lifecycle contract / fallback runtime | `Packages/TrinketBattleRuntime/Tests/` |
 | Shared presentation models / caches / frame analysis | `Packages/TrinketFeatureSupport/Tests/` |
 | Battle session / feedback / spectacle / layout | `Packages/TrinketBattleFeature/Tests/` |
 | AppState / Play and encounter sessions / options / audio routing | `Packages/TrinketAppState/Tests/` |
@@ -72,7 +73,7 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
    shared-support package check plus the Homestead smoke canary locally; PR
-   `smoke-full` covers the five-surface selector matrix.
+   `smoke-full` covers the six-surface selector matrix.
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the handoff style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
@@ -114,7 +115,7 @@ Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, un
 
 **Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
 
-Smoke = short shell canaries (`smoke-full` ≈ five lean methods). Exhaustive FullUI = state-changing journeys only. Mid-battle interaction safety (hand drag) lives in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
+Smoke = short shell canaries (`smoke-full` currently has six lean methods). Exhaustive FullUI = state-changing journeys only. Mid-battle interaction safety (hand drag) lives in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
 
 ## UI tests (summary)
 
@@ -128,7 +129,7 @@ explicit full local confidence run.
 
 Battle frame pacing is not part of smoke. Run the exclusive single-report matrix with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 
-Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; prefer `-completed-stages` over Stage Select scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Accessibility audits and accessibility-setting permutations are not part of the test matrix. The Frame Metrics node is an explicit machine bridge used only by the performance plan (not VoiceOver product semantics).
+Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; prefer `-completed-stages` over Stage Select scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Focused Accessibility Inspector review belongs to product verification; do not multiply the UI test matrix across accessibility settings unless one setting owns a distinct regression. The Frame Metrics node is an explicit machine bridge used only by the performance plan.
 
 Glass primary CTAs (`trinketPrimaryActionButton`) must receive their `AccessibilityID` via the
 modifier’s `accessibilityIdentifier:` parameter. Identifiers applied before `.glassProminent`

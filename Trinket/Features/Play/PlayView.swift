@@ -172,8 +172,7 @@ private struct PlayBrowsingStack: View {
         guard let encounter = journey.resolvedEncounter(for: stage) else { return nil }
 
         return CombatantCardDetail(
-            combatant: encounter.combatant,
-            inventoryItems: playerSave.inventory.items
+            combatant: encounter.combatant
         )
     }
 }

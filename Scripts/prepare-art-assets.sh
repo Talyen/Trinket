@@ -11,8 +11,15 @@ generated_swift="$generated_dir/ArtCatalog.generated.swift"
 source_hashes_file="$generated_dir/ArtSourceHashes.generated.tsv"
 
 heic_quality="${ART_HEIC_QUALITY:-80}"
-max_dimension="${ART_MAX_DIMENSION:-1600}"
 thumb_dimension="${ART_THUMB_DIMENSION:-480}"
+max_dimension_override="${ART_MAX_DIMENSION:-}"
+combatant_dimension="${ART_COMBATANT_DIMENSION:-${max_dimension_override:-1320}}"
+ability_dimension="${ART_ABILITY_DIMENSION:-${max_dimension_override:-960}}"
+item_dimension="${ART_ITEM_DIMENSION:-${max_dimension_override:-960}}"
+slot_background_dimension="${ART_SLOT_BACKGROUND_DIMENSION:-${max_dimension_override:-720}}"
+background_dimension="${ART_BACKGROUND_DIMENSION:-${max_dimension_override:-1600}}"
+encounter_dimension="${ART_ENCOUNTER_DIMENSION:-${max_dimension_override:-1320}}"
+resource_dimension="${ART_RESOURCE_DIMENSION:-${max_dimension_override:-256}}"
 
 if [[ ! -f "$manifest" ]]; then
   echo "Missing manifest: $manifest" >&2
@@ -132,8 +139,8 @@ JSON
 }
 
 # Catalog usage drives which variants we ship:
-# - background / resource / slot_background: full only
-# - combatant / ability / item / encounter: full + thumb
+# - resource / slot_background: full only
+# - combatant / ability / item / encounter / background: full + thumb
 emit_full_for_kind() {
   case "$1" in
     *) return 0 ;;
@@ -142,8 +149,20 @@ emit_full_for_kind() {
 
 emit_thumb_for_kind() {
   case "$1" in
-    background|resource|slot_background) return 1 ;;
+    resource|slot_background) return 1 ;;
     *) return 0 ;;
+  esac
+}
+
+full_dimension_for_kind() {
+  case "$1" in
+    combatant) printf '%s\n' "$combatant_dimension" ;;
+    ability) printf '%s\n' "$ability_dimension" ;;
+    item) printf '%s\n' "$item_dimension" ;;
+    slot_background) printf '%s\n' "$slot_background_dimension" ;;
+    background) printf '%s\n' "$background_dimension" ;;
+    encounter) printf '%s\n' "$encounter_dimension" ;;
+    resource) printf '%s\n' "$resource_dimension" ;;
   esac
 }
 
@@ -218,6 +237,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
   if emit_thumb_for_kind "$kind"; then
     want_thumb=true
   fi
+  full_dimension="$(full_dimension_for_kind "$kind")"
 
   imageset="$asset_catalog/$asset_name.imageset"
   output_file="$imageset/$asset_name.heic"
@@ -238,7 +258,12 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
     exit 1
   fi
 
-  source_hash="$(shasum -a 256 "$source_file" | awk '{print $1}')"
+  source_file_hash="$(shasum -a 256 "$source_file" | awk '{print $1}')"
+  # Output settings participate in invalidation so sizing-only pipeline changes
+  # cannot silently leave stale oversized assets in the catalog.
+  source_hash="$(printf '%s\t%s\t%s\t%s\t%s\n' \
+    "$source_file_hash" "$heic_quality" "$full_dimension" "$thumb_dimension" "$want_thumb" \
+    | shasum -a 256 | awk '{print $1}')"
   recorded_hash="$(awk -F$'\t' -v name="$asset_name" '$1 == name { print $2; exit }' "$previous_hashes_file")"
   printf '%s\t%s\n' "$asset_name" "$source_hash" >> "$source_hashes_temp"
 
@@ -258,7 +283,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
 
   if $needs_convert; then
     if $want_full; then
-      write_imageset "$imageset" "$asset_name" "$output_file" "$source_file" "$max_dimension"
+      write_imageset "$imageset" "$asset_name" "$output_file" "$source_file" "$full_dimension"
       full_count=$((full_count + 1))
     fi
     if $want_thumb; then
@@ -317,6 +342,7 @@ SWIFT
     cat >> "$backgrounds_temp" <<SWIFT
         dict["$escaped_id"] = BackgroundArtReference(
             imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb",
             focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
         )
 SWIFT
@@ -381,6 +407,7 @@ public struct SlotBackgroundArtReference: Hashable, Sendable {
 
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
+    public let thumbnailImageName: String?
     public let focalPoint: ArtFocalPoint
 }
 

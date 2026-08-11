@@ -175,7 +175,7 @@ print_agent() {
     if (( ${#TRINKET_CHANGED_PATHS[@]} <= 8 )); then
       printf '  ./Scripts/handoff.sh --isolate --paths'
       local path
-      for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %s' "$path"; done
+      for path in "${TRINKET_CHANGED_PATHS[@]}"; do printf ' %q' "$path"; done
       printf '\n'
     else
       printf '  ./Scripts/handoff.sh --isolate --paths <same %d explicit paths>\n' "${#TRINKET_CHANGED_PATHS[@]}"

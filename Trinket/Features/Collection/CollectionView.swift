@@ -95,6 +95,7 @@ struct CollectionView: View {
 
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
+        let rosterState = playerSave.roster
         let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
         let shelfItems = SalvageDissolvePresentation.displayedItems(
             Array(inventoryState.items.prefix(shelfLimit)),
@@ -102,26 +103,27 @@ struct CollectionView: View {
         )
         let showsInventoryShelf = !inventoryState.items.isEmpty || dissolvingTombstone != nil
 
+        let heroes = rosterState.collectionHeroes
+        let companions = rosterState.collectionCompanions
+
         return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 combatantCategorySection(
                     title: "Heroes",
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
-                    combatants: Array(
-                        playerSave.roster.collectionHeroes.prefix(shelfLimit)
-                    ),
-                    totalCount: playerSave.roster.collectionHeroes.count
+                    combatants: Array(heroes.prefix(shelfLimit)),
+                    totalCount: heroes.count,
+                    roster: rosterState
                 )
 
                 combatantCategorySection(
                     title: "Companions",
                     accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
                     kind: .companion,
-                    combatants: Array(
-                        playerSave.roster.collectionCompanions.prefix(shelfLimit)
-                    ),
-                    totalCount: playerSave.roster.collectionCompanions.count
+                    combatants: Array(companions.prefix(shelfLimit)),
+                    totalCount: companions.count,
+                    roster: rosterState
                 )
 
                 if showsInventoryShelf {
@@ -204,7 +206,8 @@ struct CollectionView: View {
         accessibilityIdentifier: String,
         kind: CombatantDetailContext.Kind,
         combatants: [Combatant],
-        totalCount: Int
+        totalCount: Int,
+        roster: PlayerRosterState
     ) -> some View {
         CategoryBrowseShelf(
             title: title,
@@ -216,7 +219,7 @@ struct CollectionView: View {
             ForEach(combatants) { combatant in
                 CollectionCombatantButton(
                     combatant: combatant,
-                    isLocked: !playerSave.roster.isUnlocked(combatant),
+                    isLocked: !roster.isUnlocked(combatant),
                     cardWidth: nil,
                     showsName: false
                 ) {

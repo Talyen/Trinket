@@ -6,7 +6,7 @@ Conventions: `Docs/Platform/Testing.md` + `AGENTS.md`.
 
 ## Intent
 
-Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit targets across app and packages. Prefer delete → merge → simplify harness → move to cheaper tier. Add declarations or files only when extending an existing semantic owner is impossible, or when at least three current test sites become strictly simpler. Planning and phasing: [README.md](README.md).
+Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit targets across app and packages. Prefer delete → merge → simplify harness → move to cheaper tier. Add declarations or files only when extending an existing semantic owner is impossible, or when at least three current test sites become strictly simpler.
 
 ## Hard stops
 
@@ -17,8 +17,6 @@ Inventory P0–P3 test portfolio defects in Swift Testing and XCTest unit target
 - Preserve unique battle, persistence, balance, app-transition, and player-flow owners. Do not delete a failing journey merely to reduce the portfolio.
 
 ## Fix priority
-
-Shared scale: [README.md](README.md).
 
 **P1:** same assertion owned twice; weaker app-shell echoes of package owners; exact catalog counts, pixel tables, plain-struct round trips, empty/commented tests, hidden `try?`, multi-second waits, flaky/nondeterministic setup, or a test that passes without exercising its claimed behavior. Also fixture/support harnesses whose LOC dwarfs unique semantic assertions; presentation, layout-constant, glyph, or plumbing cases that [Testing.md](../Platform/Testing.md) already bans; `@Test(arguments:)` (or sibling case fans) whose expanded executions dominate runtime without a distinct invariant per case. A missing invariant is P1 only when failure would be consequential, no existing owner covers it, and the test-addition gate is satisfied.
 
