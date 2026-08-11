@@ -4,6 +4,7 @@ import TrinketBattleFeature
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
+import TrinketPersistenceTestSupport
 import TrinketTestSupport
 @testable import TrinketAppState
 @testable import TrinketPersistence

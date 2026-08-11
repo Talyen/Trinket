@@ -32,6 +32,7 @@ package_test_scheme() {
     BattleEngine) printf '%s\n' 'BattleEngine-Package' ;;
     TrinketContent) printf '%s\n' 'TrinketContent-Package' ;;
     TrinketFeatureSupport) printf '%s\n' 'TrinketFeatureSupport-Package' ;;
+    TrinketPersistence) printf '%s\n' 'TrinketPersistence-Package' ;;
     *) printf '%s\n' "$1" ;;
   esac
 }

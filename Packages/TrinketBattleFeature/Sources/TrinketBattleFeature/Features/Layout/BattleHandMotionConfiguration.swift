@@ -5,9 +5,8 @@ import TrinketFeatureSupport
 
 /// Tunable hand fan, drag, deal, and spring parameters.
 ///
-/// Defaults match production. The DEBUG Hand Motion Lab mutates a copy; promote
-/// dialed-in values back into these defaults (and `TrinketMotion.Battle` where
-/// springs / held-feel live) after tuning.
+/// Defaults match production. Promote dialed-in values back into these defaults
+/// (and `TrinketMotion.Battle` where springs / held-feel live) after tuning.
 struct BattleHandMotionConfiguration: Equatable {
     // MARK: Fan / sizing
 
@@ -126,78 +125,6 @@ struct BattleHandMotionConfiguration: Equatable {
 
     var effectiveHeldTiltDegrees: Double {
         cardMaximumTiltDegrees * tiltLeanMultiplier
-    }
-
-    /// Paste-friendly dump of every knob for promoting lab values into production.
-    func parameterDump() -> String {
-        var lines = [String]()
-        lines.append("// Fan / sizing")
-        lines.append("minCardWidth: \(fmt(minCardWidth))")
-        lines.append("maxCardWidth: \(fmt(maxCardWidth))")
-        lines.append("aspectRatio: \(fmt(aspectRatio))")
-        lines.append("widthRatio: \(fmt(widthRatio))")
-        lines.append("horizontalInset: \(fmt(horizontalInset))")
-        lines.append("maxOverlapRatio: \(fmt(maxOverlapRatio))")
-        lines.append("fanAngleStep: \(fmt(fanAngleStep))")
-        lines.append("fanLiftStep: \(fmt(fanLiftStep))")
-        lines.append("bottomRise: \(fmt(bottomRise))")
-        lines.append("restingYFraction: \(fmt(restingYFraction))")
-        lines.append("")
-        lines.append("// Play / arm")
-        lines.append("playDragThreshold: \(fmt(playDragThreshold))")
-        lines.append("playArmReleaseRatio: \(fmt(playArmReleaseRatio))")
-        lines.append("dragMinimumDistance: \(fmt(dragMinimumDistance)), detailLongPressDuration: \(fmt(detailLongPressDuration))")
-        lines.append("armedHorizontalAllowance: \(fmt(armedHorizontalAllowance))")
-        lines.append("")
-        lines.append("// Deny resist")
-        lines.append("denyOvershootFactor: \(fmt(denyOvershootFactor))")
-        lines.append("denyWidthDamp: \(fmt(denyWidthDamp))")
-        lines.append("")
-        lines.append("// Held feel")
-        lines.append("cardHeldScale: \(fmt(cardHeldScale))")
-        lines.append("cardHeldShadowRadius: \(fmt(cardHeldShadowRadius))")
-        lines.append("cardHeldShadowY: \(fmt(cardHeldShadowY))")
-        lines.append("cardMaximumTiltDegrees: \(fmt(cardMaximumTiltDegrees))")
-        lines.append("tiltLeanMultiplier: \(fmt(tiltLeanMultiplier))")
-        lines.append("verticalTiltGain: \(fmt(verticalTiltGain))")
-        lines.append("verticalTiltClamp: \(fmt(verticalTiltClamp))")
-        lines.append("perspective: \(fmt(perspective))")
-        lines.append("")
-        lines.append("// Armed visual")
-        lines.append("armedScaleBoost: \(fmt(armedScaleBoost))")
-        lines.append("armedBrightness: \(fmt(armedBrightness))")
-        lines.append("showArmedRing: \(showArmedRing)")
-        lines.append("armedRingOpacity: \(fmt(armedRingOpacity))")
-        lines.append("armedRingLineWidth: \(fmt(armedRingLineWidth))")
-        lines.append("")
-        lines.append("// Deal / draw")
-        lines.append("dealInsertOffsetX: \(fmt(dealInsertOffsetX))")
-        lines.append("dealInsertOffsetY: \(fmt(dealInsertOffsetY))")
-        lines.append("dealInsertScale: \(fmt(dealInsertScale))")
-        lines.append("cardDrawStagger: \(fmt(cardDrawStagger))")
-        lines.append("")
-        lines.append("// Springs")
-        lines.append("cardPress: \(fmt(cardPressResponse)) / \(fmt(cardPressDamping))")
-        lines.append("cardLift: \(fmt(cardLiftResponse)) / \(fmt(cardLiftDamping))")
-        lines.append("cardReturn: \(fmt(cardReturnResponse)) / \(fmt(cardReturnDamping))")
-        lines.append("handReflow: \(fmt(handReflowResponse)) / \(fmt(handReflowDamping))")
-        lines.append("deal: \(fmt(dealResponse)) / \(fmt(dealDamping))")
-        lines.append("")
-        lines.append("// Experimental")
-        lines.append("pickup: \(fmt(pickupResponse)) / \(fmt(pickupDamping))")
-        lines.append("readiness: \(fmt(readinessResponse)) / \(fmt(readinessDamping))")
-        lines.append("cardCommit: \(fmt(cardCommitResponse)) / \(fmt(cardCommitDamping))")
-        lines.append("impact: \(fmt(impactResponse)) / \(fmt(impactDamping))")
-        lines.append("cardMaximumStretch: \(fmt(cardMaximumStretch))")
-        return lines.joined(separator: "\n")
-    }
-
-    private func fmt(_ value: Double) -> String {
-        String(format: "%.4g", value)
-    }
-
-    private func fmt(_ value: CGFloat) -> String {
-        String(format: "%.4g", Double(value))
     }
 
     // MARK: Explicit Equatable

@@ -59,7 +59,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --app-only|app-only)
-      # Path-scoped verify: TrinketTests only (packages are scheduled separately).
+      # Path-scoped app compile coverage (packages are scheduled separately).
       APP_ONLY=true
       shift
       ;;
@@ -119,13 +119,21 @@ if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
   exit 1
 fi
 
-# Bare `unit` mode runs the package schemes only. TrinketTests declares no test
-# cases (it only carries Swift Testing tag definitions), so building the app and
-# executing an empty plan is pure overhead. The app path stays for targeted
-# unit runs and --app-only (path-scoped verify).
+# Bare `unit` mode runs the package schemes only. There is no app-level unit
+# bundle (the TrinketTests target was removed), so the app path exists only for
+# --app-only (path-scoped app build).
 RUN_PACKAGES_ONLY=false
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
   RUN_PACKAGES_ONLY=true
+fi
+
+if [[ "$APP_ONLY" == true ]]; then
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "--app-only does not accept test filters; it is a compile-only app build." >&2
+    exit 1
+  fi
+  echo "App-only unit mode: building the app for compile coverage."
+  exec ./Scripts/build.sh
 fi
 
 mkdir -p "$RESULTS_DIR"
@@ -159,20 +167,9 @@ if [[ "$MODE" == "unit" ]]; then
     # Bare unit mode runs package schemes only; no app test plan is executed.
     : # TEST_TARGET_FLAG stays empty
   else
-    TEST_TARGET_FLAG=(-testPlan Unit)
-    if [[ ${#TARGETS[@]} -gt 0 ]]; then
-      echo "Running targeted unit tests..."
-      for target in "${TARGETS[@]}"; do
-        if [[ "$target" == TrinketTests* ]]; then
-          TEST_TARGET_FLAG+=("-only-testing:$target")
-        else
-          TEST_TARGET_FLAG+=("-only-testing:TrinketTests/$target")
-        fi
-      done
-    else
-      echo "Running only unit tests (TrinketTests)..."
-      TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
-    fi
+    echo "Targeted app-level unit runs are not supported (the TrinketTests target was removed)." >&2
+    echo "Run package-scoped tests with ./Scripts/test-package.sh <Package>." >&2
+    exit 1
   fi
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
@@ -423,7 +420,7 @@ TEST_WALL_SECONDS=0
 SECONDS=0
 
 if [[ "$RUN_PACKAGES_ONLY" == "true" ]]; then
-  echo "Running package schemes only (TrinketTests has no app-level unit tests)."
+  echo "Running package schemes only (no app-level unit test bundle)."
 else
   XCODEBUILD_EXIT_CODE=0
   XCODEBUILD_ARGS=(
@@ -482,8 +479,6 @@ fi
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 && "$APP_ONLY" == false ]]; then
   echo "Running package tests..."
   run_package_tests "$ACTION" || exit 1
-elif [[ "$MODE" == "unit" && "$APP_ONLY" == true ]]; then
-  echo "Skipping package tests (--app-only)."
 fi
 
 if [[ "$NO_BUILD" == "false" && "$RUN_PACKAGES_ONLY" == "false" ]]; then

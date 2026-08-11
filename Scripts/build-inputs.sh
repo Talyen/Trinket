@@ -39,7 +39,6 @@ asset_generation_inputs=(
 
 build_input_paths=(
   Trinket
-  TrinketTests
   TrinketUITests
 )
 for _trinket_test_package in "${TRINKET_TEST_PACKAGES[@]}"; do
@@ -61,7 +60,6 @@ build_input_paths+=(
   Integration.xctestplan
   QuickSmoke.xctestplan
   Smoke.xctestplan
-  Unit.xctestplan
 )
 
 generation_inputs_are_dirty() {

@@ -31,9 +31,6 @@
       onlyGenerateCoverageForSpecifiedTargets = "NO">
       <TestPlans>
          <TestPlanReference
-            reference = "container:Unit.xctestplan">
-         </TestPlanReference>
-         <TestPlanReference
             default = "YES"
             reference = "container:QuickSmoke.xctestplan">
          </TestPlanReference>
@@ -60,17 +57,6 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F4E69EC44A81B8942F321B2F"
-               BuildableName = "TrinketTests.xctest"
-               BlueprintName = "TrinketTests"
-               ReferencedContainer = "container:Trinket.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
          <TestableReference
             skipped = "NO"
             parallelizable = "NO">

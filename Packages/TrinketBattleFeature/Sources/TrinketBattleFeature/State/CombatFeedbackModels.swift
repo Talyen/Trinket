@@ -85,13 +85,3 @@ struct CombatantAttackReaction: Equatable {
     let kind: CombatantAttackReactionKind
     let phase: CombatantAttackPhase
 }
-
-/// Keyword particle burst request for a combatant pane.
-struct KeywordBurstRequest: Identifiable, Equatable {
-    let id: Int
-    let keyword: Keyword
-    let particleCount: Int
-    let seed: Int
-    let availableAt: Date
-    let expiresAt: Date
-}

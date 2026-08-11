@@ -45,8 +45,6 @@ package enum DeathsDoorEngine {
             if hasLethalProtection(for: combatant, in: context) {
                 clampToMinimumHP(on: combatant, in: &context)
             }
-        } else if hasLethalProtection(for: combatant, in: context), health < 1 {
-            clampToMinimumHP(on: combatant, in: &context)
         }
         return []
     }

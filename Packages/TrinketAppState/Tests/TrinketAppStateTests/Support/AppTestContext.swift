@@ -3,6 +3,7 @@ import TrinketBattleFeature
 import TrinketBattleRuntime
 import TrinketFeatureSupport
 import TrinketPersistence
+import TrinketPersistenceTestSupport
 import TrinketTestSupport
 @testable import TrinketAppState
 

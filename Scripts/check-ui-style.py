@@ -13,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 SCAN_ROOTS = [
     "Trinket",
-    "TrinketTests",
     "TrinketUITests",
     "Packages/TrinketDesignSystem/Sources",
     "Packages/TrinketFeatureSupport",

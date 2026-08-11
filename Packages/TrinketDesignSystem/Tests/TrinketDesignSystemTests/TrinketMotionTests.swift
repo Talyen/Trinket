@@ -42,7 +42,6 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.combatantStatusEffectPhaseDuration > 0)
         #expect(TrinketMotion.Content.secondEntranceDelay == TrinketMotion.Content.entranceStagger * 2)
         #expect(TrinketMotion.Battle.maxConcurrentCardCasts == 1)
-        #expect(TrinketMotion.Battle.maxKeywordBurstsPerPane == 1)
         #expect(
             TrinketMotion.Battle.skillCalloutTotal
                 == TrinketMotion.Battle.skillCalloutIn

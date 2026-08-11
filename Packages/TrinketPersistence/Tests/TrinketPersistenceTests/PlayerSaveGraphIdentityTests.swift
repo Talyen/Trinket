@@ -56,6 +56,28 @@ final class PlayerSaveGraphIdentityTests {
         try #expect(reloaded.inventory.items.first?.displayName == "\(changedItem.displayName) +1")
     }
 
+    @Test func inventoryOnlyMutationPersistsSanitizedLoadoutRemoval() throws {
+        let storeURL = context.storeURL()
+        let store = try makeStore(at: storeURL)
+        let item = try #require(GameContent.itemTemplate(matching: "shortsword-basic")).rewardInstance(
+            for: "chapter-1-stage-1"
+        )
+        try store.performBatchMutation { save in
+            save.inventory.items.append(item)
+        }
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var roster = store.roster
+        var loadout = roster.equipmentLoadout(for: knight)
+        loadout.equip(item)
+        roster.setEquipmentLoadout(loadout, for: knight)
+        store.roster = roster
+
+        store.inventory = .freshStart
+
+        let slots = try graphInspectionContext(at: storeURL).fetch(FetchDescriptor<EquipmentSlotModel>())
+        try #expect(slots.allSatisfy { $0.itemID != item.id })
+    }
+
     private func makeStore(at storeURL: URL) throws -> PlayerSaveStore {
         try PlayerSaveStore(
             storeURL: storeURL,

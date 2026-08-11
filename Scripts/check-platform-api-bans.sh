@@ -24,7 +24,7 @@ scan_pattern() {
       continue
     fi
     violations+=("$file:$line: $reason")
-  done < <(rg -n --glob '*.swift' --glob '!**/Generated/**' "$pattern" Trinket TrinketTests TrinketUITests Packages || true)
+  done < <(rg -n --glob '*.swift' --glob '!**/Generated/**' "$pattern" Trinket TrinketUITests Packages || true)
 }
 
 scan_pattern '\bNavigationView\b' 'Use NavigationStack instead of NavigationView'

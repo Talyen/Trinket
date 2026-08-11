@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
+public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
     public var resources: [HomesteadResource: Int]
     public var nodeTiers: [HomesteadNodeID: Int]
     public var pendingProduction: [HomesteadResource: Double]

@@ -74,22 +74,6 @@ enum CombatFeedbackPresenter {
         return index == 0 ? .headline : .secondary
     }
 
-    static func reaction(for items: [CombatFeedbackItem]) -> CombatantHitReaction? {
-        guard let item = items.first(where: {
-            $0.presentationIndex == 0 && $0.reactionKind != .none
-        }) else { return nil }
-        return CombatantHitReaction(
-            id: item.id,
-            kind: item.reactionKind
-        )
-    }
-
-    /// Keyword particle bursts alongside floating chips are disabled; chips alone
-    /// carry feedback. The performance harness may still inject bursts directly.
-    static func bursts(for _: [CombatFeedbackItem]) -> [KeywordBurstRequest] {
-        []
-    }
-
     // MARK: - Private
 
     private struct PreparedSource: Equatable {

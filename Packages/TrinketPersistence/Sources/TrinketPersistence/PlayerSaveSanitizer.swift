@@ -4,16 +4,37 @@ import TrinketCore
 
 public enum PlayerSaveSanitizer {
     public static func sanitize(_ save: PlayerSave) -> PlayerSave {
+        sanitize(save, changedSlices: .all)
+    }
+
+    /// Sanitizes only the mutated slices. Unchanged slices are skipped because
+    /// every sanitizer is idempotent for already-normalized values; the roster
+    /// sanitizer still re-runs when inventory changed (it resolves loadouts
+    /// against inventory item ids), and the labyrinth sanitizer always sees the
+    /// sanitized roster for recruit eligibility.
+    static func sanitize(_ save: PlayerSave, changedSlices: PlayerSaveSlice) -> PlayerSave {
         var sanitized = save
-        sanitized.inventory = sanitizeInventory(save.inventory)
-        sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
-        sanitized.homestead = sanitizeHomestead(save.homestead)
-        sanitized.journey = sanitizeJourney(save.journey)
-        sanitized.spires = sanitizeSpires(save.spires)
-        sanitized.labyrinth = sanitizeLabyrinth(
-            save.labyrinth,
-            eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs
-        )
+        if changedSlices.contains(.inventory) {
+            sanitized.inventory = sanitizeInventory(save.inventory)
+        }
+        if changedSlices.contains(.roster) || changedSlices.contains(.inventory) {
+            sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
+        }
+        if changedSlices.contains(.homestead) {
+            sanitized.homestead = sanitizeHomestead(save.homestead)
+        }
+        if changedSlices.contains(.journey) {
+            sanitized.journey = sanitizeJourney(save.journey)
+        }
+        if changedSlices.contains(.spires) {
+            sanitized.spires = sanitizeSpires(save.spires)
+        }
+        if changedSlices.contains(.labyrinth) {
+            sanitized.labyrinth = sanitizeLabyrinth(
+                save.labyrinth,
+                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs
+            )
+        }
         return sanitized
     }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct JourneyProgressState: Codable, Equatable, Sendable {
+public struct JourneyProgressState: Equatable, Sendable {
     public var activeChapterID: String
     public var activeStageID: String?
     public var completedStageIDs: Set<String>
@@ -30,36 +30,5 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
         self.completedStageIDs = completedStageIDs
         self.claimedRewardStageIDs = claimedRewardStageIDs
         self.pinnedMysteryEventIDs = pinnedMysteryEventIDs
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case activeChapterID
-        case activeStageID
-        case completedStageIDs
-        case claimedRewardStageIDs
-        case pinnedMysteryEventIDs
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        activeChapterID = try container.decode(String.self, forKey: .activeChapterID)
-        activeStageID = try container.decodeIfPresent(String.self, forKey: .activeStageID)
-        completedStageIDs = try container.decode(Set<String>.self, forKey: .completedStageIDs)
-        claimedRewardStageIDs = try container.decode(Set<String>.self, forKey: .claimedRewardStageIDs)
-        pinnedMysteryEventIDs = try container.decodeIfPresent(
-            [String: String].self,
-            forKey: .pinnedMysteryEventIDs
-        ) ?? [:]
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(activeChapterID, forKey: .activeChapterID)
-        try container.encodeIfPresent(activeStageID, forKey: .activeStageID)
-        try container.encode(completedStageIDs, forKey: .completedStageIDs)
-        try container.encode(claimedRewardStageIDs, forKey: .claimedRewardStageIDs)
-        if !pinnedMysteryEventIDs.isEmpty {
-            try container.encode(pinnedMysteryEventIDs, forKey: .pinnedMysteryEventIDs)
-        }
     }
 }

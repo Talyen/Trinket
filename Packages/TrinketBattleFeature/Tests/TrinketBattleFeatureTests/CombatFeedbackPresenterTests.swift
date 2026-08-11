@@ -274,24 +274,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items.dropFirst().allSatisfy { $0.presentationRole == .secondary })
     }
 
-    @Test func chipPresentationDoesNotEmitKeywordBursts() {
-        let now = Date(timeIntervalSince1970: 10)
-        let items = CombatFeedbackPresenter.makeItems(
-            from: [
-                makeEvent(
-                    id: 1,
-                    kind: .effect,
-                    effectKind: .dodgeApplied,
-                    amount: 0,
-                    keyword: .dodge
-                ),
-                makeEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .burn),
-            ],
-            at: now
-        )
-        #expect(CombatFeedbackPresenter.bursts(for: items).isEmpty)
-    }
-
     private func makeEvent(
         id: Int,
         kind: ActionEvent.Kind,

@@ -56,7 +56,7 @@ LC_ALL=C awk \
   -v decl_limit="${TRINKET_BUDGET_TEST_DECL_WARN:-3}" '
   function category(p) {
     if (p ~ /(\/Generated\/|\.generated\.swift$|^Trinket\.xcodeproj\/|^\.DerivedData\/|^\.tools\/|^Raw Assets\/)/) return "generated"
-    if (p ~ /(^TrinketTests\/|^TrinketUITests\/|\/Tests\/|^Scripts\/Tests\/|^Packages\/TrinketTestSupport\/)/) return "test"
+    if (p ~ /(^TrinketUITests\/|\/Tests\/|^Scripts\/Tests\/|^Packages\/TrinketTestSupport\/|^Packages\/TrinketPersistence\/Sources\/TrinketPersistenceTestSupport\/)/) return "test"
     return p ~ /\.swift$/ ? "production" : "docs"
   }
   function declarations(text, copy, count) {

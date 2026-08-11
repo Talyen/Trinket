@@ -28,7 +28,7 @@ Rerun it when scope crosses into another area.
 |---|---|---|
 | Package unit | `test-package.sh <Package>` | Cheapest package-owned behavior check |
 | All unit | `test.sh unit` | All package schemes; app test target has no app-level unit cases |
-| App-only unit | `test.sh unit --app-only` | Used by path-scoped verification |
+| App-only build | `test.sh unit --app-only` | App compile coverage for app-level Swift changes |
 | Targeted smoke | `test.sh smoke <Class...>` | One invocation using `Smoke.xctestplan` filters |
 | Quick smoke | `test.sh smoke` | Homestead canary from `QuickSmoke.xctestplan` |
 | Full smoke | `test.sh smoke-full` | The complete six-surface smoke plan; CI/PR ownership |

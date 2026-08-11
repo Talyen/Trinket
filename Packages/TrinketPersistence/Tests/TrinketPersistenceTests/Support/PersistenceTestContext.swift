@@ -1,4 +1,5 @@
 import Foundation
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @MainActor

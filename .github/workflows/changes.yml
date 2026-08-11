@@ -27,7 +27,6 @@ jobs:
             code:
               - 'Trinket/**'
               - 'Packages/**'
-              - 'TrinketTests/**'
               - 'TrinketUITests/**'
               - 'ContentManifest/**'
               - 'ArtManifest/**'

@@ -5,7 +5,6 @@ options:
   deploymentTarget:
     iOS: "26.0"
 fileGroups:
-  - Unit.xctestplan
   - QuickSmoke.xctestplan
   - Smoke.xctestplan
   - BattlePerformance.xctestplan
@@ -108,29 +107,6 @@ targets:
     dependencies:
       - target: Trinket
       - package: TrinketFeatureSupport
-  TrinketTests:
-    type: bundle.unit-test
-    platform: iOS
-    deploymentTarget: "26.0"
-    sources:
-      - path: TrinketTests
-        type: syncedFolder
-    settings:
-      base:
-        GENERATE_INFOPLIST_FILE: YES
-        TARGETED_DEVICE_FAMILY: "1"
-    dependencies:
-      - target: Trinket
-      - package: TrinketCore
-      - package: TrinketContent
-      - package: BattleEngine
-      - package: TrinketBattleRuntime
-      - package: TrinketPersistence
-      - package: TrinketDesignSystem
-      - package: TrinketTestSupport
-      - package: TrinketFeatureSupport
-      - package: TrinketBattleFeature
-      - package: TrinketAppState
 
 schemes:
   Trinket:
@@ -139,7 +115,6 @@ schemes:
         Trinket: all
     test:
       testPlans:
-        - path: Unit.xctestplan
         - path: QuickSmoke.xctestplan
           defaultPlan: true
         - path: Smoke.xctestplan
@@ -147,7 +122,6 @@ schemes:
         - path: FullUI.xctestplan
         - path: Integration.xctestplan
       targets:
-        - TrinketTests
         - TrinketUITests
     run:
       target: Trinket

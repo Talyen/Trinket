@@ -4,10 +4,11 @@ Unit and UI test conventions for Trinket. Agent workflow / command router: **`AG
 
 ## Framework split
 
-**Swift Testing only** in `TrinketTests/` and package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-swift-testing-migration.sh`.
+**Swift Testing only** in package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-swift-testing-migration.sh`.
 
-Keep semantic tests beside their owning package. `TrinketTests` is reserved for
-integration behavior that truly belongs to the final app target. SwiftUI shipping
+Keep semantic tests beside their owning package; there is no app-level `TrinketTests`
+target (final app-target integration behavior that packages cannot own lives in
+`TrinketAppStateTests` or a UI smoke owner). SwiftUI shipping
 journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 
 ## Ownership
@@ -21,12 +22,11 @@ journeys use UI smoke/deploy only when the keep/drop rubric below applies.
 | AppState / Play and encounter sessions / options / audio routing | `Packages/TrinketAppState/Tests/` |
 | Catalogs / content invariants | `TrinketContentTests` |
 | Stores / persistence write-through | `TrinketPersistenceTests` |
-| Final app-target integration only | `TrinketTests/` |
 
 ## Fixtures
 
 Prefer `TrinketTestSupport` (`CombatantFixtures`, battle parties). Save harnesses live
-beside Persistence and AppState tests—not in `TrinketTestSupport`—so TestSupport stays
+in `TrinketPersistence`'s `TrinketPersistenceTestSupport` target—not in `TrinketTestSupport`—so TestSupport stays
 Persistence-free. App suites use `AppTestContext`; Persistence uses
 `PersistenceTestContext`. Battle RNG: always
 `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via
@@ -44,7 +44,7 @@ Persistence-free. App suites use `AppTestContext`; Persistence uses
   - Argument types used in `@Test(arguments:)` tuples must be `Sendable` (and usually
     `Hashable` / `Equatable`). Nested types like `Keyword.Category` need the same
     conformances even when the parent type already has them.
-- **Lifecycle:** Prefer `@Suite` on package tests. In `TrinketTests`, `struct …Tests` + `@Test` is fine. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
+- **Lifecycle:** Prefer `@Suite` on package tests. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
 - **Stores:** mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
@@ -62,7 +62,7 @@ Verification does not imply authoring new tests. Add or expand coverage only whe
 
 Prefer extending an existing owner over adding a declaration, and a declaration over a new file or class. Remove or merge coverage made redundant by the change. Do not test plumbing, stored-property round trips, display copy, layout constants, framework behavior, or trivial delegation.
 
-**Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketTests`.
+**Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
 
 New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer an existing smoke/exhaustive method over a new class; assert visible outcomes, not custom accessibility prose.
 
@@ -111,7 +111,7 @@ Keep a UI test only if it asserts a **shipping product outcome** that unit/packa
 2. **State-changing journey** — a user action mutates durable or navigable state (purchase unlocks next stage, equip persists, retreat returns to Play, chapter advance, recruit continue).
 3. **Safety invariant** — a wrong interaction must not happen (locked slot inert; hand drag must not open detail). **One owner only** across smoke + exhaustive.
 
-Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, unexpected-text catalogs, layout/chrome mirrors (overscroll, swipe scroll ownership, grid layout), mid-battle detail marathons that race live ticks, or second copies of the same interaction across smoke and FullUI. Push loadout, party-selection, and unlock rules down to `TrinketTests` / package tests when possible; UI proves the sheet/control path once.
+Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, unexpected-text catalogs, layout/chrome mirrors (overscroll, swipe scroll ownership, grid layout), mid-battle detail marathons that race live ticks, or second copies of the same interaction across smoke and FullUI. Push loadout, party-selection, and unlock rules down to package tests when possible; UI proves the sheet/control path once.
 
 **Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
 

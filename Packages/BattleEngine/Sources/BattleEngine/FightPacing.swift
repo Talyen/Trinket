@@ -96,12 +96,12 @@ package enum FightPacing {
         )
     }
 
-    package static func multiplier(side: Side, in context: BattleState) -> Double {
-        clockMultiplier(in: context) * comebackMultiplier(side: side, in: context)
+    package static func multiplier(side: Side, isBoss: Bool, in context: BattleState) -> Double {
+        clockMultiplier(isBoss: isBoss, in: context) * comebackMultiplier(side: side, isBoss: isBoss, in: context)
     }
 
-    package static func comebackMultiplier(side: Side, in context: BattleState) -> Double {
-        let pacingConfig = Self.config(isBoss: isBossEnemy(in: context))
+    package static func comebackMultiplier(side: Side, isBoss: Bool, in context: BattleState) -> Double {
+        let pacingConfig = Self.config(isBoss: isBoss)
         let metrics = poolMetrics(in: context)
         let hpDelta = metrics.partyFraction - metrics.enemyFraction
         let absDelta = abs(hpDelta)
@@ -121,8 +121,8 @@ package enum FightPacing {
         return 1 + bonus
     }
 
-    package static func clockMultiplier(in context: BattleState) -> Double {
-        let pacingConfig = Self.config(isBoss: isBossEnemy(in: context))
+    package static func clockMultiplier(isBoss: Bool, in context: BattleState) -> Double {
+        let pacingConfig = Self.config(isBoss: isBoss)
         let scheduleBonus = scheduleClockBonus(in: context, config: pacingConfig)
         let backstopBonus = turnBackstopBonus(in: context, config: pacingConfig)
         return 1 + max(scheduleBonus, backstopBonus)

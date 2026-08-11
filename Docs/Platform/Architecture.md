@@ -241,9 +241,9 @@ Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform inde
 - Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
   `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
 - Semantic tests live with their package owner. `./Scripts/test.sh unit` builds and
-  runs all production package suites in parallel (the app unit target declares no
-  tests, so no app build/plan runs); path-scoped verify uses
-  `./Scripts/test.sh unit --app-only` (app build + TrinketTests plan) and
+  runs all production package suites in parallel (there is no app-level unit
+  target); path-scoped verify uses
+  `./Scripts/test.sh unit --app-only` (app compile build) and
   `./Scripts/test-package.sh <Package>` for touched packages.
 
 ### Battle UIKit feedback island

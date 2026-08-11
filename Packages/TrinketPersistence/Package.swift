@@ -13,6 +13,10 @@ let package = Package(
             name: "TrinketPersistence",
             targets: ["TrinketPersistence"]
         ),
+        .library(
+            name: "TrinketPersistenceTestSupport",
+            targets: ["TrinketPersistenceTestSupport"]
+        ),
     ],
     dependencies: [
         .package(path: "../TrinketCore"),
@@ -23,12 +27,17 @@ let package = Package(
             name: "TrinketPersistence",
             dependencies: ["TrinketCore", "TrinketContent"]
         ),
+        .target(
+            name: "TrinketPersistenceTestSupport",
+            dependencies: ["TrinketPersistence"]
+        ),
         .testTarget(
             name: "TrinketPersistenceTests",
             dependencies: [
                 "TrinketPersistence",
                 "TrinketCore",
                 "TrinketContent",
+                "TrinketPersistenceTestSupport",
             ]
         ),
     ]

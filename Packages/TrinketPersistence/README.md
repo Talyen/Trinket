@@ -32,4 +32,4 @@ of `Docs/Platform/CloudKitPreShipChecklist.md` are complete.
 ./Scripts/test-package.sh TrinketPersistence
 ```
 
-Use `SaveTestSupport.makeTempDirectory` (PersistenceTests support) and inject stores with the temp file store.
+Use `SaveTestSupport.makeTempDirectory` (`TrinketPersistenceTestSupport` target) and inject stores with the temp file store.

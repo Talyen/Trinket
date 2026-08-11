@@ -13,11 +13,6 @@ public struct PlayerHomesteadStore {
         self.save = save
     }
 
-    public var state: PlayerHomesteadState {
-        get { save.homestead }
-        nonmutating set { save.homestead = newValue }
-    }
-
     /// Builds or upgrades a homestead node, updating roster unlocks in the same batch.
     public func buildOrUpgradeNode(
         _ definition: HomesteadNodeDefinition,

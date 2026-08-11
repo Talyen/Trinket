@@ -13,7 +13,6 @@ private let inventoryMappingLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "InventoryMapping"
 )
-
 private struct UnlockedCombatantValue {
     let combatantID: String
     let role: String
@@ -277,6 +276,9 @@ extension InventoryModel {
             }
             .compactMap { item in
                 guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == item.baseTypeID }) else {
+                    inventoryMappingLogger.error(
+                        "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)"
+                    )
                     return nil
                 }
                 let affixes = (item.affixes ?? [])

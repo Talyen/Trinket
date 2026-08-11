@@ -187,9 +187,6 @@ public enum TrinketMotion: Sendable {
             chipDisplayDuration + 0.05
         }
 
-        /// Max concurrent keyword particle bursts per combatant pane.
-        public static let maxKeywordBurstsPerPane = 1
-
         /// Max simultaneous card cast dissolve overlays on the battlefield.
         public static let maxConcurrentCardCasts = 1
 

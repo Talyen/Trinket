@@ -17,46 +17,6 @@ struct DamagePipelineTests {
         )
     }
 
-    @Test func randomDodgeShortCircuitsResolution() throws {
-        // Player-capped defender so contested high agi can reach the 75% soft cap (enemies cannot).
-        let stats = PrimaryStats(agility: 280)
-        let target = CombatantFixtures.combatant(
-            id: "target", role: .hero, maxHealth: 50, primaryStats: stats
-        )
-        let source = CombatantFixtures.combatant(id: "source", role: .enemy, maxHealth: 50)
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: target, initialActiveEffects: []),
-            companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
-            enemy: CombatantRuntime(combatant: source, initialActiveEffects: [])
-        )
-        var context = BattleState(
-            roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
-            nextEffectID: 0,
-            nextEventID: 0,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
-            enemyModifiers: .zero
-        )
-
-        let healthBefore = context.roster.health(for: target)
-        let outcome = context.resolveDamage(
-            .directAbilityHit(
-                amount: 10,
-                target: target,
-                keyword: .physical,
-                sourceActorID: "source"
-            )
-        )
-
-        try #expect(outcome.healthLost == 0, "High agility defender should dodge and short-circuit")
-        try #expect(context.roster.health(for: target) == healthBefore)
-        try #expect(outcome.events.contains { $0.effectKind == .dodgeApplied })
-    }
-
     @Test func healthCostIgnoresBlockBuffer() throws {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant

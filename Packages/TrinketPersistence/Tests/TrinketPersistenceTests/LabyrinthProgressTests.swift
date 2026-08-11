@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @Suite("LabyrinthProgress")
@@ -243,8 +244,6 @@ struct LabyrinthProgressTests {
             let goldWithBudget = save.roster.gold
             let forged = LabyrinthCompletion.forgeAtAltar(
                 nodeID: nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
                 save: &save
             )
             #expect(forged)

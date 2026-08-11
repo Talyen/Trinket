@@ -145,7 +145,6 @@ class ScriptRegressionTests(unittest.TestCase):
     def test_build_inputs_include_xctestplans(self) -> None:
         text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
         for plan in (
-            "Unit.xctestplan",
             "Smoke.xctestplan",
             "QuickSmoke.xctestplan",
             "FullUI.xctestplan",

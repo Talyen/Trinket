@@ -60,8 +60,6 @@ run_check() {
         ./Scripts/test.sh style "${style_paths[@]}"
       elif [[ "$argument" == style ]]; then
         ./Scripts/test.sh style
-      elif [[ "$argument" == unit ]]; then
-        SKIP_GENERATE=1 ./Scripts/test.sh unit --app-only
       else
         echo "Unknown test check: $argument" >&2; return 2
       fi

@@ -160,8 +160,6 @@ public final class LabyrinthPlayMode {
         guard playerSave.persistBatch(logging: "Failed to forge at Labyrinth altar", { save in
             forged = LabyrinthCompletion.forgeAtAltar(
                 nodeID: sessionNode.nodeID,
-                hero: save.roster.activeHero,
-                companion: save.roster.activeCompanion,
                 save: &save
             )
         }) else {

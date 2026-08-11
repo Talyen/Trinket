@@ -11,13 +11,6 @@
   },
   "testTargets" : [
     {
-      "target" : {
-        "containerPath" : "container:Trinket.xcodeproj",
-        "identifier" : "F4E69EC44A81B8942F321B2F",
-        "name" : "TrinketTests"
-      }
-    },
-    {
       "skippedTests" : [
         "AppPerformanceUITests",
         "BattlePerformanceUITests"

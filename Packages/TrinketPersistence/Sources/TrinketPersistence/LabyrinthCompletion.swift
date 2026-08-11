@@ -155,8 +155,6 @@ public enum LabyrinthCompletion {
     @discardableResult
     public static func forgeAtAltar(
         nodeID: String,
-        hero: Combatant,
-        companion: Combatant,
         save: inout PlayerSave
     ) -> Bool {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs
@@ -177,8 +175,6 @@ public enum LabyrinthCompletion {
             nodeID: nodeID,
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
-        _ = hero
-        _ = companion
         return true
     }
 

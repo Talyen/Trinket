@@ -2,6 +2,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import TrinketPersistenceTestSupport
 
 struct ShopPurchaseApplierTests {
     @Test func purchaseSpendsGoldAndGrantsItem() throws {

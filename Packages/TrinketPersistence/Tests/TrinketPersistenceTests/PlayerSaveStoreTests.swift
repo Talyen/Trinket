@@ -58,16 +58,38 @@ final class PlayerSaveStoreTests {
         try #expect(!versionedStore.isPersistenceDegraded)
     }
 
-    @Test func invalidStoreFallsBackWithoutDeletingSourceFiles() throws {
+    @Test func corruptStoreRecoversByDeletingAndRecreating() throws {
         let storeURL = context.storeURL()
         let originalData = Data("not-a-sqlite-store".utf8)
         try originalData.write(to: storeURL)
 
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
 
-        try #expect(store.isPersistenceDegraded)
-        try #expect(store.lastPersistenceError != nil)
-        try #expect(Data(contentsOf: storeURL) == originalData)
+        try #expect(!store.isPersistenceDegraded)
+        try #expect(store.lastPersistenceError == nil)
+
+        store.grantGold(42)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(!reloaded.isPersistenceDegraded)
+        try #expect(reloaded.roster.gold == 42)
+    }
+
+    @Test func untouchedLabyrinthSurvivesGoldOnlyMutation() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        var labyrinth = PlayerLabyrinthState.freshStart
+        labyrinth.ensureMap(seed: 42)
+        store.labyrinth = labyrinth
+        let labyrinthBefore = store.labyrinth
+        try #require(labyrinthBefore.hasMap)
+
+        store.grantGold(7)
+
+        try #expect(store.labyrinth == labyrinthBefore)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.labyrinth == labyrinthBefore)
     }
 
     @Test func swiftDataGraphStoresIndependentRecords() throws {
@@ -347,7 +369,8 @@ final class PlayerSaveStoreTests {
         try #expect(reloaded.currentSave == snapshot)
     }
 
-    @Test func deferredFlushRollsBackToLastPersistedSnapshotAcrossMutations() throws {
+    @Test(arguments: [[20, 30], [30]])
+    func deferredFlushRollsBackToLastPersistedSnapshot(deferredGold: [Int]) throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
             storeURL: storeURL,
@@ -359,39 +382,12 @@ final class PlayerSaveStoreTests {
         }, persistImmediately: true)
         try #expect(store.roster.gold == 10)
 
-        try store.performBatchMutation({ save in
-            save.roster.gold = 20
-        }, persistImmediately: false)
-        try store.performBatchMutation({ save in
-            save.roster.gold = 30
-        }, persistImmediately: false)
-        try #expect(store.roster.gold == 30)
-
-        store.forcesNextSaveFailure = true
-        store.flushPendingPersistence()
-
-        try #expect(store.roster.gold == 10)
-        try #expect(store.lastPersistenceError == .writeFailed)
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 10)
-    }
-
-    @Test func deferredFlushPendingPersistenceRollsBackToLastPersistedSnapshot() throws {
-        let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-            persistSaveImmediately: false
-        )
-        try store.performBatchMutation({ save in
-            save.roster.gold = 10
-        }, persistImmediately: true)
-
-        try store.performBatchMutation({ save in
-            save.roster.gold = 30
-        }, persistImmediately: false)
-        try #expect(store.roster.gold == 30)
+        for gold in deferredGold {
+            try store.performBatchMutation({ save in
+                save.roster.gold = gold
+            }, persistImmediately: false)
+        }
+        try #expect(store.roster.gold == deferredGold.last)
 
         store.forcesNextSaveFailure = true
         store.flushPendingPersistence()

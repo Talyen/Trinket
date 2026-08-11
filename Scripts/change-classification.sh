@@ -41,7 +41,7 @@ TRINKET_NEEDS_CONTENT_GENERATION=false
 TRINKET_NEEDS_ASSET_GENERATION=false
 TRINKET_NEEDS_PROJECT_GENERATION=false
 TRINKET_NEEDS_STYLE=false
-TRINKET_NEEDS_UNIT=false
+TRINKET_NEEDS_APP_BUILD=false
 TRINKET_NEEDS_SMOKE=false
 TRINKET_NEEDS_SCRIPT_TESTS=false
 # True when feature/shared/model Swift would need app compile but xcodebuild is absent.
@@ -130,7 +130,7 @@ trinket_reset_classification() {
   TRINKET_NEEDS_ASSET_GENERATION=false
   TRINKET_NEEDS_PROJECT_GENERATION=false
   TRINKET_NEEDS_STYLE=false
-  TRINKET_NEEDS_UNIT=false
+  TRINKET_NEEDS_APP_BUILD=false
   TRINKET_NEEDS_SMOKE=false
   TRINKET_NEEDS_SCRIPT_TESTS=false
   TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=false
@@ -293,13 +293,13 @@ trinket_classify_path() {
     Packages/TrinketTestSupport/*.swift)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      TRINKET_NEEDS_UNIT=true
+      TRINKET_NEEDS_APP_BUILD=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
-    Trinket/App/*|TrinketTests/*)
+    Trinket/App/*)
       TRINKET_HAS_SWIFT=true
       TRINKET_NEEDS_STYLE=true
-      TRINKET_NEEDS_UNIT=true
+      TRINKET_NEEDS_APP_BUILD=true
       TRINKET_HAS_APP_STATE=true
       TRINKET_AUTHORED_PATHS+=("$path")
       ;;
@@ -468,7 +468,7 @@ trinket_build_verification_plan() {
   # App compile gap-fill: feature/shared Swift with no resolved unit or smoke
   # owner still needs a compile proof. Deterministic — never skipped for
   # presentation-only "chrome" diffs.
-  if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_UNIT" != true ]] \
+  if [[ "$TRINKET_HAS_FEATURE" == true && "$TRINKET_NEEDS_APP_BUILD" != true ]] \
     && (( ${#TRINKET_SMOKE_TARGETS[@]} == 0 )); then
     if command -v xcodebuild >/dev/null 2>&1; then
       trinket_add_verification build app "SKIP_GENERATE=1 ./Scripts/build.sh"
@@ -476,8 +476,12 @@ trinket_build_verification_plan() {
       TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=true
     fi
   fi
-  if [[ "$TRINKET_NEEDS_UNIT" == true ]]; then
-    trinket_add_verification test unit "SKIP_GENERATE=1 ./Scripts/test.sh unit --app-only"
+  if [[ "$TRINKET_NEEDS_APP_BUILD" == true ]]; then
+    if command -v xcodebuild >/dev/null 2>&1; then
+      trinket_add_verification build app "SKIP_GENERATE=1 ./Scripts/build.sh"
+    else
+      TRINKET_APP_COMPILE_SKIPPED_NO_XCODE=true
+    fi
   fi
   if [[ "$TRINKET_NEEDS_SMOKE" == true ]]; then
     local smoke_target

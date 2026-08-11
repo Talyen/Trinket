@@ -51,10 +51,6 @@ public final class PlayerSaveStore {
     public var forcesNextSaveFailure = false
     #endif
 
-    private func invalidateCache() {
-        cachedSave = nil
-    }
-
     public var journey: JourneyProgressState {
         get { currentSave.journey }
         set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
@@ -185,15 +181,20 @@ public final class PlayerSaveStore {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
         let snapshot = measured("SnapshotProjection") { currentSave }
-        let candidate = try measured("MutationPreparation") {
+        let (candidate, changedSlices) = try measured("MutationPreparation") {
             var candidate = snapshot
             update(&candidate)
             candidate.modifiedAt = Date()
-            candidate = PlayerSaveSanitizer.sanitize(candidate)
+            var changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
+            candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: changedSlices)
+            // The roster sanitizer resolves loadouts against the sanitized inventory, so an
+            // inventory-only mutation can still rewrite the roster; persist that fix too.
+            if changedSlices.contains(.inventory), snapshot.roster != candidate.roster {
+                changedSlices.insert(.roster)
+            }
             try PlayerSaveSanitizer.validate(candidate)
-            return candidate
+            return (candidate, changedSlices)
         }
-        let changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
         measured("GraphApply") {
             root.apply(candidate, slices: changedSlices, context: context)
             cachedSave = candidate
@@ -245,6 +246,7 @@ public final class PlayerSaveStore {
     public func flushPendingPersistence() {
         deferredSaveTask?.cancel()
         deferredSaveTask = nil
+        guard !pendingRollbackSlices.isEmpty else { return }
         do {
             try saveGraph()
             pendingRollbackSnapshot = nil
@@ -387,7 +389,7 @@ public final class PlayerSaveStore {
             logger: logger,
             logLabel: "player save",
             storeURLForRecovery: recoveryURL,
-            deleteStoreOnFailure: false
+            deleteStoreOnFailure: true
         )
     }
 

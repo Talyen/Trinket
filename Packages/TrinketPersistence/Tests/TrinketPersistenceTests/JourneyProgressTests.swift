@@ -3,6 +3,7 @@ import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 @MainActor

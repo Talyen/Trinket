@@ -70,7 +70,6 @@ require_cache_glob() {
 }
 
 require_cache_glob 'Trinket/**'
-require_cache_glob 'TrinketTests/**'
 require_cache_glob 'TrinketUITests/**'
 require_cache_glob 'ContentManifest/**'
 require_cache_glob 'ArtManifest/**'
@@ -97,7 +96,6 @@ require_build_inputs_line() {
 }
 
 require_build_inputs_line 'Trinket'
-require_build_inputs_line 'TrinketTests'
 require_build_inputs_line 'TrinketUITests'
 require_build_inputs_line 'ContentManifest'
 require_build_inputs_line 'ArtManifest'
@@ -108,7 +106,6 @@ require_build_inputs_line 'Raw Assets'
 require_build_inputs_line 'Scripts'
 require_build_inputs_line 'project.yml'
 require_build_inputs_line 'Packages/TrinketTestSupport'
-require_build_inputs_line 'Unit.xctestplan'
 require_build_inputs_line 'Smoke.xctestplan'
 require_build_inputs_line 'QuickSmoke.xctestplan'
 require_build_inputs_line 'FullUI.xctestplan'

@@ -9,7 +9,6 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleFeedbackLane {
-    private(set) var burstEpoch = 0
     private(set) var hitReactionEpoch = 0
     private(set) var attackReactionEpoch = 0
 
@@ -19,8 +18,6 @@ final class BattleFeedbackLane {
     var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
     @ObservationIgnored
     var attackReactionsByCombatantID: [String: CombatantAttackReaction] = [:]
-    @ObservationIgnored
-    var keywordBurstsByTargetID: [String: [KeywordBurstRequest]] = [:]
     @ObservationIgnored
     var eventRecordedAt: [Int: Date] = [:]
     @ObservationIgnored
@@ -64,10 +61,6 @@ final class BattleFeedbackLane {
         publish(.replace(activeItems))
     }
 
-    func noteBurstsChanged() {
-        burstEpoch &+= 1
-    }
-
     func noteHitReactionsChanged() {
         hitReactionEpoch &+= 1
     }
@@ -77,7 +70,6 @@ final class BattleFeedbackLane {
     }
 
     func resetPresentation() {
-        burstEpoch &+= 1
         hitReactionEpoch &+= 1
         attackReactionEpoch &+= 1
         publish(.reset)
@@ -114,16 +106,9 @@ final class BattleFeedbackLane {
         _ = resolvedScheduler()
     }
 
-    func keywordBursts(for targetID: String, at date: Date = .now) -> [KeywordBurstRequest] {
-        (keywordBurstsByTargetID[targetID] ?? []).filter { burst in
-            date >= burst.availableAt && date < burst.expiresAt
-        }
-    }
-
     func removeEvent(_ id: Int, noteChange: Bool = true) {
         if let item = activeItems.first(where: { $0.sourceEventIDs.contains(id) }) {
             let sourceEventIDs = Set(item.sourceEventIDs)
-            keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == item.id }
             let clearedReaction = hitReactionsByTargetID[item.targetID]?.id == item.id
             if clearedReaction {
                 hitReactionsByTargetID.removeValue(forKey: item.targetID)
@@ -169,19 +154,8 @@ final class BattleFeedbackLane {
             removeEvent(eventID, noteChange: false)
         }
 
-        var prunedBursts = false
-        for (targetID, bursts) in keywordBurstsByTargetID {
-            let kept = bursts.filter { date < $0.expiresAt }
-            if kept.count != bursts.count {
-                keywordBurstsByTargetID[targetID] = kept
-                prunedBursts = true
-            }
-        }
         if !removedItemIDs.isEmpty, notifyPresentation {
             publish(.remove(removedItemIDs))
-        }
-        if prunedBursts {
-            noteBurstsChanged()
         }
     }
 
@@ -189,7 +163,6 @@ final class BattleFeedbackLane {
         let hadPublishedPresentation = !activeItems.isEmpty
             || !hitReactionsByTargetID.isEmpty
             || !attackReactionsByCombatantID.isEmpty
-            || !keywordBurstsByTargetID.isEmpty
             || !presentedEventIDs.isEmpty
         nextPruneAt = nil
         nextVisualStartByTarget.removeAll(keepingCapacity: true)
@@ -198,7 +171,6 @@ final class BattleFeedbackLane {
         eventRecordedAt = [:]
         hitReactionsByTargetID = [:]
         attackReactionsByCombatantID = [:]
-        keywordBurstsByTargetID = [:]
         presentedEventIDs = []
         if hadPublishedPresentation {
             resetPresentation()

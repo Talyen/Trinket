@@ -45,12 +45,11 @@ struct BattleCombatantPane: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Bursts / callouts stay masked to the card slot while the
-                    // reaction frame (portrait + bars) recoils beyond it.
+                    // Callouts stay masked to the card slot while the reaction
+                    // frame (portrait + bars) recoils beyond it.
                     ZStack {
-                        // Isolated observation leaves: feedback / burst / reaction
+                        // Isolated observation leaves: feedback / reaction
                         // updates must not rebuild static pane chrome or BattleView.
-                        CombatantKeywordBurstLane(combatantID: combatant.id)
                         CombatantSkillCalloutLane(combatantID: combatant.id)
                     }
                     .clipShape(TrinketDesign.cardShape)
@@ -323,17 +322,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         case .some(.none), nil:
             .impact(weight: .light)
         }
-    }
-}
-
-private struct CombatantKeywordBurstLane: View {
-    @Environment(BattleSession.self) private var battleSession
-    let combatantID: String
-
-    var body: some View {
-        // swiftlint:disable:next redundant_discardable_let
-        let _ = battleSession.feedback.burstEpoch
-        KeywordBurstLayer(requests: battleSession.feedback.keywordBursts(for: combatantID))
     }
 }
 
