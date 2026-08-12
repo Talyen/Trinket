@@ -35,7 +35,16 @@ public final class PlayerSaveStore {
     private var deferredSaveTask: Task<Void, Never>?
     private var pendingRollbackSnapshot: PlayerSave?
     private var pendingRollbackSlices: PlayerSaveSlice = []
-    private var cachedSave: PlayerSave?
+    private var observedJourney = JourneyProgressState.initial
+    private var observedRoster = PlayerRosterState.freshStart
+    private var observedInventory = PlayerInventoryState.freshStart
+    private var observedHomestead = PlayerHomesteadState.freshStart
+    private var observedSpires = PlayerSpiresState.freshStart
+    private var observedLabyrinth = PlayerLabyrinthState.freshStart
+    private var observedSchemaVersion = PlayerSave.currentSchemaVersion
+    private var observedModifiedAt = Date.distantPast
+    private var observedSessionGeneration: UInt64 = 0
+    private var observedCorruptionAltarCooldownRemaining = 0
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -52,47 +61,42 @@ public final class PlayerSaveStore {
     #endif
 
     public var journey: JourneyProgressState {
-        get { currentSave.journey }
+        get { observedJourney }
         set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
     }
 
     public var roster: PlayerRosterState {
-        get { currentSave.roster }
+        get { observedRoster }
         set { mutate { $0.roster = newValue } }
     }
 
     public var inventory: PlayerInventoryState {
-        get { currentSave.inventory }
+        get { observedInventory }
         set { mutate { $0.inventory = newValue } }
     }
 
     public var homestead: PlayerHomesteadState {
-        get { currentSave.homestead }
+        get { observedHomestead }
         set { mutate { $0.homestead = newValue } }
     }
 
     public var spires: PlayerSpiresState {
-        get { currentSave.spires }
+        get { observedSpires }
         set { mutate { $0.spires = PlayerSaveSanitizer.sanitizeSpires(newValue) } }
     }
 
     public var labyrinth: PlayerLabyrinthState {
-        get { currentSave.labyrinth }
+        get { observedLabyrinth }
         set { mutate { $0.labyrinth = PlayerSaveSanitizer.sanitizeLabyrinth(newValue) } }
     }
 
     /// Root-level Corruption Altar cooldown — prefer this over `currentSave` for reads.
     public var corruptionAltarCooldownRemaining: Int {
-        root.corruptionAltarCooldownRemaining
+        observedCorruptionAltarCooldownRemaining
     }
 
     public var currentSave: PlayerSave {
-        if let cachedSave {
-            return cachedSave
-        }
-        let save = root.toPlayerSave()
-        cachedSave = save
-        return save
+        assembledSave()
     }
 
     /// Cross-slice homestead actions — prefer over growing this hub.
@@ -159,10 +163,12 @@ public final class PlayerSaveStore {
 
         let loadedRoot = try Self.loadOrCreateRoot(in: context, logger: logger)
         root = loadedRoot.root
+        installObservedSave(root.toPlayerSave())
         if loadedRoot.wasExisting {
             ensureRequiredGraph()
         } else if loadedRoot.initialSaveFailed {
             lastPersistenceError = .writeFailed
+            isPersistenceDegraded = true
         }
     }
 
@@ -184,7 +190,6 @@ public final class PlayerSaveStore {
         let (candidate, changedSlices) = try measured("MutationPreparation") {
             var candidate = snapshot
             update(&candidate)
-            candidate.modifiedAt = Date()
             var changedSlices = PlayerSaveSlice.changed(between: snapshot, and: candidate)
             candidate = PlayerSaveSanitizer.sanitize(candidate, changedSlices: changedSlices)
             // The roster sanitizer resolves loadouts against the sanitized inventory, so an
@@ -193,20 +198,26 @@ public final class PlayerSaveStore {
                 changedSlices.insert(.roster)
             }
             try PlayerSaveSanitizer.validate(candidate)
+            if !changedSlices.isEmpty {
+                candidate.modifiedAt = Date()
+                changedSlices.insert(.root)
+            }
             return (candidate, changedSlices)
         }
+        guard !changedSlices.isEmpty else { return }
         measured("GraphApply") {
             root.apply(candidate, slices: changedSlices, context: context)
-            cachedSave = candidate
+            installObservedSave(candidate, slices: changedSlices)
         }
 
         if persistImmediately {
             do {
                 try saveGraph()
+                clearPendingDeferredPersistence()
                 lastPersistenceError = nil
             } catch {
                 root.apply(snapshot, slices: changedSlices, context: context)
-                cachedSave = snapshot
+                installObservedSave(snapshot, slices: changedSlices)
                 lastPersistenceError = .writeFailed
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
@@ -249,42 +260,13 @@ public final class PlayerSaveStore {
         guard !pendingRollbackSlices.isEmpty else { return }
         do {
             try saveGraph()
-            pendingRollbackSnapshot = nil
-            pendingRollbackSlices = []
+            clearPendingDeferredPersistence()
             lastPersistenceError = nil
         } catch {
             rollbackPendingMutationIfNeeded()
             lastPersistenceError = .writeFailed
             logger.error("Failed to flush deferred SwiftData save: \(error.localizedDescription, privacy: .public)")
         }
-    }
-
-    private func scheduleDeferredSave() {
-        deferredSaveTask?.cancel()
-        deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
-            await Task.yield()
-            guard let self, !Task.isCancelled else { return }
-            do {
-                try saveGraph()
-                pendingRollbackSnapshot = nil
-                pendingRollbackSlices = []
-                lastPersistenceError = nil
-            } catch {
-                rollbackPendingMutationIfNeeded()
-                lastPersistenceError = .writeFailed
-                logger.error(
-                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-    }
-
-    private func rollbackPendingMutationIfNeeded() {
-        guard let pendingRollbackSnapshot else { return }
-        root.apply(pendingRollbackSnapshot, slices: pendingRollbackSlices, context: context)
-        cachedSave = pendingRollbackSnapshot
-        self.pendingRollbackSnapshot = nil
-        pendingRollbackSlices = []
     }
 
     private func resetRoot(with save: PlayerSave) throws {
@@ -294,14 +276,13 @@ public final class PlayerSaveStore {
         let snapshot = currentSave
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         root.update(from: sanitized, context: context)
-        cachedSave = sanitized
+        installObservedSave(sanitized)
         do {
             try saveGraph()
-            pendingRollbackSnapshot = nil
-            pendingRollbackSlices = []
+            clearPendingDeferredPersistence()
         } catch {
             root.update(from: snapshot, context: context)
-            cachedSave = snapshot
+            installObservedSave(snapshot)
             throw error
         }
     }
@@ -362,7 +343,7 @@ public final class PlayerSaveStore {
         var save = currentSave
         save = PlayerSaveSanitizer.sanitize(save)
         root.update(from: save, context: context)
-        cachedSave = save
+        installObservedSave(save)
         do {
             try context.save()
         } catch {
@@ -426,5 +407,82 @@ public final class PlayerSaveStore {
             Self.performanceSignposter.endInterval(name, interval)
         }
         return try operation()
+    }
+}
+
+private extension PlayerSaveStore {
+    func scheduleDeferredSave() {
+        deferredSaveTask?.cancel()
+        deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
+            await Task.yield()
+            guard let self, !Task.isCancelled else { return }
+            do {
+                try saveGraph()
+                clearPendingDeferredPersistence()
+                lastPersistenceError = nil
+            } catch {
+                rollbackPendingMutationIfNeeded()
+                lastPersistenceError = .writeFailed
+                logger.error(
+                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
+    }
+
+    func rollbackPendingMutationIfNeeded() {
+        guard let pendingRollbackSnapshot else { return }
+        root.apply(pendingRollbackSnapshot, slices: pendingRollbackSlices, context: context)
+        installObservedSave(pendingRollbackSnapshot, slices: pendingRollbackSlices)
+        clearPendingDeferredPersistence()
+    }
+
+    func clearPendingDeferredPersistence() {
+        deferredSaveTask?.cancel()
+        deferredSaveTask = nil
+        pendingRollbackSnapshot = nil
+        pendingRollbackSlices = []
+    }
+
+    func assembledSave() -> PlayerSave {
+        PlayerSave(
+            schemaVersion: observedSchemaVersion,
+            modifiedAt: observedModifiedAt,
+            sessionGeneration: observedSessionGeneration,
+            journey: observedJourney,
+            roster: observedRoster,
+            inventory: observedInventory,
+            homestead: observedHomestead,
+            spires: observedSpires,
+            labyrinth: observedLabyrinth,
+            corruptionAltarCooldownRemaining: observedCorruptionAltarCooldownRemaining
+        )
+    }
+
+    func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
+        if slices.contains(.root) {
+            observedSchemaVersion = save.schemaVersion
+            observedModifiedAt = save.modifiedAt
+            observedSessionGeneration = save.sessionGeneration
+            observedCorruptionAltarCooldownRemaining = save.corruptionAltarCooldownRemaining
+        }
+        if slices.contains(.journey) {
+            observedJourney = save.journey
+        }
+        if slices.contains(.roster) {
+            observedRoster = save.roster
+        }
+        if slices.contains(.inventory) {
+            observedInventory = save.inventory
+        }
+        if slices.contains(.homestead) {
+            observedHomestead = save.homestead
+        }
+        if slices.contains(.spires) {
+            observedSpires = save.spires
+        }
+        if slices.contains(.labyrinth) {
+            observedLabyrinth = save.labyrinth
+        }
     }
 }

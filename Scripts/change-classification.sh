@@ -377,6 +377,10 @@ trinket_classify_paths() {
         BattleEngine) trinket_add_context_card Docs/AgentContext/battle.md ;;
         TrinketPersistence) trinket_add_context_card Docs/AgentContext/persistence.md ;;
         TrinketBattleFeature) trinket_add_context_card Docs/AgentContext/battle.md ;;
+        TrinketAppState) trinket_add_context_card Docs/AgentContext/battle.md ;;
+        TrinketDesignSystem)
+          trinket_add_skill Docs/Skills/apple-design/SKILL.md
+          ;;
         TrinketFeatureSupport)
           trinket_add_context_card Docs/AgentContext/swiftui-features.md
           trinket_add_skill Docs/Skills/apple-design/SKILL.md

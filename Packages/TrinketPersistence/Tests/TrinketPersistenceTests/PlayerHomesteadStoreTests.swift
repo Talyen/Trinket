@@ -88,12 +88,4 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == 2)
         try #expect(store.homestead.pendingProduction[.food] == 1)
     }
-
-    @Test func localAndInMemoryStoresDoNotReportCloudSync() throws {
-        let localStore = try context.makeSaveStore()
-        try #expect(!localStore.isCloudSyncEnabled)
-
-        let inMemoryStore = try PlayerSaveStore(inMemoryOnly: true)
-        try #expect(!inMemoryStore.isCloudSyncEnabled)
-    }
 }

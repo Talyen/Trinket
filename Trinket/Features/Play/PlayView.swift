@@ -12,7 +12,6 @@ import TrinketPersistence
 struct PlayView: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
-    @Environment(LabyrinthPlayMode.self) private var labyrinth
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.displayScale) private var displayScale
     @State private var stageMessage: StageMapMessage?
@@ -78,22 +77,18 @@ struct PlayView: View {
     }
 
     private func apply(_ destination: PlayLaunchDestination) {
-        let path: [PlayLaunchDestination]
-        switch destination {
+        navigationPath = switch destination {
         case .campaign:
-            path = [.campaign]
+            [.campaign]
         case .explore:
-            path = [.explore]
+            [.explore]
         case .spiresHub:
-            path = [.explore, .spiresHub]
+            [.explore, .spiresHub]
         case .labyrinthMap:
-            _ = labyrinth.enter()
-            path = [.explore, .labyrinthMap]
+            [.explore, .labyrinthMap]
         case let .spireClimb(spireID):
-            path = [.explore, .spiresHub, .spireClimb(spireID)]
+            [.explore, .spiresHub, .spireClimb(spireID)]
         }
-
-        navigationPath = path
     }
 }
 
@@ -190,6 +185,7 @@ private struct PlayBattleOverlay: View {
     @Environment(BattleSession.self) private var battle
     @Binding var stageMessage: StageMapMessage?
     @State private var claimedVictoryHandlerOwnerID = UUID()
+    @State private var didPresentLaunchVictory = false
 
     var body: some View {
         let configuration = battle.activeBattle
@@ -233,16 +229,27 @@ private struct PlayBattleOverlay: View {
         .onDisappear {
             battle.uninstallClaimedVictoryHandler(ownerID: claimedVictoryHandlerOwnerID)
         }
-        .task(id: configuration?.id) {
-            guard let configuration,
-                  let presentationContext = battlePresentationContext(for: configuration)
-            else { return }
-            let launchVictoryWasPresented = battle.spectacle.isShowingVictory
-            battle.installPresentationContext(presentationContext)
-            if launchVictoryWasPresented {
-                battle.presentLaunchVictory()
-            }
+        .onChange(of: configuration?.id, initial: true) { _, _ in
+            syncPresentationContext()
         }
+    }
+
+    private func syncPresentationContext() {
+        guard let configuration = battle.activeBattle,
+              let presentationContext = battlePresentationContext(for: configuration)
+        else { return }
+        let launchVictoryWasPresented = battle.spectacle.isShowingVictory
+        battle.installPresentationContext(presentationContext)
+        if launchVictoryWasPresented {
+            battle.presentLaunchVictory()
+            didPresentLaunchVictory = true
+            return
+        }
+        guard AppEnvironment.shared.launchScreen == .battleVictory,
+              !didPresentLaunchVictory
+        else { return }
+        battle.presentLaunchVictory()
+        didPresentLaunchVictory = true
     }
 
     private func battlePresentationContext(

@@ -33,6 +33,37 @@ struct BattleSessionAutoBattleTests {
         #expect(playedCardIDs == expectedCardIDs)
     }
 
+    @Test func autoBattleRetriesAfterARejectedPlayInsteadOfStopping() async throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let expectedCardIDs = session.hand
+            .filter { session.isCardPlayable($0) }
+            .map(\.id)
+        var playAttempts = 0
+        var playedCardIDs: [Int] = []
+
+        session.isAutoBattleEnabled = true
+        await session.driveAutoBattle(
+            isCardCastActive: { false },
+            isManualInteractionActive: { false },
+            playCard: { card in
+                playAttempts += 1
+                if playAttempts == 1 {
+                    return false
+                }
+                let resolution = session.playCard(cardID: card.id)
+                guard resolution.didCommit else { return false }
+                playedCardIDs.append(card.id)
+                if playedCardIDs.count == expectedCardIDs.count {
+                    session.isAutoBattleEnabled = false
+                }
+                return true
+            }
+        )
+
+        #expect(playAttempts > expectedCardIDs.count)
+        #expect(playedCardIDs == expectedCardIDs)
+    }
+
     @Test func autoBattleResetsOffOnNewBattleWhenRememberIsOff() throws {
         final class AutoBattleProbe: @unchecked Sendable {
             var remember = false

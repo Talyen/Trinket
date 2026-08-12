@@ -123,39 +123,49 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     @ViewBuilder let artwork: () -> Artwork
 
     /// Local trigger so KeyframeAnimator always sees a change, even when reaction
-    /// storage is ObservationIgnored and only the epoch fence invalidates this lane.
+    /// storage is ObservationIgnored and only this combatant's bridge fires.
     @State private var playToken = 0
     @State private var activeKind: CombatantHitReactionKind = .none
     @State private var latestReactionID = 0
     /// Bright end of the status border opacity cycle while an accent is active.
     @State private var statusBorderPulseBright = false
+    @State private var reactionBridgeOwnerID = UUID()
 
     var body: some View {
-        // Subscribe to the observation fence (hitReactions storage is ignored).
-        // swiftlint:disable:next redundant_discardable_let
-        let _ = battleSession.feedback.hitReactionEpoch
+        hitReactionAnimator()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .trinketSensoryFeedback(
+                reactionFeedback(for: activeKind == .none ? nil : activeKind),
+                trigger: playToken,
+                enabled: hapticsEnabled
+            )
+            .onChange(of: borderAccentKeyword) { _, _ in
+                syncStatusBorderPulse(isActive: usesStatusBorderPulse)
+            }
+            .onAppear {
+                installHitReactionBridge()
+                adoptLatestReactionIfNeeded()
+                syncStatusBorderPulse(isActive: usesStatusBorderPulse)
+            }
+            .onDisappear {
+                battleSession.feedback.uninstallHitReactionBridge(ownerID: reactionBridgeOwnerID)
+            }
+            .onChange(of: combatantID) { _, _ in
+                installHitReactionBridge()
+                adoptLatestReactionIfNeeded()
+            }
+    }
+
+    private func hitReactionAnimator() -> some View {
         let layout = ReactionLayoutState(
             activeKind: activeKind,
             recoilDirection: recoilDirection
         )
-
-        KeyframeAnimator(
+        return KeyframeAnimator(
             initialValue: CardReactionAnimationState(),
             trigger: playToken
         ) { state in
-            artwork()
-                // Mask travels with the frame (art + bars): recoil/squash can
-                // leave the card slot without exposing rectangular edges.
-                .clipShape(TrinketDesign.cardShape)
-                // Border after clip so the stroke is not half-masked, and rides
-                // the same scale/offset as art + bars (whole-card hop).
-                .overlay {
-                    cardBorder
-                        .opacity(borderVisible ? 1 : 0)
-                }
-                .scaleEffect(x: state.scaleX, y: state.scaleY)
-                .rotationEffect(.degrees(state.rotation))
-                .offset(x: state.offsetX, y: state.offsetY)
+            hitReactionArtwork(state)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
                 SpringKeyframe(
@@ -190,63 +200,39 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 CubicKeyframe(layout.recoverOffsetY, duration: layout.recoveryDuration)
             }
             KeyframeTrack(\.rotation) {
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 0]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 0]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 1]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 1]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 2]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 2]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 3]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 3]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 4]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 4]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 5]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 5]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 6]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 6]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 7]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 7]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 8]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 8]?.duration ?? 0.01
-                )
-                CubicKeyframe(
-                    layout.recipe.rotation[safe: 9]?.value ?? 0,
-                    duration: layout.recipe.rotation[safe: 9]?.duration ?? 0.01
-                )
+                let samples = layout.recipe.rotation
+                if samples.isEmpty {
+                    CubicKeyframe(0, duration: layout.impactDuration + layout.recoveryDuration)
+                } else {
+                    CubicKeyframe(samples[safe: 0]?.value ?? 0, duration: samples[safe: 0]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 1]?.value ?? 0, duration: samples[safe: 1]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 2]?.value ?? 0, duration: samples[safe: 2]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 3]?.value ?? 0, duration: samples[safe: 3]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 4]?.value ?? 0, duration: samples[safe: 4]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 5]?.value ?? 0, duration: samples[safe: 5]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 6]?.value ?? 0, duration: samples[safe: 6]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 7]?.value ?? 0, duration: samples[safe: 7]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 8]?.value ?? 0, duration: samples[safe: 8]?.duration ?? 0.01)
+                    CubicKeyframe(samples[safe: 9]?.value ?? 0, duration: samples[safe: 9]?.duration ?? 0.01)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .trinketSensoryFeedback(
-            reactionFeedback(for: activeKind == .none ? nil : activeKind),
-            trigger: playToken,
-            enabled: hapticsEnabled
-        )
-        .onChange(of: battleSession.feedback.hitReactionEpoch) { _, _ in
-            adoptLatestReactionIfNeeded()
-        }
-        .onAppear {
-            syncStatusBorderPulse(isActive: usesStatusBorderPulse)
-        }
-        .onChange(of: borderAccentKeyword) { _, _ in
-            syncStatusBorderPulse(isActive: usesStatusBorderPulse)
-        }
+    }
+
+    private func hitReactionArtwork(_ state: CardReactionAnimationState) -> some View {
+        artwork()
+            // Mask travels with the frame (art + bars): recoil/squash can
+            // leave the card slot without exposing rectangular edges.
+            .clipShape(TrinketDesign.cardShape)
+            // Border after clip so the stroke is not half-masked, and rides
+            // the same scale/offset as art + bars (whole-card hop).
+            .overlay {
+                cardBorder
+                    .opacity(borderVisible ? 1 : 0)
+            }
+            .scaleEffect(x: state.scaleX, y: state.scaleY)
+            .rotationEffect(.degrees(state.rotation))
+            .offset(x: state.offsetX, y: state.offsetY)
     }
 
     @ViewBuilder
@@ -296,17 +282,22 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
         }
     }
 
+    private func installHitReactionBridge() {
+        battleSession.feedback.installHitReactionBridge(
+            ownerID: reactionBridgeOwnerID,
+            combatantID: combatantID
+        ) {
+            adoptLatestReactionIfNeeded()
+        }
+    }
+
     private func adoptLatestReactionIfNeeded() {
         guard let reaction = battleSession.feedback.hitReactionsByTargetID[combatantID],
               reaction.id != latestReactionID
         else { return }
-        // Install recipe/kind first, then bump the trigger on the next turn so
-        // KeyframeAnimator does not start with stale `.none` keyframes (offset 0).
         activeKind = reaction.kind
         latestReactionID = reaction.id
-        Task { @MainActor in
-            playToken &+= 1
-        }
+        playToken &+= 1
     }
 
     private func reactionFeedback(for kind: CombatantHitReactionKind?) -> SensoryFeedback {

@@ -27,20 +27,24 @@ options and audio enter through `BattleRuntimeDependencies`; Battle never import
 `TrinketAppState`. Victory chrome uses launch-baked awards — do not re-derive
 `StageCompletion` policy inside BattleFeature outcome math.
 
-Global cinematic warmup and launch-preview victory presentation are app-composition
-responsibilities. Keep them on the concrete `BattleSession` at the app root (or behind
-an app-owned callback); do not add presentation-only methods to `BattleRuntime`.
+The app composition root supplies `BattleRuntimeDependencies` as closure-only
+capabilities and builds one concrete `BattleSession`. `PlaySession.battle` receives
+that object only through the runtime contract; the root retains it for
+presentation-only work. `PlaySession` stays in the environment for shell concerns
+(pending destination, victory routing via `PlayBattleCompletion`). Active battle
+route metadata is `PlayBattleRunRegistration` in the `BattleRunKey` registry.
+Play screens read save slices from `PlayerSaveStore` directly. Mode types own
+map/node/floor selection and mode-unique completion writes; they must not re-absorb
+the shared victory persist→dismiss sequence. `AppState` prepares audio and requests
+launch state; the app root warms BattleFeature caches. Play's battle overlay
+installs presentation context and presents launch-victory chrome once on the
+retained `BattleSession`. Do not add presentation-only methods to `BattleRuntime`.
 
 For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Use `BattleStateTestFactory.makeBattle(..., rngSeed: 0)` and `EffectHandlers.all`. Do not assert full log prose.
 
-The root task-scoped workflow selects style and package checks. For a narrow rules
-iteration, run `./Scripts/test-package.sh BattleEngine`; for Battle presentation, run
-`./Scripts/test-package.sh TrinketBattleFeature`. For UI-only battle changes, run
-`./Scripts/test.sh smoke SmokeBattleTests` (or the closest focused smoke class /
-method). Bare `./Scripts/test.sh smoke` is only the Homestead canary. Read the owning
-package README for its test boundary.
+Handoff routes `BattleEngine` vs `TrinketBattleFeature` vs `SmokeBattleTests`. Bare `./Scripts/test.sh smoke` is only the Homestead canary.
 
-Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Battle layout contracts (three-card hand, art ratios, no top chrome) live in that README.
+Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Engine hand size: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
 
 Enemy scaling uses `EnemyPowerCurve` (smoothstep stat anchors at L1/L20/L40) applied after archetype growth. The same multiplier scales enemy HP and stats. Tune encounter level first, then curve anchors, then per-enemy stat shape. Progression hotspot reports include average enemy power rating.
 

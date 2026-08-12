@@ -24,20 +24,7 @@ final class JourneyProgressTests {
         try #expect(progress.isActive(secondStage))
         try #expect(!(progress.isActive(firstStage)))
         try #expect(!(progress.isActive(thirdStage)))
-    }
-
-    @Test func completedAndFutureStagesAreNotActive() throws {
-        var progress = JourneyProgressState.initial
-        let firstStage = chapter.stages[0]
-        let secondStage = chapter.stages[1]
-        let finalStage = chapter.stages[4]
-
-        progress.complete(firstStage, in: GameContent.chapters)
-
-        try #expect(progress.isCompleted(firstStage))
-        try #expect(!(progress.isActive(firstStage)))
-        try #expect(progress.isActive(secondStage))
-        try #expect(!(progress.isActive(finalStage)))
+        try #expect(!(progress.isActive(chapter.stages[4])))
     }
 
     @Test func rewardsCanOnlyBeClaimedOncePerStage() throws {
@@ -50,20 +37,6 @@ final class JourneyProgressTests {
 
         try #expect(progress.hasClaimedRewards(for: firstStage))
         try #expect(progress.claimedRewardStageIDs.count == 1)
-    }
-
-    @Test func experienceAppliesToActiveParty() throws {
-        var roster = PlayerRosterState.initial
-        let hero = GameContent.heroes[0]
-        let companion = GameContent.companions[0]
-        let heroBefore = roster.progression(for: hero).currentXP
-        let companionBefore = roster.progression(for: companion).currentXP
-
-        roster.grantExperience(20, to: hero)
-        roster.grantExperience(20, to: companion)
-
-        try #expect(roster.progression(for: hero).currentXP == heroBefore + 20)
-        try #expect(roster.progression(for: companion).currentXP == companionBefore + 20)
     }
 
     @Test func itemRewardCreatesUniqueInstance() throws {

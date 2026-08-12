@@ -13,7 +13,7 @@ Reduce unjustified custom layout/typography and confirmed non-adaptive UI while 
 ## Hard stops
 
 - Do not redesign battle battlefield geometry or product composition unsupervised. A bounded migration to native/adaptive APIs may ship when it preserves the existing constraints, includes runtime evidence, and can be verified as one phase.
-- Do not replace intentional game juice: combat float keyframe recipes, `trinketCombatFloatText` shadows, 3:4 card identity (`TrinketDesign.cardShape`).
+- Do not replace intentional game juice: combat float keyframe recipes, 3:4 card identity (`TrinketDesign.cardShape`).
 - Do not hand-roll materials / glass / primary buttons — use DesignSystem (`check-ui-style.sh`).
 
 ## Severity
@@ -33,8 +33,6 @@ Reduce unjustified custom layout/typography and confirmed non-adaptive UI while 
 **Leave alone (justified custom):** fanned battle hand + drag-to-play; hero rubber-band overscroll; combat float motion recipes / outline shadows; health-bar `GeometryReader` fills; decorative SF Symbols already on `@ScaledMetric`.
 
 **Tie-breakers:** repair visible adaptation and native control behavior before cosmetic token consistency; adopt existing tokens over new APIs; duplicated constants over one-off sizes; extract/document justified custom over rewriting it. Shared accessibility behavior follows PD-007 and the UI Interaction audit.
-
-## Domain rules
 
 Prefer `TrinketDesign.Metrics`, `Corners`, `.trinketTypography`, `.trinketSurface`, `.trinketGlassChip`, `.trinketPrimaryActionButton`. Surfaces already pad — do not stack extra padding then `.trinketSurface` unless the role is `.card`. Prefer growing containers in scroll contexts over `minimumScaleFactor`; account for Dynamic Type, localization expansion, safe areas, and keyboard presentation before fixing dimensions. Prefer native controls and container APIs when they preserve the game interaction. Gesture-driven motion should track 1:1 during drag, respect applicable reduced-motion behavior, and settle with interruptible springs (`TrinketMotion`).
 

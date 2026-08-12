@@ -19,7 +19,8 @@ enum BattleSessionTestSupport {
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
         autoEndTurnDelay: TimeInterval = 0.01,
-        presentationEnvironment: BattleRuntimeDependencies = .silent
+        presentationEnvironment: BattleRuntimeDependencies = .silent,
+        stageRewardsAlreadyClaimed: Bool = false
     ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
@@ -53,7 +54,8 @@ enum BattleSessionTestSupport {
             rngSeed: rngSeed,
             hero: resolvedHero,
             companion: resolvedCompanion,
-            enemy: resolvedEnemy
+            enemy: resolvedEnemy,
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed
         )
         _ = session.activate(configuration)
         session.installPresentationContext(presentation)

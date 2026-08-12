@@ -23,13 +23,11 @@ Products from `Package.swift`:
 | `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |
 | `BalanceSweepRunner` | BattleBalanceTools | Stratified Monte Carlo sweep + markdown reports |
 
-## Hand and layout contracts
+## Hand contract
 
-- Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO `BattleHandBuffer` and promote after effects / end-turn draws.
-- Ability cards stay **3:4** full-bleed art with no face text (name, cost, description, owner badge).
-- Party portraits stay **3:4**; enemy viewport is **4:3** landscape fill-crop of square source art.
-- Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`.
-- No pause control, global crystals, or other top chrome on the battle screen.
+Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO `BattleHandBuffer` and promote after effects / end-turn draws.
+
+Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../TrinketBattleFeature/README.md).
 
 ## Balance sweep
 

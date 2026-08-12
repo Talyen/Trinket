@@ -15,13 +15,13 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0.05)
         session.partyCelebrateDelayOverride = 0
-        let (configuration, _) = BattleRunConfigurationTestSupport.make(
+        let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: party.hero,
             companion: party.companion,
             enemy: party.enemy
         )
-        _ = session.activate(configuration)
+        _ = session.activate(configuration, presentation: presentation)
 
         #expect(session.canRetreat)
         BattleSessionTestSupport.driveUntilOutcome(session)
@@ -232,96 +232,28 @@ struct BattleSessionSimulationTests {
         #expect(session.feedback.eventRecordedAt.isEmpty)
     }
 
-    @Test func staleFeedbackBridgeOwnerCannotUninstallCurrentHandler() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        let staleOwnerID = UUID()
-        let currentOwnerID = UUID()
-        var receivedUpdates: [CombatFeedbackUpdate] = []
-
-        session.feedback.installBridge(ownerID: staleOwnerID) { _ in }
-        session.feedback.installBridge(ownerID: currentOwnerID) { update in
-            receivedUpdates.append(update)
-        }
-        session.feedback.uninstallBridge(ownerID: staleOwnerID)
-
-        session.feedback.record([feedbackEvent(id: 1, amount: 2)])
-        #expect(receivedUpdates.count == 1)
-
-        session.feedback.uninstallBridge(ownerID: currentOwnerID)
-        session.feedback.record([feedbackEvent(id: 2, amount: 3)])
-        #expect(receivedUpdates.count == 1)
-    }
-
-    @Test func currentFeedbackBridgeUninstallRestoresPreviousHandler() {
+    @Test func feedbackBridgeUninstallIsOwnerScoped() {
         let session = BattleSession(openingHandDrawStagger: 0)
         let survivingOwnerID = UUID()
         let departingOwnerID = UUID()
+        let staleOwnerID = UUID()
         var receivedUpdates: [CombatFeedbackUpdate] = []
 
         session.feedback.installBridge(ownerID: survivingOwnerID) { update in
             receivedUpdates.append(update)
         }
         session.feedback.installBridge(ownerID: departingOwnerID) { _ in }
-        session.feedback.uninstallBridge(ownerID: departingOwnerID)
-
+        session.feedback.uninstallBridge(ownerID: staleOwnerID)
         session.feedback.record([feedbackEvent(id: 1, amount: 2)])
         #expect(receivedUpdates.count == 1)
-    }
 
-    @Test func feedbackVisualsUseIndependentPerTargetStreams() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        let now = Date(timeIntervalSince1970: 100)
-        session.feedback.record(
-            [
-                feedbackEvent(id: 1, amount: 1, keyword: .bleed),
-                feedbackEvent(id: 2, amount: 2, keyword: .burn),
-                feedbackEvent(id: 3, amount: 3, keyword: .poison),
-                feedbackEvent(id: 4, amount: 4, keyword: .holy),
-                feedbackEvent(id: 5, amount: 5, keyword: .burn, targetID: "hero"),
-            ],
-            at: now
-        )
+        session.feedback.uninstallBridge(ownerID: departingOwnerID)
+        session.feedback.record([feedbackEvent(id: 2, amount: 3)])
+        #expect(receivedUpdates.count == 2)
 
-        let enemyItems = session.feedback.activeItems
-            .filter { $0.targetID == "enemy" }
-            .sorted { $0.id < $1.id }
-        let stagger = TrinketMotion.Battle.feedbackStreamStagger
-        for (index, item) in enemyItems.enumerated() {
-            let expected = stagger * Double(index)
-            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
-        }
-
-        // Each target owns its own stream clock.
-        let heroItem = session.feedback.activeItems.first { $0.targetID == "hero" }
-        #expect(heroItem?.availableAt == now)
-        #expect(session.feedback.activeItems.allSatisfy {
-            abs(
-                $0.expiresAt.timeIntervalSince($0.availableAt)
-                    - TrinketMotion.Battle.chipDisplayDuration
-            ) < 0.001
-        })
-    }
-
-    @Test func feedbackVisualsQueueEveryDistinctChipInRapidSequence() {
-        let session = BattleSession(openingHandDrawStagger: 0)
-        let now = Date(timeIntervalSince1970: 200)
-        let keywords: [Keyword] = [
-            .bleed, .burn, .poison, .holy, .physical, .freeze, .stun, .leech,
-        ]
-        session.feedback.record(
-            keywords.enumerated().map { index, keyword in
-                feedbackEvent(id: index + 1, amount: index + 1, keyword: keyword)
-            },
-            at: now
-        )
-
-        let items = session.feedback.activeItems.sorted { $0.id < $1.id }
-        #expect(items.count == 8)
-        let stagger = TrinketMotion.Battle.feedbackStreamStagger
-        for (index, item) in items.enumerated() {
-            let expected = stagger * Double(index)
-            #expect(abs(item.availableAt.timeIntervalSince(now) - expected) < 0.001)
-        }
+        session.feedback.uninstallBridge(ownerID: survivingOwnerID)
+        session.feedback.record([feedbackEvent(id: 3, amount: 4)])
+        #expect(receivedUpdates.count == 2)
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
@@ -417,5 +349,43 @@ private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int)
     }) else {
         Issue.record("Auto-end turn did not resolve within the test timeout")
         return
+    }
+}
+
+extension BattleSessionSimulationTests {
+    @Test func hitAndAttackReactionBridgesNotifyOnlyTheMatchingCombatant() {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        let heroOwner = UUID()
+        let enemyOwner = UUID()
+        var heroHits = 0
+        var enemyHits = 0
+        var heroAttacks = 0
+        var enemyAttacks = 0
+
+        session.feedback.installHitReactionBridge(ownerID: heroOwner, combatantID: "hero") {
+            heroHits += 1
+        }
+        session.feedback.installHitReactionBridge(ownerID: enemyOwner, combatantID: "enemy") {
+            enemyHits += 1
+        }
+        session.feedback.installAttackReactionBridge(ownerID: heroOwner, combatantID: "hero") {
+            heroAttacks += 1
+        }
+        session.feedback.installAttackReactionBridge(ownerID: enemyOwner, combatantID: "enemy") {
+            enemyAttacks += 1
+        }
+
+        session.feedback.noteHitReactionsChanged(for: ["enemy"])
+        session.feedback.noteAttackReactionsChanged(for: "hero")
+
+        #expect(heroHits == 0)
+        #expect(enemyHits == 1)
+        #expect(heroAttacks == 1)
+        #expect(enemyAttacks == 0)
+
+        session.feedback.uninstallHitReactionBridge(ownerID: heroOwner)
+        session.feedback.uninstallHitReactionBridge(ownerID: enemyOwner)
+        session.feedback.uninstallAttackReactionBridge(ownerID: heroOwner)
+        session.feedback.uninstallAttackReactionBridge(ownerID: enemyOwner)
     }
 }

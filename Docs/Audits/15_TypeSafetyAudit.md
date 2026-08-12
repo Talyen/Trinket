@@ -1,4 +1,4 @@
-# 15. Unsafe Escape Audit
+# 15. Type Safety Audit
 
 **Goal:** Remove confirmed unsafe typing escapes and representations that permit invalid domain state in non-test, non-generated source, without replacing valid invariants with vague fallbacks.
 

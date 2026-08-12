@@ -4,4 +4,4 @@ Do not keep completed implementation plans or historical rollout records here. L
 
 This folder may hold design reference images and **active agent execution plans** while work is in flight. When a plan is finished, delete it or fold durable rules into `Docs/Platform/` — do not archive completed rollouts here.
 
-There are no active execution plans.
+There are no active execution plans. Completed work lives in git history and handoff/PR notes.

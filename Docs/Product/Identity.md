@@ -1,8 +1,8 @@
-# Identity Plan
+# Identity
 
 Canonical product + engineering guidance for Trinket identity, cross-device progress, and account/data deletion.
 
-**Status:** Decisions locked. Live CloudKit remains stubbed until Apple Developer Program enrollment — execute [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) to enable sync. Persistence overview: [Architecture.md](Architecture.md).
+Locked decisions also appear as PD-008–PD-011 in [Decisions.md](Decisions.md). Live CloudKit remains stubbed until Apple Developer Program enrollment — execute [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) to enable sync. Persistence overview: [Architecture.md](../Platform/Architecture.md).
 
 ---
 
@@ -124,7 +124,7 @@ Keep seams lightweight until Developer Program enrollment:
 
 **Do not** ship Account / Sign-In rows in Options. **Do not** add SIWA / Google capabilities.
 
-When enabling live CloudKit, run [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, player-facing conflict UI, hosted backend, non-Apple platforms. Passive Homestead production remains disabled in cloud mode until its claim authority is verified.
+When enabling live CloudKit, run [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, player-facing conflict UI, hosted backend, non-Apple platforms. Passive Homestead production remains disabled in cloud mode until its claim authority is verified.
 
 ---
 
@@ -155,5 +155,5 @@ When enabling live CloudKit, run [CloudKitPreShipChecklist.md](CloudKitPreShipCh
 2. After sync enablement: same iCloud account on two devices shares `PlayerSave` without prompts.  
 3. No iCloud → full local play; no blocking errors.  
 4. Reset removes progress on this device and, when sync is on, on other devices after sync.  
-5. No Google, no SIWA, no hosting, no Game Center in this plan.  
+5. No Google, no SIWA, no hosting, no Game Center.  
 6. Tests and CI remain deterministic without Apple ID / CloudKit network.

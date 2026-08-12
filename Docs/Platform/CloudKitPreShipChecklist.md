@@ -10,7 +10,7 @@ Do not check boxes into git as durable state — leave items unchecked in the co
 
 **Current ship posture:** Progress is **local-only**. Simulator and tests keep CloudKit off unless `-enable-cloud-sync` is passed. `Trinket/Trinket.entitlements` stays empty until portal provisioning. Options reset copy refers to this device only. Re-enable iCloud user copy and `UIBackgroundModes: remote-notification` only when live CloudKit lands.
 
-**Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [IdentityPlan.md](IdentityPlan.md).
+**Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [Identity.md](../Product/Identity.md).
 
 ---
 
@@ -78,7 +78,7 @@ Confirm in source / CI config:
 - [ ] When enabling sync: privacy questionnaire declares **iCloud sync of game progress**
 - [ ] When enabling sync: App Review notes mention offline playable; iCloud optional for cross-device sync
 - [ ] When enabling sync: Options/reset copy accurately describes cloud-backed progress without promising manual sync controls
-- [ ] When enabling sync: App Review notes align with [IdentityPlan.md](IdentityPlan.md) (no login; iCloud optional sync; reset clears progress)
+- [ ] When enabling sync: App Review notes align with [Identity.md](../Product/Identity.md) (no login; iCloud optional sync; reset clears progress)
 
 ---
 
@@ -92,6 +92,6 @@ Confirm in source / CI config:
 
 ## Optional Follow-Ups (Post-Launch)
 
-- [ ] Game Center achievements / leaderboards (separate from CloudKit save sync; see IdentityPlan — deferred)
-- [ ] Quiet Options iCloud sync status (On/Off) — no prompts; see IdentityPlan
+- [ ] Game Center achievements / leaderboards (separate from CloudKit save sync; see [Identity.md](../Product/Identity.md) — deferred)
+- [ ] Quiet Options iCloud sync status (On/Off) — no prompts; see [Identity.md](../Product/Identity.md)
 - [ ] CloudKit Dashboard telemetry review (error rates, throttling)

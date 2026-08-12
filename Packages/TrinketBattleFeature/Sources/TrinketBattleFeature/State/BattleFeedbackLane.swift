@@ -9,9 +9,6 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleFeedbackLane {
-    private(set) var hitReactionEpoch = 0
-    private(set) var attackReactionEpoch = 0
-
     @ObservationIgnored
     var activeItems: [CombatFeedbackItem] = []
     @ObservationIgnored
@@ -34,6 +31,18 @@ final class BattleFeedbackLane {
         ownerID: UUID,
         onChange: (CombatFeedbackUpdate) -> Void
     )] = []
+    @ObservationIgnored
+    private var hitReactionBridges: [(
+        ownerID: UUID,
+        combatantID: String,
+        onChange: () -> Void
+    )] = []
+    @ObservationIgnored
+    private var attackReactionBridges: [(
+        ownerID: UUID,
+        combatantID: String,
+        onChange: () -> Void
+    )] = []
 
     var latestExpiry: Date? {
         activeItems.map(\.expiresAt).max()
@@ -51,6 +60,32 @@ final class BattleFeedbackLane {
         bridges.removeAll { $0.ownerID == ownerID }
     }
 
+    func installHitReactionBridge(
+        ownerID: UUID,
+        combatantID: String,
+        onChange: @escaping () -> Void
+    ) {
+        hitReactionBridges.removeAll { $0.ownerID == ownerID }
+        hitReactionBridges.append((ownerID, combatantID, onChange))
+    }
+
+    func uninstallHitReactionBridge(ownerID: UUID) {
+        hitReactionBridges.removeAll { $0.ownerID == ownerID }
+    }
+
+    func installAttackReactionBridge(
+        ownerID: UUID,
+        combatantID: String,
+        onChange: @escaping () -> Void
+    ) {
+        attackReactionBridges.removeAll { $0.ownerID == ownerID }
+        attackReactionBridges.append((ownerID, combatantID, onChange))
+    }
+
+    func uninstallAttackReactionBridge(ownerID: UUID) {
+        attackReactionBridges.removeAll { $0.ownerID == ownerID }
+    }
+
     func publish(_ update: CombatFeedbackUpdate) {
         for bridge in bridges {
             bridge.onChange(update)
@@ -61,17 +96,25 @@ final class BattleFeedbackLane {
         publish(.replace(activeItems))
     }
 
-    func noteHitReactionsChanged() {
-        hitReactionEpoch &+= 1
+    func noteHitReactionsChanged(for combatantIDs: Set<String>) {
+        for bridge in hitReactionBridges where combatantIDs.contains(bridge.combatantID) {
+            bridge.onChange()
+        }
     }
 
-    func noteAttackReactionsChanged() {
-        attackReactionEpoch &+= 1
+    func noteAttackReactionsChanged(for combatantID: String) {
+        for bridge in attackReactionBridges where bridge.combatantID == combatantID {
+            bridge.onChange()
+        }
     }
 
     func resetPresentation() {
-        hitReactionEpoch &+= 1
-        attackReactionEpoch &+= 1
+        for bridge in hitReactionBridges {
+            bridge.onChange()
+        }
+        for bridge in attackReactionBridges {
+            bridge.onChange()
+        }
         publish(.reset)
     }
 
@@ -119,7 +162,7 @@ final class BattleFeedbackLane {
                 presentedEventIDs.remove(sourceEventID)
             }
             if clearedReaction {
-                noteHitReactionsChanged()
+                noteHitReactionsChanged(for: [item.targetID])
             }
             if noteChange {
                 publish(.remove([item.id]))
@@ -227,7 +270,7 @@ final class BattleFeedbackLane {
 
         environment.playSFX(CombatSFXMapper.uniqueClipIDs(for: due))
 
-        var didPublishReaction = false
+        var reactedTargetIDs: Set<String> = []
         var reactedActionIDs = Set<Int>()
         for item in due where item.presentationIndex == 0
             && item.reactionKind != .none
@@ -236,10 +279,10 @@ final class BattleFeedbackLane {
                 id: item.id,
                 kind: item.reactionKind
             )
-            didPublishReaction = true
+            reactedTargetIDs.insert(item.targetID)
         }
-        if didPublishReaction {
-            noteHitReactionsChanged()
+        if !reactedTargetIDs.isEmpty {
+            noteHitReactionsChanged(for: reactedTargetIDs)
         }
     }
 }

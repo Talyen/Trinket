@@ -47,7 +47,6 @@ private struct CombatantBuffAuraStroke: View, Animatable {
                 ),
                 lineWidth: 2
             )
-            .shadow(color: style.glow.opacity(0.55), radius: 3, x: 0, y: 0)
     }
 
     private func palette(for kind: CombatantBuffAuraKind) -> (

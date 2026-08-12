@@ -244,6 +244,38 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(r"Raw\ Assets/Art/example.png", result.stdout)
 
+    def test_agent_context_routes_app_state_to_battle_card(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketAppState/Sources/TrinketAppState/Play/PlayBattleLaunch.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/AgentContext/battle.md", result.stdout)
+
+    def test_agent_context_routes_design_system_to_apple_design(self) -> None:
+        result = subprocess.run(
+            [
+                str(ROOT / "Scripts" / "agent-context.sh"),
+                "--agent",
+                "--paths",
+                "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Modifiers.swift",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
+
     def test_mystery_subflow_runs_play_smoke(self) -> None:
         # Deterministic routing: any Play diff runs SmokePlayTests; no demotion
         # to compile-only for subflow-only diffs.

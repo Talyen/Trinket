@@ -14,7 +14,6 @@ extension BattleSession {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
-        pruneSoftHold(at: date)
         guard spectacle.activeCinematic == nil,
               !spectacle.isShowingVictory,
               !spectacle.isShowingDefeat,
@@ -65,7 +64,6 @@ extension BattleSession {
         cancelPendingAutoEnd()
         feedback.pruneExpired(at: date, notifyPresentation: false)
         pruneExpiredSkillCallout(at: date)
-        pruneSoftHold(at: date)
         guard canEndTurn, hasActiveSimulation else {
             feedback.noteItemsChanged()
             return
@@ -215,6 +213,7 @@ extension BattleSession {
             else { return }
 
             if isSuspendedForScenePhase
+                || isDealingOpeningHand
                 || !canEndTurn
                 || isShowingBattleLog
                 || overlayCombatantDetail != nil
@@ -233,7 +232,10 @@ extension BattleSession {
                 continue
             }
 
-            guard await playCard(card) else { return }
+            guard await playCard(card) else {
+                await waitForAutoBattleRetry()
+                continue
+            }
             guard !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
 
             while !Task.isCancelled, isAutoBattleEnabled, isCardCastActive() {

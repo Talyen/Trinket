@@ -26,10 +26,7 @@ For Trinket’s iOS 26+ screens, use first-party SwiftUI APIs and
 
 ## Trinket product override
 
-PD-007 defines a practical native baseline: preserve native semantics, label custom
-interactive controls, support Dynamic Type on reading/navigation surfaces, handle
-reduced motion/transparency centrally, and never rely on color, sound, or motion alone
-for essential state. Use focused inspection instead of multiplying UI-test variants.
+Accessibility baseline: [PD-007](../../Product/Decisions.md). Use focused inspection instead of multiplying UI-test variants.
 
 ## Core checklist
 

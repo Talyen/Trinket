@@ -1,11 +1,13 @@
+import Foundation
 import Testing
-import TrinketBattleFeature
+import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 import TrinketPersistence
 @testable import BattleEngine
 @testable import TrinketAppState
+@testable import TrinketBattleFeature
 
 @MainActor
 struct BattleSessionAppIntegrationTests {
@@ -13,17 +15,6 @@ struct BattleSessionAppIntegrationTests {
 
     init() throws {
         context = try AppTestContext()
-    }
-
-    @Test func startBattleConfiguresActiveBattleWhenStageIsValid() throws {
-        let appState = try context.makePlaySession()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-
-        let message = appState.journey.startBattle(for: stage)
-
-        #expect(message == nil)
-        let activeBattle = try #require(appState.battle.activeBattle)
-        #expect(activeBattle.runKey == PlayBattleOrigin.journey(stageID: stage.id).runKey)
     }
 
     @Test func startBattleIgnoresRequestWhenBattleAlreadyActive() throws {
@@ -155,4 +146,68 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battlePresentation(for: firstRunKey) == nil)
         #expect(appState.battlePresentation(for: secondRunKey) != nil)
     }
+
+    #if DEBUG
+    @Test func claimedVictoryPersistFailurePresentsVictoryChrome() throws {
+        let playerSave = try PlayerSaveStore(
+            disableCloudSync: true,
+            inMemoryOnly: true,
+            persistSaveImmediately: true
+        )
+        let battle = BattleSession(
+            autoEndTurnDelay: 0,
+            openingHandDrawStagger: 0,
+            enemyAttackImpactDelayOverride: 0,
+            outcomePresentationDelayOverride: 0,
+            presentationEnvironment: .silent
+        )
+        battle.partyCelebrateDelayOverride = 0
+        let state = try context.makePlaySession(playerSave: playerSave, battleRuntime: battle)
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        try playerSave.performBatchMutation { save in
+            save.journey.markRewardsClaimed(for: stage)
+        }
+        _ = state.journey.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+        let presentation = try #require(state.battlePresentation(for: configuration.runKey))
+        battle.installPresentationContext(presentation)
+        battle.installClaimedVictoryHandler(ownerID: UUID()) { configuration, earnedGold in
+            playerSave.forcesNextSaveFailure = true
+            let didPersist = state.completeActiveBattle(
+                configuration,
+                battleEarnedGold: max(earnedGold, 5)
+            )
+            if !didPersist {
+                battle.presentVictoryChromeForPersistRetry()
+            }
+        }
+
+        var steps = 0
+        while battle.outcome == nil, steps < 200 {
+            steps += 1
+            if battle.spectacle.activeCinematic != nil {
+                battle.completeCinematicCollapse()
+                continue
+            }
+            if let card = battle.hand.first(where: { battle.isCardPlayable($0) }) {
+                _ = battle.playCard(cardID: card.id)
+                continue
+            }
+            if battle.canEndTurn {
+                battle.endTurn()
+                continue
+            }
+            break
+        }
+        if battle.spectacle.activeCinematic != nil {
+            battle.completeCinematicCollapse()
+        }
+        battle.handleOutcomeIfNeeded(at: .now)
+
+        #expect(battle.outcome == .victory)
+        #expect(battle.spectacle.isShowingVictory)
+        #expect(battle.spectacle.victorySummary != nil)
+        #expect(state.battle.activeBattle != nil)
+    }
+    #endif
 }

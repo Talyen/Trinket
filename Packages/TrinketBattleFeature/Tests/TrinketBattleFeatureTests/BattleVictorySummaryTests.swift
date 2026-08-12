@@ -2,6 +2,7 @@ import Testing
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketTestSupport
 @testable import BattleEngine
@@ -9,24 +10,69 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleVictorySummaryTests {
-    @Test func launchPreviewPresentsVictoryFromAnActivatedConfiguration() {
+    @Test func launchPreviewPresentsVictoryFromAnActivatedConfiguration() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let (configuration, context) = BattleRunConfigurationTestSupport.make(
             hero: party.hero,
             companion: party.companion,
-            enemy: party.enemy
+            enemy: party.enemy,
+            stageReward: StageReward(gold: 12, itemTemplateIDs: []),
+            heroExperienceAward: 17,
+            companionExperienceAward: 9
         )
         let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(context)
+        _ = session.activate(configuration, presentation: context)
 
         session.presentLaunchVictory()
 
         #expect(session.spectacle.isShowingVictory)
-        #expect(session.spectacle.victorySummary != nil)
+        let summary = try #require(session.spectacle.victorySummary)
+        #expect(summary.experience == 17)
+        #expect(summary.companionExperience == 9)
+        #expect(summary.stageGold == 12)
     }
 
-    @Test func makeVictorySummaryUsesBakedAwardsAndStageBattleRewards() throws {
+    @Test func restartWithoutPresentationClearsPriorContext() {
+        let party = BattlePartyFixtures.quickWinParty()
+        let first = BattleRunConfigurationTestSupport.make(
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy,
+            stageRewardsAlreadyClaimed: true
+        )
+        let session = BattleSession(openingHandDrawStagger: 0)
+        _ = session.activate(first.configuration, presentation: first.presentation)
+        #expect(session.presentationContext?.stageRewardsAlreadyClaimed == true)
+
+        let second = BattleRunConfigurationTestSupport.make(
+            rngSeed: BattleSessionTestSupport.deterministicBattleSeed &+ 1,
+            hero: party.hero,
+            companion: party.companion,
+            enemy: party.enemy
+        )
+        _ = session.restart(second.configuration)
+        #expect(session.presentationContext == nil)
+    }
+
+    enum BakedVictoryAwardCase: String, CaseIterable, Sendable {
+        case stageRewardsAndLoot
+        case companionOnlyAward
+        case bakedAwardsIgnoreExperienceBonus
+    }
+
+    @Test(arguments: BakedVictoryAwardCase.allCases)
+    func makeVictorySummaryUsesBakedAwards(_ awardCase: BakedVictoryAwardCase) throws {
+        switch awardCase {
+        case .stageRewardsAndLoot:
+            try assertStageRewardsAndLootSummary()
+        case .companionOnlyAward:
+            try assertCompanionOnlyAwardSummary()
+        case .bakedAwardsIgnoreExperienceBonus:
+            try assertBakedAwardsIgnoreExperienceBonus()
+        }
+    }
+
+    private func knightWolfEnemy() throws -> (Combatant, Combatant, Combatant) {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(
@@ -35,8 +81,11 @@ struct BattleVictorySummaryTests {
             maxHealth: 1,
             abilities: []
         )
-        let heroProgression = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
-        let companionProgression = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        return (hero, companion, enemy)
+    }
+
+    private func assertStageRewardsAndLootSummary() throws {
+        let (hero, companion, enemy) = try knightWolfEnemy()
         let lootItem = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
             .rewardInstance(for: "chapter-1-stage-1")
         let (configuration, context) = BattleRunConfigurationTestSupport.make(
@@ -46,8 +95,8 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            heroProgression: heroProgression,
-            companionProgression: companionProgression,
+            heroProgression: CombatantProgression(level: 2, currentXP: 10, requiredXP: 155),
+            companionProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
             stageReward: StageReward(gold: 12, itemTemplateIDs: [], materialRewards: [
                 ResourceAmount(.wood, 8),
                 ResourceAmount(.stone, 3),
@@ -62,13 +111,7 @@ struct BattleVictorySummaryTests {
                 ResourceAmount(.stone, 3),
             ]
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(context)
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
+        let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.stageGold == 12)
         #expect(summary.battleGold >= 0)
         #expect(summary.totalGold == summary.stageGold + summary.battleGold)
@@ -85,17 +128,9 @@ struct BattleVictorySummaryTests {
         #expect(summary.companionProgressionAfter.currentXP == 9)
     }
 
-    @Test func makeVictorySummaryUsesEachBakedPartyAward() throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 1,
-            abilities: []
-        )
-
-        let (scaledConfiguration, scaledContext) = BattleRunConfigurationTestSupport.make(
+    private func assertCompanionOnlyAwardSummary() throws {
+        let (hero, companion, enemy) = try knightWolfEnemy()
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             companion: companion,
@@ -107,29 +142,16 @@ struct BattleVictorySummaryTests {
             heroExperienceAward: 0,
             companionExperienceAward: 13
         )
-        let scaledSession = BattleSession(openingHandDrawStagger: 0)
-        _ = scaledSession.activate(scaledConfiguration)
-        scaledSession.installPresentationContext(scaledContext)
-        BattleSessionTestSupport.driveUntilOutcome(scaledSession)
-        let scaledSummary = try #require(scaledSession.makeVictorySummary(for: scaledConfiguration, presentation: scaledContext))
-        #expect(scaledSummary.experience == 0)
-        #expect(scaledSummary.companionExperience == 13)
-        #expect(scaledSummary.hasExperienceAwards == true)
-        #expect(scaledSummary.rewardItems.isEmpty)
-        #expect(scaledSummary.companionProgressionAfter.currentXP == 13)
+        let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
+        #expect(summary.experience == 0)
+        #expect(summary.companionExperience == 13)
+        #expect(summary.hasExperienceAwards == true)
+        #expect(summary.rewardItems.isEmpty)
+        #expect(summary.companionProgressionAfter.currentXP == 13)
     }
 
-    @Test func makeVictorySummaryDoesNotRecomputeExperienceBonus() throws {
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 1,
-            abilities: []
-        )
-        let heroProgression = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
-        let companionProgression = CombatantProgression(level: 2, currentXP: 0, requiredXP: 155)
+    private func assertBakedAwardsIgnoreExperienceBonus() throws {
+        let (hero, companion, enemy) = try knightWolfEnemy()
         let baseType = try #require(GameContent.itemBaseTypes.first)
         let pendingItem = InventoryItem(
             id: "labyrinth-audit-node",
@@ -146,8 +168,8 @@ struct BattleVictorySummaryTests {
             companion: companion,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            heroProgression: heroProgression,
-            companionProgression: companionProgression,
+            heroProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 155),
+            companionProgression: CombatantProgression(level: 2, currentXP: 0, requiredXP: 155),
             stageReward: StageReward(gold: 10, itemTemplateIDs: []),
             rewardItems: [pendingItem],
             experienceBonusPercent: 20,
@@ -156,16 +178,22 @@ struct BattleVictorySummaryTests {
             heroExperienceAward: 42,
             companionExperienceAward: 42
         )
-        let session = BattleSession(openingHandDrawStagger: 0)
-        _ = session.activate(configuration)
-        session.installPresentationContext(context)
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        let summary = try #require(session.makeVictorySummary(for: configuration, presentation: context))
+        let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.experience == 42)
         #expect(summary.companionExperience == 42)
         #expect(summary.rewardItems == [pendingItem])
         #expect(context.experienceBonusPercent == 20)
+    }
+
+    private func makeDrivenVictorySummary(
+        configuration: BattleRunConfiguration,
+        context: BattlePresentationContext
+    ) throws -> BattleVictorySummary {
+        let session = BattleSession(openingHandDrawStagger: 0)
+        _ = session.activate(configuration)
+        session.installPresentationContext(context)
+        BattleSessionTestSupport.driveUntilOutcome(session)
+        return try #require(session.makeVictorySummary(for: configuration, presentation: context))
     }
 
     @Test func makeVictorySummaryKeepsRawBattleGoldSeparateFromHomesteadDisplaySplit() throws {

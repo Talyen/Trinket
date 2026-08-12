@@ -1,144 +1,35 @@
-# iOS 26 Apple Reference (Trinket)
+# Trinket Apple API choices
 
-Curated Apple documentation, WWDC sessions, and release guidance for Trinket's iOS 26 / Swift 6 stack. Official Apple sources remain authoritative; this doc highlights what matters for our portrait SwiftUI game shell.
+Official Apple sources remain authoritative. This file records **Trinket’s** forks of iOS 26 / Swift 6 APIs. Motion and materials procedure: [apple-design skill](../Skills/apple-design/SKILL.md). Chrome tokens: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Banned legacy APIs are enforced by `./Scripts/check-platform-api-bans.sh`.
 
-**Trinket baseline:** iOS 26.0 deployment target, Swift 6.0, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`). Standing product rules: [Architecture.md](Architecture.md). Design-system chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md).
+**Baseline:** iOS 26.0, Swift 6.0, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`).
 
----
+## Liquid Glass
 
-## Liquid Glass and the new design system
+Start here: [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass). Custom glass: [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views).
 
-Liquid Glass is the adaptive material Apple introduced for controls and navigation in iOS 26. Standard SwiftUI components (tab bars, toolbars, sheets, buttons) pick it up automatically when built with the Xcode 26 SDK.
-
-### Apple documentation
-
-- [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) — start here; covers visual refresh, controls, navigation, toolbars, sheets, and accessibility
-- [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) — `.glassEffect(_:in:)`, shapes, tinting, interactivity
-- [Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass) — sample project
-- [View.glassEffect(_:in:)](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:))
-- [GlassEffectContainer](https://developer.apple.com/documentation/swiftui/glasseffectcontainer) — group multiple glass elements; required for morphing and performance
-- [GlassButtonStyle](https://developer.apple.com/documentation/swiftui/glassbuttonstyle) / [GlassProminentButtonStyle](https://developer.apple.com/documentation/swiftui/glassprominentbuttonstyle)
-
-### WWDC25 design sessions
-
-| Session | Title | Trinket relevance |
-|---------|-------|-------------------|
-| [WWDC25-323](https://developer.apple.com/videos/play/wwdc2025/323/) | Build a SwiftUI app with the new design | TabView, toolbars, search, controls, custom `.glassEffect` |
-| [WWDC25 design system](https://developer.apple.com/videos/play/wwdc2025/) | Get to know the new design system | Design principles behind Liquid Glass |
-
-### Key APIs from WWDC25-323 (SwiftUI)
-
-| API | Use in Trinket |
+| API | Trinket choice |
 |-----|----------------|
-| `.tabBarMinimizeBehavior(.onScrollDown)` | Deliberately omitted — tab bar stays fully expanded on scroll |
-| `.tabViewBottomAccessory { }` | Optional: persistent mini-player or battle status above tab bar |
-| `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome |
-| `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / detail-hero screens for art-forward chrome |
-| `ToolbarSpacer` | Group related toolbar actions (e.g. battle menus) |
-| `.sharedBackgroundVisibility(.hidden)` | Separate avatar or status items from grouped toolbar chrome |
-| `.badge()` | Notification or milestone indicators on toolbar items |
-| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Inventory) |
-| `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (see `check-ui-style.sh`) |
-| `.glassEffectID(_:in:)` + `@Namespace` | Morphing transitions between related glass chips |
+| `.tabBarMinimizeBehavior(.onScrollDown)` | Omitted — tab bar stays fully expanded |
+| `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / detail-hero screens |
+| `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (`check-ui-style.sh`) |
+| Raw `.glassEffect` in feature views | Forbidden — DesignSystem only |
 
-### Apple guidance that affects Trinket
+Let system chrome adopt glass where it does not fight art-forward screens. Use glass sparingly on custom controls (combat chips, wallet pills), not every card. Dense Collection / Inventory / Options stay on solid themed surfaces. Do not stack glass on glass. Accessibility: PD-007.
 
-From [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass):
+## Current vs banned SwiftUI
 
-1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle and detail-hero screens by product choice.
-2. **Use glass sparingly on custom controls** — limit `.glassEffect` to high-value functional elements (combat feedback chips, wallet pills), not every card surface.
-3. **Follow the product accessibility baseline** — preserve native semantics, label
-   custom interactive controls, and centralize reduced-motion/transparency behavior.
-   Focused inspection is required; combinatorial UI-test permutations are not.
-4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
-
-Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem`); glass belongs on navigation chrome and selective overlays.
-
----
-
-## SwiftUI platform updates (iOS 26 baseline)
-
-Trinket already targets iOS 26 only, so these are **current APIs**, not migration targets.
-
-| Area | Modern API | Legacy (not in codebase) |
-|------|------------|--------------------------|
-| Navigation | `NavigationStack`, `NavigationLink` | `NavigationView` |
+| Area | Use | Do not reintroduce |
+|------|-----|-------------------|
+| Navigation | `NavigationStack` | `NavigationView` |
 | State | `@Observable`, `@Environment(Type.self)`, `@Bindable` | `ObservableObject`, `@Published`, `@StateObject`, `@EnvironmentObject` |
-| Change handling | `.onChange(of:) { old, new in }` | Single-parameter `.onChange` |
+| Change handling | two-parameter `onChange` | single-parameter `onChange` |
 | Tabs | `Tab(...)` + `TabView(selection:)` | `.tabItem` + `.tag` on roots |
-| Sheets | `.sheet(item:)` preferred | `.sheet(isPresented:)` still valid for booleans |
-| Materials | `.glassEffect` for custom chrome | Raw `.background(.thinMaterial)` on feature views |
-| Buttons | `.buttonStyle(.glass)` via design system | Raw `.buttonStyle(.bordered)` outside `TrinketDesignSystem` |
 
-### Next-SDK watchlist (WWDC26 / 2027 releases)
+## Later frameworks
 
-These ship in the 2027 SDK cycle; not required for Trinket's current iOS 26 target but worth tracking:
+When adding IAP, use StoreKit 2. New 3D work would use RealityKit, not SceneKit. GameKit and Foundation Models are unused.
 
-- [WWDC26 SwiftUI guide](https://developer.apple.com/wwdc26/guides/swiftui/)
-- [What's new in SwiftUI (WWDC26-269)](https://developer.apple.com/videos/play/wwdc2026/269/) — Document API, toolbar overflow/minimize, lazy `@State` for classes, `AsyncImage` HTTP caching
-- [WWDC26 iOS guide](https://developer.apple.com/wwdc26/guides/ios/)
+## App icon
 
----
-
-## Swift 6 and concurrency
-
-Trinket enables **Swift 6 strict concurrency** on all targets. Relevant Apple guidance:
-
-- [Swift 6 migration](https://www.swift.org/migration/documentation/swift-6-concurrency-migration-guide/) — `@MainActor`, `Sendable`, actor isolation
-- [What's new in Swift (WWDC26-262)](https://developer.apple.com/videos/play/wwdc2026/262/) — `@diagnose`, ownership improvements, `Subprocess` package
-
-Project audit: [14_SwiftConcurrencyDataRaceAudit.md](../Audits/14_SwiftConcurrencyDataRaceAudit.md).
-
----
-
-## Frameworks Trinket may adopt later
-
-| Framework | iOS 26 status | Trinket today |
-|-----------|---------------|---------------|
-| **StoreKit 2** | StoreKit 1 (`SKPayment*`) is deprecated and unsupported for new work | Not implemented; use StoreKit 2 when adding IAP |
-| **GameKit** | Current APIs | Not implemented |
-| **Foundation Models** | On-device Apple Intelligence framework (iOS 26) | Not used; evaluate only if product needs on-device LLM |
-| **SceneKit** | Soft-deprecated; existing apps continue to work, but new 3D work should use RealityKit | Not used (2D SwiftUI battle presentation) |
-
-### StoreKit 2 starting points (when needed)
-
-- [StoreKit documentation](https://developer.apple.com/documentation/storekit)
-- [Product](https://developer.apple.com/documentation/storekit/product)
-- [Transaction](https://developer.apple.com/documentation/storekit/transaction)
-
----
-
-## App Store and SDK requirements
-
-As of **April 28, 2026**, App Store submissions require **Xcode 26** and an SDK for iOS 26 or later ([Upcoming Requirements](https://developer.apple.com/news/upcoming-requirements/)).
-
-Deprecated or unsupported APIs to avoid (none found in Trinket production code):
-
-- `UIWebView` → `WKWebView`
-- `NSURLConnection` → `URLSession`
-- `ABAddressBook` → `Contacts` framework
-- `SKPaymentTransaction` / `SKPaymentQueue` → StoreKit 2
-
----
-
-## App icons (Liquid Glass era)
-
-iOS 26 app icons use layered compositions with system-applied effects. When preparing for App Store:
-
-- [Creating your app icon using Icon Composer](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer)
-- [Apple Design Resources](https://developer.apple.com/design/resources/) — updated icon grids
-
-Trinket authors the Icon Composer package under `Raw Assets/App Icon/` and installs it as `Trinket/AppIcon.icon` via `Scripts/prepare-app-icon.sh`. Prefer the `.icon` package over loose JPEG/PNG exports; the deployment target is iOS 26, so Xcode consumes the Icon Composer file directly.
-
----
-
-## Trinket implementation map
-
-| Concern | Owner | Notes |
-|---------|-------|-------|
-| Custom glass / materials | `TrinketDesignSystem` | Package README + style gate |
-| Tab shell | `Trinket/App` | See TabView APIs above |
-| Style guardrails | `Scripts/check-ui-style.sh` | Route `.glassEffect` / `.buttonStyle(.glass*)` through design system |
-| Fluid motion / gesture feel | [Apple Design skill](../Skills/apple-design/SKILL.md) | Principles via SwiftUI / `TrinketMotion` |
-| Concurrency | `project.yml`, `@MainActor` stores | Swift 6 migration guide |
-| CloudKit enablement | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Local-only until Developer Program |
+Trinket authors the Icon Composer package under `Raw Assets/App Icon/` and installs it as `Trinket/AppIcon.icon` via `Scripts/prepare-app-icon.sh`. Prefer the `.icon` package; iOS 26 consumes it directly. [Icon Composer](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer).

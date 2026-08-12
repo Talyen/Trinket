@@ -10,4 +10,4 @@ Options are deliberately separate: `OptionsStore` uses app-storage-compatible `U
 
 For a new store API, write a persistence test that mutates, reloads from disk, and asserts the result. Use `PersistenceTestContext`; do not test real CloudKit I/O. Run `./Scripts/test.sh style` and `./Scripts/test-package.sh TrinketPersistence`.
 
-Read `Docs/Platform/Architecture.md` for the model graph and `Docs/Platform/Testing.md` for fixture conventions. CloudKit/identity docs are pre-ship references, not routine task context.
+Read [TrinketPersistence README](../../Packages/TrinketPersistence/README.md) for the model graph. Fixture conventions: `Docs/Platform/Testing.md`. CloudKit enablement: [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md). Identity: [Identity.md](../Product/Identity.md).

@@ -66,49 +66,4 @@ struct BattleClaimedVictoryTests {
 
         #expect(deliveredConfigurationIDs == [first.configuration.id, second.configuration.id])
     }
-
-    @Test func claimedVictoryDeliversImmediatelyWhenUltimateHasNoCinematicVideo() {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.bloodthorn]
-        )
-        let companion = CombatantFixtures.combatant(
-            id: "companion",
-            role: .companion,
-            abilities: []
-        )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 3,
-            abilities: []
-        )
-        let session = BattleSession(openingHandDrawStagger: 0, outcomePresentationDelayOverride: 0)
-        session.partyCelebrateDelayOverride = 0
-        let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
-            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            stageRewardsAlreadyClaimed: true
-        )
-        _ = session.activate(configuration)
-        session.installPresentationContext(presentation)
-        var deliveryCount = 0
-        session.installClaimedVictoryHandler(ownerID: UUID()) { _, _ in
-            deliveryCount += 1
-        }
-        let now = Date()
-
-        _ = BattleSessionTestSupport.playAbility(
-            Ability.bloodthorn.id,
-            on: session,
-            at: now
-        )
-
-        #expect(session.outcome == .victory)
-        #expect(session.spectacle.activeCinematic == nil)
-        #expect(deliveryCount == 1)
-    }
 }

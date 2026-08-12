@@ -1,8 +1,9 @@
 # Verification and CI
 
 This guide owns task-to-script routing, gate composition, test tiers, and style
-ownership. `Scripts/README.md` is the command index; checked-in plans and scripts
-are the source of truth when implementation details change.
+ownership. Test authoring conventions live in [Testing.md](Testing.md).
+`Scripts/README.md` is the command index; checked-in scripts are the source of
+truth when flags change. Isolation and IDE setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 ## Confidence ladder
 
@@ -88,4 +89,9 @@ logs are diagnostic data, not a routine optimization mandate.
 
 Before a requested push, run `agent-push-gate.sh` after committing. It checks
 generation completeness only; the path-scoped handoff remains the pre-CI source
-gate. Post-push CI recovery policy lives in [CI-FIXER.md](../CI-FIXER.md).
+gate.
+
+Merging a PR into `main` requires the GitHub `tests / CI OK` check. That check is
+not a push gate on `main`. After a red CI run, triage with
+`./Scripts/ci-diagnostics.sh` and [ci-diagnostics.md](../AgentContext/ci-diagnostics.md);
+do not invent a separate fixer playbook.

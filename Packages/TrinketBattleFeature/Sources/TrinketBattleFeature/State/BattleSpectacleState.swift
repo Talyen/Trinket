@@ -12,8 +12,6 @@ public final class BattleSpectacleState {
     public var victorySummary: BattleVictorySummary?
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
-    var presentationHoldCount = 0
-    var softHoldUntil: Date?
     var deferredFeedbackEvents: [ActionEvent] = []
     var nextID = 0
     var actorsWhoPresentedUltimateThisBattle: Set<String> = []

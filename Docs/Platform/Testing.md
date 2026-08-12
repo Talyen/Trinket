@@ -1,6 +1,8 @@
 # Testing
 
-Unit and UI test conventions for Trinket. Agent workflow / command router: **`AGENTS.md`**. This file owns the definition of done and test conventions. Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args / speed: `TrinketUITests/README.md`.
+Unit and UI test conventions for Trinket. Command routing: [Verification.md](Verification.md).
+Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args / speed:
+`TrinketUITests/README.md`. Coverage decision below is canonical; `AGENTS.md` points here.
 
 ## Framework split
 
@@ -85,23 +87,8 @@ gap-fill (`./Scripts/build.sh`) rather than being inferred away. `SmokePlayTests
 covers the Play mode-card shell for any Play diff; CI `smoke-full` / exhaustive UI
 stay the broad net.
 
-Verify with the AGENTS Task→Command Router (toolchain permitting), using
-   **`--isolate` / `TRINKET_ISOLATE=1` for agent runs**:
-
-- **Agent handoff** → `./Scripts/handoff.sh --isolate --paths <files>`
-- **Package-only iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh <Package>`
-- **App orchestration iteration** → `TRINKET_ISOLATE=1 ./Scripts/test-package.sh TrinketAppState`
-- **Mid-task smoke iteration** → after one green rebuild in the isolate slot,
-  `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass> --no-build` (refused when
-  build-inputs changed). Handoff still runs full `handoff.sh --isolate`.
-- **Small UI feature** → the path-scoped route with the closest existing `<SmokeClass>/<testMethod>` when the rubric calls for UI ownership. If none exists, do not create one merely because a view changed.
-- **Cross-cutting UI** → affected focused smoke owners only during iteration. Full unit, full smoke, and exhaustive UI remain CI or explicit full-local confidence work.
-
-Local speed is path-scoped verify itself. Do not treat `test-timing.sh` reports as
-handoff work; that log is for humans (or an explicit “speed up tests” task) after
-`test.sh` / `test-package.sh` have recorded runs.
-
-Compile-only and other path-scoped tiers: `Docs/AgentContext/ci-and-project-generation.md`.
+Command routing, isolate slots, and mid-task `--no-build` live in
+[Verification.md](Verification.md). Agents always use `--isolate`.
 
 ## UI keep / drop rubric
 

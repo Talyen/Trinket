@@ -93,6 +93,8 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == expected.id)
 
         // Pin wins over a different pick context on later resolve.
+
+        // Pin wins over a different pick context on later resolve.
         let pinned = GameContent.resolveJourneyMysteryEvent(
             stage: stage,
             pinnedEventID: expected.id,
@@ -104,6 +106,21 @@ struct AppStateMysteryRecruitTests {
         )
         #expect(pinned.id == expected.id)
     }
+
+    #if DEBUG
+    @Test func journeyMysteryPinFailureDoesNotOpenEncounter() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-5"))
+        playerSave.forcesNextSaveFailure = true
+
+        let message = state.journey.beginMysteryEncounter(for: stage)
+
+        #expect(message != nil)
+        #expect(state.encounters.activeMysteryEncounter == nil)
+        #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == nil)
+    }
+    #endif
 
     @Test func staleChoiceIDFailsWithoutCompletingProgress() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])

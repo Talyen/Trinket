@@ -55,7 +55,7 @@ struct UltimateCinematicOverlay: View {
             let shouldFlushCollapse = didFinish
             let collapseID = cinematic.id
             cancelPendingOverlayTasks()
-            // Teardown can cancel the sleep task; flush so spectacle.presentationHoldCount still clears.
+            // Teardown can cancel the sleep task; flush collapse so deferred feedback still publishes.
             if shouldFlushCollapse {
                 onCollapseFinished(collapseID)
             }

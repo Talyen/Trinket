@@ -3,6 +3,7 @@ import Foundation
 import TrinketBattleRuntime
 import TrinketContent
 import TrinketCore
+import TrinketFeatureContracts
 
 extension BattleSession {
     public struct PreparedBattleRun {
@@ -226,21 +227,37 @@ extension BattleSession {
 
     @discardableResult
     public func activate(_ configuration: BattleRunConfiguration) -> Bool {
+        activate(configuration, presentation: nil)
+    }
+
+    @discardableResult
+    public func activate(
+        _ configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext?
+    ) -> Bool {
         guard activeBattle == nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
-        activatePresentation(for: configuration)
+        activatePresentation(for: configuration, presentation: presentation)
         return true
     }
 
     @discardableResult
     public func restart(_ configuration: BattleRunConfiguration) -> Bool {
+        restart(configuration, presentation: nil)
+    }
+
+    @discardableResult
+    public func restart(
+        _ configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext?
+    ) -> Bool {
         guard activeBattle != nil else { return false }
         preparedBattleRunsByKey.removeAll(keepingCapacity: true)
         releasePreparedArtworkPins()
         engineState = makeBattleState(from: configuration)
-        activatePresentation(for: configuration)
+        activatePresentation(for: configuration, presentation: presentation)
         return true
     }
 
@@ -271,10 +288,13 @@ extension BattleSession {
         trimPresentationMemory()
     }
 
-    private func activatePresentation(for configuration: BattleRunConfiguration) {
+    private func activatePresentation(
+        for configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext? = nil
+    ) {
         activeBattle = configuration
         lifecyclePhase = .active
-        installActiveBattle(configuration)
+        installActiveBattle(configuration, presentation: presentation)
     }
 
     private func makeBattleState(from configuration: BattleRunConfiguration) -> BattleState {

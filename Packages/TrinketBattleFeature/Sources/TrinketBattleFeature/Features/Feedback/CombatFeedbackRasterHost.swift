@@ -84,6 +84,7 @@ final class CombatFeedbackRasterUIView: UIView {
     )) + 1
 
     private var layersByID: [Int: ChipLayer] = [:]
+    private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
     var cardHeight: CGFloat = 0
 
@@ -145,6 +146,8 @@ final class CombatFeedbackRasterUIView: UIView {
             insert(canvasItem: canvasItem, raster: raster)
         }
 
+        orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
+
         if layersByID.isEmpty {
             CombatFeedbackChipMotionClock.unregister(self)
         } else {
@@ -169,14 +172,6 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     fileprivate func tickMotion(at date: Date) {
-        let orderedLayers = layersByID.values.sorted { lhs, rhs in
-            let lhsItem = lhs.canvasItem.item
-            let rhsItem = rhs.canvasItem.item
-            if lhsItem.availableAt == rhsItem.availableAt {
-                return lhsItem.id < rhsItem.id
-            }
-            return lhsItem.availableAt < rhsItem.availableAt
-        }
         let states = orderedLayers.map { chipLayer in
             let item = chipLayer.canvasItem.item
             let travelDistance = TrinketMotion.Battle.chipTravelDistance(
@@ -224,6 +219,15 @@ final class CombatFeedbackRasterUIView: UIView {
             resolved[index] = min(resolved[index], maximumOlderOffset)
         }
         return resolved
+    }
+
+    private static func chipLayerOrder(_ lhs: ChipLayer, _ rhs: ChipLayer) -> Bool {
+        let lhsItem = lhs.canvasItem.item
+        let rhsItem = rhs.canvasItem.item
+        if lhsItem.availableAt == rhsItem.availableAt {
+            return lhsItem.id < rhsItem.id
+        }
+        return lhsItem.availableAt < rhsItem.availableAt
     }
 
     private func compositorPose(

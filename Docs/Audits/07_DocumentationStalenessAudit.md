@@ -22,7 +22,7 @@ Find P1/P2 contradictions, omissions, and drift between docs and their sources o
 
 ## Domain rules
 
-**Sources of truth:** `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; checked-in scripts and CI configuration for executable workflows; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md). A missing instruction is a finding only when the executable source of truth proves it is required for the documented workflow.
+**Sources of truth:** [Docs/README.md](../README.md) source-of-truth table; `project.yml` (`deploymentTarget`, `SWIFT_VERSION`, marketing version); `Packages/*/Package.swift` `swift-tools-version`; checked-in scripts and CI configuration for executable workflows; smoke class inventory under `TrinketUITests/Smoke/`; canonical names from [Architecture.md](../Platform/Architecture.md). A missing instruction is a finding only when the executable source of truth proves it is required for the documented workflow. Duplicated policy that diverges from the Docs/README owner is P2 drift.
 
 **Links:** internal `.md` links resolve **relative to the source file**; heading anchors must still exist. Recheck edited links and factual claims against their listed source of truth. External URLs: check only when changing that source and network is available — do not fail solely on an unavailable endpoint.
 

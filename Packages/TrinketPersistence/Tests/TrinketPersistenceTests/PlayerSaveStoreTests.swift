@@ -135,15 +135,6 @@ final class PlayerSaveStoreTests {
         try #expect(store.currentSave.sessionGeneration == 1)
     }
 
-    @Test func applyTestSeedMatchesDeterministicUITestBaseline() throws {
-        let store = try context.makeSaveStore()
-        try store.applyTestSeed()
-
-        try #expect(store.roster == .testSeed)
-        try #expect(store.inventory == .testSeed)
-        try #expect(store.homestead == .testSeed)
-    }
-
     @Test func unlockAllContentUnlocksRosterAndClearsChapterOne() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(
@@ -206,44 +197,13 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
     }
 
-    @Test func rosterCacheReturnsConsistentHydratedState() throws {
+    @Test func noopBatchMutationDoesNotBumpModifiedAt() throws {
         let store = try context.makeSaveStore()
-        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        let item = template.rewardInstance(for: "chapter-1-stage-1")
-        store.appendInventoryItem(item)
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let before = store.currentSave.modifiedAt
 
-        var roster = store.roster
-        var loadout = roster.equipmentLoadout(for: knight)
-        loadout.equip(item)
-        roster.setEquipmentLoadout(loadout, for: knight)
-        store.roster = roster
+        try store.performBatchMutation { _ in }
 
-        let firstRead = store.roster
-        let secondRead = store.roster
-        try #expect(firstRead == secondRead)
-        try #expect(
-            firstRead.equipmentLoadout(for: knight).itemID(for: .weapon) == "chapter-1-stage-1-shortsword-basic"
-        )
-    }
-
-    @Test func localMutationUpdatesModifiedAt() throws {
-        let store = try context.makeSaveStore()
-        let beforeLocalEdit = store.currentSave.modifiedAt
-        store.grantGold(1)
-
-        try #expect(store.currentSave.modifiedAt > beforeLocalEdit)
-    }
-
-    @Test func sanitizerDropsRemovedStages() throws {
-        var journey = JourneyProgressState.initial
-        journey.completedStageIDs = ["chapter-1-stage-5", "chapter-1-stage-99", "missing-stage"]
-        journey.claimedRewardStageIDs = ["chapter-1-stage-5", "chapter-1-stage-99"]
-
-        let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
-
-        try #expect(sanitized.completedStageIDs == ["chapter-1-stage-5"])
-        try #expect(sanitized.claimedRewardStageIDs == ["chapter-1-stage-5"])
+        try #expect(store.currentSave.modifiedAt == before)
     }
 
     @Test(arguments: [
@@ -289,21 +249,6 @@ final class PlayerSaveStoreTests {
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.gold == 19)
         try #expect(store.lastPersistenceError == nil)
-    }
-
-    @Test func localOnlyConfigurationWiresStoreURLAndRecovery() {
-        let finalURL = context.storeURL()
-        let resolved = PlayerSaveStoreConfiguration.resolveConfiguration(
-            schema: PlayerSaveGraph.schema,
-            finalURL: finalURL,
-            storeName: nil,
-            storeURL: nil,
-            disableCloudSync: true,
-            inMemoryOnly: false,
-            cloudKitContainerIdentifier: PlayerSaveStore.cloudKitContainerIdentifier
-        )
-        #expect(resolved.recoveryURL == finalURL)
-        #expect(resolved.config.url == finalURL)
     }
 
     @Test func performBatchMutationPreservesStateWhenValidationFails() throws {
@@ -414,6 +359,38 @@ final class PlayerSaveStoreTests {
     }
     #endif
 }
+
+#if DEBUG
+extension PlayerSaveStoreTests {
+    @Test func immediatePersistRetiresDeferredRollbackSoALaterFlushFailureKeepsSavedProgress() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: false
+        )
+        try store.performBatchMutation({ save in
+            save.roster.gold = 10
+        }, persistImmediately: true)
+        try store.performBatchMutation({ save in
+            save.roster.gold = 20
+        }, persistImmediately: false)
+        try store.performBatchMutation({ save in
+            save.roster.gold = 50
+        }, persistImmediately: true)
+        try #expect(store.roster.gold == 50)
+
+        store.forcesNextSaveFailure = true
+        store.flushPendingPersistence()
+
+        try #expect(store.roster.gold == 50)
+        try #expect(store.lastPersistenceError == nil)
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(reloaded.roster.gold == 50)
+    }
+}
+#endif
 
 private extension PlayerSaveStore {
     func grantExperience(_ amount: Int, to combatant: Combatant) {

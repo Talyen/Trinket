@@ -37,14 +37,6 @@ Raw Assets/                 Source art/music/SFX/animations (not in Xcode target
 Scripts/                    generate, build, test, CI helpers
 ```
 
-Manifests and pipelines live outside the app folder:
-
-- `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Packages/TrinketContent/Sources/TrinketContent/Generated/`
-- `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Packages/TrinketContent/.../Generated/ArtCatalog.generated.swift` + `Trinket/Assets.xcassets`
-- `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh` → `Packages/TrinketContent/.../Generated/MusicCatalog.generated.swift` + `Trinket/Media/Music`
-- `SoundManifest/sfx.tsv` → `Scripts/prepare-sfx-assets.sh` → `Packages/TrinketContent/.../Generated/SFXCatalog.generated.swift` + `Trinket/Media/SFX`
-- `CinematicManifest/cinematics.tsv` → `Scripts/prepare-cinematic-assets.sh` → `Packages/TrinketContent/.../Generated/UltimateCinematicCatalog.generated.swift` + `Trinket/Media/Cinematics`
-
 ## Module ownership
 
 | Concern | Owner | Notes |
@@ -52,25 +44,23 @@ Manifests and pipelines live outside the app folder:
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
 | Heroes, companions, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and card combat | `BattleEngine` | `BattleState`, effect handlers, decks/hand, `playCard` / `endTurn` |
-| Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers (`BattleLoot`, `StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`) mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
+| Player save, stores, CloudKit sync, domain write policies | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`; campaign reward/completion appliers mutate the save graph — app sessions decide *when*, Persistence owns *what write* |
 | Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword and Homestead resource visuals, `ExperienceBar`, motion primitives |
 | Shared feature support | `TrinketFeatureSupport` | Game-specific cards/detail panes, presentation models, `AccessibilityID`, prepared artwork, frame-pacing contracts |
 | Feature contracts | `TrinketFeatureContracts` | SwiftUI-free `CombatantDetailContext`, `StageMapMessage`, and `BattlePresentationContext`; no save or view adapters |
-| Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, `BattleRuntimeStore`, `BattleRunConfiguration`, `BattleRunKey`, and performance scenario contracts. It contains only immutable simulation inputs and lifecycle; Play-owned reward/presentation context stays outside this boundary. |
-| Battle presentation | `TrinketBattleFeature` | `BattleSession` implements the runtime contract and owns lifecycle/simulation plus combat projection, feedback/spectacle lanes, and Battle UI. BattleFeature must not branch on play-mode identity or assemble from live save slices. |
-| App and Play orchestration | `TrinketAppState` | Composition/wiring, Play shell and mode owners, battle launch/completion orchestration, encounter sessions, preferences, and audio routing. Detailed symbol ownership lives in the package README and Battle context card. |
+| Battle runtime contract | `TrinketBattleRuntime` | SwiftUI-free `BattleRuntime`, launch DTOs, and performance scenario contracts. Immutable simulation inputs and lifecycle only. |
+| Battle presentation | `TrinketBattleFeature` | `BattleSession` implements the runtime contract and owns lifecycle/simulation plus combat projection, feedback/spectacle lanes, and Battle UI. Must not branch on play-mode identity or assemble from live save slices. |
+| App and Play orchestration | `TrinketAppState` | Composition/wiring, Play shell and mode owners, battle launch/completion, encounter sessions, preferences, and audio routing. |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots plus Play, Collection, Homestead, and Options views |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Binary art/music committed after `--assets` codegen |
 
-## Product tabs vs code
+Battle launch/DTO contract: [battle.md](../AgentContext/battle.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md).
 
-Persistent player-facing tabs:
+## Product tabs vs code
 
 ```text
 Play → Collection → Homestead → Options
 ```
-
-Code mapping:
 
 | UI label | `AppTab` | Feature owner |
 |----------|----------|----------------|
@@ -79,35 +69,11 @@ Code mapping:
 | Homestead | `.homestead` | `Trinket/Features/Homestead` |
 | Options | `.options` | `Trinket/Features/Options` |
 
-## Generate workflow
+## Generate
 
-**Single entry point:** `./Scripts/generate.sh`
-
-1. Validate `ContentManifest` TSV files
-2. Regenerate content catalogs (emits `public` directly from `content_codegen.py`)
-3. Optionally prepare art, music, SFX, and cinematic catalogs (`--assets`)
-4. Run XcodeGen
-
-**Drift check:** `./Scripts/assert-generated-output.sh` after `generate.sh` (CI / pre-push: must match HEAD). Local `handoff` uses `--idempotent` instead so intentional uncommitted regeneration is allowed mid-task.
-
-**Boundary check:** `./Scripts/check-module-boundaries.sh` (CI gate + `test-deploy.sh --mode smoke`).
-
-After editing `ContentManifest/` or custom ability catalog files under `Packages/TrinketContent/Sources/TrinketContent/Content/`:
-
-```sh
-./Scripts/generate.sh
-git add Packages/TrinketContent/Sources/TrinketContent/Generated/
-```
-
-After editing art, music, SFX, or cinematic manifests:
-
-```sh
-./Scripts/generate.sh --assets
-```
+Single entry point: `./Scripts/generate.sh` (add `--assets` for art, music, SFX, and cinematics). Operational steps, authored vs generated inputs, and ability catalogs: [content-and-manifests.md](../AgentContext/content-and-manifests.md). CI/pre-push asserts generated output matches HEAD; local `handoff` uses `--idempotent`.
 
 ## Dependency rules
-
-### Package and target policy graph
 
 This is the enforced package-policy graph, not an exhaustive list of every direct app
 target dependency. Arrows mean “may depend on.” Every edge points downward; reverse
@@ -150,124 +116,41 @@ TrinketDesignSystem ────────────────────
 
 `BattleEngine` and `TrinketPersistence` remain siblings and never import one another.
 `TrinketFeatureSupport` is persistence- and battle-engine-free reusable presentation.
-`TrinketFeatureContracts` is the smaller, SwiftUI-free value layer for route and
-user-message contracts; it is also the single neutral home for the immutable
-`BattlePresentationContext` battle presentation/reward DTO shared by Play
-orchestration and BattleFeature. Play-only restart metadata remains in the Play run
-registry rather than being added to that shared contract. The layer must not grow
-save-backed behavior. `SFXID` lives in
-`TrinketContent` with the generated sound catalog, so orchestration and battle
-resolution can name clips without importing presentation support.
+`TrinketFeatureContracts` is the SwiftUI-free value layer for route and
+`BattlePresentationContext`; it must not grow save-backed behavior.
 `TrinketFeatureAdapters` owns save-backed map/detail adapters and combat build resolution;
 it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
-the SwiftUI-free `TrinketBattleRuntime` lifecycle contract, never the presentation
-feature. No package may import the `Trinket` app module. `./Scripts/check-module-boundaries.sh`
-enforces these rules in both source imports and package manifests.
+`TrinketBattleRuntime`, never the presentation feature. No package may import the `Trinket`
+app module. `./Scripts/check-module-boundaries.sh` enforces these rules in source imports
+and package manifests.
 
-The app target is a composition root and view host. `TrinketAppState` production code
-depends on `TrinketBattleRuntime` and
-`TrinketFeatureContracts`, never the concrete BattleFeature or save-backed adapters.
-The app composition root supplies
-`BattleRuntimeDependencies` as closure-only capabilities and builds one concrete
-`BattleSession`. `PlaySession.battle` receives that object only through the runtime
-contract, while the root retains it for presentation-only work. App views receive the narrowest
-available owner (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
-`EncounterPlayMode`, an encounter session, `BattleSession`, or one of Battle’s read
-lanes) instead of observing `AppState` or the full `PlaySession` for unrelated state.
-Shell battle activation routes through `PlaySession.battle`; lifecycle and presentation
-transitions occur atomically on the same `BattleSession` instance.
-`PlaySession` remains in the environment for
-shell concerns (pending destination, battle victory routing via
-`PlayBattleCompletion`). Active battle route and presentation metadata are stored
-directly as `PlayBattleRunRegistration` values in `PlaySession`'s `BattleRunKey`
-registry, so cleanup is atomic. Play
-screens read save slices from `PlayerSaveStore` directly —
-not through `PlaySession` facades. Mode types own map/node/floor selection and
-mode-unique completion writes; they must not re-absorb the shared victory
-persist→dismiss sequence. The battle launch and DTO contract is defined in the
-Module ownership table above; package-specific routing is in
-`Docs/AgentContext/battle.md`.
-
-Launch-only presentation work follows the same composition boundary: `AppState`
-prepares audio and requests launch state, while the app root warms concrete BattleFeature
-caches and presents launch-victory chrome on its retained `BattleSession`. The
-lifecycle protocol does not grow cinematic, artwork, or chrome hooks for these
-presentation-only cases.
+The app target is a composition root. `TrinketAppState` production code depends on
+`TrinketBattleRuntime` and `TrinketFeatureContracts`, never concrete BattleFeature or
+save-backed adapters. Views take the narrowest owner. Launch/DTO details:
+[battle.md](../AgentContext/battle.md).
 
 ## Persistence overview
 
-- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, aspects, labyrinth). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, aspects, and labyrinth records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and mode progress.
-- **Save hub:** `PlayerSaveStore` opens the versioned `ModelContainer` via `ModelContainerBootstrap` and `PlayerSaveStoreConfiguration`. A failed canonical-store open preserves the on-disk files and uses an explicitly degraded in-memory fallback; only a player-requested reset deletes progress. Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
-- **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
-- **Write locality:** Every mutation computes a `PlayerSaveSlice` diff. Setters and batches reconcile and save only changed slices; rollback refreshes only touched slices. Stable child-row identities are preserved when values change.
-- **Options/preferences:** `TrinketAppState.OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Shell tab selection lives in-session on `TrinketAppState.ShellSession` and is never persisted: cold launch always lands on Play unless a UI-test launch override (`-selectedTab` / `-launch-screen`) selects another tab/screen. Legacy battle-resume and map-scroll UserDefaults keys are cleared on `-reset-state`, never restored. The app is always dark mode (no appearance preference).
-- **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements. Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
-- **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
-- **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`
-- **Audio:** `TrinketAppState.MusicPlayer` uses ambient `AVAudioPlayer` by design.
+- Canonical save is the SwiftData graph in `TrinketPersistence` (`PlayerSaveRoot` and slice stores). Value types such as `PlayerSave` are calculation snapshots.
+- `PlayerSaveStore` is a thin hub: open/config, write-through, deferred save/rollback, reset/seed. Cross-slice homestead actions live on `PlayerHomesteadStore`.
+- Options/haptics are `TrinketAppState.OptionsStore` on local `UserDefaults`, not `PlayerSave` / CloudKit. Shell tab selection is in-session only; cold launch lands on Play.
+- Sync is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but local-only until [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md). Identity: [Identity.md](../Product/Identity.md).
+- Audio playback lives in `TrinketAppState` (ambient `AVAudioPlayer` by design).
 
 ## Extension policy (hub containment)
 
-Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type bodies with feature-specific logic.
-Keep `AppState` as composition/wiring — new Play feature methods belong on mode owners or on `PlayBattleLaunch` / `PlayBattleCompletion`, not on `AppState`.
+Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as composition/wiring.
 
 | Hub | Put new code here | Not here |
 |-----|-------------------|----------|
 | `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
 | `PlayerSaveStore` | Value-type rules in `Models/`; cross-slice actions on `PlayerHomesteadStore`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class; empty pass-through facades |
-| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion`; encounter/loot/claimed-stage resolve and party/build bake on `PlayBattleLaunch`; `PlayBattleOrigin` encode/decode; atomic `PlayBattleRunRegistration` values in the `BattleRunKey` registry | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; mode-branching resolve or live journey/homestead reads on `BattleRunConfiguration` / Battle UI; a parallel `AppState.battle` handle |
+| `AppState` / `PlaySession` | Bootstrap/wiring; shell navigation via `play.battle`; `PlayModeGraph` assembly; forwarders to `PlayBattleLaunch` / `PlayBattleCompletion` | Mode-specific prepare/start/complete bodies on `PlaySession`; Persistence write policy; a parallel `AppState.battle` handle |
 | Combat triggers | Authored `CombatTraitTriggers` (Content + codegen); nested on `CombatModifierProfile.triggers` | Parallel flat fields on `CombatModifierProfile` |
 
 `BattleState` public API is reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
-
-## Tech stack
-
-Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform index: [README.md](README.md).
-
-- iOS 26.0, Swift 6.0, SwiftUI shell
-- Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
-- Swift 6 strict concurrency enabled on all package targets
-- Swift Testing unit + XCTest UI (tiered via `.xctestplan` files)
-- XcodeGen (`project.yml`), SwiftLint, SwiftFormat
-- No third-party Swift dependencies
-- Battle presentation is SwiftUI; SpriteKit is not in use.
-- Battle simulation lives inside `BattleSession`, which implements the SwiftUI-free
-  runtime contract and owns lifecycle, simulation, and commands. `BattlePresentationState`,
-  `BattleFeedbackLane`, and `BattleSpectacleState` remain distinct observable read lanes. A committed engine
-  transition publishes one combat snapshot before its feedback/outcome work.
-- Card casts use one SwiftUI presentation lane. Feedback uses an always-mounted, preallocated UIKit raster host — a **bounded performance island** (see below), not a growth surface for new `UIViewRepresentable`s.
-- Headless simulation, balance policies, sweeps, and reporting live in the app-unlinked
-  `BattleBalanceTools` target; runtime mechanics remain in `BattleEngine`.
-- Semantic tests live with their package owner. `./Scripts/test.sh unit` builds and
-  runs all production package suites in parallel (there is no app-level unit
-  target); path-scoped verify uses
-  `./Scripts/test.sh unit --app-only` (app compile build) and
-  `./Scripts/test-package.sh <Package>` for touched packages.
-
-### Battle UIKit feedback island
-
-Combat floating chips use always-mounted UIKit hosts (`CombatFeedbackRasterHost`, `CombatFeedbackChipBridge`, glyph atlas / composers) so chip publishes skip SwiftUI battle-chrome invalidation. This is an intentional performance exception to the root “prefer SwiftUI” guardrail.
-
-| May enter the island | Must stay SwiftUI / State recipes |
-|----------------------|-----------------------------------|
-| New chip kinds via existing host + recipe/data APIs | New parallel `UIViewRepresentable` stacks |
-| Raster/glyph cache tweaks measured against hitch budgets | Feature chrome, hand, battlefield layout |
-| DEBUG MotionLabs that tune recipe/config values | Shipping MotionLab UI (labs stay `#if DEBUG` only) |
-
-Do not rewrite the host for purity unless Instruments shows SwiftUI can match hitch budgets. Production motion constants live in recipe/config types (`BattleHandMotionConfiguration`, `CombatFeedback*Recipes`, DesignSystem motion); MotionLab files are DEBUG playgrounds and must not become production surface.
-
-### Standing platform rules
-
-- Use modern SwiftUI only: `NavigationStack`, modern `Tab`, `@Observable` / `@Environment` / `@Bindable`, two-parameter `onChange`. Do not reintroduce `NavigationView`, `ObservableObject` / `@Published`, or single-parameter `onChange`.
-- Route custom glass and prominent buttons through `TrinketDesignSystem`; feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)`. Glass belongs on functional chrome; dense Collection / Inventory / Options content stays on solid themed surfaces.
-- Keep the root tab bar fully expanded (do not adopt tab-bar minimize-on-scroll). Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
-- Options/haptics stay on `AppStorage`-compatible local keys — not part of `PlayerSave` / CloudKit. Gate sensory feedback with `.trinketSensoryFeedback`.
-- Accessibility stays visual-first per PD-007: preserve native semantics, label custom
-  interactive controls, support Dynamic Type on reading/navigation surfaces, and
-  centralize reduced-motion/transparency behavior in DesignSystem/motion owners.
-- When adopting new frameworks later: StoreKit 2, modern GameKit, RealityKit — not StoreKit 1, legacy GameKit, or SceneKit.
 
 ## Deferred improvements
 
@@ -275,7 +158,7 @@ Do not start these without a concrete forcing function:
 
 | Deferral | Why wait |
 |----------|----------|
-| Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam; keep new generators beside existing ones |
-| Split `TrinketFeatureSupport` by product domain | Shared UI/presentation layer is intentional until a domain folder has an independent consumer or mixed-job hotspot that forces a carve-out; prefer collapsing duplicate shells in place first |
+| Split `TrinketContent` into catalogs vs procedural systems | Same package is intentional until a third consumer forces the seam |
+| Split `TrinketFeatureSupport` by product domain | Shared UI layer is intentional until a domain folder has an independent consumer |
 | CloudKit enablement | Local-only until Developer Program + [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) |
-| Further Battle presentation splitting | Simulation, projection, feedback, and spectacle already have distinct owners; split again only when one lane has a concrete independent responsibility |
+| Further Battle presentation splitting | Simulation, projection, feedback, and spectacle already have distinct owners |

@@ -69,17 +69,7 @@ Routine passes (every few days) use a two-ring inventory. Ring 1 is code changed
 
 `02_AuthoredMassGrowthAudit.md`, `05_ChangeLocalityContextEfficiencyAudit.md`, and `07_DocumentationStalenessAudit.md` are retrospective inventories — prefer whole-repo passes at a longer cadence (weekly or on request) over including them in every routine rotation.
 
-### Orchestrated runs
-
-When a user requests multiple audits or subagent implementation, keep one root orchestrator responsible for shared prereads, candidate deduplication, finding confirmation, the implementation plan, edit ownership, final review, and integrated verification.
-
-- Delegate only confirmed, independent implementation slices. Use an Explorer only for a bounded investigation that does not repeat the root inventory.
-- Never give a subagent the full conversation by default. Use no inherited turns or the smallest useful recent-turn slice; rely on a task brief and repository sources for durable context.
-- A task brief must name the owning audit, confirmed evidence, intended remedy, exact files/symbols the agent owns, hard stops, and the cheapest matching verification. Do not ask the agent to rediscover the problem or rerun broad probes.
-- Keep concurrent write ownership disjoint. Prefer one or two implementation agents at a time; additional agents must provide a real independent latency win.
-- Subagents run targeted checks for their own slice and return only changed paths, behavior, verification status, and blockers. Do not return raw diffs, source dumps, or full build/test logs.
-- The root reviews every diff and runs the canonical path-scoped gate once across the integrated changed paths. Do not multiply the same full suite across workers and the root.
-- Keep command output bounded: pass explicit paths to searches, prefer quiet or summary modes, and inspect focused diagnostics only after a failure. Save or summarize long logs instead of injecting them into agent context.
+Multi-audit orchestration (subagent briefs, disjoint writes, one integrated handoff): [.agents/skills/run-audits/SKILL.md](../../.agents/skills/run-audits/SKILL.md).
 
 ### Audit template
 

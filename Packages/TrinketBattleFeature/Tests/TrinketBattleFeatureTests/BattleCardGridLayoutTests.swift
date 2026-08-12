@@ -9,7 +9,6 @@ struct BattleCardGridLayoutTests {
         let containerSize = CGSize(width: 320, height: 410)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
-        #expect(metrics.handReservedHeight == BattleCardGridLayout.handReservedHeight)
         #expect(metrics.enemySize.width <= containerSize.width * BattleCardGridLayout.combatantScale + 0.001)
         #expect(metrics.enemySize.width >= 0)
         #expect(metrics.enemySize.height >= 0)

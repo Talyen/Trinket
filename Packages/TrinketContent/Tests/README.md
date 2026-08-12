@@ -16,6 +16,7 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 | Item affix catalog | `ItemAffixCatalogTests` | Weights, slot pools |
 | Combatant equipment rules | `CombatantEquipmentTests` | Hero vs companion slots |
 | Encounter level scaling | `EncounterLevelResolverTests` | Chapter span |
+| Spire catalog | `SpireCatalogTests` | Spire identities and encounter wiring |
 
 **Not here:** Encounter art presentation wiring
 (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`)

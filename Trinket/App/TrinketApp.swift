@@ -38,9 +38,6 @@ struct TrinketApp: App {
                 environment: environment,
                 makeBattleRuntime: makeBattleRuntime
             )
-            if environment.launchScreen == .battleVictory {
-                concreteBattleSession?.presentLaunchVictory()
-            }
             _appState = State(initialValue: state)
             _battleSession = State(initialValue: concreteBattleSession)
         } catch {
@@ -55,9 +52,6 @@ struct TrinketApp: App {
                     playerSave: fallbackSave,
                     makeBattleRuntime: makeBattleRuntime
                 )
-                if environment.launchScreen == .battleVictory {
-                    concreteBattleSession?.presentLaunchVictory()
-                }
                 _appState = State(initialValue: state)
                 _battleSession = State(initialValue: concreteBattleSession)
             } catch {

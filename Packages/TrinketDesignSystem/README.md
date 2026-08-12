@@ -36,7 +36,12 @@ All production colors load from `DesignColors.xcassets` through `DesignAssetColo
 
 Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.
 
-**Enforcement:** `./Scripts/check-ui-style.sh` and SwiftLint custom rules fail style/CI on one-off colors. Coding agents also load `.cursor/rules/design-system-colors.mdc` and `AGENTS.md`. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
+**Enforcement:** `./Scripts/check-ui-style.sh` and SwiftLint custom rules fail style/CI on one-off colors. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
+
+```sh
+./Scripts/test-package.sh TrinketDesignSystem
+./Scripts/check-ui-style.sh
+```
 
 ## Typography
 

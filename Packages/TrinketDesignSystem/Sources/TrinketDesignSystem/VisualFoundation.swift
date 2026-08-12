@@ -294,19 +294,6 @@ extension ChipChromeRole {
     }
 }
 
-/// Dark outline + soft bloom so floating combat numbers stay readable on busy art.
-struct CombatFloatTextModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.95), radius: 0, x: 0, y: 1)
-            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: 0, y: -1)
-            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: 1, y: 0)
-            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: -1, y: 0)
-            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.55), radius: 3, x: 0, y: 1.5)
-            .drawingGroup()
-    }
-}
-
 struct WalletPillModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -345,10 +332,6 @@ public extension View {
 
     func trinketGlassChip(_ role: ChipChromeRole = .standard) -> some View {
         modifier(GlassChipModifier(role: role))
-    }
-
-    func trinketCombatFloatText() -> some View {
-        modifier(CombatFloatTextModifier())
     }
 
     func trinketWalletPill() -> some View {

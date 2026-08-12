@@ -32,10 +32,13 @@ public extension EncounterPlayMode {
         if let labyrinthNodeID = origin.labyrinthNodeID,
            pinnedLabyrinthEventID == nil,
            !opened.session.event.isRecruit {
-            playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
+            let didPin = playerSave.persistBatch(logging: "Failed to pin labyrinth mystery event") { save in
                 guard var node = save.labyrinth.nodes[labyrinthNodeID] else { return }
                 node.mysteryEventID = opened.resolvedEventID
                 save.labyrinth.nodes[labyrinthNodeID] = node
+            }
+            if !didPin {
+                return Self.mysteryPinFailureMessage
             }
         }
 
@@ -43,8 +46,11 @@ public extension EncounterPlayMode {
            pinnedJourneyEventID == nil,
            !opened.session.event.isRecruit,
            stage.mysteryEvent == nil {
-            playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
+            let didPin = playerSave.persistBatch(logging: "Failed to pin journey mystery event") { save in
                 save.journey.pinnedMysteryEventIDs[stage.id] = opened.resolvedEventID
+            }
+            if !didPin {
+                return Self.mysteryPinFailureMessage
             }
         }
 
@@ -202,4 +208,9 @@ public extension EncounterPlayMode {
             save: &save
         )
     }
+
+    private static let mysteryPinFailureMessage = StageMapMessage(
+        title: "Couldn't Save Progress",
+        message: "This event was not saved. Stay here and try again."
+    )
 }

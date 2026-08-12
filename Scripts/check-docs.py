@@ -67,12 +67,27 @@ def structural_checks(files: list[Path]) -> list[str]:
     stale = {
         "five-surface selector matrix": "smoke plan now covers six surfaces",
         "BattleRuntimeSession": "runtime owner is BattleRuntime/BattleSession",
+        "art.json": "art manifest is ArtManifest/curated-assets.tsv",
+        "TrinketBattleEngine": "package scheme is BattleEngine",
+        "Task→Command Router": "command routing lives in Docs/Platform/Verification.md",
     }
     for source in files:
         text = source.read_text(encoding="utf-8")
         for phrase, explanation in stale.items():
             if phrase in text:
                 failures.append(f"{source.relative_to(ROOT)}: stale phrase {phrase!r} ({explanation})")
+
+    plans_dir = ROOT / "Docs" / "Plans"
+    extra_plans = sorted(
+        path.name
+        for path in plans_dir.glob("*.md")
+        if path.name != "README.md"
+    )
+    if extra_plans:
+        failures.append(
+            "Docs/Plans/: extra markdown besides README.md "
+            f"({', '.join(extra_plans)}); finished plans must be deleted"
+        )
     return failures
 
 

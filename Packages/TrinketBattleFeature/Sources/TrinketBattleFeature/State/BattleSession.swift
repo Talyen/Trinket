@@ -271,9 +271,12 @@ public final class BattleSession: BattleRuntime {
     }
 
     /// Installs presentation for a configuration already accepted by the runtime.
-    func installActiveBattle(_ configuration: BattleRunConfiguration) {
+    func installActiveBattle(
+        _ configuration: BattleRunConfiguration,
+        presentation: BattlePresentationContext? = nil
+    ) {
         activeBattle = configuration
-        presentationContext = .empty
+        presentationContext = presentation
         lifecyclePhase = .active
         resetRun(from: configuration)
     }
@@ -301,7 +304,6 @@ public final class BattleSession: BattleRuntime {
         let date = Date.now
         feedback.pruneExpired(at: date)
         pruneExpiredSkillCallout(at: date)
-        pruneSoftHold(at: date)
         resetFeedbackRasterMemory()
     }
 

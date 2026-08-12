@@ -8,7 +8,7 @@ the linked guides explain routing and operating policy.
 
 ```sh
 ./Scripts/generate.sh
-./Scripts/test-package.sh TrinketBattleEngine
+./Scripts/test-package.sh BattleEngine
 ./Scripts/test.sh unit
 ./Scripts/agent-context.sh --agent --paths <changed-paths...>
 ./Scripts/handoff.sh --isolate --paths <changed-paths...>
@@ -20,6 +20,7 @@ Swift iteration unless an asset manifest or source changed.
 
 Read these focused guides:
 
+- [Documentation map](../Docs/README.md) — source-of-truth owners.
 - [Verification and CI](../Docs/Platform/Verification.md) — task routing, test
   tiers, gate composition, style ownership, and diagnostics.
 - [Simulator operations](../Docs/Platform/SimulatorOperations.md) — isolation,
@@ -27,7 +28,8 @@ Read these focused guides:
 - [Release process](../Docs/Platform/Release.md) — versions, commit messages,
   release notes, tags, and App Store handoff.
 - [CI diagnostics](../Docs/AgentContext/ci-diagnostics.md) — structured failure
-  reports and triage order.
+  reports and triage order. `./Scripts/agent-context.sh` discovers nested
+  guides, context cards, and skills for the given paths.
 
 ## Command index
 

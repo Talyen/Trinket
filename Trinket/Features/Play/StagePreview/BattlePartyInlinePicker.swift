@@ -69,6 +69,7 @@ struct StageBattlePartyPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectionFeedbackTrigger = 0
+    @State private var persistError: String?
 
     let spire: SpireDefinition?
 
@@ -106,6 +107,7 @@ struct StageBattlePartyPickerSheet: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
+        .partyPersistErrorAlert(error: $persistError)
     }
 
     private func partyShelf(for slot: BattlePartySlot) -> some View {
@@ -158,9 +160,13 @@ struct StageBattlePartyPickerSheet: View {
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        // persistBatch returns whether the mutation stuck; the picker keeps its
-        // haptic regardless and product may surface the Bool later.
-        playerSave.persistBatch(logging: "Failed to persist party selection") { $0.roster = roster }
+        let didPersist = playerSave.persistBatch(logging: "Failed to persist party selection") {
+            $0.roster = roster
+        }
+        guard didPersist else {
+            persistError = "Your party change was not saved. Try again."
+            return
+        }
         selectionFeedbackTrigger += 1
     }
 
@@ -182,6 +188,7 @@ private struct BattlePartySlotGridView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
 
     @State private var selectionFeedbackTrigger = 0
+    @State private var persistError: String?
 
     let slot: BattlePartySlot
     let spire: SpireDefinition?
@@ -215,6 +222,7 @@ private struct BattlePartySlotGridView: View {
             trigger: selectionFeedbackTrigger,
             enabled: options.hapticsEnabled
         )
+        .partyPersistErrorAlert(error: $persistError)
     }
 
     private var orderedCombatants: [Combatant] {
@@ -225,7 +233,33 @@ private struct BattlePartySlotGridView: View {
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        playerSave.persistBatch(logging: "Failed to persist party selection") { $0.roster = roster }
+        let didPersist = playerSave.persistBatch(logging: "Failed to persist party selection") {
+            $0.roster = roster
+        }
+        guard didPersist else {
+            persistError = "Your party change was not saved. Try again."
+            return
+        }
         selectionFeedbackTrigger += 1
+    }
+}
+
+private extension View {
+    func partyPersistErrorAlert(error: Binding<String?>) -> some View {
+        alert(
+            "Couldn't Save Progress",
+            isPresented: Binding(
+                get: { error.wrappedValue != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        error.wrappedValue = nil
+                    }
+                }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(error.wrappedValue ?? "")
+        }
     }
 }

@@ -17,7 +17,7 @@ extension BattleSession {
 
     func publishAttackReaction(_ reaction: CombatantAttackReaction, for combatantID: String) {
         feedback.attackReactionsByCombatantID[combatantID] = reaction
-        feedback.noteAttackReactionsChanged()
+        feedback.noteAttackReactionsChanged(for: combatantID)
     }
 
     func beginAttackWindUp(for combatantID: String) {
@@ -79,7 +79,6 @@ extension BattleSession {
         }
         spectacle.actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         spectacle.activeCinematic = nil
-        spectacle.presentationHoldCount = max(0, spectacle.presentationHoldCount - 1)
         let deferred = spectacle.deferredFeedbackEvents
         if !spectacle.deferredFeedbackEvents.isEmpty {
             spectacle.deferredFeedbackEvents = []
@@ -206,7 +205,14 @@ extension BattleSession {
             didPublish = true
         }
         if didPublish {
-            feedback.noteHitReactionsChanged()
+            var reactedIDs: Set<String> = []
+            if isHeroAlive {
+                reactedIDs.insert(heroID)
+            }
+            if isCompanionAlive {
+                reactedIDs.insert(companionID)
+            }
+            feedback.noteHitReactionsChanged(for: reactedIDs)
         }
     }
 
@@ -327,7 +333,6 @@ extension BattleSession {
 
     func beginCinematic(from event: ActionEvent, at date: Date) {
         spectacle.nextID += 1
-        spectacle.presentationHoldCount += 1
         spectacle.activeCinematic = BattleCinematicPresentation(
             id: spectacle.nextID,
             actorID: event.actorID,
@@ -358,7 +363,6 @@ extension BattleSession {
         guard let calloutEvent else { return }
         spectacle.nextID += 1
         let hold = TrinketMotion.Battle.skillSoftHold
-        spectacle.softHoldUntil = date.addingTimeInterval(hold)
         spectacle.activeSkillCallout = SkillCalloutPresentation(
             id: spectacle.nextID,
             actorID: calloutEvent.actorID,
@@ -376,7 +380,6 @@ extension BattleSession {
         isShowingBattleLog = false
         feedback.clear()
         clearSpectacle()
-        spectacle.presentationHoldCount = 0
     }
 
     func clearSpectacle(releaseCinematicPlayers: Bool = true) {
@@ -389,9 +392,6 @@ extension BattleSession {
             spectacle.activeCinematic = nil
         }
         spectacle.deferredFeedbackEvents = []
-        if spectacle.softHoldUntil != nil {
-            spectacle.softHoldUntil = nil
-        }
         if !spectacle.actorsWhoPresentedUltimateThisBattle.isEmpty {
             spectacle.actorsWhoPresentedUltimateThisBattle = []
         }
@@ -404,12 +404,6 @@ extension BattleSession {
         guard let activeSkillCallout = spectacle.activeSkillCallout,
               date >= activeSkillCallout.expiresAt else { return }
         spectacle.activeSkillCallout = nil
-    }
-
-    func pruneSoftHold(at date: Date) {
-        guard let softHoldUntil = spectacle.softHoldUntil,
-              date >= softHoldUntil else { return }
-        spectacle.softHoldUntil = nil
     }
 
     func resetRun(from configuration: BattleRunConfiguration) {
@@ -450,7 +444,6 @@ extension BattleSession {
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false
-        spectacle.presentationHoldCount = 0
         presentationContext = nil
     }
 }

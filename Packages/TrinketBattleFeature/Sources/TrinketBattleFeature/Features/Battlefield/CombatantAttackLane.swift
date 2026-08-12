@@ -13,18 +13,34 @@ struct CombatantAttackLane<Content: View>: View {
     @State private var pose = CombatantAttackPose.rest
     @State private var latestReactionID = 0
     @State private var phaseGeneration = 0
+    @State private var attackBridgeOwnerID = UUID()
 
     var body: some View {
-        // swiftlint:disable:next redundant_discardable_let
-        let _ = battleSession.feedback.attackReactionEpoch
         content()
             .scaleEffect(x: pose.scaleX, y: pose.scaleY)
             .rotationEffect(.degrees(pose.rotation))
             .offset(x: pose.offsetX, y: pose.offsetY)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onChange(of: battleSession.feedback.attackReactionEpoch) { _, _ in
+            .onAppear {
+                installAttackReactionBridge()
                 adoptLatestAttackIfNeeded()
             }
+            .onDisappear {
+                battleSession.feedback.uninstallAttackReactionBridge(ownerID: attackBridgeOwnerID)
+            }
+            .onChange(of: combatantID) { _, _ in
+                installAttackReactionBridge()
+                adoptLatestAttackIfNeeded()
+            }
+    }
+
+    private func installAttackReactionBridge() {
+        battleSession.feedback.installAttackReactionBridge(
+            ownerID: attackBridgeOwnerID,
+            combatantID: combatantID
+        ) {
+            adoptLatestAttackIfNeeded()
+        }
     }
 
     private func adoptLatestAttackIfNeeded() {

@@ -2,11 +2,15 @@
 
 Use for abilities, item bases, stages, art, music, SFX, cinematics, and project generation.
 
+**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (emits `public` from `content_codegen.py`), optionally prepares art/music/SFX/cinematics (`--assets`), then runs XcodeGen.
+
 | Input | Run | Review |
 |---|---|---|
 | `ContentManifest/` or custom source in `TrinketContent/Content/` | `./Scripts/generate.sh` | Expected catalog diff |
 | `ArtManifest/`, `MusicManifest/`, `SoundManifest/`, `CinematicManifest/`, or matching raw inputs | `./Scripts/generate.sh --assets` | Generated catalog plus expected processed files |
 | `project.yml` | `./Scripts/generate.sh` | Regenerated project diff |
+
+After content edits, stage `Packages/TrinketContent/Sources/TrinketContent/Generated/`. Pipeline formats live in each manifest directory's README.
 
 **Abilities:** author only in `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`. To list or understand all abilities, read `Generated/AbilityInventory.generated.tsv` (`id`, `name`, `tier`, `summary` from `Ability.summary`) or use `AbilityCatalog.all` — there is no authored abilities TSV.
 

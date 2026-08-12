@@ -41,7 +41,10 @@ struct BattleSpectacleSessionTests {
         #expect(callout.expiresAt > now)
     }
 
-    @Test func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic() throws {
+    @Test(arguments: [false, true])
+    func unmappedUltimateKillingBlowPresentsVictoryWithoutCinematic(
+        alreadyClaimed: Bool
+    ) throws {
         // Only Bloodthorn in the deck so draw cycling cannot kill before the Ultimate.
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -56,8 +59,13 @@ struct BattleSpectacleSessionTests {
                 role: .enemy,
                 maxHealth: 3,
                 abilities: []
-            )
+            ),
+            stageRewardsAlreadyClaimed: alreadyClaimed
         )
+        var deliveryCount = 0
+        session.installClaimedVictoryHandler(ownerID: UUID()) { _, _ in
+            deliveryCount += 1
+        }
         let now = Date()
         _ = BattleSessionTestSupport.playAbility(
             Ability.bloodthorn.id,
@@ -67,9 +75,15 @@ struct BattleSpectacleSessionTests {
 
         #expect(session.outcome == .victory)
         #expect(session.spectacle.activeCinematic == nil)
-        #expect(session.spectacle.victorySummary != nil)
-        #expect(session.spectacle.isShowingVictory)
         #expect(!session.canRetreat)
+        if alreadyClaimed {
+            #expect(deliveryCount == 1)
+            #expect(!(session.spectacle.isShowingVictory))
+        } else {
+            #expect(deliveryCount == 0)
+            #expect(session.spectacle.victorySummary != nil)
+            #expect(session.spectacle.isShowingVictory)
+        }
     }
 
     @Test func unmappedUltimateSkipsCinematicAndRecordsFeedback() throws {

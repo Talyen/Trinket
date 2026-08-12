@@ -1,7 +1,7 @@
 # Artwork production guide
 
 This guide defines the visual language and production constraints for authored
-and generated artwork. `ArtManifest/art.json` remains the source of truth for
+and generated artwork. `ArtManifest/curated-assets.tsv` remains the source of truth for
 asset IDs, kinds, source files, focal points, and processing settings.
 
 ## Art direction
