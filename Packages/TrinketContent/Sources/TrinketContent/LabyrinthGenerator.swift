@@ -199,13 +199,27 @@ public enum LabyrinthGenerator {
             var bossPositions = boundedPositions(in: depth)
             bossPositions.shuffle(using: &rng)
             let middleCandidates = (1 ..< depth).flatMap(boundedPositions(in:))
-            var middleSets = combinations(
-                of: middleCandidates,
-                choosing: nodeCount - 2
-            )
-            middleSets.shuffle(using: &rng)
+            let k = nodeCount - 2
+            guard middleCandidates.count >= k else { continue }
 
             for boss in bossPositions {
+                // Fast path: try random subset sampling to avoid allocating tens of thousands of combination arrays.
+                var found: [LabyrinthGridPosition]?
+                for _ in 0 ..< 1000 {
+                    let candidate = Array(middleCandidates.shuffled(using: &rng).prefix(k))
+                    let positions = [LabyrinthGridPosition(row: 0, column: 0)] + candidate + [boss]
+                    if isValidFloorShape(positions, closesLoop: closesLoop) {
+                        found = [positions[0]] + candidate.sorted(by: LabyrinthGridPosition.isOrderedBefore) + [boss]
+                        break
+                    }
+                }
+                if let found {
+                    return found
+                }
+
+                // Fallback for rare seeds if random sampling did not find a valid shape.
+                var middleSets = combinations(of: middleCandidates, choosing: k)
+                middleSets.shuffle(using: &rng)
                 for middle in middleSets {
                     let positions = [LabyrinthGridPosition(row: 0, column: 0)] + middle + [boss]
                     guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }

@@ -109,9 +109,8 @@ struct EffectHandlersApplyTests {
 
     @Test func drawCardsHandlerDrawsIntoHandAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
-            hero: Combatant(
+            hero: CombatantFixtures.combatant(
                 id: "hero",
-                name: "Hero",
                 role: .hero,
                 maxHealth: 50,
                 abilities: [.slash, .heal, .smite, .darkPact]
@@ -143,16 +142,14 @@ struct EffectHandlersApplyTests {
 
     @Test func drawAndPlayCardsHandlerDrawsAndPlaysHeroAndCompanionCards() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
-            hero: Combatant(
+            hero: CombatantFixtures.combatant(
                 id: "hero",
-                name: "Hero",
                 role: .hero,
                 maxHealth: 50,
                 abilities: [.slash, .heal]
             ),
-            companion: Combatant(
+            companion: CombatantFixtures.combatant(
                 id: "companion",
-                name: "Companion",
                 role: .companion,
                 maxHealth: 50,
                 abilities: [.smite]
@@ -187,9 +184,8 @@ struct EffectHandlersApplyTests {
 
     @Test func drawCardsHandlerOverflowGoesToBuffer() throws {
         var battle = EffectHandlersTestSupport.makeBattle(
-            hero: Combatant(
+            hero: CombatantFixtures.combatant(
                 id: "hero",
-                name: "Hero",
                 role: .hero,
                 maxHealth: 50,
                 abilities: [.slash, .heal, .smite]

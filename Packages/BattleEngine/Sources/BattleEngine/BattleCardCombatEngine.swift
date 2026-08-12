@@ -261,18 +261,20 @@ public enum BattleCardCombatEngine {
             }
             guard !candidates.isEmpty else { return }
 
-            let owner: BattleParticipant = if context.hand.isFull {
+            let owner: BattleParticipant
+            if context.hand.isFull {
                 // Hand is full — exhaust remaining quotas into the buffer without re-balancing.
-                candidates.contains(tieWinner) ? tieWinner : candidates[0]
+                owner = candidates.contains(tieWinner) ? tieWinner : candidates[0]
+            } else if candidates.count == 1 {
+                owner = candidates[0]
             } else {
-                candidates.min { lhs, rhs in
-                    let lhsCount = context.hand.cards.count { $0.owner == lhs }
-                    let rhsCount = context.hand.cards.count { $0.owner == rhs }
-                    if lhsCount == rhsCount {
-                        return lhs == tieWinner && rhs != tieWinner
-                    }
-                    return lhsCount < rhsCount
-                } ?? tieWinner
+                let heroHandCount = context.hand.cards.count { $0.owner == .hero }
+                let companionHandCount = context.hand.cards.count { $0.owner == .companion }
+                if heroHandCount == companionHandCount {
+                    owner = tieWinner
+                } else {
+                    owner = heroHandCount < companionHandCount ? .hero : .companion
+                }
             }
 
             remaining[owner, default: 0] -= 1

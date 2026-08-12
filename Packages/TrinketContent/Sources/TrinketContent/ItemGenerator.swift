@@ -85,11 +85,16 @@ public struct ItemGenerator: Sendable {
             }
             guard totalWeight > 0 else { break }
 
-            var roll = Int.random(in: 1 ... totalWeight, using: &randomNumberGenerator)
-            let selectedIndex = pool.firstIndex { definition in
-                roll -= adjustedWeight(for: definition, keywordBias: keywordBias)
-                return roll <= 0
-            } ?? 0
+            let targetRoll = Int.random(in: 1 ... totalWeight, using: &randomNumberGenerator)
+            var currentWeight = 0
+            var selectedIndex = 0
+            for (index, definition) in pool.enumerated() {
+                currentWeight += adjustedWeight(for: definition, keywordBias: keywordBias)
+                if currentWeight >= targetRoll {
+                    selectedIndex = index
+                    break
+                }
+            }
 
             selected.append(pool.remove(at: selectedIndex))
         }
