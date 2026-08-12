@@ -142,7 +142,6 @@ public extension GameContent {
         )
         return nonBossEnemies
             .map(\.id)
-            .sorted()
             .randomElement(using: &randomNumberGenerator)
     }
 
@@ -172,8 +171,7 @@ public extension GameContent {
         var randomNumberGenerator = SeededRandomNumberGenerator(
             seed: stableSeed(for: "recruit-resolution-\(encounterID)")
         )
-        if let recruit = eligible.sorted(by: { $0.id < $1.id })
-            .randomElement(using: &randomNumberGenerator) {
+        if let recruit = eligible.randomElement(using: &randomNumberGenerator) {
             return .recruit(recruit)
         }
         return .mystery(pickMysteryEvent(using: &randomNumberGenerator))

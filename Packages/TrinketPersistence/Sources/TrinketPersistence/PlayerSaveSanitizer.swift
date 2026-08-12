@@ -396,7 +396,9 @@ private extension PlayerSaveSanitizer {
         var visited: Set<String> = [sourceID]
         // Loop-invariant ordering: the frontier order decides first-wins predecessor
         // claims, so it is materialized once instead of per popped node.
-        let sortedNodeIDs = nodeIDs.sorted()
+        let candidateNodes: [(id: String, node: LabyrinthNode)] = nodeIDs.sorted().compactMap { id in
+            nodes[id].map { (id, $0) }
+        }
 
         while nextIndex < frontier.count {
             let nodeID = frontier[nextIndex]
@@ -408,11 +410,8 @@ private extension PlayerSaveSanitizer {
                 continue
             }
 
-            for candidateID in sortedNodeIDs {
-                guard !visited.contains(candidateID),
-                      let candidate = nodes[candidateID],
-                      source.isAdjacent(to: candidate)
-                else { continue }
+            for (candidateID, candidate) in candidateNodes {
+                guard !visited.contains(candidateID), source.isAdjacent(to: candidate) else { continue }
                 visited.insert(candidateID)
                 predecessor[candidateID] = nodeID
                 frontier.append(candidateID)
@@ -421,9 +420,10 @@ private extension PlayerSaveSanitizer {
 
         guard visited.contains(targetID) else { return [] }
         var path = [targetID]
-        while let first = path.first, let previous = predecessor[first] {
-            path.insert(previous, at: path.startIndex)
+        while let current = path.last, let previous = predecessor[current] {
+            path.append(previous)
         }
+        path.reverse()
         return path.first == sourceID ? path : []
     }
 }

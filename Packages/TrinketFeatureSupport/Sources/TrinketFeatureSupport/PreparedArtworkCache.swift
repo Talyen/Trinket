@@ -129,8 +129,6 @@ public final class PreparedArtworkCache {
         guard !unique.isEmpty else { return }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
-        }
-        for name in unique {
             if let image = images.object(forKey: name as NSString) {
                 pinnedImages[name] = image
             }

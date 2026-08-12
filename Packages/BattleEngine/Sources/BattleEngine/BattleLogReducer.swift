@@ -19,7 +19,7 @@ public enum BattleLogReducer {
     ) -> [LogEntry] {
         guard startIndex < events.count else { return [] }
         var result: [LogEntry] = []
-        result.reserveCapacity(events.count - startIndex)
+        result.reserveCapacity((events.count - startIndex + 1) / 2)
         for index in startIndex ..< events.count {
             let event = events[index]
             if let text = line(for: event) {

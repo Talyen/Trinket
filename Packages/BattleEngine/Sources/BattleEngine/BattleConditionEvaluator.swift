@@ -36,7 +36,7 @@ public enum BattleConditionEvaluator {
             let companionHealth = context.roster.health(for: companion)
             let heroMax = context.roster.runtime(for: hero)?.maxHealth ?? hero.maxHealth
             let companionMax = context.roster.runtime(for: companion)?.maxHealth ?? companion.maxHealth
-            return heroHealth * 2 < heroMax || companionHealth * 2 < companionMax
+            return (heroHealth > 0 && heroHealth * 2 < heroMax) || (companionHealth > 0 && companionHealth * 2 < companionMax)
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         }

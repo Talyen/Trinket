@@ -102,4 +102,16 @@ enum BattleStateTestFactory {
         }
         return battle
     }
+
+    static func passiveHero(maxHealth: Int = 100) -> Combatant {
+        Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: maxHealth, abilities: [])
+    }
+
+    static func passiveCompanion(maxHealth: Int = 100) -> Combatant {
+        Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: maxHealth, abilities: [])
+    }
+
+    static func passiveEnemy(maxHealth: Int = 100) -> Combatant {
+        Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: maxHealth, abilities: [])
+    }
 }

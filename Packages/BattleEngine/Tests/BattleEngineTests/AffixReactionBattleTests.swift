@@ -41,11 +41,11 @@ struct AffixReactionBattleTests {
     }
 
     private func passiveCompanion(maxHealth: Int = 20) -> Combatant {
-        BattleTestFixtures.passiveCombatant(id: "companion", name: "Companion", role: .companion, maxHealth: maxHealth)
+        BattleTestFixtures.passiveCompanion(maxHealth: maxHealth)
     }
 
     private func passiveEnemy(maxHealth: Int = 100) -> Combatant {
-        BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: maxHealth)
+        BattleTestFixtures.passiveEnemy(maxHealth: maxHealth)
     }
 
     @Test func infectedAppliesPoisonWhenBleedIsApplied() throws {

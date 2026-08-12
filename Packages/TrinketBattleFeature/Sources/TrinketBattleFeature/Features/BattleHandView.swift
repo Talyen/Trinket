@@ -46,13 +46,16 @@ struct BattleHandView: View {
                 cardCount: cards.count,
                 configuration: configuration
             )
+            let liveSnapshots = cards.indices.map { index in
+                liveSnapshot(
+                    index: index,
+                    layout: layout,
+                    containerWidth: geometry.size.width
+                )
+            }
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
-                    let liveSnapshot = liveSnapshot(
-                        index: index,
-                        layout: layout,
-                        containerWidth: geometry.size.width
-                    )
+                    let liveSnapshot = liveSnapshots[index]
                     let isHeld = heldInteraction?.cardID == card.id
                     let snapshot = isHeld ? (heldInteraction?.layout ?? liveSnapshot) : liveSnapshot
 

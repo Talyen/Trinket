@@ -286,9 +286,13 @@ public enum BattleCardCombatEngine {
     /// companion/hero cards cannot permanently fill hand slots.
     private static func discardDefeatedOwnerCards(context: inout BattleState) {
         guard !context.roster.hero.isAlive || !context.roster.companion.isAlive else { return }
-        let survivingHand = context.hand.cards.filter { context.roster[$0.owner].isAlive }
-        for card in context.hand.cards where !context.roster[card.owner].isAlive {
-            putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+        var survivingHand: [BattleCard] = []
+        for card in context.hand.cards {
+            if context.roster[card.owner].isAlive {
+                survivingHand.append(card)
+            } else {
+                putAbilityOnBottom(card.ability, owner: card.owner, context: &context)
+            }
         }
         context.hand = BattleHand(cards: survivingHand)
 
