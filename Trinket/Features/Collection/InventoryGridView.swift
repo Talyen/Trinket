@@ -35,33 +35,30 @@ struct InventoryGridView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
-    @State private var selectedItem: InventoryItem?
-    @State private var selectedItemIndex: Int?
-    @State private var dissolvingTombstone: SalvageDissolveTombstone?
-    @State private var salvageSuccessCount = 0
+    @State private var salvageDetail = SalvageItemDetailController()
     @Namespace private var zoomNamespace
 
     var body: some View {
+        @Bindable var salvageDetail = salvageDetail
         let inventoryState = playerSave.inventory
         let items = SalvageDissolvePresentation.displayedItems(
             filteredItems(from: inventoryState),
-            tombstone: dissolvingTombstone
+            tombstone: salvageDetail.dissolvingTombstone
         )
 
         CollectionGridShell(items: items) { item in
-            let isDissolving = dissolvingTombstone?.item.id == item.id
+            let isDissolving = salvageDetail.dissolvingTombstone?.item.id == item.id
             if isDissolving {
                 SalvageAwareItemCard(
                     item: item,
                     showsAffixCount: false,
                     isDissolving: true,
-                    onDissolveFinished: finishSalvageDissolve
+                    onDissolveFinished: salvageDetail.finishDissolve
                 )
                 .accessibilityIdentifier("\(item.displayName) item card")
             } else {
                 Button {
-                    selectedItem = item
-                    selectedItemIndex = items.firstIndex(where: { $0.id == item.id })
+                    salvageDetail.select(item, at: items.firstIndex(where: { $0.id == item.id }))
                 } label: {
                     SalvageAwareItemCard(
                         item: item,
@@ -96,34 +93,22 @@ struct InventoryGridView: View {
                 .accessibilityIdentifier("Inventory filter")
             }
         }
-        .sheet(item: $selectedItem) { item in
-            NavigationStack {
-                ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
-                    if didSucceed {
-                        let index = selectedItemIndex
-                            ?? filteredItems(from: playerSave.inventory).firstIndex(where: { $0.id == item.id })
-                            ?? 0
-                        dissolvingTombstone = SalvageDissolveTombstone(item: item, index: index)
-                        salvageSuccessCount += 1
-                    }
-                    selectedItem = nil
-                    selectedItemIndex = nil
+        .sheet(item: $salvageDetail.selectedItem) { item in
+            SalvageItemDetailSheet(
+                controller: salvageDetail,
+                item: item,
+                zoomNamespace: zoomNamespace,
+                resolveIndex: { resolvedItem in
+                    filteredItems(from: playerSave.inventory)
+                        .firstIndex(where: { $0.id == resolvedItem.id }) ?? 0
                 }
-            }
-            .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
-            .trinketDetailSheet()
+            )
         }
         .trinketSensoryFeedback(
             .success,
-            trigger: salvageSuccessCount,
+            trigger: salvageDetail.salvageSuccessCount,
             enabled: options.hapticsEnabled
         )
-    }
-
-    private func finishSalvageDissolve() {
-        withAnimation(TrinketMotion.Reward.stateChange) {
-            dissolvingTombstone = nil
-        }
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {

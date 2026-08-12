@@ -70,8 +70,8 @@ struct LabyrinthMapView: View {
         }
         .onAppear {
             let enteredMap = !state.hasMap
-            if enteredMap {
-                _ = labyrinth.enter()
+            if enteredMap, let message = labyrinth.enter() {
+                nodeMessage = message
             }
             viewedFloor = max(1, state.currentFloorNumber)
             // Entering a fresh map mutates `playerSave.labyrinth`; the change

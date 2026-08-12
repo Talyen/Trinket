@@ -20,7 +20,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageTakenFlat: [Keyword: Int]
     public var damageTakenVulnerability: [Keyword: Double]
     public var companionDamageDealtBonus: Int
-    public var manaCostReductionPercent: Double
     /// Trait/affix trigger knobs authored as `CombatTraitTriggers` — single schema, not duplicated fields.
     public var triggers: CombatTraitTriggers
     public var traitDisplayName: String?
@@ -45,7 +44,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
         companionDamageDealtBonus: Int = 0,
-        manaCostReductionPercent: Double = 0,
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         traitDisplayName: String? = nil
     ) {
@@ -54,7 +52,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.maximumManaBonus = maximumManaBonus
         self.damageDealtBonus = damageDealtBonus
         self.poisonDamageDealtPercent = poisonDamageDealtPercent
-        self.manaCostReductionPercent = manaCostReductionPercent
         self.healthRestoredBonus = healthRestoredBonus
         self.leechGainedBonus = leechGainedBonus
         self.leechHealingBonus = leechHealingBonus
@@ -108,7 +105,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageTakenVulnerability[keyword, default: 0] += amount
         }
         companionDamageDealtBonus += other.companionDamageDealtBonus
-        manaCostReductionPercent += other.manaCostReductionPercent
         triggers.merge(other.triggers)
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
@@ -137,13 +133,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
     public func damageTakenVulnerability(for keyword: Keyword) -> Double {
         max(0, damageTakenVulnerability[keyword, default: 0])
-    }
-
-    public func effectiveManaCost(for ability: Ability) -> Int {
-        guard ability.manaCost > 0 else { return 0 }
-        let reduction = min(1, max(0, manaCostReductionPercent))
-        let reduced = CombatRounding.scaled(ability.manaCost, multiplier: 1 - reduction)
-        return max(0, reduced)
     }
 }
 

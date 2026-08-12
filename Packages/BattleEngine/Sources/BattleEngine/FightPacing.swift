@@ -97,12 +97,30 @@ package enum FightPacing {
     }
 
     package static func multiplier(side: Side, isBoss: Bool, in context: BattleState) -> Double {
-        clockMultiplier(isBoss: isBoss, in: context) * comebackMultiplier(side: side, isBoss: isBoss, in: context)
+        multiplier(side: side, isBoss: isBoss, metrics: poolMetrics(in: context), in: context)
+    }
+
+    package static func multiplier(
+        side: Side,
+        isBoss: Bool,
+        metrics: PoolMetrics,
+        in context: BattleState
+    ) -> Double {
+        clockMultiplier(isBoss: isBoss, metrics: metrics, in: context)
+            * comebackMultiplier(side: side, isBoss: isBoss, metrics: metrics, in: context)
     }
 
     package static func comebackMultiplier(side: Side, isBoss: Bool, in context: BattleState) -> Double {
+        comebackMultiplier(side: side, isBoss: isBoss, metrics: poolMetrics(in: context), in: context)
+    }
+
+    package static func comebackMultiplier(
+        side: Side,
+        isBoss: Bool,
+        metrics: PoolMetrics,
+        in _: BattleState
+    ) -> Double {
         let pacingConfig = Self.config(isBoss: isBoss)
-        let metrics = poolMetrics(in: context)
         let hpDelta = metrics.partyFraction - metrics.enemyFraction
         let absDelta = abs(hpDelta)
         guard absDelta >= pacingConfig.evenThreshold else { return 1.0 }
@@ -122,15 +140,25 @@ package enum FightPacing {
     }
 
     package static func clockMultiplier(isBoss: Bool, in context: BattleState) -> Double {
+        clockMultiplier(isBoss: isBoss, metrics: poolMetrics(in: context), in: context)
+    }
+
+    package static func clockMultiplier(
+        isBoss: Bool,
+        metrics: PoolMetrics,
+        in context: BattleState
+    ) -> Double {
         let pacingConfig = Self.config(isBoss: isBoss)
-        let scheduleBonus = scheduleClockBonus(in: context, config: pacingConfig)
+        let scheduleBonus = scheduleClockBonus(
+            metrics: metrics,
+            turn: context.turnCount,
+            config: pacingConfig
+        )
         let backstopBonus = turnBackstopBonus(in: context, config: pacingConfig)
         return 1 + max(scheduleBonus, backstopBonus)
     }
 
-    package static func scheduleClockBonus(in context: BattleState, config: Config) -> Double {
-        let metrics = poolMetrics(in: context)
-        let turn = max(0, context.turnCount)
+    package static func scheduleClockBonus(metrics: PoolMetrics, turn: Int, config: Config) -> Double {
         let normalizedTurn = turn > 0
             ? min(1, Double(turn) / config.targetDuration)
             : 0

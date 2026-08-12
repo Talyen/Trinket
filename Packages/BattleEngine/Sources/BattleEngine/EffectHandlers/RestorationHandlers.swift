@@ -52,8 +52,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         case .mana:
             let restored = context.restoreMana(
                 context.paced(amount, sourceActorID: source.id),
-                to: target,
-                sourceActorID: source.id
+                to: target
             )
             loggedAmount = restored
             let event = context.nextEvent(

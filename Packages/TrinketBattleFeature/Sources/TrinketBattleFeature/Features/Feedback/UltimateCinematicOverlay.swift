@@ -159,10 +159,7 @@ struct UltimateCinematicOverlay: View {
     private func scheduleVideoWatchdog() {
         fallbackHoldTask?.cancel()
         let cinematicID = cinematic.id
-        let hold = max(
-            TrinketMotion.Battle.ultimateFallbackHold,
-            TrinketMotion.Battle.ultimateVideoWatchdog
-        )
+        let hold = TrinketMotion.Battle.ultimateVideoWatchdog
         fallbackHoldTask = Task { @MainActor in
             let clock = SuspendingClock()
             try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(40))

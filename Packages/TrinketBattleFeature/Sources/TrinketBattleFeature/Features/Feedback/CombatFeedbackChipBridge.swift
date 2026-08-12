@@ -11,6 +11,7 @@ enum CombatFeedbackChipBridge {
     private static var availabilityTimer: Timer?
     private static let availabilityTimerTarget = AvailabilityTimerTarget()
     private static var nextAvailabilityDate: Date?
+    private static var nextAvailabilityTargetID: String?
 
     private struct WeakHost {
         weak var view: CombatFeedbackRasterUIView?
@@ -88,24 +89,39 @@ enum CombatFeedbackChipBridge {
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
             nextAvailabilityDate = nil
+            nextAvailabilityTargetID = nil
         }
 
         // Refresh applies visible chips immediately (compose on miss).
         refreshHosts(for: affectedTargets)
-        updateAvailabilityWakeTime()
+        updateAvailabilityWakeTime(considering: affectedTargets)
     }
 
     /// Publish frames only update a resident timer's fire date. No idle polling or
-    /// per-publish Task allocation is required.
-    private static func updateAvailabilityWakeTime() {
+    /// per-publish Task allocation is required. Only the touched targets and the
+    /// previously scheduled wake are considered, so cost is O(changed) not O(total).
+    private static func updateAvailabilityWakeTime(considering affectedTargets: Set<String>) {
         let now = Date()
         var earliest: Date?
-        for items in itemsByTarget.values {
+        var earliestTargetID: String?
+        // The previously scheduled wake stays valid when its source target is untouched.
+        if let previous = nextAvailabilityDate,
+           let targetID = nextAvailabilityTargetID,
+           !affectedTargets.contains(targetID) {
+            earliest = previous
+            earliestTargetID = targetID
+        }
+        for targetID in affectedTargets {
+            guard let items = itemsByTarget[targetID] else { continue }
             for item in items.values where item.availableAt > now {
-                earliest = min(earliest ?? item.availableAt, item.availableAt)
+                if item.availableAt < (earliest ?? .distantFuture) {
+                    earliest = item.availableAt
+                    earliestTargetID = targetID
+                }
             }
         }
         nextAvailabilityDate = earliest
+        nextAvailabilityTargetID = earliestTargetID
         scheduleAvailabilityTimer()
     }
 
@@ -133,7 +149,7 @@ enum CombatFeedbackChipBridge {
                 : nil
         })
         refreshHosts(for: targets)
-        updateAvailabilityWakeTime()
+        updateAvailabilityWakeTime(considering: Set(itemsByTarget.keys))
     }
 
     private static func refreshHosts(for targetIDs: Set<String>) {

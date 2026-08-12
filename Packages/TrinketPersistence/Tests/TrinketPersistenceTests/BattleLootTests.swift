@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
@@ -85,15 +86,7 @@ struct BattleLootTests {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let loot = BattleLoot.resolveJourney(stage: stage, encounterLevel: 1, enemyIsBoss: false)
-        var save = PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: Date(),
-            sessionGeneration: 0,
-            journey: .initial,
-            roster: .initial,
-            inventory: PlayerInventoryState(items: []),
-            homestead: .freshStart
-        )
+        var save = SaveTestSupport.makeSave()
 
         StageCompletion.complete(
             stage,

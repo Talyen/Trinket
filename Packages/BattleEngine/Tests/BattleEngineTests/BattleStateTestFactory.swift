@@ -9,10 +9,6 @@ import TrinketCore
 /// status application, or other outcomes gated by these checks must use
 /// this factory to avoid flakes.
 enum BattleStateTestFactory {
-    /// Seed chosen so early damage rolls are reproducible without triggering
-    /// the default 5% critical chance.
-    private static let deterministicNonCriticalSeed: UInt64 = 1772
-
     /// Builds a `BattleState` with a fixed seed so all randomness inside
     /// the battle is reproducible. Signature mirrors `BattleState.init`
     /// (minus the `rngSeed` argument, which is fixed here).
@@ -27,7 +23,7 @@ enum BattleStateTestFactory {
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
-        rngSeed: UInt64 = deterministicNonCriticalSeed,
+        rngSeed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
         dealOpeningHand: Bool = true

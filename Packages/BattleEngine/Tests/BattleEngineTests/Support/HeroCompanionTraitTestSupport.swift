@@ -11,7 +11,7 @@ enum HeroCompanionTraitTestSupport {
         enemy: Combatant,
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = 1772
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
         BattleState(
             roster: BattleRoster(

@@ -85,18 +85,6 @@ struct BattleHandMotionConfiguration: Equatable {
     var dealResponse: Double = 0.3
     var dealDamping: Double = 0.94
 
-    // MARK: Experimental / unused by production hand path
-
-    var pickupResponse: Double = 0.2
-    var pickupDamping: Double = 1.0
-    var readinessResponse: Double = 0.24
-    var readinessDamping: Double = 0.94
-    var cardCommitResponse: Double = 0.28
-    var cardCommitDamping: Double = 0.92
-    var impactResponse: Double = 0.18
-    var impactDamping: Double = 0.82
-    var cardMaximumStretch: CGFloat = TrinketMotion.Battle.cardMaximumStretch
-
     // MARK: Derived animations
 
     var cardPress: Animation {
@@ -205,15 +193,6 @@ struct BattleHandMotionConfiguration: Equatable {
         guard lhs.handReflowDamping == rhs.handReflowDamping else { return false }
         guard lhs.dealResponse == rhs.dealResponse else { return false }
         guard lhs.dealDamping == rhs.dealDamping else { return false }
-        guard lhs.pickupResponse == rhs.pickupResponse else { return false }
-        guard lhs.pickupDamping == rhs.pickupDamping else { return false }
-        guard lhs.readinessResponse == rhs.readinessResponse else { return false }
-        guard lhs.readinessDamping == rhs.readinessDamping else { return false }
-        guard lhs.cardCommitResponse == rhs.cardCommitResponse else { return false }
-        guard lhs.cardCommitDamping == rhs.cardCommitDamping else { return false }
-        guard lhs.impactResponse == rhs.impactResponse else { return false }
-        guard lhs.impactDamping == rhs.impactDamping else { return false }
-        guard lhs.cardMaximumStretch == rhs.cardMaximumStretch else { return false }
         return true
     }
 }

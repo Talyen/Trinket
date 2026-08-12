@@ -7,13 +7,24 @@
     }
   ],
   "defaultOptions" : {
-    "testExecutionOrdering" : "random"
+    "testExecutionOrdering" : "alphabetical"
   },
   "testTargets" : [
     {
-      "skippedTests" : [
-        "AppPerformanceUITests",
-        "BattlePerformanceUITests"
+      "automaticallyIncludesTests" : false,
+      "selectedTests" : [
+        "BattleFlowUITests",
+        "MysteryRecruitUITests",
+        "PlayMapUITests",
+        "PlayModeNavigationUITests",
+        "ShopFlowUITests",
+        "SmokeBattleTests",
+        "SmokeCollectionTests",
+        "SmokeHomesteadTests",
+        "SmokeOptionsTests",
+        "SmokePlayTests",
+        "SmokeShopTests",
+        "TabNavigationUITests"
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",

@@ -6,8 +6,8 @@ import TrinketCore
 public enum CombatantBuffAuraKind: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Shadowstep: next-strike double and/or evade-next-hit.
     case shadowstep
-    /// Avatar: glowing with holy light — holding a next holy strike or holy damage
-    /// override, or currently the source of recurring holy damage on the enemy.
+    /// Avatar: glowing with holy light — holding the Avatar self-buff, a next
+    /// holy strike, or a holy damage override.
     case avatar
 }
 
@@ -19,32 +19,6 @@ public enum CombatantBuffAuraKind: String, Sendable, Equatable, Hashable, CaseIt
 public enum CombatantBuffAura: Sendable {
     /// Highest-priority buff aura among `effects`, or `nil` when none qualify.
     public static func kind(from effects: [ActiveEffect]) -> CombatantBuffAuraKind? {
-        kind(from: effects, causesRecurringHolyDamage: false)
-    }
-
-    /// State-aware variant: also yields `.avatar` when `combatant` is the source of
-    /// an active recurring holy damage effect. The DoT lives on the enemy, but the
-    /// caster glows with holy light for its duration.
-    public static func kind(
-        for combatant: Combatant,
-        in state: BattleState
-    ) -> CombatantBuffAuraKind? {
-        let causesRecurringHolyDamage = state.roster.containsRuntime { runtime in
-            runtime.activeEffects.contains { active in
-                active.sourceActorID == combatant.id
-                    && active.effect.isRecurringHolyDamage
-            }
-        }
-        return kind(
-            from: state.activeEffects(of: combatant),
-            causesRecurringHolyDamage: causesRecurringHolyDamage
-        )
-    }
-
-    private static func kind(
-        from effects: [ActiveEffect],
-        causesRecurringHolyDamage: Bool
-    ) -> CombatantBuffAuraKind? {
         let hasShadowstep = effects.contains { active in
             switch active.effect.kind {
             case .nextStrikeDouble, .evadeNextHit:
@@ -57,8 +31,10 @@ public enum CombatantBuffAura: Sendable {
             return .shadowstep
         }
 
-        let hasAvatar = causesRecurringHolyDamage || effects.contains { active in
+        let hasAvatar = effects.contains { active in
             switch active.effect {
+            case .avatar:
+                true
             case .nextHolyStrike:
                 true
             case let .damageKeywordOverride(keyword, _, _):
@@ -73,13 +49,12 @@ public enum CombatantBuffAura: Sendable {
 
         return nil
     }
-}
 
-private extension Effect {
-    var isRecurringHolyDamage: Bool {
-        if case let .recurringDamage(keyword, _, _) = self {
-            return keyword == .holy
-        }
-        return false
+    /// Buff aura for `combatant`'s own active effects.
+    public static func kind(
+        for combatant: Combatant,
+        in state: BattleState
+    ) -> CombatantBuffAuraKind? {
+        kind(from: state.activeEffects(of: combatant))
     }
 }

@@ -323,6 +323,7 @@ final class CombatFeedbackRasterPool {
     }
 
     private func markMostRecent(_ key: CombatFeedbackRasterKey) {
+        guard recency.last != key else { return }
         if let index = recency.firstIndex(of: key) {
             recency.remove(at: index)
         }
@@ -330,9 +331,12 @@ final class CombatFeedbackRasterPool {
     }
 }
 
+#if DEBUG
 extension CombatFeedbackRasterPool {
     /// Seeds a raster without composing. Pool LRU/accounting tests use this so they
-    /// do not pay UIKit chip bake cost.
+    /// do not pay UIKit chip bake cost. DEBUG-only: the production API surface is
+    /// exactly the atlas-backed `prepare` path, so warm-path accounting cannot be
+    /// masked by test seeding in release.
     @discardableResult
     func seedForTesting(
         for canvasItem: CombatFeedbackCanvasItem,
@@ -367,3 +371,4 @@ extension CombatFeedbackRasterPool {
         return raster
     }
 }
+#endif

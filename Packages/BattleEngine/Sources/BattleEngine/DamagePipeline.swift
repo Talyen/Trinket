@@ -44,6 +44,10 @@ package enum DamagePipeline {
             applyReactiveOnHit(to: &state, in: &context)
             applyKeywordReactions(to: &state, in: &context)
             applyCriticalReaction(to: &state, in: &context)
+        } else if state.applyControlMeter {
+            // Trait control damage (Frostwarden freeze) charges the meter without
+            // re-entering the reaction pipelines.
+            applyControlMeter(to: &state, in: &context)
         }
     }
 }

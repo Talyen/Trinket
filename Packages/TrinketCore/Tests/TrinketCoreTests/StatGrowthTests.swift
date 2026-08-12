@@ -38,7 +38,8 @@ struct StatGrowthTests {
             maxHealth: 12,
             maxMana: 0,
             primaryStats: stats,
-            multiplier: 2.0
+            healthMultiplier: 2.0,
+            statsMultiplier: 2.0
         )
         try #expect(applied.maxHealth == 24)
         try #expect(applied.primaryStats.strength == 20)

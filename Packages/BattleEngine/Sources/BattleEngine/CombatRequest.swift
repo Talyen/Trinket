@@ -13,6 +13,9 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var guaranteedCritical: Bool
     /// When true, retaliation damage skips reactive on-hit effects (thorns ping-pong).
     public var isRetaliation: Bool
+    /// When true, stun/freeze control meter still charges even though the hit is
+    /// flagged `isRetaliation` (enemy per-turn control damage, e.g. Frostwarden).
+    public var applyControlMeter: Bool
     /// When true, ambush trait bonus may apply on this damage (direct ability hits only).
     public var qualifiesForAmbush: Bool
     /// When true, this is a direct attack hit (ability/enemy strike) — not DoT, retaliation, or costs.
@@ -31,6 +34,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         guaranteedCritical: Bool = false,
         isRetaliation: Bool = false,
+        applyControlMeter: Bool = false,
         qualifiesForAmbush: Bool = false,
         isAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
@@ -43,6 +47,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.guaranteedCritical = guaranteedCritical
         self.isRetaliation = isRetaliation
+        self.applyControlMeter = applyControlMeter
         self.qualifiesForAmbush = qualifiesForAmbush
         self.isAttackHit = isAttackHit
         self.abilityHasLeech = abilityHasLeech

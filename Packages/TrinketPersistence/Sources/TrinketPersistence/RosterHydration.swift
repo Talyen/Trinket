@@ -15,11 +15,22 @@ enum RosterHydration {
     ) -> (activeHeroID: String, activeCompanionID: String) {
         let resolvedHeroID = unlockedHeroIDs.contains(activeHeroID)
             ? activeHeroID
-            : (unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID)
+            : (lowestCatalogOrderedID(from: unlockedHeroIDs, in: GameContent.heroes)
+                ?? PlayerRosterState.starterHeroID)
         let resolvedCompanionID = unlockedCompanionIDs.contains(activeCompanionID)
             ? activeCompanionID
-            : (unlockedCompanionIDs.first ?? PlayerRosterState.starterCompanionID)
+            : (lowestCatalogOrderedID(from: unlockedCompanionIDs, in: GameContent.companions)
+                ?? PlayerRosterState.starterCompanionID)
         return (resolvedHeroID, resolvedCompanionID)
+    }
+
+    /// Set iteration order is unstable across launches; resolve a stale active
+    /// selection to the lowest authored catalog-order unlocked combatant instead.
+    private static func lowestCatalogOrderedID(
+        from unlockedIDs: Set<String>,
+        in catalog: [Combatant]
+    ) -> String? {
+        catalog.first { unlockedIDs.contains($0.id) }?.id
     }
 
     static func resolveAbilityLoadouts(

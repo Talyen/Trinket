@@ -73,8 +73,7 @@ public enum BattleCardCombatEngine {
             ability: card.ability,
             actor: actor,
             abilityTarget: abilityTarget,
-            context: &context,
-            spendMana: false
+            context: &context
         )
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
@@ -144,6 +143,11 @@ public enum BattleCardCombatEngine {
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         events.append(contentsOf: restoreManaAtPlayerTurnStart(context: &context))
+        // Party members act this turn: drop any post-skip control linger so a
+        // recovered hero/companion no longer shows Stunned/Frozen while acting.
+        for owner in [BattleParticipant.hero, .companion] {
+            context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
+        }
         context.phase = .playerTurn
         return events
     }
@@ -157,7 +161,7 @@ public enum BattleCardCombatEngine {
             let runtime = context.roster[owner]
             guard runtime.isAlive, runtime.maxMana > 0 else { continue }
             let combatant = runtime.combatant
-            let restored = context.restoreMana(1, to: combatant, sourceActorID: combatant.id)
+            let restored = context.restoreMana(1, to: combatant)
             guard restored > 0 else { continue }
             events.append(
                 context.nextEvent(
@@ -224,8 +228,7 @@ public enum BattleCardCombatEngine {
             ability: ability,
             actor: enemy,
             abilityTarget: context.roster.enemyAttackTarget,
-            context: &context,
-            spendMana: false
+            context: &context
         )
     }
 

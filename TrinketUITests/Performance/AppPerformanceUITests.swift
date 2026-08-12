@@ -27,12 +27,9 @@ final class AppPerformanceUITests: TrinketUITestCase {
     }
 
     func test00ColdLaunchToPlay() {
-        let options = XCTMeasureOptions()
-        options.iterationCount = 1
-        measure(metrics: [XCTApplicationLaunchMetric()], options: options) {
+        measure(metrics: [XCTApplicationLaunchMetric()]) {
             launchApp(arguments: TestLaunchArg.allForAppPerformance())
             play.assertLoaded(timeout: 8)
-            app.terminate()
         }
     }
 
@@ -76,15 +73,7 @@ final class AppPerformanceUITests: TrinketUITestCase {
     func test03HomesteadDetailTransition() {
         launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
         homestead.assertLoaded()
-        tapButton(AccessibilityID.Homestead.category("Farming"))
-        // Category push can leave Wheat Field below the fold; give navigation a beat
-        // before the scroll hunt so we do not swipe the overview.
-        _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-            .waitForExistence(timeout: 2)
-        assertExistsAfterScroll(
-            AccessibilityID.Homestead.node(title: "Wheat Field"),
-            maxAttempts: 10
-        )
+        homestead.openFarmingCategoryAndRevealWheatFieldNode()
         let detail = app.descendants(matching: .any)[
             AccessibilityID.Homestead.nodeDetail(title: "Wheat Field")
         ]

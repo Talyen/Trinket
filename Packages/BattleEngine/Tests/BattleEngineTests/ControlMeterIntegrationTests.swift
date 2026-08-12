@@ -138,8 +138,9 @@ struct ControlMeterIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         try #expect(events.contains(effectKind: .controlActionSkipped, keyword: .stun))
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
-        // Party skip is consumed once; Stunned status lingers without blocking the next turn.
-        try #expect(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun))
+        // Party skip is consumed once; the Stunned status drops so the hero does
+        // not look CC'd while acting on the next turn.
+        try #expect(!(battle.roster.hasControlStatus(for: battle.hero, keyword: .stun)))
         try #expect(!(battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .stun)))
         try #expect(battle.ownersSkippingThisPlayerTurn.isEmpty)
     }

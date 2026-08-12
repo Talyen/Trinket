@@ -19,7 +19,6 @@ public enum CombatFeedbackClass: String, CaseIterable, Sendable, Equatable {
 /// Glass chip chrome weight for combat feedback.
 public enum ChipChromeRole: String, CaseIterable, Sendable, Equatable {
     case standard
-    case compact
     case emphasis
     case utility
 }

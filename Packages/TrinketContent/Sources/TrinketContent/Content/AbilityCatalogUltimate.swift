@@ -4,10 +4,9 @@ import TrinketCore
 enum AbilityCatalogUltimate {
     static let avatarOfJustice = Ability(
         id: "avatar-of-justice", name: "Avatar", tier: .ultimate,
-        description: "Deal 6 Holy damage each turn for 2 turns. Gain 6 Block.",
+        description: "Gain 4 Block and deal 6 Holy damage each turn for 2 turns.",
         targetedEffects: [
-            TargetedEffect(.recurringDamage(.holy, 6, 1)),
-            TargetedEffect(.shield(.block, 6)),
+            TargetedEffect(.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)),
         ]
     )
 

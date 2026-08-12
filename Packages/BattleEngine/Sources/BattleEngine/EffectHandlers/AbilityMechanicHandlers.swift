@@ -137,8 +137,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         )
         let restored = context.restoreMana(
             context.paced(amount, sourceActorID: source.id),
-            to: target,
-            sourceActorID: source.id
+            to: target
         )
         let event = context.nextEvent(
             kind: .effect,
@@ -283,6 +282,125 @@ struct RecurringDamageHandler: BattleEffectHandler {
             updatedStack: updated,
             removeAfter: updated.remainingTurns <= 0
         )
+    }
+}
+
+struct AvatarHandler: BattleEffectHandler {
+    let kind: EffectKind = .avatar
+
+    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard let active = stacks.first,
+              case let .avatar(holyDamage, blockPerTurn, _) = active.effect
+        else { return nil }
+        return EffectSummary(
+            keyword: keyword,
+            text: "Avatar: deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))."
+        )
+    }
+
+    func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleState
+    ) -> EffectApplyOutcome {
+        guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
+              holyDamage > 0, blockPerTurn > 0, turns > 0
+        else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        var events = pulse(
+            holyDamage: holyDamage,
+            blockPerTurn: blockPerTurn,
+            from: target,
+            in: &context
+        )
+        ActiveEffectMutation.removeMatching(from: target, in: &context) {
+            if case .avatar = $0 {
+                return true
+            }
+            return false
+        }
+        context.appendEffect(
+            .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
+            to: target,
+            sourceID: source.id,
+            remainingTurns: turns
+        )
+        events.append(context.nextEvent(
+            kind: .effect,
+            effectKind: .controlApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: holyDamage,
+            keyword: .holy
+        ))
+        return EffectApplyOutcome(events: events, didApply: true)
+    }
+
+    func advanceTurn(
+        _ active: ActiveEffect,
+        on target: Combatant,
+        in context: inout BattleState
+    ) -> EffectTurnOutcome {
+        guard case let .avatar(holyDamage, blockPerTurn, _) = active.effect,
+              active.remainingTurns > 0
+        else {
+            return EffectTurnOutcome()
+        }
+        let events = pulse(
+            holyDamage: holyDamage,
+            blockPerTurn: blockPerTurn,
+            from: target,
+            in: &context
+        )
+        var updated = active
+        updated.remainingTurns -= 1
+        return EffectTurnOutcome(
+            events: events,
+            updatedStack: updated,
+            removeAfter: updated.remainingTurns <= 0
+        )
+    }
+
+    /// Fires the buff for one turn: Holy damage to the opponent plus Block for the caster.
+    private func pulse(
+        holyDamage: Int,
+        blockPerTurn: Int,
+        from caster: Combatant,
+        in context: inout BattleState
+    ) -> [ActionEvent] {
+        let opponent: Combatant = caster.role == .enemy ? context.hero : context.enemy
+        var events = DoTDamage.resolveTurnDamage(
+            basePotency: holyDamage,
+            keyword: .holy,
+            target: opponent,
+            sourceActorID: caster.id,
+            in: &context
+        ).events
+        let applied = DefensePoolEngine.add(
+            blockPerTurn,
+            pool: .block,
+            to: caster,
+            keyword: .block,
+            sourceActorID: caster.id,
+            in: &context
+        )
+        if applied > 0 {
+            events.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .shieldApplied,
+                actorName: caster.name,
+                abilityName: "Avatar",
+                target: caster,
+                amount: applied,
+                keyword: .block
+            ))
+        }
+        return events
     }
 }
 

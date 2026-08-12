@@ -20,7 +20,8 @@ public enum BattleTurnEngine {
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
         guard let index = currentEffects.firstIndex(where: \.isAwaitingActionSkip) else {
-            return recordAction(for: actor, context: &context)
+            recordAction(for: actor, context: &context)
+            return []
         }
 
         var effect = currentEffects[index]
@@ -39,7 +40,7 @@ public enum BattleTurnEngine {
             keyword: keyword
         )
         var events = [event]
-        events.append(contentsOf: recordAction(for: actor, context: &context))
+        recordAction(for: actor, context: &context)
         return events
     }
 
@@ -47,8 +48,7 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        context: inout BattleState,
-        spendMana: Bool = false
+        context: inout BattleState
     ) -> [ActionEvent] {
         var events: [ActionEvent] = []
         var resolvedAbility = ability.resolvingOutcomeBranch(using: &context.rng)
@@ -57,9 +57,6 @@ public enum BattleTurnEngine {
             actor: actor,
             context: &context
         ))
-        if spendMana {
-            events.append(contentsOf: spendManaIfNeeded(for: resolvedAbility, actor: actor, context: &context))
-        }
 
         let damageOutcome = applyDamageComponents(
             ability: resolvedAbility,
@@ -89,13 +86,13 @@ public enum BattleTurnEngine {
                 abilityName: resolvedAbility.name,
                 abilityTier: resolvedAbility.tier,
                 target: abilityTarget,
-                amount: damageOutcome.totalDealtToAbilityTarget,
+                amount: damageOutcome.totalDealt,
                 keyword: logKeyword,
                 appliedEffectSummaries: appliedEffectLogs
             )
         )
 
-        events.append(contentsOf: recordAction(for: actor, context: &context))
+        recordAction(for: actor, context: &context)
         return events
     }
 
@@ -116,16 +113,6 @@ public enum BattleTurnEngine {
         }
         return .basic
     }
-
-    @discardableResult
-    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleState) -> [ActionEvent] {
-        guard ability.manaCost > 0, actor.hasMana else { return [] }
-        let cost = context.modifiers(for: actor.id).effectiveManaCost(for: ability)
-        guard cost > 0 else { return [] }
-        let spent = context.spendMana(cost, for: actor)
-        guard spent > 0 else { return [] }
-        return CombatTriggerEngine.afterSpendMana(by: actor, in: &context)
-    }
 }
 
 extension BattleTurnEngine {
@@ -143,7 +130,7 @@ extension BattleTurnEngine {
         let pairedDirectDamage: [(Keyword, Int)]
         let logDamageKeyword: Keyword?
 
-        var totalDealtToAbilityTarget: Int {
+        var totalDealt: Int {
             resolvedComponents.reduce(0) { $0 + $1.healthLost }
         }
     }
@@ -203,6 +190,7 @@ extension BattleTurnEngine {
             let shouldConsumeNextStrikeCritical = amount > 0
                 && !isSelfHealthCost
                 && hasActiveEffect(for: actor, in: context) { $0 == .nextStrikeCritical }
+            let holyStrikeBurnPotency = amount
             if shouldConsumeNextHolyStrike || shouldConsumeNextStrikeDouble {
                 amount *= 2
             }
@@ -228,34 +216,32 @@ extension BattleTurnEngine {
             let dealt = damageOutcome.healthLost
             let damageEvents = damageOutcome.events
             events.append(contentsOf: damageEvents)
-            if component.target == .abilityTarget {
-                let componentEvent = context.nextEvent(
-                    kind: .abilityDamage,
-                    actorID: actor.id,
-                    actorName: actor.name,
-                    abilityID: ability.id,
-                    abilityName: ability.name,
-                    abilityTier: ability.tier,
-                    target: damageTarget,
-                    amount: dealt,
-                    keyword: damageKeyword,
-                    isCritical: damageOutcome.flags.contains(.critical)
-                )
-                events.append(componentEvent)
-                resolvedComponents.append(ResolvedDamageComponent(
-                    sourceEventID: componentEvent.id,
-                    targetID: damageTarget.id,
-                    healthLost: dealt,
-                    keyword: damageKeyword,
-                    isCritical: componentEvent.isCritical
-                ))
-            }
+            let componentEvent = context.nextEvent(
+                kind: .abilityDamage,
+                actorID: actor.id,
+                actorName: actor.name,
+                abilityID: ability.id,
+                abilityName: ability.name,
+                abilityTier: ability.tier,
+                target: damageTarget,
+                amount: dealt,
+                keyword: damageKeyword,
+                isCritical: damageOutcome.flags.contains(.critical)
+            )
+            events.append(componentEvent)
+            resolvedComponents.append(ResolvedDamageComponent(
+                sourceEventID: componentEvent.id,
+                targetID: damageTarget.id,
+                healthLost: dealt,
+                keyword: damageKeyword,
+                isCritical: componentEvent.isCritical
+            ))
 
             if shouldConsumeNextHolyStrike {
                 removeActiveEffect(for: actor, in: &context) { $0 == .nextHolyStrike }
                 events.append(contentsOf: context.applyDecayingDoT(
                     keyword: .burn,
-                    potency: amount,
+                    potency: holyStrikeBurnPotency,
                     to: damageTarget,
                     sourceActorID: actor.id,
                     dealImmediateDamage: true
@@ -395,12 +381,11 @@ extension BattleTurnEngine {
     private static func recordAction(
         for actor: Combatant,
         context: inout BattleState
-    ) -> [ActionEvent] {
+    ) {
         context.actionCount += 1
-        guard var runtime = context.roster.runtime(for: actor) else { return [] }
+        guard var runtime = context.roster.runtime(for: actor) else { return }
         runtime.markActed()
         context.roster.update(runtime)
-        return []
     }
 
     private static func resolveEffectTarget(
@@ -436,7 +421,10 @@ extension BattleTurnEngine {
             if context.roster.health(for: context.hero) <= 0 {
                 return context.hero
             }
-            return context.companion
+            // No ally is down: revive has nothing to revive. Return the primary so
+            // the handler still rejects deterministically instead of picking the
+            // companion arbitrarily.
+            return context.hero
         }
     }
 }

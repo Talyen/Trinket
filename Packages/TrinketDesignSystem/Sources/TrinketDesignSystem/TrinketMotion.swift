@@ -2,10 +2,8 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-/// Floating combat-text motion recipe. Production defaults to `.alchemyPop`;
-/// `.idealCore` remains implemented for comparison and revert.
+/// Floating combat-text motion recipe. Production uses Alchemy Pop.
 public enum CombatFeedbackFloatRecipe: String, CaseIterable, Sendable, Equatable {
-    case idealCore
     case alchemyPop
 }
 
@@ -81,13 +79,9 @@ public enum TrinketMotion: Sendable {
         public static let cardHeldShadowRadius: CGFloat = 6
         public static let cardHeldShadowY: CGFloat = 16
         public static let cardMaximumTiltDegrees = 20.0
-        public static let cardMaximumStretch = 0.025
 
         /// Soft-hold after a Skill cast so caster art is readable.
         public static let skillSoftHold: TimeInterval = 0.5
-
-        /// Typical Ultimate art-fallback hold when no video is present.
-        public static let ultimateFallbackHold: TimeInterval = 4.0
 
         /// Hard ceiling for video Ultimate cinematics when end/failure notifications never fire.
         public static let ultimateVideoWatchdog: TimeInterval = 12.0
@@ -129,16 +123,8 @@ public enum TrinketMotion: Sendable {
             .easeInOut(duration: ultimateSplitCloseAtPlayback)
         }
 
-        /// Production float recipe while Alchemy Pop is under evaluation.
-        public static let activeFloatRecipe: CombatFeedbackFloatRecipe = .alchemyPop
-
-        /// Presentation lifetime for the active float recipe.
-        public static var chipDisplayDuration: TimeInterval {
-            displayDuration(for: activeFloatRecipe)
-        }
-
-        /// Ideal Core presentation lifetime (retained recipe).
-        public static let idealCoreDisplayDuration: TimeInterval = 1.02
+        /// Presentation lifetime for the Alchemy Pop float recipe.
+        public static let chipDisplayDuration: TimeInterval = alchemyPopDisplayDuration
 
         /// Alchemy Pop presentation lifetime (`pop + hold + rise`).
         public static let alchemyPopDisplayDuration: TimeInterval = 0.63
@@ -146,29 +132,11 @@ public enum TrinketMotion: Sendable {
         /// Rapid FIFO cadence for successive chips in one combatant's vertical stream.
         public static let feedbackStreamStagger: TimeInterval = 0.126
 
-        /// Ideal Core: fraction of lifetime that stays fully opaque before fade begins.
-        public static let chipOpaqueHoldFraction: Double = 0.64
-
-        /// Ideal Core: fade length after the opaque hold.
-        public static let chipFadeOutDuration: TimeInterval = 0.30
-
         /// Maximum rise as a fraction of the corresponding combatant card height.
         public static let chipTravelFraction: CGFloat = 0.44
 
         /// Minimum clearance between the final label bounds and the card's top edge.
         public static let chipTopClearance: CGFloat = 8
-
-        /// Spawn scale for the Ideal Core float punch.
-        public static let chipStartScale: CGFloat = 1.06
-
-        /// Peak scale shortly after spawn (Ideal Core).
-        public static let chipPeakScale: CGFloat = 1.10
-
-        /// End scale as the chip settles while rising (Ideal Core).
-        public static let chipEndScale: CGFloat = 0.96
-
-        /// Progress (0...1) at which Ideal Core scale reaches `chipPeakScale`.
-        public static let chipPeakProgress: Double = 0.10
 
         // MARK: Alchemy Pop envelope (ported from Alchemy combat-text.tsx)
 
@@ -210,89 +178,23 @@ public enum TrinketMotion: Sendable {
         /// One full lap of a traveling buff-aura border shimmer (Shadowstep, etc.).
         public static let buffAuraShimmerPeriod: TimeInterval = 1.6
 
-        public static func displayDuration(for recipe: CombatFeedbackFloatRecipe) -> TimeInterval {
-            switch recipe {
-            case .idealCore: idealCoreDisplayDuration
-            case .alchemyPop: alchemyPopDisplayDuration
-            }
+        public static func chipMotionProgress(elapsed: TimeInterval) -> Double {
+            alchemyPopMotionProgress(elapsed: elapsed)
         }
 
-        /// Rise progress 0...1 for the given recipe (default: active production recipe).
-        public static func chipMotionProgress(
-            elapsed: TimeInterval,
-            recipe: CombatFeedbackFloatRecipe = activeFloatRecipe
-        ) -> Double {
-            switch recipe {
-            case .idealCore:
-                idealCoreMotionProgress(elapsed: elapsed)
-            case .alchemyPop:
-                alchemyPopMotionProgress(elapsed: elapsed)
-            }
+        /// Scale envelope for the Alchemy Pop float recipe.
+        public static func chipScale(elapsed: TimeInterval) -> CGFloat {
+            alchemyPopScale(elapsed: elapsed)
         }
 
-        /// Scale envelope for the given recipe (default: active production recipe).
-        public static func chipScale(
-            elapsed: TimeInterval,
-            recipe: CombatFeedbackFloatRecipe = activeFloatRecipe
-        ) -> CGFloat {
-            switch recipe {
-            case .idealCore:
-                idealCoreScale(elapsed: elapsed)
-            case .alchemyPop:
-                alchemyPopScale(elapsed: elapsed)
-            }
-        }
-
-        public static func chipOpacity(
-            elapsed: TimeInterval,
-            recipe: CombatFeedbackFloatRecipe = activeFloatRecipe
-        ) -> Double {
-            switch recipe {
-            case .idealCore:
-                idealCoreOpacity(elapsed: elapsed)
-            case .alchemyPop:
-                alchemyPopOpacity(elapsed: elapsed)
-            }
+        public static func chipOpacity(elapsed: TimeInterval) -> Double {
+            alchemyPopOpacity(elapsed: elapsed)
         }
 
         public static func chipTravelDistance(cardHeight: CGFloat, chipHeight: CGFloat) -> CGFloat {
             let proportionalTravel = cardHeight * chipTravelFraction
             let topSafeTravel = cardHeight / 2 - chipHeight / 2 - chipTopClearance
             return max(0, min(proportionalTravel, topSafeTravel))
-        }
-
-        // MARK: Ideal Core sampling
-
-        /// Quadratic ease-out: energetic start that decelerates through the rise.
-        private static func idealCoreMotionProgress(elapsed: TimeInterval) -> Double {
-            let progress = min(max(elapsed / idealCoreDisplayDuration, 0), 1)
-            let inverse = 1 - progress
-            return 1 - inverse * inverse
-        }
-
-        /// Soft punch to peak, then settle while rising.
-        private static func idealCoreScale(elapsed: TimeInterval) -> CGFloat {
-            let t = min(max(elapsed / idealCoreDisplayDuration, 0), 1)
-            let peakAt = min(max(chipPeakProgress, 0.001), 0.999)
-            if t <= peakAt {
-                let u = t / peakAt
-                return chipStartScale + (chipPeakScale - chipStartScale) * CGFloat(u)
-            }
-            let u = (t - peakAt) / (1 - peakAt)
-            return chipPeakScale + (chipEndScale - chipPeakScale) * CGFloat(u)
-        }
-
-        private static func idealCoreOpacity(elapsed: TimeInterval) -> Double {
-            let holdEnd = min(
-                idealCoreDisplayDuration * chipOpaqueHoldFraction,
-                idealCoreDisplayDuration - 0.001
-            )
-            guard elapsed > holdEnd else { return 1 }
-            let fadeLen = max(
-                min(chipFadeOutDuration, idealCoreDisplayDuration - holdEnd),
-                0.001
-            )
-            return min(max((holdEnd + fadeLen - elapsed) / fadeLen, 0), 1)
         }
 
         // MARK: Alchemy Pop sampling

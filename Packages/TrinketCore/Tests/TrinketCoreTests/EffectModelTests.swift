@@ -13,6 +13,22 @@ struct EffectModelTests {
         try #expect(Effect.drawCards(2).isInstant)
     }
 
+    @Test func avatarEffectModelsSelfBuffPulse() throws {
+        let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
+        try #expect(avatar.keyword == .holy)
+        try #expect(avatar.potency == 6)
+        try #expect(avatar.durationTurns == 1)
+        try #expect(avatar.advancesEachTurn)
+        try #expect(avatar.isRemovableBuff)
+        try #expect(!avatar.isRemovableDebuff)
+        try #expect(!avatar.isInstant)
+        try #expect(!avatar.isDecayingDoT)
+        try #expect(!avatar.isManaEmpowerableBurnOrFreezeDamage)
+        try #expect(avatar.withManaEmpowerment() == avatar)
+        try #expect(Effect.defaultTarget(for: avatar) == .actor)
+        try #expect(avatar.kind == .avatar)
+    }
+
     @Test func pairedDoTMapsDamageKeywordsOnly() throws {
         try #expect(Effect.pairedDoT(keyword: .burn, potency: 3) == .burn(3))
         try #expect(Effect.pairedDoT(keyword: .poison, potency: 2) == .poison(2))

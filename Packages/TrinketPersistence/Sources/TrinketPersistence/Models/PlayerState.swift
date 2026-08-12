@@ -23,10 +23,7 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
 
     public func item(matching id: String?) -> InventoryItem? {
         guard let id else { return nil }
-        if let exact = items.first(where: { $0.id == id }) {
-            return exact
-        }
-        return items.first { $0.templateID == id }
+        return items.first { $0.id == id }
     }
 
     public func items(for slot: ItemSlot) -> [InventoryItem] {
@@ -77,8 +74,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         }
     }
 
-    public var primaryStatOverrides: [String: PrimaryStats] = [:]
-
     public init(
         activeHeroID: String,
         activeCompanionID: String,
@@ -87,8 +82,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         abilityLoadouts: [String: AbilityLoadout],
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: EquipmentLoadout],
-        gold: Int = 0,
-        primaryStatOverrides: [String: PrimaryStats] = [:]
+        gold: Int = 0
     ) {
         self.activeHeroID = activeHeroID
         self.activeCompanionID = activeCompanionID
@@ -98,7 +92,6 @@ public struct PlayerRosterState: Equatable, Sendable {
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
         self.gold = Self.clampedGoldBalance(gold)
-        self.primaryStatOverrides = primaryStatOverrides
     }
 
     public static var freshStart: Self {
@@ -185,9 +178,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public func configuredCombatant(_ combatant: Combatant) -> Combatant {
-        let withLoadout = combatant.withAbilityLoadout(loadout(for: combatant))
-        guard let overrides = primaryStatOverrides[combatant.id] else { return withLoadout }
-        return withLoadout.withPrimaryStats(overrides)
+        combatant.withAbilityLoadout(loadout(for: combatant))
     }
 
     public func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {

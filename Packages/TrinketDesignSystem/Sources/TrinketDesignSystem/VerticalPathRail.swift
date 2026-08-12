@@ -58,8 +58,8 @@ public struct PathConnectorStyle: Equatable, Sendable {
     }
 
     public static let homesteadAccent = Self(
-        progressedColor: HomesteadPalette.accent,
-        completedColor: HomesteadPalette.success
+        progressedColor: TrinketDesign.Colors.accent,
+        completedColor: TrinketDesign.Colors.success
     )
 }
 

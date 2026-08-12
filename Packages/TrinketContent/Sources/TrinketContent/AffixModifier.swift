@@ -23,7 +23,6 @@ public enum AffixModifier: Equatable, Hashable, Codable, Sendable {
     case damageTakenFlat(Keyword, Int)
     case damageTakenVulnerability(Keyword, Double)
     case companionDamageDealt(Int)
-    case manaCostReductionPercent(Double)
 }
 
 public extension AffixModifier {
@@ -33,8 +32,7 @@ public extension AffixModifier {
              .leechGainedPercent,
              .goldGainedPercent,
              .damageTakenPercent,
-             .damageTakenVulnerability,
-             .manaCostReductionPercent:
+             .damageTakenVulnerability:
             true
         default:
             false
@@ -64,8 +62,7 @@ public extension AffixModifier {
              let .leechGainedPercent(v),
              let .goldGainedPercent(v),
              let .damageTakenPercent(_, v),
-             let .damageTakenVulnerability(_, v),
-             let .manaCostReductionPercent(v):
+             let .damageTakenVulnerability(_, v):
             v
         }
     }
@@ -100,7 +97,6 @@ public extension AffixModifier {
         case let .goldGainedPercent(v): .goldGainedPercent(transform(v))
         case let .damageTakenPercent(kw, v): .damageTakenPercent(kw, transform(v))
         case let .damageTakenVulnerability(kw, v): .damageTakenVulnerability(kw, transform(v))
-        case let .manaCostReductionPercent(v): .manaCostReductionPercent(transform(v))
         default: self
         }
     }

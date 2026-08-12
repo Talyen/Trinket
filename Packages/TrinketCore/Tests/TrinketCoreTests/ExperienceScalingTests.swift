@@ -42,30 +42,23 @@ struct ExperienceScalingTests {
 
     @Test func battleAwardAppliesLevelDeltaAndCatchUpMultiplier() throws {
         try #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
-        try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) > 0)
+        try #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 253)
 
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
         )
 
-        let baseAward = ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5)
-        let catchUp = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
-        let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
+        // Pinned values, not re-derived: level-5 equal fight (253 base) × catch-up
+        // toward highest 10 (≈2.377) rounds to 601.
         try #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
-                == expected
+                == 601
         )
     }
 
     @Test func equalBattleAwardMatchesEqualLevelCatchUpAward() throws {
-        let award = ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18)
-        try #expect(
-            award == ExperienceScaling.battleAwardWithCatchUp(
-                playerLevel: 12,
-                enemyLevel: 12,
-                highestLevel: 18
-            )
-        )
+        // Pinned equal-level award for player 12 catching up to highest 18.
+        try #expect(ExperienceScaling.equalBattleAward(playerLevel: 12, highestLevel: 18) == 2030)
     }
 
     @Test func cappedAwardClipsAtThreeTimesRequiredXP() throws {

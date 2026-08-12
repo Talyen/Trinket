@@ -160,7 +160,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.enemy) <= 95)
     }
 
-    @Test func avatarOfJusticeAppliesRecurringHolyAndBlock() throws {
+    @Test func avatarOfJusticeAppliesBuffPulsesHolyAndBlockThenExpires() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -177,27 +177,39 @@ struct AbilityEffectIntegrationTests {
             "Expected Avatar to resolve in battle"
         )
 
+        // The buff lives on the caster, not as a Holy DoT on the enemy.
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .shield(.block, 6) = active.effect {
-                return true
+            if case .avatar(6, 4, 1) = active.effect {
+                return active.remainingTurns == 1
             }
             return false
         })
-        try #expect(battle.activeEffects(of: battle.enemy).contains { active in
-            if case .recurringDamage(.holy, 6, 1) = active.effect {
-                return active.remainingTurns == 1
+        try #expect(!battle.activeEffects(of: battle.enemy).contains { active in
+            if case .recurringDamage(.holy, _, _) = active.effect {
+                return true
             }
             return false
         })
         #expect(CombatantBuffAura.kind(for: battle.hero, in: battle) == .avatar)
         #expect(CombatantBuffAura.kind(for: battle.enemy, in: battle) == nil)
+
+        // First pulse on cast: Holy damage to the enemy plus Block for the caster.
         let healthAfterCast = battle.health(of: battle.enemy)
         try #expect(healthAfterCast < 100)
+        let blockAfterCast = DefensePoolEngine.points(
+            in: battle.activeEffects(of: battle.hero),
+            pool: .block
+        )
+        try #expect(blockAfterCast == 4)
 
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        // Second pulse next round repeats the Holy damage AND the Block, then the buff expires.
+        let endEvents = BattleTestFixtures.endTurn(on: &battle)
         try #expect(battle.health(of: battle.enemy) < healthAfterCast)
-        try #expect(!battle.activeEffects(of: battle.enemy).contains { active in
-            if case .recurringDamage(.holy, _, _) = active.effect {
+        try #expect(endEvents.contains {
+            $0.effectKind == .shieldApplied && $0.targetID == hero.id && $0.amount == 4
+        })
+        try #expect(!battle.activeEffects(of: battle.hero).contains { active in
+            if case .avatar = active.effect {
                 return true
             }
             return false

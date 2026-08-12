@@ -15,6 +15,10 @@ struct EffectPresentationTests {
             ActiveEffect(id: 1, effect: .deathsDoor, remainingTurns: 8),
             "Death's Door"
         ),
+        (
+            ActiveEffect(id: 1, effect: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), remainingTurns: 1),
+            "Avatar"
+        ),
     ])
     func activePhraseFormatsKnownEffects(active: ActiveEffect, expected: String?) throws {
         try #expect(EffectPresentation.activePhrase(for: active) == expected)
@@ -32,6 +36,10 @@ struct EffectPresentationTests {
         ),
         (.nextStrikeDouble, "your next attack deals double damage"),
         (.evadeNextHit, "dodge the next attack"),
+        (
+            .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1),
+            "deal 6 Holy damage and gain 4 Block each turn for 1 turn"
+        ),
     ])
     func applyPhraseFormatsKnownEffects(effect: Effect, expected: String) throws {
         try #expect(EffectPresentation.applyPhrase(for: effect) == expected)

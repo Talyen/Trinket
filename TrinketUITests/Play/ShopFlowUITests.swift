@@ -5,24 +5,27 @@ import XCTest
 final class ShopFlowUITests: TrinketUITestCase {
     func testMerchantShopBrowseDetailPurchaseAndLeaveUnlocksNextStage() {
         // Deep-link opens stage 2-8 shop; prior stages completed so leave unlocks stage 9.
-        launchApp(arguments: TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
-            "chapter-2-stage-1",
-            "chapter-2-stage-2",
-            "chapter-2-stage-3",
-            "chapter-2-stage-4",
-            "chapter-2-stage-5",
-            "chapter-2-stage-6",
-            "chapter-2-stage-7",
-        ]))
+        // Seed grants ~22 gold from stage completions, which under-covers offer prices,
+        // so grant a deterministic balance that makes every offer buyable.
+        launchApp(arguments: TestLaunchArg.allForShop()
+            + TestLaunchArg.completedStages([
+                "chapter-2-stage-1",
+                "chapter-2-stage-2",
+                "chapter-2-stage-3",
+                "chapter-2-stage-4",
+                "chapter-2-stage-5",
+                "chapter-2-stage-6",
+                "chapter-2-stage-7",
+            ])
+            + ["-starting-gold", "200"])
 
         // Shell catalog (title/gold/leave/offers) lives in SmokeShopTests; wait once then journey.
-        assertExists(AccessibilityID.Shop.leaveButton)
-
         let offerCards = app.buttons.matching(
             NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
         )
         let firstOfferCard = offerCards.firstMatch
-        firstOfferCard.tap()
+        assertExists(firstOfferCard)
+        tapWhenReady(firstOfferCard)
         assertExists(AccessibilityID.Shop.detailBuyButton)
         dismissSheet()
 

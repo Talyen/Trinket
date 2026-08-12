@@ -116,6 +116,9 @@ public enum Effect: Hashable, Sendable {
     case multiplyDoT(Keyword, Int)
     /// Immediate typed damage plus end-of-round pulses for `remainingTurns` after apply.
     case recurringDamage(Keyword, Int, Int)
+    /// Self-buff: while active, deals `holyDamage` Holy damage to the opponent and
+    /// grants `blockPerTurn` Block to the caster each turn for `turns` pulses.
+    case avatar(holyDamage: Int, blockPerTurn: Int, turns: Int)
     /// Revive a defeated ally to the given Health.
     case revive(Int)
 
@@ -172,6 +175,7 @@ public enum Effect: Hashable, Sendable {
         case .freezeOnHit: .freeze
         case let .multiplyDoT(k, _): k
         case let .recurringDamage(k, _, _): k
+        case .avatar: .holy
         case .revive: .health
         }
     }
@@ -182,6 +186,7 @@ public enum Effect: Hashable, Sendable {
         case let .thorns(p): p
         case let .freezeOnHit(p): p
         case let .recurringDamage(_, p, _): p
+        case let .avatar(holyDamage, _, _): holyDamage
         default: nil
         }
     }
@@ -220,6 +225,7 @@ public enum Effect: Hashable, Sendable {
         case let .restoreManaOnHit(_, d): d
         case let .damageKeywordOverride(_, _, d): d
         case let .recurringDamage(_, _, d): d
+        case let .avatar(_, _, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
@@ -261,7 +267,7 @@ public enum Effect: Hashable, Sendable {
              .deathsDoor, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .evadeNextHit,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
-             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit:
+             .nextStrikeCritical, .freezeNextAttacker, .freezeOnHit, .avatar:
             .actor
         }
     }

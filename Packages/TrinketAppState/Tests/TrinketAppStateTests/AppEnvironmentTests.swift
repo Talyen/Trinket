@@ -58,9 +58,10 @@ struct AppEnvironmentTests {
             "-seed-test-progress",
             "-disable-audio",
             "-persist-save-immediately",
-            "-battle-tick-interval", "0.4",
             "-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,",
             "-mystery-recruit-event", "recruit-ranger",
+            "-battle-tick-interval", "60",
+            "-starting-gold", "200",
             "-enable-frame-metrics",
             "-battle-performance-scenario", "engine-feedback",
         ])
@@ -69,17 +70,19 @@ struct AppEnvironmentTests {
         #expect(env.disableCloudSync)
         #expect(env.disableAudio)
         #expect(env.persistSaveImmediately)
-        #expect(env.battleTickInterval == 0.4)
         #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
         #expect(env.mysteryRecruitEventID == "recruit-ranger")
+        #expect(env.battleTickInterval == 60)
+        #expect(env.startingGold == 200)
         #expect(env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == .engineFeedback)
 
-        #expect(Self.parse(arguments: ["-battle-tick-interval", "not-a-number"]).battleTickInterval == nil)
         #expect(!Self.parse(arguments: ["-enable-cloud-sync"]).disableCloudSync)
         #expect(
             Self.parse(arguments: ["-battle-performance-scenario", "unknown"]).battlePerformanceScenario == nil
         )
+        #expect(Self.parse(arguments: ["-battle-tick-interval", "nope"]).battleTickInterval == nil)
+        #expect(Self.parse(arguments: ["-starting-gold", "nope"]).startingGold == nil)
     }
 
     @Test func noFlagsYieldsDefaultEnvironment() {
@@ -94,6 +97,7 @@ struct AppEnvironmentTests {
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mysteryRecruitEventID == nil)
         #expect(env.battleTickInterval == nil)
+        #expect(env.startingGold == nil)
         #expect(!env.persistSaveImmediately)
         #expect(!env.enableFrameMetrics)
         #expect(env.battlePerformanceScenario == nil)

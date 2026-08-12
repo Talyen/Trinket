@@ -158,7 +158,9 @@ struct StageBattlePartyPickerSheet: View {
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        playerSave.roster = roster
+        // persistBatch returns whether the mutation stuck; the picker keeps its
+        // haptic regardless and product may surface the Bool later.
+        playerSave.persistBatch(logging: "Failed to persist party selection") { $0.roster = roster }
         selectionFeedbackTrigger += 1
     }
 
@@ -223,7 +225,7 @@ private struct BattlePartySlotGridView: View {
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         var roster = playerSave.roster
         slot.select(combatant, in: &roster)
-        playerSave.roster = roster
+        playerSave.persistBatch(logging: "Failed to persist party selection") { $0.roster = roster }
         selectionFeedbackTrigger += 1
     }
 }

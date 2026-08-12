@@ -10,7 +10,7 @@ import TrinketTestSupport
 /// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
     /// Matches `BattleStateTestFactory` seed for reproducible dodge/crit rolls.
-    static let deterministicNonCriticalSeed: UInt64 = 1772
+    static let deterministicNonCriticalSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
 
     static func makePipelineContext(
         targetMaxHealth: Int = 50,

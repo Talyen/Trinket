@@ -18,8 +18,6 @@ public final class RosterModel {
     public var abilityLoadouts: [AbilityLoadoutModel]?
     @Relationship(deleteRule: .cascade, inverse: \EquipmentLoadoutModel.roster)
     public var equipmentLoadouts: [EquipmentLoadoutModel]?
-    @Relationship(deleteRule: .cascade, inverse: \PrimaryStatsModel.roster)
-    public var primaryStats: [PrimaryStatsModel]?
 
     public init() {}
 }
@@ -90,25 +88,5 @@ public final class EquipmentSlotModel {
     public init(slotID: String = "", itemID: String = "") {
         self.slotID = slotID
         self.itemID = itemID
-    }
-}
-
-@Model
-public final class PrimaryStatsModel {
-    public var combatantID: String = ""
-    public var strength: Int = 0
-    public var agility: Int = 0
-    public var toughness: Int = 0
-    public var intellect: Int = 0
-    public var wisdom: Int = 0
-    public var roster: RosterModel?
-
-    public init(combatantID: String = "", stats: PrimaryStats = PrimaryStats()) {
-        self.combatantID = combatantID
-        strength = stats.strength
-        agility = stats.agility
-        toughness = stats.toughness
-        intellect = stats.intellect
-        wisdom = stats.wisdom
     }
 }

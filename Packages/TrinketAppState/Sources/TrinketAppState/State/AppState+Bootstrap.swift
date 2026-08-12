@@ -46,6 +46,11 @@ extension AppState {
                 )
             }
         }
+        if let startingGold = environment.startingGold, startingGold > 0 {
+            resolvedPlayerSave.persistBatch(logging: "Failed to grant starting gold") { save in
+                save.roster.grantGold(startingGold)
+            }
+        }
 
         let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
 

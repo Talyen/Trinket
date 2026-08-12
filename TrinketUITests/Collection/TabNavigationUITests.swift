@@ -106,15 +106,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("homestead"))
         homestead.assertLoaded()
 
-        tapButton(AccessibilityID.Homestead.category("Farming"))
-        // Category push can leave Wheat Field below the fold; give navigation a
-        // beat before the scroll hunt so we do not swipe the overview.
-        _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-            .waitForExistence(timeout: 2)
-        assertExistsAfterScroll(
-            AccessibilityID.Homestead.node(title: "Wheat Field"),
-            maxAttempts: 10
-        )
+        homestead.openFarmingCategoryAndRevealWheatFieldNode()
         tapButton(AccessibilityID.Homestead.node(title: "Wheat Field"))
         homestead.assertNodeDetail(named: "Wheat Field")
         assertExists(AccessibilityID.Homestead.tierPath)

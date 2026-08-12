@@ -111,21 +111,6 @@ public enum StatGrowth {
         maxHealth: Int,
         maxMana: Int,
         primaryStats: PrimaryStats,
-        multiplier: Double
-    ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
-        applyPowerMultiplier(
-            maxHealth: maxHealth,
-            maxMana: maxMana,
-            primaryStats: primaryStats,
-            healthMultiplier: multiplier,
-            statsMultiplier: multiplier
-        )
-    }
-
-    public static func applyPowerMultiplier(
-        maxHealth: Int,
-        maxMana: Int,
-        primaryStats: PrimaryStats,
         healthMultiplier: Double,
         statsMultiplier: Double
     ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {

@@ -80,6 +80,14 @@ struct EffectSummaryBuilderTests {
         try #expect(lingered.first?.text == "Stunned")
     }
 
+    @Test func avatarSelfBuffSummary() throws {
+        let summaries = EffectSummaryBuilder.build(for: [
+            ActiveEffect(id: 1, effect: .avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), remainingTurns: 1),
+        ])
+        try #expect(summaries.first?.keyword == .holy)
+        try #expect(summaries.first?.text == "Avatar: deal 6 Holy damage and gain 4 Block each turn, 1 turn left.")
+    }
+
     @Test func emptyEffectsProducesEmptySummaries() throws {
         try #expect(EffectSummaryBuilder.build(for: []).isEmpty)
     }

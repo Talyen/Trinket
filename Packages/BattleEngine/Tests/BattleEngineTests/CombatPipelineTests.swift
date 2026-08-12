@@ -44,7 +44,7 @@ struct CombatPipelineTests {
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: source, initialActiveEffects: [])
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -58,11 +58,11 @@ struct CombatPipelineTests {
         try #expect(lost == 0)
         try #expect(events.contains { $0.effectKind == .dodgeApplied })
 
-        var noSourceContext = makeContext(seed: 1772)
+        var noSourceContext = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let (lostWithoutSource, _) = noSourceContext.applyTestDamage(10, to: noSourceContext.roster.enemy.combatant)
         try #expect(lostWithoutSource > 0)
 
-        var disabledContext = makeContext(seed: 1772)
+        var disabledContext = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let (lostWithDodgeDisabled, _) = disabledContext.applyTestDamage(
             10,
             to: disabledContext.roster.enemy.combatant,
@@ -117,7 +117,7 @@ struct CombatPipelineTests {
 
     @Test func applyDamageStatBonusAppliesForSource() throws {
         let stats = PrimaryStats(strength: 80) // 80 / (80 + 80) = 50% bonus
-        var context = makeContext(sourcePrimaryStats: stats, seed: 1772)
+        var context = makeContext(sourcePrimaryStats: stats, seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
         // 10 + 5 = 15
         try #expect(lost == 15)
@@ -126,7 +126,7 @@ struct CombatPipelineTests {
     // MARK: - Leech
 
     @Test func applyLeechFromDamageRequiresLeechSource() throws {
-        var withoutLeech = makeContext(seed: 1772)
+        var withoutLeech = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         _ = withoutLeech.applyTestDamage(10, to: withoutLeech.roster.enemy.combatant, sourceActorID: "source")
         try #expect(withoutLeech.applyLeechFromDamage(10, sourceActorID: "source").isEmpty)
 
@@ -154,7 +154,7 @@ struct CombatPipelineTests {
     // MARK: - Prevention buildup
 
     @Test func stunAndFreezeBuildupTrackedSeparatelyFromDamage() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let target = context.roster.enemy.combatant
         _ = context.applyTestDamage(3, to: target, keyword: .stun, sourceActorID: "source", applyDodge: false)
         _ = context.applyTestDamage(5, to: target, keyword: .freeze, sourceActorID: "source", applyDodge: false)
@@ -176,7 +176,7 @@ struct CombatPipelineTests {
     @Test(arguments: ["dot", "direct", "self"] as [String])
     func applyDamageLeechMatrix(mode: String) throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -232,7 +232,7 @@ struct CombatPipelineTests {
         )
         var context = BattleState(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -255,7 +255,7 @@ struct CombatPipelineTests {
     func stunBuildupTracksPostMitigationAndShieldAbsorbedHits(useShield: Bool) throws {
         if useShield {
             let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)
-            var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
+            var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: BattleTestFixtures.deterministicNonCriticalSeed)
             let (lost, _) = context.applyTestDamage(
                 5,
                 to: context.roster.enemy.combatant,
@@ -273,7 +273,7 @@ struct CombatPipelineTests {
             var context = makeContext(
                 targetMaxHealth: 100,
                 targetPrimaryStats: PrimaryStats(toughness: 15),
-                seed: 1772
+                seed: BattleTestFixtures.deterministicNonCriticalSeed
             )
             _ = context.applyTestDamage(
                 20,
@@ -291,7 +291,7 @@ struct CombatPipelineTests {
 
     @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)
-        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let outcome = context.resolveDamage(
             DamageRequest(
                 amount: 5,
@@ -313,7 +313,7 @@ struct CombatPipelineTests {
 
     @Test func nonCrittableKeywordsNeverCriticalEvenWithAbilityBonus() throws {
         for keyword: Keyword in [.block, .dodge, .purge, .gold, .mana] {
-            var context = makeContext(seed: 1772)
+            var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
             let before = context.roster.enemy.currentHealth
             let outcome = context.resolveDamage(
                 DamageRequest(

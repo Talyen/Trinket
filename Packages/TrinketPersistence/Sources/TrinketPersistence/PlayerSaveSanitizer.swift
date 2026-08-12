@@ -394,6 +394,9 @@ private extension PlayerSaveSanitizer {
         var nextIndex = 0
         var predecessor: [String: String] = [:]
         var visited: Set<String> = [sourceID]
+        // Loop-invariant ordering: the frontier order decides first-wins predecessor
+        // claims, so it is materialized once instead of per popped node.
+        let sortedNodeIDs = nodeIDs.sorted()
 
         while nextIndex < frontier.count {
             let nodeID = frontier[nextIndex]
@@ -405,7 +408,7 @@ private extension PlayerSaveSanitizer {
                 continue
             }
 
-            for candidateID in nodeIDs.sorted() {
+            for candidateID in sortedNodeIDs {
                 guard !visited.contains(candidateID),
                       let candidate = nodes[candidateID],
                       source.isAdjacent(to: candidate)

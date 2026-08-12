@@ -29,10 +29,6 @@ enum AbilityDescriptionFormatter {
     private static func formatFixed(_ ability: Ability) -> String {
         var clauses: [String] = []
 
-        if ability.manaCost > 0 {
-            clauses.append("costs \(ability.manaCost) Mana")
-        }
-
         for component in ability.damageComponents where component.target == .actor {
             clauses.append("Lose \(component.amount) Health")
         }

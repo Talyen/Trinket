@@ -10,12 +10,9 @@ import TrinketPersistence
 struct CollectionView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
-    @State private var selectedItem: InventoryItem?
-    @State private var selectedItemIndex: Int?
-    @State private var dissolvingTombstone: SalvageDissolveTombstone?
+    @State private var salvageDetail = SalvageItemDetailController()
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
-    @State private var salvageSuccessCount = 0
     @Namespace private var zoomNamespace
 
     let consumePendingPresentation: () -> LaunchPresentation?
@@ -25,6 +22,7 @@ struct CollectionView: View {
     }
 
     var body: some View {
+        @Bindable var salvageDetail = salvageDetail
         collectionBrowseContent
             .trinketScreenBackground()
             .scrollEdgeEffectStyle(.soft, for: .top)
@@ -37,32 +35,15 @@ struct CollectionView: View {
             } message: {
                 Text("That item isn't in your collection.")
             }
-            .sheet(item: $selectedItem) { item in
-                NavigationStack {
-                    ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
-                        if didSucceed {
-                            let index = selectedItemIndex
-                                ?? playerSave.inventory.items.firstIndex(where: { $0.id == item.id })
-                                ?? 0
-                            dissolvingTombstone = SalvageDissolveTombstone(item: item, index: index)
-                            salvageSuccessCount += 1
-                        }
-                        selectedItem = nil
-                        selectedItemIndex = nil
+            .sheet(item: $salvageDetail.selectedItem) { item in
+                SalvageItemDetailSheet(
+                    controller: salvageDetail,
+                    item: item,
+                    zoomNamespace: zoomNamespace,
+                    resolveIndex: { resolvedItem in
+                        playerSave.inventory.items.firstIndex(where: { $0.id == resolvedItem.id }) ?? 0
                     }
-                }
-                .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
-                .trinketDetailSheet()
-                .appFramePacingSignpost(
-                    AppFramePacingSignposts.Name.sheetPresent,
-                    isActive: true
                 )
-                .onAppear {
-                    AppFramePacingSignposts.event(
-                        AppFramePacingSignposts.Name.sheetPresent,
-                        detail: "collectionItem=\(item.id)"
-                    )
-                }
             }
             .sheet(item: $selectedCombatant) { context in
                 NavigationStack {
@@ -88,7 +69,7 @@ struct CollectionView: View {
             }
             .trinketSensoryFeedback(
                 .success,
-                trigger: salvageSuccessCount,
+                trigger: salvageDetail.salvageSuccessCount,
                 enabled: options.hapticsEnabled
             )
     }
@@ -99,9 +80,9 @@ struct CollectionView: View {
         let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
         let shelfItems = SalvageDissolvePresentation.displayedItems(
             Array(inventoryState.items.prefix(shelfLimit)),
-            tombstone: dissolvingTombstone
+            tombstone: salvageDetail.dissolvingTombstone
         )
-        let showsInventoryShelf = !inventoryState.items.isEmpty || dissolvingTombstone != nil
+        let showsInventoryShelf = !inventoryState.items.isEmpty || salvageDetail.dissolvingTombstone != nil
 
         let heroes = rosterState.collectionHeroes
         let companions = rosterState.collectionCompanions
@@ -135,7 +116,7 @@ struct CollectionView: View {
                         InventoryGridView()
                     } content: {
                         ForEach(Array(shelfItems.enumerated()), id: \.element.id) { index, item in
-                            let isDissolving = dissolvingTombstone?.item.id == item.id
+                            let isDissolving = salvageDetail.dissolvingTombstone?.item.id == item.id
                             Group {
                                 if isDissolving {
                                     SalvageAwareItemCard(
@@ -143,14 +124,13 @@ struct CollectionView: View {
                                         showsAffixCount: false,
                                         showsName: false,
                                         isDissolving: true,
-                                        onDissolveFinished: finishSalvageDissolve
+                                        onDissolveFinished: salvageDetail.finishDissolve
                                     )
                                     .collectionShelfCardWidth()
                                     .accessibilityIdentifier("\(item.displayName) item card")
                                 } else {
                                     Button {
-                                        selectedItem = item
-                                        selectedItemIndex = index
+                                        salvageDetail.select(item, at: index)
                                     } label: {
                                         SalvageAwareItemCard(
                                             item: item,
@@ -174,12 +154,6 @@ struct CollectionView: View {
         }
     }
 
-    private func finishSalvageDissolve() {
-        withAnimation(TrinketMotion.Reward.stateChange) {
-            dissolvingTombstone = nil
-        }
-    }
-
     private func presentPendingLaunchRoute() {
         guard let presentation = consumePendingPresentation() else { return }
 
@@ -189,11 +163,9 @@ struct CollectionView: View {
                 selectedCombatant = context
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
-                    selectedItem = owned
-                    selectedItemIndex = playerSave.inventory.items.firstIndex(where: { $0.id == itemID })
+                    salvageDetail.select(owned, at: playerSave.inventory.items.firstIndex(where: { $0.id == itemID }))
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
-                    selectedItem = template
-                    selectedItemIndex = nil
+                    salvageDetail.select(template, at: nil)
                 } else {
                     showMissingItem = true
                 }

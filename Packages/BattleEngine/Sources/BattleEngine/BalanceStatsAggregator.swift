@@ -75,10 +75,11 @@ public enum BalanceStatsAggregator {
     public static func summarize(
         report: BalanceSweepReport
     ) -> [BalanceTierStats] {
-        report.config.tiers.map { tier in
+        let recordsByTier = Dictionary(grouping: report.records, by: \.tier)
+        return report.config.tiers.map { tier in
             summarizeTier(
                 tier: tier,
-                records: report.records.filter { $0.tier == tier },
+                records: recordsByTier[tier] ?? [],
                 threshold: report.config.peerDeltaFlagThreshold
             )
         }
@@ -360,16 +361,6 @@ public enum BalanceStatsAggregator {
         case .middle: return (0.80, 0.90)
         case .lateGame: return (0.70, 0.80)
         }
-    }
-
-    private static func winRate(_ records: [BalanceBattleRecord]) -> Double {
-        guard !records.isEmpty else { return 0 }
-        return Double(records.filter(\.result.isVictory).count) / Double(records.count)
-    }
-
-    private static func average(_ values: [Double]) -> Double {
-        guard !values.isEmpty else { return 0 }
-        return values.reduce(0, +) / Double(values.count)
     }
 
     /// Wilson score interval at ~95% confidence.

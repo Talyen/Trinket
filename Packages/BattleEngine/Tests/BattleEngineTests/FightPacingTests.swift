@@ -102,7 +102,7 @@ struct FightPacingTests {
                 companion: CombatantRuntime(combatant: companion, initialHealth: 10),
                 enemy: CombatantRuntime(combatant: enemy, initialHealth: 100)
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],

@@ -94,8 +94,6 @@ public enum TrinketDesign {
         /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
         public static let chipPaddingHorizontal: CGFloat = 10
         public static let chipPaddingVertical: CGFloat = denseSpacing
-        public static let chipCompactPaddingHorizontal: CGFloat = 8
-        public static let chipCompactPaddingVertical: CGFloat = 4
         public static let chipEmphasisPaddingHorizontal: CGFloat = snugSpacing
         public static let chipEmphasisPaddingVertical: CGFloat = 9
         public static let chipUtilityPaddingHorizontal: CGFloat = denseSpacing

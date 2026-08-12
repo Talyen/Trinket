@@ -11,7 +11,7 @@ import TrinketTestSupport
 enum BattleSessionTestSupport {
     /// Matches BattleEngine's `deterministicNonCriticalSeed` so single-card plays
     /// are not invalidated by the 5% base dodge roll at seed 0.
-    static let deterministicBattleSeed: UInt64 = 1772
+    static let deterministicBattleSeed: UInt64 = CombatantFixtures.deterministicBattleSeed
 
     static func makeConfiguredSession(
         rngSeed: UInt64 = deterministicBattleSeed,

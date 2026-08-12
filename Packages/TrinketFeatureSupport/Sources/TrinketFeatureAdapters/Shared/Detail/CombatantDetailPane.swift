@@ -207,7 +207,11 @@ public struct CombatantDetailPane: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(activeEffectSummaries) { summary in
                     let parts = activeEffectCardParts(for: summary)
-                    DetailTraitRow(title: parts.title, description: parts.description)
+                    DetailTraitRow(
+                        title: parts.title,
+                        description: parts.description,
+                        leadingIconKeyword: summary.keyword
+                    )
                 }
             }
         }

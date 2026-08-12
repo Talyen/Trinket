@@ -10,16 +10,10 @@ public enum SurfaceRole: Equatable, Sendable {
     case disabled
     case warning
     case reward
-    case modal
-    case popover
-    case homesteadPanel
 }
 
 public enum MaterialRole: Sendable {
-    case toolbar
     case bottomBar
-    case modal
-    case popover
     case rewardReveal
     case subtleOverlay
     case homesteadFooter
@@ -47,7 +41,6 @@ public enum TypographyRole: Sendable {
     case badge
     case button
     case statValue
-    case tooltip
     case navigation
     /// Serif headline for compact journey/list row titles.
     case rowDisplay
@@ -70,24 +63,11 @@ public enum TypographyRole: Sendable {
         case .badge: .caption.weight(.semibold)
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
-        case .tooltip: .caption
         case .navigation: .headline.weight(.semibold)
         case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
         case .cardLabel: .subheadline.weight(.medium)
         }
     }
-}
-
-enum HomesteadPalette {
-    static let accent = TrinketDesign.Colors.accent
-    static let success = TrinketDesign.Colors.success
-    static let walletPanel = TrinketDesign.Colors.panel
-
-    static let background = TrinketDesign.Colors.canvas
-    static let panel = TrinketDesign.Colors.panel
-    static let elevatedPanel = TrinketDesign.Colors.elevated
-    static let stroke = TrinketDesign.Colors.subtleStroke
-    static let mutedText = Color.secondary
 }
 
 struct TrinketScreenBackground: View {
@@ -200,27 +180,6 @@ private struct SurfaceStyle {
             padding = TrinketDesign.Metrics.largeSpacing
             cornerRadius = TrinketDesign.Corners.card
             shadow = ShadowStyle(color: palette.accent.opacity(0.20), radius: 14, y: 4)
-        case .modal:
-            fill = palette.panelSurface
-            stroke = palette.subtleStroke
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.homesteadBodySpacing
-            cornerRadius = TrinketDesign.Corners.card
-            shadow = palette.shadow
-        case .popover:
-            fill = palette.elevatedBackground
-            stroke = palette.subtleStroke
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.sectionHeaderSpacing
-            cornerRadius = TrinketDesign.Corners.card
-            shadow = palette.shadow
-        case .homesteadPanel:
-            fill = palette.panelSurface
-            stroke = palette.subtleStroke
-            strokeWidth = 1
-            padding = TrinketDesign.Metrics.mediumSpacing
-            cornerRadius = TrinketDesign.Corners.card
-            shadow = .none
         }
     }
 
@@ -235,20 +194,12 @@ struct MaterialRoleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         switch MaterialRoleStyle(role: role) {
-        case .none:
-            content
         case let .glass(glass, solidFill):
             content.modifier(TrinketGlassBackgroundModifier(
                 glass: glass,
                 shape: shape,
                 solidFill: solidFill
             ))
-        case let .solid(fill):
-            content
-                .background(fill, in: shape)
-                .overlay {
-                    shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
-                }
         case .ultraThinMaterial:
             content
                 .background(.ultraThinMaterial, in: shape)
@@ -260,22 +211,14 @@ struct MaterialRoleModifier: ViewModifier {
 }
 
 enum MaterialRoleStyle {
-    case none
     case glass(glass: Glass, solidFill: Color)
-    case solid(fill: Color)
     case ultraThinMaterial
 
     init(role: MaterialRole) {
         let palette = ThemePalette.trinket
         switch role {
-        case .toolbar:
-            self = .none
         case .bottomBar:
             self = .glass(glass: .regular, solidFill: palette.panelSurface)
-        case .modal:
-            self = .solid(fill: palette.panelSurface)
-        case .popover:
-            self = .glass(glass: .regular, solidFill: palette.elevatedBackground)
         case .rewardReveal:
             self = .glass(glass: .regular.tint(palette.accent), solidFill: palette.elevatedBackground)
         case .subtleOverlay:
@@ -337,7 +280,6 @@ extension ChipChromeRole {
     var horizontalPadding: CGFloat {
         switch self {
         case .standard: TrinketDesign.Metrics.chipPaddingHorizontal
-        case .compact: TrinketDesign.Metrics.chipCompactPaddingHorizontal
         case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingHorizontal
         case .utility: TrinketDesign.Metrics.chipUtilityPaddingHorizontal
         }
@@ -346,7 +288,6 @@ extension ChipChromeRole {
     var verticalPadding: CGFloat {
         switch self {
         case .standard: TrinketDesign.Metrics.chipPaddingVertical
-        case .compact: TrinketDesign.Metrics.chipCompactPaddingVertical
         case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingVertical
         case .utility: TrinketDesign.Metrics.chipUtilityPaddingVertical
         }

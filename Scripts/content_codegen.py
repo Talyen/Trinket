@@ -386,8 +386,6 @@ def modifier_token_to_swift(token: str) -> str:
         return f".maximumMana({token.split(':', 1)[1]})"
     if token.startswith("leech_duration:"):
         return f".leechDuration({token.split(':', 1)[1]})"
-    if token.startswith("mana_cost_reduction_percent:"):
-        return f".manaCostReductionPercent({token.split(':', 1)[1]})"
     if token.startswith("poison_damage_dealt_percent:"):
         return f".poisonDamageDealtPercent({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")

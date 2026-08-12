@@ -19,7 +19,7 @@ struct MarkedConsumeTests {
                 companion: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "companion", role: .companion)),
                 enemy: enemyRuntime
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 3,
             nextEventID: 1,
             events: [],

@@ -7,7 +7,7 @@ import TrinketTestSupport
 struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
-        seed: UInt64 = 1772
+        seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -151,7 +151,7 @@ struct BattleTurnEngineTests {
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 2,
             nextEventID: 0,
             events: [],
@@ -200,7 +200,7 @@ struct BattleTurnEngineTests {
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 1,
             nextEventID: 0,
             events: [],
@@ -248,7 +248,7 @@ struct BattleTurnEngineTests {
                     ]
                 )
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 1,
             nextEventID: 0,
             events: [],
@@ -351,5 +351,100 @@ struct BattleTurnEngineTests {
         )
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
+    }
+}
+
+/// Component-level damage event and burn-igniter behavior, kept out of
+/// `BattleTurnEngineTests` to stay under the type-body-length budget.
+struct BattleTurnEngineComponentTests {
+    @Test func nextHolyStrikeBurnUsesAuthoredNotDoubledPotency() throws {
+        let ability = Ability(
+            id: "holy-strike",
+            name: "Holy Strike",
+            tier: .basic,
+            damageComponents: [DamageComponent(10, keyword: .holy)]
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 200)
+        var context = BattleState(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialActiveEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)]
+                ),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+            nextEffectID: 2,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let healthBefore = context.roster.health(for: enemy)
+
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context
+        )
+
+        // Holy damage is doubled to 20; the igniter burn uses the authored 10,
+        // not the doubled amount — today's 4x bug would deal 20 holy + 20 burn.
+        #expect(context.roster.health(for: enemy) == healthBefore - 30)
+        let burnStatus = try #require(events.first { $0.kind == .status && $0.keyword == .burn })
+        #expect(burnStatus.amount == 10)
+        let burnStack = try #require(context.roster.enemy.activeEffects.first { $0.keyword == .burn })
+        #expect(burnStack.effect.potency == 10)
+    }
+
+    @Test func multiTargetComponentsEmitAbilityDamageForEveryResolvedTargetAndSumInSummary() throws {
+        let ability = Ability(
+            id: "sweep",
+            name: "Sweep",
+            tier: .basic,
+            damageComponents: [
+                DamageComponent(2, keyword: .physical),
+                DamageComponent(3, keyword: .physical, target: .enemy),
+            ]
+        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [ability])
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100)
+        var context = BattleState(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                companion: CombatantRuntime(combatant: companion),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
+            nextEffectID: 1,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            companionModifiers: .zero,
+            enemyModifiers: .zero
+        )
+
+        let events = BattleTurnEngine.performAction(
+            ability: ability,
+            actor: hero,
+            abilityTarget: context.enemy,
+            context: &context
+        )
+
+        let components = events.filter { $0.kind == .abilityDamage }
+        #expect(components.count == 2)
+        #expect(components.map(\.amount) == [2, 3])
+        let summary = try #require(events.first { $0.kind == .ability })
+        #expect(summary.amount == 5)
     }
 }

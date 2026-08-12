@@ -9,6 +9,7 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 | Quick smoke | `QuickSmoke.xctestplan` (`SmokeHomesteadTests`) | Local / agents (`test.sh smoke`) |
 | Full smoke | `Smoke/`, `Smoke.xctestplan` | CI / PR (`test.sh smoke-full`); local only when debugging |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | PR/main CI (sharded); local only for targeted debugging |
+| Integration | `Integration.xctestplan` (all non-performance UI classes) | Nightly (`test.sh all`); explicit selection so new classes never silently run here |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` | Frame-pacing matrix (`performance.sh` / `test.sh performance`); not smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
@@ -38,7 +39,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 
 - `-launch-screen` (`hero:`, `companion:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 2-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`companions`/`inventory`/`search` → `.collection`)
-- `-completed-stages`, `-battle-tick-interval`
+- `-completed-stages`, `-battle-tick-interval`, `-starting-gold`
 - `-disable-audio` (see `AppEnvironment.parse`)
 - `-enable-frame-metrics` — DEBUG frame-pacing sampler plus `AccessibilityID.Debug.frameMetrics` and reset probes for the performance test matrix (not smoke)
 
@@ -52,7 +53,7 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
-- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (3s ticks), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; hand-drag safety lives in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
+- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (60s ticks via `-battle-tick-interval`), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; hand-drag safety lives in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
 - Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.

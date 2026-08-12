@@ -68,8 +68,7 @@ struct BattleMechanicsTests {
             ability: ability,
             actor: wolf,
             abilityTarget: context.enemy,
-            context: &context,
-            spendMana: false
+            context: &context
         )
 
         try #expect(
@@ -101,7 +100,7 @@ struct BattleMechanicsTests {
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemy)
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 2,
             nextEventID: 0,
             events: [],

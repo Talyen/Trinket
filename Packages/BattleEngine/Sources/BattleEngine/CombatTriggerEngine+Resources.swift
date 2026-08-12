@@ -65,8 +65,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.leechRestoreManaFlat > 0 {
             let restored = context.restoreMana(
                 context.paced(profile.triggers.leechRestoreManaFlat, sourceActorID: actor.id),
-                to: actor,
-                sourceActorID: actor.id
+                to: actor
             )
             if restored > 0 {
                 events.append(context.nextEvent(

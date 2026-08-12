@@ -20,8 +20,5 @@ struct PaletteTests {
         for resource in HomesteadResource.allCases {
             try #expect(resource.tint != .clear, "\(resource.rawValue) tint")
         }
-        try #expect(HomesteadPalette.background == ThemePalette.trinket.appBackground)
-        try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)
-        try #expect(HomesteadPalette.accent == ThemePalette.trinket.accent)
     }
 }

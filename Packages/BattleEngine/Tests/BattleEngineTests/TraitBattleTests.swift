@@ -19,7 +19,7 @@ struct TraitBattleTests {
         )
         return BattleState(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 1,
             nextEventID: 1,
             events: [],

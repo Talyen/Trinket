@@ -24,7 +24,11 @@ struct TrinketApp: App {
         let environment = AppEnvironment.shared
         var concreteBattleSession: BattleSession?
         let makeBattleRuntime: (BattleRuntimeDependencies) -> any BattleRuntime = { dependencies in
-            let session = BattleSession(presentationEnvironment: dependencies)
+            let session = BattleSession(
+                autoEndTurnDelay: environment.battleTickInterval
+                    ?? BattleSession.autoEndTurnDelay,
+                presentationEnvironment: dependencies
+            )
             concreteBattleSession = session
             return session
         }

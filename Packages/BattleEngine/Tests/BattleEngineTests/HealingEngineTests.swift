@@ -11,7 +11,7 @@ struct HealingEngineTests {
 
     @Test(arguments: [true, false])
     func resolveHealEmitsEventsOnlyForInstantHealPolicy(emitsEvent: Bool) throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         if !emitsEvent {
             _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         }
@@ -44,7 +44,7 @@ struct HealingEngineTests {
 
     @Test func leechFromDamageHealsAndSetsLeechedFlag() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -56,7 +56,7 @@ struct HealingEngineTests {
     }
 
     @Test func abilityLeechHealsHalfOfDamageDealt() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         let before = context.roster.hero.currentHealth
         let outcome = HealingEngine.leechFromDamage(
@@ -72,7 +72,7 @@ struct HealingEngineTests {
 
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTurns: 3)
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
@@ -81,7 +81,7 @@ struct HealingEngineTests {
     }
 
     @Test func resolveHealIgnoresDefeatedTarget() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         context.roster.mutateRuntime(for: context.roster.enemy.combatant) { $0.currentHealth = 0 }
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
@@ -92,7 +92,7 @@ struct HealingEngineTests {
     }
 
     @Test func healFromOneHPWhileDeathsDoorActive() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
         context.prependEffect(.deathsDoor, to: hero, remainingTurns: BattleTiming.deathsDoorDurationTurns)
@@ -108,7 +108,7 @@ struct HealingEngineTests {
     }
 
     @Test func healDoesNotRemoveDeathsDoorEffect() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) {
             $0.currentHealth = 1
@@ -140,7 +140,7 @@ struct HealingEngineTests {
         )
         var context = BattleState(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -182,7 +182,7 @@ struct HealingEngineTests {
     @Test func leechHealCanCriticalWithWisdom() throws {
         var context = BattleTestFixtures.makePipelineContext(
             sourcePrimaryStats: PrimaryStats(wisdom: 20),
-            seed: 1772
+            seed: BattleTestFixtures.deterministicNonCriticalSeed
         )
         let source = context.roster.hero.combatant
         context.roster.setActiveEffects(

@@ -11,17 +11,6 @@ struct EnemyPowerCurveTests {
         try #expect(abs(EnemyPowerCurve.power(level: 40, isBoss: true) - 6.30) < 0.001)
     }
 
-    @Test func multipliersApplySameValueToHealthAndStats() throws {
-        for level in [1, 20, 40] {
-            for isBoss in [false, true] {
-                let multipliers = EnemyPowerCurve.multipliers(level: level, isBoss: isBoss)
-                let power = EnemyPowerCurve.power(level: level, isBoss: isBoss)
-                try #expect(multipliers.stats == power)
-                try #expect(multipliers.health == power)
-            }
-        }
-    }
-
     @Test func curveIsContinuousAcrossBracketBoundaries() throws {
         let beforeTwenty = EnemyPowerCurve.power(level: 19, isBoss: false)
         let atTwenty = EnemyPowerCurve.power(level: 20, isBoss: false)

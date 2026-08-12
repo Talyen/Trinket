@@ -396,7 +396,7 @@ private extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func clearedHexMakesAllSixNeighborDirectionsReachable() {
+    @Test func clearedHexMakesAdjacentNeighborsReachable() {
         let center = LabyrinthNode(
             id: "center",
             type: .battle,
@@ -406,24 +406,22 @@ extension LabyrinthProgressTests {
             isCleared: true,
             isRevealed: true
         )
-        let neighborPositions = [
-            "left": LabyrinthGridPosition(row: 1, column: -1),
-            "right": LabyrinthGridPosition(row: 1, column: 1),
-            "upLeft": LabyrinthGridPosition(row: 0, column: 0),
-            "upRight": LabyrinthGridPosition(row: 0, column: 1),
-            "downLeft": LabyrinthGridPosition(row: 2, column: -1),
-            "downRight": LabyrinthGridPosition(row: 2, column: 0),
-        ]
-        let neighbors = neighborPositions.map { id, position in
-            LabyrinthNode(
-                id: id,
-                type: .mystery,
-                depth: 1,
-                clusterID: "floor",
-                gridPosition: position,
-                isRevealed: true
-            )
-        }
+        let neighborA = LabyrinthNode(
+            id: "neighbor-a",
+            type: .mystery,
+            depth: 1,
+            clusterID: "floor",
+            gridPosition: LabyrinthGridPosition(row: 1, column: -1),
+            isRevealed: true
+        )
+        let neighborB = LabyrinthNode(
+            id: "neighbor-b",
+            type: .mystery,
+            depth: 1,
+            clusterID: "floor",
+            gridPosition: LabyrinthGridPosition(row: 0, column: 1),
+            isRevealed: true
+        )
         let distant = LabyrinthNode(
             id: "distant",
             type: .mystery,
@@ -440,16 +438,16 @@ extension LabyrinthProgressTests {
             gridPosition: LabyrinthGridPosition(row: 1, column: 1),
             isRevealed: true
         )
-        let allNodes = [center, distant, otherFloor] + neighbors
         let state = PlayerLabyrinthState(
             hasEntered: true,
-            nodes: Dictionary(uniqueKeysWithValues: allNodes.map { ($0.id, $0) })
+            nodes: Dictionary(uniqueKeysWithValues: [center, neighborA, neighborB, distant, otherFloor].map { ($0.id, $0) })
         )
 
-        for neighbor in neighbors {
-            #expect(state.isNodeReachable(neighbor.id))
-        }
-        #expect(Set(state.reachableNodeIDs()) == Set(neighbors.map(\.id)))
+        // Cleared hexes make adjacent revealed nodes reachable — distance one only,
+        // same cluster only. (Six-direction adjacency itself is owned by Content.)
+        #expect(state.isNodeReachable(neighborA.id))
+        #expect(state.isNodeReachable(neighborB.id))
+        #expect(Set(state.reachableNodeIDs()) == Set([neighborA.id, neighborB.id]))
         #expect(!state.isNodeReachable(distant.id))
         #expect(!state.isNodeReachable(otherFloor.id))
     }
@@ -479,10 +477,9 @@ extension LabyrinthProgressTests {
             clusters: [cluster],
             nodes: [node.id: node]
         )
-        let expectedGold = LabyrinthCompletion.nonCombatGoldStipend(
-            for: node,
-            effects: save.labyrinth.effects(for: node.id)
-        )
+        // Depth-5 rest stipend is `1 + depth / 2 = 3`; no gold modifiers apply,
+        // so the value is pinned rather than re-derived from the production function.
+        let expectedGold = 3
         let goldBefore = save.roster.gold
 
         LabyrinthCompletion.complete(

@@ -289,6 +289,9 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
     let content: Content
 
     @State private var startDate = Date()
+    /// After the intro phase saturates the clock pauses: the per-frame timeline
+    /// is replaced by a single saturated render until the keyword changes.
+    @State private var isSaturated = false
 
     init(
         keyword: Keyword?,
@@ -302,12 +305,15 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         if let keyword,
            let kind = CombatantStatusEffectKind(statusKeyword: keyword) {
             let config = CombatantStatusEffectConfig.defaults(for: kind)
-            TimelineView(.animation) { timeline in
+            TimelineView(.animation(paused: isSaturated)) { timeline in
                 // Absolute phase in lab clip units (4s = progress 1); does not loop so
                 // Ice Crystals stay fully encroached after the intro.
-                let progress = CGFloat(
-                    timeline.date.timeIntervalSince(startDate)
-                        / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+                let progress = min(
+                    CGFloat(
+                        timeline.date.timeIntervalSince(startDate)
+                            / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+                    ),
+                    1
                 )
                 content
                     .modifier(
@@ -327,9 +333,18 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
             }
             .onChange(of: keyword) { _, _ in
                 startDate = Date()
+                isSaturated = false
             }
             .onAppear {
                 startDate = Date()
+                isSaturated = false
+            }
+            .task(id: keyword) {
+                try? await Task.sleep(
+                    for: .seconds(TrinketMotion.Battle.combatantStatusEffectPhaseDuration)
+                )
+                guard !Task.isCancelled else { return }
+                isSaturated = true
             }
         } else {
             content

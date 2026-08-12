@@ -82,7 +82,8 @@ package enum EnemyTraitEngine {
                         applyStatBonus: false,
                         applyItemBonus: false,
                         applyDodge: false,
-                        isRetaliation: true
+                        isRetaliation: true,
+                        applyControlMeter: true
                     )
                 )
             )

@@ -21,7 +21,7 @@ struct EnemyTraitBattleTests {
                 companion: CombatantRuntime(combatant: companion),
                 enemy: CombatantRuntime(combatant: enemyBuild.combatant)
             ),
-            rng: SeededRandomNumberGenerator(seed: 1772),
+            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
             nextEffectID: 1,
             nextEventID: 1,
             events: [],
@@ -54,6 +54,31 @@ struct EnemyTraitBattleTests {
         try #expect(physical.healthLost == expectedPhysical)
         try #expect(holy.healthLost == expectedHoly)
         try #expect(holy.healthLost > physical.healthLost)
+    }
+
+    @Test func frostwardenFreezeDamageChargesControlMeterAndTriggersSkip() throws {
+        let frostwarden = try enemyBuild(id: "the_frostwarden")
+        try #expect(frostwarden.modifiers.triggers.turnFreezeDamageAllEnemies == 1)
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        var context = makeContext(hero: hero, companion: companion, enemyBuild: frostwarden)
+        let threshold = ControlMeterEngine.threshold(for: hero, in: context)
+        try #expect(threshold > 0)
+
+        var events: [ActionEvent] = []
+        for _ in 0 ..< threshold {
+            events.append(contentsOf: EffectTurnEngine.advanceAll(context: &context))
+        }
+
+        let heroMeter = context.roster.activeEffects(for: hero).first {
+            if case .controlMeter(.freeze, _, _) = $0.effect {
+                return true
+            }
+            return false
+        }
+        try #require(heroMeter != nil)
+        #expect(context.roster.hasPendingActionSkip(for: hero, keyword: .freeze))
+        #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
     @Test func goblinBurnVulnerability() throws {

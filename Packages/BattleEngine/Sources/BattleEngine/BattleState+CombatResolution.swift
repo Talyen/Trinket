@@ -17,6 +17,7 @@ package extension BattleState {
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
             guaranteedCritical: request.options.guaranteedCritical,
             isRetaliation: request.options.isRetaliation,
+            applyControlMeter: request.options.applyControlMeter,
             qualifiesForAmbush: request.options.qualifiesForAmbush,
             isAttackHit: request.options.isAttackHit,
             abilityHasLeech: request.options.abilityHasLeech,

@@ -5,7 +5,7 @@ import TrinketCore
 import TrinketTestSupport
 
 struct DamagePipelineTests {
-    private func makeContext(seed: UInt64 = 1772) -> BattleState {
+    private func makeContext(seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed) -> BattleState {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         return BattleStateTestFactory.makeBattle(
@@ -18,7 +18,7 @@ struct DamagePipelineTests {
     }
 
     @Test func healthCostIgnoresBlockBuffer() throws {
-        var context = makeContext(seed: 1772)
+        var context = makeContext(seed: BattleTestFixtures.deterministicNonCriticalSeed)
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],

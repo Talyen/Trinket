@@ -85,6 +85,8 @@ public enum EffectPresentation {
             "Mana Shield"
         case .damageKeywordOverride:
             "Consecrated"
+        case .avatar:
+            "Avatar"
         case .nextHolyStrike:
             "Next Holy Strike"
         case .nextStrikeDouble:
@@ -123,6 +125,8 @@ public enum EffectPresentation {
             statusPhrase(for: .bleed, amount: amount)
         case let .recurringDamage(keyword, amount, turns):
             "deal \(amount) \(keyword.rawValue) damage each turn \(durationPhrase(turns: turns))"
+        case let .avatar(holyDamage, blockPerTurn, turns):
+            "deal \(holyDamage) Holy damage and gain \(blockPerTurn) Block each turn \(durationPhrase(turns: turns))"
         case let .multiplyDoT(keyword, factor):
             factor == 2
                 ? "double the enemy's \(keyword.rawValue)"

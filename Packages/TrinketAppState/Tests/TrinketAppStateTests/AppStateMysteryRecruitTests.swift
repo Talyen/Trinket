@@ -105,6 +105,32 @@ struct AppStateMysteryRecruitTests {
         #expect(pinned.id == expected.id)
     }
 
+    @Test func staleChoiceIDFailsWithoutCompletingProgress() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = Stage(
+            id: "audit-mystery-stale-choice",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        state.encounters.activeMysteryEncounter = MysteryEncounterSession(
+            origin: .journey(stage: stage),
+            event: event,
+            combatant: nil
+        )
+        let goldBefore = state.playerSave.roster.gold
+
+        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "stale-choice-id"))
+
+        let session = try #require(state.encounters.activeMysteryEncounter)
+        #expect(session.phase == .reading)
+        #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
+        #expect(state.playerSave.roster.gold == goldBefore)
+    }
+
     #if DEBUG
     @Test func resolveActiveMysteryChoiceRollsBackEffectsWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)

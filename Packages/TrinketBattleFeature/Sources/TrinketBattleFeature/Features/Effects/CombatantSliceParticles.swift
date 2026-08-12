@@ -44,20 +44,11 @@ struct SliceBorderParticle: Identifiable {
     }
 
     private struct HalfEdgeGeometry {
-        let alongCut: CGVector
-        let cutNormal: CGVector
         let halfSign: CGFloat
-        let aspectW: CGFloat = 192
-        let aspectH: CGFloat = 256
-        let diagUnit: CGFloat
 
         init(isPrimary: Bool) {
-            let angle = CombatantSliceGeometry.angleRadians
-            alongCut = CGVector(dx: sin(angle), dy: cos(angle))
-            cutNormal = CGVector(dx: cos(angle), dy: -sin(angle))
-            // Match DiagonalSliceMask: primary occupies the -normal half-plane.
+            // Match CrackSliceMask: primary occupies the -normal half-plane.
             halfSign = isPrimary ? -1 : 1
-            diagUnit = hypot(aspectW, aspectH)
         }
     }
 
@@ -72,20 +63,17 @@ struct SliceBorderParticle: Identifiable {
         geometry: HalfEdgeGeometry
     ) -> EdgeSample? {
         if edge == 4 {
-            // Unit-space point on the pixel-space diagonal (texture aspect).
-            let span = (along - 0.5) * geometry.diagUnit * 0.95
-            let origin = CGPoint(
-                x: 0.5 + geometry.alongCut.dx * span / geometry.aspectW,
-                y: 0.5 + geometry.alongCut.dy * span / geometry.aspectH
-            )
+            // Unit-space point on the jagged crack (texture aspect).
+            let origin = CombatantSliceCrack.point(atFraction: along)
             guard origin.x >= 0.02, origin.x <= 0.98,
                   origin.y >= 0.02, origin.y <= 0.98
             else { return nil }
+            let tangent = CombatantSliceCrack.tangent(atFraction: along)
             return EdgeSample(
                 origin: origin,
                 outward: CGVector(
-                    dx: geometry.cutNormal.dx * geometry.halfSign,
-                    dy: geometry.cutNormal.dy * geometry.halfSign
+                    dx: tangent.dy * geometry.halfSign,
+                    dy: -tangent.dx * geometry.halfSign
                 )
             )
         }
@@ -107,9 +95,7 @@ struct SliceBorderParticle: Identifiable {
             outward = CGVector(dx: -1, dy: 0)
         }
         // Keep only outer-edge samples that sit on this half's silhouette.
-        let side = (origin.x - 0.5) * geometry.cutNormal.dx * geometry.aspectW
-            + (origin.y - 0.5) * geometry.cutNormal.dy * geometry.aspectH
-        guard side * geometry.halfSign >= 0 else { return nil }
+        guard CombatantSliceCrack.side(of: origin) * geometry.halfSign >= 0 else { return nil }
         return EdgeSample(origin: origin, outward: outward)
     }
 
@@ -246,35 +232,34 @@ struct SliceCutParticle: Identifiable {
 }
 
 struct SliceCutParticles: View {
-    let rawSplitProgress: CGFloat
+    let crackProgress: CGFloat
     let cardSize: CGSize
     let particles: [SliceCutParticle]
 
     var body: some View {
-        Canvas { context, size in
-            let center = CGPoint(x: size.width * 0.5, y: size.height * 0.5)
-            let angle = CombatantSliceGeometry.angleRadians
-            let along = CGVector(dx: sin(angle), dy: cos(angle))
-            let normal = CGVector(dx: cos(angle), dy: -sin(angle))
-            let diagLen = hypot(cardSize.width, cardSize.height)
+        Canvas { context, _ in
             let color = Keyword.bleed.visualStyle.color
 
             for particle in particles {
-                let age = (rawSplitProgress - particle.delay) / particle.lifetime
+                let age = (crackProgress - particle.delay) / particle.lifetime
                 guard age > 0, age < 1 else { continue }
                 let easedAge = 1 - pow(1 - age, 2)
-                let originX = center.x + along.dx * particle.linePosition * diagLen * 0.5
-                let originY = center.y + along.dy * particle.linePosition * diagLen * 0.5
-                let sprayDx = normal.dx * particle.side + along.dx * particle.sprayAngle
-                let sprayDy = normal.dy * particle.side + along.dy * particle.sprayAngle
+                let cardSpan = CombatantSliceCrack.cardFractionRange
+                let spanFraction = (particle.linePosition + 0.65) / 1.3
+                let fraction = cardSpan.lowerBound + spanFraction * (cardSpan.upperBound - cardSpan.lowerBound)
+                let origin = CombatantSliceCrack.point(atFraction: fraction, size: cardSize)
+                let tangent = CombatantSliceCrack.tangent(atFraction: fraction)
+                let localNormal = CGVector(dx: tangent.dy, dy: -tangent.dx)
+                let sprayDx = localNormal.dx * particle.side + tangent.dx * particle.sprayAngle
+                let sprayDy = localNormal.dy * particle.side + tangent.dy * particle.sprayAngle
                 let dist = particle.speed * easedAge
                 let diameter = particle.size * (1 - 0.3 * age)
                 guard diameter > 0 else { continue }
                 let opacity = Double(pow(1 - age, 1.4))
                 guard opacity > 0 else { continue }
 
-                let posX = originX + sprayDx * dist
-                let posY = originY + sprayDy * dist
+                let posX = origin.x + sprayDx * dist
+                let posY = origin.y + sprayDy * dist
                 let rect = CGRect(
                     x: posX - diameter / 2,
                     y: posY - diameter / 2,

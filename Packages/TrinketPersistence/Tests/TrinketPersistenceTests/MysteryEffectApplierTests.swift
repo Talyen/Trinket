@@ -2,41 +2,21 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct MysteryEffectApplierTests {
-    private func makeSave() -> PlayerSave {
-        PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: Date(),
-            sessionGeneration: 0,
-            journey: .initial,
-            roster: .initial,
-            inventory: PlayerInventoryState(items: []),
-            homestead: .freshStart
-        )
-    }
-
     @Test func applyingGoldMaterialsAndExperienceMutatesSave() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = ExperienceScaling.cappedAward(
-            ExperienceScaling.equalBattleAward(
-                playerLevel: heroProgressionBefore.level,
-                highestLevel: save.roster.highestHeroLevel
-            ),
-            for: heroProgressionBefore
-        )
-        let expectedCompanionXP = ExperienceScaling.cappedAward(
-            ExperienceScaling.equalBattleAward(
-                playerLevel: companionProgressionBefore.level,
-                highestLevel: save.roster.highestCompanionLevel
-            ),
-            for: companionProgressionBefore
-        )
+        // Pinned for the seeded fresh roster (knight/wolf at level 2, hero
+        // highest level 3): equal-level award 155/1.5=103 with hero catch-up
+        // round(103*1.5903)=164; both below the 3x-requiredXP cap.
+        let expectedHeroXP = 164
+        let expectedCompanionXP = 103
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -82,27 +62,17 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func gainExperienceScalesPerRecipientLevel() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = save.roster.activeCompanion
         save.roster.progressions[hero.id] = .at(level: 20)
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = ExperienceScaling.cappedAward(
-            ExperienceScaling.equalBattleAward(
-                playerLevel: heroBefore.level,
-                highestLevel: save.roster.highestHeroLevel
-            ),
-            for: heroBefore
-        )
-        let expectedCompanionXP = ExperienceScaling.cappedAward(
-            ExperienceScaling.equalBattleAward(
-                playerLevel: companionBefore.level,
-                highestLevel: save.roster.highestCompanionLevel
-            ),
-            for: companionBefore
-        )
+        // Pinned: level-20 equal award 2855 / 2.5 = 1142; level-5 award
+        // 380 / 1.5 = 253. Both stay below the 3x-requiredXP cap.
+        let expectedHeroXP = 1142
+        let expectedCompanionXP = 253
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -122,7 +92,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func grantExperienceCapsAtThreeTimesRequiredXP() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         save.roster.progressions[hero.id] = .at(level: 1)
         let before = save.roster.progression(for: hero)
@@ -137,7 +107,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func rewardResultReportsOnlyAmountsAcceptedByWallets() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         save.roster.gold = 995
         save.homestead = PlayerHomesteadState(
             resources: [.herbs: PlayerHomesteadState.maxMaterialBalance - 2],
@@ -172,7 +142,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func generatedItemIncludesGuaranteedAffixAndUsesRolledRarity() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 11)
 
         let result = MysteryEffectApplier.apply(
@@ -192,7 +162,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func gainRandomItemAppendsOneInventoryItem() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
 
         let result = MysteryEffectApplier.apply(
@@ -209,7 +179,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func manaBerryHarvestChoiceAppliesExpectedRewards() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let harvest = try #require(event.choices.first { $0.id == "harvest" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 3)
@@ -233,7 +203,7 @@ struct MysteryEffectApplierTests {
     }
 
     @Test func unlockCombatantEffectsHandleHeroAndCompanionIdempotently() throws {
-        var save = makeFreshSave()
+        var save = SaveTestSupport.makeSave(roster: .freshStart)
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let first = MysteryEffectApplier.apply(
@@ -268,17 +238,5 @@ struct MysteryEffectApplierTests {
 
         try #expect(result.unlockedCombatantIDs == ["bear"])
         try #expect(save.roster.isCompanionUnlocked("bear"))
-    }
-
-    private func makeFreshSave() -> PlayerSave {
-        PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: Date(),
-            sessionGeneration: 0,
-            journey: .initial,
-            roster: .freshStart,
-            inventory: PlayerInventoryState(items: []),
-            homestead: .freshStart
-        )
     }
 }

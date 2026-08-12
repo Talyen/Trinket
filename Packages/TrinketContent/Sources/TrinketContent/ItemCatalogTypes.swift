@@ -36,15 +36,6 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
     }
 }
 
-public extension ItemAffix {
-    static let placeholder = ItemAffix(
-        id: "placeholder",
-        title: "Placeholder",
-        description: "No effect yet.",
-        keywords: []
-    )
-}
-
 public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]

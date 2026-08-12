@@ -51,15 +51,6 @@ extension RosterModel {
         )
         model.slots?.linkEach(to: model, parent: \.loadout)
     }
-
-    private func updatePrimaryStats(_ model: PrimaryStatsModel, combatantID: String, stats: PrimaryStats) {
-        model.combatantID = combatantID
-        model.strength = stats.strength
-        model.agility = stats.agility
-        model.toughness = stats.toughness
-        model.intellect = stats.intellect
-        model.wisdom = stats.wisdom
-    }
 }
 
 extension InventoryItemModel {
@@ -110,7 +101,6 @@ extension RosterModel {
         updateProgressions(from: roster, context: context)
         updateAbilityLoadouts(from: roster, context: context)
         updateEquipmentLoadouts(from: roster, context: context)
-        updatePrimaryStats(from: roster, context: context)
     }
 
     private func updateUnlockedCombatants(from roster: PlayerRosterState, context: ModelContext?) {
@@ -189,22 +179,6 @@ extension RosterModel {
         )
         equipmentLoadouts?.linkEach(to: self, parent: \.roster)
     }
-
-    private func updatePrimaryStats(from roster: PlayerRosterState, context: ModelContext?) {
-        let statValues = roster.primaryStatOverrides.sorted { $0.key < $1.key }
-        primaryStats = reconcileModels(
-            existing: primaryStats ?? [],
-            values: statValues,
-            existingKey: \.combatantID,
-            valueKey: { $0.key },
-            make: { PrimaryStatsModel(combatantID: $0.key, stats: $0.value) },
-            update: { model, value in
-                self.updatePrimaryStats(model, combatantID: value.key, stats: value.value)
-            },
-            context: context
-        )
-        primaryStats?.linkEach(to: self, parent: \.roster)
-    }
 }
 
 extension RosterModel {
@@ -227,18 +201,6 @@ extension RosterModel {
                 }))
             )
         })
-        let statValues = Dictionary(lastWins: (primaryStats ?? []).map {
-            (
-                $0.combatantID,
-                PrimaryStats(
-                    strength: $0.strength,
-                    agility: $0.agility,
-                    toughness: $0.toughness,
-                    intellect: $0.intellect,
-                    wisdom: $0.wisdom
-                )
-            )
-        })
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let (resolvedHeroID, resolvedCompanionID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
@@ -259,13 +221,16 @@ extension RosterModel {
                 inventoryItemIDs: inventoryItemIDs,
                 inventoryItems: inventory.items
             ),
-            gold: gold,
-            primaryStatOverrides: statValues
+            gold: gold
         )
     }
 }
 
 extension InventoryModel {
+    private static let itemBaseTypesByID = Dictionary(
+        uniqueKeysWithValues: GameContent.itemBaseTypes.map { ($0.id, $0) }
+    )
+
     func toPlayerInventoryState() -> PlayerInventoryState {
         PlayerInventoryState(items: (items ?? [])
             .sorted { lhs, rhs in
@@ -275,7 +240,7 @@ extension InventoryModel {
                 return lhs.sortIndex < rhs.sortIndex
             }
             .compactMap { item in
-                guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == item.baseTypeID }) else {
+                guard let baseType = Self.itemBaseTypesByID[item.baseTypeID] else {
                     inventoryMappingLogger.error(
                         "Dropping inventory item \(item.id, privacy: .public) with unknown base type \(item.baseTypeID, privacy: .public)"
                     )

@@ -1,14 +1,5 @@
 import Foundation
 
-public struct EnemyPowerMultipliers: Equatable, Sendable {
-    public var health: Double
-    public var stats: Double
-
-    public static func uniform(_ multiplier: Double) -> Self {
-        Self(health: multiplier, stats: multiplier)
-    }
-}
-
 /// Level-based power multiplier for enemies. Replaces gear-compensation step bands.
 public enum EnemyPowerCurve {
     private static let normalStatAnchors: [(level: Int, power: Double)] = [
@@ -26,11 +17,6 @@ public enum EnemyPowerCurve {
     /// Stat threat multiplier after archetype growth.
     public static func power(level: Int, isBoss: Bool) -> Double {
         interpolate(max(1, level), anchors: isBoss ? bossStatAnchors : normalStatAnchors)
-    }
-
-    public static func multipliers(level: Int, isBoss: Bool) -> EnemyPowerMultipliers {
-        let stats = power(level: max(1, level), isBoss: isBoss)
-        return EnemyPowerMultipliers(health: stats, stats: stats)
     }
 
     private static func interpolate(_ level: Int, anchors: [(level: Int, power: Double)]) -> Double {

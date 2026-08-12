@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct StageRewardTests {
@@ -13,27 +14,10 @@ struct StageRewardTests {
         chapter.stages[0]
     }
 
-    private func makeSave(
-        roster: PlayerRosterState = .initial,
-        inventory: PlayerInventoryState = PlayerInventoryState(items: []),
-        homestead: PlayerHomesteadState = .freshStart,
-        journey: JourneyProgressState = .initial
-    ) -> PlayerSave {
-        PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: Date(),
-            sessionGeneration: 0,
-            journey: journey,
-            roster: roster,
-            inventory: inventory,
-            homestead: homestead
-        )
-    }
-
     @Test func completingBattleStageGrantsBattleLootGoldXPAndItem() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let battleEarnedGold = 4
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let loot = BattleLoot.resolveJourney(
@@ -82,7 +66,7 @@ struct StageRewardTests {
     }
 
     @Test func wishingWellIncreasesGrantedGold() throws {
-        var save = makeSave(
+        var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wishingWell: 2]
@@ -113,7 +97,7 @@ struct StageRewardTests {
     }
 
     @Test func completingStageTwiceDoesNotDoubleRewards() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
@@ -141,7 +125,7 @@ struct StageRewardTests {
     }
 
     @Test func completingStageAdvancesJourney() throws {
-        var save = makeSave(inventory: .initial)
+        var save = SaveTestSupport.makeSave(inventory: .initial)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
 
@@ -158,7 +142,7 @@ struct StageRewardTests {
     }
 
     @Test func nonBattleStagesGrantAuthoredRewardsWithoutExperience() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let heroXPBefore = save.roster.progression(for: hero).currentXP
@@ -185,7 +169,7 @@ struct StageRewardTests {
     }
 
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         save.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
@@ -204,7 +188,7 @@ struct StageRewardTests {
     }
 
     @Test func claimRewardsBanksBattleGoldWhenStageAlreadyClaimed() throws {
-        var save = makeSave(
+        var save = SaveTestSupport.makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wishingWell: 2]
@@ -245,7 +229,7 @@ struct StageRewardTests {
     }
 
     @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
-        var save = makeSave()
+        var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         let overrides = [ResourceAmount(.crystal, 7), ResourceAmount(.herbs, 2)]

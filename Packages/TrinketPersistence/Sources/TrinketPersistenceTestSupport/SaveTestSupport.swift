@@ -43,4 +43,23 @@ public enum SaveTestSupport {
         save.roster.gold = gold
         return save
     }
+
+    /// Shared `PlayerSave` fixture with the deterministic test-seed defaults used
+    /// across Persistence applier tests. Overrides let a test swap a slice.
+    public static func makeSave(
+        roster: PlayerRosterState = .initial,
+        inventory: PlayerInventoryState = PlayerInventoryState(items: []),
+        homestead: PlayerHomesteadState = .freshStart,
+        journey: JourneyProgressState = .initial
+    ) -> PlayerSave {
+        PlayerSave(
+            schemaVersion: PlayerSave.currentSchemaVersion,
+            modifiedAt: Date(),
+            sessionGeneration: 0,
+            journey: journey,
+            roster: roster,
+            inventory: inventory,
+            homestead: homestead
+        )
+    }
 }

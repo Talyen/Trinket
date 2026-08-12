@@ -71,6 +71,7 @@ public enum EffectHandlers {
         .freezeOnHit: FreezeOnHitHandler(),
         .multiplyDoT: MultiplyDoTHandler(),
         .recurringDamage: RecurringDamageHandler(),
+        .avatar: AvatarHandler(),
         .revive: ReviveHandler(),
     ]
 

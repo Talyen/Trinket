@@ -18,6 +18,7 @@ package struct DamageResolutionState {
     public let guaranteedCriticalIfEnemyBuffed: Bool
     public let guaranteedCritical: Bool
     public let isRetaliation: Bool
+    public let applyControlMeter: Bool
     public let qualifiesForAmbush: Bool
     public let isAttackHit: Bool
     public let abilityHasLeech: Bool
@@ -72,6 +73,7 @@ package struct DamageResolutionState {
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         guaranteedCritical: Bool = false,
         isRetaliation: Bool = false,
+        applyControlMeter: Bool = false,
         qualifiesForAmbush: Bool = false,
         isAttackHit: Bool = false,
         abilityHasLeech: Bool = false,
@@ -88,6 +90,7 @@ package struct DamageResolutionState {
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.guaranteedCritical = guaranteedCritical
         self.isRetaliation = isRetaliation
+        self.applyControlMeter = applyControlMeter
         self.qualifiesForAmbush = qualifiesForAmbush
         self.isAttackHit = isAttackHit
         self.abilityHasLeech = abilityHasLeech

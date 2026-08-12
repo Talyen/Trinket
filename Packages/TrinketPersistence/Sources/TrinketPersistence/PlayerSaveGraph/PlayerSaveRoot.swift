@@ -41,7 +41,6 @@ enum PlayerSaveSchema: VersionedSchema {
         AbilityLoadoutModel.self,
         EquipmentLoadoutModel.self,
         EquipmentSlotModel.self,
-        PrimaryStatsModel.self,
         InventoryModel.self,
         InventoryItemModel.self,
         ItemAffixModel.self,

@@ -9,14 +9,35 @@ struct CombatantSliceEffectConfig: Equatable {
     var particleCount: Int = 48
     var tintStrength: CGFloat = 0.85
     var speed: CGFloat = 1
-    /// Separation between halves as a fraction of card width.
+    /// Final separation between halves as a fraction of card width.
     var splitGap: CGFloat = 0.22
-    /// Hold before halves begin to separate (0…1 of the clip).
-    var splitDelay: CGFloat = 0.2
-    /// Fraction of clip spent drawing the cut stroke — kept short for a snap cut.
-    var cutDrawDuration: CGFloat = 0.04
+    /// Small fissure gap opened during the crack hold, as a fraction of card width.
+    var crackGap: CGFloat = 0.035
+    /// Fraction of clip spent drawing the crack across the art.
+    var crackDrawDuration: CGFloat = 0.08
+    /// Clip fraction at which the small fissure begins opening (end of the crack draw).
+    var crackOpenStart: CGFloat = 0.08
+    /// Clip fraction at which the full split begins (halves pull apart).
+    var splitDelay: CGFloat = 0.30
 
     static let production = Self()
+
+    /// Particle layouts depend only on this fixed config, never on animation
+    /// progress, so they are cached instead of rebuilt every frame. This is the
+    /// only production config (`BattleSliceArtwork`); a non-default config must
+    /// not be introduced without revisiting the cache in `CombatantSliceEffect`.
+    static let productionLeftParticles = SliceBorderParticle.make(
+        count: max(production.particleCount / 2, 16),
+        isPrimary: true
+    )
+    static let productionRightParticles = SliceBorderParticle.make(
+        count: max(production.particleCount / 2, 16),
+        salt: 40,
+        isPrimary: false
+    )
+    static let productionCutParticles = SliceCutParticle.make(
+        count: max(production.particleCount, 32)
+    )
 }
 
 /// Progress-driven Slice death renderer (0…1 clip progress).
@@ -51,15 +72,20 @@ struct CombatantSliceEffect<Content: View>: View {
     private func slice(size: CGSize) -> some View {
         let delay = min(max(config.splitDelay, 0), 0.6)
         let p = effectiveProgress
+        // Small fissure: the crack line has just drawn across the art, so a
+        // short crack gap ramps in quickly and holds so the fissure reads.
+        let crackT = min(max((p - config.crackOpenStart) / 0.06, 0), 1)
+        let crackGapAmount = size.width * config.crackGap * crackT * config.intensity
+        // Full split on top of the fissure — fast, smooth ease-out separation so
+        // halves break apart responsively without a linear jerk or view branch swap.
         let rawSplitT = delay >= 1 ? 0 : min(max((p - delay) / (1 - delay), 0), 1)
-        // Fast, smooth ease-out separation after cut line finishes so halves break apart
-        // responsively without a linear jerk or sudden view branch swap.
         let splitT = 1 - pow(1 - rawSplitT, 3)
-        let gap = size.width * config.splitGap * splitT * config.intensity
+        let gap = crackGapAmount
+            + size.width * max(config.splitGap - config.crackGap, 0) * splitT * config.intensity
         let lift = size.height * 0.08 * splitT * config.intensity
         let twist = 7.0 * Double(splitT * config.intensity)
-        // Wipe begins with the split and spans the rest of the clip so each half
-        // dissolves slowly while the pieces drift apart.
+        // Wipe begins with the full split and spans the rest of the clip so each
+        // half dissolves slowly while the pieces drift apart.
         let dissolveStart = delay
         let dissolveLinear = dissolveStart >= 1
             ? 0
@@ -69,16 +95,15 @@ struct CombatantSliceEffect<Content: View>: View {
         let halfParticles = max(config.particleCount / 2, 16)
         let radians = CombatantSliceGeometry.angleRadians
         let normal = CGVector(dx: cos(radians), dy: -sin(radians))
-        let leftParticles = SliceBorderParticle.make(
-            count: halfParticles,
-            isPrimary: true
-        )
-        let rightParticles = SliceBorderParticle.make(
-            count: halfParticles,
-            salt: 40,
-            isPrimary: false
-        )
-        let cutParticles = SliceCutParticle.make(count: max(config.particleCount, 32))
+        let leftParticles = halfParticles == CombatantSliceEffectConfig.productionLeftParticles.count
+            ? CombatantSliceEffectConfig.productionLeftParticles
+            : SliceBorderParticle.make(count: halfParticles, isPrimary: true)
+        let rightParticles = halfParticles == CombatantSliceEffectConfig.productionRightParticles.count
+            ? CombatantSliceEffectConfig.productionRightParticles
+            : SliceBorderParticle.make(count: halfParticles, salt: 40, isPrimary: false)
+        let cutParticles = max(config.particleCount, 32) == CombatantSliceEffectConfig.productionCutParticles.count
+            ? CombatantSliceEffectConfig.productionCutParticles
+            : SliceCutParticle.make(count: max(config.particleCount, 32))
 
         return ZStack {
             slicedHalf(
@@ -108,7 +133,7 @@ struct CombatantSliceEffect<Content: View>: View {
             sliceFlashOverlay(size: size, progress: p, delay: delay)
 
             SliceCutParticles(
-                rawSplitProgress: rawSplitT,
+                crackProgress: crackT,
                 cardSize: size,
                 particles: cutParticles
             )
@@ -122,8 +147,8 @@ struct CombatantSliceEffect<Content: View>: View {
         progress p: CGFloat,
         delay: CGFloat
     ) -> some View {
-        // Snap the stroke on quickly, hold until separation, then fade as halves move.
-        let drawDuration = min(max(config.cutDrawDuration, 0.001), max(delay, 0.001))
+        // Snap the crack on quickly, hold until the full split, then fade as halves move.
+        let drawDuration = min(max(config.crackDrawDuration, 0.001), max(delay, 0.001))
         let draw = min(max(p / drawDuration, 0), 1)
         let fade = 1 - min(max((p - delay) / 0.18, 0), 1)
         let lineOpacity = Double(fade) * Double(max(config.intensity, 0.35))
@@ -198,11 +223,8 @@ struct CombatantSliceEffect<Content: View>: View {
             .frame(width: size.width, height: size.height)
             .clipShape(TrinketDesign.cardShape)
             .mask(
-                DiagonalSliceMask(
-                    isPrimary: isPrimary,
-                    angleDegrees: CombatantSliceGeometry.angleDegrees
-                )
-                .frame(width: size.width, height: size.height)
+                CrackSliceMask(isPrimary: isPrimary)
+                    .frame(width: size.width, height: size.height)
             )
     }
 }
@@ -269,28 +291,31 @@ enum CombatantSliceGeometry {
     }
 }
 
-/// Half-plane on one side of a diagonal cut through the card center.
-private struct DiagonalSliceMask: Shape {
+/// Half-plane on one side of the jagged Slice crack through the card center.
+private struct CrackSliceMask: Shape {
     var isPrimary: Bool
-    var angleDegrees: CGFloat
 
     func path(in rect: CGRect) -> Path {
-        let angle = angleDegrees * .pi / 180
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        // Along the cut (top→bottom when angle is 0).
-        let along = CGVector(dx: sin(angle), dy: cos(angle))
-        let normal = CGVector(dx: cos(angle), dy: -sin(angle))
+        let normal = CGVector(
+            dx: cos(CombatantSliceGeometry.angleRadians),
+            dy: -sin(CombatantSliceGeometry.angleRadians)
+        )
         let extent = max(rect.width, rect.height) * 2.2
-        let a = CGPoint(x: center.x - along.dx * extent, y: center.y - along.dy * extent)
-        let b = CGPoint(x: center.x + along.dx * extent, y: center.y + along.dy * extent)
         let sign: CGFloat = isPrimary ? -1 : 1
-        let c = CGPoint(x: b.x + normal.dx * extent * sign, y: b.y + normal.dy * extent * sign)
-        let d = CGPoint(x: a.x + normal.dx * extent * sign, y: a.y + normal.dy * extent * sign)
+        let crack = CombatantSliceCrack.points.map { point in
+            CGPoint(x: point.x * rect.width, y: point.y * rect.height)
+        }
+        guard let first = crack.first, let last = crack.last else {
+            return Path()
+        }
+        let farOffset = CGVector(dx: normal.dx * extent * sign, dy: normal.dy * extent * sign)
         var path = Path()
-        path.move(to: a)
-        path.addLine(to: b)
-        path.addLine(to: c)
-        path.addLine(to: d)
+        path.move(to: first)
+        for point in crack.dropFirst() {
+            path.addLine(to: point)
+        }
+        path.addLine(to: CGPoint(x: last.x + farOffset.dx, y: last.y + farOffset.dy))
+        path.addLine(to: CGPoint(x: first.x + farOffset.dx, y: first.y + farOffset.dy))
         path.closeSubpath()
         return path
     }
@@ -307,7 +332,8 @@ private extension CardCastEffectConfiguration {
     )
 }
 
-/// Progressive grey/white cut line drawn from one end of the slice to the other.
+/// Progressive grey/white crack line drawn tip-forward along the jagged crack,
+/// so the fissure visibly changes angles as it races across the art.
 private func drawSliceLine(
     in context: inout GraphicsContext,
     size: CGSize,
@@ -315,32 +341,21 @@ private func drawSliceLine(
     intensity: CGFloat
 ) {
     let lineStyle = Keyword.physical.visualStyle
-    let angleRadians = CombatantSliceGeometry.angleRadians
-    let center = CGPoint(x: size.width * 0.5, y: size.height * 0.5)
-    let along = CGVector(dx: sin(angleRadians), dy: cos(angleRadians))
-    // Cover the full card diagonal so the stroke reads as a complete slice.
-    let halfLen = hypot(size.width, size.height) * 0.55
-    // Linear tip advance — the draw window is already a near-instant snap.
     let lead = min(max(drawProgress, 0), 1)
-
-    let start = CGPoint(
-        x: center.x - along.dx * halfLen,
-        y: center.y - along.dy * halfLen
-    )
-    let tip = CGPoint(
-        x: start.x + along.dx * halfLen * 2 * lead,
-        y: start.y + along.dy * halfLen * 2 * lead
-    )
+    let pixels = CombatantSliceCrack.polylinePoints(toFraction: lead, size: size)
+    let tip = pixels[pixels.count - 1]
 
     var streak = Path()
-    streak.move(to: start)
-    streak.addLine(to: tip)
+    streak.move(to: pixels[0])
+    for point in pixels.dropFirst() {
+        streak.addLine(to: point)
+    }
     context.stroke(
         streak,
         with: .color(lineStyle.secondaryColor.opacity(Double(0.95 * intensity))),
         style: StrokeStyle(lineWidth: 2.6 * intensity, lineCap: .round)
     )
-    // Bright tip so the stroke reads as being drawn, not revealed all at once.
+    // Bright tip so the crack reads as cracking across, not revealed all at once.
     let tipRadius = 2.2 * intensity
     let tipRect = CGRect(
         x: tip.x - tipRadius,

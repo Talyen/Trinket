@@ -28,7 +28,7 @@ struct CombatantLevelScalerTests {
         let boss = try #require(GameContent.enemy(matching: "the_forge_golem"))
         let level = 20
         let scaled = CombatantLevelScaler.scale(enemy: boss, level: level)
-        let multipliers = EnemyPowerCurve.multipliers(level: level, isBoss: true)
+        let power = EnemyPowerCurve.power(level: level, isBoss: true)
 
         let levelsAbove = StatGrowth.levelsAboveIdentity(level)
         let growth = StatGrowth.enemyGrowth(
@@ -45,11 +45,10 @@ struct CombatantLevelScalerTests {
             maxHealth: grown.maxHealth,
             maxMana: grown.maxMana,
             primaryStats: grown.primaryStats,
-            healthMultiplier: multipliers.health,
-            statsMultiplier: multipliers.stats
+            healthMultiplier: power,
+            statsMultiplier: power
         )
 
-        try #expect(multipliers.health == multipliers.stats)
         try #expect(scaled.primaryStats == expected.primaryStats)
         try #expect(scaled.maxHealth == expected.maxHealth)
     }
@@ -74,8 +73,8 @@ struct CombatantLevelScalerTests {
             maxHealth: grown.maxHealth,
             maxMana: grown.maxMana,
             primaryStats: grown.primaryStats,
-            healthMultiplier: EnemyPowerCurve.multipliers(level: level, isBoss: true).health,
-            statsMultiplier: EnemyPowerCurve.multipliers(level: level, isBoss: true).stats
+            healthMultiplier: EnemyPowerCurve.power(level: level, isBoss: true),
+            statsMultiplier: EnemyPowerCurve.power(level: level, isBoss: true)
         )
 
         try #expect(scaled.maxHealth == expected.maxHealth)

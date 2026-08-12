@@ -71,12 +71,18 @@ public enum BattleLoot {
         let bases = GameContent.itemBaseTypes
         let baseType: ItemBaseType
         if keywordBias.isEmpty {
-            baseType = bases.randomElement(using: &randomNumberGenerator) ?? bases[0]
+            guard let chosen = bases.randomElement(using: &randomNumberGenerator) else {
+                preconditionFailure("Loot cannot resolve with an empty item base-type catalog.")
+            }
+            baseType = chosen
         } else {
             let biased = bases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
-            baseType = (biased.randomElement(using: &randomNumberGenerator)
-                ?? bases.randomElement(using: &randomNumberGenerator))
-                ?? bases[0]
+            guard let chosen = biased.randomElement(using: &randomNumberGenerator)
+                ?? bases.randomElement(using: &randomNumberGenerator)
+            else {
+                preconditionFailure("Loot cannot resolve with an empty item base-type catalog.")
+            }
+            baseType = chosen
         }
 
         let item = ItemGenerator().generate(

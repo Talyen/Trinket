@@ -197,7 +197,14 @@ extension MysteryEncounterSession {
         guard canResolveChoice else { return .failed }
         markChoiceStarted()
 
-        let choice = event.choices.first { $0.id == choiceID } ?? event.choices.first
+        // A `nil` choiceID is the single-choice auto-resolve path. A stale or
+        // mismatched ID must fail rather than silently fall through to the
+        // first choice and grant its rewards.
+        let choice: MysteryChoice? = if let choiceID {
+            event.choices.first { $0.id == choiceID }
+        } else {
+            event.choices.first
+        }
         guard let choice else {
             markResolvedWithoutReveal()
             return .failed

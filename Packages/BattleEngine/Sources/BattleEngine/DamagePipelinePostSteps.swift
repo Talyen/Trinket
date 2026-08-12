@@ -84,7 +84,7 @@ package extension DamagePipeline {
         guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
-              !state.isRetaliation,
+              !state.isRetaliation || state.applyControlMeter,
               context.roster.health(for: state.combatant) > 0
         else { return }
         // `buildupDamage` is post-mitigation damage already fight-paced in resolution.
@@ -148,7 +148,7 @@ package extension DamagePipeline {
         for active in activeEffects {
             guard case let .restoreManaOnHit(amount, _) = active.effect else { continue }
             let pacedAmount = context.paced(amount, sourceActorID: state.combatant.id)
-            let restored = context.restoreMana(pacedAmount, to: state.combatant, sourceActorID: state.combatant.id)
+            let restored = context.restoreMana(pacedAmount, to: state.combatant)
             guard restored > 0 else { continue }
             state.damageEvents.append(context.nextEvent(
                 kind: .effect,

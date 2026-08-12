@@ -3,6 +3,11 @@ import TrinketContent
 import TrinketCore
 
 public enum CombatantFixtures {
+    /// Canonical deterministic seed for battle tests. Must not change — it pins
+    /// dodge/crit rolls and single-card play outcomes across BattleEngine and
+    /// BattleFeature suites.
+    public static let deterministicBattleSeed: UInt64 = 1772
+
     public static func combatant(
         id: String,
         role: Combatant.Role,

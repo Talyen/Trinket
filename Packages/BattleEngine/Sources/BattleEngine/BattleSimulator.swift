@@ -89,7 +89,7 @@ public enum BattleSimulator {
         let outcome = BattleSimulationOutcome.resolve(
             isPartyDefeated: battle.isPartyDefeated,
             isEnemyDefeated: battle.isEnemyDefeated
-        ) ?? (timedOut ? .defeat : .defeat)
+        ) ?? .defeat
 
         return BattleSimResult(
             outcome: outcome,

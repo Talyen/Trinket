@@ -77,8 +77,7 @@ public enum ItemCorruption {
                 selected.insert(kind)
             }
         }
-        if selected.isEmpty, let forced = eligible.sorted(by: { $0.rawValue < $1.rawValue })
-            .randomElement(using: &randomNumberGenerator) {
+        if selected.isEmpty, let forced = eligible.randomElement(using: &randomNumberGenerator) {
             selected.insert(forced)
         }
         return selected

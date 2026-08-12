@@ -144,11 +144,11 @@ final class BattleFeedbackLane {
         }
 
         let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
+        let referencedIDs = Set(activeItems.flatMap(\.sourceEventIDs))
         let expiredRawIDs: [Int] = eventRecordedAt.compactMap { entry -> Int? in
             let (eventID, recordedAt) = entry
             guard date.timeIntervalSince(recordedAt) >= maxRawLifetime else { return nil }
-            let hasScheduledItem = activeItems.contains { $0.sourceEventIDs.contains(eventID) }
-            return hasScheduledItem ? nil : eventID
+            return referencedIDs.contains(eventID) ? nil : eventID
         }
         for eventID in expiredRawIDs {
             removeEvent(eventID, noteChange: false)
