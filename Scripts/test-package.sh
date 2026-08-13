@@ -291,6 +291,14 @@ fi
 if [[ "$jobs" -lt 1 ]]; then
   jobs=1
 fi
+# Builds use generic destinations and isolated DerivedData. Tests share one
+# booted simulator; concurrent xcodebuild test runs SIGKILL / empty-destination
+# on GitHub-hosted runners.
+if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
+  if [[ "${CI:-}" == "true" || "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    jobs=1
+  fi
+fi
 
 package_run_token="$(date -u +%Y%m%dT%H%M%SZ)-$$-${RANDOM:-0}"
 package_output_root="$RESULTS_DIR/.deferred/test-package-$package_run_token"
