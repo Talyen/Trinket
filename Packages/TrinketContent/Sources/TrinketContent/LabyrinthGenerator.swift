@@ -3,7 +3,7 @@ import TrinketCore
 
 /// Deterministic expanding floor generator for The Labyrinth.
 public enum LabyrinthGenerator {
-    public static let currentMapVersion = 3
+    public static let currentMapVersion = 4
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
 
@@ -134,6 +134,43 @@ public enum LabyrinthGenerator {
         let entryNodeIDs: [String]
     }
 
+    private struct LayoutKey: Hashable, Sendable {
+        let nodeCount: Int
+        let closesLoop: Bool
+    }
+
+    private static let validLayoutsByKey: [LayoutKey: [[LabyrinthGridPosition]]] = {
+        var result: [LayoutKey: [[LabyrinthGridPosition]]] = [:]
+        let entrance = LabyrinthGridPosition(row: 0, column: 0)
+
+        for nodeCount in 7 ... 9 {
+            for closesLoop in [false, true] {
+                let key = LayoutKey(nodeCount: nodeCount, closesLoop: closesLoop)
+                let middleCount = nodeCount - 2
+                var layouts: [[LabyrinthGridPosition]] = []
+
+                for depth in 4 ... 6 {
+                    let middleCandidates = (1 ..< depth).flatMap(boundedPositions(in:))
+                    guard middleCandidates.count >= middleCount else { continue }
+
+                    for boss in boundedPositions(in: depth) {
+                        for middle in combinations(of: middleCandidates, choosing: middleCount) {
+                            let positions = [entrance] + middle + [boss]
+                            guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }
+                            layouts.append(
+                                [entrance]
+                                    + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore)
+                                    + [boss]
+                            )
+                        }
+                    }
+                }
+                result[key] = layouts
+            }
+        }
+        return result
+    }()
+
     private static func generateFloor(
         number: Int,
         previousBiomeID: LabyrinthBiomeID?,
@@ -192,43 +229,11 @@ public enum LabyrinthGenerator {
         using rng: inout some RandomNumberGenerator
     ) -> [LabyrinthGridPosition] {
         let closesLoop = Int.random(in: 0 ..< 5, using: &rng) == 0
-        var depths = Array(4 ... 6)
-        depths.shuffle(using: &rng)
-
-        for depth in depths {
-            var bossPositions = boundedPositions(in: depth)
-            bossPositions.shuffle(using: &rng)
-            let middleCandidates = (1 ..< depth).flatMap(boundedPositions(in:))
-            let k = nodeCount - 2
-            guard middleCandidates.count >= k else { continue }
-
-            for boss in bossPositions {
-                // Fast path: try random subset sampling to avoid allocating tens of thousands of combination arrays.
-                var found: [LabyrinthGridPosition]?
-                for _ in 0 ..< 1000 {
-                    let candidate = Array(middleCandidates.shuffled(using: &rng).prefix(k))
-                    let positions = [LabyrinthGridPosition(row: 0, column: 0)] + candidate + [boss]
-                    if isValidFloorShape(positions, closesLoop: closesLoop) {
-                        found = [positions[0]] + candidate.sorted(by: LabyrinthGridPosition.isOrderedBefore) + [boss]
-                        break
-                    }
-                }
-                if let found {
-                    return found
-                }
-
-                // Fallback for rare seeds if random sampling did not find a valid shape.
-                var middleSets = combinations(of: middleCandidates, choosing: k)
-                middleSets.shuffle(using: &rng)
-                for middle in middleSets {
-                    let positions = [LabyrinthGridPosition(row: 0, column: 0)] + middle + [boss]
-                    guard isValidFloorShape(positions, closesLoop: closesLoop) else { continue }
-                    return [positions[0]] + middle.sorted(by: LabyrinthGridPosition.isOrderedBefore) + [boss]
-                }
-            }
-        }
-
-        preconditionFailure("Labyrinth floor constraints must produce a layout")
+        let key = LayoutKey(nodeCount: nodeCount, closesLoop: closesLoop)
+        guard let layouts = validLayoutsByKey[key],
+              let selected = layouts.randomElement(using: &rng)
+        else { preconditionFailure("Labyrinth floor constraints must produce a layout") }
+        return selected
     }
 
     /// Limits projected center positions to `LabyrinthMapLayout` half-column slots.

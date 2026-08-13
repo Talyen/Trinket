@@ -84,8 +84,7 @@ struct HomesteadProjectRow: View {
                     .symbolRenderingMode(.hierarchical)
                     .symbolEffect(
                         .bounce.up,
-                        options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
-                        isActive: status.canBuildOrUpgrade
+                        value: status.canBuildOrUpgrade
                     )
                     .frame(width: 22, height: 22)
                     .padding(.leading, TrinketDesign.Metrics.tightSpacing)

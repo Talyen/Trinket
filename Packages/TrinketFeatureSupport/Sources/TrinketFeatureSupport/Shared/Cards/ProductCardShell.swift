@@ -60,21 +60,24 @@ struct ProductCardShell<Art: View, Label: View>: View {
             }
             .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? lockedText : nil)
 
-        if appliesCardSurface {
-            baseTile
-                .trinketCardSurface()
-                .trinketArtworkPickerSelectionBorder(
-                    isSelected: isSelected,
-                    lineWidth: 1.5
-                )
-        } else {
-            baseTile
-                .clipShape(TrinketDesign.cardShape)
-                .trinketArtworkPickerSelectionBorder(
-                    isSelected: isSelected,
-                    lineWidth: 1.5
-                )
+        Group {
+            if appliesCardSurface {
+                baseTile
+                    .trinketCardSurface()
+                    .trinketArtworkPickerSelectionBorder(
+                        isSelected: isSelected,
+                        lineWidth: 1.5
+                    )
+            } else {
+                baseTile
+                    .clipShape(TrinketDesign.cardShape)
+                    .trinketArtworkPickerSelectionBorder(
+                        isSelected: isSelected,
+                        lineWidth: 1.5
+                    )
+            }
         }
+        .animation(TrinketMotion.Interaction.selection, value: isSelected)
     }
 }
 

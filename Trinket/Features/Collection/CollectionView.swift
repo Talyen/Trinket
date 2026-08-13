@@ -39,10 +39,7 @@ struct CollectionView: View {
                 SalvageItemDetailSheet(
                     controller: salvageDetail,
                     item: item,
-                    zoomNamespace: zoomNamespace,
-                    resolveIndex: { resolvedItem in
-                        playerSave.inventory.items.firstIndex(where: { $0.id == resolvedItem.id }) ?? 0
-                    }
+                    zoomNamespace: zoomNamespace
                 )
             }
             .sheet(item: $selectedCombatant) { context in
@@ -72,17 +69,23 @@ struct CollectionView: View {
                 trigger: salvageDetail.salvageSuccessCount,
                 enabled: options.hapticsEnabled
             )
+            .overlay {
+                if let event = salvageDetail.transmutationEvent {
+                    SalvageTransmutationLayer(
+                        event: event,
+                        zoomNamespace: zoomNamespace
+                    ) {
+                        salvageDetail.finishTransmutation(id: event.id)
+                    }
+                }
+            }
     }
 
     private var collectionBrowseContent: some View {
         let inventoryState = playerSave.inventory
         let rosterState = playerSave.roster
         let shelfLimit = TrinketDesign.Metrics.collectionShelfPreviewLimit
-        let shelfItems = SalvageDissolvePresentation.displayedItems(
-            Array(inventoryState.items.prefix(shelfLimit)),
-            tombstone: salvageDetail.dissolvingTombstone
-        )
-        let showsInventoryShelf = !inventoryState.items.isEmpty || salvageDetail.dissolvingTombstone != nil
+        let shelfItems = Array(inventoryState.items.prefix(shelfLimit))
 
         let heroes = rosterState.collectionHeroes
         let companions = rosterState.collectionCompanions
@@ -107,7 +110,7 @@ struct CollectionView: View {
                     roster: rosterState
                 )
 
-                if showsInventoryShelf {
+                if !inventoryState.items.isEmpty {
                     CategoryBrowseShelf(
                         title: "Inventory",
                         linkAccessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
@@ -115,36 +118,19 @@ struct CollectionView: View {
                     ) {
                         InventoryGridView()
                     } content: {
-                        ForEach(Array(shelfItems.enumerated()), id: \.element.id) { index, item in
-                            let isDissolving = salvageDetail.dissolvingTombstone?.item.id == item.id
-                            Group {
-                                if isDissolving {
-                                    SalvageAwareItemCard(
-                                        item: item,
-                                        showsAffixCount: false,
-                                        showsName: false,
-                                        isDissolving: true,
-                                        onDissolveFinished: salvageDetail.finishDissolve
-                                    )
-                                    .collectionShelfCardWidth()
-                                    .accessibilityIdentifier("\(item.displayName) item card")
-                                } else {
-                                    Button {
-                                        salvageDetail.select(item, at: index)
-                                    } label: {
-                                        SalvageAwareItemCard(
-                                            item: item,
-                                            showsAffixCount: false,
-                                            showsName: false,
-                                            isDissolving: false
-                                        )
-                                        .collectionShelfCardWidth()
-                                    }
-                                    .trinketQuietTapButtonStyle()
-                                    .matchedTransitionSource(id: item.id, in: zoomNamespace)
-                                    .accessibilityIdentifier("\(item.displayName) item card")
-                                }
+                        ForEach(shelfItems) { item in
+                            SalvageItemButton(
+                                item: item,
+                                showsName: false,
+                                zoomNamespace: zoomNamespace
+                            ) { sourceFrame in
+                                salvageDetail.select(
+                                    item,
+                                    sourceFrame: sourceFrame,
+                                    showsName: false
+                                )
                             }
+                            .collectionShelfCardWidth()
                         }
                     }
                 }
@@ -163,9 +149,9 @@ struct CollectionView: View {
                 selectedCombatant = context
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
-                    salvageDetail.select(owned, at: playerSave.inventory.items.firstIndex(where: { $0.id == itemID }))
+                    salvageDetail.select(owned)
                 } else if let template = GameContent.itemTemplate(matching: itemID) {
-                    salvageDetail.select(template, at: nil)
+                    salvageDetail.select(template)
                 } else {
                     showMissingItem = true
                 }

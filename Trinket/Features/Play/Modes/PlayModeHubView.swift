@@ -53,7 +53,7 @@ struct PlayModeHubView: View {
                 fallbackArtID: mode.fallbackArtID
             )
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(mode.accessibilityIdentifier)
     }
 

@@ -11,6 +11,7 @@ struct ShopEncounterView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Bindable var session: ShopEncounterSession
     let onLeave: () -> Void
 
@@ -135,12 +136,24 @@ struct ShopEncounterView: View {
             Image(systemName: Keyword.gold.visualStyle.symbolName)
                 .trinketTypography(.badge)
                 .foregroundStyle(Keyword.gold.visualStyle.color)
+                .keyframeAnimator(
+                    initialValue: CGFloat(1),
+                    trigger: reduceMotion ? 0 : purchaseFeedbackTrigger
+                ) { content, scale in
+                    content.scaleEffect(scale)
+                } keyframes: { _ in
+                    CubicKeyframe(1.08, duration: 0.08)
+                    SpringKeyframe(1, duration: 0.18, spring: .smooth)
+                }
 
             Text("\(playerSave.roster.gold)")
                 .trinketTypography(.statValue)
+                .monospacedDigit()
+                .frame(minWidth: 36, alignment: .trailing)
                 .contentTransition(.numericText())
         }
         .trinketWalletPill()
+        .animation(TrinketMotion.Interaction.stateChange, value: playerSave.roster.gold)
     }
 
     private var offerGrid: some View {
@@ -168,6 +181,8 @@ struct ShopEncounterView: View {
                     .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
                 }
                 .opacity(soldOut ? 0.55 : (canAfford ? 1 : 0.72))
+                .saturation(soldOut ? 0.55 : 1)
+                .animation(TrinketMotion.Interaction.stateChange, value: soldOut)
             }
         }
     }
@@ -186,6 +201,8 @@ struct ShopEncounterView: View {
         .trinketTypography(.button)
         .foregroundStyle(canBuy ? Keyword.gold.visualStyle.color : .secondary)
         .trinketGlassChip(.emphasis)
+        .contentTransition(.opacity)
+        .animation(TrinketMotion.Interaction.stateChange, value: soldOut)
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {

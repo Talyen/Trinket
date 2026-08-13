@@ -16,9 +16,16 @@ struct ThemedGearGeneratorTests {
             using: &rng
         )
 
-        try #expect(build.inventory.count == knight.role.equipmentSlots.count)
+        let primaryID = try #require(build.loadout.itemID(for: .weapon))
+        let primary = try #require(build.inventory.first { $0.id == primaryID })
+        let expectedCount = knight.role.equipmentSlots.count
+            - (primary.baseType.weaponKind == .twoHanded ? 1 : 0)
+
+        try #expect(build.inventory.count == expectedCount)
         try #expect(build.inventory.allSatisfy { $0.affixes.count == 1 })
-        try #expect(build.loadout.itemIDsBySlot.count == knight.role.equipmentSlots.count)
+        try #expect(build.loadout.itemIDsBySlot.count == expectedCount)
+        try #expect(build.loadout.isAvailable(.secondaryWeapon, inventory: build.inventory)
+            == (primary.baseType.weaponKind != .twoHanded))
     }
 
     @Test func keywordProfileIncludesAbilityKeywords() throws {

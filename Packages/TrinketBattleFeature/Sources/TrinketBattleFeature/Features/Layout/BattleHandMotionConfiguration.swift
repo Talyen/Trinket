@@ -49,13 +49,13 @@ struct BattleHandMotionConfiguration: Equatable {
     var verticalTiltClamp: Double = 4
     var perspective: CGFloat = 0.10
 
-    // MARK: Armed visual (production currently haptics-only)
+    // MARK: Armed visual
 
     /// Extra uniform scale while play-armed (0 = no visual change).
-    var armedScaleBoost: CGFloat = 0
+    var armedScaleBoost: CGFloat = 0.01
     /// Brightness boost while play-armed (0 = none).
     var armedBrightness: CGFloat = 0
-    var showArmedRing: Bool = false
+    var showArmedRing: Bool = true
     var armedRingOpacity: CGFloat = 0.55
     var armedRingLineWidth: CGFloat = 2
 

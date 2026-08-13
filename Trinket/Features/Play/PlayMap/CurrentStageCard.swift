@@ -15,6 +15,7 @@ struct StageSelectActiveCard<
 >: View {
     @Environment(OptionsStore.self) private var options
     @Environment(BattleSession.self) private var battle
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let presentation: StageSelectRowPresentation<Item>
     let isPrimaryActionDisabled: Bool
@@ -26,6 +27,7 @@ struct StageSelectActiveCard<
 
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
+    @State private var hasSettled = false
 
     init(
         presentation: StageSelectRowPresentation<Item>,
@@ -54,6 +56,16 @@ struct StageSelectActiveCard<
         .clipShape(TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+        }
+        .scaleEffect(hasSettled || reduceMotion ? 1 : 0.985)
+        .onAppear {
+            guard !reduceMotion else {
+                hasSettled = true
+                return
+            }
+            withAnimation(TrinketMotion.Interaction.progressArrival) {
+                hasSettled = true
+            }
         }
         .accessibilityElement(children: .contain)
         .sheet(isPresented: $isPartyPickerPresented) {

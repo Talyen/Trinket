@@ -71,7 +71,9 @@ struct ItemSlotPickerView: View {
     }
 
     private var orderedItems: [InventoryItem] {
-        let items = inventoryItems.filter { slot.accepts($0.baseType.slot) }
+        let items = inventoryItems.filter {
+            equipmentLoadout.canEquip($0, in: slot, inventory: inventoryItems)
+        }
         guard !itemOrder.isEmpty else { return entrySortedItems }
 
         let itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
@@ -82,7 +84,9 @@ struct ItemSlotPickerView: View {
     }
 
     private var entrySortedItems: [InventoryItem] {
-        let items = inventoryItems.filter { slot.accepts($0.baseType.slot) }
+        let items = inventoryItems.filter {
+            equipmentLoadout.canEquip($0, in: slot, inventory: inventoryItems)
+        }
         guard
             let equippedID = equipmentLoadout.itemID(for: slot),
             let equippedItem = items.first(where: { $0.id == equippedID })

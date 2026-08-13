@@ -36,7 +36,7 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
         HStack(alignment: .top, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             ForEach(slots) { slot in
                 let locked = isLocked(slot)
-                if let onSelect, !locked {
+                if let onSelect {
                     Button {
                         onSelect(slot)
                     } label: {
@@ -46,8 +46,9 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
                     .frame(maxWidth: .infinity, alignment: .top)
                     .trinketAccessibilityCombine(combinesAccessibilityChildren)
                     .accessibilityIdentifier(accessibilityIdentifier(slot))
+                    .disabled(locked)
 
-                } else if let onView, !locked, hasItem(slot) {
+                } else if let onView, hasItem(slot) {
                     Button {
                         onView(slot)
                     } label: {
@@ -57,6 +58,7 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
                     .frame(maxWidth: .infinity, alignment: .top)
                     .trinketAccessibilityCombine(combinesAccessibilityChildren)
                     .accessibilityIdentifier(accessibilityIdentifier(slot))
+                    .disabled(locked)
 
                 } else {
                     card(slot)

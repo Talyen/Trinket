@@ -344,8 +344,7 @@ struct HomesteadTierNode: View {
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(
                     .bounce.up,
-                    options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
-                    isActive: isActionable
+                    value: isActionable
                 )
         case .completed:
             Image(systemName: "checkmark")

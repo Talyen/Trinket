@@ -85,9 +85,9 @@ struct HomesteadStateTests {
         try #expect(effects.astralChanceBonusPercent == 15)
     }
 
-    @Test func grantCapsMaterialBalanceAtMax() throws {
+    @Test func grantAllowsMaterialBalancesBeyondLegacyCap() throws {
         var homestead = PlayerHomesteadState(
-            resources: [.wood: 995, .stone: PlayerHomesteadState.maxMaterialBalance],
+            resources: [.wood: 995, .stone: 1500],
             nodeTiers: [:]
         )
 
@@ -97,38 +97,9 @@ struct HomesteadStateTests {
             ResourceAmount(.food, 3),
         ])
 
-        try #expect(homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
-        try #expect(homestead.resources[.stone] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(homestead.resources[.wood] == 1005)
+        try #expect(homestead.resources[.stone] == 1505)
         try #expect(homestead.resources[.food] == 3)
-    }
-
-    @Test func receivableAmountsMirrorGrantClamp() throws {
-        let uncapped = PlayerHomesteadState(resources: [:], nodeTiers: [:])
-        let rewards = [
-            ResourceAmount(.iron, 8),
-            ResourceAmount(.wood, 4),
-        ]
-        try #expect(uncapped.receivableAmounts(from: rewards) == rewards)
-
-        let partial = PlayerHomesteadState(
-            resources: [
-                .iron: PlayerHomesteadState.maxMaterialBalance - 2,
-                .wood: PlayerHomesteadState.maxMaterialBalance,
-            ],
-            nodeTiers: [:]
-        )
-        try #expect(partial.receivableAmounts(from: rewards) == [
-            ResourceAmount(.iron, 2),
-        ])
-
-        let full = PlayerHomesteadState(
-            resources: [
-                .iron: PlayerHomesteadState.maxMaterialBalance,
-                .wood: PlayerHomesteadState.maxMaterialBalance,
-            ],
-            nodeTiers: [:]
-        )
-        try #expect(full.receivableAmounts(from: rewards).isEmpty)
     }
 
     @Test func productionPreservesFractionalProgressBetweenSettlements() throws {
@@ -156,10 +127,10 @@ struct HomesteadStateTests {
         try #expect(homestead.pendingProduction.isEmpty)
     }
 
-    @Test func productionStopsAtCombinedWalletAndPendingCapacity() throws {
+    @Test func materialProductionContinuesBeyondLegacyCap() throws {
         let start = Date(timeIntervalSince1970: 0)
         var homestead = PlayerHomesteadState(
-            resources: [.food: PlayerHomesteadState.maxMaterialBalance - 1],
+            resources: [.food: 998],
             nodeTiers: [.wheatField: 1],
             lastProductionAt: start
         )
@@ -169,14 +140,14 @@ struct HomesteadStateTests {
             at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
             roster: roster
         )
-        try #expect(homestead.pendingProduction[.food] == 1)
+        try #expect(homestead.pendingProduction[.food] == 2)
         try #expect(
             homestead.collectProduction(
                 at: start.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay),
                 roster: &roster
-            ) == [ResourceAmount(.food, 1)]
+            ) == [ResourceAmount(.food, 2)]
         )
-        try #expect(homestead.resources[.food] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(homestead.resources[.food] == 1000)
     }
 
     @Test func goldProductionCollectsIntoRosterAndRespectsGoldCap() throws {
@@ -220,12 +191,12 @@ struct HomesteadStateTests {
         )
 
         let granted = save.grantMaterials(
-            [ResourceAmount(.food, PlayerHomesteadState.maxMaterialBalance)],
+            [ResourceAmount(.food, 1000)],
             at: start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         )
 
-        try #expect(granted == [ResourceAmount(.food, PlayerHomesteadState.maxMaterialBalance - 1)])
-        try #expect(save.homestead.resources[.food] == PlayerHomesteadState.maxMaterialBalance - 1)
+        try #expect(granted == [ResourceAmount(.food, 1000)])
+        try #expect(save.homestead.resources[.food] == 1000)
         try #expect(save.homestead.pendingProduction[.food] == 1)
     }
 

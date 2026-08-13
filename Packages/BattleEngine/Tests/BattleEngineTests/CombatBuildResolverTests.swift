@@ -19,7 +19,7 @@ struct CombatBuildResolverTests {
         )
 
         var loadout = EquipmentLoadout()
-        loadout.equip(item)
+        loadout.equip(item, inventory: [item])
 
         let build = CombatBuildResolver.build(
             combatant: knight,
@@ -54,8 +54,8 @@ struct CombatBuildResolverTests {
         )
 
         var loadout = EquipmentLoadout()
-        loadout.equip(weapon)
-        loadout.equip(armor)
+        loadout.equip(weapon, inventory: [weapon, armor])
+        loadout.equip(armor, inventory: [weapon, armor])
 
         let build = CombatBuildResolver.build(
             combatant: knight,
@@ -83,14 +83,14 @@ struct CombatBuildResolverTests {
 
     @Test func corruptedInstancePowersOverrideCatalogValues() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "greatsword" })
         let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
         let overridden = ItemAffixPower(
             description: "Increase Physical damage by 9.",
             modifiers: [.damageDealt(.physical, 9)]
         )
         let item = InventoryItem(
-            id: "corrupted-longsword",
+            id: "corrupted-greatsword",
             baseType: baseType,
             rarity: .basic,
             displayName: baseType.name,
@@ -100,12 +100,12 @@ struct CombatBuildResolverTests {
         )
 
         var loadout = EquipmentLoadout()
-        loadout.equip(item)
+        loadout.equip(item, inventory: [item])
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
             inventory: [item]
         )
-        try #expect(build.modifiers.damageDealtBonus[.physical] == 9)
+        try #expect(build.modifiers.damageDealtBonus[.physical] == 18)
     }
 }

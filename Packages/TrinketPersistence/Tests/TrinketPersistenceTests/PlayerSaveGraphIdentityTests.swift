@@ -68,7 +68,7 @@ final class PlayerSaveGraphIdentityTests {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var roster = store.roster
         var loadout = roster.equipmentLoadout(for: knight)
-        loadout.equip(item)
+        loadout.equip(item, inventory: [item])
         roster.setEquipmentLoadout(loadout, for: knight)
         store.roster = roster
 

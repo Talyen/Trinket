@@ -151,6 +151,18 @@ struct QuietTapButtonStyle: ButtonStyle {
     }
 }
 
+private struct TrinketPressButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    let pressedScale: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? pressedScale : 1)
+            .animation(TrinketMotion.Interaction.press, value: configuration.isPressed)
+    }
+}
+
 public extension View {
     /// Selection stroke for 3:4 artwork picker tiles (loadout / party grids).
     func trinketArtworkPickerSelectionBorder(
@@ -211,6 +223,20 @@ public extension View {
 
     func trinketQuietTapButtonStyle() -> some View {
         buttonStyle(QuietTapButtonStyle())
+    }
+
+    /// Subtle touch-down feedback for large, stationary artwork navigation cards.
+    func trinketArtworkCardButtonStyle() -> some View {
+        buttonStyle(TrinketPressButtonStyle(
+            pressedScale: TrinketMotion.Interaction.artworkCardPressedScale
+        ))
+    }
+
+    /// Nearly imperceptible touch-down feedback for stationary selection tiles.
+    func trinketSelectionCardButtonStyle() -> some View {
+        buttonStyle(TrinketPressButtonStyle(
+            pressedScale: TrinketMotion.Interaction.selectionCardPressedScale
+        ))
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.

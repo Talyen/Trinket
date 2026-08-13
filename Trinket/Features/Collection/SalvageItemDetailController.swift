@@ -6,62 +6,64 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Single owner for the inventory salvage-detail state machine shared by the
-/// Collection shelf and the full Inventory grid: sheet selection, dissolve
-/// tombstone re-insert, salvage haptics, and the dissolve-finish animation.
+/// Collection shelf and the full Inventory grid.
 @MainActor
 @Observable
 final class SalvageItemDetailController {
     var selectedItem: InventoryItem?
-    var selectedItemIndex: Int?
-    var dissolvingTombstone: SalvageDissolveTombstone?
+    var transmutationEvent: SalvageTransmutationEvent?
     var salvageSuccessCount = 0
+    private var selectedSourceFrame: CGRect?
+    private var selectedShowsName = true
 
-    func select(_ item: InventoryItem, at index: Int?) {
+    func select(
+        _ item: InventoryItem,
+        sourceFrame: CGRect? = nil,
+        showsName: Bool = true
+    ) {
         selectedItem = item
-        selectedItemIndex = index
+        selectedSourceFrame = sourceFrame
+        selectedShowsName = showsName
     }
 
     func salvageFinished(
-        didSucceed: Bool,
-        item: InventoryItem,
-        resolveIndex: (InventoryItem) -> Int
+        result: ItemSalvageActionResult,
+        item: InventoryItem
     ) {
-        if didSucceed {
-            dissolvingTombstone = SalvageDissolveTombstone(
+        if case let .success(yields) = result {
+            transmutationEvent = SalvageTransmutationEvent(
                 item: item,
-                index: selectedItemIndex ?? resolveIndex(item)
+                yields: yields,
+                sourceFrame: selectedSourceFrame,
+                showsName: selectedShowsName
             )
             salvageSuccessCount += 1
         }
         selectedItem = nil
-        selectedItemIndex = nil
+        selectedSourceFrame = nil
+        selectedShowsName = true
     }
 
-    func finishDissolve() {
-        withAnimation(TrinketMotion.Reward.stateChange) {
-            dissolvingTombstone = nil
-        }
+    func finishTransmutation(id: UUID) {
+        guard transmutationEvent?.id == id else { return }
+        transmutationEvent = nil
     }
 }
 
-/// Shared inventory-salvage detail sheet. Sheet lifecycle and the tombstone
-/// re-insert live here; index resolution stays with the presenting screen so
-/// the Collection shelf (full inventory) and Inventory grid (filtered) each
-/// re-insert at the position the player actually saw.
+/// Shared inventory-salvage detail sheet. The committed result is handed back
+/// to presentation state while inventory data remains the grid's sole source.
 struct SalvageItemDetailSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     let controller: SalvageItemDetailController
     let item: InventoryItem
     let zoomNamespace: Namespace.ID
-    let resolveIndex: (InventoryItem) -> Int
 
     var body: some View {
         NavigationStack {
-            ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { didSucceed in
+            ItemDetailView.inventorySalvageDetail(item: item, saveStore: playerSave) { result in
                 controller.salvageFinished(
-                    didSucceed: didSucceed,
-                    item: item,
-                    resolveIndex: resolveIndex
+                    result: result,
+                    item: item
                 )
             }
         }

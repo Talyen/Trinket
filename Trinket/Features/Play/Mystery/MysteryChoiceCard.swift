@@ -7,6 +7,7 @@ import TrinketPersistence
 
 struct MysteryChoiceCard: View {
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let choice: MysteryChoice
     let isSelected: Bool
@@ -24,6 +25,7 @@ struct MysteryChoiceCard: View {
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.trailing, TrinketDesign.Metrics.extraLargeSpacing)
 
                 rewards
             }
@@ -42,15 +44,35 @@ struct MysteryChoiceCard: View {
                         lineWidth: isSelected ? 1.5 : 1
                     )
             }
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .trinketTypography(.rowTitle)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(
+                            TrinketDesign.Colors.canvas,
+                            TrinketDesign.Colors.accent
+                        )
+                        .padding(TrinketDesign.Metrics.mediumSpacing)
+                        .transition(selectionTransition)
+                        .accessibilityHidden(true)
+                }
+            }
             .shadow(
                 color: isSelected ? TrinketDesign.Colors.accent.opacity(0.2) : .clear,
                 radius: 10,
                 y: 2
             )
         }
-        .trinketQuietTapButtonStyle()
+        .trinketSelectionCardButtonStyle()
+        .animation(TrinketMotion.Interaction.selection, value: isSelected)
         .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
+        .accessibilityValue(isSelected ? "Selected" : "Available")
         .disabled(isDisabled)
+    }
+
+    private var selectionTransition: AnyTransition {
+        reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity)
     }
 
     private var rewards: some View {

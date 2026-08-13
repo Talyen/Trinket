@@ -48,15 +48,30 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
 
     /// Resolved power for an affix index — instance override when present, else catalog.
     public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
+        let power: ItemAffixPower
         if let affixPowers, affixPowers.indices.contains(affixIndex) {
-            return affixPowers[affixIndex]
+            power = affixPowers[affixIndex]
+        } else {
+            guard affixes.indices.contains(affixIndex),
+                  let definition = GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)
+            else {
+                return nil
+            }
+            power = definition.power(for: rarity)
         }
-        guard affixes.indices.contains(affixIndex),
-              let definition = GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)
-        else {
-            return nil
+        return power.scaled(by: baseType.affixPowerMultiplier)
+    }
+
+    public var displayedAffixes: [ItemAffix] {
+        affixes.enumerated().map { index, affix in
+            guard let power = resolvedPower(at: index) else { return affix }
+            return ItemAffix(
+                id: affix.id,
+                title: affix.title,
+                description: power.description,
+                keywords: affix.keywords
+            )
         }
-        return definition.power(for: rarity)
     }
 }
 
@@ -71,15 +86,50 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         itemIDsBySlot[slot]
     }
 
-    public mutating func equip(_ item: InventoryItem, in slot: ItemSlot? = nil) {
-        let destination = slot ?? item.baseType.slot
+    public mutating func equip(
+        _ item: InventoryItem,
+        in slot: ItemSlot? = nil,
+        inventory: [InventoryItem]
+    ) {
+        let destination = slot ?? item.baseType.defaultEquipmentSlot
+        guard canEquip(item, in: destination, inventory: inventory) else { return }
         // One inventory instance can occupy only one slot; moving re-equips.
         for occupied in ItemSlot.allCases where occupied != destination {
             if itemIDsBySlot[occupied] == item.id {
                 itemIDsBySlot[occupied] = nil
             }
         }
+        if item.baseType.weaponKind == .twoHanded {
+            itemIDsBySlot[.secondaryWeapon] = nil
+        }
         itemIDsBySlot[destination] = item.id
+    }
+
+    public func canEquip(
+        _ item: InventoryItem,
+        in slot: ItemSlot,
+        inventory: [InventoryItem]
+    ) -> Bool {
+        guard item.baseType.canEquip(in: slot) else { return false }
+        guard slot == .secondaryWeapon else { return true }
+        guard
+            let primaryID = itemID(for: .weapon),
+            let primary = inventory.first(where: { $0.id == primaryID })
+        else {
+            return true
+        }
+        return primary.baseType.weaponKind != .twoHanded
+    }
+
+    public func isAvailable(_ slot: ItemSlot, inventory: [InventoryItem]) -> Bool {
+        guard slot == .secondaryWeapon else { return true }
+        guard
+            let primaryID = itemID(for: .weapon),
+            let primary = inventory.first(where: { $0.id == primaryID })
+        else {
+            return true
+        }
+        return primary.baseType.weaponKind != .twoHanded
     }
 
     public mutating func unequip(_ slot: ItemSlot) {

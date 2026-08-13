@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -143,7 +142,7 @@ struct SliceBorderParticles: View {
                 x: (size.width - cardSize.width) * 0.5,
                 y: (size.height - cardSize.height) * 0.5
             )
-            let color = Keyword.bleed.visualStyle.color
+            let color = TrinketDesign.Colors.battleSliceSpark
             for particle in particles {
                 let sample = sample(for: particle, cardOrigin: origin)
                 guard sample.opacity > 0, sample.diameter > 0 else { continue }
@@ -238,7 +237,7 @@ struct SliceCutParticles: View {
 
     var body: some View {
         Canvas { context, _ in
-            let color = Keyword.bleed.visualStyle.color
+            let color = TrinketDesign.Colors.battleSliceSpark
 
             for particle in particles {
                 let age = (crackProgress - particle.delay) / particle.lifetime

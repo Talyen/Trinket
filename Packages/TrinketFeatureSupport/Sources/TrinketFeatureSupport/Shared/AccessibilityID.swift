@@ -222,6 +222,10 @@ public enum AccessibilityID {
         public static func viewAllCard(category: String) -> String {
             "\(category) view all card"
         }
+
+        public static func itemCard(itemID: String) -> String {
+            "Collection item \(itemID)"
+        }
     }
 
     public enum Homestead {

@@ -27,6 +27,10 @@ public enum TrinketDesign {
         public static let battleHealthTrack = Overlay.ink.opacity(0.62)
         /// Lagging damage remnant on battle health bars.
         public static let battleHealthTrailingDamage = health.opacity(0.45)
+        /// Bright fissure stroke for the enemy Slice death effect.
+        public static let battleSliceCrack = DesignAssetColors.named("BattleSliceCrack")
+        /// Dark blood-red particles for the enemy Slice death effect.
+        public static let battleSliceSpark = DesignAssetColors.named("BattleSliceSpark")
 
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
         public static let encounterEvent = DesignAssetColors.named("EncounterEvent")

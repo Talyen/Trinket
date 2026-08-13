@@ -9,6 +9,7 @@ import TrinketPersistence
 
 struct HomesteadView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(OptionsStore.self) private var options
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var collection = HomesteadCollectionControl()
     @State private var depositEvent: HomesteadDepositEvent?
@@ -53,6 +54,11 @@ struct HomesteadView: View {
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .homesteadCollectionErrorAlert(collection: $collection)
+        .trinketSensoryFeedback(
+            .success,
+            trigger: collection.collectionEventCount,
+            enabled: options.hapticsEnabled
+        )
     }
 
     private var collectionSection: some View {
@@ -217,7 +223,7 @@ struct HomesteadView: View {
                 fallbackArtID: category.artID
             )
         }
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Homestead.category(category.rawValue))
     }
 }

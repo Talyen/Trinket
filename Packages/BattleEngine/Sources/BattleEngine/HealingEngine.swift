@@ -72,10 +72,9 @@ package enum HealingEngine {
         }
         leechPct = max(leechPct, buffPct)
         let profile = context.modifiers(for: sourceActorID)
-        if leechPct == 0, profile.triggers.leechChancePercent > 0 {
-            if Double.random(in: 0 ... 1, using: &context.rng) < profile.triggers.leechChancePercent {
-                leechPct = Effect.abilityLeechPercent
-            }
+        if leechPct == 0,
+           BattleChance.succeeds(probability: profile.triggers.leechChancePercent, using: &context.rng) {
+            leechPct = Effect.abilityLeechPercent
         }
         guard leechPct > 0 else { return .empty }
 
@@ -153,9 +152,7 @@ package enum HealingEngine {
         }
         let cap = DamagePipeline.criticalChanceCap(for: actor.combatant)
         chance = min(cap, max(0, chance))
-        guard chance > 0,
-              Double.random(in: 0 ... 1, using: &context.rng) < chance
-        else { return nil }
+        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
 
         amount *= 2
         return .critical

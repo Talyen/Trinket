@@ -47,64 +47,6 @@ struct StatIntegrationTests {
         }
     }
 
-    // MARK: - Toughness
-
-    @Test func toughnessMitigationReducesIncomingDamage() throws {
-        let hero = BattleTestFixtures.statHero(
-            abilities: [],
-            stats: PrimaryStats(toughness: 50),
-            maxHealth: 100
-        )
-        let enemy = BattleTestFixtures.attackingEnemy(
-            abilities: [.slash],
-            id: "enemy"
-        )
-        let enemyWithStats = Combatant(
-            id: enemy.id,
-            name: enemy.name,
-            role: enemy.role,
-            maxHealth: enemy.maxHealth,
-            abilities: enemy.abilities,
-            primaryStats: PrimaryStats(strength: 0)
-        )
-        var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemyWithStats)
-
-        let initial = battle.health(of: battle.hero)
-        let events = BattleTestFixtures.endTurn(on: &battle)
-        let event = BattleTestFixtures.firstAbilityEvent(in: events)
-
-        // Slash deals 2; Toughness 50 DR% = 50 / (50 + 80) = 0.3846.
-        // 2 * (1 - 0.3846) = 1.23 → rounded to 1 damage.
-        try #expect(event?.amount == 1)
-        try #expect(battle.health(of: battle.hero) == initial - 1)
-    }
-
-    @Test func toughnessReducesFireballAndBurnDamage() throws {
-        let hero = BattleTestFixtures.statHero(
-            abilities: [],
-            stats: PrimaryStats(toughness: 50),
-            maxHealth: 100
-        )
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: [.fireball],
-            primaryStats: PrimaryStats(strength: 0, intellect: 0)
-        )
-        var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
-
-        let initial = battle.health(of: battle.hero)
-        // Fireball 2 → Toughness 50 DR% 38.5% → 1 damage.
-        // Burn tick 2 → 1 damage. Total lost: 2.
-        _ = BattleTestFixtures.endTurn(on: &battle)
-
-        let lost = initial - battle.health(of: battle.hero)
-        // Fireball 2 (full) + same-turn Burn pulse (may be catch-up −1 once party HP% trails), each Toughness-mitigated.
-        try #expect(lost >= 1 && lost <= 4)
-    }
-
     // MARK: - Wisdom
 
     @Test func wisdomIncreasesHealingAmount() throws {

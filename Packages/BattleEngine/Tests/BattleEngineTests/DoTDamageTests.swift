@@ -12,15 +12,31 @@ struct DoTDamageTests {
 
     private func makeContext(
         sourceStats: PrimaryStats = PrimaryStats(),
+        targetStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
         seed: UInt64 = BattleTestFixtures.deterministicNonCriticalSeed
     ) -> BattleState {
         BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
+            targetPrimaryStats: targetStats,
             sourcePrimaryStats: sourceStats,
             heroModifiers: heroModifiers,
             seed: seed
         )
+    }
+
+    @Test func resolveTurnDamageAppliesTargetToughnessMitigation() {
+        var context = makeContext(targetStats: PrimaryStats(toughness: 50))
+        let outcome = DoTDamage.resolveTurnDamage(
+            basePotency: 4,
+            keyword: .burn,
+            target: context.roster.enemy.combatant,
+            sourceActorID: "source",
+            in: &context
+        )
+
+        #expect(outcome.healthLost == 2)
+        #expect(outcome.events.contains { $0.kind == .status && $0.amount == 2 })
     }
 
     @Test func resolveTurnDamageStoresBasePotencyOnStack() throws {

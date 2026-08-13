@@ -89,25 +89,25 @@ struct ItemSalvageApplierTests {
         #expect(save == before)
     }
 
-    @Test func salvageRespectsMaterialCap() throws {
+    @Test func salvageGrantsFullYieldBeyondLegacyMaterialCap() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now)
         let item = try makeItem(baseID: "longsword", rarity: .basic, id: "cap-sword")
         save.inventory.items = [item]
         save.homestead.resources = [
-            .iron: PlayerHomesteadState.maxMaterialBalance - 2,
-            .wood: PlayerHomesteadState.maxMaterialBalance,
+            .iron: 997,
+            .wood: 999,
         ]
 
         let result = ItemSalvageApplier.salvage(itemID: item.id, save: &save)
 
         guard case let .success(yields) = result else {
-            Issue.record("Expected successful salvage near cap")
+            Issue.record("Expected successful salvage")
             return
         }
-        #expect(yields == [ResourceAmount(.iron, 2)])
+        #expect(yields == [ResourceAmount(.iron, 8), ResourceAmount(.wood, 4)])
         #expect(save.inventory.items.isEmpty)
-        #expect(save.homestead.resources[.iron] == PlayerHomesteadState.maxMaterialBalance)
-        #expect(save.homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
+        #expect(save.homestead.resources[.iron] == 1005)
+        #expect(save.homestead.resources[.wood] == 1003)
     }
 
     private func makeItem(

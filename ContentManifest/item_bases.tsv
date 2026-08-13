@@ -1,28 +1,28 @@
-id	name	slot	keywords
-crossbow	Crossbow	weapon	physical,bleed,poison
-dagger	Dagger	weapon	physical,poison,bleed,leech
-double_axe	Double Axe	weapon	physical,bleed,leech
-flail	Flail	weapon	physical,stun,block
-greatsword	Greatsword	weapon	physical,bleed,stun,holy
-hatchet	Hatchet	weapon	physical,bleed,leech
-kite_shield	Kite Shield	weapon	block,stun
-longbow	Longbow	weapon	physical,bleed,poison
-longsword	Longsword	weapon	physical,bleed,holy
-mace	Mace	weapon	physical,stun,holy
-maul	Maul	weapon	physical,stun,block
-recurve_bow	Recurve Bow	weapon	physical,bleed,poison
-shortbow	Shortbow	weapon	physical,bleed,poison
-shortsword	Shortsword	weapon	physical,bleed,poison,gold
-spellbook	Spellbook	weapon	burn,freeze,holy,gold,mana
-staff	Staff	weapon	burn,freeze,holy,block,mana
-wand	Wand	weapon	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor	physical,block,health,poison,leech,bleed,gold
-plate_armor	Plate Armor	armor	block,health,holy,stun
-emerald_amulet	Emerald Amulet	trinket	poison,health
-emerald_ring	Emerald Ring	trinket	poison,health
-ruby_amulet	Ruby Amulet	trinket	burn,health,leech,bleed
-ruby_ring	Ruby Ring	trinket	burn,health,leech,bleed
-sapphire_amulet	Sapphire Amulet	trinket	freeze,block,mana
-sapphire_ring	Sapphire Ring	trinket	freeze,block,mana
-topaz_amulet	Topaz Amulet	trinket	holy,gold,stun,block
-topaz_ring	Topaz Ring	trinket	holy,gold,stun,block
+id	name	slot	weapon_kind	keywords
+crossbow	Crossbow	weapon	two_handed	physical,bleed,poison
+dagger	Dagger	weapon	one_handed	physical,poison,bleed,leech
+double_axe	Double Axe	weapon	two_handed	physical,bleed,leech
+flail	Flail	weapon	one_handed	physical,stun,block
+greatsword	Greatsword	weapon	two_handed	physical,bleed,stun,holy
+hatchet	Hatchet	weapon	one_handed	physical,bleed,leech
+kite_shield	Kite Shield	weapon	off_hand	block,stun
+longbow	Longbow	weapon	two_handed	physical,bleed,poison
+longsword	Longsword	weapon	one_handed	physical,bleed,holy
+mace	Mace	weapon	one_handed	physical,stun,holy
+maul	Maul	weapon	two_handed	physical,stun,block
+recurve_bow	Recurve Bow	weapon	two_handed	physical,bleed,poison
+shortbow	Shortbow	weapon	two_handed	physical,bleed,poison
+shortsword	Shortsword	weapon	one_handed	physical,bleed,poison,gold
+spellbook	Spellbook	weapon	off_hand	burn,freeze,holy,gold,mana
+staff	Staff	weapon	two_handed	burn,freeze,holy,block,mana
+wand	Wand	weapon	one_handed	burn,freeze,holy,poison,mana
+leather_armor	Leather Armor	armor		physical,block,health,poison,leech,bleed,gold
+plate_armor	Plate Armor	armor		block,health,holy,stun
+emerald_amulet	Emerald Amulet	trinket		poison,health
+emerald_ring	Emerald Ring	trinket		poison,health
+ruby_amulet	Ruby Amulet	trinket		burn,health,leech,bleed
+ruby_ring	Ruby Ring	trinket		burn,health,leech,bleed
+sapphire_amulet	Sapphire Amulet	trinket		freeze,block,mana
+sapphire_ring	Sapphire Ring	trinket		freeze,block,mana
+topaz_amulet	Topaz Amulet	trinket		holy,gold,stun,block
+topaz_ring	Topaz Ring	trinket		holy,gold,stun,block

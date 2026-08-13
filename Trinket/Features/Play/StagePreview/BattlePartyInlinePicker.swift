@@ -120,7 +120,7 @@ struct StageBattlePartyPickerSheet: View {
             title: slot.sectionTitle,
             sectionAccessibilityIdentifier: AccessibilityID.Play.battlePartyShelf(for: slot.title),
             shelfContentIdentity: shelfCombatants.map(\.id).joined(separator: ","),
-            shelfAnimation: .spring(response: 0.35, dampingFraction: 1),
+            shelfAnimation: TrinketMotion.Interaction.progressArrival,
             totalCount: allCombatants.count
         ) {
             BattlePartySlotGridView(slot: slot, spire: spire)

@@ -8,7 +8,7 @@ struct GameContentCatalogInvariantTests {
     }
 
     @Test(arguments: GameContent.chapters.flatMap(\.stages))
-    func everyStageBattleReferencesKnownEnemy(stage: Stage) throws {
+    func everyStageReferencesKnownEncounterContent(stage: Stage) throws {
         let enemyIDs = Set(GameContent.enemies.map(\.id))
         if let enemyID = stage.encounter.battleEnemyID {
             try #expect(
@@ -16,10 +16,6 @@ struct GameContentCatalogInvariantTests {
                 "Stage \(stage.id) references unknown enemy \(enemyID)"
             )
         }
-    }
-
-    @Test(arguments: GameContent.chapters.flatMap(\.stages))
-    func mysteryStagesReferenceKnownEvents(stage: Stage) throws {
         if let eventID = stage.encounter.mysteryEventID {
             _ = try #require(
                 GameContent.mysteryEvent(matching: eventID),

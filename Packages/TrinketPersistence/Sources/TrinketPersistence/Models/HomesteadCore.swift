@@ -8,8 +8,6 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
     public var pendingProduction: [HomesteadResource: Double]
     public var lastProductionAt: Date
 
-    /// Soft cap for stored homestead materials (gold is roster-owned).
-    public static let maxMaterialBalance = 999
     public static let secondsPerDay: TimeInterval = 86400.0
     private static let deterministicSeedProductionDate = Date(timeIntervalSince1970: 2000000000)
 
@@ -91,29 +89,8 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
 
     public mutating func grant(_ rewards: [ResourceAmount]) {
         for reward in rewards where reward.resource != .gold && reward.quantity > 0 {
-            let current = resources[reward.resource, default: 0]
-            let pendingCapacity = Self.maxMaterialBalance
-                - Int(ceil(pendingProduction[reward.resource, default: 0]))
-            let available = max(0, pendingCapacity - current)
-            resources[reward.resource] = min(current + reward.quantity, current + available)
+            resources[reward.resource, default: 0] += reward.quantity
         }
-    }
-
-    /// Amounts that `grant` would actually add after the material cap (zeros omitted).
-    public func receivableAmounts(from rewards: [ResourceAmount]) -> [ResourceAmount] {
-        rewards.compactMap { reward in
-            guard reward.resource != .gold, reward.quantity > 0 else { return nil }
-            let current = resources[reward.resource, default: 0]
-            let pendingCapacity = Self.maxMaterialBalance
-                - Int(ceil(pendingProduction[reward.resource, default: 0]))
-            let granted = min(current + reward.quantity, current + max(0, pendingCapacity - current)) - current
-            guard granted > 0 else { return nil }
-            return ResourceAmount(reward.resource, granted)
-        }
-    }
-
-    public static func clampedMaterialBalance(_ quantity: Int) -> Int {
-        min(max(quantity, 0), maxMaterialBalance)
     }
 
     public func pendingProductionAmounts(
@@ -124,11 +101,15 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
         projected.settleProduction(at: date, roster: roster)
         return projected.pendingProduction
             .compactMap { resource, amount in
-                let balance = Double(projected.balance(for: resource, roster: roster))
-                let maximum = resource == .gold
-                    ? PlayerRosterState.maxGoldBalance
-                    : Self.maxMaterialBalance
-                let quantity = min(Int(amount.rounded(.down)), max(0, maximum - Int(balance)))
+                let available = Int(amount.rounded(.down))
+                let quantity = if resource == .gold {
+                    min(
+                        available,
+                        max(0, PlayerRosterState.maxGoldBalance - projected.balance(for: resource, roster: roster))
+                    )
+                } else {
+                    available
+                }
                 guard quantity > 0 else { return nil }
                 return ResourceAmount(resource, quantity)
             }
@@ -145,10 +126,10 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
         let collected = pendingProduction
             .compactMap { resource, amount -> ResourceAmount? in
                 let balance = balance(for: resource, roster: roster)
-                let maximum = resource == .gold
-                    ? PlayerRosterState.maxGoldBalance
-                    : Self.maxMaterialBalance
-                let quantity = min(Int(amount.rounded(.down)), max(0, maximum - balance))
+                let available = Int(amount.rounded(.down))
+                let quantity = resource == .gold
+                    ? min(available, max(0, PlayerRosterState.maxGoldBalance - balance))
+                    : available
                 guard quantity > 0 else { return nil }
                 return ResourceAmount(resource, quantity)
             }
@@ -161,9 +142,8 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
                 quantity = min(amount.quantity, PlayerRosterState.maxGoldBalance - current)
                 roster.grantGold(quantity)
             } else {
-                let current = resources[amount.resource, default: 0]
-                quantity = min(amount.quantity, Self.maxMaterialBalance - current)
-                resources[amount.resource] = current + quantity
+                quantity = amount.quantity
+                resources[amount.resource, default: 0] += quantity
             }
             pendingProduction[amount.resource, default: 0] -= Double(quantity)
         }
@@ -187,18 +167,16 @@ public struct PlayerHomesteadState: Equatable, Hashable, Sendable {
                   production.quantity > 0
             else { continue }
 
-            let current = Double(balance(for: production.resource, roster: roster))
             let pending = pendingProduction[production.resource, default: 0]
-            let maximum = production.resource == .gold
-                ? Double(PlayerRosterState.maxGoldBalance)
-                : Double(Self.maxMaterialBalance)
-            let capacity = maximum - current - pending
-            guard capacity > 0 else { continue }
-
-            let generated = min(
-                capacity,
-                Double(production.quantity) * elapsed / Self.secondsPerDay
-            )
+            let generated = Double(production.quantity) * elapsed / Self.secondsPerDay
+            if production.resource == .gold {
+                let capacity = Double(PlayerRosterState.maxGoldBalance)
+                    - Double(balance(for: .gold, roster: roster))
+                    - pending
+                guard capacity > 0 else { continue }
+                pendingProduction[.gold] = pending + min(capacity, generated)
+                continue
+            }
             pendingProduction[production.resource] = pending + generated
         }
         lastProductionAt = date

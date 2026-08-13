@@ -110,7 +110,7 @@ struct MysteryEffectApplierTests {
         var save = SaveTestSupport.makeSave()
         save.roster.gold = 995
         save.homestead = PlayerHomesteadState(
-            resources: [.herbs: PlayerHomesteadState.maxMaterialBalance - 2],
+            resources: [.herbs: 997],
             nodeTiers: [:],
             pendingProduction: [.gold: 1, .herbs: 1],
             lastProductionAt: Date()
@@ -127,9 +127,9 @@ struct MysteryEffectApplierTests {
         )
 
         try #expect(result.grantedGold == 3)
-        try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 1)])
+        try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 4)])
         try #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - 1)
-        try #expect(save.homestead.resources[.herbs] == PlayerHomesteadState.maxMaterialBalance - 1)
+        try #expect(save.homestead.resources[.herbs] == 1001)
     }
 
     @Test func materialQuantityScalesWithLevel() {

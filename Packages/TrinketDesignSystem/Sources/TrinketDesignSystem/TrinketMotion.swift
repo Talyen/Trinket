@@ -10,6 +10,33 @@ public enum CombatFeedbackFloatRecipe: String, CaseIterable, Sendable, Equatable
 /// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
+    /// Restrained feedback for ordinary controls and committed state changes.
+    public enum Interaction: Sendable {
+        public static let artworkCardPressedScale: CGFloat = 0.99
+        public static let selectionCardPressedScale: CGFloat = 0.995
+        public static let walletIncreaseScale: CGFloat = 1.025
+        public static let walletIncreaseDelayStep: TimeInterval = 0.055
+        public static let walletIncreaseMaximumDelay: TimeInterval = 0.30
+        public static let manaSpendDuration: TimeInterval = 0.16
+        public static let manaRestoreDuration: TimeInterval = 0.22
+
+        public static var press: Animation {
+            .spring(response: 0.18, dampingFraction: 1)
+        }
+
+        public static var selection: Animation {
+            .spring(response: 0.22, dampingFraction: 1)
+        }
+
+        public static var stateChange: Animation {
+            .easeOut(duration: 0.18)
+        }
+
+        public static var progressArrival: Animation {
+            .spring(response: 0.28, dampingFraction: 1)
+        }
+    }
+
     public enum Reward: Sendable {
         public static let resourceStagger: TimeInterval = 0.06
         public static let itemRevealDelay: TimeInterval = 0.08
@@ -31,15 +58,18 @@ public enum TrinketMotion: Sendable {
         public static let chromeAfterUnmask: TimeInterval = 0.12
         public static let chromeStagger: TimeInterval = 0.10
         public static let recruitButtonDelay: TimeInterval = 0.16
-        public static let sealResponse: TimeInterval = 0.32
-        public static let sealHoldBeforeDismiss: TimeInterval = 0.32
+        public static let sealResponse: TimeInterval = 0.38
+        public static let sealHoldBeforeDismiss: TimeInterval = 0.55
         public static let bloomPeakOpacity: Double = 0.40
         public static let bloomPeakFraction: Double = 0.40
         public static let veiledBrightness: Double = -0.18
         public static let veiledOverlayOpacity: Double = 0.55
         public static let veiledArtScale: CGFloat = 0.97
         public static let ringStartScale: CGFloat = 0.96
-        public static let ringOvershootScale: CGFloat = 1.03
+        public static let ringOvershootScale: CGFloat = 1.045
+        public static let sealArtScale: CGFloat = 0.985
+        public static let sealBadgeStartScale: CGFloat = 0.72
+        public static let sealBloomOpacity: Double = 0.28
 
         public static var unmask: Animation {
             .spring(response: unmaskResponse, dampingFraction: 0.92)
@@ -83,9 +113,6 @@ public enum TrinketMotion: Sendable {
         public static var tierCompletion: Animation {
             .spring(response: 0.35, dampingFraction: 1.0)
         }
-
-        /// Restrained squash-and-bounce cue for an affordable build or upgrade action.
-        public static let purchaseCueSpeed: Double = 0.45
 
         /// Top-down fill of one incoming connector segment into a newly completed node.
         public static let connectorFillDuration: TimeInterval = 0.20

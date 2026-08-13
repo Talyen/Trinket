@@ -340,10 +340,12 @@ public final class PlayerSaveStore {
     }
 
     private func ensureRequiredGraph() {
-        var save = currentSave
-        save = PlayerSaveSanitizer.sanitize(save)
-        root.update(from: save, context: context)
-        installObservedSave(save)
+        let save = PlayerSaveSanitizer.sanitize(currentSave)
+        let repairSlices = root.repairSlices(for: save)
+        guard !repairSlices.isEmpty else { return }
+
+        root.apply(save, slices: repairSlices, context: context)
+        installObservedSave(save, slices: repairSlices)
         do {
             try context.save()
         } catch {

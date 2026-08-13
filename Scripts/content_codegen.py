@@ -106,6 +106,7 @@ class ItemBaseRow:
     id: str
     name: str
     slot: str
+    weapon_kind: str
     keywords: str
 
 
@@ -237,7 +238,7 @@ def parse_item_base_rows() -> list[ItemBaseRow]:
     path = MANIFEST_DIR / "item_bases.tsv"
     lines = read_tsv(path)
     header = lines[0]
-    expected = ["id", "name", "slot", "keywords"]
+    expected = ["id", "name", "slot", "weapon_kind", "keywords"]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
     return [ItemBaseRow(*row) for row in lines[1:]]
@@ -1486,6 +1487,11 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
         seen_ids.add(row.id)
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Unknown item slot '{row.slot}' for {row.id}")
+        valid_weapon_kinds = {"one_handed", "two_handed", "off_hand"}
+        if row.slot == "weapon" and row.weapon_kind not in valid_weapon_kinds:
+            raise ValueError(f"Unknown weapon kind '{row.weapon_kind}' for {row.id}")
+        if row.slot != "weapon" and row.weapon_kind:
+            raise ValueError(f"Non-weapon item base {row.id} cannot declare a weapon kind")
         for keyword in row.keywords.split(","):
             keyword = keyword.strip()
             if keyword and keyword not in VALID_KEYWORDS:
@@ -1494,12 +1500,18 @@ def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
 
 def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
     entries: list[str] = []
+    swift_weapon_kinds = {
+        "one_handed": ".oneHanded",
+        "two_handed": ".twoHanded",
+        "off_hand": ".offHand",
+    }
     for row in rows:
         entries.append(
             "        ItemBaseType("
             f'id: "{swift_escape(row.id)}", '
             f'name: "{swift_escape(row.name)}", '
             f"slot: .{row.slot}, "
+            f"weaponKind: {swift_weapon_kinds.get(row.weapon_kind, 'nil')}, "
             f"keywordAffinities: {parse_keywords(row.keywords)}"
             ")"
         )

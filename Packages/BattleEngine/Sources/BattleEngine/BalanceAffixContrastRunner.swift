@@ -46,11 +46,6 @@ enum BalanceAffixContrastRunner {
     private static func makeFoci(heroes: [Combatant], companions: [Combatant]) -> [Focus] {
         let owners = heroes + companions
         return GameContent.itemAffixDefinitions.compactMap { definition in
-            guard let baseType = GameContent.itemBaseTypes.first(where: {
-                $0.slot == definition.slot
-                    && !definition.keywords.isDisjoint(with: $0.keywordAffinities)
-            }) else { return nil }
-
             let owner = owners.first { candidate in
                 definition.isAligned(withBuildKeywords: candidate.keywordProfile)
                     && candidate.role.equipmentSlots.contains {
@@ -58,6 +53,14 @@ enum BalanceAffixContrastRunner {
                     }
             }
             guard let owner else { return nil }
+            let slot = owner.role.equipmentSlots.first {
+                $0.baseItemSlot == definition.slot
+            } ?? definition.slot
+            guard let baseType = GameContent.itemBaseTypes.first(where: {
+                $0.slot == definition.slot
+                    && $0.canEquip(in: slot)
+                    && !definition.keywords.isDisjoint(with: $0.keywordAffinities)
+            }) else { return nil }
             return Focus(definition: definition, owner: owner, baseType: baseType)
         }
     }
@@ -154,9 +157,14 @@ enum BalanceAffixContrastRunner {
             $0.baseItemSlot == focus.definition.slot
         } ?? focus.definition.slot
         var withLoadout = EquipmentLoadout()
-        withLoadout.equip(withAffixItem, in: slot)
+        withLoadout.equip(withAffixItem, in: slot, inventory: [withAffixItem])
         var withoutLoadout = EquipmentLoadout()
-        withoutLoadout.equip(withoutAffixItem, in: slot)
+        withoutLoadout.equip(withoutAffixItem, in: slot, inventory: [withoutAffixItem])
+        precondition(
+            withLoadout.itemID(for: slot) == withAffixItem.id
+                && withoutLoadout.itemID(for: slot) == withoutAffixItem.id,
+            "Affix contrast items must equip in their protected slot"
+        )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
         let filler = SimulationMatchupBuilder.generateAlignedGear(
             for: focus.owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
@@ -192,7 +200,7 @@ enum BalanceAffixContrastRunner {
                   let item = filler.inventory.first(where: { $0.id == itemID })
             else { continue }
             inventory.append(item)
-            loadout.equip(item, in: slot)
+            loadout.equip(item, in: slot, inventory: inventory)
         }
         return SimulationMatchupBuilder.GearOverride(inventory: inventory, loadout: loadout)
     }

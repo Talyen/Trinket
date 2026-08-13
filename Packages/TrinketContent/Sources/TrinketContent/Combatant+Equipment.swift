@@ -30,7 +30,7 @@ public extension EquipmentLoadout {
                 continue
             }
             claimedItemIDs.insert(itemID)
-            sanitized.equip(item, in: slot)
+            sanitized.equip(item, in: slot, inventory: inventory)
         }
 
         return sanitized

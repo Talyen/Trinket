@@ -105,7 +105,7 @@ struct PlayerRosterStateTests {
         let item = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var loadout = EquipmentLoadout()
 
-        loadout.equip(item)
+        loadout.equip(item, inventory: [item])
         try #expect(loadout.itemID(for: .weapon) == "wand-basic")
 
         loadout.unequip(.weapon)
@@ -119,11 +119,11 @@ struct PlayerRosterStateTests {
         let wand = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
 
         var wizardLoadout = roster.equipmentLoadout(for: wizard)
-        wizardLoadout.equip(wand)
+        wizardLoadout.equip(wand, inventory: [wand])
         roster.setEquipmentLoadout(wizardLoadout, for: wizard)
 
         var knightLoadout = roster.equipmentLoadout(for: knight)
-        knightLoadout.equip(wand)
+        knightLoadout.equip(wand, inventory: [wand])
         roster.setEquipmentLoadout(knightLoadout, for: knight)
 
         try #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)

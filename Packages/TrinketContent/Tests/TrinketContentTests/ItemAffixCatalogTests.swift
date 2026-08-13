@@ -80,6 +80,51 @@ struct ItemAffixCatalogTests {
         }
     }
 
+    @Test func weaponBaseTypesDeclareExpectedEquipKinds() throws {
+        let byKind = Dictionary(grouping: GameContent.itemBaseTypes.filter { $0.slot == .weapon }) {
+            $0.weaponKind
+        }
+
+        try #expect(Set(byKind[.oneHanded, default: []].map(\.id)) == [
+            "dagger", "flail", "hatchet", "longsword", "mace", "shortsword", "wand",
+        ])
+        try #expect(Set(byKind[.twoHanded, default: []].map(\.id)) == [
+            "crossbow", "double_axe", "greatsword", "longbow", "maul", "recurve_bow", "shortbow", "staff",
+        ])
+        try #expect(Set(byKind[.offHand, default: []].map(\.id)) == ["kite_shield", "spellbook"])
+        try #expect(GameContent.itemBaseTypes.filter { $0.slot != .weapon }.allSatisfy { $0.weaponKind == nil })
+    }
+
+    @Test func twoHandedPowerScalingDoublesMagnitudesWithoutThresholdsOrCaps() throws {
+        let crossbow = try #require(GameContent.itemBaseTypes.first { $0.id == "crossbow" })
+        let executioners = try #require(GameContent.itemAffixDefinition(matching: "executioners"))
+        let symbiosis = try #require(GameContent.itemAffixDefinition(matching: "symbiosis"))
+        let item = InventoryItem(
+            id: "scaled-crossbow",
+            baseType: crossbow,
+            rarity: .astral,
+            displayName: crossbow.name,
+            affixes: [
+                executioners.resolved(for: .astral),
+                symbiosis.resolved(for: .astral),
+            ],
+            affixPowers: [executioners.astral, symbiosis.astral]
+        )
+
+        let executionPower = try #require(item.resolvedPower(at: 0))
+        try #expect(executionPower.triggers.damageBelowHealthPercentThreshold == 0.30)
+        try #expect(executionPower.triggers.damageBelowHealthPercentBonus == 12)
+        try #expect(executionPower.description == "Deal 12 additional damage if the enemy is below 30% Health.")
+
+        let uncappedPower = try #require(item.resolvedPower(at: 1))
+        try #expect(uncappedPower.triggers.companionLeechSharePercent == 2)
+        try #expect(uncappedPower.description == "Companions gain 200% of your Leech.")
+        try #expect(item.displayedAffixes.map(\.description) == [
+            "Deal 12 additional damage if the enemy is below 30% Health.",
+            "Companions gain 200% of your Leech.",
+        ])
+    }
+
     @Test func revisedAffixesUseConsistentLeechWording() throws {
         let byID = Dictionary(uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) })
 

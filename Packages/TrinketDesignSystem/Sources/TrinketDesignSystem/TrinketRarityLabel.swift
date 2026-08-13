@@ -1,31 +1,21 @@
 import SwiftUI
 import TrinketCore
 
-struct TrinketRarityPresentation: Equatable, Sendable {
-    let label: String
-    let isPremium: Bool
-
-    init(rarity: Rarity) {
-        label = rarity.label.uppercased()
-        isPremium = rarity == .astral
-    }
-}
-
 public struct TrinketRarityLabel: View {
-    private let presentation: TrinketRarityPresentation
+    private let rarity: Rarity
 
     @State private var shinePhase = false
 
     public init(rarity: Rarity) {
-        presentation = TrinketRarityPresentation(rarity: rarity)
+        self.rarity = rarity
     }
 
     public var body: some View {
         Group {
-            if presentation.isPremium {
+            if rarity == .astral {
                 premiumLabel
             } else {
-                Text(presentation.label)
+                Text(rarity.label.uppercased())
                     .foregroundStyle(.secondary)
             }
         }
@@ -33,7 +23,7 @@ public struct TrinketRarityLabel: View {
     }
 
     private var premiumLabel: some View {
-        Text(presentation.label)
+        Text(rarity.label.uppercased())
             .foregroundStyle(
                 LinearGradient(
                     colors: [
@@ -47,15 +37,13 @@ public struct TrinketRarityLabel: View {
                 )
             )
             .shadow(color: TrinketDesign.Colors.arcane.opacity(0.62), radius: 6)
-            .onAppear {
+            .task {
                 // Defer shine so Collection/Homestead first paint is not stacked
                 // with every premium label's animation commit on the same frame.
-                Task { @MainActor in
-                    await Task.yield()
-                    guard !Task.isCancelled else { return }
-                    withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) {
-                        shinePhase = true
-                    }
+                await Task.yield()
+                guard !Task.isCancelled else { return }
+                withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) {
+                    shinePhase = true
                 }
             }
             .onDisappear {

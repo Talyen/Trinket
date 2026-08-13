@@ -268,8 +268,10 @@ public struct CombatantDetailPane: View {
 
     private func equip(_ item: InventoryItem, in slot: ItemSlot) {
         var updated = equipmentLoadout
-        updated.equip(item, in: slot)
-        equipmentLoadout = updated
+        updated.equip(item, in: slot, inventory: inventoryItems)
+        withAnimation(TrinketMotion.Interaction.selection) {
+            equipmentLoadout = updated
+        }
         playSFX(SFXID.uiEquip, effectsVolume)
         selectionFeedbackTrigger += 1
         Task { @MainActor in
@@ -283,6 +285,8 @@ public struct CombatantDetailPane: View {
             Text(value)
                 .trinketTypography(.statValue)
                 .foregroundStyle(.secondary)
+                .contentTransition(.numericText())
+                .animation(TrinketMotion.Interaction.selection, value: value)
         } label: {
             Text(title)
                 .trinketTypography(.body)

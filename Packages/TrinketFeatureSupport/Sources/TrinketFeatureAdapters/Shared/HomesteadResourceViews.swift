@@ -22,10 +22,14 @@ public struct HomesteadResourceWallet: View {
 
     public var body: some View {
         TrinketWalletGrid {
-            ForEach(HomesteadResource.allCases) { resource in
+            ForEach(Array(HomesteadResource.allCases.enumerated()), id: \.element.id) { index, resource in
                 TrinketWalletResourcePill(
                     title: resource.displayName,
-                    amount: homestead.balance(for: resource, roster: roster)
+                    amount: homestead.balance(for: resource, roster: roster),
+                    increaseAnimationDelay: min(
+                        Double(index) * TrinketMotion.Interaction.walletIncreaseDelayStep,
+                        TrinketMotion.Interaction.walletIncreaseMaximumDelay
+                    )
                 ) {
                     walletArtwork(for: resource)
                 }

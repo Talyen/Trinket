@@ -74,8 +74,8 @@ struct CombatantEquipmentTests {
             affixes: []
         )
         var loadout = EquipmentLoadout()
-        loadout.equip(trinket, in: .trinket)
-        loadout.equip(trinket, in: .secondaryTrinket)
+        loadout.equip(trinket, in: .trinket, inventory: [trinket])
+        loadout.equip(trinket, in: .secondaryTrinket, inventory: [trinket])
 
         try #expect(loadout.itemID(for: .trinket) == nil)
         try #expect(loadout.itemID(for: .secondaryTrinket) == "ring-a")
@@ -119,7 +119,7 @@ struct CombatantEquipmentTests {
         try #expect(sanitized.itemID(for: .tertiaryTrinket) == "ring-a")
     }
 
-    @Test func twoShieldsEquipAcrossWeaponSlots() throws {
+    @Test func offHandsOnlyEquipInSecondaryWeaponSlot() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let shieldBase = try #require(GameContent.itemBaseTypes.first { $0.id == "kite_shield" })
         let shieldA = InventoryItem(
@@ -142,12 +142,21 @@ struct CombatantEquipmentTests {
             .secondaryWeapon: "shield-b",
         ]).sanitized(for: knight, inventory: [shieldA, shieldB])
 
-        try #expect(sanitized.itemID(for: .weapon) == "shield-a")
+        try #expect(sanitized.itemID(for: .weapon) == nil)
         try #expect(sanitized.itemID(for: .secondaryWeapon) == "shield-b")
     }
 
-    @Test func equipMovesItemBetweenHeroWeaponSlots() throws {
+    @Test func twoHandedWeaponUnequipsAndDisablesSecondaryWeaponSlot() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let crossbowBase = try #require(GameContent.itemBaseTypes.first { $0.id == "crossbow" })
         let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let crossbow = InventoryItem(
+            id: "crossbow-a",
+            baseType: crossbowBase,
+            rarity: .basic,
+            displayName: "Crossbow",
+            affixes: []
+        )
         let sword = InventoryItem(
             id: "sword-a",
             baseType: swordBase,
@@ -155,12 +164,53 @@ struct CombatantEquipmentTests {
             displayName: "Longsword",
             affixes: []
         )
+        let inventory = [crossbow, sword]
         var loadout = EquipmentLoadout()
-        loadout.equip(sword, in: .weapon)
-        loadout.equip(sword, in: .secondaryWeapon)
+        loadout.equip(sword, in: .secondaryWeapon, inventory: inventory)
+        loadout.equip(crossbow, in: .weapon, inventory: inventory)
+
+        try #expect(loadout.itemID(for: .weapon) == crossbow.id)
+        try #expect(loadout.itemID(for: .secondaryWeapon) == nil)
+        try #expect(!loadout.isAvailable(.secondaryWeapon, inventory: inventory))
+        try #expect(!loadout.canEquip(sword, in: .secondaryWeapon, inventory: inventory))
+
+        let sanitized = EquipmentLoadout(itemIDsBySlot: [
+            .weapon: crossbow.id,
+            .secondaryWeapon: sword.id,
+        ]).sanitized(for: knight, inventory: [crossbow, sword])
+
+        try #expect(sanitized.itemID(for: .weapon) == crossbow.id)
+        try #expect(sanitized.itemID(for: .secondaryWeapon) == nil)
+    }
+
+    @Test func oneHandedItemsMoveOrDualWieldAcrossWeaponSlots() throws {
+        let swordBase = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let swordA = InventoryItem(
+            id: "sword-a",
+            baseType: swordBase,
+            rarity: .basic,
+            displayName: "Longsword",
+            affixes: []
+        )
+        let swordB = InventoryItem(
+            id: "sword-b",
+            baseType: swordBase,
+            rarity: .basic,
+            displayName: "Longsword",
+            affixes: []
+        )
+        let inventory = [swordA, swordB]
+        var loadout = EquipmentLoadout()
+        loadout.equip(swordA, in: .weapon, inventory: inventory)
+        loadout.equip(swordA, in: .secondaryWeapon, inventory: inventory)
 
         try #expect(loadout.itemID(for: .weapon) == nil)
-        try #expect(loadout.itemID(for: .secondaryWeapon) == "sword-a")
+        try #expect(loadout.itemID(for: .secondaryWeapon) == swordA.id)
+
+        loadout.equip(swordB, in: .weapon, inventory: inventory)
+
+        try #expect(loadout.itemID(for: .weapon) == swordB.id)
+        try #expect(loadout.itemID(for: .secondaryWeapon) == swordA.id)
     }
 
     @Test func itemIDsInFamilyCollectsSiblingSlots() throws {

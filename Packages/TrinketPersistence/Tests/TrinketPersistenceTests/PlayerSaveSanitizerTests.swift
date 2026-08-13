@@ -30,7 +30,7 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.items.map(\.id) == ["shared-id", "unique-id"])
     }
 
-    @Test func sanitizeHomesteadClampsMaterialBalances() throws {
+    @Test func sanitizeHomesteadPreservesLargeNonnegativeMaterialBalances() throws {
         let homestead = PlayerHomesteadState(
             resources: [
                 .wood: 1500,
@@ -43,7 +43,7 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeHomestead(homestead)
 
-        try #expect(sanitized.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(sanitized.resources[.wood] == 1500)
         try #expect(sanitized.resources[.stone] == 0)
         try #expect(sanitized.resources[.food] == 40)
         try #expect(sanitized.resources[.gold] == nil)

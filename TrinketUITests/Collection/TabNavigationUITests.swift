@@ -3,6 +3,21 @@ import XCTest
 
 /// Tab-reachable surface journeys that smoke does not own: loadout picker and Homestead detail.
 final class TabNavigationUITests: TrinketUITestCase {
+    func testSalvageRemovesCollectionShelfItemImmediately() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.assertLoaded()
+
+        assertSalvageRemovesCrossbowImmediately()
+    }
+
+    func testSalvageRemovesInventoryGridItemImmediately() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.assertLoaded()
+        tapButton(AccessibilityID.Collection.inventoryCategory)
+
+        assertSalvageRemovesCrossbowImmediately()
+    }
+
     func testHeroDetailAbilityPickerSelectsAndDismisses() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight", timeout: 8)
@@ -28,5 +43,23 @@ final class TabNavigationUITests: TrinketUITestCase {
         homestead.openFarmingCategoryAndRevealWheatFieldNode()
         tapButton(AccessibilityID.Homestead.node(title: "Wheat Field"))
         homestead.assertNodeDetail(named: "Wheat Field")
+    }
+
+    private func assertSalvageRemovesCrossbowImmediately(
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let salvagedItemID = AccessibilityID.Collection.itemCard(itemID: "crossbow-basic")
+        let remainingItemID = AccessibilityID.Collection.itemCard(itemID: "crossbow-astral")
+        let salvagedItem = app.buttons[salvagedItemID]
+        scrollUntilVisible(salvagedItem, swipingUp: true, requireHittable: true)
+
+        salvagedItem.tap()
+        scrollUntilVisible(button(AccessibilityID.Collection.salvageButton), swipingUp: true)
+        tapButton(AccessibilityID.Collection.salvageButton)
+        app.alerts.buttons["Salvage"].firstMatch.tap()
+
+        assertDoesNotExist(salvagedItemID, timeout: 5, file: file, line: line)
+        assertExistsAfterScroll(remainingItemID, file: file, line: line)
     }
 }

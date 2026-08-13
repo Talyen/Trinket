@@ -24,6 +24,14 @@ struct EnemyCatalogTests {
         try #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
         try #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")
         try #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
+
+        let stats = enemy.combatant.primaryStats
+        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
+        let expected = 50
+        try #expect(
+            total == expected,
+            "\(enemy.name) primary stats should sum to \(expected), got \(total)"
+        )
     }
 
     @Test func specialEnemyLoadoutsMatchTheirArchetypes() throws {
@@ -66,16 +74,5 @@ struct EnemyCatalogTests {
 
         try #expect(heroAverage > enemyAverage)
         try #expect(companionAverage > enemyAverage)
-    }
-
-    @Test(arguments: GameContent.enemies)
-    func enemiesUsePrimaryStatBudget(enemy: Enemy) throws {
-        let stats = enemy.combatant.primaryStats
-        let total = stats.strength + stats.agility + stats.toughness + stats.intellect + stats.wisdom
-        let expected = 50
-        try #expect(
-            total == expected,
-            "\(enemy.name) primary stats should sum to \(expected), got \(total)"
-        )
     }
 }

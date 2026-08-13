@@ -68,6 +68,56 @@ public extension PlayerSaveRoot {
 }
 
 extension PlayerSaveRoot {
+    func repairSlices(for sanitizedSave: PlayerSave) -> PlayerSaveSlice {
+        var slices = PlayerSaveSlice.changed(between: toPlayerSave(), and: sanitizedSave)
+
+        if journey == nil || hasDuplicateKeys(journey?.stages ?? [], key: \.stageID) {
+            slices.insert(.journey)
+        }
+        if roster == nil || rosterHasDuplicateChildren {
+            slices.insert(.roster)
+        }
+        if inventory == nil || inventoryHasDuplicateChildren {
+            slices.insert(.inventory)
+        }
+        if homestead == nil || homesteadHasDuplicateChildren {
+            slices.insert(.homestead)
+        }
+        if spires == nil || hasDuplicateKeys(spires?.floors ?? [], key: \.spireID) {
+            slices.insert(.spires)
+        }
+        if labyrinth == nil {
+            slices.insert(.labyrinth)
+        }
+        return slices
+    }
+
+    private var rosterHasDuplicateChildren: Bool {
+        guard let roster else { return false }
+        return hasDuplicateKeys(roster.unlockedCombatants ?? []) { "\($0.role):\($0.combatantID)" }
+            || hasDuplicateKeys(roster.progressions ?? [], key: \.combatantID)
+            || hasDuplicateKeys(roster.abilityLoadouts ?? [], key: \.combatantID)
+            || hasDuplicateKeys(roster.equipmentLoadouts ?? [], key: \.combatantID)
+            || (roster.equipmentLoadouts ?? []).contains {
+                hasDuplicateKeys($0.slots ?? [], key: \.slotID)
+            }
+    }
+
+    private var inventoryHasDuplicateChildren: Bool {
+        guard let inventory else { return false }
+        return hasDuplicateKeys(inventory.items ?? [], key: \.id)
+            || (inventory.items ?? []).contains {
+                hasDuplicateKeys($0.affixes ?? [], key: \.id)
+            }
+    }
+
+    private var homesteadHasDuplicateChildren: Bool {
+        guard let homestead else { return false }
+        return hasDuplicateKeys(homestead.resources ?? [], key: \.resourceID)
+            || hasDuplicateKeys(homestead.pendingProduction ?? [], key: \.resourceID)
+            || hasDuplicateKeys(homestead.nodeTiers ?? [], key: \.nodeID)
+    }
+
     func update(from save: PlayerSave, context: ModelContext? = nil) {
         apply(save, slices: .all, context: context)
     }
@@ -122,4 +172,12 @@ extension PlayerSaveRoot {
             model.root = self
         }
     }
+}
+
+private func hasDuplicateKeys<Element, Key: Hashable>(
+    _ values: [Element],
+    key: (Element) -> Key
+) -> Bool {
+    var seen: Set<Key> = []
+    return values.contains { !seen.insert(key($0)).inserted }
 }

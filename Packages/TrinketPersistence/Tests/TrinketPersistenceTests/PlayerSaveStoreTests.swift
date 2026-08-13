@@ -33,6 +33,22 @@ final class PlayerSaveStoreTests {
         try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
     }
 
+    @Test func materialBalancesAboveLegacyCapSurviveReload() throws {
+        let storeURL = context.storeURL()
+        let firstStore = try PlayerSaveStore(
+            storeURL: storeURL,
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        var homestead = firstStore.homestead
+        homestead.resources[.wood] = 12345
+        firstStore.homestead = homestead
+
+        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+
+        try #expect(reloaded.homestead.resources[.wood] == 12345)
+    }
+
     @Test func versionedStoreAdoptsCurrentUnversionedSchema() throws {
         let storeURL = context.storeURL()
         let legacySchema = Schema(PlayerSaveSchema.models)

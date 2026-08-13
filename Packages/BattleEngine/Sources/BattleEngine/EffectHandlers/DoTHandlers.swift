@@ -103,7 +103,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         } else {
             0
         }
-        if chance > 0, Double.random(in: 0 ... 1, using: &context.rng) < chance {
+        if BattleChance.succeeds(probability: chance, using: &context.rng) {
             return potency + 1
         }
         return active.effect.potencyAfterTurn()

@@ -49,7 +49,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                         card(item, selected)
                             .opacity(eligible ? 1.0 : 0.4)
                     }
-                    .trinketQuietTapButtonStyle()
+                    .trinketSelectionCardButtonStyle()
                     .disabled(!eligible)
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
                     .accessibilityIdentifier(accessibilityIdentifier(item))

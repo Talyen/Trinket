@@ -70,10 +70,11 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	en
 Tab-separated columns:
 
 ```text
-id	name	slot	keywords
+id	name	slot	weapon_kind	keywords
 ```
 
 - `slot`: `weapon`, `armor`, or `trinket`.
+- `weapon_kind`: required for weapons (`one_handed`, `two_handed`, or `off_hand`) and empty otherwise.
 - `keywords`: comma-separated keyword affinities (e.g. `physical,bleed,poison`).
 
 Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand-written roster Swift files are thin wrappers over generated output.

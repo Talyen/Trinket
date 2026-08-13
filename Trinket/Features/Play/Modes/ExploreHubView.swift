@@ -25,7 +25,7 @@ struct ExploreHubView: View {
                 )
             }
             .accessibilityIdentifier(AccessibilityID.Play.spiresModeCard)
-            .trinketQuietTapButtonStyle()
+            .trinketArtworkCardButtonStyle()
 
             NavigationLink(value: PlayLaunchDestination.labyrinthMap) {
                 PlayModeArtworkCard(
@@ -37,7 +37,7 @@ struct ExploreHubView: View {
                 )
             }
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
-            .trinketQuietTapButtonStyle()
+            .trinketArtworkCardButtonStyle()
         }
     }
 

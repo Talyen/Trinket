@@ -37,8 +37,9 @@ public struct ThemedGearGenerator: Sendable {
         var loadout = EquipmentLoadout()
 
         for slot in combatant.role.equipmentSlots {
+            guard loadout.isAvailable(slot, inventory: inventory) else { continue }
             guard let baseType = bestBaseType(
-                for: slot.baseItemSlot,
+                for: slot,
                 keywordBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
@@ -57,7 +58,7 @@ public struct ThemedGearGenerator: Sendable {
                 using: &randomNumberGenerator
             )
             inventory.append(item)
-            loadout.equip(item, in: slot)
+            loadout.equip(item, in: slot, inventory: inventory)
         }
 
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
@@ -69,7 +70,7 @@ public struct ThemedGearGenerator: Sendable {
         requireBuildAlignment: Bool,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> ItemBaseType? {
-        var candidates = baseTypes.filter { $0.slot == slot }
+        var candidates = baseTypes.filter { $0.canEquip(in: slot) }
         if requireBuildAlignment {
             candidates = candidates.filter { baseType in
                 itemGenerator.affixDefinitions.contains { definition in

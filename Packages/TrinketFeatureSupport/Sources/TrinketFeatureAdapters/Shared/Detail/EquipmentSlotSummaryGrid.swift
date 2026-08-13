@@ -17,7 +17,9 @@ struct EquipmentSlotSummaryGrid: View {
             ForEach(slotRows, id: \.self) { row in
                 SlotSummaryGrid(
                     slots: row,
-                    isLocked: { _ in false },
+                    isLocked: {
+                        !equipmentLoadout.isAvailable($0, inventory: inventoryItems)
+                    },
                     hasItem: { equippedItem(for: $0) != nil },
                     onSelect: onSelect,
                     onView: onViewItem != nil ? { slot in

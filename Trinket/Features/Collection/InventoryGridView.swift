@@ -41,34 +41,15 @@ struct InventoryGridView: View {
     var body: some View {
         @Bindable var salvageDetail = salvageDetail
         let inventoryState = playerSave.inventory
-        let items = SalvageDissolvePresentation.displayedItems(
-            filteredItems(from: inventoryState),
-            tombstone: salvageDetail.dissolvingTombstone
-        )
+        let items = filteredItems(from: inventoryState)
 
         CollectionGridShell(items: items) { item in
-            let isDissolving = salvageDetail.dissolvingTombstone?.item.id == item.id
-            if isDissolving {
-                SalvageAwareItemCard(
-                    item: item,
-                    showsAffixCount: false,
-                    isDissolving: true,
-                    onDissolveFinished: salvageDetail.finishDissolve
-                )
-                .accessibilityIdentifier("\(item.displayName) item card")
-            } else {
-                Button {
-                    salvageDetail.select(item, at: items.firstIndex(where: { $0.id == item.id }))
-                } label: {
-                    SalvageAwareItemCard(
-                        item: item,
-                        showsAffixCount: false,
-                        isDissolving: false
-                    )
-                }
-                .trinketQuietTapButtonStyle()
-                .matchedTransitionSource(id: item.id, in: zoomNamespace)
-                .accessibilityIdentifier("\(item.displayName) item card")
+            SalvageItemButton(
+                item: item,
+                showsName: true,
+                zoomNamespace: zoomNamespace
+            ) { sourceFrame in
+                salvageDetail.select(item, sourceFrame: sourceFrame)
             }
         } emptyView: {
             inventoryEmptyState(inventoryState: inventoryState)
@@ -97,12 +78,18 @@ struct InventoryGridView: View {
             SalvageItemDetailSheet(
                 controller: salvageDetail,
                 item: item,
-                zoomNamespace: zoomNamespace,
-                resolveIndex: { resolvedItem in
-                    filteredItems(from: playerSave.inventory)
-                        .firstIndex(where: { $0.id == resolvedItem.id }) ?? 0
-                }
+                zoomNamespace: zoomNamespace
             )
+        }
+        .overlay {
+            if let event = salvageDetail.transmutationEvent {
+                SalvageTransmutationLayer(
+                    event: event,
+                    zoomNamespace: zoomNamespace
+                ) {
+                    salvageDetail.finishTransmutation(id: event.id)
+                }
+            }
         }
         .trinketSensoryFeedback(
             .success,
@@ -145,7 +132,7 @@ extension ItemDetailView {
     static func inventorySalvageDetail(
         item: InventoryItem,
         saveStore: PlayerSaveStore,
-        onFinished: @escaping (_ didSucceed: Bool) -> Void
+        onFinished: @escaping (ItemSalvageActionResult) -> Void
     ) -> Self {
         let isOwned = saveStore.inventory.items.contains { $0.id == item.id }
         guard isOwned else {
@@ -154,16 +141,19 @@ extension ItemDetailView {
         let yields = ItemSalvage.yields(for: item)
         return Self(
             item: item,
-            salvageReceivableYields: saveStore.homestead.receivableAmounts(from: yields),
+            salvageYields: yields,
             equippedByName: saveStore.equippedCombatantName(for: item.id),
-            onSalvage: {
-                switch saveStore.salvageItem(id: item.id) {
-                case .success:
-                    true
+            onSalvage: { () -> ItemSalvageActionResult in
+                let result = withAnimation(TrinketMotion.Reward.stateChange) {
+                    saveStore.salvageItem(id: item.id)
+                }
+                switch result {
+                case let .success(yields):
+                    return .success(yields: yields)
                 case .itemNotFound:
-                    false
+                    return .itemNotFound
                 case nil:
-                    nil
+                    return .persistenceFailure
                 }
             },
             onSalvageFinished: onFinished

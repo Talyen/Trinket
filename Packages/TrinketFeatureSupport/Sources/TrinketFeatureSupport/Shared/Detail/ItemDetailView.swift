@@ -3,6 +3,12 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
+public enum ItemSalvageActionResult: Equatable, Sendable {
+    case success(yields: [ResourceAmount])
+    case itemNotFound
+    case persistenceFailure
+}
+
 public struct ItemDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -17,11 +23,11 @@ public struct ItemDetailView: View {
     var primaryActionAccessibilityID: String?
     var dismissAfterPrimaryAction = false
     var onPrimaryAction: (() -> Void)?
-    var salvageReceivableYields: [ResourceAmount]?
+    var salvageYields: [ResourceAmount]?
     var equippedByName: String?
     /// Persistence maps its result to this small presentation contract.
-    var onSalvage: (() -> Bool?)?
-    var onSalvageFinished: ((Bool) -> Void)?
+    var onSalvage: (() -> ItemSalvageActionResult)?
+    var onSalvageFinished: ((ItemSalvageActionResult) -> Void)?
 
     @State private var isSalvageConfirmationPresented = false
     @State private var salvageErrorMessage: String?
@@ -37,10 +43,10 @@ public struct ItemDetailView: View {
         primaryActionAccessibilityID: String? = nil,
         dismissAfterPrimaryAction: Bool = false,
         onPrimaryAction: (() -> Void)? = nil,
-        salvageReceivableYields: [ResourceAmount]? = nil,
+        salvageYields: [ResourceAmount]? = nil,
         equippedByName: String? = nil,
-        onSalvage: (() -> Bool?)? = nil,
-        onSalvageFinished: ((Bool) -> Void)? = nil
+        onSalvage: (() -> ItemSalvageActionResult)? = nil,
+        onSalvageFinished: ((ItemSalvageActionResult) -> Void)? = nil
     ) {
         self.item = item
         self.purchasePrice = purchasePrice
@@ -52,7 +58,7 @@ public struct ItemDetailView: View {
         self.primaryActionAccessibilityID = primaryActionAccessibilityID
         self.dismissAfterPrimaryAction = dismissAfterPrimaryAction
         self.onPrimaryAction = onPrimaryAction
-        self.salvageReceivableYields = salvageReceivableYields
+        self.salvageYields = salvageYields
         self.equippedByName = equippedByName
         self.onSalvage = onSalvage
         self.onSalvageFinished = onSalvageFinished
@@ -91,7 +97,7 @@ public struct ItemDetailView: View {
             bodyContent: {
                 DetailSection("Traits") {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                        ForEach(item.affixes) { affix in
+                        ForEach(item.displayedAffixes) { affix in
                             DetailTraitRow(description: affix.description)
                         }
                     }
@@ -170,12 +176,7 @@ public struct ItemDetailView: View {
     }
 
     private var salvageConfirmationMessage: String {
-        let receivable = salvageReceivableYields ?? []
-        let message = if receivable.isEmpty {
-            "You will receive nothing because your materials are full."
-        } else {
-            "You will receive \(Self.formattedYieldList(receivable))."
-        }
+        let message = "You will receive \(Self.formattedYieldList(salvageYields ?? []))."
         if let equippedByName {
             return message + " This unequips it from \(equippedByName)."
         }
@@ -185,18 +186,18 @@ public struct ItemDetailView: View {
     private func confirmSalvage() {
         guard let onSalvage else { return }
         switch onSalvage() {
-        case true:
-            onSalvageFinished?(true)
+        case let .success(yields):
+            onSalvageFinished?(.success(yields: yields))
             dismiss()
-        case false:
-            onSalvageFinished?(false)
+        case .itemNotFound:
+            onSalvageFinished?(.itemNotFound)
             dismiss()
-        case nil:
+        case .persistenceFailure:
             salvageErrorMessage = "Couldn't salvage this item. Try again."
         }
     }
 
-    static func formattedYieldList(_ yields: [ResourceAmount]) -> String {
+    public static func formattedYieldList(_ yields: [ResourceAmount]) -> String {
         let parts = yields.map { "\($0.quantity) \($0.resource.displayName)" }
         switch parts.count {
         case 0:

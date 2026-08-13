@@ -36,7 +36,7 @@ struct SpiresHubView: View {
             )
         }
         .disabled(isLocked)
-        .trinketQuietTapButtonStyle()
+        .trinketArtworkCardButtonStyle()
         .accessibilityIdentifier(AccessibilityID.Play.spireRow(spire.id.rawValue))
     }
 

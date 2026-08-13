@@ -57,15 +57,8 @@ public enum CombatBuildResolver {
         for item: InventoryItem
     ) -> CombatModifierProfile {
         item.affixes.enumerated().reduce(into: CombatModifierProfile.zero) { partial, element in
-            let (index, affix) = element
-            let power: ItemAffixPower
-            if let overrides = item.affixPowers, overrides.indices.contains(index) {
-                power = overrides[index]
-            } else if let definition = GameContent.itemAffixDefinition(matching: affix.id) {
-                power = definition.power(for: item.rarity)
-            } else {
-                return
-            }
+            let (index, _) = element
+            guard let power = item.resolvedPower(at: index) else { return }
             partial.merge(power.modifiers)
             power.triggers.apply(to: &partial)
         }

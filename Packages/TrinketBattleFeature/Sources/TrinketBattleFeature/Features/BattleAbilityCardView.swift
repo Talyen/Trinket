@@ -6,6 +6,8 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BattleAbilityCardView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let card: BattleCard
     let isPlayable: Bool
     /// Triggered Stun/Freeze on this card's owner; drives status FX instead of dimming.
@@ -180,7 +182,7 @@ struct BattleAbilityCardView: View {
     private var heldScale: CGSize {
         guard isDragging else { return CGSize(width: 1, height: 1) }
         var base = configuration.cardHeldScale
-        if isPlayArmed {
+        if isPlayArmed, !reduceMotion {
             base += configuration.armedScaleBoost
         }
         return CGSize(width: base, height: base)

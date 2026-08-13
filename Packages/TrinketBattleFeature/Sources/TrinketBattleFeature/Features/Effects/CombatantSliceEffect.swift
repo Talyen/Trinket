@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -340,10 +339,10 @@ private func drawSliceLine(
     drawProgress: CGFloat,
     intensity: CGFloat
 ) {
-    let lineStyle = Keyword.physical.visualStyle
     let lead = min(max(drawProgress, 0), 1)
     let pixels = CombatantSliceCrack.polylinePoints(toFraction: lead, size: size)
     let tip = pixels[pixels.count - 1]
+    let stableIntensity = max(intensity, 0.35)
 
     var streak = Path()
     streak.move(to: pixels[0])
@@ -352,11 +351,15 @@ private func drawSliceLine(
     }
     context.stroke(
         streak,
-        with: .color(lineStyle.secondaryColor.opacity(Double(0.95 * intensity))),
-        style: StrokeStyle(lineWidth: 2.6 * intensity, lineCap: .round)
+        with: .color(TrinketDesign.Colors.battleSliceCrack.opacity(Double(0.95 * intensity))),
+        style: StrokeStyle(
+            lineWidth: 2.6 * stableIntensity,
+            lineCap: .round,
+            lineJoin: .round
+        )
     )
     // Bright tip so the crack reads as cracking across, not revealed all at once.
-    let tipRadius = 2.2 * intensity
+    let tipRadius = 2.2 * stableIntensity
     let tipRect = CGRect(
         x: tip.x - tipRadius,
         y: tip.y - tipRadius,
@@ -365,6 +368,6 @@ private func drawSliceLine(
     )
     context.fill(
         Path(ellipseIn: tipRect),
-        with: .color(lineStyle.secondaryColor.opacity(Double(intensity)))
+        with: .color(TrinketDesign.Colors.battleSliceCrack.opacity(Double(intensity)))
     )
 }

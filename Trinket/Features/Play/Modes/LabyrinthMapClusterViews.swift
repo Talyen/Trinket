@@ -133,6 +133,8 @@ private struct LabyrinthMapNodePresentation: Identifiable {
 }
 
 private struct LabyrinthMapNodeSeal: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let node: LabyrinthNode
     let visualState: LabyrinthMapNodeState
     let type: LabyrinthNodeType
@@ -140,6 +142,8 @@ private struct LabyrinthMapNodeSeal: View {
     let metrics: LabyrinthHexMetrics
     let pickContext: MysteryEventPickContext
     let onActivate: () -> Void
+    @State private var reachablePulseOpacity: Double = 0
+    @State private var reachablePulseTask: Task<Void, Never>?
 
     private var tint: Color {
         LabyrinthMapPresentation.tint(for: type)
@@ -166,6 +170,7 @@ private struct LabyrinthMapNodeSeal: View {
                         .trinketTypography(type == .boss ? .sectionTitle : .rowTitle)
                         .foregroundStyle(TrinketDesign.Colors.success)
                         .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.55), radius: 2, y: 1)
+                        .transition(checkmarkTransition)
                 }
 
                 LabyrinthHexagon()
@@ -179,6 +184,10 @@ private struct LabyrinthMapNodeSeal: View {
                             : displayedTint,
                         lineWidth: visualState == .reachable ? 3 : 2
                     )
+
+                LabyrinthHexagon()
+                    .stroke(TrinketDesign.Colors.accent, lineWidth: 3)
+                    .opacity(reachablePulseOpacity)
             }
             .frame(width: metrics.width, height: metrics.height)
             .contentShape(
@@ -191,7 +200,30 @@ private struct LabyrinthMapNodeSeal: View {
             )
         }
         .buttonStyle(LabyrinthNodeButtonStyle(isSelected: isSelected))
+        .animation(TrinketMotion.Interaction.selection, value: visualState)
+        .onChange(of: visualState) { oldState, newState in
+            guard oldState != .reachable, newState == .reachable, !reduceMotion else { return }
+            reachablePulseTask?.cancel()
+            reachablePulseOpacity = 0
+            reachablePulseTask = Task { @MainActor in
+                withAnimation(.easeOut(duration: 0.12)) {
+                    reachablePulseOpacity = 0.72
+                }
+                try? await Task.sleep(for: .milliseconds(120))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeOut(duration: 0.23)) {
+                    reachablePulseOpacity = 0
+                }
+            }
+        }
+        .onDisappear {
+            reachablePulseTask?.cancel()
+        }
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
+    }
+
+    private var checkmarkTransition: AnyTransition {
+        reduceMotion ? .opacity : .scale(scale: 0.85).combined(with: .opacity)
     }
 }
 
@@ -244,12 +276,16 @@ private struct LabyrinthHexagon: InsettableShape {
 }
 
 private struct LabyrinthNodeButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let isSelected: Bool
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.9 : (isSelected ? 1.05 : 1))
-            .offset(y: isSelected && !configuration.isPressed ? -3 : 0)
+            .scaleEffect(
+                reduceMotion ? 1 : configuration.isPressed ? 0.97 : (isSelected ? 1.035 : 1)
+            )
+            .offset(y: reduceMotion ? 0 : isSelected && !configuration.isPressed ? -2 : 0)
             .shadow(
                 color: TrinketDesign.Colors.Overlay.dragShadow.opacity(isSelected ? 1 : 0),
                 radius: isSelected ? 8 : 0,

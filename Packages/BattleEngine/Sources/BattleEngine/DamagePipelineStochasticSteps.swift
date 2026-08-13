@@ -26,7 +26,7 @@ package extension DamagePipeline {
             dodged = true
         } else {
             let chance = dodgeChance(for: state, in: context)
-            dodged = Double.random(in: 0 ... 1, using: &context.rng) < chance
+            dodged = BattleChance.succeeds(probability: chance, using: &context.rng)
         }
         guard dodged else { return }
 
@@ -125,7 +125,7 @@ package extension DamagePipeline {
         }
 
         chance = min(criticalChanceCap(for: actor.combatant), max(0, chance))
-        guard Double.random(in: 0 ... 1, using: &context.rng) < chance else { return }
+        guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return }
         applyCritical(to: &state)
     }
 

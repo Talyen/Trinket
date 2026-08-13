@@ -30,6 +30,11 @@ struct MysteryUnlockContent: View {
                         trigger: ceremony.unmaskFeedbackTrigger,
                         enabled: options.hapticsEnabled
                     )
+                    .trinketSensoryFeedback(
+                        .success,
+                        trigger: ceremony.sealFeedbackTrigger,
+                        enabled: options.hapticsEnabled
+                    )
                     .onAppear {
                         ceremony.start(reduceMotion: reduceMotion) {
                             playSFX(SFXID.uiConfirm, options.effectsVolume)
@@ -74,14 +79,8 @@ struct MysteryUnlockContent: View {
                     .scaleEffect(ceremony.artScale)
                     .frame(maxWidth: 430)
                     .allowsHitTesting(ceremony.allowsDetail)
-                    .overlay(alignment: .bottom) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(TrinketDesign.Colors.accent)
-                            .opacity(ceremony.checkOpacity)
-                            .scaleEffect(ceremony.checkOpacity > 0 ? 1 : 0.85)
-                            .offset(y: TrinketDesign.Metrics.largeSpacing)
-                            .accessibilityHidden(true)
+                    .overlay(alignment: .bottomTrailing) {
+                        recruitSealBadge
                     }
 
                     mysteryPersistFailureBanner(session.persistFailureMessage, centered: true)
@@ -95,6 +94,29 @@ struct MysteryUnlockContent: View {
             primaryActionWidthFraction: 0.5,
             primaryActionOpacity: ceremony.recruitOpacity
         )
+    }
+
+    private var recruitSealBadge: some View {
+        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            Image(systemName: "checkmark")
+                .fontWeight(.bold)
+            Text("RECRUITED")
+                .trinketTypography(.badge)
+        }
+        .foregroundStyle(TrinketDesign.Colors.canvas)
+        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .background(
+            Capsule()
+                .fill(TrinketDesign.Colors.accent)
+        )
+        .opacity(ceremony.checkOpacity)
+        .scaleEffect(ceremony.sealBadgeScale)
+        .offset(
+            x: -TrinketDesign.Metrics.mediumSpacing,
+            y: -TrinketDesign.Metrics.mediumSpacing
+        )
+        .accessibilityHidden(true)
     }
 
     private func recruitPortrait(combatant: Combatant) -> some View {
@@ -169,7 +191,9 @@ final class MysteryRecruitCeremonyState {
     private(set) var ringOpacity = 0.0
     private(set) var ringScale = TrinketMotion.Mystery.ringStartScale
     private(set) var checkOpacity = 0.0
+    private(set) var sealBadgeScale = TrinketMotion.Mystery.sealBadgeStartScale
     private(set) var unmaskFeedbackTrigger = 0
+    private(set) var sealFeedbackTrigger = 0
 
     private var hasStarted = false
     private var task: Task<Void, Never>?
@@ -270,33 +294,46 @@ final class MysteryRecruitCeremonyState {
         phase = .sealing
         pendingSealComplete = onComplete
         task?.cancel()
+        sealFeedbackTrigger += 1
         if reduceMotion {
-            withAnimation(TrinketMotion.Content.fade) {
-                isSealed = true
-                checkOpacity = 1
-                recruitOpacity = 0
-                ringOpacity = 0
-                ringScale = 1
+            task = Task { @MainActor in
+                let clock = SuspendingClock()
+                withAnimation(TrinketMotion.Content.fade) {
+                    applySealedVisuals()
+                }
+                try? await clock.sleep(
+                    for: .seconds(
+                        TrinketMotion.Content.fadeDuration
+                            + TrinketMotion.Mystery.sealHoldBeforeDismiss
+                    )
+                )
+                guard !Task.isCancelled else { return }
+                finishSeal()
             }
-            finishSeal()
             return
         }
 
         task = Task { @MainActor in
             let clock = SuspendingClock()
             withAnimation(TrinketMotion.Mystery.seal) {
-                recruitOpacity = 0
-                isSealed = true
-                checkOpacity = 1
+                applySealedVisuals()
+                artScale = TrinketMotion.Mystery.sealArtScale
+                bloomOpacity = TrinketMotion.Mystery.sealBloomOpacity
                 ringOpacity = 1
                 ringScale = TrinketMotion.Mystery.ringOvershootScale
             }
             try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.sealResponse))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Mystery.seal) {
+                artScale = 1
                 ringScale = 1
+            }
+            withAnimation(TrinketMotion.Content.fade) {
+                bloomOpacity = 0
                 ringOpacity = 0
             }
+            try? await clock.sleep(for: .seconds(TrinketMotion.Content.fadeDuration))
+            guard !Task.isCancelled else { return }
             try? await clock.sleep(for: .seconds(TrinketMotion.Mystery.sealHoldBeforeDismiss))
             guard !Task.isCancelled else { return }
             finishSeal()
@@ -321,6 +358,15 @@ final class MysteryRecruitCeremonyState {
         pendingSealComplete = nil
         task = nil
         complete?()
+    }
+
+    private func applySealedVisuals() {
+        recruitOpacity = 0
+        isSealed = true
+        checkOpacity = 1
+        sealBadgeScale = 1
+        ringOpacity = 0
+        ringScale = 1
     }
 
     private func snapToOfferedVisuals() {

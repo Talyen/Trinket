@@ -309,7 +309,7 @@ extension HomesteadModel {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for balance in resources ?? [] {
             guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
-            resolvedResources[resource] = PlayerHomesteadState.clampedMaterialBalance(balance.quantity)
+            resolvedResources[resource] = max(0, balance.quantity)
         }
         var resolvedPendingProduction: [HomesteadResource: Double] = [:]
         for pending in pendingProduction ?? [] {

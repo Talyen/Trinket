@@ -2,16 +2,51 @@ import Foundation
 import TrinketCore
 
 public struct ItemBaseType: Identifiable, Equatable, Hashable, Sendable {
+    public enum WeaponKind: Equatable, Hashable, Sendable {
+        case oneHanded
+        case twoHanded
+        case offHand
+    }
+
     public let id: String
     public let name: String
     public let slot: ItemSlot
+    public let weaponKind: WeaponKind?
     public let keywordAffinities: Set<Keyword>
 
-    public init(id: String, name: String, slot: ItemSlot, keywordAffinities: Set<Keyword>) {
+    public init(
+        id: String,
+        name: String,
+        slot: ItemSlot,
+        weaponKind: WeaponKind? = nil,
+        keywordAffinities: Set<Keyword>
+    ) {
         self.id = id
         self.name = name
         self.slot = slot
+        self.weaponKind = weaponKind
         self.keywordAffinities = keywordAffinities
+    }
+
+    public var affixPowerMultiplier: Int {
+        weaponKind == .twoHanded ? 2 : 1
+    }
+
+    public func canEquip(in slot: ItemSlot) -> Bool {
+        switch weaponKind {
+        case .oneHanded:
+            slot == .weapon || slot == .secondaryWeapon
+        case .twoHanded:
+            slot == .weapon
+        case .offHand:
+            slot == .secondaryWeapon
+        case nil:
+            slot.accepts(self.slot)
+        }
+    }
+
+    public var defaultEquipmentSlot: ItemSlot {
+        weaponKind == .offHand ? .secondaryWeapon : slot
     }
 }
 
@@ -49,6 +84,124 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         self.description = description
         self.modifiers = modifiers
         self.triggers = triggers
+    }
+
+    public func scaled(by multiplier: Int) -> Self {
+        guard multiplier != 1 else { return self }
+        var description = description
+        let scaledModifiers = modifiers.map { modifier in
+            let scaled = modifier.isPercent
+                ? modifier.mapPercent { $0 * Double(multiplier) }
+                : modifier.mapInt { $0 * multiplier }
+            description = Self.replacingMagnitude(
+                in: description,
+                from: modifier.numericValue,
+                to: scaled.numericValue,
+                isPercent: modifier.isPercent
+            )
+            return scaled
+        }
+        let scaledTriggers = triggers.scalingAffixMagnitudes(by: multiplier) { old, new, isPercent in
+            description = Self.replacingMagnitude(
+                in: description,
+                from: old,
+                to: new,
+                isPercent: isPercent
+            )
+        }
+        return Self(description: description, modifiers: scaledModifiers, triggers: scaledTriggers)
+    }
+
+    private static func replacingMagnitude(
+        in description: String,
+        from old: Double,
+        to new: Double,
+        isPercent: Bool
+    ) -> String {
+        let oldText = isPercent ? "\(Int((old * 100).rounded()))%" : "\(Int(old.rounded()))"
+        let newText = isPercent ? "\(Int((new * 100).rounded()))%" : "\(Int(new.rounded()))"
+        var searchStart = description.startIndex
+        while let range = description.range(of: oldText, range: searchStart ..< description.endIndex) {
+            let hasDigitBefore = range.lowerBound > description.startIndex
+                && description[description.index(before: range.lowerBound)].isNumber
+            let hasDigitAfter = range.upperBound < description.endIndex
+                && description[range.upperBound].isNumber
+            let trailingText = description[range.upperBound...]
+            let isHealthThreshold = isPercent && trailingText.hasPrefix(" Health")
+            if !hasDigitBefore, !hasDigitAfter, !isHealthThreshold {
+                return description.replacingCharacters(in: range, with: newText)
+            }
+            searchStart = range.upperBound
+        }
+        return description
+    }
+}
+
+private extension CombatTraitTriggers {
+    mutating func scale(
+        _ keyPath: WritableKeyPath<Self, Int>,
+        by multiplier: Int,
+        record: (Double, Double, Bool) -> Void
+    ) {
+        let old = self[keyPath: keyPath]
+        guard old != 0 else { return }
+        let new = old * multiplier
+        self[keyPath: keyPath] = new
+        record(Double(old), Double(new), false)
+    }
+
+    mutating func scale(
+        _ keyPath: WritableKeyPath<Self, Double>,
+        by multiplier: Int,
+        record: (Double, Double, Bool) -> Void
+    ) {
+        let old = self[keyPath: keyPath]
+        guard old != 0 else { return }
+        let new = old * Double(multiplier)
+        self[keyPath: keyPath] = new
+        record(old, new, true)
+    }
+
+    func scalingAffixMagnitudes(
+        by multiplier: Int,
+        record: (Double, Double, Bool) -> Void
+    ) -> Self {
+        var scaled = self
+        scaled.scale(\.gainGoldBonusHealSelf, by: multiplier, record: record)
+        scaled.scale(\.thornsPercent, by: multiplier, record: record)
+        scaled.scale(\.onBleedApplyPoison, by: multiplier, record: record)
+        scaled.scale(\.onBurnApplyPoison, by: multiplier, record: record)
+        scaled.scale(\.onBleedDealBurnDamage, by: multiplier, record: record)
+        scaled.scale(\.poisonDecayIncreaseChance, by: multiplier, record: record)
+        scaled.scale(\.freezeDamageWhileBurningBonus, by: multiplier, record: record)
+        scaled.scale(\.damageWhileTargetFrozenBonus, by: multiplier, record: record)
+        scaled.scale(\.damageBelowHealthPercentBonus, by: multiplier, record: record)
+        scaled.scale(\.damageAfterDodgeBonus, by: multiplier, record: record)
+        scaled.scale(\.blockBrokenBlockFlat, by: multiplier, record: record)
+        scaled.scale(\.companionLeechSharePercent, by: multiplier, record: record)
+        scaled.scale(\.onceBelowHealthPercentHeal, by: multiplier, record: record)
+        scaled.scale(\.blockOnDeathsDoor, by: multiplier, record: record)
+        scaled.scale(\.spendManaBlockFlat, by: multiplier, record: record)
+        scaled.scale(\.holyDamageBlockFlat, by: multiplier, record: record)
+        scaled.scale(\.holyDamageCleanseCount, by: multiplier, record: record)
+        scaled.scale(\.holyDamageHealFlat, by: multiplier, record: record)
+        scaled.scale(\.dodgeGoldFlat, by: multiplier, record: record)
+        scaled.scale(\.ignoreEnemyMitigationPercent, by: multiplier, record: record)
+        scaled.scale(\.stunDealPhysicalFlat, by: multiplier, record: record)
+        scaled.scale(\.damageWhileTargetStunnedBonus, by: multiplier, record: record)
+        scaled.scale(\.dodgeBlockFlat, by: multiplier, record: record)
+        scaled.scale(\.holyDamagePurgeCount, by: multiplier, record: record)
+        scaled.scale(\.enemyStunnedPurgeCount, by: multiplier, record: record)
+        scaled.scale(\.criticalPurgeCount, by: multiplier, record: record)
+        scaled.scale(\.leechRestoreManaFlat, by: multiplier, record: record)
+        scaled.scale(\.gainManaBlockFlat, by: multiplier, record: record)
+        scaled.scale(\.defeatEnemyGoldFlat, by: multiplier, record: record)
+        scaled.scale(\.leechGoldFlat, by: multiplier, record: record)
+        scaled.scale(\.dodgeHealFlat, by: multiplier, record: record)
+        scaled.scale(\.dodgeChanceBelowHealthPercentBonus, by: multiplier, record: record)
+        scaled.scale(\.dodgeDealStunFlat, by: multiplier, record: record)
+        scaled.scale(\.dodgeChanceBonus, by: multiplier, record: record)
+        return scaled
     }
 }
 
