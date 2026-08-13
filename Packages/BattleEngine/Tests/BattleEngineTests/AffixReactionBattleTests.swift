@@ -1,8 +1,8 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
 import TrinketTestSupport
+@testable import BattleEngine
 
 private func affixBleedAbility(potency: Int) -> Ability {
     Ability(
@@ -168,6 +168,26 @@ struct AffixReactionBattleTests {
         }
         try #expect(battle.health(of: battle.companion) == companionAtFull)
         try #expect(battle.health(of: battle.hero) > 10)
+    }
+
+    @Test func symbiosisSharePercentIsCappedAtFullLeech() throws {
+        func companionHealth(afterSharing restored: Int, percent: Double) -> Int {
+            let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 40)
+            var context = HeroCompanionTraitTestSupport.makeContext(
+                hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30),
+                companion: companion,
+                enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30),
+                heroModifiers: CombatModifierProfile(
+                    triggers: CombatTraitTriggers(companionLeechSharePercent: percent)
+                )
+            )
+            context.roster.mutateRuntime(for: companion) { $0.currentHealth = 5 }
+            _ = CombatTriggerEngine.shareHeroLeechWithCompanion(restored: restored, in: &context)
+            return context.roster.health(for: companion)
+        }
+
+        try #expect(companionHealth(afterSharing: 10, percent: 1.5) == companionHealth(afterSharing: 10, percent: 1.0))
+        try #expect(companionHealth(afterSharing: 10, percent: 1.5) > companionHealth(afterSharing: 10, percent: 0.5))
     }
 
     @Test func secondWindHealsOnlyOnceWhenHealthFallsLow() throws {

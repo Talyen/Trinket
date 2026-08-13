@@ -33,6 +33,7 @@ enum AbilityCatalogUltimate {
 
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
+        description: "If the enemy is Burning, double it. Otherwise, deal 2 Burn damage.",
         targetedEffects: [
             TargetedEffect(.multiplyDoT(.burn, 2), condition: .enemyBurning),
             TargetedEffect(.burn(2), condition: .enemyNotBurning),

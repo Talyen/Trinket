@@ -13,7 +13,10 @@ enum AbilityValidator {
 
     static let descriptionOverrideIDs: Set<String> = [
         "avatar-of-justice",
+        "cold-snap",
+        "combustion",
         "dark-pact",
+        "fire-arrow",
         "shadowstep",
     ]
 

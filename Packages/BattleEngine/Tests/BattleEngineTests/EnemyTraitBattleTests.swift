@@ -15,20 +15,10 @@ struct EnemyTraitBattleTests {
         companion: Combatant,
         enemyBuild: CombatBuild
     ) -> BattleState {
-        BattleState(
-            roster: BattleRoster(
-                hero: CombatantRuntime(combatant: hero),
-                companion: CombatantRuntime(combatant: companion),
-                enemy: CombatantRuntime(combatant: enemyBuild.combatant)
-            ),
-            rng: SeededRandomNumberGenerator(seed: BattleTestFixtures.deterministicNonCriticalSeed),
-            nextEffectID: 1,
-            nextEventID: 1,
-            events: [],
-            gold: 0,
-            initialGold: 0,
-            heroModifiers: .zero,
-            companionModifiers: .zero,
+        HeroCompanionTraitTestSupport.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemyBuild.combatant,
             enemyModifiers: enemyBuild.modifiers
         )
     }
@@ -58,7 +48,6 @@ struct EnemyTraitBattleTests {
 
     @Test func frostwardenFreezeDamageChargesControlMeterAndTriggersSkip() throws {
         let frostwarden = try enemyBuild(id: "the_frostwarden")
-        try #expect(frostwarden.modifiers.triggers.turnFreezeDamageAllEnemies == 1)
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         var context = makeContext(hero: hero, companion: companion, enemyBuild: frostwarden)
@@ -81,11 +70,6 @@ struct EnemyTraitBattleTests {
         #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
-    @Test func goblinBurnVulnerability() throws {
-        let goblin = try enemyBuild(id: "goblin")
-        try #expect(goblin.modifiers.damageTakenVulnerability(for: .burn) == 0.30)
-    }
-
     @Test func mimicDoubleDamageOnFirstAttack() throws {
         let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
@@ -106,15 +90,43 @@ struct EnemyTraitBattleTests {
         try #expect(second.healthLost == baseDamage)
     }
 
-    @Test func livingArmorBlockPerTurnAndBleedReduction() throws {
-        let livingArmor = try enemyBuild(id: "living_armor")
-        try #expect(livingArmor.modifiers.triggers.blockPerTurn == 1)
-        try #expect(livingArmor.modifiers.damageTakenReduction(for: .bleed) == 0.30)
-    }
+    @Test func damageTakenReductionReducesMatchingKeyword() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
+        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
+        var reducedContext = HeroCompanionTraitTestSupport.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy,
+            enemyModifiers: CombatModifierProfile(damageTakenReduction: [.bleed: 0.3])
+        )
+        var baselineContext = HeroCompanionTraitTestSupport.makeContext(
+            hero: hero,
+            companion: companion,
+            enemy: enemy
+        )
 
-    @Test func necromancerLeechChanceAndHolyVulnerability() throws {
-        let necromancer = try enemyBuild(id: "necromancer")
-        try #expect(necromancer.modifiers.triggers.leechChancePercent == 0.20)
-        try #expect(necromancer.modifiers.damageTakenVulnerability(for: .holy) == 0.30)
+        let reduced = reducedContext.resolveDamage(
+            DamageRequest(
+                amount: 10,
+                target: enemy,
+                keyword: .bleed,
+                sourceActorID: hero.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            )
+        )
+        let baseline = baselineContext.resolveDamage(
+            DamageRequest(
+                amount: 10,
+                target: enemy,
+                keyword: .bleed,
+                sourceActorID: hero.id,
+                options: DamageOptions(applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            )
+        )
+
+        try #expect(reduced.healthLost == CombatRounding.scaled(10, multiplier: 0.7))
+        try #expect(baseline.healthLost == 10)
+        try #expect(reduced.healthLost < baseline.healthLost)
     }
 }

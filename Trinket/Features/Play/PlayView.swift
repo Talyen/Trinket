@@ -12,8 +12,6 @@ import TrinketPersistence
 struct PlayView: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.displayScale) private var displayScale
     @State private var stageMessage: StageMapMessage?
     @State private var navigationPath: [PlayLaunchDestination] = []
 
@@ -43,22 +41,7 @@ struct PlayView: View {
                 restorePlayDestinationIfNeeded()
             }
         }
-        .task(id: battlePresentationTaskKey) {
-            await battle.prepareBattlePresentationAssets(
-                dynamicTypeSize: dynamicTypeSize,
-                displayScale: displayScale
-            )
-        }
         .modifier(PlaySessionPresentationModifier(stageMessage: $stageMessage))
-    }
-
-    private var battlePresentationTaskKey: BattlePresentationTaskKey {
-        BattlePresentationTaskKey(
-            activeBattleID: battle.activeBattle?.id,
-            preparedRevision: battle.preparedBattlePresentationRevision,
-            dynamicTypeSize: dynamicTypeSize,
-            displayScale: displayScale
-        )
     }
 
     /// Prefer pending post-battle / launch destinations. Otherwise leave the
@@ -183,6 +166,8 @@ private struct BattlePresentationTaskKey: Equatable {
 private struct PlayBattleOverlay: View {
     @Environment(PlaySession.self) private var play
     @Environment(BattleSession.self) private var battle
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.displayScale) private var displayScale
     @Binding var stageMessage: StageMapMessage?
     @State private var claimedVictoryHandlerOwnerID = UUID()
     @State private var didPresentLaunchVictory = false
@@ -232,6 +217,21 @@ private struct PlayBattleOverlay: View {
         .onChange(of: configuration?.id, initial: true) { _, _ in
             syncPresentationContext()
         }
+        .task(id: battlePresentationTaskKey) {
+            await battle.prepareBattlePresentationAssets(
+                dynamicTypeSize: dynamicTypeSize,
+                displayScale: displayScale
+            )
+        }
+    }
+
+    private var battlePresentationTaskKey: BattlePresentationTaskKey {
+        BattlePresentationTaskKey(
+            activeBattleID: battle.activeBattle?.id,
+            preparedRevision: battle.preparedBattlePresentationRevision,
+            dynamicTypeSize: dynamicTypeSize,
+            displayScale: displayScale
+        )
     }
 
     private func syncPresentationContext() {
@@ -372,8 +372,11 @@ private struct PlayEncounterCoversModifier: ViewModifier {
                     onCancelCorruptSelection: {
                         encounters.cancelActiveMysteryCorruptSelection()
                     },
-                    onFinish: {
-                        encounters.finishActiveMysteryEncounter()
+                    onFinish: { dismiss in
+                        encounters.finishActiveMysteryEncounter(dismiss: dismiss)
+                    },
+                    onDismiss: {
+                        encounters.dismissActiveMysteryEncounter()
                     },
                     onFinishCorruptionReveal: {
                         encounters.finishActiveMysteryCorruptionReveal()

@@ -45,6 +45,20 @@ final class PlayerHomesteadStoreTests {
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
 
+    @Test func buildOrUpgradeNodeReturnsNotAvailableWhenMaxTier() throws {
+        let store = try context.makeSaveStore()
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let maxTier = try #require(definition.tiers.map(\.tier).max())
+        store.homestead = PlayerHomesteadState(
+            resources: [.wood: 99, .herbs: 99],
+            nodeTiers: [.wheatField: maxTier]
+        )
+
+        let result = store.homesteadStore.buildOrUpgradeNode(definition)
+        try #expect(result == .notAvailable)
+        try #expect(store.homestead.tier(for: .wheatField) == maxTier)
+    }
+
     @Test func collectProductionPersistsPendingMaterialsAndTimestamp() throws {
         let storeURL = context.storeURL()
         let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)

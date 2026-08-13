@@ -8,11 +8,9 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionAutoBattleTests {
-    @Test func autoBattlePlaysCardsInHandOrderUntilDisabled() async throws {
+    @Test func autoBattlePlaysCardsInGreedyOrderUntilDisabled() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
-        let expectedCardIDs = session.hand
-            .filter { session.isCardPlayable($0) }
-            .map(\.id)
+        let expectedCardIDs = try greedyPlaySequence(from: session)
         var playedCardIDs: [Int] = []
 
         session.isAutoBattleEnabled = true
@@ -35,9 +33,7 @@ struct BattleSessionAutoBattleTests {
 
     @Test func autoBattleRetriesAfterARejectedPlayInsteadOfStopping() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
-        let expectedCardIDs = session.hand
-            .filter { session.isCardPlayable($0) }
-            .map(\.id)
+        let expectedCardIDs = try greedyPlaySequence(from: session)
         var playAttempts = 0
         var playedCardIDs: [Int] = []
 
@@ -162,5 +158,17 @@ struct BattleSessionAutoBattleTests {
         )
         #expect(session.activate(nextConfiguration))
         #expect(session.isAutoBattleEnabled)
+    }
+
+    private func greedyPlaySequence(from session: BattleSession) throws -> [Int] {
+        var preview = try #require(session.engineState)
+        let limit = preview.hand.cards.count(where: { preview.isCardPlayable($0) })
+        let policy = GreedyHeuristicPolicy()
+        var ids: [Int] = []
+        while ids.count < limit, let card = policy.preferredPlayableCard(in: preview) {
+            ids.append(card.id)
+            _ = try preview.playCard(cardID: card.id, rebuildLog: false)
+        }
+        return ids
     }
 }

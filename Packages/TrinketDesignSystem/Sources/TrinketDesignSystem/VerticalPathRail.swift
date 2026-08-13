@@ -141,6 +141,10 @@ public struct VerticalPathRail<Node: View>: View {
     let connectorBefore: PathConnectorState?
     let connectorAfter: PathConnectorState?
     let style: PathConnectorStyle
+    /// Top-down fill `0...1` for a completed before-segment. `nil` draws the segment fully.
+    let connectorBeforeFill: CGFloat?
+    /// Top-down fill `0...1` for a completed after-segment. `nil` draws the segment fully.
+    let connectorAfterFill: CGFloat?
     let node: Node
 
     public init(
@@ -149,6 +153,8 @@ public struct VerticalPathRail<Node: View>: View {
         connectorBefore: PathConnectorState?,
         connectorAfter: PathConnectorState?,
         style: PathConnectorStyle,
+        connectorBeforeFill: CGFloat? = nil,
+        connectorAfterFill: CGFloat? = nil,
         @ViewBuilder node: () -> Node
     ) {
         self.nodeSize = nodeSize
@@ -156,6 +162,8 @@ public struct VerticalPathRail<Node: View>: View {
         self.connectorBefore = connectorBefore
         self.connectorAfter = connectorAfter
         self.style = style
+        self.connectorBeforeFill = connectorBeforeFill
+        self.connectorAfterFill = connectorAfterFill
         self.node = node()
     }
 
@@ -165,12 +173,12 @@ public struct VerticalPathRail<Node: View>: View {
 
             ZStack(alignment: .top) {
                 if let connectorBefore {
-                    connector(connectorBefore)
+                    connector(connectorBefore, completedFill: connectorBeforeFill)
                         .frame(height: max(centerY - nodeSize / 2, 0))
                 }
 
                 if let connectorAfter {
-                    connector(connectorAfter)
+                    connector(connectorAfter, completedFill: connectorAfterFill)
                         .frame(height: max(geometry.size.height - centerY - nodeSize / 2, 0))
                         .offset(y: centerY + nodeSize / 2)
                 }
@@ -185,25 +193,43 @@ public struct VerticalPathRail<Node: View>: View {
         .frame(minHeight: max(minHeight, nodeSize), maxHeight: .infinity)
     }
 
-    private func connector(_ state: PathConnectorState) -> some View {
-        let color: Color
-        let width: CGFloat
-        switch state {
-        case .completed:
-            color = style.completedColor
-            width = style.progressedWidth
-        case .progressed:
-            color = style.progressedColor
-            width = style.progressedWidth
-        case .future:
-            color = style.futureColor
-            width = style.futureWidth
-        }
-        // Square ends let the before/after segments meet flush at adjacent row
-        // boundaries instead of leaving a gap between their rounded caps.
-        return Rectangle()
-            .fill(color)
-            .frame(width: width)
+    @ViewBuilder
+    private func connector(_ state: PathConnectorState, completedFill: CGFloat?) -> some View {
+        if state == .completed, let completedFill {
+            let fill = min(max(completedFill, 0), 1)
+            let width = connectorWidth(for: state)
+            ZStack(alignment: .top) {
+                Rectangle()
+                    .fill(style.progressedColor)
+                    .frame(width: width)
+                Rectangle()
+                    .fill(style.completedColor)
+                    .frame(width: width)
+                    .scaleEffect(x: 1, y: fill, anchor: .top)
+            }
             .frame(maxWidth: .infinity)
+        } else {
+            // Square ends let the before/after segments meet flush at adjacent row
+            // boundaries instead of leaving a gap between their rounded caps.
+            Rectangle()
+                .fill(connectorColor(for: state))
+                .frame(width: connectorWidth(for: state))
+                .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func connectorColor(for state: PathConnectorState) -> Color {
+        switch state {
+        case .completed: style.completedColor
+        case .progressed: style.progressedColor
+        case .future: style.futureColor
+        }
+    }
+
+    private func connectorWidth(for state: PathConnectorState) -> CGFloat {
+        switch state {
+        case .completed, .progressed: style.progressedWidth
+        case .future: style.futureWidth
+        }
     }
 }

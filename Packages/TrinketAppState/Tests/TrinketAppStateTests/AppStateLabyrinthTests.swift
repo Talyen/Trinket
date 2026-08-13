@@ -31,6 +31,21 @@ struct AppStateLabyrinthTests {
         #expect(state.playerSave.labyrinth == firstMap)
     }
 
+    @Test func enterUnreadableMapReturnsErrorAndDoesNotRegenerate() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        state.playerSave.labyrinth = PlayerLabyrinthState(
+            worldSeed: 55,
+            hasEntered: true,
+            isMapPayloadUnreadable: true
+        )
+
+        let message = try #require(state.labyrinth.enter())
+        #expect(message.title == "Labyrinth Error")
+        #expect(!state.playerSave.labyrinth.hasMap)
+        #expect(state.playerSave.labyrinth.isMapPayloadUnreadable)
+        #expect(state.playerSave.labyrinth.worldSeed == 55)
+    }
+
     @Test func unchangedLabyrinthInputsReusePreparedBattles() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         _ = state.labyrinth.enter()
@@ -122,7 +137,10 @@ struct AppStateLabyrinthTests {
         case .mystery:
             let session = try #require(state.encounters.activeMysteryEncounter)
             #expect(session.labyrinthNodeID == nodeID)
-            state.encounters.finishActiveMysteryEncounter()
+            #expect(state.encounters.resolveActiveMysteryChoice())
+            if state.encounters.activeMysteryEncounter != nil {
+                #expect(state.encounters.finishActiveMysteryEncounter())
+            }
             #expect(state.encounters.activeMysteryEncounter == nil)
         case .rest:
             let session = try #require(state.labyrinth.activeNodeSession)
@@ -136,6 +154,20 @@ struct AppStateLabyrinthTests {
         }
 
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == true)
+    }
+
+    @Test func finishLabyrinthMysteryIgnoresReadingPhase() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        _ = state.labyrinth.enter()
+        let nodeID = try #require(LabyrinthTestSupport.firstReachableNodeID(of: .mystery, in: state))
+
+        #expect(state.labyrinth.handleNodeAction(nodeID: nodeID) == nil)
+        let session = try #require(state.encounters.activeMysteryEncounter)
+        #expect(session.phase == .reading)
+
+        #expect(!state.encounters.finishActiveMysteryEncounter())
+        #expect(state.encounters.activeMysteryEncounter != nil)
+        #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == false)
     }
 
     @Test func shopEncounterCompletesJourneyOriginFromEncounterOwner() throws {

@@ -7,7 +7,6 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadBuildControl {
-    var isBuilding = false
     var error: String?
     var upgradeEventCount = 0
 
@@ -17,16 +16,14 @@ struct HomesteadBuildControl {
         saveStore: PlayerSaveStore,
         onSuccess: (HomesteadNodeID) -> Void = { _ in }
     ) {
-        guard !isBuilding else { return }
-        isBuilding = true
-        defer { isBuilding = false }
-
         switch saveStore.homesteadStore.buildOrUpgradeNode(definition) {
         case .success:
             upgradeEventCount += 1
             onSuccess(definition.id)
         case .insufficientResources:
             error = "Not enough resources to build or upgrade this project."
+        case .notAvailable:
+            error = "This project isn't available to build or upgrade yet."
         case .persistFailed:
             error = "Couldn't save homestead progress. Try again."
         }
@@ -34,7 +31,6 @@ struct HomesteadBuildControl {
 }
 
 struct HomesteadCollectionControl {
-    var isCollecting = false
     var error: String?
     var collectionEventCount = 0
 
@@ -44,10 +40,6 @@ struct HomesteadCollectionControl {
         at date: Date,
         onSuccess: ([ResourceAmount]) -> Void = { _ in }
     ) {
-        guard !isCollecting else { return }
-        isCollecting = true
-        defer { isCollecting = false }
-
         switch saveStore.homesteadStore.collectProduction(at: date) {
         case let .success(amounts):
             collectionEventCount += 1

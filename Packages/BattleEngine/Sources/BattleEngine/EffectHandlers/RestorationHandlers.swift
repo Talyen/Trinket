@@ -47,21 +47,19 @@ struct ResourceGainHandler: BattleEffectHandler {
         in context: inout BattleState
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let loggedAmount: Int
         switch keyword {
         case .mana:
             let restored = context.restoreMana(
                 context.paced(amount, sourceActorID: source.id),
                 to: target
             )
-            loggedAmount = restored
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .resourceGain,
                 actorName: source.name,
                 abilityName: ability.name,
                 target: target,
-                amount: loggedAmount,
+                amount: restored,
                 keyword: keyword
             )
             var events = [event]
@@ -70,25 +68,13 @@ struct ResourceGainHandler: BattleEffectHandler {
             }
             return EffectApplyOutcome(events: events, didApply: true)
         case .gold:
-            loggedAmount = context.goldGranted(for: amount, sourceActorID: source.id)
-            context.addGold(amount, sourceActorID: source.id)
+            return EffectApplyOutcome(
+                events: context.grantGoldEvent(amount, to: source, abilityName: ability.name),
+                didApply: true
+            )
         default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .resourceGain,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: loggedAmount,
-            keyword: keyword
-        )
-        var events = [event]
-        if keyword == .gold {
-            events.append(contentsOf: CombatTriggerEngine.healSelfAfterGoldGain(source: source, in: &context).events)
-        }
-        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 

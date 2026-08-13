@@ -4,9 +4,7 @@ import TrinketCore
 
 public enum SpireCompletion {
     public static func enemyLevel(for floor: SpireFloor) -> Int {
-        let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
-        let baseLevel = Int(pow(Double(floor.floor), 1.5).rounded())
-        return max(1, baseLevel + (isBoss ? 2 : 0))
+        EncounterLevelResolver.spireEnemyLevel(for: floor)
     }
 
     public static func resolveLoot(

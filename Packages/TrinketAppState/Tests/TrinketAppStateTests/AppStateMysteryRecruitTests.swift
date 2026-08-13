@@ -40,6 +40,19 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.encounters.finishActiveMysteryEncounter())
     }
 
+    @Test func finishRevealWithoutDismissKeepsSessionForSeal() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+
+        #expect(state.encounters.finishActiveMysteryEncounter(dismiss: false))
+        #expect(state.encounters.activeMysteryEncounter != nil)
+        #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
+
+        state.encounters.dismissActiveMysteryEncounter()
+        #expect(state.encounters.activeMysteryEncounter == nil)
+    }
+
     @Test func completedRosterTurnsRecruitStageIntoMystery() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state", "-seed-test-progress"])
         let completedStage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
@@ -201,6 +214,40 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.finishActiveMysteryEncounter())
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
+    }
+
+    @Test func finishActiveMysteryEncounterIgnoresReadingPhase() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = Stage(
+            id: "audit-mystery-reading-finish",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        state.encounters.activeMysteryEncounter = MysteryEncounterSession(
+            origin: .journey(stage: stage),
+            event: event,
+            combatant: nil
+        )
+
+        #expect(!state.encounters.finishActiveMysteryEncounter())
+        #expect(state.encounters.activeMysteryEncounter != nil)
+        #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
+    }
+
+    @Test func recruitAutoResolvePersistFailureReturnsMessage() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        playerSave.forcesNextSaveFailure = true
+
+        let message = state.journey.handleStagePrimaryAction(for: stage)
+        #expect(message != nil)
+        #expect(state.encounters.activeMysteryEncounter == nil)
+        #expect(!state.playerSave.roster.isCompanionUnlocked("bear"))
     }
     #endif
 }

@@ -143,8 +143,15 @@ public struct BattleView: View {
                     .transition(.opacity)
                 }
             } else {
-                battlefield(battleSession: battleSession)
-                    .transition(.opacity)
+                BattleFieldLane(
+                    configuration: configuration,
+                    presentationContext: presentationContext,
+                    battleSession: battleSession,
+                    interactionState: interactionState,
+                    castPresentation: castPresentation,
+                    performanceScenario: debugPerformanceScenario
+                )
+                .transition(.opacity)
             }
         }
         .animation(TrinketMotion.Screen.crossfade, value: outcomePhase(for: battleSession))
@@ -162,26 +169,82 @@ public struct BattleView: View {
         return didPersist
     }
 
-    private func battlefield(battleSession: BattleSession) -> some View {
+    private var debugPerformanceScenario: BattlePerformanceScenario? {
+        #if DEBUG
+        performanceScenario
+        #else
+        nil
+        #endif
+    }
+}
+
+/// Isolated battlefield observation scope. `BattleView` must not read live
+/// combatant projections here — helper methods on the parent would fuse HP/hand
+/// writes into toolbar and outcome observation.
+private struct BattleFieldLane: View {
+    let configuration: BattleRunConfiguration
+    let presentationContext: BattlePresentationContext
+    let battleSession: BattleSession
+    let interactionState: BattleInteractionState
+    let castPresentation: BattleCastPresentationState
+    var performanceScenario: BattlePerformanceScenario?
+
+    var body: some View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
+            let anchors = BattleCardGridLayout.feedbackAnchors(
+                containerWidth: geometry.size.width,
+                layout: layout
+            )
+            let presentation = battleSession.presentation
+            let hapticsEnabled = battleSession.hapticsEnabled
 
             ZStack(alignment: .bottom) {
                 BattlefieldView(
                     layout: layout,
-                    enemyPane: projectedCombatantPane(.enemy),
-                    heroPane: projectedCombatantPane(.hero),
-                    companionPane: projectedCombatantPane(.companion),
+                    enemyPane: BattleCombatantProjectionPane(
+                        presentation: presentation,
+                        role: .enemy,
+                        hapticsEnabled: hapticsEnabled,
+                        onCombatantTap: showDetails(for:)
+                    ),
+                    heroPane: BattleCombatantProjectionPane(
+                        presentation: presentation,
+                        role: .hero,
+                        hapticsEnabled: hapticsEnabled,
+                        onCombatantTap: showDetails(for:)
+                    ),
+                    companionPane: BattleCombatantProjectionPane(
+                        presentation: presentation,
+                        role: .companion,
+                        hapticsEnabled: hapticsEnabled,
+                        onCombatantTap: showDetails(for:)
+                    ),
                     interactionState: interactionState
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                feedbackOverlay(layout: layout, battleSession: battleSession)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                BattlefieldFeedbackOverlay(
+                    layout: layout,
+                    anchors: anchors,
+                    enemyID: configuration.enemy?.id,
+                    heroID: configuration.hero.combatant.id,
+                    companionID: configuration.companion.combatant.id
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+                BattlefieldSkillCalloutOverlay(
+                    layout: layout,
+                    anchors: anchors,
+                    enemyID: configuration.enemy?.id,
+                    heroID: configuration.hero.combatant.id,
+                    companionID: configuration.companion.combatant.id
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 BattleHandProjectionLane(
-                    presentation: battleSession.presentation,
-                    hapticsEnabled: battleSession.hapticsEnabled,
+                    presentation: presentation,
+                    hapticsEnabled: hapticsEnabled,
                     battleSize: geometry.size,
                     castPresentation: castPresentation,
                     interactionState: interactionState,
@@ -197,7 +260,7 @@ public struct BattleView: View {
                 CardCastPresentationLane(presentation: castPresentation)
                     .zIndex(3)
 
-                BattleCastPrewarmLane(presentation: battleSession.presentation)
+                BattleCastPrewarmLane(presentation: presentation)
                     .zIndex(2)
 
                 BattleCinematicLane(
@@ -224,18 +287,6 @@ public struct BattleView: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
-    private func feedbackOverlay(
-        layout: BattleCardGridLayout.Metrics,
-        battleSession: BattleSession
-    ) -> BattlefieldFeedbackOverlay {
-        BattlefieldFeedbackOverlay(
-            layout: layout,
-            enemyID: battleSession.presentation.enemy?.combatant.id,
-            heroID: battleSession.presentation.hero?.combatant.id,
-            companionID: battleSession.presentation.companion?.combatant.id
-        )
-    }
-
     private func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
         let outcome = battleSession.playCard(
             cardID: card.id
@@ -245,9 +296,6 @@ public struct BattleView: View {
         if let actorID {
             battleSession.commitAttackSwing(for: actorID)
         }
-        // The card cast dissolve always plays for a committed play. Only the
-        // Ultimate cinematic is gated: unmapped or auto-skipped casts never
-        // present it (handled by the session's presentation lane).
         castPresentation.append(request)
         return true
     }
@@ -260,17 +308,6 @@ public struct BattleView: View {
     private func cancelPartyAttack(for card: BattleCard) {
         guard let combatantID = battleSession.combatantID(for: card.owner) else { return }
         battleSession.cancelAttack(for: combatantID)
-    }
-
-    private func projectedCombatantPane(
-        _ role: BattleCombatantProjectionPane.Role
-    ) -> BattleCombatantProjectionPane {
-        BattleCombatantProjectionPane(
-            presentation: battleSession.presentation,
-            role: role,
-            hapticsEnabled: battleSession.hapticsEnabled,
-            onCombatantTap: showDetails(for:)
-        )
     }
 
     private func showDetails(for combatant: Combatant) {

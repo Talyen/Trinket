@@ -125,7 +125,6 @@ public extension CombatTraitTriggers {
             cleanseBonusDraw: values.decode(Int.self, "cleanseBonusDraw", default: 0),
             cleanseBonusHeal: values.decode(Int.self, "cleanseBonusHeal", default: 0),
             gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
-            restoreHealthAlsoHealHero: values.decode(Int.self, "restoreHealthAlsoHealHero", default: 0),
             controlResistancePercent: values.decode(Double.self, "controlResistancePercent", default: 0),
             dodgeChanceBonus: values.decode(Double.self, "dodgeChanceBonus", default: 0),
             ambushBonusDamage: values.decode(Int.self, "ambushBonusDamage", default: 0),

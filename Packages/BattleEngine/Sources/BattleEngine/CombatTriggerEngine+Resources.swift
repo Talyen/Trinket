@@ -82,7 +82,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.leechGoldFlat > 0 {
-            events.append(context.grantGoldEvent(
+            events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.leechGoldFlat,
                 to: actor,
                 abilityName: affixName(.bloodPrice)
@@ -99,7 +99,7 @@ package extension CombatTriggerEngine {
             let hero = context.roster.hero.combatant
             let amount = context.heroModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(context.grantGoldEvent(amount, to: hero, abilityName: affixName(.bounty)))
+                events.append(contentsOf: context.grantGoldEvent(amount, to: hero, abilityName: affixName(.bounty)))
             }
         }
 
@@ -107,7 +107,7 @@ package extension CombatTriggerEngine {
             let companion = context.roster.companion.combatant
             let amount = context.companionModifiers.triggers.defeatEnemyGoldFlat
             if amount > 0 {
-                events.append(context.grantGoldEvent(amount, to: companion, abilityName: affixName(.bounty)))
+                events.append(contentsOf: context.grantGoldEvent(amount, to: companion, abilityName: affixName(.bounty)))
             }
         }
 
@@ -118,7 +118,7 @@ package extension CombatTriggerEngine {
         restored: Int,
         in context: inout BattleState
     ) -> [ActionEvent] {
-        let percent = context.heroModifiers.triggers.companionLeechSharePercent
+        let percent = min(max(context.heroModifiers.triggers.companionLeechSharePercent, 0), 1)
         guard restored > 0,
               percent > 0,
               context.roster.companion.isAlive
@@ -134,8 +134,7 @@ package extension CombatTriggerEngine {
                     abilityName: affixName(.symbiosis),
                     keyword: .health,
                     displayAmount: share
-                ),
-                suppressTraitReactions: true
+                )
             ),
             in: &context
         ).events
@@ -188,27 +187,11 @@ package extension CombatTriggerEngine {
         )
     }
 
-    static func healHeroAfterRestore(
-        source: Combatant,
-        hero: Combatant,
-        in context: inout BattleState
-    ) -> CombatOutcome {
-        guard source.id != hero.id else { return .empty }
-        return resolveBonusHeal(
-            amount: context.modifiers(for: source.id).triggers.restoreHealthAlsoHealHero,
-            source: source,
-            target: hero,
-            in: &context,
-            suppressTraitReactions: true
-        )
-    }
-
     private static func resolveBonusHeal(
         amount: Int,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleState,
-        suppressTraitReactions: Bool = false
+        in context: inout BattleState
     ) -> CombatOutcome {
         guard amount > 0 else { return .empty }
         return HealingEngine.resolveHeal(
@@ -221,8 +204,7 @@ package extension CombatTriggerEngine {
                     abilityName: traitName(for: source, in: context),
                     keyword: .health,
                     displayAmount: amount
-                ),
-                suppressTraitReactions: suppressTraitReactions
+                )
             ),
             in: &context
         )

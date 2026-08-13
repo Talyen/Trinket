@@ -37,34 +37,30 @@ struct BattlefieldFeedbackOverlay: View {
     @Environment(\.displayScale) private var displayScale
 
     let layout: BattleCardGridLayout.Metrics
+    let anchors: BattleCardGridLayout.FeedbackAnchors
     let enemyID: String?
     let heroID: String?
     let companionID: String?
 
     var body: some View {
-        GeometryReader { geometry in
-            let anchors = BattleCardGridLayout.feedbackAnchors(
-                containerWidth: geometry.size.width,
-                layout: layout
+        ZStack(alignment: .topLeading) {
+            feedbackSlot(
+                combatantID: enemyID,
+                size: layout.enemySize,
+                center: anchors.enemy
             )
-            ZStack(alignment: .topLeading) {
-                feedbackSlot(
-                    combatantID: enemyID,
-                    size: layout.enemySize,
-                    center: anchors.enemy
-                )
-                feedbackSlot(
-                    combatantID: heroID,
-                    size: layout.partySize,
-                    center: anchors.hero
-                )
-                feedbackSlot(
-                    combatantID: companionID,
-                    size: layout.partySize,
-                    center: anchors.companion
-                )
-            }
+            feedbackSlot(
+                combatantID: heroID,
+                size: layout.partySize,
+                center: anchors.hero
+            )
+            feedbackSlot(
+                combatantID: companionID,
+                size: layout.partySize,
+                center: anchors.companion
+            )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .allowsHitTesting(false)
     }
 
@@ -84,5 +80,50 @@ struct BattlefieldFeedbackOverlay: View {
             .frame(width: size.width, height: size.height)
             .position(center)
         }
+    }
+}
+
+/// One callout overlay for the battlefield so combatant panes do not observe spectacle.
+struct BattlefieldSkillCalloutOverlay: View {
+    @Environment(BattleSession.self) private var battleSession
+
+    let layout: BattleCardGridLayout.Metrics
+    let anchors: BattleCardGridLayout.FeedbackAnchors
+    let enemyID: String?
+    let heroID: String?
+    let companionID: String?
+
+    var body: some View {
+        ZStack {
+            if let callout = battleSession.spectacle.activeSkillCallout,
+               let placement = slot(for: callout.actorID) {
+                SkillCalloutView(callout: callout)
+                    .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
+                    .frame(
+                        width: placement.size.width,
+                        height: placement.size.height,
+                        alignment: .topTrailing
+                    )
+                    .clipShape(TrinketDesign.cardShape)
+                    .position(placement.center)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .allowsHitTesting(false)
+    }
+
+    private func slot(
+        for actorID: String
+    ) -> (size: CGSize, center: CGPoint)? {
+        if actorID == enemyID {
+            return (layout.enemySize, anchors.enemy)
+        }
+        if actorID == heroID {
+            return (layout.partySize, anchors.hero)
+        }
+        if actorID == companionID {
+            return (layout.partySize, anchors.companion)
+        }
+        return nil
     }
 }

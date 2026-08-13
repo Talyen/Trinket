@@ -15,7 +15,8 @@ struct MysteryEncounterView: View {
     let onResolveChoice: (String?) -> Bool
     let onCorruptItem: (String) -> Bool
     let onCancelCorruptSelection: () -> Void
-    let onFinish: () -> Bool
+    let onFinish: (_ dismiss: Bool) -> Bool
+    let onDismiss: () -> Void
     let onFinishCorruptionReveal: () -> Bool
 
     @State private var selectedDetail: CombatantDetailContext?
@@ -31,10 +32,11 @@ struct MysteryEncounterView: View {
                     session: session,
                     unlockedID: unlockedID,
                     onSelectDetail: { selectedDetail = $0 },
-                    onFinish: onFinish
+                    onFinish: { onFinish(false) },
+                    onDismiss: onDismiss
                 )
             } else if session.showsReward, let result = session.applyResult {
-                MysteryRewardContent(session: session, result: result, onFinish: onFinish)
+                MysteryRewardContent(session: session, result: result, onFinish: { onFinish(true) })
             } else if session.showsCorruptionReveal, let result = session.corruptionResult {
                 MysteryCorruptionRevealContent(
                     session: session,

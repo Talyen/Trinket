@@ -75,8 +75,7 @@ struct HomesteadView: View {
                             collectLabel
                         }
                         .disabled(
-                            collection.isCollecting
-                                || playerSave.isCloudSyncEnabled
+                            playerSave.isCloudSyncEnabled
                                 || depositEvent != nil
                         )
                         .trinketPrimaryActionButton(

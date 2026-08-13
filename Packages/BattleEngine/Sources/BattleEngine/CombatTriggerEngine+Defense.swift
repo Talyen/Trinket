@@ -13,7 +13,7 @@ package extension CombatTriggerEngine {
         }
 
         if profile.triggers.dodgeGoldFlat > 0 {
-            events.append(context.grantGoldEvent(
+            events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.dodgeGoldFlat,
                 to: combatant,
                 abilityName: affixName(.payday)

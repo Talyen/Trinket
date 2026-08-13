@@ -40,4 +40,17 @@ struct CardActivationTests {
         #expect(request.particleCount == TrinketMotion.Battle.cardCastParticleCount)
         #expect(request.particles.count == TrinketMotion.Battle.cardCastParticleCount)
     }
+
+    @Test func freezeOverlayIntroEndsWhenFrostEncroaches() {
+        let ice = CombatantStatusEffectConfig.defaults(for: .iceCrystals)
+        #expect(ice.particleCount == 12)
+        #expect(
+            CombatantStatusEffectKind.iceCrystals.animatedIntroDuration
+                == TrinketMotion.Battle.combatantFreezeEncroachDuration
+        )
+        #expect(
+            CombatantStatusEffectKind.swirlingStars.animatedIntroDuration
+                == TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+        )
+    }
 }

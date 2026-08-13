@@ -144,20 +144,16 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     public var sourceActorID: String?
     var logAs: HealLogPolicy
 
-    public var suppressTraitReactions: Bool
-
     public init(
         amount: Int,
         target: Combatant,
-        sourceActorID: String? = nil,
-        suppressTraitReactions: Bool = false
+        sourceActorID: String? = nil
     ) {
         self.init(
             amount: amount,
             target: target,
             sourceActorID: sourceActorID,
-            logAs: .silent,
-            suppressTraitReactions: suppressTraitReactions
+            logAs: .silent
         )
     }
 
@@ -165,13 +161,11 @@ public struct HealRequest: Equatable, Hashable, Sendable {
         amount: Int,
         target: Combatant,
         sourceActorID: String? = nil,
-        logAs: HealLogPolicy,
-        suppressTraitReactions: Bool = false
+        logAs: HealLogPolicy
     ) {
         self.amount = amount
         self.target = target
         self.sourceActorID = sourceActorID
         self.logAs = logAs
-        self.suppressTraitReactions = suppressTraitReactions
     }
 }

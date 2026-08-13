@@ -224,7 +224,9 @@ extension BattleSession {
                 continue
             }
 
-            guard let card = hand.first(where: { isCardPlayable($0) }) else {
+            guard let engineState,
+                  let card = GreedyHeuristicPolicy().preferredPlayableCard(in: engineState)
+            else {
                 if !hasPendingAutoEnd {
                     scheduleAutoEndIfNeeded()
                 }

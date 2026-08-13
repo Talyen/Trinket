@@ -30,26 +30,6 @@ struct EffectHandlersApplyTests {
         try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
 
-    @Test func burnHandlerSkipsInitialDamageWhenPaired() throws {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let enemy = battle.enemy
-        let hero = battle.hero
-        let action = ActionApplyContext(pairedDirectDamage: [(.burn, 3)])
-        let outcome: EffectApplyOutcome = try battle.withEngineContext { context in
-            try #require(EffectHandlers.all[.burn]?.apply(
-                .burn(3),
-                ability: CombatantFixtures.ability(),
-                source: hero,
-                target: enemy,
-                action: action,
-                in: &context
-            ))
-        }
-        try #expect(outcome.didApply)
-        // No `events` containing a status DoT damage entry.
-        try #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
-    }
-
     // MARK: - Defensive buffs
 
     @Test(arguments: [

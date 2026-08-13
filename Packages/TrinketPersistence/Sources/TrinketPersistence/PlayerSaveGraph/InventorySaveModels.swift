@@ -50,7 +50,6 @@ public final class InventoryItemModel {
                 inventorySaveModelsLogger.error(
                     "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
                 )
-                affixPowersJSON = nil
             }
         } else {
             affixPowersJSON = nil

@@ -50,6 +50,7 @@ enum AbilityCatalogSkill {
 
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
+        description: "Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.",
         damageComponents: [DamageComponent(2, keyword: .freeze)],
         targetedEffects: [
             TargetedEffect(.resourceGain(.mana, 1), condition: .enemyFrozen),

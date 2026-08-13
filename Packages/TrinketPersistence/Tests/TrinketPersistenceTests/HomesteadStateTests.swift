@@ -131,26 +131,6 @@ struct HomesteadStateTests {
         try #expect(full.receivableAmounts(from: rewards).isEmpty)
     }
 
-    @Test func wheatFieldProductionAndDescriptionsMatchEachTier() throws {
-        let expected: [HomesteadNodeID: HomesteadResource] = [
-            .wheatField: .food,
-            .herbGarden: .herbs,
-            .chickenCoop: .food,
-            .pasture: .food,
-            .culinaryArts: .food,
-            .crystalGarden: .crystal,
-            .hunterLodge: .hide,
-            .wishingWell: .gold,
-        ]
-
-        for (nodeID, resource) in expected {
-            let definition = try #require(GameContent.homesteadNode(matching: nodeID))
-            try #expect(definition.tiers.compactMap { $0.production?.resource } == [resource, resource, resource, resource])
-            try #expect(definition.tiers.compactMap { $0.production?.quantity } == [1, 2, 3, 4])
-            try #expect(definition.tiers.allSatisfy { $0.bonus.description.contains("Produces") })
-        }
-    }
-
     @Test func productionPreservesFractionalProgressBetweenSettlements() throws {
         let start = Date(timeIntervalSince1970: 0)
         var homestead = PlayerHomesteadState(

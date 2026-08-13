@@ -52,6 +52,7 @@ public enum PlayerSaveSanitizer {
             throw PlayerSavePersistenceError.invalidSave("Homestead node tiers cannot be negative.")
         }
         try validateProgressions(in: save.roster.progressions)
+        try validateEncodedAffixPowers(save.inventory)
     }
 
     private static func validateProgressions(
@@ -140,6 +141,12 @@ public enum PlayerSaveSanitizer {
                 return (resource, min(PlayerHomesteadState.clampedMaterialBalance(quantity), max(0, capacity)))
             }
         )
+        sanitized.nodeTiers = Dictionary(
+            uniqueKeysWithValues: homestead.nodeTiers.compactMap { nodeID, tier in
+                guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { return nil }
+                return (nodeID, min(max(tier, 0), maxTier))
+            }
+        )
         return sanitized
     }
 
@@ -211,13 +218,19 @@ public enum PlayerSaveSanitizer {
         }
         return PlayerSpiresState(highestClearedFloorBySpireID: sanitized)
     }
+}
 
-    public static func sanitizeLabyrinth(
+public extension PlayerSaveSanitizer {
+    static func sanitizeLabyrinth(
         _ labyrinth: PlayerLabyrinthState,
         biomes: [LabyrinthBiomeDefinition] = GameContent.labyrinthBiomes,
         modifiers: [LabyrinthModifierDefinition] = GameContent.labyrinthModifiers,
         eligibleRecruitEventIDs: [String] = []
     ) -> PlayerLabyrinthState {
+        if labyrinth.isMapPayloadUnreadable {
+            return labyrinth
+        }
+
         let validBiomeIDs = Set(biomes.map(\.id.rawValue))
         var sanitized = labyrinth
 
@@ -257,8 +270,10 @@ public enum PlayerSaveSanitizer {
             )
         }
 
-        // If map is corrupt/empty after sanitize but player had entered, rebuild from seed.
-        if sanitized.hasEntered, sanitized.nodes.isEmpty {
+        // If map is empty after sanitize but player had entered, rebuild from seed.
+        // Skip when the on-disk blob was unreadable so a decode error cannot
+        // regenerate topology over the preserved payload.
+        if sanitized.hasEntered, sanitized.nodes.isEmpty, !sanitized.isMapPayloadUnreadable {
             sanitized.ensureMap(
                 seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed,
                 eligibleRecruitEventIDs: eligibleRecruitEventIDs
@@ -267,8 +282,10 @@ public enum PlayerSaveSanitizer {
         sanitized.mapVersion = LabyrinthGenerator.currentMapVersion
         return sanitized
     }
+}
 
-    private static func regeneratedLabyrinth(
+private extension PlayerSaveSanitizer {
+    static func regeneratedLabyrinth(
         from legacy: PlayerLabyrinthState,
         eligibleRecruitEventIDs: [String]
     ) -> PlayerLabyrinthState {
@@ -280,10 +297,22 @@ public enum PlayerSaveSanitizer {
             eligibleRecruitEventIDs: eligibleRecruitEventIDs
         )
         var nodes = generated.nodes
-        for (id, legacyNode) in legacy.nodes where legacyNode.isCleared {
-            guard var node = nodes[id] else { continue }
-            node.isCleared = true
-            nodes[id] = node
+        for (id, legacyNode) in legacy.nodes {
+            guard let generatedNode = nodes[id] else { continue }
+            nodes[id] = LabyrinthNode(
+                id: generatedNode.id,
+                type: generatedNode.type,
+                enemyID: generatedNode.enemyID,
+                depth: generatedNode.depth,
+                clusterID: generatedNode.clusterID,
+                gridPosition: generatedNode.gridPosition,
+                modifierIDs: generatedNode.modifierIDs,
+                recruitEventID: legacyNode.recruitEventID ?? generatedNode.recruitEventID,
+                mysteryEventID: legacyNode.mysteryEventID ?? generatedNode.mysteryEventID,
+                outgoingIDs: generatedNode.outgoingIDs,
+                isCleared: generatedNode.isCleared || legacyNode.isCleared,
+                isRevealed: generatedNode.isRevealed || legacyNode.isRevealed
+            )
         }
         ensureHistoricalFloorAccess(floorCount: floorCount, clusters: generated.clusters, nodes: &nodes)
         return PlayerLabyrinthState(
@@ -295,7 +324,7 @@ public enum PlayerSaveSanitizer {
         )
     }
 
-    private static func ensureHistoricalFloorAccess(
+    static func ensureHistoricalFloorAccess(
         floorCount: Int,
         clusters: [LabyrinthCluster],
         nodes: inout [String: LabyrinthNode]
@@ -319,7 +348,7 @@ public enum PlayerSaveSanitizer {
         }
     }
 
-    private static func sanitizedLabyrinthNode(
+    static func sanitizedLabyrinthNode(
         _ node: LabyrinthNode,
         existingNodes: [String: LabyrinthNode],
         cluster: LabyrinthCluster?,
@@ -350,7 +379,7 @@ public enum PlayerSaveSanitizer {
         )
     }
 
-    private static func normalizedModifierIDs(
+    static func normalizedModifierIDs(
         for node: LabyrinthNode,
         type: LabyrinthNodeType,
         modifiers: [LabyrinthModifierDefinition]
@@ -369,7 +398,7 @@ public enum PlayerSaveSanitizer {
         return [applicable[0].id]
     }
 
-    private static func legacyGridPosition(
+    static func legacyGridPosition(
         for node: LabyrinthNode,
         in cluster: LabyrinthCluster?
     ) -> LabyrinthGridPosition {
@@ -381,9 +410,7 @@ public enum PlayerSaveSanitizer {
         }
         return LabyrinthGridPosition(row: index / 3, column: index % 3)
     }
-}
 
-private extension PlayerSaveSanitizer {
     static func adjacentPath(
         from sourceID: String,
         to targetID: String,
@@ -425,5 +452,18 @@ private extension PlayerSaveSanitizer {
         }
         path.reverse()
         return path.first == sourceID ? path : []
+    }
+}
+
+private func validateEncodedAffixPowers(_ inventory: PlayerInventoryState) throws {
+    for item in inventory.items {
+        guard let powers = item.affixPowers else { continue }
+        do {
+            _ = try ItemAffixPowerCoding.encode(powers)
+        } catch {
+            throw PlayerSavePersistenceError.invalidSave(
+                "Inventory item \(item.id) affix powers could not be encoded."
+            )
+        }
     }
 }

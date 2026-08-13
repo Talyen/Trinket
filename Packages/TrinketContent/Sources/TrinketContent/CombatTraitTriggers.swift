@@ -6,7 +6,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
     public var cleanseBonusDraw: Int
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
-    public var restoreHealthAlsoHealHero: Int
     public var controlResistancePercent: Double
     public var dodgeChanceBonus: Double
     public var ambushBonusDamage: Int
@@ -82,7 +81,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         cleanseBonusDraw: Int = 0,
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
-        restoreHealthAlsoHealHero: Int = 0,
         controlResistancePercent: Double = 0,
         dodgeChanceBonus: Double = 0,
         ambushBonusDamage: Int = 0,
@@ -156,7 +154,6 @@ public struct CombatTraitTriggers: Codable, Sendable, Equatable, Hashable {
         self.cleanseBonusDraw = cleanseBonusDraw
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
-        self.restoreHealthAlsoHealHero = restoreHealthAlsoHealHero
         self.controlResistancePercent = controlResistancePercent
         self.dodgeChanceBonus = dodgeChanceBonus
         self.ambushBonusDamage = ambushBonusDamage

@@ -27,32 +27,18 @@ struct BattleCombatantPane: View {
                 combatantID: combatant.id,
                 aim: TrinketMotion.Battle.attackAim(isPartyMember: recoilDirection == .down)
             ) {
-                ZStack(alignment: .bottom) {
-                    // Art + resource bars + border share hit reaction; attack lane
-                    // wraps the whole chrome so the enemy card lunges as one unit.
-                    CombatantHitReactionLane(
-                        combatantID: combatant.id,
-                        hapticsEnabled: hapticsEnabled,
-                        recoilDirection: recoilDirection,
-                        borderVisible: !isDefeated,
-                        borderAccentKeyword: borderAccentKeyword,
-                        buffAuraKind: buffAuraKind
-                    ) {
-                        ZStack(alignment: .bottom) {
-                            artworkPresentation
-                            resourceBars
-                        }
+                CombatantHitReactionLane(
+                    combatantID: combatant.id,
+                    hapticsEnabled: hapticsEnabled,
+                    recoilDirection: recoilDirection,
+                    borderVisible: !isDefeated,
+                    borderAccentKeyword: borderAccentKeyword,
+                    buffAuraKind: buffAuraKind
+                ) {
+                    ZStack(alignment: .bottom) {
+                        artworkPresentation
+                        resourceBars
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    // Callouts stay masked to the card slot while the reaction
-                    // frame (portrait + bars) recoils beyond it.
-                    ZStack {
-                        // Isolated observation leaves: feedback / reaction
-                        // updates must not rebuild static pane chrome or BattleView.
-                        CombatantSkillCalloutLane(combatantID: combatant.id)
-                    }
-                    .clipShape(TrinketDesign.cardShape)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(TrinketDesign.cardShape)
@@ -127,8 +113,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
     @State private var playToken = 0
     @State private var activeKind: CombatantHitReactionKind = .none
     @State private var latestReactionID = 0
-    /// Bright end of the status border opacity cycle while an accent is active.
-    @State private var statusBorderPulseBright = false
     @State private var reactionBridgeOwnerID = UUID()
 
     var body: some View {
@@ -139,13 +123,9 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 trigger: playToken,
                 enabled: hapticsEnabled
             )
-            .onChange(of: borderAccentKeyword) { _, _ in
-                syncStatusBorderPulse(isActive: usesStatusBorderPulse)
-            }
             .onAppear {
                 installHitReactionBridge()
                 adoptLatestReactionIfNeeded()
-                syncStatusBorderPulse(isActive: usesStatusBorderPulse)
             }
             .onDisappear {
                 battleSession.feedback.uninstallHitReactionBridge(ownerID: reactionBridgeOwnerID)
@@ -204,16 +184,9 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 if samples.isEmpty {
                     CubicKeyframe(0, duration: layout.impactDuration + layout.recoveryDuration)
                 } else {
-                    CubicKeyframe(samples[safe: 0]?.value ?? 0, duration: samples[safe: 0]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 1]?.value ?? 0, duration: samples[safe: 1]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 2]?.value ?? 0, duration: samples[safe: 2]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 3]?.value ?? 0, duration: samples[safe: 3]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 4]?.value ?? 0, duration: samples[safe: 4]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 5]?.value ?? 0, duration: samples[safe: 5]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 6]?.value ?? 0, duration: samples[safe: 6]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 7]?.value ?? 0, duration: samples[safe: 7]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 8]?.value ?? 0, duration: samples[safe: 8]?.duration ?? 0.01)
-                    CubicKeyframe(samples[safe: 9]?.value ?? 0, duration: samples[safe: 9]?.duration ?? 0.01)
+                    for sample in samples {
+                        CubicKeyframe(sample.value, duration: sample.duration)
+                    }
                 }
             }
         }
@@ -237,48 +210,15 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
 
     @ViewBuilder
     private var cardBorder: some View {
-        if usesStatusBorderPulse {
-            TrinketDesign.cardShape.strokeBorder(
-                borderStrokeColor,
-                lineWidth: 1
-            )
+        if borderAccentKeyword == .deathsDoor, let keyword = borderAccentKeyword {
+            CombatantStatusBorderPulse(keyword: keyword)
         } else if let buffAuraKind {
-            CombatantBuffAuraBorder(kind: buffAuraKind)
+            CombatantBuffAuraLane(kind: buffAuraKind)
         } else {
             TrinketDesign.cardShape.strokeBorder(
                 TrinketDesign.Colors.subtleStroke,
                 lineWidth: 1
             )
-        }
-    }
-
-    /// Stun/freeze use portrait overlays; only Death's Door keeps the pulsing border.
-    private var usesStatusBorderPulse: Bool {
-        borderAccentKeyword == .deathsDoor
-    }
-
-    private var borderStrokeColor: Color {
-        guard usesStatusBorderPulse, let borderAccentKeyword else {
-            return TrinketDesign.Colors.subtleStroke
-        }
-        let opacity = statusBorderPulseBright
-            ? 1.0
-            : TrinketMotion.Battle.statusBorderPulseDimOpacity
-        return borderAccentKeyword.visualStyle.color.opacity(opacity)
-    }
-
-    private func syncStatusBorderPulse(isActive: Bool) {
-        if isActive {
-            statusBorderPulseBright = false
-            withAnimation(
-                TrinketMotion.Battle.statusBorderPulse.repeatForever(autoreverses: true)
-            ) {
-                statusBorderPulseBright = true
-            }
-        } else {
-            withAnimation(.easeOut(duration: 0.15)) {
-                statusBorderPulseBright = false
-            }
         }
     }
 
@@ -312,21 +252,6 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             .impact(weight: .light)
         case .some(.none), nil:
             .impact(weight: .light)
-        }
-    }
-}
-
-private struct CombatantSkillCalloutLane: View {
-    @Environment(BattleSession.self) private var battleSession
-    let combatantID: String
-
-    var body: some View {
-        if let callout = battleSession.spectacle.activeSkillCallout,
-           callout.actorID == combatantID {
-            SkillCalloutView(callout: callout)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(TrinketDesign.Metrics.sectionHeaderSpacing)
-                .allowsHitTesting(false)
         }
     }
 }
@@ -382,10 +307,47 @@ private struct CardReactionAnimationState {
     var rotation = 0.0
 }
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
+/// Death's Door pulse owns its animation so KeyframeAnimator is not rebuilt every tick.
+private struct CombatantStatusBorderPulse: View {
+    let keyword: Keyword
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pulseAmount = 0.0
+
+    var body: some View {
+        CombatantStatusBorderPulseStroke(
+            keyword: keyword,
+            pulseAmount: reduceMotion ? 0.5 : pulseAmount
+        )
+        .onAppear {
+            guard !reduceMotion else { return }
+            pulseAmount = 0
+            withAnimation(
+                TrinketMotion.Battle.statusBorderPulse.repeatForever(autoreverses: true)
+            ) {
+                pulseAmount = 1
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+private struct CombatantStatusBorderPulseStroke: View, Animatable {
+    let keyword: Keyword
+    var pulseAmount: Double
+
+    nonisolated var animatableData: Double {
+        get { pulseAmount }
+        set { pulseAmount = newValue }
+    }
+
+    var body: some View {
+        let dim = TrinketMotion.Battle.statusBorderPulseDimOpacity
+        let opacity = dim + (1 - dim) * pulseAmount
+        TrinketDesign.cardShape.strokeBorder(
+            keyword.visualStyle.color.opacity(opacity),
+            lineWidth: 1
+        )
     }
 }
 

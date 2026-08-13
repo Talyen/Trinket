@@ -16,7 +16,6 @@ let balanceToolSources = [
     "HotspotAnalyzer.swift",
     "InterleavingPlayerController.swift",
     "ModeProgressionTracker.swift",
-    "PlayerPolicy.swift",
     "SimulationMatchupBuilder.swift",
     "SimulationTierProfile.swift",
 ]

@@ -406,8 +406,6 @@ def triggers_swift(raw: str) -> str:
             values["cleanseBonusHeal"] = token.split(":", 1)[1]
         elif token.startswith("on_gain_gold_heal:"):
             values["gainGoldBonusHealSelf"] = token.split(":", 1)[1]
-        elif token.startswith("on_restore_health_heal_hero:"):
-            values["restoreHealthAlsoHealHero"] = token.split(":", 1)[1]
         elif token.startswith("control_resistance:"):
             values["controlResistancePercent"] = token.split(":", 1)[1]
         elif token.startswith("dodge_chance_bonus:"):
@@ -556,7 +554,6 @@ def triggers_swift(raw: str) -> str:
         "cleanseBonusDraw",
         "cleanseBonusHeal",
         "gainGoldBonusHealSelf",
-        "restoreHealthAlsoHealHero",
         "controlResistancePercent",
         "dodgeChanceBonus",
         "ambushBonusDamage",

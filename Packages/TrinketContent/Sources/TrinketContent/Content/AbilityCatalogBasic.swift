@@ -39,6 +39,7 @@ enum AbilityCatalogBasic {
 
     static let fireArrow = Ability(
         id: "fire-arrow", name: "Fire Arrow", tier: .basic,
+        description: "Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.",
         damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [
             TargetedEffect(.burn(1)),

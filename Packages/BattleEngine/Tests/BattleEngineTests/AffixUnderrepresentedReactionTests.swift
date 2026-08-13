@@ -231,4 +231,78 @@ struct AffixUnderrepresentedReactionTests {
         )
         try #expect(DamagePipeline.dodgeChance(for: state, in: context) == 0)
     }
+
+    @Test func windfallHealsWhenPaydayGrantsGold() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(gainGoldBonusHealSelf: 3, dodgeGoldFlat: 2)
+            )
+        )
+        let hero = context.roster.hero.combatant
+        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
+
+        let events = CombatTriggerEngine.afterDodge(by: hero, in: &context)
+
+        try #expect(context.gold == 2)
+        try #expect(context.roster.health(for: hero) == 5 + context.paced(3, sourceActorID: hero.id))
+        try #expect(events.contains { $0.abilityName == "Payday" && $0.amount == 2 })
+        try #expect(events.contains {
+            $0.effectKind == .instantHeal && $0.amount == context.paced(3, sourceActorID: hero.id)
+        })
+    }
+
+    @Test func cauterizeDealsBurnDamageWithoutApplyingBurn() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(onBurnApplyPoison: 1, onBleedDealBurnDamage: 1)
+            )
+        )
+        let hero = context.roster.hero.combatant
+        let enemy = context.roster.enemy.combatant
+        let healthBefore = context.roster.health(for: enemy)
+
+        let events = CombatTriggerEngine.afterBleedApplied(
+            to: enemy,
+            sourceActorID: hero.id,
+            in: &context
+        )
+
+        try #expect(context.roster.health(for: enemy) == healthBefore - 1)
+        try #expect(events.contains { $0.keyword == Keyword.burn && $0.amount == 1 })
+        try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.burn })
+        try #expect(!context.roster.activeEffects(for: enemy).contains { $0.keyword == Keyword.poison })
+    }
+
+    @Test func ashenWakeAppliesPoisonWhenBurnIsApplied() throws {
+        var context = BattleTestFixtures.makePipelineContext(
+            heroModifiers: CombatModifierProfile(
+                triggers: CombatTraitTriggers(onBurnApplyPoison: 1)
+            )
+        )
+        let hero = context.roster.hero.combatant
+        let enemy = context.roster.enemy.combatant
+
+        let events = CombatTriggerEngine.afterDecayingDoTApplied(
+            keyword: .burn,
+            to: enemy,
+            sourceActorID: hero.id,
+            in: &context
+        )
+
+        let poison = context.roster.activeEffects(for: enemy).first { $0.keyword == .poison }
+        try #expect(poison?.effect.potency == 1)
+        try #expect(events.contains { $0.keyword == .poison })
+
+        let poisonEvents = CombatTriggerEngine.afterDecayingDoTApplied(
+            keyword: .poison,
+            to: enemy,
+            sourceActorID: hero.id,
+            in: &context
+        )
+        try #expect(poisonEvents.isEmpty)
+        try #expect(context.roster.activeEffects(for: enemy).count(where: { $0.keyword == .poison }) == 1)
+        try #expect(
+            context.roster.activeEffects(for: enemy).first { $0.keyword == .poison }?.effect.potency == 1
+        )
+    }
 }

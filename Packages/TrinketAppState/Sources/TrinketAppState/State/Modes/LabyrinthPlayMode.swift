@@ -55,6 +55,12 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
+        if playerSave.labyrinth.isMapPayloadUnreadable {
+            return StageMapMessage(
+                title: "Labyrinth Error",
+                message: "Couldn't read the Labyrinth map. Progress is preserved — try again later."
+            )
+        }
         guard playerSave.persistBatch(logging: "Failed to enter Labyrinth", { save in
             LabyrinthCompletion.enter(save: &save)
         }) else {

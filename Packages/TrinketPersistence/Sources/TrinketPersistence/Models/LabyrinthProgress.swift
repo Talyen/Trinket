@@ -14,6 +14,9 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     public var hasEntered: Bool
     public var clusters: [LabyrinthCluster]
     public var nodes: [String: LabyrinthNode]
+    /// In-memory only: the SwiftData map blob existed but could not be decoded.
+    /// Sanitizer must not regenerate a map, and graph apply must keep the prior blob.
+    public var isMapPayloadUnreadable: Bool
 
     public static let freshStart = Self()
     public static let testSeed = Self()
@@ -23,13 +26,15 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         mapVersion: Int = LabyrinthGenerator.currentMapVersion,
         hasEntered: Bool = false,
         clusters: [LabyrinthCluster] = [],
-        nodes: [String: LabyrinthNode] = [:]
+        nodes: [String: LabyrinthNode] = [:],
+        isMapPayloadUnreadable: Bool = false
     ) {
         self.worldSeed = worldSeed
         self.mapVersion = mapVersion
         self.hasEntered = hasEntered
         self.clusters = clusters
         self.nodes = nodes
+        self.isMapPayloadUnreadable = isMapPayloadUnreadable
     }
 
     public var hasMap: Bool {
@@ -115,7 +120,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         seed: UInt64? = nil,
         eligibleRecruitEventIDs: [String] = []
     ) {
-        guard !hasMap else { return }
+        guard !isMapPayloadUnreadable, !hasMap else { return }
         let resolvedSeed = seed ?? worldSeed
         let generated = LabyrinthGenerator.makeInitialMap(
             seed: resolvedSeed == 0 ? LabyrinthGenerator.fallbackWorldSeed : resolvedSeed,
@@ -126,6 +131,7 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         nodes = generated.nodes
         mapVersion = LabyrinthGenerator.currentMapVersion
         hasEntered = true
+        isMapPayloadUnreadable = false
     }
 
     public mutating func markCleared(

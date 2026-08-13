@@ -421,20 +421,42 @@ extension SpiresProgressModel {
 
 extension LabyrinthProgressModel {
     func toPlayerLabyrinthState() -> PlayerLabyrinthState {
-        let payload = decodeMapPayload()
-        return PlayerLabyrinthState(
-            worldSeed: worldSeed,
-            mapVersion: mapVersion,
-            hasEntered: hasEntered,
-            clusters: payload.clusters,
-            nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) })
-        )
+        switch decodeMapPayload() {
+        case .missing:
+            PlayerLabyrinthState(
+                worldSeed: worldSeed,
+                mapVersion: mapVersion,
+                hasEntered: hasEntered,
+                clusters: [],
+                nodes: [:]
+            )
+        case let .decoded(payload):
+            PlayerLabyrinthState(
+                worldSeed: worldSeed,
+                mapVersion: mapVersion,
+                hasEntered: hasEntered,
+                clusters: payload.clusters,
+                nodes: Dictionary(lastWins: payload.nodes.map { ($0.id, $0) })
+            )
+        case .unreadable:
+            PlayerLabyrinthState(
+                worldSeed: worldSeed,
+                mapVersion: mapVersion,
+                hasEntered: hasEntered,
+                clusters: [],
+                nodes: [:],
+                isMapPayloadUnreadable: true
+            )
+        }
     }
 
     func update(from state: PlayerLabyrinthState) {
         worldSeed = state.worldSeed
         mapVersion = state.mapVersion
         hasEntered = state.hasEntered
+        if state.isMapPayloadUnreadable {
+            return
+        }
         let payload = LabyrinthMapPayload(
             clusters: state.clusters,
             nodes: Array(state.nodes.values).sorted { $0.id < $1.id }
@@ -450,17 +472,23 @@ extension LabyrinthProgressModel {
         }
     }
 
-    private func decodeMapPayload() -> LabyrinthMapPayload {
+    private enum MapPayloadDecode {
+        case missing
+        case decoded(LabyrinthMapPayload)
+        case unreadable
+    }
+
+    private func decodeMapPayload() -> MapPayloadDecode {
         guard let mapPayload else {
-            return LabyrinthMapPayload(clusters: [], nodes: [])
+            return .missing
         }
         do {
-            return try JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
+            return try .decoded(JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload))
         } catch {
             labyrinthMapLogger.error(
-                "Failed to decode labyrinth map payload; topology cleared for sanitize rebuild: \(error.localizedDescription, privacy: .public)"
+                "Failed to decode labyrinth map payload; keeping stored blob: \(error.localizedDescription, privacy: .public)"
             )
-            return LabyrinthMapPayload(clusters: [], nodes: [])
+            return .unreadable
         }
     }
 }

@@ -70,7 +70,7 @@ struct BattleAbilityCardView: View {
     }
 
     var body: some View {
-        CombatantStatusEffectPresentation(keyword: controlSkipKeyword) {
+        CombatantStatusEffectPresentation(keyword: controlSkipKeyword, intro: .immediate) {
             BattleAbilityCardFace(artworkName: card.ability.artReference?.imageName)
                 .equatable()
                 .frame(width: width, height: height)
@@ -459,6 +459,8 @@ struct BattleAbilityCardFace: View, Equatable {
             }
         }
         .clipShape(TrinketDesign.cardShape)
-        .trinketCardSurface()
+        .overlay {
+            TrinketDesign.cardShape.strokeBorder(TrinketDesign.Colors.subtleStroke, lineWidth: 1)
+        }
     }
 }

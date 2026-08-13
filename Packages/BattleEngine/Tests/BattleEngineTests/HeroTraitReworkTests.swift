@@ -167,4 +167,32 @@ struct HeroTraitReworkTests {
 
         try #expect(context.roster.health(for: build.combatant) == 11)
     }
+
+    @Test func packLeaderIncreasesCompanionDamage() throws {
+        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
+        let wolf = try #require(GameContent.companions.first { $0.id == "wolf" })
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
+        let rangerBuild = CombatBuildResolver.build(
+            combatant: ranger,
+            equipmentLoadout: EquipmentLoadout(),
+            inventory: []
+        )
+
+        var context = HeroCompanionTraitTestSupport.makeContext(
+            hero: rangerBuild.combatant,
+            companion: wolf,
+            enemy: enemy,
+            heroModifiers: rangerBuild.modifiers
+        )
+
+        let outcome = context.resolveDamage(
+            .directAbilityHit(amount: 1, target: enemy, keyword: .physical, sourceActorID: wolf.id)
+        )
+
+        let strengthPercent = wolf.primaryStats.statDamageBonusPercent(keyword: .physical)
+        let strengthBonus = CombatRounding.scaled(1, multiplier: strengthPercent)
+        let packBonus = rangerBuild.modifiers.companionDamageDealtBonus
+        try #expect(packBonus == 1)
+        try #expect(outcome.healthLost == 1 + strengthBonus + packBonus)
+    }
 }

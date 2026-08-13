@@ -23,4 +23,9 @@ public enum EncounterLevelResolver {
         }
         return chapterBaseLevel + offset
     }
+
+    /// Spires: enemy level is twice the floor number.
+    public static func spireEnemyLevel(for floor: SpireFloor) -> Int {
+        max(1, floor.floor * 2)
+    }
 }

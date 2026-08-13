@@ -21,4 +21,11 @@ struct EncounterLevelResolverTests {
 
         try #expect(EncounterLevelResolver.journeyEnemyLevel(for: nonBattleStage, in: chapter) == 1)
     }
+
+    @Test func spireEnemyLevelIsTwiceTheFloor() {
+        let floor = SpireFloor(spireID: .ironVein, floor: 10, enemyID: "goblin")
+        #expect(EncounterLevelResolver.spireEnemyLevel(for: floor) == 20)
+        let first = SpireFloor(spireID: .ironVein, floor: 1, enemyID: "goblin")
+        #expect(EncounterLevelResolver.spireEnemyLevel(for: first) == 2)
+    }
 }

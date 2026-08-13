@@ -18,14 +18,21 @@ public struct PlayerHomesteadStore {
         _ definition: HomesteadNodeDefinition,
         at date: Date = Date()
     ) -> HomesteadBuildResult {
+        let homestead = save.homestead
+        let rosterState = save.roster
+        guard homestead.isUnlocked(definition),
+              let tier = homestead.nextTier(for: definition)
+        else {
+            return .notAvailable
+        }
+        guard homestead.canAfford(tier, roster: rosterState) else {
+            return .insufficientResources
+        }
+
         var didUpgrade = false
         guard save.persistBatch(logging: "Failed to build or upgrade homestead node", { save in
             var homestead = save.homestead
             var rosterState = save.roster
-            guard homestead.isUnlocked(definition),
-                  let tier = homestead.nextTier(for: definition),
-                  homestead.canAfford(tier, roster: rosterState)
-            else { return }
             homestead.settleProduction(at: date, roster: rosterState)
             guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
             save.homestead = homestead
@@ -34,7 +41,7 @@ public struct PlayerHomesteadStore {
         }) else {
             return .persistFailed
         }
-        return didUpgrade ? .success : .insufficientResources
+        return didUpgrade ? .success : .notAvailable
     }
 
     public func collectProduction(at date: Date = Date()) -> HomesteadCollectionResult {

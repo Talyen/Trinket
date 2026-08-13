@@ -93,7 +93,7 @@ public struct SpireProgressionTracker: Sendable {
             let floors = GameContent.spireFloors(for: spire.id)
             for floor in floors {
                 let isBoss = GameContent.enemy(matching: floor.enemyID)?.isBoss == true
-                let enemyLevel = max(1, floor.floor)
+                let enemyLevel = EncounterLevelResolver.spireEnemyLevel(for: floor)
                 let step = ModeProgressionStep(
                     id: "spire-\(spire.id.rawValue)-floor\(floor.floor)",
                     mode: .spire,

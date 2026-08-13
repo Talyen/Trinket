@@ -6,8 +6,8 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 Products from `Package.swift`:
 
-- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleState`.
-- **BattleBalanceTools** — App-unlinked library for headless simulation, balance policies, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
+- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleState`. `GreedyHeuristicPolicy` (`greedy-v1`) picks a playable card for Auto Battle and headless sweeps.
+- **BattleBalanceTools** — App-unlinked library for headless simulation, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
 - **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
 ## Key types
@@ -20,6 +20,7 @@ Products from `Package.swift`:
 | `BattleEffectHandler` | BattleEngine | Protocol for effect application/tick logic |
 | `EffectHandlers` | BattleEngine | Registry of all handlers, keyed by `EffectKind` |
 | `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
+| `GreedyHeuristicPolicy` | BattleEngine | Greedy-v1 card scoring for Auto Battle and sweeps |
 | `BattleSimulator` | BattleBalanceTools | Headless autoplay loop for balance sweeps |
 | `BalanceSweepRunner` | BattleBalanceTools | Stratified Monte Carlo sweep + markdown reports |
 

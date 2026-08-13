@@ -87,7 +87,7 @@ public final class PlayerSaveStore {
 
     public var labyrinth: PlayerLabyrinthState {
         get { observedLabyrinth }
-        set { mutate { $0.labyrinth = PlayerSaveSanitizer.sanitizeLabyrinth(newValue) } }
+        set { mutate { $0.labyrinth = newValue } }
     }
 
     /// Root-level Corruption Altar cooldown — prefer this over `currentSave` for reads.

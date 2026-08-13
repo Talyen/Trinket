@@ -45,17 +45,6 @@ package enum HealingEngine {
             )
         }
 
-        if !request.suppressTraitReactions,
-           let sourceActorID = request.sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID)?.combatant,
-           restored > 0 {
-            events.append(contentsOf: CombatTriggerEngine.healHeroAfterRestore(
-                source: source,
-                hero: context.roster.hero.combatant,
-                in: &context
-            ).events)
-        }
-
         return CombatOutcome(healthDelta: restored, events: events, flags: flags)
     }
 

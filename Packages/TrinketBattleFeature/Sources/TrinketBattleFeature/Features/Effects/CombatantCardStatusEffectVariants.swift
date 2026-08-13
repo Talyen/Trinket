@@ -21,6 +21,16 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
             return nil
         }
     }
+
+    /// Stun keeps a full-phase orbit; freeze pauses once frost has encroached.
+    var animatedIntroDuration: TimeInterval {
+        switch self {
+        case .swirlingStars:
+            TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+        case .iceCrystals:
+            TrinketMotion.Battle.combatantFreezeEncroachDuration
+        }
+    }
 }
 
 struct CombatantStatusEffectConfig: Equatable {
@@ -50,7 +60,7 @@ struct CombatantStatusEffectConfig: Equatable {
             config.wobbleDegrees = 2.2
             config.tintStrength = 0
         case .iceCrystals:
-            config.particleCount = 40
+            config.particleCount = 12
             config.frostOpacity = 0.75
             config.crackDensity = 0.7
             config.tintStrength = 0
@@ -124,11 +134,13 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     /// Edge snowflakes plus a faint frosty veil that creeps inward from the rim.
-    /// Inward encroachment caps once, then flakes keep twinkling and the veil pulses.
+    /// Encroachment caps once; the presentation clock then pauses on this frame.
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
-        let flakes = max(config.particleCount, 12)
-        // First ~35% of absolute phase grows frost inward; then coverage stays maxed.
-        let encroach = min(max(phase / 0.35, 0), 1)
+        let flakes = max(config.particleCount, 1)
+        let encroach = min(
+            max(phase / CGFloat(TrinketMotion.Battle.combatantFreezeEncroachProgress), 0),
+            1
+        )
         let minDim = min(size.width, size.height)
         // Clear center shrinks as frost encroaches from the edges.
         let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + config.crackDensity * 0.3))
@@ -283,9 +295,18 @@ struct CombatantStatusCardTransform: ViewModifier {
     }
 }
 
+/// How stun/freeze overlays play in on a card face.
+enum CombatantStatusEffectIntro {
+    /// Timed TimelineView intro, then a paused saturated overlay (combatant panes).
+    case animated
+    /// Saturated overlay with no clock or wobble (hand cards).
+    case immediate
+}
+
 /// Continuous stun/freeze overlay while a status accent is active.
 struct CombatantStatusEffectPresentation<Content: View>: View {
     let keyword: Keyword?
+    let intro: CombatantStatusEffectIntro
     let content: Content
 
     @State private var startDate = Date()
@@ -295,9 +316,11 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
 
     init(
         keyword: Keyword?,
+        intro: CombatantStatusEffectIntro = .animated,
         @ViewBuilder content: () -> Content
     ) {
         self.keyword = keyword
+        self.intro = intro
         self.content = content()
     }
 
@@ -305,49 +328,72 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         if let keyword,
            let kind = CombatantStatusEffectKind(statusKeyword: keyword) {
             let config = CombatantStatusEffectConfig.defaults(for: kind)
-            TimelineView(.animation(paused: isSaturated)) { timeline in
-                // Absolute phase in lab clip units (4s = progress 1); does not loop so
-                // Ice Crystals stay fully encroached after the intro.
-                let progress = min(
-                    CGFloat(
-                        timeline.date.timeIntervalSince(startDate)
-                            / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
-                    ),
-                    1
-                )
-                content
-                    .modifier(
-                        CombatantStatusCardTransform(
-                            kind: kind,
-                            config: config,
-                            progress: progress
-                        )
-                    )
-                    .overlay {
-                        CombatantStatusEffectOverlay(
-                            kind: kind,
-                            config: config,
-                            progress: progress
-                        )
-                    }
-            }
-            .onChange(of: keyword) { _, _ in
-                startDate = Date()
-                isSaturated = false
-            }
-            .onAppear {
-                startDate = Date()
-                isSaturated = false
-            }
-            .task(id: keyword) {
-                try? await Task.sleep(
-                    for: .seconds(TrinketMotion.Battle.combatantStatusEffectPhaseDuration)
-                )
-                guard !Task.isCancelled else { return }
-                isSaturated = true
+            switch intro {
+            case .immediate:
+                saturatedOverlay(kind: kind, config: config)
+            case .animated:
+                animatedOverlay(kind: kind, config: config)
             }
         } else {
             content
+        }
+    }
+
+    private func saturatedOverlay(
+        kind: CombatantStatusEffectKind,
+        config: CombatantStatusEffectConfig
+    ) -> some View {
+        content
+            .overlay {
+                CombatantStatusEffectOverlay(
+                    kind: kind,
+                    config: config,
+                    progress: 1
+                )
+            }
+    }
+
+    private func animatedOverlay(
+        kind: CombatantStatusEffectKind,
+        config: CombatantStatusEffectConfig
+    ) -> some View {
+        TimelineView(.animation(paused: isSaturated)) { timeline in
+            // Absolute phase in lab clip units (progress 1 == full status phase).
+            let progress = min(
+                CGFloat(
+                    timeline.date.timeIntervalSince(startDate)
+                        / TrinketMotion.Battle.combatantStatusEffectPhaseDuration
+                ),
+                1
+            )
+            content
+                .modifier(
+                    CombatantStatusCardTransform(
+                        kind: kind,
+                        config: config,
+                        progress: progress
+                    )
+                )
+                .overlay {
+                    CombatantStatusEffectOverlay(
+                        kind: kind,
+                        config: config,
+                        progress: progress
+                    )
+                }
+        }
+        .onChange(of: keyword) { _, _ in
+            startDate = Date()
+            isSaturated = false
+        }
+        .onAppear {
+            startDate = Date()
+            isSaturated = false
+        }
+        .task(id: keyword) {
+            try? await Task.sleep(for: .seconds(kind.animatedIntroDuration))
+            guard !Task.isCancelled else { return }
+            isSaturated = true
         }
     }
 }

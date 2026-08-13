@@ -430,3 +430,21 @@ struct PlayerSaveSanitizerAbilityCollisionTests {
         try #expect(sanitized.loadout(for: wizard).ultimate?.id == "blizzard")
     }
 }
+
+struct PlayerSaveSanitizerHomesteadTierTests {
+    @Test func sanitizeHomesteadClampsAndDropsInvalidNodeTiers() throws {
+        let maxWheat = try #require(HomesteadNodeCatalog.maxTierByNodeID[.wheatField])
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [
+                .wheatField: maxWheat + 4,
+                .herbGarden: -2,
+            ]
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeHomestead(homestead)
+
+        try #expect(sanitized.nodeTiers[.wheatField] == maxWheat)
+        try #expect(sanitized.nodeTiers[.herbGarden] == 0)
+    }
+}

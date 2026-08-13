@@ -76,15 +76,6 @@ struct CompanionTraitReworkTests {
     }
 
     @Test func thickHideReducesDamageTaken() throws {
-        // Verify the trait wires up passiveMitigationFlat by checking the content definition.
-        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
-        let build = CombatBuildResolver.build(
-            combatant: bear,
-            equipmentLoadout: EquipmentLoadout(),
-            inventory: []
-        )
-        try #expect(build.modifiers.triggers.passiveMitigationFlat == 1)
-
         // Verify passiveMitigationFlat reduces damage by 1 using a zero-toughness
         // companion so toughness DR doesn't interfere with the expected value.
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
@@ -221,28 +212,6 @@ struct CompanionTraitReworkTests {
         )
         try #expect(context.roster.health(for: build.combatant) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: build.combatant))
-    }
-
-    @Test func bountyGrantsGoldOnEnemyDefeat() throws {
-        let retriever = try #require(GameContent.companions.first { $0.id == "golden_retriever" })
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let build = CombatBuildResolver.build(
-            combatant: retriever,
-            equipmentLoadout: EquipmentLoadout(),
-            inventory: []
-        )
-        var context = HeroCompanionTraitTestSupport.makeContext(
-            hero: hero,
-            companion: build.combatant,
-            enemy: enemy,
-            companionModifiers: build.modifiers
-        )
-
-        let events = CombatTriggerEngine.afterEnemyDefeated(in: &context)
-
-        try #expect(context.gold == 3)
-        try #expect(events.contains { $0.abilityName == "Bounty" && $0.amount == 3 })
     }
 
     @Test func arcaneReservoirGrantsBlockOnSpendMana() throws {

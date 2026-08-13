@@ -5,7 +5,7 @@ blackjack	Blackjack	basic	Deal 2 Stun damage or steal 2 Gold.
 block	Block	basic	Gain 3 Block.
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage.
 fangs	Fangs	basic	Deal 1 Bleed damage. Leech.
-fire-arrow	Fire Arrow	basic	Deal 1 Burn damage.
+fire-arrow	Fire Arrow	basic	Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage.
 ice-shot	Ice Shot	basic	Deal 2 Freeze damage.
 kindling	Kindling	basic	Deal 1 Burn damage.
 mana-berries	Mana Berries	basic	Restore 2 Mana.
@@ -25,7 +25,7 @@ bounty-shot	Bounty Shot	skill	Deal 3 Physical damage or steal 3 Gold.
 briar-shield	Briar Shield	skill	Gain 2 Block and Gain 1 Thorns.
 cinderbloom	Cinderbloom	skill	Deal 3 Burn damage or deal 3 Poison damage.
 cleanse	Cleanse	skill	Cleanse a status effect and Restore 3 Health.
-cold-snap	Cold Snap	skill	Deal 2 Freeze damage and Restore 1 Mana if the enemy is Frozen.
+cold-snap	Cold Snap	skill	Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen.
 dark-pact	Dark Pact	skill	Lose 1 Health. Draw 2 cards.
 fireball	Fireball	skill	Deal 2 Burn damage.
 frostbolt	Frostbolt	skill	Deal 3 Freeze damage.
@@ -50,7 +50,7 @@ avatar-of-justice	Avatar	ultimate	Gain 4 Block and deal 6 Holy damage each turn 
 blessed-aegis	Blessed Aegis	ultimate	Deal 6 Holy damage or gain 6 Block.
 blizzard	Blizzard	ultimate	Deal 3 Freeze damage each turn for 2 turns.
 bloodthorn	Bloodthorn	ultimate	Deal 4 Bleed damage or deal 3 Poison damage.
-combustion	Combustion	ultimate	Double the enemy's Burn if the enemy is Burning and Applies Burning: 2 damage if the enemy is not Burning.
+combustion	Combustion	ultimate	If the enemy is Burning, double it. Otherwise, deal 2 Burn damage.
 earthquake	Earthquake	ultimate	Deal 6 Stun damage.
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health. Deal 6 Burn damage.
 golden-plate	Golden Plate	ultimate	Gain 1 Block for every 7 Gold.

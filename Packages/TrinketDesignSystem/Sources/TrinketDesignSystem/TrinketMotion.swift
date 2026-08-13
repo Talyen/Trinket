@@ -24,6 +24,44 @@ public enum TrinketMotion: Sendable {
         }
     }
 
+    /// Mystery recruit unveil and seal. Keep `Reward` snappy for loot.
+    public enum Mystery: Sendable {
+        public static let veilHold: TimeInterval = 0.35
+        public static let unmaskResponse: TimeInterval = 0.48
+        public static let chromeAfterUnmask: TimeInterval = 0.12
+        public static let chromeStagger: TimeInterval = 0.10
+        public static let recruitButtonDelay: TimeInterval = 0.16
+        public static let sealResponse: TimeInterval = 0.32
+        public static let sealHoldBeforeDismiss: TimeInterval = 0.32
+        public static let bloomPeakOpacity: Double = 0.40
+        public static let bloomPeakFraction: Double = 0.40
+        public static let veiledBrightness: Double = -0.18
+        public static let veiledOverlayOpacity: Double = 0.55
+        public static let veiledArtScale: CGFloat = 0.97
+        public static let ringStartScale: CGFloat = 0.96
+        public static let ringOvershootScale: CGFloat = 1.03
+
+        public static var unmask: Animation {
+            .spring(response: unmaskResponse, dampingFraction: 0.92)
+        }
+
+        public static var chrome: Animation {
+            .spring(response: 0.36, dampingFraction: 0.95)
+        }
+
+        public static var seal: Animation {
+            .spring(response: sealResponse, dampingFraction: 0.88)
+        }
+
+        public static var bloomIn: Animation {
+            .easeOut(duration: unmaskResponse * bloomPeakFraction)
+        }
+
+        public static var bloomOut: Animation {
+            .easeOut(duration: unmaskResponse * (1 - bloomPeakFraction))
+        }
+    }
+
     /// Shared fades and staged entrances for ordinary screen content.
     public enum Content: Sendable {
         public static let fadeDuration: TimeInterval = 0.20
@@ -48,6 +86,29 @@ public enum TrinketMotion: Sendable {
 
         /// Restrained squash-and-bounce cue for an affordable build or upgrade action.
         public static let purchaseCueSpeed: Double = 0.45
+
+        /// Top-down fill of one incoming connector segment into a newly completed node.
+        public static let connectorFillDuration: TimeInterval = 0.20
+
+        /// Gap between the upper and lower halves of the incoming stroke.
+        public static let connectorFillStagger: TimeInterval = 0.08
+
+        public static var connectorFill: Animation {
+            .easeOut(duration: connectorFillDuration)
+        }
+
+        /// Wait after fill starts before the node settles. Matches `connectorFillDuration`.
+        public static var nodeSettleDelay: TimeInterval {
+            connectorFillDuration
+        }
+
+        public static let nodeSettleResponse: TimeInterval = 0.32
+
+        public static var nodeSettle: Animation {
+            .spring(response: nodeSettleResponse, dampingFraction: 0.85)
+        }
+
+        public static let nodeSettlePeakScale: CGFloat = 1.06
     }
 
     public enum Battle: Sendable {
@@ -59,6 +120,14 @@ public enum TrinketMotion: Sendable {
 
         /// Phase unit for continuous stun/freeze overlays (progress 1.0 == this many seconds).
         public static let combatantStatusEffectPhaseDuration: TimeInterval = 4.0
+
+        /// Freeze frost finishes encroaching at this fraction of the status phase.
+        public static let combatantFreezeEncroachProgress: Double = 0.35
+
+        /// Timeline duration until freeze overlay can pause on a static saturated veil.
+        public static var combatantFreezeEncroachDuration: TimeInterval {
+            combatantStatusEffectPhaseDuration * combatantFreezeEncroachProgress
+        }
 
         /// Minimum hold after battle outcome so death/cast spectacle can play before Victory/Defeat.
         public static let outcomePresentationMinimum: TimeInterval = 1.25

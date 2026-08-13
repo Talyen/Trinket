@@ -6,9 +6,11 @@ struct AbilityDescriptionFormatterTests {
         try #expect(
             AbilityDescriptionFormatter.format(.slash) == "Deal 2 Physical damage."
         )
-        let description = AbilityDescriptionFormatter.format(.fireArrow)
-        try #expect(description.contains("Deal 1 Burn damage"))
-        try #expect(!description.contains("applies Burning"))
+        try #expect(
+            Ability.fireArrow.summary
+                == "Deal 1 Burn damage. If the enemy is Burning, deal 1 extra Burn damage."
+        )
+        try #expect(!AbilityDescriptionFormatter.format(.fireArrow).contains("applies Burning"))
         try #expect(
             AbilityDescriptionFormatter.format(.fangs) == "Deal 1 Bleed damage. Leech."
         )
@@ -35,6 +37,14 @@ struct AbilityDescriptionFormatterTests {
         try #expect(
             AbilityDescriptionFormatter.format(.blackjack)
                 == "Deal 2 Stun damage or steal 2 Gold."
+        )
+        try #expect(
+            Ability.combustion.summary
+                == "If the enemy is Burning, double it. Otherwise, deal 2 Burn damage."
+        )
+        try #expect(
+            Ability.coldSnap.summary
+                == "Deal 2 Freeze damage. Restore 1 Mana if the enemy is Frozen."
         )
     }
 }

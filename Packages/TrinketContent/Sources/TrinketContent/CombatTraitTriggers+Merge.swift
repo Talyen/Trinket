@@ -12,7 +12,6 @@ public extension CombatTraitTriggers {
         cleanseBonusDraw += other.cleanseBonusDraw
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
-        restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
         controlResistancePercent += other.controlResistancePercent
         dodgeChanceBonus += other.dodgeChanceBonus
         ambushBonusDamage += other.ambushBonusDamage

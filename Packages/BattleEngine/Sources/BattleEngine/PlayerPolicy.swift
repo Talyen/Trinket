@@ -1,9 +1,8 @@
-import BattleEngine
 import Foundation
 import TrinketContent
 import TrinketCore
 
-enum SimAction: Equatable, Sendable {
+package enum SimAction: Equatable, Sendable {
     case playCard(id: Int)
     case endTurn
 }
@@ -15,11 +14,15 @@ public struct GreedyHeuristicPolicy: Sendable {
 
     public init() {}
 
-    func nextAction(in battle: BattleState) -> SimAction {
+    public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
         let playable = battle.hand.cards.filter { battle.isCardPlayable($0) }
-        guard let best = playable.max(by: { lhs, rhs in
+        return playable.max(by: { lhs, rhs in
             score(lhs, in: battle) < score(rhs, in: battle)
-        }) else {
+        })
+    }
+
+    package func nextAction(in battle: BattleState) -> SimAction {
+        guard let best = preferredPlayableCard(in: battle) else {
             return .endTurn
         }
         return .playCard(id: best.id)

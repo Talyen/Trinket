@@ -230,7 +230,7 @@ package extension CombatTriggerEngine {
         )
 
         if profile.triggers.criticalGoldFlat > 0 {
-            events.append(context.grantGoldEvent(
+            events.append(contentsOf: context.grantGoldEvent(
                 profile.triggers.criticalGoldFlat,
                 to: source,
                 abilityName: traitName(for: source, fallback: .cutpurse, in: context)

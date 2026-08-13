@@ -11,10 +11,10 @@ package extension BattleState {
         _ amount: Int,
         to combatant: Combatant,
         abilityName: String
-    ) -> ActionEvent {
+    ) -> [ActionEvent] {
         let granted = goldGranted(for: amount, sourceActorID: combatant.id)
         addGold(amount, sourceActorID: combatant.id)
-        return nextEvent(
+        var events = [nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
             actorName: combatant.name,
@@ -22,7 +22,12 @@ package extension BattleState {
             target: combatant,
             amount: granted,
             keyword: .gold
-        )
+        )]
+        events.append(contentsOf: CombatTriggerEngine.healSelfAfterGoldGain(
+            source: combatant,
+            in: &self
+        ).events)
+        return events
     }
 
     /// Flat + percent bonuses applied to an outgoing gold grant (Lucky / Gilded).

@@ -4,6 +4,7 @@ import TrinketCore
 public enum HomesteadBuildResult: Equatable {
     case success
     case insufficientResources
+    case notAvailable
     case persistFailed
 }
 

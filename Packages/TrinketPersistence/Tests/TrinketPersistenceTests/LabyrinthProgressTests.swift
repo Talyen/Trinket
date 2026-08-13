@@ -305,24 +305,6 @@ struct LabyrinthProgressTests {
         #expect(save.inventory.items.count(where: { $0.id == pending.id }) == 1)
     }
 
-    @Test func corruptMapPayloadClearsTopologyThenSanitizeRebuilds() {
-        let model = LabyrinthProgressModel()
-        model.worldSeed = 55
-        model.hasEntered = true
-        model.mapPayload = Data("{not-valid-labyrinth-json".utf8)
-
-        let loaded = model.toPlayerLabyrinthState()
-        #expect(loaded.nodes.isEmpty)
-        #expect(loaded.clusters.isEmpty)
-        #expect(loaded.hasEntered)
-        #expect(loaded.worldSeed == 55)
-
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
-        #expect(sanitized.hasMap)
-        #expect(!sanitized.nodes.isEmpty)
-        #expect(sanitized.worldSeed == 55)
-    }
-
     @Test func mapUpdatePreservesPriorPayloadWhenReencodingSameState() throws {
         let model = LabyrinthProgressModel()
         var state = PlayerLabyrinthState.freshStart
@@ -490,5 +472,59 @@ extension LabyrinthProgressTests {
         )
 
         #expect(save.roster.gold == goldBefore + expectedGold)
+    }
+}
+
+extension LabyrinthProgressTests {
+    @Test func corruptMapPayloadKeepsBlobAndDoesNotSanitizeRebuild() {
+        let model = LabyrinthProgressModel()
+        model.worldSeed = 55
+        model.hasEntered = true
+        let corruptBlob = Data("{not-valid-labyrinth-json".utf8)
+        model.mapPayload = corruptBlob
+
+        let loaded = model.toPlayerLabyrinthState()
+        #expect(loaded.nodes.isEmpty)
+        #expect(loaded.clusters.isEmpty)
+        #expect(loaded.hasEntered)
+        #expect(loaded.worldSeed == 55)
+        #expect(loaded.isMapPayloadUnreadable)
+
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
+        #expect(!sanitized.hasMap)
+        #expect(sanitized.isMapPayloadUnreadable)
+        #expect(sanitized.worldSeed == 55)
+        #expect(sanitized.mapVersion == loaded.mapVersion)
+
+        model.update(from: sanitized)
+        #expect(model.mapPayload == corruptBlob)
+    }
+
+    @Test func sanitizePreservesPinnedMysteryOnMapVersionBump() throws {
+        let generated = LabyrinthGenerator.makeMap(seed: 9, floorCount: 3)
+        var legacy = PlayerLabyrinthState(
+            worldSeed: 9,
+            mapVersion: 2,
+            hasEntered: true,
+            clusters: generated.clusters,
+            nodes: generated.nodes
+        )
+        let currentFloor = try #require(legacy.clusters.map(\.depthBand).max())
+        let mysteryID = try #require(
+            legacy.nodes.values.first {
+                $0.type.canonical == .mystery && $0.depth == currentFloor
+            }?.id
+        )
+        var mystery = try #require(legacy.nodes[mysteryID])
+        mystery.mysteryEventID = "hidden-cache"
+        mystery.isRevealed = true
+        legacy.nodes[mysteryID] = mystery
+
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(legacy)
+        let migrated = try #require(sanitized.nodes[mysteryID])
+        #expect(migrated.mysteryEventID == "hidden-cache")
+        #expect(migrated.isRevealed)
+        #expect(!migrated.isCleared)
+        #expect(sanitized.mapVersion == LabyrinthGenerator.currentMapVersion)
     }
 }
