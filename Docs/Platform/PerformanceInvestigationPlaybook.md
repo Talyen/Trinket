@@ -7,7 +7,7 @@ energy investigation are summarized separately in
 
 ## Frame-pacing contract
 
-The 60 Hz Simulator goals require every maintained scenario to average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. Hosted Nightly currently runs `Performance/Baselines/simulator-60.json` in `observe` mode (report findings, non-blocking); promote to `enforce` only after CI Simulator runs consistently clear those goals. Battle card play and drag handling have stricter five-repetition requirements: every repetition must maintain a 1% low of at least 59 FPS, record zero missed deadlines and severe stalls, and keep maximum frame duration at or below 20 ms.
+The 60 Hz Simulator goals require every maintained scenario to average at least 59 FPS, maintain a 1% low of at least 59 FPS, and record no severe stalls. `./Scripts/performance.sh` is ad hoc tooling for performance investigation, not a GitHub workflow. It currently runs `Performance/Baselines/simulator-60.json` in `observe` mode (report findings, non-blocking); promote to `enforce` only after Simulator runs consistently clear those goals. Battle card play and drag handling have stricter five-repetition requirements: every repetition must maintain a 1% low of at least 59 FPS, record zero missed deadlines and severe stalls, and keep maximum frame duration at or below 20 ms.
 
 `-enable-frame-metrics` is measurement-only. It must never remove, defer, shorten, reduce, or mute production work. The production `real-card-play` and `hand-drag-cancel` scenarios use normal XCUI gestures against the seeded hand; production views contain no forced-drag or scenario branch.
 

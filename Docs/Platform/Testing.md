@@ -74,7 +74,7 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 
 1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
-   shared-support package check plus `SmokeShellTests` locally; PR `smoke-full`
+   shared-support package check plus `SmokeShellTests` locally; CI `smoke-full`
    runs the same three-class smoke plan (`SmokeShellTests`, `SmokeBattleTests`,
    `SmokeShopTests`).
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
@@ -114,7 +114,7 @@ CI smoke suite. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClas
 CI-owned; use `test.sh ui <Class>` locally only when debugging a specific
 journey, or `test-deploy.sh` for an explicit full local confidence run.
 
-Frame pacing and app-journey metrics are not part of smoke. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
+Frame pacing and app-journey metrics are not part of smoke or hosted CI. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh` when investigating performance. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; prefer `-completed-stages` over Stage Select scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Focused Accessibility Inspector review belongs to product verification; do not multiply the UI test matrix across accessibility settings unless one setting owns a distinct regression. The Frame Metrics node is an explicit machine bridge used only by the performance plan.
 

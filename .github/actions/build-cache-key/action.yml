@@ -1,6 +1,6 @@
 name: Build cache key
 description: >
-  Compose the two-tier DerivedData cache key used by tests.yml and nightly.yml.
+  Compose the two-tier DerivedData cache key used by tests.yml.
   nonsource covers toolchain/assets/build-config; full adds app/package/test sources.
   Path lists for hashFiles live only here so workflows cannot drift.
   Scripts/check-build-cache-paths.sh guards required shared roots against

@@ -12,7 +12,7 @@ Fast iteration loop: `./Scripts/test.sh unit` or `./Scripts/test-package.sh <Pac
 - Treat checked-in project configuration as the toolchain source of truth.
 - Do not add legacy-platform compatibility or UIKit bridges when current SwiftUI provides a first-party solution.
 - Never hand-edit generated code, processed assets/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Edit authored inputs and use the routed generation checks.
-- Stay on the current branch/worktree, normally `main`. Do not create or switch branches, commit, push, tag, or open a PR unless explicitly requested. For requested commit or release work, read `Docs/Platform/Release.md`.
+- Stay on `main`. Do not create or switch branches, and do not open pull requests. Land work by committing and pushing to `main` when explicitly requested. For requested commit or release work, read `Docs/Platform/Release.md`.
 
 ## Change discipline
 
@@ -40,4 +40,4 @@ Touched areas must respect their nested guides and AgentContext cards. Run `./Sc
 
 - Commits include only task-related authored and generated files and must pass repository hooks. Path-scoped verification should be green before commit.
 - Push only when explicitly requested. Generation completeness against HEAD (`./Scripts/agent-push-gate.sh`) must be green before push; if generation changes files, review them, include them, and ensure the gate is clean. Exact commands: `Docs/Platform/Release.md`.
-- Do **not** require `tests / CI OK` as a GitHub **push** gate on `main` (chicken-and-egg). Merging a **PR** into `main` does require that check (ruleset + Admin bypass for direct trunk pushes).
+- Do not open pull requests. Hosted CI (`ci.yml`) runs after a push to `main`. Do **not** require `tests / CI OK` as a GitHub **push** gate (chicken-and-egg with `ci.yml`).

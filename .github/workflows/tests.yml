@@ -1,6 +1,6 @@
 name: Build and test
 
-# Shared build-once test fan-out used by pr.yml and ci.yml.
+# Shared build-once test fan-out used by ci.yml.
 # Warm DerivedData: primary key build-<nonsource>-<full>; restore-keys
 # build-<nonsource>- for same toolchain/assets incremental source rebuilds.
 # Within-run fan-out uses a run-scoped artifact of pruned .DerivedData. The
@@ -133,7 +133,7 @@ jobs:
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ matrix.target }}
 
-  # Aggregate status for dashboards / PR merges (not a required push gate on main).
+  # Aggregate status for dashboards (not a required push gate on main).
   # Check name appears as "tests / CI OK" to callers of this reusable workflow.
   ci-ok:
     name: CI OK

@@ -46,7 +46,7 @@ Read these focused guides:
 | `./Scripts/test.sh smoke-full` | Same plan as `test.sh smoke` (CI alias) |
 | `./Scripts/test.sh ui [Class]` | Run exhaustive UI tests, optionally filtered |
 | `./Scripts/test.sh all` | Run the integration suite |
-| `./Scripts/performance.sh` | Run the exclusive app + battle performance matrix |
+| `./Scripts/performance.sh` | Ad hoc app + battle performance matrix (not CI) |
 | `./Scripts/test-iterate.sh <Class>` | Re-run a focused test against a warm build |
 | `./Scripts/agent-context.sh --agent --paths …` | Print applicable guidance and verification routing |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate |

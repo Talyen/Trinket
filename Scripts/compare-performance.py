@@ -160,8 +160,8 @@ def main() -> int:
     if mode == "observe":
         lines.extend([
             "",
-            "Calibration mode is non-blocking. Promote to `enforce` only after hosted "
-            "Simulator runs consistently clear the goals.",
+            "Calibration mode is non-blocking. Promote to `enforce` only after local "
+            "`performance.sh` Simulator runs consistently clear the goals.",
         ])
 
     args.summary.parent.mkdir(parents=True, exist_ok=True)

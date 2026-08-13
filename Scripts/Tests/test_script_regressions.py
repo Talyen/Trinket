@@ -178,13 +178,11 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("build-cache-key", text)
         self.assertIn("build-for-testing.sh", text)
         self.assertIn("prune-derived-data-cache.sh", text)
-        workflows = (
-            (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8"),
-            (ROOT / ".github" / "workflows" / "nightly.yml").read_text(encoding="utf-8"),
+        workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(
+            encoding="utf-8"
         )
-        for workflow in workflows:
-            self.assertIn("restore-and-build", workflow)
-            self.assertNotIn("actions/cache/restore@", workflow)
+        self.assertIn("restore-and-build", workflow)
+        self.assertNotIn("actions/cache/restore@", workflow)
 
     def test_authored_content_swift_routes_generation_style_and_package(self) -> None:
         result = subprocess.run(

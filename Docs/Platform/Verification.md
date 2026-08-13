@@ -16,8 +16,8 @@ Choose the cheapest route that answers the question at hand.
 | Gate only | `ci-gate.sh` | Generation, style, boundaries, scripts, and release metadata; no unit/UI |
 | Local canary | `test-deploy.sh --mode smoke` | Gate, unit, and smoke |
 | Deploy confidence | `test-deploy.sh` | Gate, unit, and full UI |
-| PR/main CI | Shared `tests.yml` workflow | Gate, build once, unit, full smoke, and sharded exhaustive UI |
-| Nightly | `nightly.yml` | Integration and app performance matrix calibration |
+| Main CI | Shared `tests.yml` workflow | Post-push on `main` (no pull-request workflow): gate, build once, unit, full smoke, and sharded exhaustive UI |
+| Local integration / performance | `test.sh all` / `performance.sh` | Ad hoc; not part of any GitHub workflow |
 
 Run `./Scripts/agent-context.sh --agent --paths <files...>` after touched paths
 are known. It discovers nested guides and prints the applicable handoff route.
@@ -32,11 +32,11 @@ Rerun it when scope crosses into another area.
 | App-only build | `test.sh unit --app-only` | App compile coverage for app-level Swift changes |
 | Targeted smoke | `test.sh smoke <Class...>` | One invocation using `Smoke.xctestplan` filters |
 | Smoke | `test.sh smoke` | Three-class plan: tab shells, Battle load, Shop load |
-| Full smoke | `test.sh smoke-full` | Same plan as `test.sh smoke`; CI/PR alias |
+| Full smoke | `test.sh smoke-full` | Same plan as `test.sh smoke`; CI alias |
 | Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
 | Full UI | `test.sh ui` | Explicit local confidence and CI sharding |
-| Integration | `test.sh all` | Nightly/manual |
-| Performance | `performance.sh` | Exclusive app performance matrix (app journeys + battle scenarios) |
+| Integration | `test.sh all` | Local/manual |
+| Performance | `performance.sh` | Ad hoc matrix when investigating performance; not a CI job |
 
 After a green isolated rebuild, `--no-build` is appropriate for mid-task smoke
 reruns in the same slot. Final handoff still uses the full isolated route.
@@ -53,12 +53,11 @@ layout, and symbol changes are not automatically demoted.
 | `ci-gate.sh` | Generate/assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, Swift Testing policy, release-note validation |
 | `ci-assets-gate.sh` | Generate assets, assert, regenerate in a stable locale, assert again |
 | `test-deploy.sh` | `ci-gate.sh`, unit, then full UI or smoke |
-| PR/main | Gate, one build-for-testing, parallel unit/full-smoke/exhaustive-UI jobs |
+| Main CI | Post-push on `main`: gate, one build-for-testing, parallel unit/full-smoke/exhaustive-UI jobs |
 
 The shared build job produces test products for fan-out. Package unit schemes
-remain on the unit job. Nightly restores caches but does not own cache writes.
-`check-build-cache-paths.sh` keeps local no-build freshness inputs aligned with
-the CI cache key.
+remain on the unit job. `check-build-cache-paths.sh` keeps local no-build
+freshness inputs aligned with the CI cache key.
 
 ## Style and boundary ownership
 
@@ -91,7 +90,7 @@ Before a requested push, run `agent-push-gate.sh` after committing. It checks
 generation completeness only; the path-scoped handoff remains the pre-CI source
 gate.
 
-Merging a PR into `main` requires the GitHub `tests / CI OK` check. That check is
-not a push gate on `main`. After a red CI run, triage with
-`./Scripts/ci-diagnostics.sh` and [ci-diagnostics.md](../AgentContext/ci-diagnostics.md);
-do not invent a separate fixer playbook.
+Land on `main` by direct push; do not open pull requests. After a red CI run,
+triage with `./Scripts/ci-diagnostics.sh` and
+[ci-diagnostics.md](../AgentContext/ci-diagnostics.md); do not invent a separate
+fixer playbook. Do not require `tests / CI OK` as a GitHub push gate on `main`.

@@ -60,4 +60,4 @@ prints those when used manually.
 
 The test and package command scopes are unchanged: diagnostics describe the existing
 `test.sh`, `test-package.sh`, and wrapper invocations rather than replacing focused
-verification or the pre-push/pre-merge gates.
+verification or the pre-push gates.

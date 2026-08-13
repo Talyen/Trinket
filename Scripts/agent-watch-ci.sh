@@ -187,7 +187,7 @@ run_is_path_filtered_only() {
 
 failure_looks_like_simulator_infrastructure() {
   local run_id="$1"
-  # Shared classifier also covers Nightly Integration / App performance jobs.
+  # Shared classifier for failed Trinket CI jobs.
   ./Scripts/ci-infra-rerun.sh --run-id "$run_id" >/dev/null
 }
 

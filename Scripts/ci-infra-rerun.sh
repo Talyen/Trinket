@@ -2,7 +2,7 @@
 # Detect simulator/XCUITest launch infrastructure failures on a GitHub Actions
 # run and optionally rerun only the failed jobs once.
 #
-# Used by ./Scripts/agent-watch-ci.sh and the Nightly infra-rerun workflow.
+# Used by ./Scripts/agent-watch-ci.sh.
 # Real product/test failures must not match.
 set -euo pipefail
 
@@ -63,7 +63,7 @@ failure_jobs_are_ui_or_simulator() {
     gh run view "$run_id" --json jobs --jq '
       [.jobs[]?
         | select(.conclusion == "failure")
-        | select(.name | test("UI|Smoke|ui|smoke|Integration|performance|Performance|App performance") | not)
+        | select(.name | test("UI|Smoke|ui|smoke") | not)
       ] | length
     ' 2>/dev/null || echo 1
   )"

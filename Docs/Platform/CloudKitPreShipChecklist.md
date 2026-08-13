@@ -4,7 +4,7 @@ Use before enabling CloudKit sync in production or submitting Trinket with iClou
 
 This is a **release checklist**, not a code-quality audit. Agent-checkable items are marked; device/dashboard steps need a human.
 
-Do not check boxes into git as durable state — leave items unchecked in the committed file. Track completion in the release PR or TestFlight notes.
+Do not check boxes into git as durable state — leave items unchecked in the committed file. Track completion in TestFlight notes or the release changelog.
 
 **Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account.
 

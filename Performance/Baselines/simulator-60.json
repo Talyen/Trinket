@@ -23,5 +23,5 @@
     "combined-worst-case"
   ],
   "schemaVersion": 2,
-  "notes": "Hosted Simulator Nightly collects and reports against these goals without blocking. Promote to enforce only after CI Simulator runs consistently clear average FPS, 1% low, and zero severe stalls."
+  "notes": "Ad hoc performance.sh collects and reports against these goals without blocking. Not a CI job. Promote to enforce only after Simulator runs consistently clear average FPS, 1% low, and zero severe stalls."
 }

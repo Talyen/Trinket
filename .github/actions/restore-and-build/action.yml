@@ -1,7 +1,7 @@
 name: Restore and build
 description: >
   Shared DerivedData warm-cache restore + build-for-testing used by tests.yml
-  build and nightly integration. Optionally prune, save cache on miss, and
+  build. Optionally prune, save cache on miss, and
   upload the within-run artifact for test fan-out. The default build command is
   app-only: the app scheme already compiles every package as a dependency, and
   package test schemes are built by the unit job (test-package.sh) so their
