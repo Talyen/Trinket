@@ -174,9 +174,9 @@ if [[ "$MODE" == "unit" ]]; then
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "smoke" ]]; then
-  # Bare smoke = local canary (QuickSmoke). With targets, use full Smoke plan + filters.
+  # Local and CI smoke share Smoke.xctestplan (shell + battle + shop).
+  TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    TEST_TARGET_FLAG=(-testPlan Smoke)
     echo "Running targeted UI smoke tests via Smoke test plan..."
     for target in "${TARGETS[@]}"; do
       if [[ "$target" == TrinketUITests* ]]; then
@@ -186,8 +186,7 @@ elif [[ "$MODE" == "smoke" ]]; then
       fi
     done
   else
-    TEST_TARGET_FLAG=(-testPlan QuickSmoke)
-    echo "Running quick UI smoke canary via QuickSmoke test plan..."
+    echo "Running UI smoke suite via Smoke test plan..."
   fi
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
@@ -198,7 +197,7 @@ elif [[ "$MODE" == "smoke-full" ]]; then
     exit 1
   fi
   TEST_TARGET_FLAG=(-testPlan Smoke)
-  echo "Running full UI smoke suite via Smoke test plan..."
+  echo "Running UI smoke suite via Smoke test plan..."
   ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "performance" ]]; then

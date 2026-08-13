@@ -146,7 +146,6 @@ class ScriptRegressionTests(unittest.TestCase):
         text = (ROOT / "Scripts" / "build-inputs.sh").read_text(encoding="utf-8")
         for plan in (
             "Smoke.xctestplan",
-            "QuickSmoke.xctestplan",
             "FullUI.xctestplan",
             "Integration.xctestplan",
             "BattlePerformance.xctestplan",
@@ -277,7 +276,7 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("Docs/Skills/apple-design/SKILL.md", result.stdout)
 
     def test_mystery_subflow_runs_play_smoke(self) -> None:
-        # Deterministic routing: any Play diff runs SmokePlayTests; no demotion
+        # Deterministic routing: any Play diff runs SmokeShellTests; no demotion
         # to compile-only for subflow-only diffs.
         result = subprocess.run(
             [
@@ -292,9 +291,9 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokePlayTests", result.stdout)
+        self.assertIn("SmokeShellTests", result.stdout)
 
-    def test_play_shell_keeps_smoke_play(self) -> None:
+    def test_play_shell_keeps_smoke_shell(self) -> None:
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
@@ -308,7 +307,7 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokePlayTests", result.stdout)
+        self.assertIn("SmokeShellTests", result.stdout)
 
     def test_feature_support_generic_skips_app_build_when_package_tests_run(self) -> None:
         result = subprocess.run(
@@ -328,7 +327,7 @@ class ScriptRegressionTests(unittest.TestCase):
         self.assertIn("./Scripts/test-package.sh TrinketFeatureSupport", plan)
         self.assertNotIn("./Scripts/build.sh", plan)
 
-    def test_accessibility_id_keeps_homestead_smoke(self) -> None:
+    def test_accessibility_id_keeps_shell_smoke(self) -> None:
         result = subprocess.run(
             [
                 str(ROOT / "Scripts" / "handoff.sh"),
@@ -342,7 +341,7 @@ class ScriptRegressionTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("SmokeHomesteadTests", result.stdout)
+        self.assertIn("SmokeShellTests", result.stdout)
 
     def test_battle_feature_lab_runs_full_package_tests_and_smoke(self) -> None:
         # No lab demotion: a DEBUG variant file still runs the full package

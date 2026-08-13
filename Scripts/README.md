@@ -41,22 +41,23 @@ Read these focused guides:
 | `./Scripts/build.sh` | Build the app with the routed local toolchain |
 | `./Scripts/test-package.sh <Package>` | Run one package's tests |
 | `./Scripts/test.sh unit` | Run all package unit suites |
+| `./Scripts/test.sh smoke` | Run the three-class smoke plan (tab shells, Battle, Shop) |
 | `./Scripts/test.sh smoke <Class...>` | Run targeted smoke classes |
-| `./Scripts/test.sh smoke-full` | Run the full smoke plan |
+| `./Scripts/test.sh smoke-full` | Same plan as `test.sh smoke` (CI alias) |
 | `./Scripts/test.sh ui [Class]` | Run exhaustive UI tests, optionally filtered |
 | `./Scripts/test.sh all` | Run the integration suite |
-| `./Scripts/performance.sh` | Run the exclusive Battle performance matrix |
+| `./Scripts/performance.sh` | Run the exclusive app + battle performance matrix |
 | `./Scripts/test-iterate.sh <Class>` | Re-run a focused test against a warm build |
 | `./Scripts/agent-context.sh --agent --paths …` | Print applicable guidance and verification routing |
 | `./Scripts/handoff.sh --isolate --paths …` | Canonical path-scoped source gate |
 | `./Scripts/ci-gate.sh` | Generation, style, boundaries, script regressions, and release-note validation |
 | `./Scripts/ci-assets-gate.sh` | Asset generation, idempotence, and locale-stability gate |
-| `./Scripts/check-docs.py` | Check local Markdown links, package guide coverage, smoke classes, and known stale terms |
+| `./Scripts/check-docs.py` | Check local Markdown links, heading anchors, package guide coverage, smoke classes, and known stale terms |
 | `./Scripts/test-deploy.sh [--mode smoke]` | Full local deploy confidence or smoke canary |
 | `./Scripts/agent-push-gate.sh` | Post-commit generation completeness check |
 | `./Scripts/ci-diagnostics.sh [RESULTS_DIR]` | Aggregate current structured diagnostics |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface report against HEAD |
-| `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, and SwiftLint |
+| `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
 | `./Scripts/run-simulator.sh` | Build and launch on a managed simulator |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |

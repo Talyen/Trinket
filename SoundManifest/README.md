@@ -40,6 +40,10 @@ SFX_AAC_BITRATE=96000 ./Scripts/prepare-sfx-assets.sh
 
 `./Scripts/generate.sh --assets` runs art, music, SFX, and cinematic pipelines together.
 
+After changing `SoundManifest/sfx.tsv`, verify with path-scoped handoff
+(`./Scripts/handoff.sh --isolate --paths SoundManifest/sfx.tsv`). Agent workflow:
+[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
+
 ## Runtime Routing
 
 `SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by `Packages/TrinketAppState/.../Audio/SFXPlayer.swift`, which applies `OptionsStore.effectsVolume` × `volumeGain`.

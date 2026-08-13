@@ -74,8 +74,9 @@ Renaming or rewiring `AccessibilityID`, a view `accessibilityIdentifier`, or Hom
 
 1. Run path-scoped `./Scripts/handoff.sh --isolate --paths …` and complete every routed unit/smoke step (do not stop after style).
 2. `Packages/TrinketFeatureSupport/.../AccessibilityID.swift` routes through the
-   shared-support package check plus the Homestead smoke canary locally; PR
-   `smoke-full` covers the six-surface selector matrix.
+   shared-support package check plus `SmokeShellTests` locally; PR `smoke-full`
+   runs the same three-class smoke plan (`SmokeShellTests`, `SmokeBattleTests`,
+   `SmokeShopTests`).
 3. Homestead presentation models route through `TrinketFeatureSupportTests`.
 4. `./Scripts/test.sh style` (or the handoff style step) must pass locally — the pre-push hook enforces SwiftFormat/SwiftLint, but agents should not discover format failures only at push time.
 
@@ -83,9 +84,9 @@ Handoff routing is deterministic and does not skip tests. Metrics/layout constan
 SwiftUI chrome modifiers, SF Symbol swaps, and `Text("…")` copy-only diffs run the
 same routed package tests / smoke as any other Swift change (they see `--build-only`
 nowhere). A feature or UI path without a smoke owner falls back to the app-compile
-gap-fill (`./Scripts/build.sh`) rather than being inferred away. `SmokePlayTests`
-covers the Play mode-card shell for any Play diff; CI `smoke-full` / exhaustive UI
-stay the broad net.
+gap-fill (`./Scripts/build.sh`) rather than being inferred away. `SmokeShellTests`
+covers the tab shells for Play/Collection/Homestead/Options diffs; CI `smoke-full`
+(same plan as local `test.sh smoke`) and exhaustive UI stay the broad net.
 
 Command routing, isolate slots, and mid-task `--no-build` live in
 [Verification.md](Verification.md). Agents always use `--isolate`.
@@ -95,26 +96,25 @@ Command routing, isolate slots, and mid-task `--no-build` live in
 Keep a UI test only if it asserts a **shipping product outcome** that unit/package tests cannot own:
 
 1. **Shell / entry** — a major surface becomes usable (Play chooser, Homestead wallet, Shop controls, Battle chrome).
-2. **State-changing journey** — a user action mutates durable or navigable state (purchase unlocks next stage, equip persists, retreat returns to Play, chapter advance, recruit continue).
+2. **State-changing journey** — a user action mutates durable or navigable state (shop leave returns to Play, retreat returns to Play, recruit continue).
 3. **Safety invariant** — a wrong interaction must not happen (locked slot inert; hand drag must not open detail). **One owner only** across smoke + exhaustive.
 
 Do **not** UI-test (delete or never add): marketing/copy strings, nav titles, unexpected-text catalogs, layout/chrome mirrors (overscroll, swipe scroll ownership, grid layout), mid-battle detail marathons that race live ticks, or second copies of the same interaction across smoke and FullUI. Push loadout, party-selection, and unlock rules down to package tests when possible; UI proves the sheet/control path once.
 
 **Brittleness:** assert `AccessibilityID` plus one visible outcome (exists / dismissed / tab returned). Never pin display names, rarity labels, or scroll geometry unless that string is the product contract.
 
-Smoke = short shell canaries (`smoke-full` currently has six lean methods). Exhaustive FullUI = state-changing journeys only. Mid-battle interaction safety (hand drag) lives in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
+Smoke = short shell canaries (local `test.sh smoke` and CI `smoke-full` share `Smoke.xctestplan`: tab shells, Battle load, Shop load). Exhaustive FullUI = state-changing journeys only. Mid-battle card play, hand-drag safety, and retreat live in FullUI; agents still route BattleHandView changes to `SmokeBattleTests` load canary.
 
 ## UI tests (summary)
 
-Bare `./Scripts/test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`)
-as an optional local confidence check, not a generic feature check or required
-pre-push hook. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`
-(or `handoff --isolate`) for the affected feature. Full smoke
-(`smoke-full`) and exhaustive journeys are CI-owned; use `test.sh ui <Class>`
-locally only when debugging a specific journey, or `test-deploy.sh` for an
-explicit full local confidence run.
+Bare `./Scripts/test.sh smoke` runs the three-class smoke plan (`Smoke.xctestplan`:
+`SmokeShellTests`, `SmokeBattleTests`, `SmokeShopTests`). That is the local and
+CI smoke suite. Agents use `TRINKET_ISOLATE=1 ./Scripts/test.sh smoke <SmokeClass>`
+(or `handoff --isolate`) for the affected feature. Exhaustive journeys are
+CI-owned; use `test.sh ui <Class>` locally only when debugging a specific
+journey, or `test-deploy.sh` for an explicit full local confidence run.
 
-Battle frame pacing is not part of smoke. Run the exclusive single-report matrix with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
+Frame pacing and app-journey metrics are not part of smoke. Run the exclusive single-report matrix (app journeys + battle scenarios) with `./Scripts/performance.sh`. Focused harness iteration: `TRINKET_ISOLATE=1 ./Scripts/test.sh performance AppPerformanceUITests/<method>` or `BattlePerformanceUITests/<method>`. The dedicated plan records refresh-normalized display-link diagnostics plus native cold-launch; use Instruments Animation Hitches and Time Profiler for render-pipeline investigation. Launch arg `-enable-frame-metrics` is measurement-only and must not simplify Battle rendering or audio. Investigation loop and baseline policy: `Docs/Platform/PerformanceInvestigationPlaybook.md`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; prefer `-completed-stages` over Stage Select scroll loops. Assert with `assertExists` on ids from `AccessibilityID`, then verify visible text or interaction outcomes where behavior matters. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values. Focused Accessibility Inspector review belongs to product verification; do not multiply the UI test matrix across accessibility settings unless one setting owns a distinct regression. The Frame Metrics node is an explicit machine bridge used only by the performance plan.
 

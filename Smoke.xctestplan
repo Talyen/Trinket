@@ -14,10 +14,7 @@
       "automaticallyIncludesTests" : false,
       "selectedTests" : [
         "SmokeBattleTests",
-        "SmokeCollectionTests",
-        "SmokeHomesteadTests",
-        "SmokeOptionsTests",
-        "SmokePlayTests",
+        "SmokeShellTests",
         "SmokeShopTests"
       ],
       "target" : {

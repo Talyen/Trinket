@@ -64,4 +64,8 @@ Or via the full asset pipeline:
 ./Scripts/generate.sh --assets
 ```
 
+After changing `CinematicManifest/cinematics.tsv`, verify with path-scoped handoff
+(`./Scripts/handoff.sh --isolate --paths CinematicManifest/cinematics.tsv`). Agent workflow:
+[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
+
 Battle presentation fills the screen with aspect-fill (crop, no stretch); missing rows fall back to ability art.

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Local/release confidence gate. Runs CI gate checks plus unit and UI tests.
-# --mode smoke mirrors the former ci-locally.sh (gate + unit + quick smoke
+# --mode smoke mirrors the former ci-locally.sh (gate + unit + smoke
 # canary + timing reports); --mode ui (default) is the full pre-merge/release
 # confidence run.
 #
@@ -69,7 +69,7 @@ else
   ./Scripts/test-timing.sh report --mode unit --last 1 --top 10
 
   echo ""
-  echo "=== Quick smoke UI canary ==="
+  echo "=== Smoke UI canary ==="
   ./Scripts/test.sh smoke --no-build
 
   echo ""

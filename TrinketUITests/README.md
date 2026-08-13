@@ -6,32 +6,21 @@ UI test conventions for Trinket. Agent workflow: `AGENTS.md`. Unit/UI overview: 
 
 | Area | Path | When |
 |------|------|------|
-| Quick smoke | `QuickSmoke.xctestplan` (`SmokeHomesteadTests`) | Local / agents (`test.sh smoke`) |
-| Full smoke | `Smoke/`, `Smoke.xctestplan` | CI / PR (`test.sh smoke-full`); local only when debugging |
+| Smoke | `Smoke/`, `Smoke.xctestplan` | Local `test.sh smoke` and CI `smoke-full` (same three classes) |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | PR/main CI (sharded); local only for targeted debugging |
 | Integration | `Integration.xctestplan` (all non-performance UI classes) | Nightly (`test.sh all`); explicit selection so new classes never silently run here |
-| Performance | `Performance/`, `BattlePerformance.xctestplan` | Frame-pacing matrix (`performance.sh` / `test.sh performance`); not smoke |
+| Performance | `Performance/`, `BattlePerformance.xctestplan` | App journeys (including cold-launch) plus battle frame-pacing (`performance.sh` / `test.sh performance`); not smoke |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke classes are lean per-screen **shell** checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here. Bare `test.sh smoke` runs only the Homestead canary; `test.sh smoke <Class>` filters the full Smoke plan for iteration.
+Smoke is three launches: `SmokeShellTests` (one launch + tab bar for Play, Collection, Homestead, Options), `SmokeBattleTests` (battle chrome), `SmokeShopTests` (merchant controls). Bare `test.sh smoke` and `test.sh smoke-full` run the same plan; `test.sh smoke <Class>` filters it.
 
-## Keep / drop (do not add)
+## Keep / drop
 
-Keep UI tests only for shell/entry, state-changing journeys, or one-owner safety invariants — see the rubric in `Docs/Platform/Testing.md`.
-
-**Do not add:**
-
-- Marketing/copy strings, nav titles, or “unexpected text” catalogs
-- Layout/chrome mirrors (overscroll, vertical pull, inventory grid layout)
-- Mid-battle multi-step detail marathons that race live ticks
-- Duplicate coverage of the same interaction in both smoke and FullUI
-- Negative “unimplemented mode” catalogs when a positive Campaign + Explore assert already covers the chooser
-
-Prefer extending an existing keep method over a new class. Push rules/persistence to unit tests; UI proves the control path once.
+Keep/drop rubric: [Testing.md](../Docs/Platform/Testing.md). Prefer extending an existing keep method over a new class. Push rules/persistence to unit tests; UI proves the control path once.
 
 ## Launch args
 
-Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, `completedStages`.
+Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `Packages/TrinketAppState/Sources/TrinketAppState/App/AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForMidBattle`, `allForShop`, `allForMystery`, `completedStages`.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
 
@@ -53,8 +42,8 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
-- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (60s ticks via `-battle-tick-interval`), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; hand-drag safety lives in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
-- Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
+- Mid-battle exhaustive tests: enter via Play map (`play.openCampaign()` + `play.startBattle`) with `TestLaunchArg.allForMidBattle()` (60s ticks via `-battle-tick-interval`), not `-launch-screen battle` (ticks start at launch and race setup). Smoke battle is load-only deep-link; card play, hand-drag safety, and retreat live in `BattleFlowUITests` only. If Stage 1-1 already resolved, mid-battle methods `XCTSkip` instead of silently passing.
+- `-launch-screen battle-victory` / `allForBattleVictory()` remain for the performance plan; exhaustive UI does not own victory chrome.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
 - Accessibility audits are intentionally not part of the test suite. Keep UI assertions focused on stable test selectors and interaction outcomes — not display names, rarity labels, or scroll geometry unless that string is the product contract.
 - UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.

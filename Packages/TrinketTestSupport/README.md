@@ -6,9 +6,6 @@ Keep fixtures deterministic and independent of app-feature UI and persistence. D
 put product rules or save-store harnesses here — those live in
 `TrinketPersistenceTestSupport` beside PersistenceTests.
 
-Validate fixture changes in consuming packages’ tests before handoff. Shared
+Validate fixture changes in consuming packages’ tests before handoff (`BattleEngine`,
+`TrinketAppState`, and other consumers). This package has no test target. Shared
 conventions: `Docs/Platform/Testing.md`.
-
-```sh
-./Scripts/test-package.sh TrinketTestSupport
-```

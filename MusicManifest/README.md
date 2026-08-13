@@ -44,6 +44,10 @@ MUSIC_AAC_BITRATE=128000 ./Scripts/prepare-music-assets.sh
 `./Scripts/generate.sh --assets` runs the art, music, SFX, and cinematic pipelines so
 all app assets can be refreshed together.
 
+After changing `MusicManifest/music.tsv`, verify with path-scoped handoff
+(`./Scripts/handoff.sh --isolate --paths MusicManifest/music.tsv`). Agent workflow:
+[content-and-manifests.md](../Docs/AgentContext/content-and-manifests.md).
+
 ## Runtime Routing
 
 Music is state-driven:

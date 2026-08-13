@@ -42,7 +42,7 @@ retained `BattleSession`. Do not add presentation-only methods to `BattleRuntime
 
 For a new effect kind, update registry parity and `EffectHandlersApplyTests`; use a thin integration test only for multi-effect interactions. Use `BattleStateTestFactory.makeBattle(..., rngSeed: 0)` and `EffectHandlers.all`. Do not assert full log prose.
 
-Handoff routes `BattleEngine` vs `TrinketBattleFeature` vs `SmokeBattleTests`. Bare `./Scripts/test.sh smoke` is only the Homestead canary.
+Handoff routes `BattleEngine` vs `TrinketBattleFeature` vs `SmokeBattleTests`. Bare `./Scripts/test.sh smoke` runs the three-class smoke plan (tab shells, Battle, Shop).
 
 Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Engine hand size: that README. Presentation layout: `Packages/TrinketBattleFeature/README.md`.
 

@@ -13,7 +13,7 @@ Locked decisions also appear as PD-008–PD-011 in [Decisions.md](Decisions.md).
 | 1 | What must identity unlock? | **Cross-device progress only** |
 | 2 | Google Sign-In? | **Skip** (not required) |
 | 3 | No iCloud on device? | **Fully playable local-only** |
-| 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion--apple-guidance) |
+| 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion-apple-guidance) |
 | 5 | Multi-device conflicts? | Verify an explicit per-domain conflict policy before launch; passive Homestead production remains gated until its idempotent claim authority is verified |
 | 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
 | 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |

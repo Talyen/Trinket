@@ -21,16 +21,6 @@ struct PlayScreen {
         assertLoaded(timeout: timeout, file: file, line: line)
     }
 
-    func assertChapterHeader(
-        number: Int,
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        let element = app.descendants(matching: .any)[AccessibilityID.Play.chapterHeader(number: number)]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Chapter \(number) header not found", file: file, line: line)
-    }
-
     func assertCampaignLoaded(
         number: Int = 1,
         timeout: TimeInterval = TrinketUITestCase.defaultTimeout,

@@ -147,20 +147,17 @@ trinket_add_smoke_target_for_path() {
     Packages/TrinketBattleFeature/Sources/*|TrinketUITests/Battle/*)
       trinket_add_smoke_target SmokeBattleTests
       ;;
-    Trinket/Features/Collection/*|TrinketUITests/Collection/*)
-      trinket_add_smoke_target SmokeCollectionTests
-      ;;
-    Trinket/Features/Homestead/*|TrinketUITests/Homestead/*|TrinketUITests/Support/*)
-      trinket_add_smoke_target SmokeHomesteadTests
+    Trinket/Features/Collection/*|Trinket/Features/Homestead/*|Trinket/Features/Options/*|TrinketUITests/Collection/*|TrinketUITests/Homestead/*|TrinketUITests/Support/*)
+      trinket_add_smoke_target SmokeShellTests
       ;;
     Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/AccessibilityID.swift|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/PreparedArtworkCache.swift)
-      trinket_add_smoke_target SmokeHomesteadTests
+      trinket_add_smoke_target SmokeShellTests
       ;;
     Trinket/Features/Play/Shop/*|TrinketUITests/Play/ShopFlowUITests.swift)
       trinket_add_smoke_target SmokeShopTests
       ;;
     Trinket/Features/Play/*|TrinketUITests/Play/*)
-      trinket_add_smoke_target SmokePlayTests
+      trinket_add_smoke_target SmokeShellTests
       ;;
     TrinketUITests/Smoke/*.swift)
       local target="${path##*/}"

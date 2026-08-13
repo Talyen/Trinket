@@ -58,7 +58,6 @@ build_input_paths+=(
   BattlePerformance.xctestplan
   FullUI.xctestplan
   Integration.xctestplan
-  QuickSmoke.xctestplan
   Smoke.xctestplan
 )
 

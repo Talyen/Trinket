@@ -13,8 +13,8 @@ source ./Scripts/build-stamp.sh
 # Fast UI iteration: build once, run a smoke class, then optional exhaustive class.
 #
 # Examples:
-#   ./Scripts/test-iterate.sh SmokeCollectionTests
-#   ./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests
+#   ./Scripts/test-iterate.sh SmokeShellTests
+#   ./Scripts/test-iterate.sh SmokeShellTests TabNavigationUITests
 #   ./Scripts/test-iterate.sh BattleFlowUITests --no-build
 
 NO_BUILD_FLAG=()

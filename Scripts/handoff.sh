@@ -108,8 +108,8 @@ Usage: ./Scripts/handoff.sh [--dry-run] [--quiet] [--isolate] [--paths <file> ..
 
 Classifies task-scoped changes when --paths is supplied, otherwise all
 working-tree changes. It runs generation, style, touched-package tests, an
-app build for unresolved feature/UI Swift, app unit tests, and a targeted
-smoke canary — sequentially, with no demotions or warm-cache reuse.
+app build for unresolved feature/UI Swift, and a targeted smoke canary —
+sequentially, with no demotions or warm-cache reuse.
 
 --isolate forwards to the simulator-slot environment (test/test-package) so a
 task-scoped run does not collide with another agent on the same Mac. Agents

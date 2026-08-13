@@ -19,10 +19,7 @@
         "PlayModeNavigationUITests",
         "ShopFlowUITests",
         "SmokeBattleTests",
-        "SmokeCollectionTests",
-        "SmokeHomesteadTests",
-        "SmokeOptionsTests",
-        "SmokePlayTests",
+        "SmokeShellTests",
         "SmokeShopTests",
         "TabNavigationUITests"
       ],

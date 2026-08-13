@@ -5,7 +5,6 @@ options:
   deploymentTarget:
     iOS: "26.0"
 fileGroups:
-  - QuickSmoke.xctestplan
   - Smoke.xctestplan
   - BattlePerformance.xctestplan
   - FullUI.xctestplan
@@ -115,9 +114,8 @@ schemes:
         Trinket: all
     test:
       testPlans:
-        - path: QuickSmoke.xctestplan
-          defaultPlan: true
         - path: Smoke.xctestplan
+          defaultPlan: true
         - path: BattlePerformance.xctestplan
         - path: FullUI.xctestplan
         - path: Integration.xctestplan

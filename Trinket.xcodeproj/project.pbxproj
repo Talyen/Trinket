@@ -53,7 +53,6 @@
 		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		E43AF427DA2725C7880E05D0 /* BattleEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BattleEngine; path = Packages/BattleEngine; sourceTree = SOURCE_ROOT; };
 		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
-		F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */ = {isa = PBXFileReference; path = QuickSmoke.xctestplan; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
 		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -163,7 +162,6 @@
 				E89691B00998EAF137303F2E /* FullUI.xctestplan */,
 				4058BC1CE8ECD030168E8758 /* Integration.xctestplan */,
 				ADA42E5A1490B3683FC93B52 /* Media */,
-				F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */,
 				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
 				2844A738FB32D14BF53C79FF /* Packages */,
 				A4012463DD954CE8411DA9EE /* Trinket */,
